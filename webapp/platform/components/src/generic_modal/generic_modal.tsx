@@ -7,6 +7,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {useFocusTrap} from '../hooks/useFocusTrap';
+import {useStackedModal} from '../hooks/useStackedModal';
 import './generic_modal.scss';
 
 export type ModalLocation = 'top' | 'center' | 'bottom';
@@ -54,6 +55,13 @@ export type Props = {
     headerButton?: React.ReactNode;
     showCloseButton?: boolean;
     showHeader?: boolean;
+
+    /**
+     * Whether this modal is stacked on top of another modal.
+     * When true, the modal will not render its own backdrop and will
+     * adjust the z-index of the parent modal's backdrop.
+     */
+    isStacked?: boolean;
 
     /*
      * Controls the vertical location of the modal.
@@ -127,6 +135,7 @@ export const GenericModal: React.FC<Props> = ({
     headerButton,
     dataTestId,
     delayFocusTrap,
+    isStacked = false,
 }) => {
     const intl = useIntl();
 
@@ -139,6 +148,13 @@ export const GenericModal: React.FC<Props> = ({
     useFocusTrap(showState, containerRef, {
         delayMs: delayFocusTrap ? 500 : undefined,
     });
+
+    // Use stacked modal hook to manage backdrop and z-index
+    // Only pass isStacked=true when it's explicitly set to true
+    const {
+        shouldRenderBackdrop,
+        modalStyle,
+    } = useStackedModal(Boolean(isStacked), showState, containerRef);
 
     useEffect(() => {
         setShowState(show);
@@ -278,12 +294,13 @@ export const GenericModal: React.FC<Props> = ({
             enforceFocus={enforceFocus}
             onHide={onHideCallback}
             onExited={onExited}
-            backdrop={backdrop}
+            backdrop={shouldRenderBackdrop ? backdrop : false}
             backdropClassName={backdropClassName}
             container={container}
             keyboard={keyboardEscape}
             onEntered={onEntered}
             data-testid={dataTestId}
+            style={modalStyle}
         >
             <div
                 ref={containerRef}

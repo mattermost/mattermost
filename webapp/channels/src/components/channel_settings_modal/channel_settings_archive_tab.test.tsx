@@ -197,4 +197,30 @@ describe('ChannelSettingsArchiveTab', () => {
         // Check that deleteChannel was called with the invalid channel ID
         expect(channelActions.deleteChannel).toHaveBeenCalledWith(invalidChannel.id);
     });
+
+    it('should render only one backdrop when confirmation modal is opened', async () => {
+        // Create a mock backdrop element to simulate the parent modal's backdrop
+        const mockBackdrop = document.createElement('div');
+        mockBackdrop.className = 'modal-backdrop';
+        document.body.appendChild(mockBackdrop);
+
+        try {
+            renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
+
+            // Click the archive button to open the confirmation modal
+            await userEvent.click(screen.getByText('Archive this channel'));
+
+            // Check that the confirmation modal is shown
+            expect(screen.getByTestId('archiveChannelConfirmModal')).toBeInTheDocument();
+
+            // Check that there is only one backdrop element in the document
+            // The confirmation modal should be stacked on top of the channel settings modal
+            // and should not render its own backdrop
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            expect(backdrops.length).toBe(1);
+        } finally {
+            // Clean up - remove the mock backdrop
+            document.body.removeChild(mockBackdrop);
+        }
+    });
 });
