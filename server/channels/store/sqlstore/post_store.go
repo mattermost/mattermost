@@ -1525,6 +1525,14 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		query = query.Where(sq.NotEq{"COALESCE(Posts.RemoteId,'')": options.ExcludeRemoteId})
 	}
 
+	if options.ExcludeChannelMetadataSystemPosts {
+		query = query.Where(sq.NotEq{"Posts.Type": []string{
+			model.PostTypeHeaderChange,
+			model.PostTypeDisplaynameChange,
+			model.PostTypePurposeChange,
+		}})
+	}
+
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, cursor, errors.Wrap(err, "getpostssinceforsync_tosql")
