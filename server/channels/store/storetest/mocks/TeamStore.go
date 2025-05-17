@@ -542,6 +542,36 @@ func (_m *TeamStore) GetCommonTeamIDsForTwoUsers(userID string, otherUserID stri
 	return r0, r1
 }
 
+// GetForExport provides a mock function with given fields: teamID
+func (_m *TeamStore) GetForExport(teamID string) (*model.TeamForExport, error) {
+	ret := _m.Called(teamID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForExport")
+	}
+
+	var r0 *model.TeamForExport
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.TeamForExport, error)); ok {
+		return rf(teamID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.TeamForExport); ok {
+		r0 = rf(teamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TeamForExport)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(teamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMany provides a mock function with given fields: ids
 func (_m *TeamStore) GetMany(ids []string) ([]*model.Team, error) {
 	ret := _m.Called(ids)
