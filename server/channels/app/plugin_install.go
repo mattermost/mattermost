@@ -12,7 +12,6 @@
 //   - plugins prepackged with the server in the prepackaged_plugins/ directory
 //   - plugins transitionally prepackaged with the server in the prepackaged_plugins/ directory
 //   - plugins installed to the filestore (amazons3 or local, alongisde files and images)
-//   - unmanaged plugins manually extracted to the confgured local directory
 //     ┌────────────────────────────┐
 //     │ ┌────────────────────────┐ │
 //     │ │prepackaged_plugins/    │ │
@@ -23,14 +22,11 @@
 //     │              │             │
 //     │              ▼             │
 //     │ ┌────────────────────────┐ │
-//     │ │plugins/                │ │
-//     │ │    unmanaged/          │ │
-//     │ │    filestore/          │ │   ┌────────────────────────┐
-//     │ │      .filestore        │ │   │s3://bucket/plugins/    │
+//     │ │plugins/                │ │   ┌────────────────────────┐
+//     │ │    filestore/          │ │   │s3://bucket/plugins/    │
 //     │ │    prepackaged/        │◀┼───│    filestore.tar.gz    │
-//     │ │      .filestore        │ │   │    transitional.tar.gz │
-//     │ │    transitional/       │ │   └────────────────────────┘
-//     │ │      .filestore        │ │
+//     │ │    transitional/       │ │   │    transitional.tar.gz │
+//     │ │                        │ │   └────────────────────────┘
 //     │ └────────────────────────┘ │
 //     │                   ┌────────┤
 //     │                   │ server │
@@ -45,13 +41,8 @@
 // release. On first startup, they are unpacked just like prepackaged plugins, but also get copied
 // to the filestore. On future startups, the server uses the version in the filestore.
 //
-// Plugins are installed to the filestore when the user installs via the marketplace or manually
-// uploads a plugin bundle. (Or because the plugin is transitionally prepackaged).
-//
-// Unmanaged plugins were manually extracted by into the configured local directory. This legacy
-// method of installing plugins is distinguished from other extracted plugins by the absence of a
-// flag file (.filestore). Managed plugins unconditionally override unmanaged plugins. A future
-// version of Mattermost will likely drop support for unmanaged plugins.
+// Plugins are installed to the filestore when the user installs via the marketplace or system
+// console. (Or because the plugin is transitionally prepackaged).
 //
 // ### Enabling a Plugin
 //
@@ -97,10 +88,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
-
-// managedPluginFileName is the file name of the flag file that marks
-// a local plugin folder as "managed" by the file store.
-const managedPluginFileName = ".filestore"
 
 // fileStorePluginFolder is the folder name in the file store of the plugin bundles installed.
 const fileStorePluginFolder = "plugins"
@@ -485,13 +472,6 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	if err != nil {
 		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.mvdir.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
-	// Flag plugin locally as managed by the filestore.
-	f, err := os.Create(filepath.Join(bundlePath, managedPluginFileName))
-	if err != nil {
-		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.flag_managed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	f.Close()
 
 	if manifest.HasWebapp() {
 		updatedManifest, err := pluginsEnvironment.UnpackWebappBundle(manifest.Id)
