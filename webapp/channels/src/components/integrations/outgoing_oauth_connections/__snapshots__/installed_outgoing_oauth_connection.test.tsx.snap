@@ -62,7 +62,9 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
           id="installed_integrations.client_id"
         />
         <strong>
-          someid
+          <code>
+            someid
+          </code>
         </strong>
       </span>
     </div>
@@ -89,7 +91,9 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
           id="installed_integrations.audience_urls"
           values={
             Object {
-              "urls": "https://myaudience.com",
+              "urls": <code>
+                https://myaudience.com
+              </code>,
             }
           }
         />
@@ -106,7 +110,9 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
           id="installed_integrations.token_url"
           values={
             Object {
-              "url": "https://tokenurl.com",
+              "url": <code>
+                https://tokenurl.com
+              </code>,
             }
           }
         />
