@@ -60,7 +60,6 @@ describe('ChannelSettingsArchiveTab', () => {
         jest.clearAllMocks();
 
         mockConfig = {
-            ExperimentalViewArchivedChannels: 'false',
         };
 
         jest.spyOn(teams, 'getCurrentTeam').mockReturnValue({
