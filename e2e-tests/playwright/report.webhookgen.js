@@ -60,6 +60,7 @@ async function uploadFile(filePath, s3Key) {
             Key: s3Key,
             Body: fileStream,
             ContentType: contentType,
+            ACL: 'public-read',
         },
     });
 
