@@ -3,10 +3,13 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
+import {DisplaySettings} from "@mattermost/types/config";
+import {GlobalState} from '@mattermost/types/store';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -29,7 +32,17 @@ import './browse_channels.scss';
 
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
-const SEARCH_TIMEOUT_MILLISECONDS = 100;
+
+export const selectDisplaySettings = (state: GlobalState): DisplaySettings => {
+    return state.entities.general.config?.DisplaySettings || {
+        CustomURLSchemes: [],
+        MaxMarkdownNodes: 0,
+        SuggestionDebounceDelay: 100,
+    };
+};
+const displaySettings: DisplaySettings = useSelector(selectDisplaySettings);
+const SEARCH_TIMEOUT_MILLISECONDS: number = displaySettings.SuggestionDebounceDelay || 100;
+
 export enum Filter {
     All = 'All',
     Public = 'Public',
@@ -172,7 +185,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     };
 
     handleJoin = async (channel: Channel, done: () => void) => {
-        const {actions, currentUserId, teamId, teamName} = this.props;
+        const { actions, currentUserId, teamId, teamName } = this.props;
         let result;
 
         if (!this.isMemberOfChannel(channel.id)) {
