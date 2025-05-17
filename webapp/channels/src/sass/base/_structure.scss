@@ -32,7 +32,7 @@ body {
 .sticky {
     background: variables.$white;
 
-    > .channel-view {
+    >.channel-view {
         overflow: auto;
         height: 100vh;
         padding: 0 15px;
@@ -41,7 +41,7 @@ body {
     .inner-wrap {
         width: 100%;
 
-        > .row {
+        >.row {
             &.content {
                 min-height: calc(100vh - 89px);
 
@@ -65,7 +65,7 @@ body {
         overflow: auto;
     }
 
-    > .row {
+    >.row {
         &.main {
             position: relative;
             height: 100%;
@@ -137,7 +137,8 @@ body.app__body #root {
             "header header" min-content
             "lhs center"
             "footer footer" min-content;
-        grid-template-columns: auto 1fr; /* lhs takes its content width, center takes remaining space */
+        grid-template-columns: auto 1fr;
+        /* lhs takes its content width, center takes remaining space */
     }
 
     &.container-fluid {
@@ -244,6 +245,7 @@ body.app__body #root {
                 "header" min-content
                 "main" auto
                 "footer" min-content / auto;
+
             .team-sidebar,
             .app-bar {
                 grid-area: main;
@@ -272,6 +274,25 @@ body.app__body #root {
                     border: none;
                     box-shadow: none;
                 }
+            }
+        }
+    }
+
+    @media screen and (max-width: 1080px) {
+        .sidebar--right--width-holder {
+            display: none;
+        }
+
+        #sidebar-right {
+            position: absolute;
+            width: 100%;
+            grid-area: center;
+            transition: width 0.25s ease-in-out;
+            border-radius: var(--radius-l);
+            max-width: none;
+
+            .sidebar--right__expand {
+                display: none;
             }
         }
     }
@@ -310,10 +331,8 @@ body.app__body #root {
 
 .rhs-open #channel_view.channel-view,
 .rhs-open-expanded #channel_view.channel.view {
-    @media screen and (min-width: 1200px) {
-        padding-right: 20px;
-        margin-right: -20px;
-    }
+    padding-right: 20px;
+    margin-right: -20px;
 }
 
 img {
