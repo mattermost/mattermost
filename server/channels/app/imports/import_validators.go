@@ -715,7 +715,7 @@ func isValidGuestRoles(data UserImportData) bool {
 	isSystemGuest := model.IsInRole(*data.Roles, model.SystemGuestRoleId)
 
 	var isTeamGuest, isChannelGuest bool
-	if data.Teams != nil {
+	if data.Teams != nil && len(*data.Teams) > 0 {
 		// counters for guest roles for teams and channels
 		// we expect the total count of guest roles to be equal to the total count of teams and channels
 		var gtc, ctc int
@@ -724,7 +724,7 @@ func isValidGuestRoles(data UserImportData) bool {
 				gtc++
 			}
 
-			if *team.Channels != nil {
+			if *team.Channels != nil && len(*team.Channels) > 0 {
 				for _, channel := range *team.Channels {
 					if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
 						ctc++
