@@ -292,11 +292,12 @@ func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
 	return &status, nil
 }
 
-func (jss SqlJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, page int, perPage int) ([]*model.Job, error) {
+	offset := page * perPage
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobTypes}).
 		OrderBy("CreateAt DESC").
-		Limit(uint64(limit)).
+		Limit(uint64(perPage)).
 		Offset(uint64(offset)).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
@@ -342,11 +343,12 @@ func (jss SqlJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, stat
 	return jobs, nil
 }
 
-func (jss SqlJobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, error) {
+	offset := page * perPage
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType}).
 		OrderBy("CreateAt DESC").
-		Limit(uint64(limit)).
+		Limit(uint64(perPage)).
 		Offset(uint64(offset)).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
@@ -376,11 +378,12 @@ func (jss SqlJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Jo
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, offset int, limit int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, page int, perPage int) ([]*model.Job, error) {
+	offset := page * perPage
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType, "Status": status}).
 		OrderBy("CreateAt DESC").
-		Limit(uint64(limit)).
+		Limit(uint64(perPage)).
 		Offset(uint64(offset)).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
