@@ -252,6 +252,7 @@ jobs:
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
       ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
+      TEST: "cypress"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_CYPRESS }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
@@ -269,6 +270,8 @@ jobs:
       REPORT_TM4J_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_TEST_CYCLE_LINK_PREFIX }}"
       CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
+      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
+      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
 
   e2e-fulltest-playwright:
     needs:
@@ -284,7 +287,7 @@ jobs:
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
-      TEST: playwright
+      TEST: "playwright"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
@@ -298,6 +301,8 @@ jobs:
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
+      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
+      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
 
   notify-user:
     runs-on: ubuntu-latest

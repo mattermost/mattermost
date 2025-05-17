@@ -84,6 +84,10 @@ on:
         required: false
       CWS_EXTRA_HTTP_HEADERS:
         required: false
+      AWS_ACCESS_KEY_ID:
+        required: false
+      AWS_SECRET_ACCESS_KEY:
+        required: false
     outputs:
       passed:
         value: "${{ jobs.report.outputs.passed }}"
@@ -422,6 +426,11 @@ jobs:
           MM_ENV: "${{ inputs.MM_ENV }}"
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
+          CI: true
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          AWS_REGION: "us-east-1"
+          AWS_S3_BUCKET: "mattermost-cypress-report"
         run: |
           make report
       # The results dir may have been modified as part of the reporting: re-upload
@@ -434,6 +443,12 @@ jobs:
             e2e-tests/${{ inputs.TEST }}/logs/
             e2e-tests/${{ inputs.TEST }}/results/
           overwrite: true
+      - name: ci/upload-report-url
+        if: "${{ inputs.enable_reporting && inputs.TEST == 'playwright' }}"
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-report-url
+          path: e2e-tests/playwright/report-url.txt
       - name: ci/report-calculate-results
         id: calculate-results
         env:
@@ -479,6 +494,17 @@ jobs:
       - test
       - report
     steps:
+      - name: ci/download-report-url
+        if: ${{ inputs.TEST == 'playwright' }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: playwright-report-url
+      - name: ci/read-report-url
+        if: ${{ inputs.TEST == 'playwright' }}
+        id: read-report-url
+        run: |
+          REPORT_URL=$(cat playwright-report-url/*.txt)
+          echo "REPORT_URL=${REPORT_URL}" >> $GITHUB_OUTPUT
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -488,7 +514,7 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: failure
-          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
+          target_url: "${{ inputs.TEST == 'playwright' && steps.read-report-url.outputs.REPORT_URL || needs.generate-test-cycle.outputs.status_check_url }}"
 
   update-success-final-status:
     runs-on: ubuntu-latest
@@ -498,6 +524,17 @@ jobs:
       - test
       - report
     steps:
+      - name: ci/download-report-url
+        if: ${{ inputs.TEST == 'playwright' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report-url
+      - name: ci/read-report-url
+        if: ${{ inputs.TEST == 'playwright' }}
+        id: read-report-url
+        run: |
+          REPORT_URL=$(cat playwright-report-url/*.txt)
+          echo "REPORT_URL=${REPORT_URL}" >> $GITHUB_OUTPUT
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -507,4 +544,4 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: success
-          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
+          target_url: "${{ inputs.TEST == 'playwright' && steps.read-report-url.outputs.REPORT_URL || needs.generate-test-cycle.outputs.status_check_url }}"
