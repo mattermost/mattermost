@@ -28,7 +28,7 @@ const HeaderElement = ({col}: HeaderElementProps) => {
     );
 };
 
-export type Props = {
+type Props = {
     columns: Column[];
 }
 
