@@ -32,7 +32,7 @@ const NoFiltersPanel = ({setShowAddModal}: NoFiltersPanelProps) => (
                     add: (msg) => (
                         <div
                             onClick={() => setShowAddModal(true)}
-                            className='Button'
+                            className='btn btn-primary'
                         >
                             {msg}
                         </div>

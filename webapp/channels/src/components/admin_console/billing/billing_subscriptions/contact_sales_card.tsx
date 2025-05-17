@@ -145,7 +145,7 @@ const ContactSalesCard = (props: Props) => {
                     <ExternalLink
                         location='contact_sales_card'
                         href={contactSalesLink}
-                        className='PrivateCloudCard__actionButton'
+                        className='btn btn-tertiary PrivateCloudCard__actionButton'
                         onClick={() => trackEvent('cloud_admin', 'click_contact_sales')}
                     >
                         <FormattedMessage
@@ -165,7 +165,7 @@ const ContactSalesCard = (props: Props) => {
                                 openSalesLink();
                             }
                         }}
-                        className='PrivateCloudCard__actionButton'
+                        className='btn btn-tertiary PrivateCloudCard__actionButton'
                     >
                         {subscriptionPlan === CloudProducts.STARTER ? (
                             <FormattedMessage

@@ -182,12 +182,12 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
         className="visit-marketplace"
       >
         <button
-          className="btn btn-primary visit-marketplace-button"
+          className="btn btn-primary btn-sm visit-marketplace-button"
           id="marketPlaceButton"
           onClick={[Function]}
         >
           <ActionsMenuIcon
-            name="icon-view-grid-plus-outline visit-marketplace-button-icon"
+            name="icon-view-grid-plus-outline"
           />
           <span
             className="visit-marketplace-button-text"
