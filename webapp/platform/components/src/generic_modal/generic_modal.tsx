@@ -144,6 +144,11 @@ export const GenericModal: React.FC<Props> = ({
 
     const [showState, setShowState] = useState(show);
 
+    const onHideCallback = useCallback(() => {
+        setShowState(false);
+        onHide?.();
+    }, [onHide]);
+
     // Use focus trap to keep focus within the modal when it's open
     useFocusTrap(showState, containerRef, {
         delayMs: delayFocusTrap ? 500 : undefined,
@@ -154,16 +159,11 @@ export const GenericModal: React.FC<Props> = ({
     const {
         shouldRenderBackdrop,
         modalStyle,
-    } = useStackedModal(Boolean(isStacked), showState, containerRef);
+    } = useStackedModal(Boolean(isStacked), showState);
 
     useEffect(() => {
         setShowState(show);
     }, [show]);
-
-    const onHideCallback = useCallback(() => {
-        setShowState(false);
-        onHide?.();
-    }, [onHide]);
 
     const handleCancelCallback = useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         event.preventDefault();
@@ -295,6 +295,7 @@ export const GenericModal: React.FC<Props> = ({
             onHide={onHideCallback}
             onExited={onExited}
             backdrop={shouldRenderBackdrop ? backdrop : false}
+            backdropStyle={isStacked ? {zIndex: 1051} : undefined}
             backdropClassName={backdropClassName}
             container={container}
             keyboard={keyboardEscape}

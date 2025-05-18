@@ -3,19 +3,11 @@
 
 import {useLayoutEffect, useRef, useState} from 'react';
 
-// Z-index values
 const BASE_MODAL_Z_INDEX = 1050; // Bootstrap default modal z-index
 const BASE_BACKDROP_Z_INDEX = 1040; // Bootstrap default backdrop z-index
 const Z_INDEX_INCREMENT = 10; // Increment for each stacked modal level
 
-type StackedModalOptions = {
-
-    /**
-     * Optional delay in milliseconds before adjusting the backdrop.
-     * Useful when the modal has animations or transitions.
-     */
-    delayMs?: number;
-};
+// No options needed since delayMs is not used by any consumers
 
 type StackedModalResult = {
 
@@ -40,15 +32,11 @@ type StackedModalResult = {
  *
  * @param isStacked Whether this modal is stacked on top of another modal
  * @param isOpen Whether the modal is currently open
- * @param modalRef A ref to the modal element
- * @param options Configuration options
  * @returns An object with properties to control modal and backdrop rendering
  */
 export function useStackedModal(
     isStacked: boolean,
     isOpen: boolean,
-    modalRef: React.RefObject<HTMLElement>,
-    options: StackedModalOptions = {},
 ): StackedModalResult {
     // State to track whether this modal should render its own backdrop
     const [shouldRenderBackdrop, setShouldRenderBackdrop] = useState(!isStacked);
@@ -68,72 +56,78 @@ export function useStackedModal(
     // Ref to store the parent modal's backdrop element
     const backdropRef = useRef<HTMLElement | null>(null);
 
+    // Ref to store the original opacity of the parent modal's backdrop
+    const originalBackdropOpacityRef = useRef<string | null>(null);
+
     useLayoutEffect(() => {
         // If this is not a stacked modal or not open, do nothing
         if (!isStacked || !isOpen) {
             return;
         }
 
-        let timeoutId: NodeJS.Timeout | null = null;
+        // No timeout needed since we're not using delay
 
         // Function to adjust the backdrop for stacked modals
         const adjustBackdrop = () => {
-            // For stacked modals, we don't want to render our own backdrop
-            setShouldRenderBackdrop(false);
+            // For stacked modals, we want to render our own backdrop
+            setShouldRenderBackdrop(true);
 
             // Calculate the z-index for the stacked modal
             const stackedModalZIndex = BASE_MODAL_Z_INDEX + Z_INDEX_INCREMENT;
 
-            // Update the z-index for this modal
+            // Update the z-index for this modal and its backdrop
+            // The backdrop should be above the parent modal (1050) but below the stacked modal
             setZIndexes({
                 modal: stackedModalZIndex,
-                backdrop: stackedModalZIndex - 1, // Not used directly, but kept for consistency
+                backdrop: stackedModalZIndex - 1, // This is 1050 + 10 - 1 = 1059
             });
 
-            // In a real browser environment, we would also adjust the parent backdrop's z-index
-            if (typeof document !== 'undefined' && document.querySelector) {
-                // Find the existing backdrop in the DOM
-                const backdrop = document.querySelector('.modal-backdrop') as HTMLElement;
-                if (backdrop) {
-                    // Store the backdrop and its original z-index
-                    backdropRef.current = backdrop;
-                    originalBackdropZIndexRef.current = backdrop.style.zIndex || String(BASE_BACKDROP_Z_INDEX);
+            // Adjust the parent backdrop's opacity and z-index
+            if (typeof document !== 'undefined') {
+                // Find all existing backdrops in the DOM
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                if (backdrops.length > 0) {
+                    // Get the most recent backdrop (the one with the highest z-index)
+                    // This should be the backdrop of the parent modal
+                    const parentBackdrop = backdrops[backdrops.length - 1] as HTMLElement;
+                    backdropRef.current = parentBackdrop;
+                    originalBackdropZIndexRef.current = parentBackdrop.style.zIndex || String(BASE_BACKDROP_Z_INDEX);
+                    originalBackdropOpacityRef.current = parentBackdrop.style.opacity || '0.5'; // Default Bootstrap backdrop opacity
 
-                    // Increase the z-index of the backdrop to be above the parent modal
-                    // but below this modal
-                    const backdropZIndex = stackedModalZIndex - 1;
-                    backdrop.style.zIndex = String(backdropZIndex);
-                } else {
-                    // If we can't find a backdrop element, we still want to ensure
-                    // that shouldRenderBackdrop is set correctly for stacked modals
-                    setShouldRenderBackdrop(false);
+                    // Add a transition for smooth opacity change
+                    parentBackdrop.style.transition = 'opacity 150ms ease-in-out';
+                    parentBackdrop.style.opacity = '0';
                 }
             }
         };
 
-        // Adjust the backdrop, with optional delay
-        if (options.delayMs && options.delayMs > 0) {
-            timeoutId = setTimeout(adjustBackdrop, options.delayMs);
-        } else {
-            adjustBackdrop();
-        }
+        // Adjust the backdrop immediately (no delay option)
+        adjustBackdrop();
 
         // Cleanup function
         // eslint-disable-next-line consistent-return
         return () => {
-            // Clear timeout if component unmounts during delay
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
+            // Restore original backdrop properties
+            if (backdropRef.current) {
+                if (originalBackdropZIndexRef.current) {
+                    // Restore original z-index if it was stored
+                    backdropRef.current.style.zIndex = originalBackdropZIndexRef.current;
+                }
 
-            // Restore original backdrop z-index
-            if (backdropRef.current && originalBackdropZIndexRef.current) {
-                backdropRef.current.style.zIndex = originalBackdropZIndexRef.current;
+                if (originalBackdropOpacityRef.current) {
+                    // Restore original opacity if it was stored
+                    // Keep the transition for a smooth fade-in
+                    backdropRef.current.style.transition = 'opacity 150ms ease-in-out';
+                    backdropRef.current.style.opacity = originalBackdropOpacityRef.current;
+                }
+
+                // Clear refs
                 backdropRef.current = null;
                 originalBackdropZIndexRef.current = null;
+                originalBackdropOpacityRef.current = null;
             }
         };
-    }, [isOpen, isStacked, options.delayMs]);
+    }, [isOpen, isStacked]);
 
     return {
         shouldRenderBackdrop,

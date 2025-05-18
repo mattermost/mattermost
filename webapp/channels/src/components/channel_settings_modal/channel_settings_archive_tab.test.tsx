@@ -198,7 +198,7 @@ describe('ChannelSettingsArchiveTab', () => {
         expect(channelActions.deleteChannel).toHaveBeenCalledWith(invalidChannel.id);
     });
 
-    it('should render only one backdrop when confirmation modal is opened', async () => {
+    it('should handle backdrops correctly when confirmation modal is opened', async () => {
         // Create a mock backdrop element to simulate the parent modal's backdrop
         const mockBackdrop = document.createElement('div');
         mockBackdrop.className = 'modal-backdrop';
@@ -213,11 +213,17 @@ describe('ChannelSettingsArchiveTab', () => {
             // Check that the confirmation modal is shown
             expect(screen.getByTestId('archiveChannelConfirmModal')).toBeInTheDocument();
 
-            // Check that there is only one backdrop element in the document
-            // The confirmation modal should be stacked on top of the channel settings modal
-            // and should not render its own backdrop
+            // With the new approach, there should be two backdrops:
+            // 1. The parent modal's backdrop (with opacity 0)
+            // 2. The confirmation modal's backdrop
             const backdrops = document.querySelectorAll('.modal-backdrop');
-            expect(backdrops.length).toBe(1);
+            expect(backdrops.length).toBe(2);
+
+            // Check that one of the backdrops has opacity 0
+            const hasInvisibleBackdrop = Array.from(backdrops).some(
+                (backdrop) => (backdrop as HTMLElement).style.opacity === '0',
+            );
+            expect(hasInvisibleBackdrop).toBe(true);
         } finally {
             // Clean up - remove the mock backdrop
             document.body.removeChild(mockBackdrop);
