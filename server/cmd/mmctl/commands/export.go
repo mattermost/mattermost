@@ -156,7 +156,7 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 	}
 
 	teamName, err := command.Flags().GetString("team")
-	if err != nil && teamName != "" {
+	if err == nil && teamName != "" {
 		data["team_name"] = teamName
 	}
 
