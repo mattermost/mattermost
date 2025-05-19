@@ -1,0 +1,46 @@
+.field-selector-menu-button {
+    width: 100%;
+    height: 40px;
+    justify-content: start;
+    border-color: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    font-weight: normal;
+    
+    &:hover,
+    &:focus {
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.04)
+    }
+    
+    &:focus,
+    &[aria-expanded="true"] {
+        background: rgba(var(--button-bg-rgb), 0.08);
+    }
+
+    &.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    svg {
+        margin-right: 8px;
+    }
+}
+
+.select-attribute-mui-menu,
+.select-operator-mui-menu {
+    margin-top: 0;
+
+    .MenuItem {
+        height: 40px;
+        
+        svg {
+            margin-right: 8px;
+        }
+    }
+} 
