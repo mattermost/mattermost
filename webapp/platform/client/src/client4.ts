@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
@@ -4510,6 +4510,13 @@ export default class Client4 {
         return this.doFetch<AccessControlVisualAST>(
             `${this.getBaseRoute()}/access_control_policies/cel/visual_ast`,
             {method: 'post', body: JSON.stringify({expression})},
+        );
+    };
+
+    getChannelAccessControlAttributes = (channelId: string) => {
+        return this.doFetch<AccessControlAttributes>(
+            `${this.getChannelRoute(channelId)}/access_control/attributes`,
+            {method: 'get'},
         );
     };
 }
