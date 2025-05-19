@@ -19,21 +19,21 @@ const (
 	connectionIDParam     = "connection_id"
 	sequenceNumberParam   = "sequence_number"
 	postedAckParam        = "posted_ack"
-	disconnectReasonParam = "disconnect_reason"
+	disconnectErrCodeParam = "disconnect_err_code"
 
 	clientPingTimeoutErrCode      = 4000
 	clientSequenceMismatchErrCode = 4001
 )
 
-// validateDisconnectReason ensures the specified disconnect reason
-// is a valid disconnect error code
-func validateDisconnectReason(reason string) bool {
-	if reason == "" {
+// validateDisconnectErrCode ensures the specified disconnect error code
+// is a valid websocket close code
+func validateDisconnectErrCode(errCode string) bool:
+	if errCode == "" {
 		return false
 	}
 
 	// Ensure the disconnect code is a standard close code
-	code, err := strconv.Atoi(reason)
+	code, err := strconv.Atoi(errCode)
 	if err != nil {
 		return false
 	}
@@ -83,9 +83,9 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		XForwardedFor: c.AppContext.XForwardedFor(),
 	}
 
-	disconnectReason := r.URL.Query().Get(disconnectReasonParam)
-	if reasonValid := validateDisconnectReason(disconnectReason); reasonValid {
-		cfg.DisconnectReason = disconnectReason
+	disconnectErrCode := r.URL.Query().Get(disconnectErrCodeParam)
+	if codeValid := validateDisconnectErrCode(disconnectErrCode); codeValid {
+		cfg.DisconnectErrCode = disconnectErrCode
 	}
 
 	// The WebSocket upgrade request coming from mobile is missing the

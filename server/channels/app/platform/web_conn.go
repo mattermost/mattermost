@@ -73,7 +73,7 @@ type WebConnConfig struct {
 	PostedAck        bool
 	RemoteAddress    string
 	XForwardedFor    string
-	DisconnectReason string
+	DisconnectErrCode string
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int64
@@ -96,7 +96,7 @@ type WebConn struct {
 	Sequence         int64
 	UserId           string
 	PostedAck        bool
-	DisconnectReason string
+	DisconnectErrCode string
 
 	allChannelMembers         map[string]string
 	lastAllChannelMembersTime int64
@@ -248,7 +248,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		T:                  cfg.TFunc,
 		Locale:             cfg.Locale,
 		PostedAck:          cfg.PostedAck,
-		DisconnectReason:   cfg.DisconnectReason,
+		DisconnectErrCode:   cfg.DisconnectErrCode,
 		reuseCount:         cfg.ReuseCount,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
@@ -526,7 +526,7 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithReason(reconnectFound, wc.DisconnectReason)
+				m.IncrementWebsocketReconnectEventWithReason(reconnectFound, wc.DisconnectErrCode)
 			}
 		} else if wc.hasMsgLoss() {
 			// If the seq number is not in dead queue, but it was supposed to be,
@@ -544,11 +544,11 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithReason(reconnectNotFound, wc.DisconnectReason)
+				m.IncrementWebsocketReconnectEventWithReason(reconnectNotFound, wc.DisconnectErrCode)
 			}
 		} else {
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithReason(reconnectLossless, wc.DisconnectReason)
+				m.IncrementWebsocketReconnectEventWithReason(reconnectLossless, wc.DisconnectErrCode)
 			}
 		}
 	}

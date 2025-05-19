@@ -49,7 +49,7 @@ export default class WebSocketClient {
     private serverSequence: number;
     private connectFailCount: number;
     private responseCallbacks: {[x: number]: ((msg: any) => void)};
-    private lastCloseReason: string | null;
+    private lastErrCode: string | null;
 
     /**
      * @deprecated Use messageListeners instead
@@ -115,7 +115,7 @@ export default class WebSocketClient {
         this.config = {...defaultWebSocketClientConfig, ...config};
         this.pingInterval = null;
         this.waitingForPong = false;
-        this.lastCloseReason = null;
+        this.lastErrCode = null;
     }
 
     // on connect, only send auth cookie and blank state.
@@ -210,8 +210,8 @@ export default class WebSocketClient {
             websocketUrl += '&posted_ack=true';
         }
 
-        if (this.lastCloseReason) {
-            websocketUrl += `&disconnect_reason=${encodeURIComponent(this.lastCloseReason)}`;
+        if (this.lastErrCode) {
+            websocketUrl += `&disconnect_err_code=${encodeURIComponent(this.lastErrCode)}`;
         }
 
         if (this.config.newWebSocketFn) {
@@ -224,12 +224,12 @@ export default class WebSocketClient {
             this.conn = null;
             this.responseSequence = 1;
 
-            if (!this.lastCloseReason && event && event.code) {
-                this.lastCloseReason = `${event.code}`;
+            if (!this.lastErrCode && event && event.code) {
+                this.lastErrCode = `${event.code}`;
             }
 
             if (this.connectFailCount === 0) {
-                console.log(`websocket closed: ${this.lastCloseReason}`); //eslint-disable-line no-console
+                console.log(`websocket closed: ${this.lastErrCode}`); //eslint-disable-line no-console
             }
 
             this.connectFailCount++;
@@ -273,7 +273,7 @@ export default class WebSocketClient {
                 this.sendMessage('authentication_challenge', {token});
             }
 
-            this.lastCloseReason = null;
+            this.lastErrCode = null;
 
             if (this.connectFailCount > 0) {
                 console.log('websocket re-established connection'); //eslint-disable-line no-console
@@ -547,7 +547,7 @@ export default class WebSocketClient {
         this.connectFailCount = 0;
         this.responseSequence = 1;
         this.clearReconnectTimeout();
-        this.lastCloseReason = null;
+        this.lastErrCode = null;
         this.stopPingInterval();
 
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {

@@ -726,7 +726,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of websocket reconnect attempts",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type", "disconnect_reason"},
+		[]string{"type", "disconnect_err_code"},
 	)
 	m.Registry.MustRegister(m.WebSocketReconnectCounter)
 
@@ -1825,13 +1825,13 @@ func (mi *MetricsInterfaceImpl) IncrementWebsocketEvent(eventType model.Websocke
 	mi.WebsocketEventCounters.With(prometheus.Labels{"type": string(eventType)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementWebsocketReconnectEventWithReason(eventType string, disconnectReason string) {
-	if disconnectReason == "" {
-		disconnectReason = "unknown"
+func (mi *MetricsInterfaceImpl) IncrementWebsocketReconnectEventWithDisconnectErrCode(eventType string, disconnectErrCode string) {
+	if disconnectErrCode == "" {
+		disconnectErrCode = "unknown"
 	}
 	mi.WebSocketReconnectCounter.With(prometheus.Labels{
-		"type":              eventType,
-		"disconnect_reason": disconnectReason,
+		"type":                eventType,
+		"disconnect_err_code": disconnectErrCode,
 	}).Inc()
 }
 
