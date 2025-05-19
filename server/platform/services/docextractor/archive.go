@@ -39,6 +39,7 @@ func getExtAlsoTarGz(name string) string {
 func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error) {
 	ext := getExtAlsoTarGz(name)
 
+	// Create a temporary file, using `*` control the random component while preserving the extension.
 	f, err := os.CreateTemp("", "archiver-*"+ext)
 	if err != nil {
 		return "", fmt.Errorf("error creating temporary file: %v", err)
