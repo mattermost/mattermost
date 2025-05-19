@@ -147,12 +147,12 @@ func TestSyncLdap(t *testing.T) {
 		"StartSynchronizeJob",
 		mock.AnythingOfType("*request.Context"),
 		mock.AnythingOfType("bool"),
-		mock.AnythingOfType("bool"),
+		mock.AnythingOfType("*bool"),
 	).Return(nil, nil)
 	ready := make(chan bool)
 	reAddRemovedMembers := false
 	mockCall.RunFn = func(args mock.Arguments) {
-		reAddRemovedMembers = args[2].(bool)
+		reAddRemovedMembers = *args[2].(*bool)
 		ready <- true
 	}
 	th.App.Channels().Ldap = ldapMock
