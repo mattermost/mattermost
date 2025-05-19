@@ -86,7 +86,9 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
         channelTitle = <ChannelHeaderTitleGroup gmMembers={gmMembers}/>;
     }
 
-    const pluginItems = pluginMenuItems.map((item) => {
+    const isSharedChannel = channel?.shared || false;
+
+    const pluginItems = isSharedChannel ? [] : pluginMenuItems.map((item) => {
         const handlePluginItemClick = () => {
             if (item.action) {
                 item.action(channel.id);
@@ -183,4 +185,3 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
         </Menu.Container>
     );
 }
-

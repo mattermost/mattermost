@@ -48,6 +48,8 @@ export type Props = {
     post: Post;
     teamId: string;
     canOpenMarketplace: boolean;
+    channelIsShared?: boolean;
+    sharedChannelsPluginsEnabled?: boolean;
 
     /**
      * Components for overriding provided by plugins
@@ -269,7 +271,8 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             return null;
         }
 
-        const pluginItems = this.props.pluginMenuItems?.
+        const pluginItemsVisible = !this.props.channelIsShared || this.props.sharedChannelsPluginsEnabled;
+        const pluginItems = pluginItemsVisible ? this.props.pluginMenuItems?.
             filter((item) => {
                 return item.filter ? item.filter(this.props.post.id) : item;
             }).
@@ -298,7 +301,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         }}
                     />
                 );
-            }) || [];
+            }) || [] : [];
 
         let appBindings = [] as JSX.Element[];
         if (this.props.appsEnabled && this.state.appBindings) {
@@ -344,7 +347,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
 
         let menuItems;
         const hasApps = Boolean(appBindings.length);
-        const hasPluggables = Boolean(this.props.pluginMenuItemComponents?.length);
+        const hasPluggables = pluginItemsVisible && Boolean(this.props.pluginMenuItemComponents?.length);
         const hasPluginItems = Boolean(pluginItems?.length);
 
         const hasPluginMenuItems = hasPluginItems || hasApps || hasPluggables;

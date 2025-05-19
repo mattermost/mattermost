@@ -4,6 +4,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 
+import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import CopyButton from 'components/copy_button';
 
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
@@ -15,9 +16,10 @@ type Props = {
     code: string;
     language: string;
     searchedContent?: string;
+    channelIsShared?: boolean;
 }
 
-const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) => {
+const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelIsShared}: Props) => {
     const getUsedLanguage = useCallback(() => {
         let usedLanguage = language || '';
         usedLanguage = usedLanguage.toLowerCase();
@@ -82,7 +84,11 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
     }
 
     const codeBlockActions = useSelector((state: GlobalState) => state.plugins.components.CodeBlockAction);
-    const pluginItems = codeBlockActions?.
+
+    const isSharedChannel = channelIsShared || false;
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(isSharedChannel);
+
+    const pluginItems = pluginItemsVisible ? codeBlockActions?.
         map((item) => {
             if (!item.component) {
                 return null;
@@ -95,7 +101,7 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
                     code={code}
                 />
             );
-        });
+        }) : [];
 
     return (
         <div className={className}>

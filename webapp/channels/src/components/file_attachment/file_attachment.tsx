@@ -10,6 +10,7 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
+import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import GetPublicModal from 'components/get_public_link_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -68,6 +69,9 @@ export default function FileAttachment(props: Props) {
     const [showTooltip, setShowTooltip] = useState(true);
 
     const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+    const isSharedChannel = props.currentChannel?.shared || false;
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(isSharedChannel);
 
     const handleImageLoaded = () => {
         if (mounted.current) {
@@ -195,7 +199,7 @@ export default function FileAttachment(props: Props) {
             );
         }
 
-        const pluginItems = pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
+        const pluginItems = pluginItemsVisible ? pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
             return (
                 <Menu.ItemAction
                     id={item.id + '_pluginmenuitem'}
@@ -204,7 +208,7 @@ export default function FileAttachment(props: Props) {
                     text={item.text}
                 />
             );
-        });
+        }) : [];
 
         const isMenuVisible = defaultItems?.length || pluginItems?.length;
         if (!isMenuVisible) {
