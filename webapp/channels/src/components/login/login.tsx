@@ -262,7 +262,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     type: 'mattermost_external_auth_login',
                     provider,
                     href,
-                }, '*');
+                }, window.location.origin);
 
                 // Wait for response or timeout, following with the usual authentication flow
                 messagePromise.then((received) => {
