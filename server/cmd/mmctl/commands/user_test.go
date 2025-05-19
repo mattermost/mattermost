@@ -393,12 +393,69 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 	mockUser1 := model.User{Username: "User1", Email: email1, Id: userID1}
 	mockUser2 := model.User{Username: "User2", Email: email2, Id: userID2}
 
+	t := true
+
+	mockConfig := model.Config{
+		ServiceSettings: model.ServiceSettings{
+			EnableAPIUserDeletion: &t,
+		},
+	}
+
 	s.Run("Delete users with confirm false returns an error", func() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
+
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfig, &model.Response{}, nil).
+			Times(1)
+
 		err := deleteUsersCmdF(s.client, cmd, []string{"some"})
 		s.Require().NotNil(err)
 		s.Require().Equal("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell", err.Error())
+	})
+
+	s.Run("Delete users with delete config disabled (set to false)", func() {
+		f := false
+
+		mockConfigDeleteDisabled := model.Config{
+			ServiceSettings: model.ServiceSettings{
+				EnableAPIChannelDeletion: &f,
+			},
+		}
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfigDeleteDisabled, &model.Response{}, nil).
+			Times(1)
+
+		err := deleteUsersCmdF(s.client, cmd, []string{"some"})
+		s.Require().NotNil(err)
+		s.Require().Equal("ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information", err.Error())
+	})
+
+	s.Run("Delete users with delete config disabled (set to nil)", func() {
+		mockConfigDeleteDisabled := model.Config{
+			ServiceSettings: model.ServiceSettings{
+				EnableAPIChannelDeletion: nil,
+			},
+		}
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfigDeleteDisabled, &model.Response{}, nil).
+			Times(1)
+
+		err := deleteUsersCmdF(s.client, cmd, []string{"some"})
+		s.Require().NotNil(err)
+		s.Require().Equal("ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information", err.Error())
 	})
 
 	s.Run("Delete user that does not exist in db returns an error", func() {
@@ -425,6 +482,13 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfig, &model.Response{}, nil).
+			Times(1)
+
 		err := deleteUsersCmdF(s.client, cmd, []string{arg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
@@ -459,6 +523,12 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfig, &model.Response{}, nil).
+			Times(1)
+
 		err := deleteUsersCmdF(s.client, cmd, []string{email1, email2})
 		s.Require().Nil(err)
 		s.Require().Equal(&mockUser1, printer.GetLines()[0])
@@ -484,6 +554,12 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfig, &model.Response{}, nil).
+			Times(1)
 
 		err := deleteUsersCmdF(s.client, cmd, []string{email1})
 		s.Require().Nil(err)
@@ -522,6 +598,12 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfig, &model.Response{}, nil).
+			Times(1)
+
 		err := deleteUsersCmdF(s.client, cmd, []string{email1, email2})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -547,6 +629,12 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfig, &model.Response{}, nil).
+			Times(1)
 
 		err := deleteUsersCmdF(s.client, cmd, []string{email1})
 		s.Require().Nil(err)
