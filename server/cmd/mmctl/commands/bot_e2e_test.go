@@ -439,9 +439,9 @@ func (s *MmctlE2ETestSuite) TestBotUpdateCmdF() {
 	s.Run("Update bot without permission", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "newbot", "")
-		cmd.Flags().Lookup("username").Changed = true
+		cmd := newBotUpdateCmd("newbot", "", "")
+		err := cmd.ParseFlags([]string{"--username", "newbot"})
+		s.Require().Nil(err)
 
 		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: "testbot", OwnerId: s.th.BasicUser.Id})
 		s.Require().Nil(appErr)
@@ -450,7 +450,7 @@ func (s *MmctlE2ETestSuite) TestBotUpdateCmdF() {
 			s.Require().Nil(err)
 		}()
 
-		err := botUpdateCmdF(s.th.Client, cmd, []string{"testbot"})
+		err = botUpdateCmdF(s.th.Client, cmd, []string{"testbot"})
 		s.Require().Error(err)
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -458,14 +458,10 @@ func (s *MmctlE2ETestSuite) TestBotUpdateCmdF() {
 	s.RunForSystemAdminAndLocal("Update attributes of the bot", func(c client.Client) {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "newbot", "")
-		cmd.Flags().String("display-name", "new-display-name", "")
-		cmd.Flags().String("description", "new description", "")
-		cmd.Flags().Lookup("username").Changed = true
-		cmd.Flags().Lookup("display-name").Changed = true
-		cmd.Flags().Lookup("description").Changed = true
+		cmd := newBotUpdateCmd("newbot", "new-display-name", "new description")
+		err := cmd.ParseFlags([]string{"--username", "newbot", "--display-name", "new-display-name", "--description", "new description"})
 
+		s.Require().Nil(err)
 		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: "testbot", OwnerId: s.th.BasicUser.Id, DisplayName: "dispay-name", Description: "description"})
 		s.Require().Nil(appErr)
 		defer func() {
@@ -473,7 +469,7 @@ func (s *MmctlE2ETestSuite) TestBotUpdateCmdF() {
 			s.Require().Nil(err)
 		}()
 
-		err := botUpdateCmdF(c, cmd, []string{"testbot"})
+		err = botUpdateCmdF(c, cmd, []string{"testbot"})
 		s.Require().Nil(err)
 		s.Require().Equal(1, len(printer.GetLines()))
 
@@ -507,11 +503,11 @@ func (s *MmctlE2ETestSuite) TestBotUpdateCmdF() {
 	s.RunForSystemAdminAndLocal("Update non-existent bot", func(c client.Client) {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "newbot", "")
-		cmd.Flags().Lookup("username").Changed = true
+		cmd := newBotUpdateCmd("newbot", "", "")
+		err := cmd.ParseFlags([]string{"--username", "newbot"})
+		s.Require().Nil(err)
 
-		err := botUpdateCmdF(c, cmd, []string{"nonexistent-bot"})
+		err = botUpdateCmdF(c, cmd, []string{"nonexistent-bot"})
 		s.Require().Error(err)
 		s.Require().Equal("unable to find user 'nonexistent-bot'", err.Error())
 		s.Require().Empty(printer.GetLines())
@@ -520,13 +516,9 @@ func (s *MmctlE2ETestSuite) TestBotUpdateCmdF() {
 	s.RunForSystemAdminAndLocal("Update bot with empty values", func(c client.Client) {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "", "")
-		cmd.Flags().String("display-name", "", "")
-		cmd.Flags().String("description", "", "")
-		cmd.Flags().Lookup("username").Changed = true
-		cmd.Flags().Lookup("display-name").Changed = true
-		cmd.Flags().Lookup("description").Changed = true
+		cmd := newBotUpdateCmd("", "", "")
+		err := cmd.ParseFlags([]string{"--username", "", "--display-name", "", "--description", ""})
+		s.Require().Nil(err)
 
 		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: "testbot", OwnerId: s.th.BasicUser.Id})
 		s.Require().Nil(appErr)
@@ -535,9 +527,17 @@ func (s *MmctlE2ETestSuite) TestBotUpdateCmdF() {
 			s.Require().Nil(err)
 		}()
 
-		err := botUpdateCmdF(c, cmd, []string{"testbot"})
+		err = botUpdateCmdF(c, cmd, []string{"testbot"})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "could not update bot")
 		s.Require().Empty(printer.GetLines())
 	})
+}
+
+func newBotUpdateCmd(userName, displayName, description string) *cobra.Command {
+	cmd := &cobra.Command{}
+	cmd.Flags().String("username", userName, "")
+	cmd.Flags().String("display-name", displayName, "")
+	cmd.Flags().String("description", description, "")
+	return cmd
 }
