@@ -355,10 +355,14 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     }, []);
 
     useEffect(() => {
-        if (SiteName) {
-            document.title = SiteName;
-        }
-    }, [SiteName]);
+        document.title = formatMessage(
+            {
+                id: 'signup.title',
+                defaultMessage: 'Create Account | {siteName}',
+            },
+            {siteName: SiteName || 'Mattermost'},
+        );
+    }, [formatMessage, SiteName]);
 
     useEffect(() => {
         if (onCustomizeHeader) {
