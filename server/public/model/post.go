@@ -15,7 +15,9 @@ import (
 	"sync"
 	"unicode/utf8"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -72,14 +74,16 @@ const (
 	PostPropsFromBot                  = "from_bot"
 	PostPropsFromOAuthApp             = "from_oauth_app"
 	PostPropsWebhookDisplayName       = "webhook_display_name"
+	PostPropsAttachments              = "attachments"
+	PostPropsFromPlugin               = "from_plugin"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 	PostPropsPreviewedPost            = "previewed_post"
 	PostPropsForceNotification        = "force_notification"
+	PostPropsChannelMentions          = "channel_mentions"
+	PostPropsUnsafeLinks              = "unsafe_links"
 
-	PostPriorityUrgent               = "urgent"
-	PostPropsRequestedAck            = "requested_ack"
-	PostPropsPersistentNotifications = "persistent_notifications"
+	PostPriorityUrgent = "urgent"
 )
 
 type Post struct {
@@ -118,13 +122,13 @@ type Post struct {
 	Metadata     *PostMetadata `json:"metadata,omitempty"`
 }
 
-func (o *Post) Auditable() map[string]interface{} {
+func (o *Post) Auditable() map[string]any {
 	var metaData map[string]any
 	if o.Metadata != nil {
 		metaData = o.Metadata.Auditable()
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"id":              o.Id,
 		"create_at":       o.CreateAt,
 		"update_at":       o.UpdateAt,
@@ -207,8 +211,8 @@ type SearchParameter struct {
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
 }
 
-func (sp SearchParameter) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (sp SearchParameter) Auditable() map[string]any {
+	return map[string]any{
 		"terms":                    sp.Terms,
 		"is_or_search":             sp.IsOrSearch,
 		"time_zone_offset":         sp.TimeZoneOffset,
@@ -236,8 +240,8 @@ func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
 	return &pCopy
 }
 
-func (o *PostPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *PostPatch) Auditable() map[string]any {
+	return map[string]any{
 		"is_pinned":     o.IsPinned,
 		"props":         o.Props,
 		"file_ids":      o.FileIds,
@@ -399,7 +403,9 @@ type GetPostsOptions struct {
 	CollapsedThreadsExtended bool
 	FromPost                 string // PostId after which to send the items
 	FromCreateAt             int64  // CreateAt after which to send the items
+	FromUpdateAt             int64  // UpdateAt after which to send the items. This cannot be used with FromCreateAt.
 	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
+	UpdatesOnly              bool   // This flag is used to make the API work with the updateAt value.
 	IncludeDeleted           bool
 	IncludePostPriority      bool
 }
@@ -657,6 +663,137 @@ func (o *Post) GetProp(key string) any {
 	return o.Props[key]
 }
 
+// ValidateProps checks all known props for validity.
+// Currently, it logs warnings for invalid props rather than returning an error.
+// In a future version, this will be updated to return errors for invalid props.
+func (o *Post) ValidateProps(logger mlog.LoggerIFace) {
+	if err := o.propsIsValid(); err != nil {
+		logger.Warn(
+			"Invalid post props. In a future version this will result in an error. Please update your integration to be compliant.",
+			mlog.String("post_id", o.Id),
+			mlog.Err(err),
+		)
+	}
+}
+
+func (o *Post) propsIsValid() error {
+	var multiErr *multierror.Error
+
+	props := o.GetProps()
+
+	// Check basic props validity
+	if props == nil {
+		return nil
+	}
+
+	if props[PostPropsAddedUserId] != nil {
+		if addedUserID, ok := props[PostPropsAddedUserId].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("added_user_id prop must be a string"))
+		} else if !IsValidId(addedUserID) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("added_user_id prop must be a valid user ID"))
+		}
+	}
+	if props[PostPropsDeleteBy] != nil {
+		if deleteByID, ok := props[PostPropsDeleteBy].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("delete_by prop must be a string"))
+		} else if !IsValidId(deleteByID) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("delete_by prop must be a valid user ID"))
+		}
+	}
+
+	// Validate integration props
+	if props[PostPropsOverrideIconURL] != nil {
+		if iconURL, ok := props[PostPropsOverrideIconURL].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("override_icon_url prop must be a string"))
+		} else if iconURL == "" || !IsValidHTTPURL(iconURL) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("override_icon_url prop must be a valid URL"))
+		}
+	}
+	if props[PostPropsOverrideIconEmoji] != nil {
+		if _, ok := props[PostPropsOverrideIconEmoji].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("override_icon_emoji prop must be a string"))
+		}
+	}
+	if props[PostPropsOverrideUsername] != nil {
+		if _, ok := props[PostPropsOverrideUsername].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("override_username prop must be a string"))
+		}
+	}
+	if props[PostPropsFromWebhook] != nil {
+		if fromWebhook, ok := props[PostPropsFromWebhook].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_webhook prop must be a string"))
+		} else if fromWebhook != "true" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_webhook prop must be \"true\""))
+		}
+	}
+	if props[PostPropsFromBot] != nil {
+		if fromBot, ok := props[PostPropsFromBot].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_bot prop must be a string"))
+		} else if fromBot != "true" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_bot prop must be \"true\""))
+		}
+	}
+	if props[PostPropsFromOAuthApp] != nil {
+		if fromOAuthApp, ok := props[PostPropsFromOAuthApp].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_oauth_app prop must be a string"))
+		} else if fromOAuthApp != "true" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_oauth_app prop must be \"true\""))
+		}
+	}
+	if props[PostPropsFromPlugin] != nil {
+		if fromPlugin, ok := props[PostPropsFromPlugin].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_plugin prop must be a string"))
+		} else if fromPlugin != "true" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_plugin prop must be \"true\""))
+		}
+	}
+	if props[PostPropsUnsafeLinks] != nil {
+		if unsafeLinks, ok := props[PostPropsUnsafeLinks].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("unsafe_links prop must be a string"))
+		} else if unsafeLinks != "true" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("unsafe_links prop must be \"true\""))
+		}
+	}
+	if props[PostPropsWebhookDisplayName] != nil {
+		if _, ok := props[PostPropsWebhookDisplayName].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("webhook_display_name prop must be a string"))
+		}
+	}
+
+	if props[PostPropsMentionHighlightDisabled] != nil {
+		if _, ok := props[PostPropsMentionHighlightDisabled].(bool); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("mention_highlight_disabled prop must be a boolean"))
+		}
+	}
+	if props[PostPropsGroupHighlightDisabled] != nil {
+		if _, ok := props[PostPropsGroupHighlightDisabled].(bool); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("disable_group_highlight prop must be a boolean"))
+		}
+	}
+
+	if props[PostPropsPreviewedPost] != nil {
+		if previewedPostID, ok := props[PostPropsPreviewedPost].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("previewed_post prop must be a string"))
+		} else if !IsValidId(previewedPostID) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("previewed_post prop must be a valid post ID"))
+		}
+	}
+
+	if props[PostPropsForceNotification] != nil {
+		if _, ok := props[PostPropsForceNotification].(bool); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("force_notification prop must be a boolean"))
+		}
+	}
+
+	for i, a := range o.Attachments() {
+		if err := a.IsValid(); err != nil {
+			multiErr = multierror.Append(multiErr, multierror.Prefix(err, fmt.Sprintf("message attachtment at index %d is invalid:", i)))
+		}
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
 func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(PostSystemMessagePrefix) && o.Type[:len(PostSystemMessagePrefix)] == PostSystemMessagePrefix
 }
@@ -746,11 +883,11 @@ func findAtChannelMention(message string) (mention string, found bool) {
 }
 
 func (o *Post) Attachments() []*SlackAttachment {
-	if attachments, ok := o.GetProp("attachments").([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp(PostPropsAttachments).([]*SlackAttachment); ok {
 		return attachments
 	}
 	var ret []*SlackAttachment
-	if attachments, ok := o.GetProp("attachments").([]any); ok {
+	if attachments, ok := o.GetProp(PostPropsAttachments).([]any); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
@@ -885,7 +1022,7 @@ func RewriteImageURLs(message string, f func(string) string) string {
 
 func (o *Post) IsFromOAuthBot() bool {
 	props := o.GetProps()
-	return props["from_webhook"] == "true" && props["override_username"] != ""
+	return props[PostPropsFromWebhook] == "true" && props[PostPropsOverrideUsername] != ""
 }
 
 func (o *Post) ToNilIfInvalid() *Post {

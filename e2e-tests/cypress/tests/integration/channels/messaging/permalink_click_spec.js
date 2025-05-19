@@ -127,6 +127,6 @@ function joinPrivateChannel(channel) {
 function verifyPrivateChannelJoinPromptIsVisible(channel) {
     // * Verify modal is shown before joining the private channel
     cy.get('#confirmModal').should('be.visible');
-    cy.get('#confirmModalLabel').should('be.visible').and('have.text', 'Join private channel');
+    cy.get('#genericModalLabel').should('be.visible').and('have.text', 'Join private channel');
     cy.get('#confirmModalBody').should('be.visible').and('have.text', `You are about to join ${channel.name} without explicitly being added by the channel admin. Are you sure you wish to join this private channel?`);
 }

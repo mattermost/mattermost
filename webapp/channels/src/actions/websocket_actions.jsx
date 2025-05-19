@@ -34,6 +34,7 @@ import {
     getChannelMemberCountsByGroup,
     fetchAllMyChannelMembers,
     fetchAllMyTeamsChannels,
+    fetchChannelsAndMembers,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
@@ -847,9 +848,11 @@ async function handlePostDeleteEvent(msg) {
             }
         } else {
             const res = await dispatch(getPostThread(post.root_id));
-            const {order, posts} = res.data;
-            const rootPost = posts[order[0]];
-            dispatch(receivedPost(rootPost));
+            if (res.data) {
+                const {order, posts} = res.data;
+                const rootPost = posts[order[0]];
+                dispatch(receivedPost(rootPost));
+            }
         }
     }
 
@@ -880,6 +883,7 @@ async function handleTeamAddedEvent(msg) {
     await dispatch(TeamActions.getMyTeamMembers());
     const state = getState();
     await dispatch(TeamActions.getMyTeamUnreads(isCollapsedThreadsEnabled(state)));
+    await dispatch(fetchChannelsAndMembers(msg.data.team_id));
     const license = getLicense(state);
     if (license.Cloud === 'true') {
         dispatch(getTeamsUsage());
@@ -1449,30 +1453,39 @@ function handleGroupUpdatedEvent(msg) {
     );
 }
 
+function handleMyGroupUpdate(groupMember) {
+    dispatch(batchActions([
+        {
+            type: GroupTypes.ADD_MY_GROUP,
+            id: groupMember.group_id,
+        },
+        {
+            type: GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP,
+            data: groupMember,
+            id: groupMember.group_id,
+        },
+        {
+            type: UserTypes.RECEIVED_PROFILES_FOR_GROUP,
+            data: [groupMember],
+            id: groupMember.group_id,
+        },
+    ]));
+}
+
 export function handleGroupAddedMemberEvent(msg) {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
-        const groupInfo = JSON.parse(msg.data.group_member);
+        const groupMember = JSON.parse(msg.data.group_member);
 
-        if (currentUserId === groupInfo.user_id) {
-            const group = getGroup(state, groupInfo.group_id);
+        if (currentUserId === groupMember.user_id) {
+            const group = getGroup(state, groupMember.group_id);
             if (group) {
-                dispatch(
-                    {
-                        type: GroupTypes.ADD_MY_GROUP,
-                        id: groupInfo.group_id,
-                    },
-                );
+                handleMyGroupUpdate(groupMember);
             } else {
-                const {error} = await doDispatch(fetchGroup(groupInfo.group_id, true));
+                const {error} = await doDispatch(fetchGroup(groupMember.group_id, true));
                 if (!error) {
-                    dispatch(
-                        {
-                            type: GroupTypes.ADD_MY_GROUP,
-                            id: groupInfo.group_id,
-                        },
-                    );
+                    handleMyGroupUpdate(groupMember);
                 }
             }
         }
@@ -1486,13 +1499,23 @@ function handleGroupDeletedMemberEvent(msg) {
         const data = JSON.parse(msg.data.group_member);
 
         if (currentUserId === data.user_id) {
-            dispatch(
+            dispatch(batchActions([
                 {
                     type: GroupTypes.REMOVE_MY_GROUP,
                     data,
                     id: data.group_id,
                 },
-            );
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST_TO_REMOVE_FROM_GROUP,
+                    data: [data],
+                    id: data.group_id,
+                },
+                {
+                    type: GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP,
+                    data,
+                    id: data.group_id,
+                },
+            ]));
         }
     };
 }

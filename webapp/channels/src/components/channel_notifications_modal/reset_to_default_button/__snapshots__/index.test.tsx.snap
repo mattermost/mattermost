@@ -3,7 +3,7 @@
 exports[`ResetToDefaultButton should render if section name is valid 1`] = `
 <div>
   <button
-    class="channel-notifications-settings-modal__reset-btn"
+    class="ChannelNotificationModal__reset-btn"
     data-testid="resetToDefaultButton-desktop"
   >
     <i

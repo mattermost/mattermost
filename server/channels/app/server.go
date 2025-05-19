@@ -463,9 +463,9 @@ func NewServer(options ...Option) (*Server, error) {
 		return s, nil
 	}
 
-	s.platform.AddConfigListener(func(old, new *model.Config) {
+	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		appInstance := New(ServerConnector(s.Channels()))
-		if *old.GuestAccountsSettings.Enable && !*new.GuestAccountsSettings.Enable {
+		if *oldCfg.GuestAccountsSettings.Enable && !*newCfg.GuestAccountsSettings.Enable {
 			c := request.EmptyContext(s.Log())
 			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
@@ -1497,6 +1497,11 @@ func (s *Server) initJobs() {
 	if jobsLdapSyncInterface != nil {
 		builder := jobsLdapSyncInterface(New(ServerConnector(s.Channels())))
 		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
+	}
+
+	if jobsAccessControlSyncJobInterface != nil {
+		builder := jobsAccessControlSyncJobInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeAccessControlSync, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
 	s.Jobs.RegisterJobType(

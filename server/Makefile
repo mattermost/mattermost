@@ -112,6 +112,7 @@ GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
 MINIMUM_SUPPORTED_GO_MINOR_VERSION = 15
 GO_VERSION_VALIDATION_ERR_MSG = Golang version is not supported, please update to at least $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION).$(MINIMUM_SUPPORTED_GO_MINOR_VERSION)
+GO_COMPATIBILITY_TEST_VERSIONS := 1.22.7 1.23.6
 
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
 BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
@@ -135,10 +136,10 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.5.1
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.3.0
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.2.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.7.1
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.4.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.10.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.2.1
 # We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.40.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.1.1
@@ -147,11 +148,11 @@ PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-ai-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.1
-PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.1.1
+PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.1
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
-PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.5.3
+PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -223,7 +224,9 @@ else
 	docker compose rm start_dependencies
 	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
   ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+	cat tests/custom-schema-objectID.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
   endif
   ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
 	./scripts/replica-mysql-config.sh
@@ -283,8 +286,15 @@ else
 	$(MAKE) mmctl-build
 endif
 
+golang-versions: ## Install Golang versions used for compatibility testing (e.g. plugins)
+	@for version in $(GO_COMPATIBILITY_TEST_VERSIONS); do \
+		$(GO) install golang.org/dl/go$$version@latest && \
+		$(GOBIN)/go$$version download; \
+	done
+	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
+
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.1
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.7
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
@@ -412,7 +422,7 @@ modules-tidy: ## Tidy Go modules
 	-cd public && $(GO) mod tidy
 	mv enterprise/external_imports.go.orig enterprise/external_imports.go
 
-test-server-pre: check-prereqs-enterprise start-docker gotestsum ## Runs tests.
+test-server-pre: check-prereqs-enterprise start-docker gotestsum golang-versions ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
@@ -750,7 +760,7 @@ endif
 vet: ## Run mattermost go vet specific checks
 	## Note that it is pinned to a specific commit, rather than a branch. This is to prevent
 	## having to backport the fix to multiple release branches for any new change.
-	$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
+	$(GO) install github.com/mattermost/mattermost-govet/v2@8e4d46e3fad88497dbfe073788a87e75bbae717c
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
  ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
@@ -762,7 +772,7 @@ vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
-	$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
+	$(GO) install github.com/mattermost/mattermost-govet/v2@8e4d46e3fad88497dbfe073788a87e75bbae717c
 	make -C ../api build
 	./scripts/vet-api-check.sh
 
@@ -845,7 +855,7 @@ test-migration:
 	# db_migrations differ due to a typo in the 92. migration name
 	# for now we exclude plugins such as playbooks and focalboard
 	# we also exlude systems table temporarily due to adding some keys while running the initial migration
-	bin/dbcmp --source "${MYSQL_DSN}" --target "${POSTGRES_DSN}" --exclude="db_migrations","ir_","focalboard","systems"
+	bin/dbcmp --source "${MYSQL_DSN}" --target "${POSTGRES_DSN}" --exclude="db_migrations","ir_","focalboard","systems","attributeview"
 
 test-local-filestore: # Run tests for local filestore
 	$(GO) test ./platform/shared/filestore -run '^TestLocalFileBackend' -v
