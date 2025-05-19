@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 
@@ -19,7 +20,34 @@ const (
 	sequenceNumberParam   = "sequence_number"
 	postedAckParam        = "posted_ack"
 	disconnectReasonParam = "disconnect_reason"
+
+	clientPingTimeoutErrCode      = 4000
+	clientSequenceMismatchErrCode = 4001
 )
+
+// validateDisconnectReason ensures the specified disconnect reason
+// is a valid disconnect error code
+func validateDisconnectReason(reason string) bool {
+	if reason == "" {
+		return false
+	}
+
+	// Ensure the disconnect code is a standard close code
+	code, err := strconv.Atoi(reason)
+	if err != nil {
+		return false
+	}
+
+	// We only support the standard close codes between
+	// 1000 and 1016, and a few custom application codes
+	if (code < 1000 || code > 1016) &&
+		code != clientPingTimeoutErrCode &&
+		code != clientSequenceMismatchErrCode {
+		return false
+	}
+
+	return true
+}
 
 func (api *API) InitWebSocket() {
 	// Optionally supports a trailing slash
@@ -45,16 +73,21 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// We initialize webconn with all the necessary data.
 	// If the queues are empty, they are initialized in the constructor.
 	cfg := &platform.WebConnConfig{
-		WebSocket:        ws,
-		Session:          *c.AppContext.Session(),
-		TFunc:            c.AppContext.T,
-		Locale:           "",
-		Active:           true,
-		PostedAck:        r.URL.Query().Get(postedAckParam) == "true",
-		RemoteAddress:    c.AppContext.IPAddress(),
-		XForwardedFor:    c.AppContext.XForwardedFor(),
-		DisconnectReason: r.URL.Query().Get(disconnectReasonParam),
+		WebSocket:     ws,
+		Session:       *c.AppContext.Session(),
+		TFunc:         c.AppContext.T,
+		Locale:        "",
+		Active:        true,
+		PostedAck:     r.URL.Query().Get(postedAckParam) == "true",
+		RemoteAddress: c.AppContext.IPAddress(),
+		XForwardedFor: c.AppContext.XForwardedFor(),
 	}
+
+	disconnectReason := r.URL.Query().Get(disconnectReasonParam)
+	if reasonValid := validateDisconnectReason(disconnectReason); reasonValid {
+		cfg.DisconnectReason = disconnectReason
+	}
+
 	// The WebSocket upgrade request coming from mobile is missing the
 	// user agent so we need to fallback on the session's metadata.
 	if c.AppContext.Session().IsMobileApp() {

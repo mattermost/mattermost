@@ -19,6 +19,10 @@ export type WebSocketClientConfig = {
     clientPingInterval: number;
 }
 
+// Custom close error codes must be in the range of 4000-4999
+const clientPingTimeoutErrCode      = 4000;
+const clientSequenceMismatchErrCode = 4001;
+
 const defaultWebSocketClientConfig: WebSocketClientConfig = {
     maxWebSocketFails: 7,
     minWebSocketRetryTime: 3000, // 3 seconds
@@ -222,9 +226,6 @@ export default class WebSocketClient {
 
             if (!this.lastCloseReason && event && event.code) {
                 this.lastCloseReason = `${event.code}`;
-                if (event.reason) {
-                    this.lastCloseReason += `:${event.reason}`;
-                }
             }
 
             if (this.connectFailCount === 0) {
@@ -314,11 +315,8 @@ export default class WebSocketClient {
 
                     console.log('ping received no response within time limit: re-establishing websocket'); //eslint-disable-line no-console
 
-                    // Set the close reason to status 1006, which is a general status
-                    // used when a websocket is closed abnormally.
                     const closeEvent = new CloseEvent('close', {
-                        code: 1006,
-                        reason: 'client_ping_timeout',
+                        code: clientPingTimeoutErrCode,
                         wasClean: false,
                     });
 
@@ -398,11 +396,8 @@ export default class WebSocketClient {
                 if (msg.seq !== this.serverSequence) {
                     console.log('missed websocket event, act_seq=' + msg.seq + ' exp_seq=' + this.serverSequence); //eslint-disable-line no-console
 
-                    // Set the close reason to status 4000, which is an unused status
-                    // available for applications to use for app specific errors.
                     const closeEvent = new CloseEvent('close', {
-                        code: 4000,
-                        reason: 'client_sequence_mismatch',
+                        code: clientSequenceMismatchErrCode,
                         wasClean: false,
                     });
 
