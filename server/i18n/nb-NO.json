@@ -360,10 +360,6 @@
     "translation": "Ugyldig tekst i sertifikatet."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Du er det eneste medlemmet som er igjen, prøv å fjerne den private kanalen i stedet for å forlate den."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v forlot kanalen."
   },

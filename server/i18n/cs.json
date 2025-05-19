@@ -4848,10 +4848,6 @@
     "translation": "%v opustil kanál."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Zůstali jste jediným členem, zkuste soukromý kanál odebrat místo opuštění."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Nelze opustit kanál přímých zpráv."
   },
