@@ -805,6 +805,8 @@ func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 
 		tpl := `id: {{.Id}}
+deactivated: {{.Deactivated}}
+username: {{.Username}}
 nickname: {{.Nickname}}
 position: {{.Position}}
 first_name: {{.FirstName}}
