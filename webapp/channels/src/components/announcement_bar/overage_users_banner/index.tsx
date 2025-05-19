@@ -27,15 +27,10 @@ import './overage_users_banner.scss';
 type AdminHasDismissedItArgs = {
     preferenceName: string;
     overagePreferences: PreferenceType[];
-    isWarningBanner: boolean;
 }
 
-const adminHasDismissed = ({preferenceName, overagePreferences, isWarningBanner}: AdminHasDismissedItArgs): boolean => {
-    if (isWarningBanner) {
-        return overagePreferences.find((value) => value.name === preferenceName) !== undefined;
-    }
-
-    return false;
+const adminHasDismissed = ({preferenceName, overagePreferences}: AdminHasDismissedItArgs): boolean => {
+    return overagePreferences.find((value) => value.name === preferenceName) !== undefined;
 };
 
 const OverageUsersBanner = () => {
@@ -89,7 +84,7 @@ const OverageUsersBanner = () => {
 
     const handleClick = handleContactSalesClick;
 
-    if (!hasPermission || adminHasDismissed({isWarningBanner: isBetween5PercerntAnd10PercentPurchasedSeats, overagePreferences, preferenceName})) {
+    if (!hasPermission || adminHasDismissed({overagePreferences, preferenceName})) {
         return null;
     }
 

@@ -41,12 +41,12 @@ jest.mock('actions/telemetry_actions', () => ({
 
 const seatsPurchased = 40;
 
-const seatsMinimumFor5PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MIN)) + seatsPurchased;
+const seatsMinimumFor5PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MIN)) + seatsPurchased + 1;
 
-const seatsMinimumFor10PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MAX)) + seatsPurchased;
+const seatsMinimumFor10PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MAX)) + seatsPurchased + 1;
 
-const text5PercentageState = `Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor5PercentageState - seatsPurchased} seats`;
-const text10PercentageState = `Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor10PercentageState - seatsPurchased} seats`;
+const text5PercentageState = `Your workspace user count has exceeded your licensed seat count by ${seatsMinimumFor5PercentageState - seatsPurchased}`;
+const text10PercentageState = `Your workspace user count has exceeded your licensed seat count by ${seatsMinimumFor10PercentageState - seatsPurchased}`;
 const notifyText = 'Notify your Customer Success Manager on your next true-up check';
 
 const contactSalesTextLink = 'Contact Sales';
@@ -301,7 +301,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
             },
         };
 
@@ -320,7 +320,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
             },
         };
 
@@ -362,7 +362,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
             },
         };
 
@@ -391,7 +391,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
             },
         };
 
@@ -410,7 +410,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
             },
         };
 
@@ -436,7 +436,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
             },
         };
 
