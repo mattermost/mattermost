@@ -77,18 +77,10 @@ func Setup(tb testing.TB, options ...Option) *TestHelper {
 
 func (th *TestHelper) InitBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		th.SystemAdminUser = th.CreateAdmin()
+	th.SystemAdminUser = th.CreateAdmin()
 
-		th.BasicUser = th.CreateUserOrGuest(false)
-
-		th.BasicUser2 = th.CreateUserOrGuest(false)
-	})
-
-	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	err := mainHelper.GetSQLStore().User().InsertUsers(users)
-	require.NoError(th.T, err)
-
+	th.BasicUser = th.CreateUserOrGuest(false)
+	th.BasicUser2 = th.CreateUserOrGuest(false)
 	th.BasicTeam = th.CreateTeam()
 
 	// th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
@@ -287,3 +279,8 @@ func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) 
 
 	return channel
 }
+
+// func (th *TestHelper) LinkUserToTeam(tb testing.TB, user *model.User, team *model.Team) {
+// 	_, appErr := th.App.JoinUserToTeam(th.Context, team, user, "")
+// 	require.Nil(tb, appErr)
+// }
