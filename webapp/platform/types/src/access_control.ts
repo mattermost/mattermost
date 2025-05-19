@@ -53,11 +53,6 @@ export type AccessControlTestResult = {
     total: number;
 }
 
-export type AccessControlEntity = {
-    name: string;
-    attributes: AccessControlAttribute[];
-}
-
 export type AccessControlAttribute = {
     name: string;
     values: string[];
@@ -72,4 +67,20 @@ export type AccessControlVisualASTNode = {
     operator: string;
     value: any;
     value_type: number;
+}
+
+/**
+ * Type definition for access control attributes
+ */
+export type AccessControlAttributes = Record<string, string[]>;
+
+/**
+ * Interface for entities that can have access control
+ */
+export interface AccessControlled {
+
+    /**
+     * Whether access control is enforced for this entity
+     */
+    access_control_enforced?: boolean;
 }
