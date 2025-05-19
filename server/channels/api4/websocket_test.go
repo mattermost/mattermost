@@ -459,64 +459,64 @@ func TestWebSocketUpgrade(t *testing.T) {
 
 func TestValidateDisconnectErrCode(t *testing.T) {
 	testCases := []struct {
-		name   string
+		name    string
 		errCode string
-		valid  bool
+		valid   bool
 	}{
 		{
-			name:   "empty string",
+			name:    "empty string",
 			errCode: "",
-			valid:  false,
+			valid:   false,
 		},
 		{
-			name:   "non-numeric string",
+			name:    "non-numeric string",
 			errCode: "not-a-number",
-			valid:  false,
+			valid:   false,
 		},
 		{
-			name:   "valid standard close code - 1000",
+			name:    "valid standard close code - 1000",
 			errCode: "1000",
-			valid:  true,
+			valid:   true,
 		},
 		{
-			name:   "valid standard close code - 1001",
+			name:    "valid standard close code - 1001",
 			errCode: "1001",
-			valid:  true,
+			valid:   true,
 		},
 		{
-			name:   "valid standard close code - 1015",
+			name:    "valid standard close code - 1015",
 			errCode: "1015",
-			valid:  true,
+			valid:   true,
 		},
 		{
-			name:   "valid standard close code - 1016",
+			name:    "valid standard close code - 1016",
 			errCode: "1016",
-			valid:  true,
+			valid:   true,
 		},
 		{
-			name:   "out of range (too low)",
+			name:    "out of range (too low)",
 			errCode: "999",
-			valid:  false,
+			valid:   false,
 		},
 		{
-			name:   "out of range (too high)",
+			name:    "out of range (too high)",
 			errCode: "1017",
-			valid:  false,
+			valid:   false,
 		},
 		{
-			name:   "valid custom code - client ping timeout",
+			name:    "valid custom code - client ping timeout",
 			errCode: "4000",
-			valid:  true,
+			valid:   true,
 		},
 		{
-			name:   "valid custom code - client sequence mismatch",
+			name:    "valid custom code - client sequence mismatch",
 			errCode: "4001",
-			valid:  true,
+			valid:   true,
 		},
 		{
-			name:   "invalid custom code",
+			name:    "invalid custom code",
 			errCode: "5000",
-			valid:  false,
+			valid:   false,
 		},
 	}
 

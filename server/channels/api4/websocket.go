@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	connectionIDParam     = "connection_id"
-	sequenceNumberParam   = "sequence_number"
-	postedAckParam        = "posted_ack"
+	connectionIDParam      = "connection_id"
+	sequenceNumberParam    = "sequence_number"
+	postedAckParam         = "posted_ack"
 	disconnectErrCodeParam = "disconnect_err_code"
 
 	clientPingTimeoutErrCode      = 4000
@@ -27,7 +27,7 @@ const (
 
 // validateDisconnectErrCode ensures the specified disconnect error code
 // is a valid websocket close code
-func validateDisconnectErrCode(errCode string) bool:
+func validateDisconnectErrCode(errCode string) bool {
 	if errCode == "" {
 		return false
 	}
