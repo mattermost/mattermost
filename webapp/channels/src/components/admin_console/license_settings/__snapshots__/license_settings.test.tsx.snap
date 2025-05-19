@@ -32,6 +32,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
               "Users": "100",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <RenewLicenseCard
@@ -151,6 +152,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
               "Users": "100",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <RenewLicenseCard
@@ -270,6 +272,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "Users": "100",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <RenewLicenseCard
@@ -420,6 +423,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "Users": "100",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <RenewLicenseCard
@@ -558,6 +562,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "Users": "100",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <RenewLicenseCard
@@ -696,6 +701,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "Users": "100",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <RenewLicenseCard
@@ -834,6 +840,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "Users": "100",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <RenewLicenseCard
@@ -972,6 +979,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "Users": "100",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <RenewLicenseCard
@@ -1106,6 +1114,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "StartsAt": "1617714643650",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <TrialLicenseCard
@@ -1215,6 +1224,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "IsLicensed": "false",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <Component
@@ -1335,6 +1345,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "IsLicensed": "false",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <Component
@@ -1462,6 +1473,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "Users": "100",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <RenewLicenseCard
@@ -1574,6 +1586,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "IsLicensed": "false",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <Component
@@ -1696,6 +1709,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "IsLicensed": "false",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
       </div>
@@ -1810,6 +1824,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "Users": "100",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
       </div>
@@ -1934,6 +1949,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               "Users": "100",
             }
           }
+          location="license_settings"
           totalUsers={10}
         />
         <RenewLicenseCard
