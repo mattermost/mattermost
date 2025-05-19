@@ -421,7 +421,7 @@ func (s *MmctlE2ETestSuite) TestPluginDisableCmd() {
 		s.Require().Equal(printer.GetLines()[0], "Disabled plugin: "+pluginID)
 	})
 
-	s.Run("error for disable plugin", func() {
+	s.Run("error for disable plugin due insufficient permissions", func() {
 		printer.Clean()
 
 		appErr := s.th.App.EnablePlugin(pluginID)
@@ -442,17 +442,18 @@ func (s *MmctlE2ETestSuite) TestPluginDisableCmd() {
 		s.Require().Nil(appErr)
 		s.Require().Len(plugins.Active, 1)
 		s.Require().Len(plugins.Inactive, 0)
+
+		appErr = s.th.App.DisablePlugin(pluginID)
+		s.Require().Nil(appErr)
 	})
 
 	s.RunForSystemAdminAndLocal("error for disabling non existent plugin", func(c client.Client) {
 		printer.Clean()
 
-		appErr := s.th.App.EnablePlugin(pluginID)
-		s.Require().Nil(appErr)
 		plugins, appErr := s.th.App.GetPlugins()
 		s.Require().Nil(appErr)
-		s.Require().Len(plugins.Active, 1)
-		s.Require().Len(plugins.Inactive, 0)
+		s.Require().Len(plugins.Active, 0)
+		s.Require().Len(plugins.Inactive, 1)
 
 		cmd := &cobra.Command{}
 		_ = pluginDisableCmdF(c, cmd, []string{nonExistentPluginID})
@@ -462,8 +463,8 @@ func (s *MmctlE2ETestSuite) TestPluginDisableCmd() {
 
 		plugins, appErr = s.th.App.GetPlugins()
 		s.Require().Nil(appErr)
-		s.Require().Len(plugins.Active, 1)
-		s.Require().Len(plugins.Inactive, 0)
+		s.Require().Len(plugins.Active, 0)
+		s.Require().Len(plugins.Inactive, 1)
 	})
 
 	s.RunForAllClients("error when plugins are disabled", func(c client.Client) {
