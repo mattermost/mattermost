@@ -4,5 +4,5 @@
 package commands
 
 const (
-	ConfigDocumentationUrl = "https://docs.mattermost.com/configure/environment-configuration-settings.html"
+	ConfigDocumentationUrl = "https://mattermost.com/pl/environment-configuration-settings"
 )
