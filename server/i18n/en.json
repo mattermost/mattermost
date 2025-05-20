@@ -420,10 +420,6 @@
     "translation": "Unable to leave a direct message channel."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "You're the only member left, try removing the Private Channel instead of leaving."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v left the channel."
   },
@@ -2329,6 +2325,10 @@
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Failed to compute monthly active users."
+  },
+  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Failed to send the disable license email successfully."
   },
@@ -3919,6 +3919,10 @@
     "translation": "Received invalid response from OAuth service provider."
   },
   {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "An error occurred in the OnSamlLogin hook. Please contact your System Administrator."
+  },
+  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML response is too long"
   },
@@ -5075,6 +5079,10 @@
     "translation": "Unable to delete Custom Profile Attribute field"
   },
   {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Cannot update value for a synced Custom Profile Attribute field"
+  },
+  {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
     "translation": "Custom Profile Attribute field not found"
   },
@@ -5365,6 +5373,10 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "group member already exists"
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Error updating group. User with username \"{{.Username}}\" could not be found."
   },
   {
     "id": "app.group.username_conflict",
@@ -8529,6 +8541,10 @@
     "translation": "Feature is not available for the current license"
   },
   {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} feature is not available for the current license"
+  },
+  {
     "id": "manaultesting.manual_test.parse.app_error",
     "translation": "Unable to parse URL."
   },
@@ -8703,6 +8719,10 @@
   {
     "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
     "translation": "Channel banner color cannot be empty when channel banner is enabled"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Channel banner color must be a valid hex color (e.g., #FF0000 or #F00)"
   },
   {
     "id": "model.channel.is_valid.banner_info.channel_type.app_error",
@@ -9359,6 +9379,22 @@
   {
     "id": "model.config.is_valid.read_timeout.app_error",
     "translation": "Invalid value for read timeout."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Invalid report a problem link. Must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Report a problem link is required."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Invalid report a problem mail. Must be a valid email address."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Report a problem mail is required."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -10578,15 +10614,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Version 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",

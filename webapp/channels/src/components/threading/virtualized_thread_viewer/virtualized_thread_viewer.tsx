@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DynamicSizeList} from 'dynamic-virtualized-list';
-import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 import React, {PureComponent} from 'react';
 import type {RefObject} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
+import {DynamicSizeList} from '@mattermost/dynamic-virtualized-list';
+import type {OnScrollArgs, OnItemsRenderedArgs} from '@mattermost/dynamic-virtualized-list';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -429,9 +429,9 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                 )}
                 <div
                     role='application'
-                    aria-label={Utils.localizeMessage({id: 'accessibility.sections.rhsContent', defaultMessage: 'message details complimentary region'})}
+                    aria-label={Utils.localizeMessage({id: 'accessibility.sections.rhsContent', defaultMessage: 'message details complementary region'})}
                     className='post-right__content a11y__region'
-                    style={{height: '100%'}}
+                    style={{height: '100%', position: 'relative'}}
                     data-a11y-sort-order='3'
                     data-a11y-focus-child={true}
                     data-a11y-order-reversed={true}
@@ -440,6 +440,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                         {({width, height}) => (
                             <>
                                 <DynamicSizeList
+                                    id='threadViewerScrollContainer'
                                     canLoadMorePosts={this.canLoadMorePosts}
                                     height={height}
                                     initRangeToRender={this.initRangeToRender}

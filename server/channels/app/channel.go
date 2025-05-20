@@ -2174,10 +2174,25 @@ func (a *App) GetChannelMembersForUserWithPagination(c request.CTX, userID strin
 	return members, nil
 }
 
-func (a *App) GetChannelMembersWithTeamDataForUserWithPagination(c request.CTX, userID string, page, perPage int) (model.ChannelMembersWithTeamData, *model.AppError) {
-	m, err := a.Srv().Store().Channel().GetMembersForUserWithPagination(userID, page, perPage)
+func (a *App) GetChannelMembersWithTeamDataForUserWithPagination(c request.CTX, userID string, cursor *model.ChannelMemberCursor) (model.ChannelMembersWithTeamData, *model.AppError) {
+	var m model.ChannelMembersWithTeamData
+	var err error
+	var method string
+	if cursor.Page == -1 {
+		m, err = a.Srv().Store().Channel().GetMembersForUserWithCursorPagination(userID, cursor.PerPage, cursor.FromChannelID)
+		method = "GetMembersForUserWithCursorPagination"
+	} else {
+		m, err = a.Srv().Store().Channel().GetMembersForUserWithPagination(userID, cursor.Page, cursor.PerPage)
+		method = "GetMembersForUserWithPagination"
+	}
 	if err != nil {
-		return nil, model.NewAppError("GetChannelMembersForUserWithPagination", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError(method, MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError(method, "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return m, nil
@@ -2363,13 +2378,6 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 		close(uc)
 	}()
 
-	mcc := make(chan store.StoreResult[int64], 1)
-	go func() {
-		count, err := a.Srv().Store().Channel().GetMemberCount(channelID, false)
-		mcc <- store.StoreResult[int64]{Data: count, NErr: err}
-		close(mcc)
-	}()
-
 	cresult := <-sc
 	if cresult.NErr != nil {
 		errCtx := map[string]any{"channel_id": channelID}
@@ -2391,22 +2399,12 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 			return model.NewAppError("LeaveChannel", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(uresult.NErr)
 		}
 	}
-	ccresult := <-mcc
-	if ccresult.NErr != nil {
-		return model.NewAppError("LeaveChannel", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(ccresult.NErr)
-	}
 
 	channel := cresult.Data
 	user := uresult.Data
-	membersCount := ccresult.Data
 
 	if channel.IsGroupOrDirect() {
 		err := model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
-		return err
-	}
-
-	if channel.Type == model.ChannelTypePrivate && membersCount == 1 {
-		err := model.NewAppError("LeaveChannel", "api.channel.leave.last_member.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 		return err
 	}
 
