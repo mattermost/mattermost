@@ -6,7 +6,7 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
   bodyPadding={false}
   className="a11y__modal user-groups-modal"
   compassDesign={true}
-  enforceFocus={false}
+  enforceFocus={true}
   headerButton={
     <button
       className="user-groups-create btn btn-secondary btn-sm"
@@ -53,6 +53,7 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
   </div>
   <Memo(UserGroupsFilter)
     getGroups={[Function]}
+    onToggle={[Function]}
     selectedFilter="all"
   />
   <Connect(Component)
@@ -110,6 +111,7 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
     loadMoreGroups={[Function]}
     loading={false}
     onExited={[MockFunction]}
+    onToggle={[Function]}
     searchTerm=""
   />
 </GenericModal>
@@ -121,7 +123,7 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
   bodyPadding={false}
   className="a11y__modal user-groups-modal"
   compassDesign={true}
-  enforceFocus={false}
+  enforceFocus={true}
   headerButton={
     <button
       className="user-groups-create btn btn-secondary btn-sm"
@@ -168,6 +170,7 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
   </div>
   <Memo(UserGroupsFilter)
     getGroups={[Function]}
+    onToggle={[Function]}
     selectedFilter="all"
   />
   <NoResultsIndicator

@@ -153,9 +153,9 @@
 
                 .Input.form-control {
                     font-size: 14px;
+                    height: 34px;
                     line-height: 38px;
                     border: none;
-                    height: 34px;
                 }
             }
 
@@ -175,11 +175,11 @@
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
             #groupsFilterDropdown {
+                display: inline-flex;
                 padding: 6px;
+                border: none;
                 border-radius: 4px;
                 line-height: 12px;
-                display: inline-flex;
-                border: none;
                 background: none;
 
                 &:hover {
@@ -190,10 +190,10 @@
                     background: rgba(var(--button-bg-rgb), 0.08);
                 }
 
-                    span {
-                        color: var(--button-bg);
-                        font-size: 12px;
-                        line-height: 12px;
+                span {
+                    color: var(--button-bg);
+                    font-size: 12px;
+                    line-height: 12px;
                     white-space: nowrap;
                 }
             }
