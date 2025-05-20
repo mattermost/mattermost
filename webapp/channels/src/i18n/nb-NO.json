@@ -1104,6 +1104,7 @@
   "admin.integrations.botAccounts": "Bot-kontoer",
   "admin.integrations.botAccounts.title": "Bot-kontoer",
   "admin.integrations.cors": "CORS",
+  "admin.integrations.embedding": "Bygge inn",
   "admin.integrations.gif": "GIF",
   "admin.integrations.integrationManagement": "Administrasjon av integrasjoner",
   "admin.integrations.integrationManagement.title": "Administrasjon av integrasjoner",
