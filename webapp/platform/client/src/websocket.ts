@@ -20,7 +20,7 @@ export type WebSocketClientConfig = {
 }
 
 // Custom close error codes must be in the range of 4000-4999
-const clientPingTimeoutErrCode      = 4000;
+const clientPingTimeoutErrCode = 4000;
 const clientSequenceMismatchErrCode = 4001;
 
 const defaultWebSocketClientConfig: WebSocketClientConfig = {
