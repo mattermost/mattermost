@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AccessControlPolicy} from './access_control';
 import type {Audit} from './audits';
 import type {Compliance} from './compliance';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from './config';
@@ -10,7 +11,7 @@ import type {PluginRedux, PluginStatusRedux} from './plugins';
 import type {SamlCertificateStatus, SamlMetadataResponse} from './saml';
 import type {Team} from './teams';
 import type {UserAccessToken, UserProfile} from './users';
-import type {RelationOneToOne} from './utilities';
+import type {RelationOneToOne, IDMappedObjects} from './utilities';
 
 export enum LogLevelEnum {
     SILLY = 'silly',
@@ -69,6 +70,8 @@ export type AdminState = {
     dataRetentionCustomPolicies: DataRetentionCustomPolicies;
     dataRetentionCustomPoliciesCount: number;
     prevTrialLicense: ClientLicense;
+    accessControlPolicies: IDMappedObjects<AccessControlPolicy>;
+    channelsForAccessControlPolicy: Record<string, string[]>;
 };
 
 export type AnalyticsState = {
