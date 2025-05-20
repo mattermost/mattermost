@@ -1484,14 +1484,14 @@ func (api *apiTimerLayer) GetGroups(page, perPage int, opts model.GroupSearchOpt
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) error {
+func (api *apiTimerLayer) CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.CreateDefaultSyncableMemberships(params)
 	api.recordTime(startTime, "CreateDefaultSyncableMemberships", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) DeleteGroupConstrainedMemberships() error {
+func (api *apiTimerLayer) DeleteGroupConstrainedMemberships() *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.DeleteGroupConstrainedMemberships()
 	api.recordTime(startTime, "DeleteGroupConstrainedMemberships", _returnsA == nil)

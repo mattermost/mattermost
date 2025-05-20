@@ -1461,16 +1461,28 @@ func (api *PluginAPI) GetGroups(page, perPage int, opts model.GroupSearchOpts, v
 	return api.app.GetGroups(page, perPage, opts, viewRestrictions)
 }
 
-func (api *PluginAPI) CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) error {
+func (api *PluginAPI) CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) *model.AppError {
 	if err := api.checkLDAPLicense(); err != nil {
-		return err
+		return model.NewAppError("CreateDefaultSyncableMemberships", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
-	return api.app.CreateDefaultMemberships(api.ctx, params)
+
+	err := api.app.CreateDefaultMemberships(api.ctx, params)
+	if err != nil {
+		return model.NewAppError("CreateDefaultSyncableMemberships", "app.group.create_syncable_memberships.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
 }
 
-func (api *PluginAPI) DeleteGroupConstrainedMemberships() error {
+func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
 	if err := api.checkLDAPLicense(); err != nil {
-		return err
+		return model.NewAppError("DeleteGroupConstrainedMemberships", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
-	return api.app.DeleteGroupConstrainedMemberships(api.ctx)
+
+	err := api.app.DeleteGroupConstrainedMemberships(api.ctx)
+	if err != nil {
+		return model.NewAppError("DeleteGroupConstrainedMemberships", "app.group.delete_invalid_syncable_memberships.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
 }

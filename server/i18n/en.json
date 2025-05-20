@@ -5331,8 +5331,16 @@
     "translation": "Error occurred fetching scheduled posts."
   },
   {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Unable to create group syncable memberships."
+  },
+  {
     "id": "app.group.crud_permission",
     "translation": "Unable to perform operation for that source type."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Unable to delete invalid group syncable memberships."
   },
   {
     "id": "app.group.group_syncable_already_deleted",
@@ -6193,6 +6201,54 @@
   {
     "id": "app.oauth.update_app.updating.app_error",
     "translation": "We encountered an error updating the app."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": ""
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -7759,6 +7815,10 @@
   {
     "id": "common.parse_error_int64",
     "translation": "Failed to parse the value:{{.Value}} to int64"
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": ""
   },
   {
     "id": "ent.account_migration.get_all_failed",
