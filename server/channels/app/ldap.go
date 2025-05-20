@@ -15,9 +15,9 @@ import (
 )
 
 // SyncLdap starts an LDAP sync job.
-// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
+// If reAddRemovedMembers is true, then members who left or were removed from a team/channel will
 // be re-added; otherwise, they will not be re-added.
-func (a *App) SyncLdap(c request.CTX, includeRemovedMembers bool) {
+func (a *App) SyncLdap(c request.CTX, reAddRemovedMembers *bool) {
 	a.Srv().Go(func() {
 		if license := a.Srv().License(); license != nil && *license.Features.LDAP {
 			if !*a.Config().LdapSettings.EnableSync {
@@ -30,7 +30,7 @@ func (a *App) SyncLdap(c request.CTX, includeRemovedMembers bool) {
 				c.Logger().Error("Not executing ldap sync because ldap is not available")
 				return
 			}
-			if _, appErr := ldapI.StartSynchronizeJob(c, false, includeRemovedMembers); appErr != nil {
+			if _, appErr := ldapI.StartSynchronizeJob(c, false, reAddRemovedMembers); appErr != nil {
 				c.Logger().Error("Failed to start LDAP sync job")
 			}
 		}
