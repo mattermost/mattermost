@@ -553,6 +553,14 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                         this.props.backButtonClick();
                                     }
                                 }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        if (this.props.backButtonClick) {
+                                            this.props.backButtonClick();
+                                        }
+                                    }
+                                }}
                                 className={classNames('btn btn-tertiary', this.props.backButtonClass)}
                             >
                                 {backButtonText}
