@@ -26,7 +26,7 @@ func (api *API) InitConfigLocal() {
 }
 
 func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localGetConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_LocalGetConfig, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	filterMasked, _ := strconv.ParseBool(r.URL.Query().Get("remove_masked"))
 	filterDefaults, _ := strconv.ParseBool(r.URL.Query().Get("remove_defaults"))
@@ -58,7 +58,7 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localUpdateConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_LocalUpdateConfig, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	cfg.SetDefaults()
@@ -111,7 +111,7 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localPatchConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_LocalPatchConfig, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	appCfg := c.App.Config()
@@ -172,7 +172,7 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("migrateConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_MigrateConfig, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -191,7 +191,7 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localGetClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localGetClientConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_LocalGetClientConfig, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	format := r.URL.Query().Get("format")

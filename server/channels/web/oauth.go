@@ -65,7 +65,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("authorizeOAuthApp", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_AuthorizeOAuthApp, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -93,7 +93,7 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deauthorizeOAuthApp", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_DeauthorizeOAuthApp, audit.Fail)
 	auditRec.AddMeta("client_id", clientId)
 	defer c.LogAuditRec(auditRec)
 
@@ -135,7 +135,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("authorizeOAuthPage", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_AuthorizeOAuthPage, audit.Fail)
 	auditRec.AddMeta("client_id", authRequest.ClientId)
 	auditRec.AddMeta("scope", authRequest.Scope)
 	defer c.LogAuditRec(auditRec)
@@ -243,7 +243,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	redirectURI := r.FormValue("redirect_uri")
 
-	auditRec := c.MakeAuditRecord("getAccessToken", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_GetAccessToken, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("grant_type", grantType)
 	auditRec.AddMeta("client_id", clientId)
@@ -275,7 +275,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	service := c.Params.Service
 
-	auditRec := c.MakeAuditRecord("completeOAuth", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_CompleteOAuth, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "service", service)
 
@@ -440,7 +440,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("loginWithOAuth", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_LoginWithOAuth, audit.Fail)
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
@@ -476,7 +476,7 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("mobileLoginWithOAuth", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_MobileLoginWithOAuth, audit.Fail)
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
@@ -511,7 +511,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("signupWithOAuth", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_SignupWithOAuth, audit.Fail)
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 

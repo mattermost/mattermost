@@ -42,7 +42,7 @@ func localDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localDeleteTeam", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_LocalDeleteTeam, audit.Fail)
 	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
 	defer c.LogAuditRec(auditRec)
 
@@ -100,7 +100,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		emailList[i] = email
 	}
 
-	auditRec := c.MakeAuditRecord("localInviteUsersToTeam", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_LocalInviteUsersToTeam, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "member_invite", memberInvite)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
@@ -248,7 +248,7 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	team.Email = strings.ToLower(team.Email)
 
-	auditRec := c.MakeAuditRecord("localCreateTeam", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_LocalCreateTeam, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "team", &team)
 

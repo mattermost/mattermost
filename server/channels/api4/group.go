@@ -191,7 +191,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createGroup", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_CreateGroup, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "group", group)
 
@@ -261,7 +261,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchGroup", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_PatchGroup, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "group", group)
 
@@ -351,7 +351,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("linkGroupSyncable", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_LinkGroupSyncable, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
 	audit.AddEventParameter(auditRec, "syncable_id", syncableID)
@@ -533,7 +533,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchGroupSyncable", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_PatchGroupSyncable, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
 	audit.AddEventParameter(auditRec, "old_syncable_id", syncableID)
@@ -616,7 +616,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableType := c.Params.SyncableType
 
-	auditRec := c.MakeAuditRecord("unlinkGroupSyncable", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UnlinkGroupSyncable, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
 	audit.AddEventParameter(auditRec, "syncable_id", syncableID)
@@ -1228,7 +1228,7 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteGroup", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_DeleteGroup, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
 
@@ -1283,7 +1283,7 @@ func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("restoreGroup", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_RestoreGroup, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
 
@@ -1352,7 +1352,7 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	auditRec := c.MakeAuditRecord("addGroupMembers", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_AddGroupMembers, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "addGroupMembers_userids", newMembers.UserIds)
 
@@ -1427,7 +1427,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	auditRec := c.MakeAuditRecord("deleteGroupMembers", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_DeleteGroupMembers, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "deleteGroupMembers_userids", deleteBody.UserIds)
 

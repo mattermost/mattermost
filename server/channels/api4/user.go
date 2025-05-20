@@ -124,7 +124,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	inviteId := r.URL.Query().Get("iid")
 	redirect := r.URL.Query().Get("r")
 
-	auditRec := c.MakeAuditRecord("createUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_CreateUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "invite_id", inviteId)
 	audit.AddEventParameter(auditRec, "redirect", redirect)
@@ -471,7 +471,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("setProfileImage", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_SetProfileImage, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	if imageArray[0] != nil {
 		audit.AddEventParameter(auditRec, "filename", imageArray[0].Filename)
@@ -520,7 +520,7 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("setDefaultProfileImage", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_SetDefaultProfileImage, audit.Fail)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
@@ -1242,7 +1242,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	var user model.User
@@ -1331,7 +1331,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_PatchUser, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "user_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
@@ -1410,7 +1410,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := c.Params.UserId
 	permanent := c.Params.Permanent
 
-	auditRec := c.MakeAuditRecord("deleteUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_DeleteUser, audit.Fail)
 	audit.AddEventParameter(auditRec, "user_id", userId)
 	audit.AddEventParameter(auditRec, "permanent", permanent)
 	defer c.LogAuditRec(auditRec)
@@ -1484,7 +1484,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	auditRec := c.MakeAuditRecord("updateUserRoles", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateUserRoles, audit.Fail)
 	audit.AddEventParameter(auditRec, "roles", newRoles)
 	defer c.LogAuditRec(auditRec)
 
@@ -1521,7 +1521,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateUserActive", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateUserActive, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "active", active)
 
@@ -1595,7 +1595,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateUserAuth", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateUserAuth, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	var userAuth model.UserAuth
@@ -1637,7 +1637,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateUserMfa", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateUserMfa, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if c.AppContext.Session().IsOAuth {
@@ -1730,7 +1730,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJSON(r.Body)
 	newPassword := props["new_password"]
 
-	auditRec := c.MakeAuditRecord("updatePassword", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdatePassword, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempted")
 
@@ -1796,7 +1796,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	newPassword := props["new_password"]
 
-	auditRec := c.MakeAuditRecord("resetPassword", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_ResetPassword, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt - token=" + token)
 
@@ -1822,7 +1822,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("sendPasswordReset", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_SendPasswordReset, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "email", email)
 
@@ -1931,7 +1931,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	auditRec := c.MakeAuditRecord("login", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_Login, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "login_id", loginId)
 	audit.AddEventParameter(auditRec, "device_id", deviceId)
@@ -2059,7 +2059,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	auditRec := c.MakeAuditRecord("login", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_Login, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "login_id", loginID)
 	user, err := c.App.AuthenticateUserForLogin(c.AppContext, "", loginID, "", "", token, false)
@@ -2102,7 +2102,7 @@ func logout(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("Logout", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_Logout, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("")
 
@@ -2156,7 +2156,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("revokeSession", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_RevokeSession, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
@@ -2203,7 +2203,7 @@ func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("revokeAllSessionsForUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_RevokeAllSessionsForUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 
@@ -2229,7 +2229,7 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("revokeAllSessionsAllUsers", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_RevokeAllSessionsAllUsers, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RevokeSessionsFromAllUsers(); err != nil {
@@ -2286,7 +2286,7 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request, deviceId string) {
-	auditRec := c.MakeAuditRecord("attachDeviceId", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_AttachDeviceId, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "device_id", deviceId)
 
@@ -2341,7 +2341,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("getUserAudits", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_GetUserAudits, audit.Fail)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
@@ -2378,7 +2378,7 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("verifyUserEmail", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_VerifyUserEmail, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.VerifyEmailFromToken(c.AppContext, token); err != nil {
@@ -2403,7 +2403,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	redirect := r.URL.Query().Get("r")
 
-	auditRec := c.MakeAuditRecord("sendVerificationEmail", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_SendVerificationEmail, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "email", email)
 	audit.AddEventParameter(auditRec, "redirect", redirect)
@@ -2434,7 +2434,7 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("switchAccountType", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_SwitchAccountType, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "switch_request", &switchRequest)
 
@@ -2478,7 +2478,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createUserAccessToken", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_CreateUserAccessToken, audit.Fail)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
@@ -2673,7 +2673,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("token_id")
 	}
 
-	auditRec := c.MakeAuditRecord("revokeUserAccessToken", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_RevokeUserAccessToken, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "token_id", tokenId)
 	c.LogAudit("")
@@ -2717,7 +2717,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.SetInvalidParam("token_id")
 	}
 
-	auditRec := c.MakeAuditRecord("disableUserAccessToken", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_DisableUserAccessToken, audit.Fail)
 	audit.AddEventParameter(auditRec, "token_id", tokenId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("")
@@ -2762,7 +2762,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("token_id")
 	}
 
-	auditRec := c.MakeAuditRecord("enableUserAccessToken", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_EnableUserAccessToken, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "token_id", tokenId)
 	c.LogAudit("")
@@ -2802,7 +2802,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.StringInterfaceFromJSON(r.Body)
 
-	auditRec := c.MakeAuditRecord("saveUserTermsOfService", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_SaveUserTermsOfService, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	userId := c.AppContext.Session().UserId
@@ -2857,7 +2857,7 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("promoteGuestToUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_PromoteGuestToUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 
@@ -2910,7 +2910,7 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("demoteUserToGuest", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_DemoteUserToGuest, audit.Fail)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
@@ -2988,7 +2988,7 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("verifyUserEmailWithoutToken", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_VerifyUserEmailWithoutToken, audit.Fail)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user_id", user.Id)
@@ -3023,7 +3023,7 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("convertUserToBot", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_ConvertUserToBot, audit.Fail)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "user", user)
@@ -3177,7 +3177,7 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("migrateAuthToLdap", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_MigrateAuthToLdap, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "from", from)
 	audit.AddEventParameter(auditRec, "force", force)
@@ -3236,7 +3236,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	usersMap := model.MapFromJSON(strings.NewReader(model.StringInterfaceToJSON(matches)))
 
-	auditRec := c.MakeAuditRecord("migrateAuthToSaml", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_MigrateAuthToSaml, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "from", from)
 	audit.AddEventParameter(auditRec, "auto", auto)
@@ -3387,7 +3387,7 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateReadStateThreadByUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateReadStateThreadByUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	audit.AddEventParameter(auditRec, "thread_id", c.Params.ThreadId)
@@ -3421,7 +3421,7 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("setUnreadThreadByPostId", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_SetUnreadThreadByPostId, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	audit.AddEventParameter(auditRec, "thread_id", c.Params.ThreadId)
@@ -3465,7 +3465,7 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("unfollowThreadByUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UnfollowThreadByUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	audit.AddEventParameter(auditRec, "thread_id", c.Params.ThreadId)
@@ -3497,7 +3497,7 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("followThreadByUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_FollowThreadByUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	audit.AddEventParameter(auditRec, "thread_id", c.Params.ThreadId)
@@ -3529,7 +3529,7 @@ func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateReadStateAllThreadsByUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateReadStateAllThreadsByUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
@@ -3583,7 +3583,7 @@ func resetPasswordFailedAttempts(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 	errParams := map[string]any{"userID": c.Params.UserId}
 
-	auditRec := c.MakeAuditRecord("resetPasswordFailedAttempts", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_ResetPasswordFailedAttempts, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementUsers) {

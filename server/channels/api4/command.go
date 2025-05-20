@@ -36,7 +36,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createCommand", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_CreateCommand, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -77,7 +77,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCommand", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateCommand, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -137,7 +137,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("moveCommand", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_MoveCommand, audit.Fail)
 	audit.AddEventParameter(auditRec, "command_move_request", cmr.TeamId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -189,7 +189,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteCommand", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_DeleteCommand, audit.Fail)
 	audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -319,7 +319,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("executeCommand", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_ExecuteCommand, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "command_args", &commandArgs)
 
@@ -448,7 +448,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("regenCommandToken", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_RegenCommandToken, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 

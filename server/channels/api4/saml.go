@@ -83,7 +83,7 @@ func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addSamlPublicCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_AddSamlPublicCertificate, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
 
@@ -107,7 +107,7 @@ func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addSamlPrivateCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_AddSamlPrivateCertificate, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
 
@@ -136,7 +136,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addSamlIdpCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_AddSamlIdpCertificate, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("type", d)
 
@@ -178,7 +178,7 @@ func removeSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeSamlPublicCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_RemoveSamlPublicCertificate, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveSamlPublicCertificate(); err != nil {
@@ -196,7 +196,7 @@ func removeSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeSamlPrivateCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_RemoveSamlPrivateCertificate, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveSamlPrivateCertificate(); err != nil {
@@ -214,7 +214,7 @@ func removeSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeSamlIdpCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_RemoveSamlIdpCertificate, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveSamlIdpCertificate(); err != nil {

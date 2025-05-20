@@ -6,6 +6,7 @@ package api4
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
@@ -24,7 +25,7 @@ func localDeletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	permanent := c.Params.Permanent
 
-	auditRec := c.MakeAuditRecord("localDeletePost", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_LocalDeletePost, audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
 	audit.AddEventParameter(auditRec, "permanent", permanent)

@@ -320,7 +320,7 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userId := c.Params.UserId
 
-	auditRec := c.MakeAuditRecord("localDeleteUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_LocalDeleteUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	user, err := c.App.GetUser(userId)
@@ -347,7 +347,7 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localPermanentDeleteAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localPermanentDeleteAllUsers", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_LocalPermanentDeleteAllUsers, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.PermanentDeleteAllUsers(c.AppContext); err != nil {

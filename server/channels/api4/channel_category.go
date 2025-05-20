@@ -51,7 +51,7 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createCategoryForTeamForUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_CreateCategoryForTeamForUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	var categoryCreateRequest model.SidebarCategoryWithChannels
@@ -119,7 +119,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCategoryOrderForTeamForUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateCategoryOrderForTeamForUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	categoryOrder, err := model.NonSortedArrayFromJSON(r.Body)
@@ -187,7 +187,7 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCategoriesForTeamForUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateCategoriesForTeamForUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	var categoriesUpdateRequest []*model.SidebarCategoryWithChannels
@@ -290,7 +290,7 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCategoryForTeamForUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateCategoryForTeamForUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	var categoryUpdateRequest model.SidebarCategoryWithChannels
@@ -336,7 +336,7 @@ func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteCategoryForTeamForUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEvent_DeleteCategoryForTeamForUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	appErr := c.App.DeleteSidebarCategory(c.AppContext, c.Params.UserId, c.Params.TeamId, c.Params.CategoryId)
