@@ -185,7 +185,7 @@ const DotMenu = ({
                     labels={field.attrs.ldap ? (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.ad_ldap.edit_link.label'
-                            defaultMessage={'Edit link to: <Chip>AD/LDAP: {propertyName}</Chip>'}
+                            defaultMessage={'Edit link with: <Chip>AD/LDAP: {propertyName}</Chip>'}
                             values={{
                                 Chip: (chunks: React.ReactNode) => <Chip>{chunks}</Chip>,
                                 propertyName: field.attrs.ldap,
@@ -206,7 +206,7 @@ const DotMenu = ({
                     labels={field.attrs.saml ? (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.saml.edit_link.label'
-                            defaultMessage={'Edit link to: <Chip>SAML: {propertyName}</Chip>'}
+                            defaultMessage={'Edit link with: <Chip>SAML: {propertyName}</Chip>'}
                             values={{
                                 Chip: (chunks: React.ReactNode) => <Chip>{chunks}</Chip>,
                                 propertyName: field.attrs.saml,
