@@ -4667,10 +4667,6 @@
     "translation": "%v poistui kanavalta."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Olet ainoa jäsen jäljellä. Kokeile yksityisen kanavan poistamista poistumisen sijaan."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Et voi poistua suoraviestikanavalta."
   },
