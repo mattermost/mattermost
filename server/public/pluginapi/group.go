@@ -168,7 +168,7 @@ func (g *GroupService) GetGroups(page, perPage int, opts model.GroupSearchOpts, 
 	return groups, normalizeAppErr(appErr)
 }
 
-// CreateDefaultMemberships creates default channel/team memberships for a group.
+// CreateDefaultSyncableMemberships creates default syncable memberships based off the provided parameters.
 //
 // Minimum server version: 10.9
 func (g *GroupService) CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) error {
@@ -176,7 +176,7 @@ func (g *GroupService) CreateDefaultSyncableMemberships(params model.CreateDefau
 	return normalizeAppErr(appErr)
 }
 
-// DeleteGroupConstrainedMemberships creates default channel/team memberships for a group.
+// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed groups of all group-constrained teams and channels.
 //
 // Minimum server version: 10.9
 func (g *GroupService) DeleteGroupConstrainedMemberships() error {
