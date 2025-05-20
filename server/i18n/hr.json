@@ -524,10 +524,6 @@
     "translation": "%v je napustio/la kanal."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Ti si jedini preostali član. Pokušaj ukloniti privatni kanal umjesto da ga napustiš."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Nije moguće napustiti kanal izravne poruke."
   },

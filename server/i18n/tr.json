@@ -208,10 +208,6 @@
     "translation": "Kanala doğrudan ileti bırakılamaz."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Kanalda yalnızca siz kaldınız. Kanaldan ayrılmak yerine özel kanalı kaldırmayı deneyin."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v kanaldan ayrıldı."
   },
