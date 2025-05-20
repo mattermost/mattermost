@@ -150,6 +150,9 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	// Mattermost-Plugin-ID can only be set by inter-plugin requests
 	r.Header.Del("Mattermost-Plugin-ID")
 
+	// Clean Authorization header. The Mattermost-User-Id header is used to indicate authenticated requests.
+	r.Header.Del(model.HeaderAuth)
+
 	// Clean Mattermost-User-Id header. The server sets this header for authenticated requests
 	r.Header.Del("Mattermost-User-Id")
 
@@ -252,8 +255,6 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	if (session != nil && session.Id != "") && appErr == nil && csrfCheckPassed {
 		r.Header.Set("Mattermost-User-Id", session.UserId)
 		context.SessionId = session.Id
-
-		r.Header.Del(model.HeaderAuth)
 	}
 
 	handler(context, w, r)
