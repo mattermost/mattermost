@@ -2517,7 +2517,8 @@ type LdapSettings struct {
 	PictureAttribute   *string `access:"authentication_ldap"`
 
 	// Synchronization
-	SyncIntervalMinutes *int `access:"authentication_ldap"`
+	SyncIntervalMinutes *int  `access:"authentication_ldap"`
+	ReAddRemovedMembers *bool `access:"authentication_ldap"`
 
 	// Advanced
 	SkipCertificateVerification *bool   `access:"authentication_ldap"`
@@ -2648,6 +2649,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.SyncIntervalMinutes == nil {
 		s.SyncIntervalMinutes = NewPointer(60)
+	}
+
+	if s.ReAddRemovedMembers == nil {
+		s.ReAddRemovedMembers = NewPointer(false)
 	}
 
 	if s.SkipCertificateVerification == nil {

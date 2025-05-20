@@ -4178,6 +4178,19 @@ const AdminDefinition: AdminDefinitionType = {
                                     ),
                                 },
                                 {
+                                    type: 'bool',
+                                    key: 'LdapSettings.ReAddRemovedMembers',
+                                    label: defineMessage({id: 'admin.ldap.reAddRemovedMembersTitle', defaultMessage: 'Re-add removed members on sync:'}),
+                                    help_text: defineMessage({id: 'admin.ldap.reAddRemovedMembersDesc', defaultMessage: 'When enabled, members who were previously removed from group-synced teams or channels will be re-added during LDAP synchronization if they are still a member of the LDAP group.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                                        it.all(
+                                            it.stateIsFalse('LdapSettings.Enable'),
+                                            it.stateIsFalse('LdapSettings.EnableSync'),
+                                        ),
+                                    ),
+                                },
+                                {
                                     type: 'number',
                                     key: 'LdapSettings.MaxPageSize',
                                     label: defineMessage({id: 'admin.ldap.maxPageSizeTitle', defaultMessage: 'Maximum Page Size:'}),
