@@ -257,6 +257,8 @@ func validateSidebarCategories(c *Context, teamId, userId string, categories []*
 	return nil
 }
 
+// validateSidebarCategoryChannels returns a normalized slice of channel IDs by removing duplicates from it and
+// ensuring that it only contains IDs of channels in the given ChannelList.
 func validateSidebarCategoryChannels(c *Context, userId string, channelIds []string, channels model.ChannelList) []string {
 	var filtered []string
 
@@ -275,6 +277,8 @@ func validateSidebarCategoryChannels(c *Context, userId string, channelIds []str
 			c.Logger.Info("Stopping user from adding channel to their sidebar when they are not a member", mlog.String("user_id", userId), mlog.String("channel_id", channelId))
 		}
 	}
+
+	filtered = model.RemoveDuplicateStringsNonSort(filtered)
 
 	return filtered
 }
