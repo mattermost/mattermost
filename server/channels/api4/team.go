@@ -84,7 +84,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	team.Email = strings.ToLower(team.Email)
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_CreateTeam, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateTeam, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "team", &team)
 
@@ -214,7 +214,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateTeam, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateTeam, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "team", &team)
 
@@ -251,7 +251,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_PatchTeam, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchTeam, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "team_patch", &team)
 	defer c.LogAuditRec(auditRec)
 
@@ -304,7 +304,7 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_RestoreTeam, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRestoreTeam, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
 
@@ -381,7 +381,7 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateTeamPrivacy, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateTeamPrivacy, audit.Fail)
 	audit.AddEventParameter(auditRec, "privacy", privacy)
 	defer c.LogAuditRec(auditRec)
 
@@ -432,7 +432,7 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_RegenerateTeamInviteId, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRegenerateTeamInviteId, audit.Fail)
 	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
 	defer c.LogAuditRec(auditRec)
 
@@ -465,7 +465,7 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_DeleteTeam, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteTeam, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if team, err := c.App.GetTeam(c.Params.TeamId); err == nil {
@@ -733,7 +733,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_AddTeamMember, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddTeamMember, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "member", &member)
 	defer c.LogAuditRec(auditRec)
 
@@ -820,7 +820,7 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	var member *model.TeamMember
 	var err *model.AppError
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_AddUserToTeamFromInvite, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddUserToTeamFromInvite, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "invite_id", inviteId)
 
@@ -878,7 +878,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_AddTeamMembers, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddTeamMembers, audit.Fail)
 	audit.AddEventParameterAuditableArray(auditRec, "members", members)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("count", len(members))
@@ -990,7 +990,7 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_RemoveTeamMember, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveTeamMember, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if c.AppContext.Session().UserId != c.Params.UserId {
@@ -1100,7 +1100,7 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateTeamMemberRoles, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateTeamMemberRoles, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "roles", newRoles)
 
@@ -1134,7 +1134,7 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateTeamMemberSchemeRoles, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateTeamMemberSchemeRoles, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "scheme_roles", &schemeRoles)
 
@@ -1372,7 +1372,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_ImportTeam, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventImportTeam, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
 
@@ -1448,7 +1448,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		emailList[i] = strings.ToLower(emailList[i])
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_InviteUsersToTeam, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventInviteUsersToTeam, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "member_invite", memberInvite)
 	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
@@ -1542,7 +1542,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_InviteGuestsToChannels, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventInviteGuestsToChannels, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
 
@@ -1659,7 +1659,7 @@ func invalidateAllEmailInvites(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_InvalidateAllEmailInvites, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventInvalidateAllEmailInvites, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.InvalidateAllEmailInvites(c.AppContext); err != nil {
@@ -1721,7 +1721,7 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_SetTeamIcon, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventSetTeamIcon, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
 
@@ -1772,7 +1772,7 @@ func removeTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_RemoveTeamIcon, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveTeamIcon, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
 
@@ -1810,7 +1810,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateTeamScheme, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateTeamScheme, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "scheme_id_patch", &p)
 	defer c.LogAuditRec(auditRec)
 

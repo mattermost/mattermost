@@ -54,7 +54,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_CreateEmoji, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateEmoji, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	// Allow any user with CREATE_EMOJIS permission at Team level to create emojis at system level
@@ -137,7 +137,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_DeleteEmoji, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteEmoji, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	emoji, err := c.App.GetEmoji(c.AppContext, c.Params.EmojiId)

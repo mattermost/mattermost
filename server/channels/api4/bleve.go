@@ -15,7 +15,7 @@ func (api *API) InitBleve() {
 }
 
 func purgeBleveIndexes(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord(model.AuditEvent_PurgeBleveIndexes, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPurgeBleveIndexes, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionPurgeBleveIndexes) {

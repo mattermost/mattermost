@@ -40,7 +40,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_CreateIncomingHook, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateIncomingHook, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "incoming_webhook", &hook)
 	audit.AddEventParameterAuditable(auditRec, "channel", channel)
@@ -108,7 +108,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateIncomingHook, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateIncomingHook, audit.Fail)
 	audit.AddEventParameter(auditRec, "hook_id", c.Params.HookId)
 	audit.AddEventParameterAuditable(auditRec, "updated_hook", &updatedHook)
 	defer c.LogAuditRec(auditRec)
@@ -261,7 +261,7 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_GetIncomingHook, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetIncomingHook, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "hook_id", c.Params.HookId)
 	auditRec.AddMeta("hook_id", hook.Id)
@@ -321,7 +321,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_DeleteIncomingHook, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteIncomingHook, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "hook_id", c.Params.HookId)
 	auditRec.AddMeta("hook_id", hook.Id)
@@ -372,7 +372,7 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdateOutgoingHook, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateOutgoingHook, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "updated_hook", &updatedHook)
 	c.LogAudit("attempt")
@@ -426,7 +426,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_CreateOutgoingHook, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateOutgoingHook, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "hook", &hook)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -547,7 +547,7 @@ func getOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_GetOutgoingHook, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetOutgoingHook, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "hook_id", c.Params.HookId)
 	auditRec.AddMeta("hook_id", hook.Id)
@@ -587,7 +587,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_RegenOutgoingHookToken, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRegenOutgoingHookToken, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("hook_id", hook.Id)
 	auditRec.AddMeta("hook_display", hook.DisplayName)
@@ -634,7 +634,7 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_DeleteOutgoingHook, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteOutgoingHook, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "hook_id", c.Params.HookId)
 	auditRec.AddMeta("hook_id", hook.Id)

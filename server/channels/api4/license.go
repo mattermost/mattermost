@@ -54,7 +54,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord(model.AuditEvent_AddLicense, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddLicense, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -156,7 +156,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord(model.AuditEvent_RemoveLicense, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveLicense, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -177,7 +177,7 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord(model.AuditEvent_RequestTrialLicense, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRequestTrialLicense, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 

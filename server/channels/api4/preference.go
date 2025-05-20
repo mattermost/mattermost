@@ -94,7 +94,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_UpdatePreferences, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdatePreferences, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
@@ -156,7 +156,7 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_DeletePreferences, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeletePreferences, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {

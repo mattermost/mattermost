@@ -346,7 +346,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Sessi
 		return false
 	}
 
-	auditRec := a.MakeAuditRecord(rctx, model.AuditEvent_ExtendSessionExpiry, audit.Fail)
+	auditRec := a.MakeAuditRecord(rctx, model.AuditEventExtendSessionExpiry, audit.Fail)
 	defer a.LogAuditRec(rctx, auditRec, nil)
 	auditRec.AddEventPriorState(session)
 

@@ -139,7 +139,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 		return nil
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_UploadFileSimple, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUploadFileSimple, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 
@@ -320,7 +320,7 @@ NextPart:
 			clientId = clientIds[nFiles]
 		}
 
-		auditRec := c.MakeAuditRecord(model.AuditEvent_UploadFileMultipart, audit.Fail)
+		auditRec := c.MakeAuditRecord(model.AuditEventUploadFileMultipart, audit.Fail)
 		audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 		audit.AddEventParameter(auditRec, "client_id", clientId)
 
@@ -427,7 +427,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 			clientId = clientIds[i]
 		}
 
-		auditRec := c.MakeAuditRecord(model.AuditEvent_UploadFileMultipartLegacy, audit.Fail)
+		auditRec := c.MakeAuditRecord(model.AuditEventUploadFileMultipartLegacy, audit.Fail)
 		defer c.LogAuditRec(auditRec)
 		audit.AddEventParameter(auditRec, "channel_id", channelId)
 		audit.AddEventParameter(auditRec, "client_id", clientId)
@@ -472,7 +472,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_GetFile, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFile, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "force_download", forceDownload)
 
@@ -570,7 +570,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEvent_GetFileLink, audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFileLink, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
