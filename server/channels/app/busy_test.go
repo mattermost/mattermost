@@ -113,7 +113,7 @@ func compareBusyState(t *testing.T, busy1 *Busy, busy2 *Busy) bool {
 	if busy1.Expires().Unix() < busy2.Expires().Unix() {
 		busy1JSON, _ := busy1.ToJSON()
 		busy2JSON, _ := busy2.ToJSON()
-		t.Logf("Expires().Unix() is not equal: busy1:%s;  busy2:%s\n", busy1JSON, busy2JSON)
+		t.Logf("busy1.Expires().Unix():%s is not less than busy2Expires().Unix():%s\n", busy1JSON, busy2JSON)
 		return false
 	}
 	return true
