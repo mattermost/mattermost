@@ -81,7 +81,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post.SanitizeInput()
 	post.UserId = c.AppContext.Session().UserId
 
-	auditRec := c.MakeAuditRecord(model.AuditEventCreatePost, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventCreatePost, audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameterAuditable(auditRec, "post", &post)
 
@@ -583,7 +583,7 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	permanent := c.Params.Permanent
 
-	auditRec := c.MakeAuditRecord(model.AuditEventDeletePost, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventDeletePost, audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
 	audit.AddEventParameter(auditRec, "permanent", permanent)
@@ -819,7 +819,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		includeDeletedChannels = *params.IncludeDeletedChannels
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventSearchPosts, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventSearchPosts, audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelAPI)
 	audit.AddEventParameterAuditable(auditRec, "search_params", params)
 
@@ -868,7 +868,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUpdatePost, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdatePost, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "post", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
@@ -943,7 +943,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchPost, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventPatchPost, audit.Fail)
 	audit.AddEventParameter(auditRec, "id", c.Params.PostId)
 	audit.AddEventParameterAuditable(auditRec, "patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
@@ -1066,7 +1066,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventSaveIsPinnedPost, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventSaveIsPinnedPost, audit.Fail)
 	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
@@ -1203,7 +1203,7 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventMoveThread, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventMoveThread, audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameter(auditRec, "original_post_id", c.Params.PostId)
 	audit.AddEventParameter(auditRec, "to_channel_id", moveThreadParams.ChannelId)
@@ -1344,7 +1344,7 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventRestorePostVersion, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventRestorePostVersion, audit.Fail)
 	audit.AddEventParameter(auditRec, "id", c.Params.PostId)
 	audit.AddEventParameter(auditRec, "restore_version_id", restoreVersionId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)

@@ -140,7 +140,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchRole, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventPatchRole, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "role_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 

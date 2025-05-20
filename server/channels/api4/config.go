@@ -56,7 +56,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventGetConfig, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventGetConfig, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	cfg, err := config.Merge(&model.Config{}, c.App.GetSanitizedConfig(), &utils.MergeConfig{
@@ -99,7 +99,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord(model.AuditEventConfigReload, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventConfigReload, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionReloadConfig) {
@@ -126,7 +126,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUpdateConfig, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdateConfig, audit.Fail)
 
 	// audit.AddEventParameter(auditRec, "config", cfg)  // TODO We can do this but do we want to?
 	defer c.LogAuditRec(auditRec)
@@ -292,7 +292,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchConfig, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventPatchConfig, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {

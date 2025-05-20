@@ -29,7 +29,7 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventCreateScheme, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventCreateScheme, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "scheme", &scheme)
 
@@ -194,7 +194,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchScheme, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventPatchScheme, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "scheme_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
@@ -239,7 +239,7 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventDeleteScheme, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventDeleteScheme, audit.Fail)
 	audit.AddEventParameter(auditRec, "scheme_id", c.Params.SchemeId)
 	defer c.LogAuditRec(auditRec)
 

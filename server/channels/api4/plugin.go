@@ -50,7 +50,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUploadPlugin, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUploadPlugin, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
@@ -105,7 +105,7 @@ func installPluginFromURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventInstallPluginFromURL, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventInstallPluginFromURL, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
@@ -138,7 +138,7 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventInstallMarketplacePlugin, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventInstallMarketplacePlugin, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
@@ -228,7 +228,7 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventRemovePlugin, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventRemovePlugin, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "plugin_id", c.Params.PluginId)
 
@@ -332,7 +332,7 @@ func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventEnablePlugin, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventEnablePlugin, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "plugin_id", c.Params.PluginId)
 
@@ -361,7 +361,7 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventDisablePlugin, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventDisablePlugin, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "plugin_id", c.Params.PluginId)
 
@@ -422,7 +422,7 @@ func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, forc
 }
 
 func setFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord(model.AuditEventSetFirstAdminVisitMarketplaceStatus, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventSetFirstAdminVisitMarketplaceStatus, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -450,7 +450,7 @@ func setFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 }
 
 func getFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord(model.AuditEventGetFirstAdminVisitMarketplaceStatus, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventGetFirstAdminVisitMarketplaceStatus, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 

@@ -103,7 +103,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventCreateChannel, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventCreateChannel, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "channel", channel)
 
@@ -153,7 +153,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannel, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdateChannel, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "channel", channel)
 	defer c.LogAuditRec(auditRec)
 
@@ -258,7 +258,7 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelPrivacy, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdateChannelPrivacy, audit.Fail)
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 	defer c.LogAuditRec(auditRec)
 
@@ -337,7 +337,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	oldChannel := originalOldChannel.DeepCopy()
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchChannel, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventPatchChannel, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "channel", patch)
 	auditRec.AddEventPriorState(oldChannel)
@@ -429,7 +429,7 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	teamId := channel.TeamId
 
-	auditRec := c.MakeAuditRecord(model.AuditEventRestoreChannel, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventRestoreChannel, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventPriorState(channel)
 
@@ -483,7 +483,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventCreateDirectChannel, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventCreateDirectChannel, audit.Fail)
 	audit.AddEventParameter(auditRec, "user_ids", userIds)
 	defer c.LogAuditRec(auditRec)
 
@@ -575,7 +575,7 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		userIds = append(userIds, c.AppContext.Session().UserId)
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventCreateGroupChannel, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventCreateGroupChannel, audit.Fail)
 	audit.AddEventParameter(auditRec, "user_ids", userIds)
 	defer c.LogAuditRec(auditRec)
 
@@ -1374,7 +1374,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventDeleteChannel, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventDeleteChannel, audit.Fail)
 	audit.AddEventParameter(auditRec, "id", c.Params.ChannelId)
 	auditRec.AddEventPriorState(channel)
 	defer c.LogAuditRec(auditRec)
@@ -1711,7 +1711,7 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelMemberRoles, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdateChannelMemberRoles, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "props", props)
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
@@ -1743,7 +1743,7 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelMemberSchemeRoles, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdateChannelMemberSchemeRoles, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 	audit.AddEventParameterAuditable(auditRec, "roles", &schemeRoles)
@@ -1775,7 +1775,7 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelMemberNotifyProps, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdateChannelMemberNotifyProps, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 	audit.AddEventParameter(auditRec, "props", props)
@@ -1912,7 +1912,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		auditRec := c.MakeAuditRecord(model.AuditEventAddChannelMember, audit.Fail)
+		auditRec := c.MakeAuditRecord(audit.EventAddChannelMember, audit.Fail)
 		defer c.LogAuditRec(auditRec)
 		audit.AddEventParameter(auditRec, "user_id", userId)
 		audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
@@ -2003,7 +2003,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventRemoveChannelMember, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventRemoveChannelMember, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
@@ -2059,7 +2059,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelScheme, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdateChannelScheme, audit.Fail)
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 	defer c.LogAuditRec(auditRec)
 
@@ -2254,7 +2254,7 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchChannelModerations, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventPatchChannelModerations, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementChannels) {
@@ -2326,7 +2326,7 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventMoveChannel, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventMoveChannel, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 	audit.AddEventParameter(auditRec, "team_id", teamId)
@@ -2451,7 +2451,7 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventConvertGroupMessageToChannel, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventConvertGroupMessageToChannel, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "channel_id", gmConversionRequest.ChannelID)
 	audit.AddEventParameter(auditRec, "team_id", gmConversionRequest.TeamID)

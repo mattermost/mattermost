@@ -53,7 +53,7 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func purgeElasticsearchIndexes(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord(model.AuditEventPurgeElasticsearchIndexes, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventPurgeElasticsearchIndexes, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionPurgeElasticsearchIndexes) {

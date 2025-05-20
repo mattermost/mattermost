@@ -37,7 +37,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	bot.Patch(botPatch)
 
-	auditRec := c.MakeAuditRecord(model.AuditEventCreateBot, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventCreateBot, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "bot", bot)
 
@@ -88,7 +88,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchBot, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventPatchBot, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "id", botUserId)
 	audit.AddEventParameterAuditable(auditRec, "bot", botPatch)
@@ -206,7 +206,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	}
 	botUserId := c.Params.BotUserId
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUpdateBotActive, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdateBotActive, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "id", botUserId)
 	audit.AddEventParameter(auditRec, "enable", active)
@@ -240,7 +240,7 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	botUserId := c.Params.BotUserId
 	userId := c.Params.UserId
 
-	auditRec := c.MakeAuditRecord(model.AuditEventAssignBot, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventAssignBot, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "id", botUserId)
 	audit.AddEventParameter(auditRec, "user_id", userId)
@@ -293,7 +293,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	systemAdmin, _ := strconv.ParseBool(r.URL.Query().Get("set_system_admin"))
 
-	auditRec := c.MakeAuditRecord(model.AuditEventConvertBotToUser, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventConvertBotToUser, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "bot", bot)
 	audit.AddEventParameterAuditable(auditRec, "user_patch", &userPatch)

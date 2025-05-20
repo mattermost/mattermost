@@ -42,7 +42,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventCreateAccessControlPolicy, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventCreateAccessControlPolicy, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "requested", &policy)
 
@@ -113,7 +113,7 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 	policyID := c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord(model.AuditEventDeleteAccessControlPolicy, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventDeleteAccessControlPolicy, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "id", policyID)
 
@@ -246,7 +246,7 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	policyID := c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUpdateActiveStatus, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdateActiveStatus, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "id", policyID)
 
@@ -293,7 +293,7 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventAssignAccessPolicy, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventAssignAccessPolicy, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "id", policyID)
 	audit.AddEventParameter(auditRec, "channel_ids", assignments.ChannelIds)
@@ -325,7 +325,7 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		ChannelIds []string `json:"channel_ids"`
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUnassignAccessPolicy, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUnassignAccessPolicy, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "id", policyID)
 	audit.AddEventParameter(auditRec, "channel_ids", assignments.ChannelIds)

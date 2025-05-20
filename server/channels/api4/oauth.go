@@ -31,7 +31,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventCreateOAuthApp, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventCreateOAuthApp, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "oauth_app", &oauthApp)
 
 	defer c.LogAuditRec(auditRec)
@@ -70,7 +70,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUpdateOAuthApp, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdateOAuthApp, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
@@ -209,7 +209,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventDeleteOAuthApp, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventDeleteOAuthApp, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
@@ -250,7 +250,7 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventRegenerateOAuthAppSecret, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventRegenerateOAuthAppSecret, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "oauth_app_id", c.Params.AppId)
 

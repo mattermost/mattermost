@@ -62,7 +62,7 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	pf.Name = strings.TrimSpace(pf.Name)
 
-	auditRec := c.MakeAuditRecord(model.AuditEventCreateCPAField, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventCreateCPAField, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "property_field", pf)
 
@@ -117,7 +117,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAField, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventPatchCPAField, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "property_field_patch", patch)
 
@@ -160,7 +160,7 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventDeleteCPAField, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventDeleteCPAField, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "field_id", c.Params.FieldId)
 
@@ -220,7 +220,7 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventPatchCPAValues, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "user_id", userID)
 
