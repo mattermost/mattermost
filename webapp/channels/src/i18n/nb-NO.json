@@ -2826,7 +2826,7 @@
   "channel_modal.create_board.tooltip_title": "Administrer oppgaven din med en tavle",
   "channel_modal.error.generic": "Noe gikk galt. Vennligst prøv igjen.",
   "channel_modal.name.label": "Navn på kanal",
-  "channel_modal.name.longer": "Navnet på kanalen må være på minst 2 tegn.",
+  "channel_modal.name.longer": "Navnet på kanalen må være på minst 1 tegn.",
   "channel_modal.name.placeholder": "Skriv inn et navn for den nye kanalen",
   "channel_modal.name.shorter": "Navnet på kanalen kan maksimalt inneholde 64 tegn.",
   "channel_modal.purpose.placeholder": "Angi et formål for denne kanalen (valgfritt)",
