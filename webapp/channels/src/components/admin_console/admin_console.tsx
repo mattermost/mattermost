@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import type {Location} from 'history';
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import type {RefCallback} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
@@ -46,10 +47,46 @@ type ExtraProps = {
     isCurrentUserSystemAdmin: boolean;
 }
 
+/**
+ * Focus or scroll to a provided hash for the given {@link Location}.
+ * @returns a ref callback that should to be attached to an ancestor of the target hash element.
+ * @remarks emulates standard browser URL hash scroll-to behavior, but also works in custom or nested scroll containers.
+ */
+const useFocusScroller = (location: Location): RefCallback<HTMLElement> => {
+    const lastFocusedLocation = useRef<Location>();
+
+    return useCallback((node) => {
+        if (!node || !location.hash || lastFocusedLocation.current === location) {
+            // if there is no node or hash, or if we've already focused the hash for this location
+            return;
+        }
+
+        const id = decodeURIComponent(location.hash.substring(1));
+
+        if (!id) {
+            return;
+        }
+
+        const element = document.getElementById(id);
+
+        if (!element) {
+            return;
+        }
+
+        // focus the element, or scroll it into view if it couldn't be focused as a fallback
+        element.focus();
+        if (document.activeElement !== element) {
+            element.scrollIntoView({behavior: 'auto'});
+        }
+
+        // only focus a hash for a given location once
+        lastFocusedLocation.current = location;
+    }, [location]);
+};
+
 const AdminConsole = (props: Props) => {
     const [search, setSearch] = useState('');
-    const {hash} = props.location;
-    const lastFocusedLocation = useRef<Location>();
+    const handleFocusScroller = useFocusScroller(props.location);
 
     useEffect(() => {
         props.actions.getConfig();
@@ -70,25 +107,6 @@ const AdminConsole = (props: Props) => {
             props.actions.setAdminConsoleUsersManagementTableProperties();
         };
     }, []);
-
-    useLayoutEffect(() => {
-        if (hash && lastFocusedLocation.current !== props.location) {
-            const element = document.getElementById(decodeURIComponent(hash.substring(1)));
-
-            if (!element) {
-                return;
-            }
-
-            element.focus();
-
-            if (document.activeElement !== element) {
-                element.scrollIntoView({behavior: 'auto'});
-            }
-
-            // only focus a hash for a given location once
-            lastFocusedLocation.current = props.location;
-        }
-    });
 
     const handleSearchChange = (searchTerm: string) => {
         setSearch(searchTerm);
@@ -230,6 +248,7 @@ const AdminConsole = (props: Props) => {
             <div
                 className='admin-console__wrapper admin-console'
                 id='adminConsoleWrapper'
+                ref={handleFocusScroller}
             >
                 <SearchKeywordMarking
                     keyword={search}
