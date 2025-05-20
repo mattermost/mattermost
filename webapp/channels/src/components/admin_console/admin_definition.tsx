@@ -6365,32 +6365,44 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'ExperimentalAuditSettings.FileName',
                             label: defineMessage({id: 'admin.audit_logging_experimental.file_name.title', defaultMessage: 'File Name'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_name.help_text', defaultMessage: 'The name of the file to write to. NOTE: If ExperimentalAuditSettings.FileEnabled is set to TRUE, this field is required.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_name.help_text', defaultMessage: 'The name of the file to write to.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
                             type: 'number',
                             key: 'ExperimentalAuditSettings.FileMaxSizeMB',
                             label: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.title', defaultMessage: 'Max File Size (MB)'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.help_text', defaultMessage: 'The maximum size of a single exported file, in MB.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.help_text', defaultMessage: 'Maximum size, in megabytes (MB), the log file can grow before it gets rotated.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
                             type: 'number',
                             key: 'ExperimentalAuditSettings.FileMaxAgeDays',
                             label: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.title', defaultMessage: 'Max File Age (Days)'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.help_text', defaultMessage: 'The maximum age of an exported file, in days.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.help_text', defaultMessage: 'Maximum number of days to retain old log files. 0 disables the removal of old log files.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
                             type: 'number',
                             key: 'ExperimentalAuditSettings.FileMaxBackups',
                             label: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.title', defaultMessage: 'Maximum File Backups'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.help_text', defaultMessage: 'The maximum number of backup files to retain'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.help_text', defaultMessage: 'Maximum number of old log files to retain. 0 retains all old log files. Note: Configuring Max File Age can result in old log files being deleted regardless of this configuration value.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
@@ -6398,7 +6410,10 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalAuditSettings.FileCompress',
                             label: defineMessage({id: 'admin.audit_logging_experimental.file_compress.title', defaultMessage: 'File Compression'}),
                             help_text: defineMessage({id: 'admin.audit_logging_experimental.file_compress.help_text', defaultMessage: 'Choose whether enable or disable file compression.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
@@ -6406,7 +6421,10 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalAuditSettings.FileMaxQueueSize',
                             label: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.title', defaultMessage: 'Maximum File Queue'}),
                             help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.help_text', defaultMessage: 'The maximum number of files to be retained in the queue.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
