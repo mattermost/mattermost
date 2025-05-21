@@ -12,7 +12,6 @@ import * as Menu from 'components/menu';
 import UpdateUserGroupModal from 'components/update_user_group_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -89,16 +88,12 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
                 menuButton={{
                     id: `detailsCustomWrapper-${group.id}`,
                     class: 'btn btn-icon',
-                    children: (
-                        <i
-                            className='icon icon-dots-vertical'
-                            aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                        />
-                    ),
+                    children: (<i className='icon icon-dots-vertical'/>),
+                    'aria-label': formatMessage({id: 'view_user_group_header_sub_menu.menuAriaLabel', defaultMessage: 'User group actions menu'}),
                 }}
                 menu={{
                     id: 'details-group-actions-menu',
-                    'aria-label': Utils.localizeMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'}),
+                    'aria-label': formatMessage({id: 'view_user_group_header_sub_menu.menuAriaLabel', defaultMessage: 'User group actions menu'}),
                     className: 'group-actions-menu',
                 }}
             >
