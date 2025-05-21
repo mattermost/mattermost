@@ -87,6 +87,7 @@ type Service struct {
 	app        AppIface
 	httpClient *http.Client
 	send       []chan any
+	logger     *mlog.Logger // Custom logger for testing and diagnostics
 
 	// everything below guarded by `mux`
 	mux                      sync.RWMutex
@@ -288,4 +289,41 @@ func (rcs *Service) pause() {
 	rcs.done = nil
 
 	rcs.server.Log().Debug("Remote Cluster Service inactive")
+}
+
+// GetLogger returns the logger to use for this service
+func (rcs *Service) GetLogger() *mlog.Logger {
+	if rcs.logger != nil {
+		return rcs.logger
+	}
+	return rcs.server.Log()
+}
+
+// SetLogger sets a custom logger for this service
+func (rcs *Service) SetLogger(logger *mlog.Logger) {
+	if logger == nil {
+		return
+	}
+	rcs.logger = logger
+}
+
+// SetActive forces the service to be active or inactive
+func (rcs *Service) SetActive(active bool) {
+	rcs.mux.Lock()
+	defer rcs.mux.Unlock()
+
+	if rcs.active == active {
+		return
+	}
+
+	if active {
+		rcs.resume()
+	} else {
+		rcs.pause()
+	}
+}
+
+// SetDisablePingForTesting allows tests to disable ping functionality
+func SetDisablePingForTesting(disabled bool) {
+	disablePing = disabled
 }

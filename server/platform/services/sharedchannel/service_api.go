@@ -295,19 +295,45 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string, newTimestamp int64, success bool) error {
 	// Don't update cursor on failure
 	if !success {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Skipping cursor update because success=false",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.Int("timestamp", int(newTimestamp)),
+		)
 		return nil
 	}
 
 	// Get the remote record
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
 	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to get shared channel remote for cursor update",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.Int("timestamp", int(newTimestamp)),
+			mlog.Err(err),
+		)
 		return fmt.Errorf("failed to get shared channel remote for cursor update: %w", err)
 	}
 
 	if scr == nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Shared channel remote not found for cursor update",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+		)
 		return fmt.Errorf("shared channel remote not found for channel %s and remote %s", channelID, remoteID)
 	}
 
 	// Update the cursor - the store will handle ensuring it only moves forward
-	return scs.server.GetStore().SharedChannel().UpdateRemoteMembershipCursor(scr.Id, newTimestamp)
+	err = scs.server.GetStore().SharedChannel().UpdateRemoteMembershipCursor(scr.Id, newTimestamp)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership cursor",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.String("remote_record_id", scr.Id),
+			mlog.Int("timestamp", int(newTimestamp)),
+			mlog.Err(err),
+		)
+	}
+
+	return err
 }

@@ -22,7 +22,7 @@ func (scs *Service) isChannelMemberSyncEnabled() bool {
 // queueMembershipSyncTask creates and queues a task to synchronize channel membership changes
 func (scs *Service) queueMembershipSyncTask(channelID, userID, remoteID string, syncMsg *model.SyncMsg, retryMsg *model.SyncMsg) {
 	task := newSyncTask(channelID, userID, remoteID, syncMsg, retryMsg)
-	task.schedule = time.Now().Add(NotifyMinimumDelay) // small delay to allow for batching
+	task.schedule = time.Now().Add(NotifyMinimumDelay)
 	scs.addTask(task)
 }
 
@@ -232,6 +232,7 @@ func (scs *Service) syncMembersIndividually(channelID, remoteID string, members 
 			mlog.String("channel_id", channelID),
 			mlog.String("remote_id", remoteID),
 			mlog.String("user_id", userID),
+			mlog.Int("timestamp", int(model.GetMillis())), // Add timestamp for better tracking
 		)
 	}
 
@@ -239,6 +240,7 @@ func (scs *Service) syncMembersIndividually(channelID, remoteID string, members 
 		mlog.String("channel_id", channelID),
 		mlog.String("remote_id", remoteID),
 		mlog.Int("member_count", len(syncedMembers)),
+		mlog.Int("timestamp", int(model.GetMillis())),
 	)
 
 	return nil
@@ -270,14 +272,6 @@ func (scs *Service) syncMembersInBatches(channelID, remoteID string, members mod
 	// Process in batches of the configured size
 	totalBatches := (len(validMembers) + batchSize - 1) / batchSize
 
-	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing channel members in batches",
-		mlog.String("channel_id", channelID),
-		mlog.String("remote_id", remoteID),
-		mlog.Int("valid_member_count", len(validMembers)),
-		mlog.Int("batch_size", batchSize),
-		mlog.Int("total_batches", totalBatches),
-	)
-
 	for i := 0; i < len(validMembers); i += batchSize {
 		end := i + batchSize
 		if end > len(validMembers) {
@@ -293,7 +287,7 @@ func (scs *Service) syncMembersInBatches(channelID, remoteID string, members mod
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Queued membership batch",
 			mlog.String("channel_id", channelID),
 			mlog.String("remote_id", remoteID),
-			mlog.Int("batch", i/batchSize+1),
+			mlog.Int("batch_num", i/batchSize+1),
 			mlog.Int("total_batches", totalBatches),
 			mlog.Int("batch_size", len(batchMembers)),
 		)
@@ -304,6 +298,7 @@ func (scs *Service) syncMembersInBatches(channelID, remoteID string, members mod
 		mlog.String("remote_id", remoteID),
 		mlog.Int("total_batches", totalBatches),
 		mlog.Int("member_count", len(validMembers)),
+		mlog.Int("timestamp", int(model.GetMillis())),
 	)
 
 	return nil
@@ -420,10 +415,20 @@ func (scs *Service) processMembershipBatch(channelID string, memberIDs []string,
 		// Update cursor with the latest sync time if any sync was successful
 		if hasSuccessfulSync {
 			if err := scs.updateMembershipSyncCursor(channelID, remoteID, syncTime, true); err != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor",
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor for batch",
+					mlog.String("channel_id", channelID),
+					mlog.String("remote_id", remoteID),
+					mlog.Int("sync_time", int(syncTime)),
+					mlog.Int("user_count", len(syncResp.UsersSyncd)),
 					mlog.Err(err),
 				)
 			}
+		} else {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Skipping cursor update for batch - no successful syncs",
+				mlog.String("channel_id", channelID),
+				mlog.String("remote_id", remoteID),
+				mlog.Int("sync_time", int(syncTime)),
+			)
 		}
 	}
 	err = scs.server.GetRemoteClusterService().SendMsg(ctx, msg, rc, callback)
@@ -456,6 +461,9 @@ func (scs *Service) processMembershipChange(syncMsg *model.SyncMsg) {
 	if err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to get shared channel for membership change",
 			mlog.String("channel_id", syncMsg.ChannelId),
+			mlog.String("user_id", memberInfo.UserId),
+			mlog.Bool("is_add", memberInfo.IsAdd),
+			mlog.Int("change_time", int(memberInfo.ChangeTime)),
 			mlog.Err(err),
 		)
 		return
@@ -518,12 +526,6 @@ func (scs *Service) syncMembershipToRemote(channelID, userID string, isAdd bool,
 		userMsg := model.NewSyncMsg(channelID)
 		userMsg.Users = map[string]*model.User{user.Id: user}
 
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Queueing user profile sync as part of membership change",
-			mlog.String("user_id", userID),
-			mlog.String("channel_id", channelID),
-			mlog.String("remote_id", remote.RemoteId),
-		)
-
 		scs.queueMembershipSyncTask(channelID, user.Id, remote.RemoteId, userMsg, nil)
 	} else if err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to check if user should be synced",
@@ -535,14 +537,22 @@ func (scs *Service) syncMembershipToRemote(channelID, userID string, isAdd bool,
 		// Continue anyway since we're more concerned with the membership change
 	}
 
-	// Create the membership change message
+	// Create the membership change message with a slightly future timestamp
+	// to ensure it's greater than any existing timestamp
 	membershipMsg := model.NewSyncMsg(channelID)
+
+	// Use a high enough timestamp to ensure cursor updates
+	currentTime := model.GetMillis()
+	if currentTime <= changeTime {
+		currentTime = changeTime + 1
+	}
+
 	membershipMsg.MembershipInfo = &model.MembershipChangeMsg{
 		ChannelId:  channelID,
 		UserId:     userID,
 		IsAdd:      isAdd,
 		RemoteId:   scs.getMyClusterId(),
-		ChangeTime: changeTime,
+		ChangeTime: currentTime,
 	}
 
 	// Send message using the existing remote cluster framework
@@ -575,6 +585,7 @@ func (scs *Service) syncMembershipToRemote(channelID, userID string, isAdd bool,
 				mlog.String("channel_id", channelID),
 				mlog.String("user_id", userID),
 				mlog.Bool("is_add", isAdd),
+				mlog.Int("change_time", int(changeTime)),
 				mlog.Err(err),
 			)
 
@@ -588,6 +599,7 @@ func (scs *Service) syncMembershipToRemote(channelID, userID string, isAdd bool,
 				mlog.String("channel_id", channelID),
 				mlog.String("user_id", userID),
 				mlog.Bool("is_add", isAdd),
+				mlog.Int("change_time", int(changeTime)),
 				mlog.String("remote_error", resp.Err),
 			)
 			return
@@ -603,6 +615,7 @@ func (scs *Service) syncMembershipToRemote(channelID, userID string, isAdd bool,
 					mlog.String("remote_id", remote.RemoteId),
 					mlog.String("channel_id", channelID),
 					mlog.String("user_id", userID),
+					mlog.Int("change_time", int(changeTime)),
 					mlog.Err(jsonErr),
 				)
 			} else {
@@ -632,12 +645,19 @@ func (scs *Service) syncMembershipToRemote(channelID, userID string, isAdd bool,
 			// Update the cursor only on success
 			if err := scs.updateMembershipSyncCursor(channelID, remote.RemoteId, changeTime, true); err != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor",
+					mlog.String("remote_id", remote.RemoteId),
+					mlog.String("channel_id", channelID),
+					mlog.String("user_id", userID),
+					mlog.Int("change_time", int(changeTime)),
 					mlog.Err(err),
 				)
 			}
 		} else {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "User not included in synced users list",
+				mlog.String("remote_id", remote.RemoteId),
+				mlog.String("channel_id", channelID),
 				mlog.String("user_id", userID),
+				mlog.Int("change_time", int(changeTime)),
 			)
 		}
 	}

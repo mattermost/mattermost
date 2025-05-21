@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/wiggin77/merror"
@@ -99,7 +100,7 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 
 	u, err := url.Parse(task.rc.SiteURL)
 	if err != nil {
-		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Invalid siteURL while sending message to remote",
+		rcs.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Invalid siteURL while sending message to remote",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("msgId", task.msg.Id),
 			mlog.Err(err),
@@ -112,26 +113,80 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 	respJSON, err := rcs.sendFrameToRemote(SendTimeout, task.rc, frame, u.String())
 
 	if err != nil {
-		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed",
+		// Extract user IDs with operation info if this is a membership-related message
+		userInfos := extractUserIDsFromPayload(task.msg)
+
+		// Create base log fields
+		fields := []mlog.Field{
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("msgId", task.msg.Id),
+			mlog.String("topic", task.msg.Topic),
 			mlog.Err(err),
-		)
+		}
+
+		// Include user IDs with operation info in log message
+		if len(userInfos) > 0 {
+			fields = append(fields, mlog.String("user_operations", strings.Join(userInfos, ",")))
+		}
+
+		rcs.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed", fields...)
 		errResp = err
 	} else {
-		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
+		rcs.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("msgId", task.msg.Id),
 		)
 
 		if err = json.Unmarshal(respJSON, &response); err != nil {
-			rcs.server.Log().Error("Invalid response sending message to remote cluster",
+			rcs.GetLogger().Error("Invalid response sending message to remote cluster",
 				mlog.String("remote", task.rc.DisplayName),
 				mlog.Err(err),
 			)
 			errResp = err
 		}
 	}
+}
+
+// formatMembershipInfo formats user ID with operation info (add/remove)
+func formatMembershipInfo(userID string, isAdd bool) string {
+	operation := "add"
+	if !isAdd {
+		operation = "remove"
+	}
+	return fmt.Sprintf("%s:%s", userID, operation)
+}
+
+// extractUserIDsFromPayload attempts to extract user IDs from a membership-related message payload
+// The returned strings are formatted as "userID:operation" where operation is either "add" or "remove"
+func extractUserIDsFromPayload(msg model.RemoteClusterMsg) []string {
+	// Only process membership-related topics
+	if msg.Topic != "sharedchannel_membership" && msg.Topic != "sharedchannel_membership_batch" {
+		return nil
+	}
+
+	// Try to unmarshal the payload
+	var syncMsg model.SyncMsg
+	if err := json.Unmarshal(msg.Payload, &syncMsg); err != nil {
+		return nil
+	}
+
+	userIDs := []string{}
+
+	// Check for individual membership
+	if syncMsg.MembershipInfo != nil && syncMsg.MembershipInfo.UserId != "" {
+		userIDs = append(userIDs, formatMembershipInfo(syncMsg.MembershipInfo.UserId, syncMsg.MembershipInfo.IsAdd))
+	}
+
+	// Check for batch membership
+	if syncMsg.MembershipBatchInfo != nil && len(syncMsg.MembershipBatchInfo.Changes) > 0 {
+		for _, change := range syncMsg.MembershipBatchInfo.Changes {
+			if change.UserId != "" {
+				userIDs = append(userIDs, formatMembershipInfo(change.UserId, change.IsAdd))
+			}
+		}
+	}
+
+	return userIDs
 }
 
 func (rcs *Service) sendFrameToRemote(timeout time.Duration, rc *model.RemoteCluster, frame *model.RemoteClusterFrame, url string) ([]byte, error) {
