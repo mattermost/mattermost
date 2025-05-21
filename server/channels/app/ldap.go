@@ -52,6 +52,25 @@ func (a *App) TestLdap(rctx request.CTX) *model.AppError {
 	return nil
 }
 
+func (a *App) TestLdapConnection(rctx request.CTX, settings *model.LdapSettings) *model.AppError {
+	license := a.Srv().License()
+	ldapI := a.LdapDiagnostic()
+	if ldapI != nil &&
+		license != nil &&
+		*license.Features.LDAP &&
+		(*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
+		if err := ldapI.RunTestConnection(rctx, settings); err != nil {
+			err.StatusCode = 500
+			return err
+		}
+	} else {
+		err := model.NewAppError("TestLdapConnection", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return err
+	}
+
+	return nil
+}
+
 // GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
 func (a *App) GetLdapGroup(rctx request.CTX, ldapGroupID string) (*model.Group, *model.AppError) {
 	var group *model.Group
