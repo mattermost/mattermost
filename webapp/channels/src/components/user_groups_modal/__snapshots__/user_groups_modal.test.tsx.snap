@@ -32,6 +32,12 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
   <div
     className="user-groups-search"
   >
+    <div
+      aria-atomic="true"
+      aria-live="polite"
+      className="sr-only"
+      role="status"
+    />
     <ForwardRef
       className="user-group-search-input"
       data-testid="searchInput"
@@ -149,6 +155,12 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
   <div
     className="user-groups-search"
   >
+    <div
+      aria-atomic="true"
+      aria-live="polite"
+      className="sr-only"
+      role="status"
+    />
     <ForwardRef
       className="user-group-search-input"
       data-testid="searchInput"

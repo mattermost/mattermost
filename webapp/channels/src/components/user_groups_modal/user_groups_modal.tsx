@@ -227,6 +227,29 @@ const UserGroupsModal = (props: Props) => {
             enforceFocus={!isMenuOpen}
         >
             <div className='user-groups-search'>
+                <div
+                    className='sr-only'
+                    role='status'
+                    aria-live='polite'
+                    aria-atomic='true'
+                >
+                    {props.searchTerm && (
+                        groups.length > 0 ? (
+                            <FormattedMessage
+                                id='user_groups_modal.searchResults'
+                                defaultMessage='{count} groups found'
+                                values={{
+                                    count: groups.length,
+                                }}
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='user_groups_modal.noSearchResults'
+                                defaultMessage='No groups found'
+                            />
+                        )
+                    )}
+                </div>
                 <Input
                     type='text'
                     placeholder={defineMessage({id: 'user_groups_modal.searchGroups', defaultMessage: 'Search Groups'})}
