@@ -5716,6 +5716,7 @@
   "user_group_popover.memberCount": "{member_count} {member_count, plural, one {Member} other {Members}}",
   "user_group_popover.openGroupModal": "View full group info",
   "user_group_popover.searchGroupMembers": "Search members",
+  "user_groups_list.menuAriaLabel": "{group_name} actions menu",
   "user_groups_modal.addPeople": "Add people",
   "user_groups_modal.addPeopleTitle": "Add people to {group}",
   "user_groups_modal.allGroups": "All Groups",

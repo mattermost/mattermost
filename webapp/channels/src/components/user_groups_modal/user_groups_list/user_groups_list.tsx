@@ -144,6 +144,7 @@ const UserGroupsList = (props: Props) => {
                     }}
                     role='button'
                     tabIndex={0}
+                    aria-label={formatMessage({id: 'user_groups_list.groupAriaLabel', defaultMessage: '{group_name} group'}, {group_name: group.display_name})}
                 >
                     <span className='group-display-name'>
                         {
@@ -170,11 +171,12 @@ const UserGroupsList = (props: Props) => {
                                 id: `customWrapper-${group.id}`,
                                 class: 'btn btn-icon btn-xs',
                                 children: <i className='icon icon-dots-vertical'/>,
+                                'aria-label': formatMessage({id: 'user_groups_list.menuAriaLabel', defaultMessage: '{group_name} actions menu'}, {group_name: group.display_name}),
                             }}
                             menu={{
                                 id: 'group-actions-menu',
                                 onToggle,
-                                'aria-label': formatMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'}),
+                                'aria-label': formatMessage({id: 'user_groups_list.menuAriaLabel', defaultMessage: '{group_name} actions menu'}, {group_name: group.display_name}),
                                 className: 'group-actions-menu',
                             }}
                         >
