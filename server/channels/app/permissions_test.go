@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,9 +29,10 @@ func TestExportPermissions(t *testing.T) {
 
 	var scheme *model.Scheme
 	var roles []*model.Role
-	withMigrationMarkedComplete(th, func() {
+	err := withMigrationMarkedComplete(th, func() {
 		scheme, roles = th.CreateScheme()
 	})
+	require.Nil(t, err)
 
 	results := [][]byte{}
 
@@ -41,7 +43,7 @@ func TestExportPermissions(t *testing.T) {
 		},
 	}
 
-	err := th.App.ExportPermissions(tw)
+	err = th.App.ExportPermissions(tw)
 	if err != nil {
 		t.Error(err)
 	}
@@ -100,7 +102,8 @@ func TestMigration(t *testing.T) {
 	assert.Contains(t, role.Permissions, model.PermissionDeleteOthersEmojis.Id)
 	assert.Contains(t, role.Permissions, model.PermissionUseGroupMentions.Id)
 
-	th.App.ResetPermissionsSystem()
+	appErr := th.App.ResetPermissionsSystem()
+	require.Nil(t, appErr)
 
 	role, err = th.App.GetRoleByName(context.Background(), model.SystemAdminRoleId)
 	require.Nil(t, err)
@@ -110,13 +113,23 @@ func TestMigration(t *testing.T) {
 	assert.Contains(t, role.Permissions, model.PermissionUseGroupMentions.Id)
 }
 
-func withMigrationMarkedComplete(th *TestHelper, f func()) {
+func withMigrationMarkedComplete(th *TestHelper, f func()) error {
 	// Mark the migration as done.
-	th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
-	th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	_, err := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+	if err != nil {
+		return err
+	}
+	err = th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	if err != nil {
+		return err
+	}
 	// Un-mark the migration at the end of the test.
 	defer func() {
-		th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		_, err := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		if err != nil {
+			log.Printf("failed to delete migration key AdvancedPermissionsPhase2: %v", err)
+		}
 	}()
 	f()
+	return nil
 }
