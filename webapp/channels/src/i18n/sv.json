@@ -1648,7 +1648,7 @@
   "admin.permissions.group.guest_reactions.name": "Posta reaktioner",
   "admin.permissions.group.guest_use_channel_mentions.description": "Notifiera kanalmedlemmar med @all, @channel och @here",
   "admin.permissions.group.guest_use_channel_mentions.name": "Kanalomnämnanden",
-  "admin.permissions.group.guest_use_group_mentions.description": "Notifiera gruppmedlemmar med en gruppavisering",
+  "admin.permissions.group.guest_use_group_mentions.description": "Avisera gruppmedlemmar med omnämnande av grupp",
   "admin.permissions.group.guest_use_group_mentions.name": "Gruppomnämnanden",
   "admin.permissions.group.integrations.description": "Hantera OAuth 2.0, slash-kommandon, webhooks och emoijer.",
   "admin.permissions.group.integrations.name": "Integration & anpassningar",
