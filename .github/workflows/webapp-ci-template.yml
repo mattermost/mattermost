@@ -75,6 +75,11 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=5120
         run: |
           npm run test-ci
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./channels/coverage/lcov.info
 
   build:
     runs-on: ubuntu-22.04
