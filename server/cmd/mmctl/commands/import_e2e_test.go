@@ -481,5 +481,4 @@ func (s *MmctlE2ETestSuite) TestImportDeleteCmdF() {
 		s.Require().Len(printer.GetLines(), 2)
 		s.Equal(fmt.Sprintf(`Import file "%s" has been deleted`, newImportName), printer.GetLines()[0])
 	})
-
 }
