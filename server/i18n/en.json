@@ -2317,6 +2317,10 @@
     "translation": "Unable to count total unique users."
   },
   {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "This license does not support MySQL."
+  },
+  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "No file under 'license' in request."
   },
