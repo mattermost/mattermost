@@ -1952,9 +1952,25 @@ export function handleCustomAttributesCreated(msg) {
 }
 
 export function handleCustomAttributesUpdated(msg) {
-    return {
-        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
-        data: msg.data.field,
+    return (dispatch, getState) => {
+        const updatedField = msg.data.field;
+        const currentFields = getState().entities.general.customProfileAttributes || {};
+        const oldField = currentFields[updatedField.id];
+
+        // Check if the field type changed
+        if (oldField && oldField.type !== updatedField.type) {
+            // Clear values for the field when type changes
+            dispatch({
+                type: UserTypes.CLEAR_CPA_VALUES,
+                data: { fieldId: updatedField.id },
+            });
+        }
+
+        // Update the field
+        dispatch({
+            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+            data: updatedField,
+        });
     };
 }
 
