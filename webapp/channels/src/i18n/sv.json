@@ -871,7 +871,7 @@
   "admin.environment.notifications.feedbackEmail.help": "Visning av e-postadress i e-postkonto används när e-post skickas från Mattermost.",
   "admin.environment.notifications.feedbackEmail.label": "Meddelande från adress:",
   "admin.environment.notifications.feedbackEmail.placeholder": "Ex: \"mattermost@yourcompany.com\", \"admin@yourcompany.com\"",
-  "admin.environment.notifications.feedbackEmail.required": "\"Avsändaradress för Avisering\" krävs",
+  "admin.environment.notifications.feedbackEmail.required": "\"Avsändaradress för avisering\" krävs",
   "admin.environment.notifications.feedbackOrganization.help": "Företagsnamn och adress visas i e-postmeddelanden från Mattermost, t.ex. \"© ABC Corporation, 565 Knight Way, Palo Alto, California, 94305, USA\". Om fältet är tomt kommer informationen inte att visas.",
   "admin.environment.notifications.feedbackOrganization.label": "E-postadress i sidfot:",
   "admin.environment.notifications.feedbackOrganization.placeholder": "T.ex.: \"© ABC Corporation, 565 Knight Way, Palo Alto, California, 94305, USA\"",
