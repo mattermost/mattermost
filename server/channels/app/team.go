@@ -1508,7 +1508,7 @@ func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.G
 		}
 
 		if isControlled {
-			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.policy_enforced_channel.app_error", nil, "", http.StatusBadRequest)
+			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.abac_policy_enforced_channel.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
