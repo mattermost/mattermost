@@ -174,11 +174,11 @@
         &.post--compact {
             .post-message--overflow {
                 @include mixins.clearfix;
-                margin-top: 12px;
+                margin-top: 12px; //Any value change to this needs to reflect for MARGIN_CHANGE_FOR_COMPACT_POST variable in show_more component
             }
 
             .attachment__body .post-message--overflow {
-                margin-top: 0;
+                margin-top: 0; //The above margin was added for wrapping text in compact view but it isnt needed for attachment text
             }
 
             &.same--root {
