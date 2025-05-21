@@ -10650,5 +10650,9 @@
   {
     "id": "api.channel.add_user.to.channel.rejected",
     "translation": "Användaren har inte de attribut som krävs för att ansluta till kanalen."
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Kunde inte hämta kanalen."
   }
 ]
