@@ -393,11 +393,9 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 	mockUser1 := model.User{Username: "User1", Email: email1, Id: userID1}
 	mockUser2 := model.User{Username: "User2", Email: email2, Id: userID2}
 
-	t := true
-
 	mockConfig := model.Config{
 		ServiceSettings: model.ServiceSettings{
-			EnableAPIUserDeletion: &t,
+			EnableAPIUserDeletion: new(bool),
 		},
 	}
 
@@ -405,9 +403,13 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIUserDeletion
+		*mockConfig.ServiceSettings.EnableAPIUserDeletion = true
+		defer func() { mockConfig.ServiceSettings.EnableAPIUserDeletion = previousVal }()
+
 		s.client.
 			EXPECT().
-			GetConfig(cmd.Context()).
+			GetConfig(context.TODO()).
 			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -417,45 +419,37 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 	})
 
 	s.Run("Delete users with delete config disabled (set to false)", func() {
-		f := false
-
-		mockConfigDeleteDisabled := model.Config{
-			ServiceSettings: model.ServiceSettings{
-				EnableAPIChannelDeletion: &f,
-			},
-		}
+		previousVal := mockConfig.ServiceSettings.EnableAPIUserDeletion
+		*mockConfig.ServiceSettings.EnableAPIUserDeletion = false
+		defer func() { mockConfig.ServiceSettings.EnableAPIUserDeletion = previousVal }()
 
 		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetConfig(cmd.Context()).
-			Return(&mockConfigDeleteDisabled, &model.Response{}, nil).
+			GetConfig(context.TODO()).
+			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := deleteUsersCmdF(s.client, cmd, []string{"some"})
-		s.Require().NotNil(err)
-		s.Require().Equal("ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information", err.Error())
+		s.Require().Nil(err)
 	})
 
 	s.Run("Delete users with delete config disabled (set to nil)", func() {
-		mockConfigDeleteDisabled := model.Config{
-			ServiceSettings: model.ServiceSettings{
-				EnableAPIChannelDeletion: nil,
-			},
-		}
+		previousVal := mockConfig.ServiceSettings.EnableAPIUserDeletion
+		mockConfig.ServiceSettings.EnableAPIUserDeletion = nil
+		defer func() { mockConfig.ServiceSettings.EnableAPIUserDeletion = previousVal }()
 
 		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetConfig(cmd.Context()).
-			Return(&mockConfigDeleteDisabled, &model.Response{}, nil).
+			GetConfig(context.TODO()).
+			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := deleteUsersCmdF(s.client, cmd, []string{"some"})
-		s.Require().NotNil(err)
-		s.Require().Equal("ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information", err.Error())
+		s.Require().Nil(err)
 	})
 
 	s.Run("Delete user that does not exist in db returns an error", func() {
@@ -483,9 +477,12 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIUserDeletion
+		*mockConfig.ServiceSettings.EnableAPIUserDeletion = true
+		defer func() { mockConfig.ServiceSettings.EnableAPIUserDeletion = previousVal }()
 		s.client.
 			EXPECT().
-			GetConfig(cmd.Context()).
+			GetConfig(context.TODO()).
 			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -523,9 +520,12 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIUserDeletion
+		*mockConfig.ServiceSettings.EnableAPIUserDeletion = true
+		defer func() { mockConfig.ServiceSettings.EnableAPIUserDeletion = previousVal }()
 		s.client.
 			EXPECT().
-			GetConfig(cmd.Context()).
+			GetConfig(context.TODO()).
 			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -555,9 +555,12 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIUserDeletion
+		*mockConfig.ServiceSettings.EnableAPIUserDeletion = true
+		defer func() { mockConfig.ServiceSettings.EnableAPIUserDeletion = previousVal }()
 		s.client.
 			EXPECT().
-			GetConfig(cmd.Context()).
+			GetConfig(context.TODO()).
 			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -598,9 +601,12 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIUserDeletion
+		*mockConfig.ServiceSettings.EnableAPIUserDeletion = true
+		defer func() { mockConfig.ServiceSettings.EnableAPIUserDeletion = previousVal }()
 		s.client.
 			EXPECT().
-			GetConfig(cmd.Context()).
+			GetConfig(context.TODO()).
 			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -630,9 +636,12 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIUserDeletion
+		*mockConfig.ServiceSettings.EnableAPIUserDeletion = true
+		defer func() { mockConfig.ServiceSettings.EnableAPIUserDeletion = previousVal }()
 		s.client.
 			EXPECT().
-			GetConfig(cmd.Context()).
+			GetConfig(context.TODO()).
 			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
