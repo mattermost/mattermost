@@ -64,11 +64,8 @@ HEALTHCHECK --interval=30s --timeout=10s \
   CMD ["/mattermost/bin/mmctl", "system", "status", "--local"]
 
 # Configure entrypoint and command with proper permissions
-COPY --from=builder --chown=2000:2000 /bin/sh /bin/sh
-COPY --chown=2000:2000 --chmod=765 entrypoint.sh /
-ENTRYPOINT ["/entrypoint.sh"]
 WORKDIR /mattermost
-CMD ["mattermost"]
+CMD ["/mattermost/bin/mattermost"]
 
 EXPOSE 8065 8067 8074 8075
 
