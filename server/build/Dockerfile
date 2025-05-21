@@ -36,6 +36,7 @@ FROM gcr.io/distroless/base-debian12
 
 # Some ENV variables
 ENV PATH="/mattermost/bin:${PATH}"
+ENV MM_SERVICESETTINGS_ENABLELOCALMODE="true"
 
 # Copy over metadata files needed by runtime
 COPY --from=builder /etc/mime.types /etc
