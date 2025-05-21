@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {UserProfile, UsersState} from '@mattermost/types/users';
-import {DeepPartial} from '@mattermost/types/utilities';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
@@ -1107,11 +1106,12 @@ describe('Reducers.users', () => {
 
             const user3 = TestHelper.getUserMock({
                 id: 'user3',
+
                 // No custom profile attributes
             });
 
             const state = deepFreezeAndThrowOnMutation({
-                profiles: { user1, user2, user3 },
+                profiles: {user1, user2, user3},
             }) as UsersState;
 
             const action = {
@@ -1147,7 +1147,7 @@ describe('Reducers.users', () => {
             });
 
             const state = deepFreezeAndThrowOnMutation({
-                profiles: { user1 },
+                profiles: {user1},
             }) as UsersState;
 
             const action = {

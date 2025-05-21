@@ -1962,7 +1962,7 @@ export function handleCustomAttributesUpdated(msg) {
             // Clear values for the field when type changes
             dispatch({
                 type: UserTypes.CLEAR_CPA_VALUES,
-                data: { fieldId: updatedField.id },
+                data: {fieldId: updatedField.id},
             });
         }
 
