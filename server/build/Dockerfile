@@ -37,6 +37,9 @@ FROM gcr.io/distroless/base-debian12
 # Some ENV variables
 ENV PATH="/mattermost/bin:${PATH}"
 
+# Copy over metadata files needed by runtime
+COPY --from=builder /etc/mime.types /etc
+
 # Copy document processing utilities and necessary support files
 COPY --from=builder /usr/bin/pdftotext /usr/bin/pdftotext
 COPY --from=builder /usr/bin/wvText /usr/bin/wvText
