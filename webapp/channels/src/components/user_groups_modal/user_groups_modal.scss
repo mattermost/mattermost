@@ -240,6 +240,8 @@
                     display: flex;
                     align-items: center;
                     padding: 14px 32px;
+                    background: none;
+                    border: none;
 
                     &:hover {
                         background: rgba(var(--center-channel-color-rgb), 0.08);

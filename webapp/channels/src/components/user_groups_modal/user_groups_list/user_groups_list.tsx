@@ -110,7 +110,7 @@ const UserGroupsList = (props: Props) => {
     }, [actions.openModal, onExited, backButtonAction]);
 
     const Item = ({index, style}: ListChildComponentProps) => {
-        const itemRef = useRef<HTMLDivElement>(null);
+        const itemRef = useRef<HTMLButtonElement>(null);
         if (groups.length === 0 && searchTerm) {
             return (
                 <NoResultsIndicator
@@ -126,7 +126,7 @@ const UserGroupsList = (props: Props) => {
             }
 
             return (
-                <div
+                <button
                     className='group-row'
                     style={style}
                     key={group.id}
@@ -134,16 +134,6 @@ const UserGroupsList = (props: Props) => {
                     onClick={() => {
                         goToViewGroupModal(group);
                     }}
-                    onKeyDown={(e: React.KeyboardEvent) => {
-                        if (e.target !== itemRef.current) {
-                            return;
-                        }
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            goToViewGroupModal(group);
-                        }
-                    }}
-                    role='button'
-                    tabIndex={0}
                     aria-label={formatMessage({id: 'user_groups_list.groupAriaLabel', defaultMessage: '{group_name} group'}, {group_name: group.display_name})}
                 >
                     <span className='group-display-name'>
@@ -227,7 +217,7 @@ const UserGroupsList = (props: Props) => {
                             )}
                         </Menu.Container>
                     </div>
-                </div>
+                </button>
             );
         }
         if (loading) {
