@@ -152,10 +152,10 @@
                 }
 
                 .Input.form-control {
-                    font-size: 14px;
                     height: 34px;
-                    line-height: 38px;
                     border: none;
+                    font-size: 14px;
+                    line-height: 38px;
                 }
             }
 
@@ -179,8 +179,8 @@
                 padding: 6px;
                 border: none;
                 border-radius: 4px;
-                line-height: 12px;
                 background: none;
+                line-height: 12px;
 
                 &:hover {
                     background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -240,8 +240,9 @@
                     display: flex;
                     align-items: center;
                     padding: 14px 32px;
-                    background: none;
                     border: none;
+                    background: none;
+                    line-height: 38px;
 
                     &:hover {
                         background: rgba(var(--center-channel-color-rgb), 0.08);
