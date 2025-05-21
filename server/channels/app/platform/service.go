@@ -38,9 +38,10 @@ import (
 // responsible for non-entity related functionalities that are required
 // by a product such as database access, configuration access, licensing etc.
 type PlatformService struct {
-	sqlStore *sqlstore.SqlStore
-	Store    store.Store
-	newStore func() (store.Store, error)
+	sqlStore     *sqlstore.SqlStore
+	Store        store.Store
+	newStore     func() (store.Store, error)
+	storeOptions []sqlstore.Option
 
 	WebSocketRouter *WebSocketRouter
 
@@ -232,7 +233,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace)
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace, ps.storeOptions...)
 			if err != nil {
 				return nil, err
 			}
