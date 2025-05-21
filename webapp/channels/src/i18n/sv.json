@@ -878,7 +878,7 @@
   "admin.environment.notifications.notificationDisplay.help": "Visa namnet på e-postkontot som används när e-post skickas från Mattermost.",
   "admin.environment.notifications.notificationDisplay.label": "Visningsnamn i meddelande:",
   "admin.environment.notifications.notificationDisplay.placeholder": "T.ex.: \"Mattermost Notification\", \"System\", \"No-Reply\"",
-  "admin.environment.notifications.notificationDisplay.required": "\"Visningsnamn för Avisering \" krävs",
+  "admin.environment.notifications.notificationDisplay.required": "\"Visningsnamn för avisering \" krävs",
   "admin.environment.notifications.pushContents.full": "Fullständigt meddelandeinnehåll skickas i push-notisen",
   "admin.environment.notifications.pushContents.generic": "Generisk beskrivning med avsändare och kanalnamn",
   "admin.environment.notifications.pushContents.genericNoChannel": "Generisk beskrivning med endast avsändarnamn",
