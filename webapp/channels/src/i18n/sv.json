@@ -2047,7 +2047,7 @@
   "admin.plugins.settings.requirePluginSignatureDesc": "När aktiverad kan plugins endast installeras via Marknadsplatsen, ej laddas upp manuellt. Plugins är alltid verifierade under Mattermost-serverns start och initiering. Läs <link>dokumentationen</link> för mer information.",
   "admin.posts.persistentNotifications.desc": "När aktiverat kan användare skapa upprepade aviseringar för mottagarna av brådskande meddelanden. Läs mer om meddelandeprioritet och varaktiga aviseringar i vår <link>dokumentation</link> .",
   "admin.posts.persistentNotifications.title": "Varaktig avisering",
-  "admin.posts.persistentNotificationsGuests.desc": "Huruvida en gäst kan begära återkommande aviseringar. Läs mer om meddelandeprioritet och ihållande aviseringar i vår <link>dokumentation</link> .",
+  "admin.posts.persistentNotificationsGuests.desc": "Huruvida en gäst kan begära återkommande aviseringar. Läs mer om meddelandeprioritet och varaktiga aviseringar i vår <link>dokumentation</link> .",
   "admin.posts.persistentNotificationsGuests.title": "Tillåt gäster att skicka återkommande aviseringar",
   "admin.posts.persistentNotificationsInterval.desc": "Konfigurera antalet minuter mellan upprepade aviseringar för brådskande meddelanden som skickas med återkommande aviseringar. Läs mer om meddelandeprioritet och återkommande aviseringar i vår <link>dokumentation</link> .",
   "admin.posts.persistentNotificationsInterval.minValue": "Frekvensen måste vara minst två minuter",
