@@ -23,6 +23,8 @@ type mixedUnlinkedGroup struct {
 func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/sync", api.APISessionRequired(syncLdap)).Methods(http.MethodPost)
 	api.BaseRoutes.LDAP.Handle("/test", api.APISessionRequired(testLdap)).Methods(http.MethodPost)
+	api.BaseRoutes.LDAP.Handle("/test_connection", api.APISessionRequired(testLdapConnection)).Methods(http.MethodPost)
+
 	api.BaseRoutes.LDAP.Handle("/migrateid", api.APISessionRequired(migrateIDLdap)).Methods(http.MethodPost)
 
 	// GET /api/v4/ldap/groups?page=0&per_page=1000
@@ -83,6 +85,31 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.App.TestLdap(c.AppContext); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func testLdapConnection(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAP {
+		c.Err = model.NewAppError("Api4.testLdapConnection", "api.ldap.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestLdap) {
+		c.SetPermissionError(model.PermissionTestLdap)
+		return
+	}
+
+	var settings model.LdapSettings
+	if err := json.NewDecoder(r.Body).Decode(&settings); err != nil {
+		c.SetInvalidParamWithErr("ldap_settings", err)
+		return
+	}
+
+	if err := c.App.TestLdapConnection(c.AppContext, &settings); err != nil {
 		c.Err = err
 		return
 	}
