@@ -20,6 +20,7 @@ import {
     invalidateAllCaches,
     invalidateAllEmailInvites,
     ldapTest,
+    ldapTestConnection,
     reloadConfig,
     removeIdpSamlCertificate,
     removePrivateLdapCertificate,
@@ -48,7 +49,7 @@ import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/an
 import ExternalLink from 'components/external_link';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks, CacheTypes, getLicenseTier} from 'utils/constants';
+import {AboutLinks, CacheTypes, CloudProducts, Constants, DeveloperLinks, DocLinks, LicenseSkus, getLicenseTier} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
@@ -259,7 +260,7 @@ export const it = {
         return cloud?.subscription?.is_free_trial === 'true';
     },
     userHasReadPermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.read as any)?.[key],
-    userHasReadPermissionOnSomeResources: (key: string | {[key: string]: string}) => Object.values(key).some((resource) => it.userHasReadPermissionOnResource(resource)),
+    userHasReadPermissionOnSomeResources: (key: string | { [key: string]: string }) => Object.values(key).some((resource) => it.userHasReadPermissionOnResource(resource)),
     userHasWritePermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.write as any)?.[key],
     isSystemAdmin: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => Boolean(isSystemAdmin),
 };
@@ -4251,7 +4252,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'GitLabSettings',
                     name: defineMessage({id: 'admin.authentication.gitlab', defaultMessage: 'GitLab'}),
                     onConfigLoad: (config) => {
-                        const newState: {'GitLabSettings.Url'?: string} = {};
+                        const newState: { 'GitLabSettings.Url'?: string } = {};
                         newState['GitLabSettings.Url'] = config.GitLabSettings?.UserAPIEndpoint?.replace('/api/v4/user', '');
                         return newState;
                     },
@@ -4364,7 +4365,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'OAuthSettings',
                     name: defineMessage({id: 'admin.authentication.oauth', defaultMessage: 'OAuth 2.0'}),
                     onConfigLoad: (config) => {
-                        const newState: {oauthType?: string; 'GitLabSettings.Url'?: string} = {};
+                        const newState: { oauthType?: string; 'GitLabSettings.Url'?: string } = {};
                         if (config.GitLabSettings?.Enable) {
                             newState.oauthType = Constants.GITLAB_SERVICE;
                         }
@@ -4688,7 +4689,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'OpenIdSettings',
                     name: defineMessage({id: 'admin.authentication.openid', defaultMessage: 'OpenID Connect'}),
                     onConfigLoad: (config) => {
-                        const newState: {openidType?: string; 'GitLabSettings.Url'?: string} = {};
+                        const newState: { openidType?: string; 'GitLabSettings.Url'?: string } = {};
                         if (config.Office365Settings?.Enable) {
                             newState.openidType = Constants.OFFICE365_SERVICE;
                         }
@@ -6463,6 +6464,33 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.BindPassword',
                 label: defineMessage({id: 'admin.ldap.bindPwdTitle', defaultMessage: 'Bind Password:'}),
                 help_text: defineMessage({id: 'admin.ldap.bindPwdDesc', defaultMessage: 'Password of the user given in "Bind Username".'}),
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                    it.all(
+                        it.stateIsFalse('LdapSettings.Enable'),
+                        it.stateIsFalse('LdapSettings.EnableSync'),
+                    ),
+                ),
+            },
+            {
+                type: 'button',
+                action: ldapTestConnection,
+                key: 'LdapSettings.TestConnection',
+                label: defineMessage({id: 'admin.ldap.testConnectionTitle', defaultMessage: 'Test Connection'}),
+                help_text: defineMessage({id: 'admin.ldap.testHelpText', defaultMessage: 'Tests if the Mattermost server can connect to the AD/LDAP server specified.'}),
+                help_text_values: {
+                    link: (msg: string) => (
+                        <ExternalLink
+                            location='admin_console'
+                            href={DocLinks.CONFIGURE_AD_LDAP_QUERY_TIMEOUT}
+                        >
+                            {msg}
+                        </ExternalLink>
+                    ),
+                },
+                help_text_markdown: false,
+                error_message: defineMessage({id: 'admin.ldap.testFailure', defaultMessage: 'AD/LDAP Test Connection Failure: {error}'}),
+                success_message: defineMessage({id: 'admin.ldap.testSuccess', defaultMessage: 'AD/LDAP Test Connection Successful'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
