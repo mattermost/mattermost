@@ -2045,7 +2045,7 @@
   "admin.plugins.settings.marketplaceUrlDesc.empty": " Marknadsplatsens URL är ett obligatoriskt fält.",
   "admin.plugins.settings.requirePluginSignature": "Kräv Plugin-signatur:",
   "admin.plugins.settings.requirePluginSignatureDesc": "När aktiverad kan plugins endast installeras via Marknadsplatsen, ej laddas upp manuellt. Plugins är alltid verifierade under Mattermost-serverns start och initiering. Läs <link>dokumentationen</link> för mer information.",
-  "admin.posts.persistentNotifications.desc": "När aktiverat kan användare skapa upprepade aviseringar för mottagarna av brådskande meddelanden. Läs mer om meddelandeprioritet och ihållande aviseringar i vår <link>dokumentation</link> .",
+  "admin.posts.persistentNotifications.desc": "När aktiverat kan användare skapa upprepade aviseringar för mottagarna av brådskande meddelanden. Läs mer om meddelandeprioritet och varaktiga aviseringar i vår <link>dokumentation</link> .",
   "admin.posts.persistentNotifications.title": "Varaktig notifiering",
   "admin.posts.persistentNotificationsGuests.desc": "Huruvida en gäst kan begära återkommande notifieringar. Läs mer om meddelandeprioritet och ihållande aviseringar i vår <link>dokumentation</link> .",
   "admin.posts.persistentNotificationsGuests.title": "Tillåt gäster att skicka återkommande notifieringar",
