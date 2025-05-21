@@ -9,9 +9,10 @@
     "build:watch": "npm run build:watch --workspaces",
     "tsc": "tsc -b && npm run tsc --workspaces",
     "lint": "eslint .",
+    "lint:test-docs": "node script/lint-test-docs.js",
     "prettier": "prettier . --check",
     "prettier:fix": "prettier --write .",
-    "check": "npm run lint && npm run prettier && npm run tsc",
+    "check": "npm run lint && npm run prettier && npm run tsc && npm run lint:test-docs",
     "test": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test",
     "test:ci": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test --project=chrome",
     "test:update-snapshots": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test --update-snapshots",
@@ -39,6 +40,7 @@
     "eslint-import-resolver-typescript": "4.3.4",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.31.0",
+    "glob": "11.0.2",
     "prettier": "3.5.3",
     "typescript": "5.8.3"
   }
