@@ -185,6 +185,11 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 	scs.app.SendEphemeralPost(request.EmptyContext(scs.server.Log()), userId, ephemeral)
 }
 
+// OnReceiveSyncMessageForTesting is an exported wrapper for testing the sync message handling flow
+func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	return scs.onReceiveSyncMessage(msg, rc, response)
+}
+
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (scs *Service) onClusterLeaderChange() {
 	if scs.server.IsLeader() {

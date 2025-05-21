@@ -34,6 +34,15 @@ type SyncEntityInfo struct {
 	IsAdd    bool
 }
 
+// logEntry represents a structured log entry for the extractEntityInfoFromJSON function
+type logEntry struct {
+	Msg       string `json:"msg"`
+	Operation string `json:"operation"`
+	Topic     string `json:"topic"`
+	Payload   string `json:"payload"`
+	// These fields will be extracted dynamically using the struct tags
+}
+
 // extractEntityInfoFromJSON parses JSON log entries to extract entity IDs and operation type (add/remove)
 func extractEntityInfoFromJSON(logBuffer *mlog.Buffer, entityKey string, messageFilter []string, topicFilter string) []*SyncEntityInfo {
 	entityInfoList := []*SyncEntityInfo{}
@@ -46,27 +55,52 @@ func extractEntityInfoFromJSON(logBuffer *mlog.Buffer, entityKey string, message
 
 	// Process each line as separate JSON entry
 	logLines := strings.Split(bufferContent, "\n")
-
 	for _, line := range logLines {
 		if line == "" {
 			continue
 		}
 
-		var entry map[string]interface{}
+		var entry map[string]json.RawMessage
 		if err := json.Unmarshal([]byte(line), &entry); err != nil {
 			continue
 		}
 
+		// Extract basic log entry fields
+		var le logEntry
+
+		// Get message field
+		if msgBytes, ok := entry["msg"]; ok {
+			if err := json.Unmarshal(msgBytes, &le.Msg); err != nil {
+				continue // Skip this entry if we can't unmarshal the message
+			}
+		} else {
+			continue // No message field, skip this entry
+		}
+
+		// Get operation field if it exists
+		if opBytes, ok := entry["operation"]; ok {
+			_ = json.Unmarshal(opBytes, &le.Operation) // Ignore error as operation is optional
+		}
+
+		// Get topic field if it exists
+		if topicBytes, ok := entry["topic"]; ok {
+			_ = json.Unmarshal(topicBytes, &le.Topic) // Ignore error as topic is optional
+		}
+
+		// Get payload field if it exists
+		if payloadBytes, ok := entry["payload"]; ok {
+			_ = json.Unmarshal(payloadBytes, &le.Payload) // Ignore error as payload is optional
+		}
+
 		// Look for entries related to entity sync
-		msg, msgOK := entry["msg"].(string)
-		if !msgOK {
+		if le.Msg == "" {
 			continue
 		}
 
 		// Check if the message contains any of the filter strings
 		var msgMatches bool
 		for _, filter := range messageFilter {
-			if strings.Contains(msg, filter) {
+			if strings.Contains(le.Msg, filter) {
 				msgMatches = true
 				break
 			}
@@ -75,61 +109,66 @@ func extractEntityInfoFromJSON(logBuffer *mlog.Buffer, entityKey string, message
 		// Check entries related to entity sync
 		if msgMatches {
 			// Check for entity ID field
-			if entityID, ok := entry[entityKey].(string); ok && entityID != "" {
-				// Determine if this is an add or remove operation
-				isAdd := true // Default to add
-				if operation, ok := entry["operation"].(string); ok {
-					isAdd = operation != "remove" // Anything that's not "remove" is treated as add
-				}
-
-				// Only add if not already seen
-				if !seenEntityIDs[entityID] {
-					seenEntityIDs[entityID] = true
-					entityInfo := &SyncEntityInfo{
-						EntityID: entityID,
-						IsAdd:    isAdd,
+			var entityID string
+			if entityIDBytes, ok := entry[entityKey]; ok {
+				if err := json.Unmarshal(entityIDBytes, &entityID); err == nil && entityID != "" {
+					// Determine if this is an add or remove operation
+					isAdd := true // Default to add
+					if le.Operation != "" {
+						isAdd = le.Operation != "remove" // Anything that's not "remove" is treated as add
 					}
-					entityInfoList = append(entityInfoList, entityInfo)
+
+					// Only add if not already seen
+					if !seenEntityIDs[entityID] {
+						seenEntityIDs[entityID] = true
+						entityInfo := &SyncEntityInfo{
+							EntityID: entityID,
+							IsAdd:    isAdd,
+						}
+						entityInfoList = append(entityInfoList, entityInfo)
+					}
 				}
 			}
 		}
 
 		// Check entries related to Remote Cluster send failures
-		if strings.Contains(msg, "Remote Cluster send message failed") {
+		if strings.Contains(le.Msg, "Remote Cluster send message failed") {
 			// Check for appropriate topic to determine operation
-			topic, hasTopic := entry["topic"].(string)
-			if !hasTopic || (topicFilter != "" && !strings.Contains(topic, topicFilter)) {
+			if le.Topic == "" || (topicFilter != "" && !strings.Contains(le.Topic, topicFilter)) {
 				continue
 			}
 
 			// Get the operation type from the log
 			isAdd := true // Default to add
-			if operation, ok := entry["operation"].(string); ok {
-				isAdd = operation != "remove"
+			if le.Operation != "" {
+				isAdd = le.Operation != "remove"
 			}
 
 			// Get operation by examining the payload if available
-			if payloadStr, ok := entry["payload"].(string); ok && payloadStr != "" {
-				isAdd = !strings.Contains(payloadStr, "\"is_add\":false")
+			if le.Payload != "" {
+				isAdd = !strings.Contains(le.Payload, "\"is_add\":false")
 			}
 
 			// Check for entity_ids field which contains comma-separated IDs
 			for _, possibleKey := range []string{entityKey + "s", entityKey + "_ids"} {
-				if entityIDsStr, ok := entry[possibleKey].(string); ok && entityIDsStr != "" {
-					// Split by comma
-					idsArray := strings.Split(entityIDsStr, ",")
-					for _, id := range idsArray {
-						id = strings.TrimSpace(id)
-						if id != "" && !seenEntityIDs[id] {
-							seenEntityIDs[id] = true
-							entityInfo := &SyncEntityInfo{
-								EntityID: id,
-								IsAdd:    isAdd,
+				var entityIDsStr string
+				if entityIDsBytes, ok := entry[possibleKey]; ok {
+					if err := json.Unmarshal(entityIDsBytes, &entityIDsStr); err == nil && entityIDsStr != "" {
+						// Split by comma
+						idsArray := strings.Split(entityIDsStr, ",")
+						for _, id := range idsArray {
+							id = strings.TrimSpace(id)
+							if id != "" && !seenEntityIDs[id] {
+								seenEntityIDs[id] = true
+								entityInfo := &SyncEntityInfo{
+									EntityID: id,
+									IsAdd:    isAdd,
+								}
+								entityInfoList = append(entityInfoList, entityInfo)
 							}
-							entityInfoList = append(entityInfoList, entityInfo)
 						}
+						break // Found and processed a valid field
 					}
-					break // Found and processed a valid field
 				}
 			}
 		}
@@ -248,10 +287,11 @@ func ValidateCursorTimestamp(t *testing.T, ss store.Store, channelID, remoteID s
 	return currentTimestamp, isValid
 }
 
-// CreateSyncMessages creates messages from captured entity info
+// CreateSyncMessages creates remote cluster messages from captured entity info
 // The messageType parameter specifies what type of message to create ("membership" for users)
-func CreateSyncMessages(t *testing.T, channelID, remoteID string, entityInfo []*SyncEntityInfo, messageType string) []*model.SyncMsg {
-	messages := make([]*model.SyncMsg, 0)
+// Returns RemoteClusterMsg objects ready for testing the full message flow
+func CreateSyncMessages(t *testing.T, channelID, remoteID string, entityInfo []*SyncEntityInfo, messageType string) []model.RemoteClusterMsg {
+	remoteMessages := make([]model.RemoteClusterMsg, 0)
 
 	// Group entities by operation type (add/remove)
 	addEntities := make([]*SyncEntityInfo, 0)
@@ -287,7 +327,13 @@ func CreateSyncMessages(t *testing.T, channelID, remoteID string, entityInfo []*
 				ChangeTime: model.GetMillis(),
 			}
 
-			messages = append(messages, syncMsg)
+			// Convert to RemoteClusterMsg
+			remoteMsg, err := ConvertSyncMsgToRemoteClusterMsg(syncMsg)
+			if err == nil {
+				remoteMessages = append(remoteMessages, remoteMsg)
+			} else {
+				t.Logf("Error converting sync message to remote cluster message: %v", err)
+			}
 		}
 
 		// Create batch membership change message for "remove" operations if multiple entities
@@ -311,7 +357,13 @@ func CreateSyncMessages(t *testing.T, channelID, remoteID string, entityInfo []*
 				ChangeTime: model.GetMillis(),
 			}
 
-			messages = append(messages, syncMsg)
+			// Convert to RemoteClusterMsg
+			remoteMsg, err := ConvertSyncMsgToRemoteClusterMsg(syncMsg)
+			if err == nil {
+				remoteMessages = append(remoteMessages, remoteMsg)
+			} else {
+				t.Logf("Error converting sync message to remote cluster message: %v", err)
+			}
 		}
 
 		// Also create individual membership change messages for each entity
@@ -325,11 +377,17 @@ func CreateSyncMessages(t *testing.T, channelID, remoteID string, entityInfo []*
 				ChangeTime: model.GetMillis(),
 			}
 
-			messages = append(messages, syncMsg)
+			// Convert to RemoteClusterMsg
+			remoteMsg, err := ConvertSyncMsgToRemoteClusterMsg(syncMsg)
+			if err == nil {
+				remoteMessages = append(remoteMessages, remoteMsg)
+			} else {
+				t.Logf("Error converting sync message to remote cluster message: %v", err)
+			}
 		}
 	}
 
-	return messages
+	return remoteMessages
 }
 
 // SetupLogCaptureForSharedChannelSync sets up log capture and configures services for shared channel sync testing
@@ -376,6 +434,36 @@ func SetupLogCaptureForSharedChannelSync(t *testing.T, th *TestHelper, testScope
 	}
 
 	return buffer, service, rcs
+}
+
+// ConvertSyncMsgToRemoteClusterMsg converts a SyncMsg to a RemoteClusterMsg
+// This simulates the network layer wrapping the sync message in a remote cluster message
+func ConvertSyncMsgToRemoteClusterMsg(syncMsg *model.SyncMsg) (model.RemoteClusterMsg, error) {
+	payload, err := json.Marshal(syncMsg)
+	if err != nil {
+		return model.RemoteClusterMsg{}, fmt.Errorf("failed to marshal sync message: %w", err)
+	}
+
+	return model.RemoteClusterMsg{
+		Topic:   sharedchannel.TopicSync,
+		Payload: payload,
+	}, nil
+}
+
+// ExtractSyncMsgFromRemoteClusterMsg extracts a SyncMsg from a RemoteClusterMsg
+// This helps test code access the original SyncMsg fields from a RemoteClusterMsg
+func ExtractSyncMsgFromRemoteClusterMsg(remoteMsg model.RemoteClusterMsg) (*model.SyncMsg, error) {
+	if len(remoteMsg.Payload) == 0 {
+		return nil, fmt.Errorf("remote message payload is empty")
+	}
+
+	syncMsg := &model.SyncMsg{}
+	err := json.Unmarshal(remoteMsg.Payload, syncMsg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal sync message: %w", err)
+	}
+
+	return syncMsg, nil
 }
 
 // PrepareSharedChannelForTest prepares a shared channel for sync testing

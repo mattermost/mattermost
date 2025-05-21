@@ -42,11 +42,6 @@ func (scs *Service) checkMembershipConflict(userID, channelID string, changeTime
 	return false, nil
 }
 
-// OnReceiveMembershipChangeForTesting is an exported wrapper for testing the membership change functionality
-func (scs *Service) OnReceiveMembershipChangeForTesting(syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	return scs.onReceiveMembershipChange(syncMsg, rc, response)
-}
-
 // onReceiveMembershipChange processes a channel membership change (add/remove) from a remote cluster
 func (scs *Service) onReceiveMembershipChange(syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	// Check if feature flag is enabled
@@ -120,11 +115,6 @@ func (scs *Service) onReceiveMembershipChange(syncMsg *model.SyncMsg, rc *model.
 	}
 
 	return nil
-}
-
-// OnReceiveMembershipBatchForTesting is an exported wrapper for testing batch membership changes
-func (scs *Service) OnReceiveMembershipBatchForTesting(syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	return scs.onReceiveMembershipBatch(syncMsg, rc, response)
 }
 
 // onReceiveMembershipBatch processes a batch of channel membership changes from a remote cluster

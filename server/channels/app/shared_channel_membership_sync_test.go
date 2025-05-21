@@ -190,12 +190,16 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, invalidRemoteCluster.RemoteId)
 		require.NoError(t, err)
 
-		// Allow time for async operations
+		// Wait for async operations to complete using polling instead of fixed sleep
 		fmt.Println("Waiting for async operations to complete...")
-		time.Sleep(5 * time.Second)
+		require.Eventually(t, func() bool {
+			// Flush the logger to ensure all logs are written to the buffer
+			require.NoError(t, th.TestLogger.Flush())
 
-		// Flush the logger to ensure all logs are written to the buffer
-		require.NoError(t, th.TestLogger.Flush())
+			// Check if we have membership info in the logs
+			tempInfo := ExtractUserMembershipInfoFromJSON(buffer)
+			return len(tempInfo) > 0
+		}, 10*time.Second, 100*time.Millisecond, "Membership sync operations should complete")
 
 		// Extract user IDs and operations from the logs
 		membershipInfo := ExtractUserMembershipInfoFromJSON(buffer)
@@ -206,37 +210,38 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		singleUserInfo := []*SyncEntityInfo{membershipInfo[0]}
 		individualMessages := CreateSyncMessages(t, channel.Id, remoteClusterB.RemoteId, singleUserInfo, "membership")
 
-		// Find the individual membership message
-		var individualMsg *model.SyncMsg
-		for _, msg := range individualMessages {
-			if msg.MembershipInfo != nil {
-				individualMsg = msg
-				break
-			}
-		}
-		require.NotNil(t, individualMsg, "No individual membership message found")
-
-		// Test the receiver part for a single user
-		userID := individualMsg.MembershipInfo.UserId
-		isAdd := individualMsg.MembershipInfo.IsAdd
+		// Get user info directly from the membershipInfo we already extracted
+		userID := membershipInfo[0].EntityID
+		isAdd := membershipInfo[0].IsAdd
 
 		t.Logf("Testing individual membership receiver with user %s, operation %s",
 			userID, map[bool]string{true: "add", false: "remove"}[isAdd])
 
-		// Remove the user if they're already a member (to test adding)
-		// or add them if they're not (to test removing)
-		if isAdd {
+		// Set up known state, opposite of what we expect the operation to do:
+		// - If testing addition (isAdd=true), make sure user is NOT in the channel
+		// - If testing removal (isAdd=false), make sure user IS in the channel
+		isMember := false
+		_, getErr := ss.Channel().GetMember(context.Background(), channel.Id, userID)
+		if getErr == nil {
+			isMember = true
+		}
+
+		// Ensure correct starting state
+		if isAdd && isMember {
+			// We're testing add but user is already a member - remove them first
 			appErr := th.App.RemoveUserFromChannel(th.Context, userID, th.SystemAdminUser.Id, channel)
-			require.Nil(t, appErr, "Failed to remove user from channel.")
-		} else {
-			_, _ = th.App.AddChannelMember(th.Context, userID, channel, ChannelMemberOpts{})
+			require.Nil(t, appErr, "Failed to remove user from channel to prepare test.")
+		} else if !isAdd && !isMember {
+			// We're testing remove but user is not a member - add them first
+			_, appErr := th.App.AddChannelMember(th.Context, userID, channel, ChannelMemberOpts{})
+			require.Nil(t, appErr, "Failed to add user to channel to prepare test.")
 		}
 
 		// Use remoteClusterB which is a valid remote for receiving
 		response := &remotecluster.Response{}
 
-		// Call the exported wrapper to process the individual membership change
-		err = service.OnReceiveMembershipChangeForTesting(individualMsg, remoteClusterB, response)
+		// Call the exported wrapper to process the complete sync message flow
+		err = service.OnReceiveSyncMessageForTesting(individualMessages[0], remoteClusterB, response)
 		require.NoError(t, err)
 
 		// Verify the membership change was applied correctly
@@ -306,12 +311,17 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, invalidRemoteCluster.RemoteId)
 		require.NoError(t, err)
 
-		// Allow time for async operations - large batches may need more time
+		// Wait for async operations to complete using polling instead of fixed sleep
 		fmt.Println("Waiting for async operations to complete for large batch...")
-		time.Sleep(10 * time.Second)
+		require.Eventually(t, func() bool {
+			// Flush the logger to ensure all logs are written to the buffer
+			require.NoError(t, th.TestLogger.Flush())
 
-		// Flush the logger to ensure all logs are written to the buffer
-		require.NoError(t, th.TestLogger.Flush())
+			// Check if we have membership info in the logs
+			tempInfo := ExtractUserMembershipInfoFromJSON(buffer)
+			// For batch operations, we need a significant number of users
+			return len(tempInfo) >= 10
+		}, 15*time.Second, 100*time.Millisecond, "Large batch membership sync operations should complete")
 
 		// Extract user IDs and operations from the logs
 		membershipInfo := ExtractUserMembershipInfoFromJSON(buffer)
@@ -337,24 +347,37 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		// Create synthetic messages using CreateSyncMessages for batch processing
 		batchMessages := CreateSyncMessages(t, channel.Id, remoteClusterB.RemoteId, addUsers, "membership")
 
-		// Find the batch message
+		// Find the batch message by extracting SyncMsg from RemoteClusterMsg
+		// We need to get a reference to the batch message to examine its contents for testing
+		require.NotEmpty(t, batchMessages, "Failed to create batch messages")
+
+		// Extract the first batch message to examine its content
 		var batchMsg *model.SyncMsg
-		for _, msg := range batchMessages {
-			if msg.MembershipBatchInfo != nil {
-				batchMsg = msg
+		for _, remoteMsg := range batchMessages {
+			extractedMsg, err1 := ExtractSyncMsgFromRemoteClusterMsg(remoteMsg)
+			if err1 != nil {
+				continue
+			}
+			if extractedMsg.MembershipBatchInfo != nil {
+				batchMsg = extractedMsg
 				break
 			}
 		}
-		require.NotNil(t, batchMsg, "Failed to create a batch message")
+		require.NotNil(t, batchMsg, "Failed to find a batch message")
 		require.NotNil(t, batchMsg.MembershipBatchInfo, "Missing batch info")
 		require.NotEmpty(t, batchMsg.MembershipBatchInfo.Changes, "No changes in batch")
 
-		// For batch testing, remove the users first so we can test adding them
+		// For batch testing, ensure users are not members first so we can test adding them
+		// Since we're testing batch addition, we need to make sure users aren't already members
 		for _, change := range batchMsg.MembershipBatchInfo.Changes {
 			userID := change.UserId
-			// Remove users before testing their addition
-			appErr := th.App.RemoveUserFromChannel(th.Context, userID, th.SystemAdminUser.Id, channel)
-			require.Nil(t, appErr, "Failed to remove user from channel.")
+			// Check if user is already a member
+			_, getErr := ss.Channel().GetMember(context.Background(), channel.Id, userID)
+			if getErr == nil {
+				// User is already a member, remove them to prepare for the test
+				appErr := th.App.RemoveUserFromChannel(th.Context, userID, th.SystemAdminUser.Id, channel)
+				require.Nil(t, appErr, "Failed to remove user from channel to prepare test.")
+			}
 		}
 
 		// Test the batch membership change
@@ -363,8 +386,9 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		// Use remoteClusterB which is a valid remote
 		response := &remotecluster.Response{}
 
-		// Call the exported wrapper for testing the receiver side with batch
-		err = service.OnReceiveMembershipBatchForTesting(batchMsg, remoteClusterB, response)
+		// Call the exported wrapper for testing the complete flow
+		require.NotEmpty(t, batchMessages, "No batch messages created")
+		err = service.OnReceiveSyncMessageForTesting(batchMessages[0], remoteClusterB, response)
 		require.NoError(t, err)
 
 		// Verify all user memberships were updated correctly
@@ -388,23 +412,43 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 
 		// Create synthetic messages for batch removal
 		removeBatchMessages := CreateSyncMessages(t, channel.Id, remoteClusterB.RemoteId, removeUsers, "membership")
+		require.NotEmpty(t, removeBatchMessages, "Failed to create batch removal messages")
 
-		// Find the batch removal message
-		var removeBatchMsg *model.SyncMsg
-		for _, msg := range removeBatchMessages {
-			if msg.MembershipBatchInfo != nil {
-				removeBatchMsg = msg
+		// Find the batch message to extract user IDs for test preparation
+		var batchRemoveInfoMsg *model.SyncMsg
+		var batchRemoveIndex int
+		for i, remoteMsg := range removeBatchMessages {
+			extractedMsg, err2 := ExtractSyncMsgFromRemoteClusterMsg(remoteMsg)
+			if err2 != nil {
+				continue
+			}
+			if extractedMsg.MembershipBatchInfo != nil {
+				batchRemoveInfoMsg = extractedMsg
+				batchRemoveIndex = i
 				break
 			}
 		}
-		require.NotNil(t, removeBatchMsg, "Failed to create a batch removal message")
+		require.NotNil(t, batchRemoveInfoMsg, "Failed to find a batch removal message")
+
+		// Ensure all users are members before testing batch remove
+		for _, change := range batchRemoveInfoMsg.MembershipBatchInfo.Changes {
+			userID := change.UserId
+			// Check if user is already a member
+			_, getErr := ss.Channel().GetMember(context.Background(), channel.Id, userID)
+			if getErr != nil {
+				// User is not a member, add them to prepare for the test
+				_, appErr := th.App.AddChannelMember(th.Context, userID, channel, ChannelMemberOpts{})
+				require.Nil(t, appErr, "Failed to add user to channel to prepare for batch remove test")
+			}
+		}
 
 		// Call the exported wrapper for testing the receiver side with batch remove
-		err = service.OnReceiveMembershipBatchForTesting(removeBatchMsg, remoteClusterB, response)
+		// Use the actual RemoteClusterMsg directly from the CreateSyncMessages output
+		err = service.OnReceiveSyncMessageForTesting(removeBatchMessages[batchRemoveIndex], remoteClusterB, response)
 		require.NoError(t, err)
 
 		// Verify all users were removed
-		for _, change := range removeBatchMsg.MembershipBatchInfo.Changes {
+		for _, change := range batchRemoveInfoMsg.MembershipBatchInfo.Changes {
 			userID := change.UserId
 			_, err := ss.Channel().GetMember(context.Background(), channel.Id, userID)
 			require.Error(t, err, fmt.Sprintf("User %s should not be a member of the channel after batch remove", userID))
@@ -482,12 +526,17 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, remoteClusterC.RemoteId)
 		require.NoError(t, err)
 
-		// Allow time for async operations
+		// Wait for async operations to complete using polling instead of fixed sleep
 		fmt.Println("Waiting for async operations to complete...")
-		time.Sleep(5 * time.Second)
+		require.Eventually(t, func() bool {
+			// Flush the logger to ensure all logs are written to the buffer
+			require.NoError(t, th.TestLogger.Flush())
 
-		// Flush the logger to ensure all logs are written to the buffer
-		require.NoError(t, th.TestLogger.Flush())
+			// Check if we have membership info for both remotes in the logs
+			tempInfoB := ExtractUserMembershipInfoFromJSON(bufferB)
+			tempInfoC := ExtractUserMembershipInfoFromJSON(bufferC)
+			return len(tempInfoB) > 0 && len(tempInfoC) > 0
+		}, 10*time.Second, 100*time.Millisecond, "Multi-cluster sync operations should complete")
 
 		// Extract user IDs and operations from the logs for both remotes
 		membershipInfoB := ExtractUserMembershipInfoFromJSON(bufferB)
@@ -526,9 +575,15 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 
 		// Find the individual membership message for userB2
 		var addMembershipMsg *model.SyncMsg
-		for _, msg := range b2Messages {
-			if msg.MembershipInfo != nil && msg.MembershipInfo.UserId == userB2.Id {
-				addMembershipMsg = msg
+		var addMembershipIndex int
+		for i, remoteMsg := range b2Messages {
+			extractedMsg, err3 := ExtractSyncMsgFromRemoteClusterMsg(remoteMsg)
+			if err3 != nil {
+				continue
+			}
+			if extractedMsg.MembershipInfo != nil && extractedMsg.MembershipInfo.UserId == userB2.Id {
+				addMembershipMsg = extractedMsg
+				addMembershipIndex = i
 				break
 			}
 		}
@@ -547,7 +602,8 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 
 		// Process the membership change from "Server B"
 		response := &remotecluster.Response{}
-		err = service.OnReceiveMembershipChangeForTesting(addMembershipMsg, remoteClusterB, response)
+		// Use the RemoteClusterMsg directly from b2Messages
+		err = service.OnReceiveSyncMessageForTesting(b2Messages[addMembershipIndex], remoteClusterB, response)
 		require.NoError(t, err)
 
 		// Verify user B2 is now a member on Server A
@@ -568,9 +624,15 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, remoteClusterC.RemoteId)
 		require.NoError(t, err)
 
-		// Allow time for async operations
-		time.Sleep(5 * time.Second)
-		require.NoError(t, th.TestLogger.Flush())
+		// Wait for async operations to complete using polling instead of fixed sleep
+		require.Eventually(t, func() bool {
+			// Flush the logger to ensure all logs are written to the buffer
+			require.NoError(t, th.TestLogger.Flush())
+
+			// Check if we have membership info in the logs for server C
+			tempInfoC := ExtractUserMembershipInfoFromJSON(bufferC)
+			return len(tempInfoC) > 0
+		}, 10*time.Second, 100*time.Millisecond, "B→A→C propagation sync should complete")
 
 		// Extract user IDs and operations from the logs for Server C
 		membershipInfoC = ExtractUserMembershipInfoFromJSON(bufferC)
@@ -642,9 +704,16 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, remoteClusterB.RemoteId)
 		require.NoError(t, err)
 
-		// Wait for async operations
-		time.Sleep(2 * time.Second)
-		require.NoError(t, th.TestLogger.Flush())
+		// Wait for async operations to complete using polling instead of fixed sleep
+		fmt.Println("Waiting for async operations to complete...")
+		require.Eventually(t, func() bool {
+			// Flush the logger to ensure all logs are written to the buffer
+			require.NoError(t, th.TestLogger.Flush())
+
+			// Check if we have membership info in the logs
+			tempInfo := ExtractUserMembershipInfoFromJSON(bufferAdd)
+			return len(tempInfo) > 0
+		}, 10*time.Second, 100*time.Millisecond, "Membership sync operations should complete")
 
 		// Extract user IDs and operations from the logs
 		addInfo := ExtractUserMembershipInfoFromJSON(bufferAdd)
@@ -673,11 +742,16 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 
 		// Find the individual add message
 		var addMessage *model.SyncMsg
-		for _, msg := range addMessages {
-			if msg.MembershipInfo != nil && msg.MembershipInfo.UserId == userA6.Id {
+		// We want to extract the SyncMsg first to modify its timestamp
+		for _, remoteMsg := range addMessages {
+			extractedMsg, err4 := ExtractSyncMsgFromRemoteClusterMsg(remoteMsg)
+			if err4 != nil {
+				continue
+			}
+			if extractedMsg.MembershipInfo != nil && extractedMsg.MembershipInfo.UserId == userA6.Id {
 				// Override timestamp to create the conflict scenario
-				msg.MembershipInfo.ChangeTime = addTimestamp
-				addMessage = msg
+				extractedMsg.MembershipInfo.ChangeTime = addTimestamp
+				addMessage = extractedMsg
 				break
 			}
 		}
@@ -695,11 +769,15 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 
 		// Find the individual remove message
 		var removeMessage *model.SyncMsg
-		for _, msg := range removeMessages {
-			if msg.MembershipInfo != nil && msg.MembershipInfo.UserId == userA6.Id {
+		for _, remoteMsg := range removeMessages {
+			extractedMsg, err5 := ExtractSyncMsgFromRemoteClusterMsg(remoteMsg)
+			if err5 != nil {
+				continue
+			}
+			if extractedMsg.MembershipInfo != nil && extractedMsg.MembershipInfo.UserId == userA6.Id {
 				// Override timestamp to create the conflict scenario
-				msg.MembershipInfo.ChangeTime = removeTimestamp
-				removeMessage = msg
+				extractedMsg.MembershipInfo.ChangeTime = removeTimestamp
+				removeMessage = extractedMsg
 				break
 			}
 		}
@@ -713,11 +791,19 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 
 		// Apply the "add" message first (simulating the change from A -> B)
 		response := &remotecluster.Response{}
-		err = service.OnReceiveMembershipChangeForTesting(addMessage, remoteClusterB, response)
+		// Convert the sync message to remote cluster message first
+		addMessageRemoteMsg, err := ConvertSyncMsgToRemoteClusterMsg(addMessage)
+		require.NoError(t, err)
+
+		err = service.OnReceiveSyncMessageForTesting(addMessageRemoteMsg, remoteClusterB, response)
 		require.NoError(t, err)
 
 		// Apply the "remove" message (simulating a change from B -> A)
-		err = service.OnReceiveMembershipChangeForTesting(removeMessage, remoteClusterB, response)
+		// Convert the sync message to remote cluster message first
+		removeMessageRemoteMsg, err := ConvertSyncMsgToRemoteClusterMsg(removeMessage)
+		require.NoError(t, err)
+
+		err = service.OnReceiveSyncMessageForTesting(removeMessageRemoteMsg, remoteClusterB, response)
 		require.NoError(t, err)
 
 		// Verify the most recent operation (removal) is the final state
@@ -735,18 +821,26 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 
 		// Find the individual newer add message
 		var newerAddMessage *model.SyncMsg
-		for _, msg := range newerAddMessages {
-			if msg.MembershipInfo != nil && msg.MembershipInfo.UserId == userA6.Id {
+		for _, remoteMsg := range newerAddMessages {
+			extractedMsg, err6 := ExtractSyncMsgFromRemoteClusterMsg(remoteMsg)
+			if err6 != nil {
+				continue
+			}
+			if extractedMsg.MembershipInfo != nil && extractedMsg.MembershipInfo.UserId == userA6.Id {
 				// Override timestamp to create the conflict scenario
-				msg.MembershipInfo.ChangeTime = addTimestamp
-				newerAddMessage = msg
+				extractedMsg.MembershipInfo.ChangeTime = addTimestamp
+				newerAddMessage = extractedMsg
 				break
 			}
 		}
 		require.NotNil(t, newerAddMessage, "No newer add message found for userA6")
 
 		// Apply the new "add" message with more recent timestamp
-		err = service.OnReceiveMembershipChangeForTesting(newerAddMessage, remoteClusterB, response)
+		// Convert the sync message to remote cluster message first
+		newerAddMessageRemoteMsg, err := ConvertSyncMsgToRemoteClusterMsg(newerAddMessage)
+		require.NoError(t, err)
+
+		err = service.OnReceiveSyncMessageForTesting(newerAddMessageRemoteMsg, remoteClusterB, response)
 		require.NoError(t, err)
 
 		// Verify the most recent operation (add) is the final state
@@ -776,9 +870,16 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, invalidRemoteCluster.RemoteId)
 		require.NoError(t, err)
 
-		// Wait for async operations
-		time.Sleep(2 * time.Second)
-		require.NoError(t, th.TestLogger.Flush())
+		// Wait for async operations to complete using polling instead of fixed sleep
+		fmt.Println("Waiting for async operations to complete...")
+		require.Eventually(t, func() bool {
+			// Flush the logger to ensure all logs are written to the buffer
+			require.NoError(t, th.TestLogger.Flush())
+
+			// Check if we have membership info in the logs
+			tempInfo := ExtractUserMembershipInfoFromJSON(bufferAdd)
+			return len(tempInfo) > 0
+		}, 10*time.Second, 100*time.Millisecond, "Membership sync operations should complete")
 
 		// Extract user IDs and operations from the logs
 		disconnectInfo := ExtractUserMembershipInfoFromJSON(bufferDisconnect)
@@ -815,17 +916,55 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 
 		// Find the individual reconnect message
 		var reconnectMessage *model.SyncMsg
-		for _, msg := range reconnectMessages {
-			if msg.MembershipInfo != nil && msg.MembershipInfo.UserId == disconnectTestUser.Id {
-				reconnectMessage = msg
+		var reconnectIndex int
+		for i, remoteMsg := range reconnectMessages {
+			extractedMsg, err7 := ExtractSyncMsgFromRemoteClusterMsg(remoteMsg)
+			if err7 != nil {
+				continue
+			}
+			if extractedMsg.MembershipInfo != nil && extractedMsg.MembershipInfo.UserId == disconnectTestUser.Id {
+				reconnectMessage = extractedMsg
+				reconnectIndex = i
 				break
 			}
 		}
 		require.NotNil(t, reconnectMessage, "No reconnect message found for disconnectTestUser")
 
+		// Determine the expected operation based on the message
+		isAdd := true
+		if reconnectMessage.MembershipInfo != nil {
+			isAdd = reconnectMessage.MembershipInfo.IsAdd
+		}
+
+		// Ensure proper starting state before testing the handler
+		isMember := false
+		_, getErr := ss.Channel().GetMember(context.Background(), channel.Id, disconnectTestUser.Id)
+		if getErr == nil {
+			isMember = true
+		}
+
+		if isAdd && isMember {
+			// Testing add but user is already a member - remove them first
+			appErr := th.App.RemoveUserFromChannel(th.Context, disconnectTestUser.Id, th.SystemAdminUser.Id, channel)
+			require.Nil(t, appErr, "Failed to prepare test state by removing user")
+		} else if !isAdd && !isMember {
+			// Testing remove but user is not a member - add them first
+			_, appErr := th.App.AddChannelMember(th.Context, disconnectTestUser.Id, channel, ChannelMemberOpts{})
+			require.Nil(t, appErr, "Failed to prepare test state by adding user")
+		}
+
 		// Process the reconnect message (should succeed)
-		err = service.OnReceiveMembershipChangeForTesting(reconnectMessage, invalidRemoteCluster, response)
+		// Use the RemoteClusterMsg directly from reconnectMessages
+		err = service.OnReceiveSyncMessageForTesting(reconnectMessages[reconnectIndex], invalidRemoteCluster, response)
 		require.NoError(t, err)
+
+		// Verify the membership state changed as expected
+		_, err = ss.Channel().GetMember(context.Background(), channel.Id, disconnectTestUser.Id)
+		if isAdd {
+			require.NoError(t, err, "User should be a member after add operation")
+		} else {
+			require.Error(t, err, "User should not be a member after remove operation")
+		}
 
 		// Verify cursor updated for "Server A" after handling message from "Server B"
 		afterCursor, wasUpdated := ValidateCursorTimestamp(t, ss, channel.Id, invalidRemoteCluster.RemoteId, beforeDisconnectAt)
@@ -875,9 +1014,16 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, remoteClusterB.RemoteId)
 		require.NoError(t, err)
 
-		// Allow time for async operations
-		time.Sleep(3 * time.Second)
-		require.NoError(t, th.TestLogger.Flush())
+		// Wait for async operations to complete using polling instead of fixed sleep
+		fmt.Println("Waiting for async operations to complete...")
+		require.Eventually(t, func() bool {
+			// Flush the logger to ensure all logs are written to the buffer
+			require.NoError(t, th.TestLogger.Flush())
+
+			// Check if we have membership info in the logs
+			tempInfo := ExtractUserMembershipInfoFromJSON(buffer)
+			return len(tempInfo) > 0
+		}, 10*time.Second, 100*time.Millisecond, "Membership sync operations should complete")
 
 		// Extract user IDs from logs for verification
 		cursorMembershipInfo := ExtractUserMembershipInfoFromJSON(buffer)
@@ -924,9 +1070,16 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, invalidRemoteCluster.RemoteId)
 		require.NoError(t, err) // Initial call should succeed, but actual send will fail
 
-		// Allow time for async operations and failures
-		time.Sleep(3 * time.Second)
-		require.NoError(t, th.TestLogger.Flush())
+		// Wait for async operations to complete using polling instead of fixed sleep
+		fmt.Println("Waiting for async operations to complete...")
+		require.Eventually(t, func() bool {
+			// Flush the logger to ensure all logs are written to the buffer
+			require.NoError(t, th.TestLogger.Flush())
+
+			// Check if we have membership info in the logs
+			tempInfo := ExtractUserMembershipInfoFromJSON(failedBuffer)
+			return len(tempInfo) > 0
+		}, 10*time.Second, 100*time.Millisecond, "Failed sync operations should complete")
 
 		// Extract info from logs to verify sync was attempted
 		membershipInfo := ExtractUserMembershipInfoFromJSON(failedBuffer)
@@ -976,9 +1129,16 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, remoteClusterB.RemoteId)
 		require.NoError(t, err)
 
-		// Allow time for async operations
-		time.Sleep(3 * time.Second)
-		require.NoError(t, th.TestLogger.Flush())
+		// Wait for async operations to complete using polling instead of fixed sleep
+		fmt.Println("Waiting for async operations to complete...")
+		require.Eventually(t, func() bool {
+			// Flush the logger to ensure all logs are written to the buffer
+			require.NoError(t, th.TestLogger.Flush())
+
+			// Check if we have membership info in the logs
+			tempInfo := ExtractUserMembershipInfoFromJSON(buffer)
+			return len(tempInfo) > 0
+		}, 10*time.Second, 100*time.Millisecond, "Membership sync operations should complete")
 
 		// Extract user IDs from logs for verification
 		enabledInfo := ExtractUserMembershipInfoFromJSON(buffer)
@@ -1022,9 +1182,16 @@ func TestSharedChannelMembershipSync(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, remoteClusterB.RemoteId)
 		require.NoError(t, err)
 
-		// Allow time for async operations
-		time.Sleep(3 * time.Second)
-		require.NoError(t, th.TestLogger.Flush())
+		// Wait for async operations to complete using polling instead of fixed sleep
+		fmt.Println("Waiting for async operations to complete...")
+		require.Eventually(t, func() bool {
+			// Flush the logger to ensure all logs are written to the buffer
+			require.NoError(t, th.TestLogger.Flush())
+
+			// Check if we have membership info in the logs
+			tempInfo := ExtractUserMembershipInfoFromJSON(buffer)
+			return len(tempInfo) > 0
+		}, 10*time.Second, 100*time.Millisecond, "Membership sync operations should complete")
 
 		// Extract user IDs from logs for verification with flag disabled
 		disabledInfo := ExtractUserMembershipInfoFromJSON(disabledBuffer)
