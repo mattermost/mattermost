@@ -1952,24 +1952,22 @@ export function handleCustomAttributesCreated(msg) {
 }
 
 export function handleCustomAttributesUpdated(msg) {
-    return (dispatch, getState) => {
-        const updatedField = msg.data.field;
-        const currentFields = getState().entities.general.customProfileAttributes || {};
-        const oldField = currentFields[updatedField.id];
+    return (dispatch) => {
+        const {field, delete_values: deleteValues} = msg.data;
 
-        // Check if the field type changed
-        if (oldField && oldField.type !== updatedField.type) {
+        // Check if server indicates values should be deleted
+        if (deleteValues) {
             // Clear values for the field when type changes
             dispatch({
                 type: UserTypes.CLEAR_CPA_VALUES,
-                data: {fieldId: updatedField.id},
+                data: {fieldId: field.id},
             });
         }
 
         // Update the field
         dispatch({
             type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
-            data: updatedField,
+            data: field,
         });
     };
 }

@@ -170,6 +170,7 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldUpdated, "", "", "", nil, "")
 	message.Add("field", patchedField)
+	message.Add("delete_values", shouldDeleteValues)
 	a.Publish(message)
 
 	return patchedField, nil
