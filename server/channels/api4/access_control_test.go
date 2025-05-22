@@ -632,6 +632,10 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 	}
 
 	t.Run("SearchChannelsForAccessControlPolicy with regular user", func(t *testing.T) {
+		if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+			t.Skip("Access control tests are not supported on MySQL")
+		}
+
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
