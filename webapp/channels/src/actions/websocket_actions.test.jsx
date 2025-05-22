@@ -1621,6 +1621,7 @@ describe('handleCustomAttributeCRUD', () => {
                 event: SocketEvents.CPA_FIELD_UPDATED,
                 data: {
                     field: updatedField,
+
                     // delete_values not specified
                 },
             }));
