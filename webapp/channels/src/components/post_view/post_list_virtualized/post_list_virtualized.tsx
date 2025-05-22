@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable max-lines */
-
 import React from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
@@ -13,7 +11,7 @@ import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import type {CanLoadMorePosts} from 'actions/views/channel';
 
 import {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
-import type {OnItemsRenderedArgs, DynamicVirtualizedList as DynamicVirtualizedListProps} from 'components/dynamic_virtualized_list';
+import type {OnItemsRenderedArgs} from 'components/dynamic_virtualized_list';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import PostListRow from 'components/post_view/post_list_row';
 import ScrollToBottomArrows from 'components/post_view/scroll_to_bottom_arrows';
@@ -146,7 +144,7 @@ type State = {
 }
 
 export default class PostList extends React.PureComponent<Props, State> {
-    listRef: React.RefObject<DynamicVirtualizedListProps>;
+    listRef: React.RefObject<DynamicVirtualizedList>;
     postListRef: React.RefObject<HTMLDivElement>;
     scrollStopAction: DelayedAction | null = null;
     initRangeToRender: number[];
