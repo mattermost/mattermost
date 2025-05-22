@@ -612,9 +612,9 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, error
 }
 
 func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	config, _, err := c.GetConfig(cmd.Context())
+	config, _, err := c.GetConfig(context.TODO())
 	if err != nil {
-		return err
+		return errors.New("Unable to delete channel(s). Error: " + err.Error())
 	}
 	deleteEnabled := config.ServiceSettings.EnableAPIChannelDeletion
 	if deleteEnabled == nil || !*deleteEnabled {

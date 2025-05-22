@@ -2815,11 +2815,9 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		Id:   channelID,
 	}
 
-	t := true
-
 	mockConfig := model.Config{
 		ServiceSettings: model.ServiceSettings{
-			EnableAPIChannelDeletion: &t,
+			EnableAPIChannelDeletion: new(bool),
 		},
 	}
 
@@ -2827,9 +2825,14 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIChannelDeletion
+		*mockConfig.ServiceSettings.EnableAPIChannelDeletion = true
+		defer func() {
+			mockConfig.ServiceSettings.EnableAPIChannelDeletion = previousVal
+		}()
 		s.client.
 			EXPECT().
-			GetConfig(cmd.Context()).
+			GetConfig(context.TODO()).
 			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -2839,20 +2842,17 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 	})
 
 	s.Run("Delete channels with delete config disabled (set to false)", func() {
-		f := false
-
-		mockConfigDeleteDisabled := model.Config{
-			ServiceSettings: model.ServiceSettings{
-				EnableAPIChannelDeletion: &f,
-			},
-		}
-
 		cmd := &cobra.Command{}
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIChannelDeletion
+		*mockConfig.ServiceSettings.EnableAPIChannelDeletion = false
+		defer func() {
+			mockConfig.ServiceSettings.EnableAPIChannelDeletion = previousVal
+		}()
 		s.client.
 			EXPECT().
-			GetConfig(cmd.Context()).
-			Return(&mockConfigDeleteDisabled, &model.Response{}, nil).
+			GetConfig(context.TODO()).
+			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := deleteChannelsCmdF(s.client, cmd, []string{"some"})
@@ -2861,18 +2861,17 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 	})
 
 	s.Run("Delete channels with delete config disabled (set to nil)", func() {
-		mockConfigDeleteDisabled := model.Config{
-			ServiceSettings: model.ServiceSettings{
-				EnableAPIChannelDeletion: nil,
-			},
-		}
-
 		cmd := &cobra.Command{}
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIChannelDeletion
+		mockConfig.ServiceSettings.EnableAPIChannelDeletion = nil
+		defer func() {
+			mockConfig.ServiceSettings.EnableAPIChannelDeletion = previousVal
+		}()
 		s.client.
 			EXPECT().
-			GetConfig(cmd.Context()).
-			Return(&mockConfigDeleteDisabled, &model.Response{}, nil).
+			GetConfig(context.TODO()).
+			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := deleteChannelsCmdF(s.client, cmd, []string{"some"})
@@ -2904,8 +2903,13 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIChannelDeletion
+		*mockConfig.ServiceSettings.EnableAPIChannelDeletion = true
+		defer func() {
+			mockConfig.ServiceSettings.EnableAPIChannelDeletion = previousVal
+		}()
 		s.client.
-			EXPECT().GetConfig(cmd.Context()).
+			EXPECT().GetConfig(context.TODO()).
 			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -2934,8 +2938,13 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIChannelDeletion
+		*mockConfig.ServiceSettings.EnableAPIChannelDeletion = true
+		defer func() {
+			mockConfig.ServiceSettings.EnableAPIChannelDeletion = previousVal
+		}()
 		s.client.
-			EXPECT().GetConfig(cmd.Context()).
+			EXPECT().GetConfig(context.TODO()).
 			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -2970,8 +2979,13 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIChannelDeletion
+		*mockConfig.ServiceSettings.EnableAPIChannelDeletion = true
+		defer func() {
+			mockConfig.ServiceSettings.EnableAPIChannelDeletion = previousVal
+		}()
 		s.client.
-			EXPECT().GetConfig(cmd.Context()).
+			EXPECT().GetConfig(context.TODO()).
 			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -3020,8 +3034,13 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 
+		previousVal := mockConfig.ServiceSettings.EnableAPIChannelDeletion
+		*mockConfig.ServiceSettings.EnableAPIChannelDeletion = true
+		defer func() {
+			mockConfig.ServiceSettings.EnableAPIChannelDeletion = previousVal
+		}()
 		s.client.
-			EXPECT().GetConfig(cmd.Context()).
+			EXPECT().GetConfig(context.TODO()).
 			Return(&mockConfig, &model.Response{}, nil).
 			Times(1)
 
