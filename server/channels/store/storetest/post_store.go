@@ -4500,7 +4500,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 
 		np3, err = ss.Post().Update(rctx, np3, p3)
 
-		deleted, _, err := ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		deleted, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
 			Now:                 0,
 			GlobalPolicyEndTime: 2000,
 			Limit:               1000,
@@ -4544,7 +4544,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		require.Equal(t, 1, len(rows))
 
 		// Clean up retention ids table
-		deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
+		_, err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
 		require.NoError(t, err)
 	})
 
