@@ -3398,7 +3398,7 @@ func TestWebHubMembership(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("WithChannelIteration", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 
 		th := SetupConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableWebHubChannelIteration = true
@@ -3409,7 +3409,7 @@ func TestWebHubMembership(t *testing.T) {
 	})
 
 	t.Run("WithoutChannelIteration", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
