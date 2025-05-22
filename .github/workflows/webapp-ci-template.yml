@@ -79,6 +79,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          disable_search: true
           files: ./webapp/channels/coverage/lcov.info
 
   build:
