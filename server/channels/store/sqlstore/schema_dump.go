@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -29,176 +30,180 @@ func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, e
 
 	// Get the database collation
 	var dbCollation sql.NullString
-	err := ss.GetMaster().DB.QueryRow(`
-		SELECT datcollate
-		FROM pg_database
-		WHERE datname = current_database()
-	`).Scan(&dbCollation)
+	collationQuery := sq.Select("datcollate").
+		From("pg_database").
+		Where(sq.Expr("datname = current_database()"))
+
+	sqlString, args, err := collationQuery.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get database collation"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "failed to build database collation query"))
 	} else {
-		if dbCollation.Valid && dbCollation.String != "" {
+		err = ss.GetMaster().DB.QueryRow(sqlString, args...).Scan(&dbCollation)
+		if err != nil {
+			rErr = multierror.Append(rErr, errors.Wrap(err, "failed to get database collation"))
+		} else if dbCollation.Valid && dbCollation.String != "" {
 			schemaInfo.DatabaseCollation = dbCollation.String
 		}
 	}
 
 	// Get table options
-	optionsRows, err := ss.GetMaster().DB.Query(`
-		SELECT 
-			c.relname as table_name,
-			unnest(c.reloptions) as option_value
-		FROM 
-			pg_class c
-		JOIN 
-			pg_namespace n ON n.oid = c.relnamespace
-		WHERE 
-			n.nspname = 'public'
-			AND c.relkind = 'r'
-			AND c.reloptions IS NOT NULL
-	`)
+	optionsQuery := sq.Select("c.relname as table_name", "unnest(c.reloptions) as option_value").
+		From("pg_class c").
+		Join("pg_namespace n ON n.oid = c.relnamespace").
+		Where(sq.And{
+			sq.Eq{"n.nspname": "public"},
+			sq.Eq{"c.relkind": "r"},
+			sq.NotEq{"c.reloptions": nil},
+		})
 
+	optionsSql, optionsArgs, err := optionsQuery.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to query table options"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "failed to build table options query"))
 	} else {
-		defer optionsRows.Close()
+		var optionsRows *sql.Rows
+		optionsRows, err = ss.GetMaster().DB.Query(optionsSql, optionsArgs...)
+		if err != nil {
+			rErr = multierror.Append(rErr, errors.Wrap(err, "failed to query table options"))
+		} else {
+			defer optionsRows.Close()
 
-		// Process table options
-		for optionsRows.Next() {
-			var tableName string
-			var optionValue string
+			// Process table options
+			for optionsRows.Next() {
+				var tableName string
+				var optionValue string
 
-			err := optionsRows.Scan(&tableName, &optionValue)
-			if err != nil {
-				rErr = multierror.Append(errors.Wrap(err, "failed to scan table options row"))
-				continue
+				err := optionsRows.Scan(&tableName, &optionValue)
+				if err != nil {
+					rErr = multierror.Append(rErr, errors.Wrap(err, "failed to scan table options row"))
+					continue
+				}
+
+				// Parse option in format key=value
+				parts := strings.SplitN(optionValue, "=", 2)
+				if len(parts) != 2 {
+					continue
+				}
+
+				key := parts[0]
+				value := parts[1]
+
+				// Initialize the options map for this table if needed
+				if _, ok := tableOptions[tableName]; !ok {
+					tableOptions[tableName] = make(map[string]string)
+				}
+
+				// Add option to the table
+				tableOptions[tableName][key] = value
 			}
-
-			// Parse option in format key=value
-			parts := strings.SplitN(optionValue, "=", 2)
-			if len(parts) != 2 {
-				continue
-			}
-
-			key := parts[0]
-			value := parts[1]
-
-			// Initialize the options map for this table if needed
-			if _, ok := tableOptions[tableName]; !ok {
-				tableOptions[tableName] = make(map[string]string)
-			}
-
-			// Add option to the table
-			tableOptions[tableName][key] = value
 		}
 	}
 
 	// Query for the table schema information
-	query := `
-SELECT 
-    t.table_name, 
-    c.column_name, 
-    c.data_type, 
-    c.character_maximum_length, 
-    c.is_nullable,
-    c.collation_name
-FROM 
-    information_schema.tables t
-LEFT JOIN 
-    information_schema.columns c ON t.table_name = c.table_name AND t.table_schema = c.table_schema
-WHERE 
-    t.table_schema = 'public'
-ORDER BY 
-    t.table_name, c.ordinal_position;
-`
+	schemaQuery := sq.Select(
+		"t.table_name",
+		"c.column_name",
+		"c.data_type",
+		"c.character_maximum_length",
+		"c.is_nullable",
+		"c.collation_name",
+	).
+		From("information_schema.tables t").
+		LeftJoin("information_schema.columns c ON t.table_name = c.table_name AND t.table_schema = c.table_schema").
+		Where(sq.Eq{"t.table_schema": "public"}).
+		OrderBy("t.table_name", "c.ordinal_position")
 
-	rows, err := ss.GetMaster().DB.Query(query)
+	schemaSql, schemaArgs, err := schemaQuery.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to query table options"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "failed to build schema information query"))
 	} else {
-		defer rows.Close()
+		rows, err := ss.GetMaster().DB.Query(schemaSql, schemaArgs...)
+		if err != nil {
+			rErr = multierror.Append(rErr, errors.Wrap(err, "failed to query schema information"))
+		} else {
+			defer rows.Close()
 
-		var currentTable string
-		var currentColumns []model.DatabaseColumn
+			var currentTable string
+			var currentColumns []model.DatabaseColumn
 
-		for rows.Next() {
-			var tableName, columnName, dataType, isNullable string
-			var characterMaxLength sql.NullInt64
-			var collationName sql.NullString
+			for rows.Next() {
+				var tableName, columnName, dataType, isNullable, collationName string
+				var characterMaxLength sql.NullInt64
 
-			err = rows.Scan(&tableName, &columnName, &dataType, &characterMaxLength, &isNullable, &collationName)
-			if err != nil {
-				rErr = multierror.Append(errors.Wrap(err, "failed to scan database schema row"))
-				continue
-			}
+				err = rows.Scan(&tableName, &columnName, &dataType, &characterMaxLength, &isNullable, &collationName)
+				if err != nil {
+					rErr = multierror.Append(rErr, errors.Wrap(err, "failed to scan database schema row"))
+					continue
+				}
 
-			// Track collation names for tables - we only need the first non-null one
-			if collationName.Valid && collationName.String != "" {
-				if _, ok := tableCollations[tableName]; !ok {
-					tableCollations[tableName] = collationName.String
+				// Track collation names for tables - we only need the first non-null one
+				if collationName != "" {
+					if _, ok := tableCollations[tableName]; !ok {
+						tableCollations[tableName] = collationName
+					}
+				}
+
+				// Handle table grouping
+				if currentTable != tableName {
+					// Save previous table
+					if currentTable != "" {
+						tableInfo := model.DatabaseTable{
+							Name:    currentTable,
+							Columns: currentColumns,
+						}
+
+						// Add table collation if it's ok
+						if collation, ok := tableCollations[currentTable]; ok {
+							tableInfo.Collation = collation
+						}
+
+						// Add table options if they exist
+						if options, ok := tableOptions[currentTable]; ok && len(options) > 0 {
+							tableInfo.Options = options
+						}
+
+						schemaInfo.Tables = append(schemaInfo.Tables, tableInfo)
+					}
+
+					// Start new table
+					currentTable = tableName
+					currentColumns = []model.DatabaseColumn{}
+				}
+
+				// Add column (but only once per column)
+				if columnName != "" {
+					maxLength := int64(0)
+					if characterMaxLength.Valid {
+						maxLength = characterMaxLength.Int64
+					}
+
+					currentColumns = append(currentColumns, model.DatabaseColumn{
+						Name:       columnName,
+						DataType:   dataType,
+						MaxLength:  maxLength,
+						IsNullable: isNullable == "YES",
+					})
 				}
 			}
 
-			// Handle table grouping
-			if currentTable != tableName {
-				// Save previous table
-				if currentTable != "" {
-					tableInfo := model.DatabaseTable{
-						Name:    currentTable,
-						Columns: currentColumns,
-					}
-
-					// Add table collation if it ok
-					if collation, ok := tableCollations[currentTable]; ok {
-						tableInfo.Collation = collation
-					}
-
-					// Add table options if they exist
-					if options, ok := tableOptions[currentTable]; ok && len(options) > 0 {
-						tableInfo.Options = options
-					}
-
-					schemaInfo.Tables = append(schemaInfo.Tables, tableInfo)
+			// Add the last table
+			if currentTable != "" {
+				tableInfo := model.DatabaseTable{
+					Name:    currentTable,
+					Columns: currentColumns,
 				}
 
-				// Start new table
-				currentTable = tableName
-				currentColumns = []model.DatabaseColumn{}
-			}
-
-			// Add column (but only once per column)
-			if columnName != "" {
-				maxLength := int64(0)
-				if characterMaxLength.Valid {
-					maxLength = characterMaxLength.Int64
+				// Add table collation if it's ok
+				if collation, ok := tableCollations[currentTable]; ok {
+					tableInfo.Collation = collation
 				}
 
-				currentColumns = append(currentColumns, model.DatabaseColumn{
-					Name:       columnName,
-					DataType:   dataType,
-					MaxLength:  maxLength,
-					IsNullable: isNullable == "YES",
-				})
-			}
-		}
+				// Add table options if they exist
+				if options, ok := tableOptions[currentTable]; ok && len(options) > 0 {
+					tableInfo.Options = options
+				}
 
-		// Add the last table
-		if currentTable != "" {
-			tableInfo := model.DatabaseTable{
-				Name:    currentTable,
-				Columns: currentColumns,
+				schemaInfo.Tables = append(schemaInfo.Tables, tableInfo)
 			}
-
-			// Add table collation if it ok
-			if collation, ok := tableCollations[currentTable]; ok {
-				tableInfo.Collation = collation
-			}
-
-			// Add table options if they exist
-			if options, ok := tableOptions[currentTable]; ok && len(options) > 0 {
-				tableInfo.Options = options
-			}
-
-			schemaInfo.Tables = append(schemaInfo.Tables, tableInfo)
 		}
 	}
 
