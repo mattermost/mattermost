@@ -275,3 +275,33 @@ func TestGetChannelModeratedPermissions(t *testing.T) {
 		})
 	}
 }
+
+func TestAddAncillaryPermissions(t *testing.T) {
+	tests := []struct {
+		Name        string
+		Permissions []string
+		Expected    []string
+	}{
+		{
+			"Add For ReadUserManagementUsers",
+			[]string{PermissionSysconsoleReadUserManagementUsers.Id},
+			[]string{PermissionSysconsoleReadUserManagementUsers.Id, PermissionReadOtherUsersTeams.Id},
+		},
+		{
+			"Add For ReadCompliance",
+			[]string{PermissionSysconsoleReadComplianceComplianceMonitoring.Id},
+			[]string{PermissionSysconsoleReadComplianceComplianceMonitoring.Id, PermissionReadAudits.Id},
+		},
+		{
+			"Add None",
+			[]string{PermissionSysconsoleReadComplianceCustomTermsOfService.Id},
+			[]string{PermissionSysconsoleReadComplianceCustomTermsOfService.Id},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			permissions := AddAncillaryPermissions(tc.Permissions)
+			assert.Equal(t, permissions, tc.Expected)
+		})
+	}
+}

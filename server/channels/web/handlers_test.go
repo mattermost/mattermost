@@ -27,7 +27,6 @@ func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func TestHandlerServeHTTPErrors(t *testing.T) {
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	web := New(th.Server)
 	handler := web.NewHandler(handlerForHTTPErrors)
@@ -67,7 +66,6 @@ func handlerForServeDefaultSecurityHeaders(c *Context, w http.ResponseWriter, r 
 
 func TestHandlerServeDefaultSecurityHeaders(t *testing.T) {
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	web := New(th.Server)
 	handler := web.NewHandler(handlerForServeDefaultSecurityHeaders)
@@ -105,7 +103,6 @@ func handlerForHTTPSecureTransport(c *Context, w http.ResponseWriter, r *http.Re
 
 func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -163,8 +160,7 @@ func handlerForCSRFToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandlerServeCSRFToken(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	session := &model.Session{
 		UserId:   th.BasicUser.Id,
@@ -175,9 +171,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	session.GenerateCSRF()
 	th.App.SetSessionExpireInHours(session, 24)
 	session, err := th.App.CreateSession(th.Context, session)
-	if err != nil {
-		t.Errorf("Expected nil, got %s", err)
-	}
+	require.Nil(t, err)
 
 	web := New(th.Server)
 
@@ -304,7 +298,6 @@ func handlerForCSPHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 func TestHandlerServeCSPHeader(t *testing.T) {
 	t.Run("non-static", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		web := New(th.Server)
 
@@ -326,7 +319,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 
 	t.Run("static, without subpath", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		web := New(th.Server)
 
@@ -343,12 +335,11 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 	})
 
-	t.Run("static, with subpath", func(t *testing.T) {
+	t.Run("static, with subpath and frame ancestors", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}
@@ -367,6 +358,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath"
+			*cfg.ServiceSettings.FrameAncestors = "teams.microsoft.com *.cloud.microsoft"
 		})
 
 		web := New(th.Server)
@@ -384,7 +376,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 
 		// TODO: It's hard to unit test this now that the CSP directive is effectively
 		// decided in Setup(). Circle back to this in master once the memory store is
@@ -399,14 +391,13 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response = httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 		// TODO: See above.
 		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
 	})
 
 	t.Run("dev mode", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		oldBuildNumber := model.BuildNumber
 		model.BuildNumber = "dev"
@@ -429,14 +420,13 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
 	})
 }
 
 func TestGenerateDevCSP(t *testing.T) {
 	t.Run("dev mode", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		oldBuildNumber := model.BuildNumber
 		model.BuildNumber = "dev"
@@ -456,7 +446,6 @@ func TestGenerateDevCSP(t *testing.T) {
 
 	t.Run("allowed dev flags", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		oldBuildNumber := model.BuildNumber
 		model.BuildNumber = "0"
@@ -481,7 +470,6 @@ func TestGenerateDevCSP(t *testing.T) {
 
 	t.Run("partial dev flags", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		oldBuildNumber := model.BuildNumber
 		model.BuildNumber = "0"
@@ -506,7 +494,6 @@ func TestGenerateDevCSP(t *testing.T) {
 
 	t.Run("unknown dev flags", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		oldBuildNumber := model.BuildNumber
 		model.BuildNumber = "0"
@@ -531,7 +518,6 @@ func TestGenerateDevCSP(t *testing.T) {
 
 	t.Run("empty dev flags", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.DeveloperFlags = ""
@@ -566,7 +552,6 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
 			th := Setup(t)
-			defer th.TearDown()
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.SiteURL = tc.SiteURL
@@ -603,7 +588,6 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 func TestCheckCSRFToken(t *testing.T) {
 	t.Run("should allow a POST request with a valid CSRF token header", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: true,
@@ -634,7 +618,6 @@ func TestCheckCSRFToken(t *testing.T) {
 
 	t.Run("should allow a POST request with an X-Requested-With header", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: true,
@@ -666,7 +649,6 @@ func TestCheckCSRFToken(t *testing.T) {
 
 	t.Run("should not allow a POST request with an X-Requested-With header with strict CSRF enforcement enabled", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}
@@ -717,7 +699,6 @@ func TestCheckCSRFToken(t *testing.T) {
 
 	t.Run("should not allow a POST request without either header", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: true,
@@ -747,7 +728,6 @@ func TestCheckCSRFToken(t *testing.T) {
 
 	t.Run("should not check GET requests", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: true,
@@ -777,7 +757,6 @@ func TestCheckCSRFToken(t *testing.T) {
 
 	t.Run("should not check a request passing the auth token in a header", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: true,
@@ -807,7 +786,6 @@ func TestCheckCSRFToken(t *testing.T) {
 
 	t.Run("should not check a request passing a nil session", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: false,
@@ -833,7 +811,6 @@ func TestCheckCSRFToken(t *testing.T) {
 
 	t.Run("should check requests for handlers that don't require a session but have one", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: false,
@@ -938,7 +915,6 @@ func noOpHandler(_ *Context, _ http.ResponseWriter, _ *http.Request) {
 func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 	t.Run("Should not cause 414 error if url is smaller than configured limit", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		web := New(th.Server)
 		handler := web.NewHandler(noOpHandler)
@@ -952,7 +928,6 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 
 	t.Run("Should cause 414 error if url is longer than configured limit", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}
@@ -984,7 +959,6 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 
 	t.Run("414 error should include query params in computing URL length", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}
@@ -1033,7 +1007,6 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 
 	t.Run("should allow payload smaller than set limit", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		web := New(th.Server)
 		handler := web.NewHandler(jsonReaderHandler)
@@ -1048,7 +1021,6 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 
 	t.Run("Should error out when request body is larger than set limit", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}

@@ -18,7 +18,7 @@ import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {AboutLinks, CloudLinks, ModalIdentifiers} from 'utils/constants';
-import {isLicenseExpired, isLicenseExpiring, isTrialLicense, isEnterpriseOrE20License, licenseSKUWithFirstLetterCapitalized} from 'utils/license_utils';
+import {isLicenseExpired, isLicenseExpiring, isTrialLicense, licenseSKUWithFirstLetterCapitalized, isEnterpriseLicense} from 'utils/license_utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -34,6 +34,7 @@ import TeamEditionLeftPanel from './team_edition/team_edition_left_panel';
 import TeamEditionRightPanel from './team_edition/team_edition_right_panel';
 import TrialBanner from './trial_banner/trial_banner';
 import TrialLicenseCard from './trial_license_card/trial_license_card';
+import UserSeatAlertBanner from './user_seat_alert_banner';
 
 import './license_settings.scss';
 
@@ -354,6 +355,11 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <div className='admin-console__banner_section'>
+                            <UserSeatAlertBanner
+                                license={license}
+                                totalUsers={this.props.totalUsers}
+                                location='license_settings'
+                            />
                             {!this.state.clickNormalUpgradeBtn && license.IsLicensed !== 'true' &&
                                 this.props.prevTrialLicense?.IsLicensed !== 'true' &&
                                 <TrialBanner
@@ -384,7 +390,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                                 <div className='panel-card'>
                                     {rightPanel}
                                 </div>
-                                {!isEnterpriseOrE20License(license) && this.comparePlans}
+                                {!isEnterpriseLicense(license) && this.comparePlans}
                             </div>
                         </div>
                     </div>

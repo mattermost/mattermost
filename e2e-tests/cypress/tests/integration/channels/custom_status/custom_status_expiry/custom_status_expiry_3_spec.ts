@@ -39,15 +39,15 @@ describe('MM-T4065 Setting manual status clear time less than 7 days away', () =
 
     it('MM-T4065_1 should open status dropdown', () => {
         // # Click on the sidebar header to open status dropdown
-        cy.get('.MenuWrapper .status-wrapper').click();
+        cy.uiGetSetStatusButton().click();
 
         // * Check if the status dropdown opens
-        cy.get('#statusDropdownMenu').should('exist');
+        cy.get('#userAccountMenu').should('exist');
     });
 
     it('MM-T4065_2 Custom status modal opens with 5 default statuses listed', () => {
         // # Open custom status modal
-        cy.get('#statusDropdownMenu li#status-menu-custom-status').click();
+        cy.get('.userAccountMenu_setCustomStatusMenuItem').click();
         cy.get('#custom_status_modal').should('exist');
 
         // * Check if all the default suggestions exist

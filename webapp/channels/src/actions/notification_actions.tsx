@@ -17,7 +17,6 @@ import {
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {ensureString, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
@@ -36,7 +35,7 @@ import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
 import {isDesktopApp, isMobileApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync, GlobalState} from 'types/store';
 
 import {runDesktopNotificationHooks} from './hooks';
 import type {NewPostMessageProps} from './new_post';
@@ -103,7 +102,7 @@ export function getDesktopNotificationSound(channelMember: ChannelMembership | u
     return DesktopNotificationSounds.BING;
 }
 
-export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProps): ActionFuncAsync<NotificationResult, GlobalState> {
+export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProps): ActionFuncAsync<NotificationResult> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -175,7 +174,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
 }
 
 const getNotificationTitle = (channel: Pick<Channel, 'type' | 'display_name'>, msgProps: NewPostMessageProps, isCrtReply: boolean) => {
-    let title = Utils.localizeMessage({id: 'channel_loader.posted', defaultMessage: 'Posted'});
+    let title = Utils.localizeMessage({id: 'channel_loader.title', defaultMessage: 'Posted'});
     if (channel.type === Constants.DM_CHANNEL) {
         title = Utils.localizeMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
     } else {
@@ -242,7 +241,7 @@ const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMe
         } else if (image) {
             body += Utils.localizeMessage({id: 'channel_loader.postedImage', defaultMessage: ' posted an image'});
         } else {
-            body += Utils.localizeMessage({id: 'channel_loader.something', defaultMessage: ' did something new'});
+            body += Utils.localizeMessage({id: 'channel_loader.posted', defaultMessage: ' posted a message'});
         }
     } else {
         body += `: ${strippedMarkdownNotifyText}`;
@@ -411,7 +410,7 @@ function shouldSkipNotification(
     return undefined;
 }
 
-export function notifyMe(title: string, body: string, channelId: string, teamId: string, silent: boolean, soundName: string, url: string): ActionFuncAsync<NotificationResult, GlobalState> {
+export function notifyMe(title: string, body: string, channelId: string, teamId: string, silent: boolean, soundName: string, url: string): ActionFuncAsync<NotificationResult> {
     return async (dispatch) => {
         // handle notifications in desktop app
         if (isDesktopApp()) {

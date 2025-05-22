@@ -48,7 +48,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
+		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user "+user.Id+": You do not have the appropriate permissions.")
 
 		ruser, err := s.th.App.GetUser(user.Id)
 		s.Require().Nil(err)
@@ -98,7 +98,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
+		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user "+user.Id+": You do not have the appropriate permissions.")
 
 		ruser, err := s.th.App.GetUser(user.Id)
 		s.Require().Nil(err)
@@ -125,8 +125,30 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		err := searchUserCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
-		user := printer.GetLines()[0].(*model.User)
+		user := printer.GetLines()[0].(userOut)
 		s.Equal(s.th.BasicUser.Username, user.Username)
+		s.False(user.Deactivated)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForAllClients("Search for a disabled user", func(c client.Client) {
+		printer.Clean()
+
+		// Create a disabled user
+		disabledUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
+			Email:    s.th.GenerateTestEmail(),
+			Username: model.NewUsername(),
+			Password: model.NewId(),
+			DeleteAt: model.GetMillis(), // Set DeleteAt to disable the user
+		})
+		s.Require().Nil(appErr)
+
+		err := searchUserCmdF(c, &cobra.Command{}, []string{disabledUser.Email})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		user := printer.GetLines()[0].(userOut)
+		s.Equal(disabledUser.Username, user.Username)
+		s.True(user.Deactivated) // Verify user shows as deactivated
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
@@ -1426,6 +1448,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for single user", func() {
+		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
@@ -1455,6 +1478,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for multiple users as admin", func() {
+		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
@@ -1602,5 +1626,38 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 
 		err := preferencesDeleteCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().Error(err)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestSendPasswordResetEmailCmd() {
+	s.SetupTestHelper().InitBasic()
+	s.RunForAllClients("all users can send password reset email", func(c client.Client) {
+		printer.Clean()
+		emailArg1 := "demo1@example.com"
+		emailArg2 := "demo2@example.com"
+
+		err := sendPasswordResetEmailCmdF(c, &cobra.Command{}, []string{emailArg1, emailArg2})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForAllClients("send valid and invalid email", func(c client.Client) {
+		printer.Clean()
+		emailArg1 := "demo@example.com"
+		emailArg2 := "invalid.Email@example.com"
+
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("invalid email '%s'", emailArg2))
+
+		err := sendPasswordResetEmailCmdF(c, &cobra.Command{}, []string{emailArg1, emailArg2})
+		s.Require().EqualError(err, expected.Error())
+		s.Require().Len(printer.GetErrorLines(), 1)
+	})
+
+	s.RunForAllClients("no arguments passed", func(c client.Client) {
+		printer.Clean()
+		err := sendPasswordResetEmailCmdF(c, &cobra.Command{}, []string{})
+		s.Require().EqualError(err, "expected at least one argument. See help text for details")
 	})
 }

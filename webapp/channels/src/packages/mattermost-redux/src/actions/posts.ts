@@ -35,9 +35,10 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
-import {logError} from './errors';
+import {logError, LogErrorBarMode} from './errors';
 
 // receivedPost should be dispatched after a single post from the server. This typically happens when an existing post
 // is updated.
@@ -164,7 +165,6 @@ export function getPost(postId: string): ActionFuncAsync<Post> {
         }
 
         dispatch(receivedPost(post, crtEnabled));
-        dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
         return {data: post};
     };
@@ -180,7 +180,7 @@ export function createPost(
     post: Post,
     files: any[] = [],
     afterSubmit?: (response: any) => void,
-): ActionFuncAsync<CreatePostReturnType, GlobalState> {
+): ActionFuncAsync<CreatePostReturnType> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;
@@ -512,7 +512,7 @@ export type SubmitReactionReturnType = {
     removedReaction?: boolean;
 }
 
-export function addReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType, GlobalState> {
+export function addReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType> {
     return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
@@ -534,7 +534,7 @@ export function addReaction(postId: string, emojiName: string): ActionFuncAsync<
     };
 }
 
-export function removeReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType, GlobalState> {
+export function removeReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType> {
     return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
@@ -614,11 +614,20 @@ async function getPaginatedPostThread(rootId: string, options: FetchPaginatedThr
     if (result.has_next) {
         const [nextPostId] = list.order!.slice(-1);
         const nextPostPointer = list.posts[nextPostId];
-        const newOptions = {
-            ...options,
-            fromCreateAt: nextPostPointer.create_at,
-            fromPost: nextPostId,
-        };
+        let newOptions;
+        if (options.updatesOnly) {
+            newOptions = {
+                ...options,
+                fromUpdateAt: nextPostPointer.update_at,
+                fromPost: nextPostId,
+            };
+        } else {
+            newOptions = {
+                ...options,
+                fromCreateAt: nextPostPointer.create_at,
+                fromPost: nextPostId,
+            };
+        }
 
         return getPaginatedPostThread(rootId, newOptions, list);
     }
@@ -626,15 +635,23 @@ async function getPaginatedPostThread(rootId: string, options: FetchPaginatedThr
     return list;
 }
 
-export function getPostThread(rootId: string, fetchThreads = true): ActionFuncAsync<PostList> {
+export function getPostThread(rootId: string, fetchThreads = true, lastUpdateAt = 0): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         const state = getState();
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
         let posts;
+        const options: FetchPaginatedThreadOptions = {
+            fetchThreads,
+            collapsedThreads: collapsedThreadsEnabled,
+        };
+        if (lastUpdateAt !== 0) {
+            options.updatesOnly = true;
+            options.fromUpdateAt = lastUpdateAt;
+        }
         try {
-            posts = await getPaginatedPostThread(rootId, {fetchThreads, collapsedThreads: collapsedThreadsEnabled});
+            posts = await getPaginatedPostThread(rootId, options);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -1035,6 +1052,25 @@ export function getPostsByIds(ids: string[]): ActionFuncAsync {
     };
 }
 
+export function getPostsByIdsBatched(postIds: string[]): ActionFuncAsync<true> {
+    const maxBatchSize = 100;
+    const wait = 100;
+
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.postsByIdsLoader) {
+            loaders.postsByIdsLoader = new DelayedDataLoader<Post['id']>({
+                fetchBatch: (postIds) => dispatch(getPostsByIds(postIds)),
+                maxBatchSize,
+                wait,
+            });
+        }
+
+        loaders.postsByIdsLoader.queue(postIds);
+
+        return {data: true};
+    };
+}
+
 export function getPostEditHistory(postId: string) {
     return bindClientFunc({
         clientFunc: Client4.getPostEditHistory,
@@ -1315,5 +1351,25 @@ export function unacknowledgePost(postId: string): ActionFuncAsync {
         });
 
         return {data};
+    };
+}
+
+export function restorePostVersion(postId: string, restoreVersionId: string, connectionId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.restorePostVersion(postId, restoreVersionId, connectionId);
+        } catch (error) {
+            // Send to error bar if it's an edit post error about time limit.
+            if (error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {
+                dispatch(logError({type: 'announcement', message: error.message}, {errorBarMode: LogErrorBarMode.Always}));
+            } else {
+                dispatch(logError(error));
+            }
+
+            forceLogoutIfNecessary(error, dispatch, getState);
+            return {error};
+        }
+
+        return {data: true};
     };
 }

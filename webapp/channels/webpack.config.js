@@ -13,15 +13,20 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const packageJson = require('./package.json');
 
 const NPM_TARGET = process.env.npm_lifecycle_event;
 
+// list of known code editors that set an environment variable.
+const knownCodeEditors = ['VSCODE_CWD', 'INSIDE_EMACS'];
+const isInsideCodeEditor = knownCodeEditors.some((editor) => process.env[editor]);
+
 const targetIsRun = NPM_TARGET?.startsWith('run');
 const targetIsStats = NPM_TARGET === 'stats';
 const targetIsDevServer = NPM_TARGET?.startsWith('dev-server');
-const targetIsEslint = NPM_TARGET?.startsWith('check') || NPM_TARGET === 'fix' || process.env.VSCODE_CWD;
+const targetIsEslint = NPM_TARGET?.startsWith('check') || NPM_TARGET === 'fix' || isInsideCodeEditor;
 
 const DEV = targetIsRun || targetIsStats || targetIsDevServer;
 
@@ -263,6 +268,40 @@ var config = {
                 sizes: '96x96',
             }],
         }),
+        new MonacoWebpackPlugin({
+            languages: [],
+
+            // don't include features we disable. these generally correspond to the options
+            // passed to editor initialization in note-content-editor.tsx
+            // @see https://github.com/microsoft/monaco-editor/blob/main/webpack-plugin/README.md#options
+            features: [
+                '!bracketMatching',
+                '!codeAction',
+                '!codelens',
+                '!colorPicker',
+                '!comment',
+                '!diffEditor',
+                '!diffEditorBreadcrumbs',
+                '!folding',
+                '!gotoError',
+                '!gotoLine',
+                '!gotoSymbol',
+                '!gotoZoom',
+                '!inspectTokens',
+                '!multicursor',
+                '!parameterHints',
+                '!quickCommand',
+                '!quickHelp',
+                '!quickOutline',
+                '!referenceSearch',
+                '!rename',
+                '!snippet',
+                '!stickyScroll',
+                '!suggest',
+                '!toggleHighContrast',
+                '!unicodeHighlighter',
+            ],
+        }),
     ],
 };
 
@@ -270,7 +309,7 @@ function generateCSP() {
     let csp = 'script-src \'self\' cdn.rudderlabs.com/ js.stripe.com/v3';
 
     if (DEV) {
-        // react-hot-loader and development source maps require eval
+        // Development source maps require eval
         csp += ' \'unsafe-eval\'';
     }
 
@@ -424,13 +463,6 @@ if (targetIsDevServer) {
         optimization: {
             ...config.optimization,
             splitChunks: false,
-        },
-        resolve: {
-            ...config.resolve,
-            alias: {
-                ...config.resolve.alias,
-                'react-dom': '@hot-loader/react-dom',
-            },
         },
     };
 }

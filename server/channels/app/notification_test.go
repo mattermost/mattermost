@@ -175,7 +175,7 @@ func TestSendNotifications(t *testing.T) {
 				UserId:    user.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   "a message",
-				Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
+				Props:     model.StringInterface{model.PostPropsFromWebhook: "true", model.PostPropsOverrideUsername: "a bot"},
 			}
 
 			rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
@@ -1428,7 +1428,7 @@ func TestGetExplicitMentions(t *testing.T) {
 			post := &model.Post{
 				Message: tc.Message,
 				Props: model.StringInterface{
-					"attachments": tc.Attachments,
+					model.PostPropsAttachments: tc.Attachments,
 				},
 			}
 
@@ -1624,7 +1624,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"mention_keys": "User,@User,MENTION",
 		},
 	}
-	mentionableUser1ID := MentionableUserID(user1.Id)
+	mentionableUser1ID := mentionableUserID(user1.Id)
 
 	channelMemberNotifyPropsMap1Off := map[string]model.StringMap{
 		user1.Id: {
@@ -1655,7 +1655,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"first_name": "true",
 		},
 	}
-	mentionableUser2ID := MentionableUserID(user2.Id)
+	mentionableUser2ID := mentionableUserID(user2.Id)
 
 	channelMemberNotifyPropsMap2Off := map[string]model.StringMap{
 		user2.Id: {
@@ -1680,7 +1680,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"channel": "true",
 		},
 	}
-	mentionableUser3ID := MentionableUserID(user3.Id)
+	mentionableUser3ID := mentionableUserID(user3.Id)
 
 	// Channel-wide mentions are not ignored on channel level
 	channelMemberNotifyPropsMap3Off := map[string]model.StringMap{
@@ -1746,7 +1746,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"channel":      "true",
 		},
 	}
-	mentionableUser4ID := MentionableUserID(user4.Id)
+	mentionableUser4ID := mentionableUserID(user4.Id)
 
 	// Channel-wide mentions are not ignored on channel level
 	channelMemberNotifyPropsMap4Off := map[string]model.StringMap{
@@ -1933,7 +1933,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	assert.Equal(t, 1, len(keywords), "should've returned one mention keyword")
 	ids, ok = keywords["@user"]
 	assert.True(t, ok)
-	assert.Equal(t, MentionableUserID(userNoMentionKeys.Id), ids[0], "should've returned mention key of @user")
+	assert.Equal(t, mentionableUserID(userNoMentionKeys.Id), ids[0], "should've returned mention key of @user")
 }
 
 func TestGetMentionKeywords_Groups(t *testing.T) {
@@ -1942,8 +1942,8 @@ func TestGetMentionKeywords_Groups(t *testing.T) {
 
 	userID1 := model.NewId()
 	userID2 := model.NewId()
-	mentionableUserID1 := MentionableUserID(userID1)
-	mentionableUserID2 := MentionableUserID(userID2)
+	mentionableUserID1 := mentionableUserID(userID1)
+	mentionableUserID2 := mentionableUserID(userID2)
 
 	for name, tc := range map[string]struct {
 		Profiles                 map[string]*model.User
@@ -2208,7 +2208,7 @@ func TestGetMentionsEnabledFields(t *testing.T) {
 	post := &model.Post{
 		Message: "This is the message",
 		Props: model.StringInterface{
-			"attachments": attachments,
+			model.PostPropsAttachments: attachments,
 		},
 	}
 	expectedFields := []string{
@@ -2316,22 +2316,22 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 
 	overriddenPost := &model.Post{
 		Props: model.StringInterface{
-			"override_username": "Overridden",
-			"from_webhook":      "true",
+			model.PostPropsOverrideUsername: "Overridden",
+			model.PostPropsFromWebhook:      "true",
 		},
 	}
 
 	overriddenPost2 := &model.Post{
 		Props: model.StringInterface{
-			"override_username": nil,
-			"from_webhook":      "true",
+			model.PostPropsOverrideUsername: nil,
+			model.PostPropsFromWebhook:      "true",
 		},
 	}
 
 	overriddenPost3 := &model.Post{
 		Props: model.StringInterface{
-			"override_username": 10,
-			"from_webhook":      "true",
+			model.PostPropsOverrideUsername: 10,
+			model.PostPropsFromWebhook:      "true",
 		},
 	}
 
@@ -2364,7 +2364,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		"overridden username": {
 			post:           overriddenPost,
 			allowOverrides: true,
-			expected:       overriddenPost.GetProp("override_username").(string),
+			expected:       overriddenPost.GetProp(model.PostPropsOverrideUsername).(string),
 		},
 		"overridden username, direct channel": {
 			channel:        &model.Channel{Type: model.ChannelTypeDirect},
@@ -2887,7 +2887,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			UserId:    user.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "a message",
-			Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
+			Props:     model.StringInterface{model.PostPropsFromWebhook: "true", model.PostPropsOverrideUsername: "a bot"},
 		}
 
 		rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
@@ -2913,6 +2913,48 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		membership, err := th.App.GetThreadMembershipForUser(user.Id, rootPost.Id)
 		assert.Error(t, err)
 		assert.Nil(t, membership)
+	})
+
+	t.Run("should not auto follow when the original poster is no longer a channel member", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		u1 := th.BasicUser
+		u2 := th.BasicUser2
+		c1 := th.BasicChannel
+		th.AddUserToChannel(u2, c1)
+
+		// Enable CRT
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		})
+
+		rootPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "root post by user1",
+			UserId:    u1.Id,
+		}
+		rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Remove user1 from the channel
+		appErr = th.App.RemoveUserFromChannel(th.Context, u1.Id, u1.Id, c1)
+		require.Nil(t, appErr)
+
+		replyPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "reply post by user2",
+			UserId:    u2.Id,
+			RootId:    rpost.Id,
+		}
+		_, appErr = th.App.CreatePost(th.Context, replyPost, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Ensure user1 is not auto-following the thread
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(u1.Id, rpost.Id)
+		require.NotNil(t, appErr)
+		require.Nil(t, threadMembership)
 	})
 }
 
@@ -3094,13 +3136,13 @@ func TestRemoveNotifications(t *testing.T) {
 
 func TestShouldAckWebsocketNotification(t *testing.T) {
 	t.Run("should return true if channel notify level is ALL", func(t *testing.T) {
-		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyNone, model.ChannelNotifyAll))
+		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyNone, model.ChannelNotifyAll))
 	})
 	t.Run("should return true if user notify level is ALL and the channel is unchanged", func(t *testing.T) {
-		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyAll, model.ChannelNotifyDefault))
+		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyAll, model.ChannelNotifyDefault))
 	})
 	t.Run("should return true if its a group channel, and the level is mention", func(t *testing.T) {
-		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyMention, model.ChannelNotifyDefault))
-		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyNone, model.ChannelNotifyMention))
+		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyMention, model.ChannelNotifyDefault))
+		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyNone, model.ChannelNotifyMention))
 	})
 }

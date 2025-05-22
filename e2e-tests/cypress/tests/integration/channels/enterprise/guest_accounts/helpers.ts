@@ -16,7 +16,7 @@ export function changeGuestFeatureSettings(featureFlag = true, emailInvitation =
 
 export function invitePeople(typeText: string, resultsCount: number, verifyText: string, channelName = 'Town Square', clickInvite = true) {
     // # Open team menu and click 'Invite People'
-    cy.uiOpenTeamMenu('Invite People');
+    cy.uiOpenTeamMenu('Invite people');
 
     // # Click on the next icon to invite guest
     cy.findByTestId('inviteGuestLink').click();

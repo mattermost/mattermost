@@ -228,7 +228,7 @@ func TestWebSocketEventDeepCopy(t *testing.T) {
 
 	evCopy := ev.DeepCopy()
 	require.Equal(t, ev, evCopy)
-	require.NotSame(t, ev.data, evCopy.data)
+	require.NotSame(t, &ev.data, &evCopy.data)
 	require.NotSame(t, ev.broadcast, evCopy.broadcast)
 	require.NotSame(t, ev.precomputedJSON, evCopy.precomputedJSON)
 

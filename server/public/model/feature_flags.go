@@ -56,7 +56,9 @@ type FeatureFlags struct {
 
 	ExperimentalAuditSettingsSystemConsoleUI bool
 
-	ExperimentalCrossTeamSearch bool
+	CustomProfileAttributes bool
+
+	AttributeBasedAccessControl bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -80,7 +82,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
-	f.ExperimentalCrossTeamSearch = false
+	f.CustomProfileAttributes = false
+	f.AttributeBasedAccessControl = false
 }
 
 // ToMap returns the feature flags as a map[string]string

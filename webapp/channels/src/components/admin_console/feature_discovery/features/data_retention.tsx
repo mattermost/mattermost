@@ -24,7 +24,11 @@ const DataRetentionFeatureDiscovery: React.FC = () => {
                 defaultMessage: 'Hold on to your data only as long as you need to. Create data retention jobs for select channels and teams to automatically delete disposable data.',
             })}
             learnMoreURL='https://docs.mattermost.com/administration/data-retention.html'
-            featureDiscoveryImage={<DataRetentionSVG/>}
+            featureDiscoveryImage={
+                <DataRetentionSVG
+                    width={213}
+                    height={156}
+                />}
         />
     );
 };

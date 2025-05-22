@@ -37,6 +37,7 @@ const (
 )
 
 func NewIndexerWorker(name string,
+	backend string,
 	jobServer *jobs.JobServer,
 	logger mlog.LoggerIFace,
 	fileBackend filestore.FileBackend,
@@ -47,6 +48,7 @@ func NewIndexerWorker(name string,
 ) *IndexerWorker {
 	return &IndexerWorker{
 		name:                   name,
+		backend:                backend,
 		stoppedCh:              make(chan bool, 1),
 		jobs:                   make(chan model.Job),
 		jobServer:              jobServer,
@@ -61,7 +63,8 @@ func NewIndexerWorker(name string,
 }
 
 type IndexerWorker struct {
-	name string
+	name    string
+	backend string
 	// stateMut protects stopCh and stopped and helps enforce
 	// ordering in case subsequent Run or Stop calls are made.
 	stateMut    sync.Mutex
@@ -216,12 +219,12 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 	logger.Debug("Worker: Received a new candidate job.")
 	defer worker.jobServer.HandleJobPanic(logger, job)
 
-	claimed, appErr := worker.jobServer.ClaimJob(job)
+	var appErr *model.AppError
+	job, appErr = worker.jobServer.ClaimJob(job)
 	if appErr != nil {
 		logger.Warn("Worker: Error occurred while trying to claim job", mlog.Err(appErr))
 		return
-	}
-	if !claimed {
+	} else if job == nil {
 		return
 	}
 
@@ -234,7 +237,7 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 	}
 
 	worker.initEntitiesToIndex(job)
-	progress, err := initProgress(logger, worker.jobServer, job)
+	progress, err := initProgress(logger, worker.jobServer, job, worker.backend)
 	if err != nil {
 		return
 	}
@@ -405,18 +408,18 @@ func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, prog
 
 			data, err := json.Marshal(searchPost)
 			if err != nil {
-				worker.logger.Warn("Failed to marshal JSON, skipping this post.", mlog.String("post_id", post.Id))
+				worker.logger.Warn("Failed to marshal JSON, skipping this post.", mlog.String("post_id", post.Id), mlog.Err(err))
 				continue
 			}
 
 			err = worker.addItemToBulkProcessor(indexName, indexOp, searchPost.Id, bytes.NewReader(data))
 			if err != nil {
-				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
+				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
 			}
 		} else {
 			err := worker.addItemToBulkProcessor(indexName, deleteOp, post.Id, nil)
 			if err != nil {
-				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
+				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
 			}
 		}
 	}
@@ -481,18 +484,18 @@ func (worker *IndexerWorker) BulkIndexFiles(files []*model.FileForIndexing, prog
 
 			data, err := json.Marshal(searchFile)
 			if err != nil {
-				worker.logger.Warn("Failed to marshal JSON")
+				worker.logger.Warn("Failed to marshal JSON", mlog.Err(err))
 				continue
 			}
 
 			err = worker.addItemToBulkProcessor(indexName, indexOp, searchFile.Id, bytes.NewReader(data))
 			if err != nil {
-				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
+				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
 			}
 		} else {
 			err := worker.addItemToBulkProcessor(indexName, deleteOp, file.Id, nil)
 			if err != nil {
-				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
+				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
 			}
 		}
 	}
@@ -553,42 +556,35 @@ func BulkIndexChannels(config *model.Config,
 	logger mlog.LoggerIFace,
 	addItemToBulkProcessorFn func(indexName string, indexOp string, docID string, body io.ReadSeeker) error,
 	channels []*model.Channel,
-	progress IndexingProgress) (*model.Channel, *model.AppError) {
+	_ IndexingProgress) (*model.Channel, *model.AppError) {
 	for _, channel := range channels {
 		indexName := *config.ElasticsearchSettings.IndexPrefix + IndexBaseChannels
 
-		if channel.DeleteAt == 0 {
-			var userIDs []string
-			var err error
-			if channel.Type == model.ChannelTypePrivate {
-				userIDs, err = store.Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
-				if err != nil {
-					return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllChannelMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
-				}
-			}
-
-			teamMemberIDs, err := store.Channel().GetTeamMembersForChannel(channel.Id)
+		var userIDs []string
+		var err error
+		if channel.Type == model.ChannelTypePrivate {
+			userIDs, err = store.Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
 			if err != nil {
-				return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllTeamMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllChannelMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+		}
 
-			searchChannel := ESChannelFromChannel(channel, userIDs, teamMemberIDs)
+		teamMemberIDs, err := store.Channel().GetTeamMembersForChannel(channel.Id)
+		if err != nil {
+			return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllTeamMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 
-			data, err := json.Marshal(searchChannel)
-			if err != nil {
-				logger.Warn("Failed to marshal JSON")
-				continue
-			}
+		searchChannel := ESChannelFromChannel(channel, userIDs, teamMemberIDs)
 
-			err = addItemToBulkProcessorFn(indexName, indexOp, searchChannel.Id, bytes.NewReader(data))
-			if err != nil {
-				logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
-			}
-		} else {
-			err := addItemToBulkProcessorFn(indexName, deleteOp, channel.Id, nil)
-			if err != nil {
-				logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
-			}
+		data, err := json.Marshal(searchChannel)
+		if err != nil {
+			logger.Warn("Failed to marshal JSON", mlog.Err(err))
+			continue
+		}
+
+		err = addItemToBulkProcessorFn(indexName, indexOp, searchChannel.Id, bytes.NewReader(data))
+		if err != nil {
+			logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
 		}
 	}
 
@@ -650,20 +646,20 @@ func (worker *IndexerWorker) BulkIndexUsers(users []*model.UserForIndexing, prog
 
 		data, err := json.Marshal(searchUser)
 		if err != nil {
-			worker.logger.Warn("Failed to marshal JSON")
+			worker.logger.Warn("Failed to marshal JSON", mlog.Err(err))
 			continue
 		}
 
 		err = worker.addItemToBulkProcessor(indexName, indexOp, searchUser.Id, bytes.NewReader(data))
 		if err != nil {
-			worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
+			worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
 		}
 	}
 
 	return users[len(users)-1], nil
 }
 
-func initProgress(logger mlog.LoggerIFace, jobServer *jobs.JobServer, job *model.Job) (IndexingProgress, error) {
+func initProgress(logger mlog.LoggerIFace, jobServer *jobs.JobServer, job *model.Job, backend string) (IndexingProgress, error) {
 	progress := IndexingProgress{
 		Now:          time.Now(),
 		DonePosts:    false,
@@ -674,12 +670,12 @@ func initProgress(logger mlog.LoggerIFace, jobServer *jobs.JobServer, job *model
 		EndAtTime:    model.GetMillis(),
 	}
 
-	progress, err := parseStartTime(logger, jobServer, progress, job)
+	progress, err := parseStartTime(logger, jobServer, progress, job, backend)
 	if err != nil {
 		return progress, err
 	}
 
-	progress, err = parseEndTime(logger, jobServer, progress, job)
+	progress, err = parseEndTime(logger, jobServer, progress, job, backend)
 	if err != nil {
 		return progress, err
 	}
@@ -691,13 +687,13 @@ func initProgress(logger mlog.LoggerIFace, jobServer *jobs.JobServer, job *model
 	return progress, nil
 }
 
-func parseStartTime(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress IndexingProgress, job *model.Job) (IndexingProgress, error) {
+func parseStartTime(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress IndexingProgress, job *model.Job, backend string) (IndexingProgress, error) {
 	// Extract the start time, if it is set.
 	if startString, ok := job.Data["start_time"]; ok {
 		startInt, err := strconv.ParseInt(startString, 10, 64)
 		if err != nil {
 			logger.Error("Worker: Failed to parse start_time for job", mlog.String("start_time", startString), mlog.Err(err))
-			appError := model.NewAppError("IndexerWorker", "ent.elasticsearch.indexer.do_job.parse_start_time.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			appError := model.NewAppError("IndexerWorker", "ent.elasticsearch.indexer.do_job.parse_start_time.error", map[string]any{"Backend": backend}, "", http.StatusInternalServerError).Wrap(err)
 			if err := jobServer.SetJobError(job, appError); err != nil {
 				logger.Error("Worker: Failed to set job error", mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}
@@ -722,12 +718,12 @@ func parseStartTime(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress
 	return progress, nil
 }
 
-func parseEndTime(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress IndexingProgress, job *model.Job) (IndexingProgress, error) {
+func parseEndTime(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress IndexingProgress, job *model.Job, backend string) (IndexingProgress, error) {
 	if endString, ok := job.Data["end_time"]; ok {
 		endInt, err := strconv.ParseInt(endString, 10, 64)
 		if err != nil {
 			logger.Error("Worker: Failed to parse end_time for job", mlog.String("end_time", endString), mlog.Err(err))
-			appError := model.NewAppError("IndexerWorker", "ent.elasticsearch.indexer.do_job.parse_end_time.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			appError := model.NewAppError("IndexerWorker", "ent.elasticsearch.indexer.do_job.parse_end_time.error", map[string]any{"Backend": backend}, "", http.StatusInternalServerError).Wrap(err)
 			if err := jobServer.SetJobError(job, appError); err != nil {
 				logger.Error("Worker: Failed to set job errorv", mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}

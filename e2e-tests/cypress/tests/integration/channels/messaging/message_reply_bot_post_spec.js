@@ -144,7 +144,7 @@ describe('Messaging', () => {
                     cy.uiCloseRHS();
 
                     // * Verify that the reply is in the channel view with matching text
-                    cy.get(`#post_${replyId}`).within(() => {
+                    cy.get(`#post_${replyId}`).scrollIntoView().within(() => {
                         cy.findByTestId('post-link').should('be.visible').and('have.text', 'Commented on ' + bot.username + 'BOT\'s message: Hello message from ' + bot.username);
                         cy.get(`#postMessageText_${replyId}`).should('be.visible').and('have.text', replyMessage);
                     });

@@ -193,13 +193,12 @@ const SidebarCategorySortingMenu = ({
             <Menu.Container
                 menuButton={{
                     id: `SidebarCategorySortingMenu-Button-${category.id}`,
-                    'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}),
+                    'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}, {name: category.display_name}),
                     class: 'SidebarMenu_menuButton sortingMenu',
                     children: <DotsVerticalIcon size={16}/>,
                 }}
                 menuButtonTooltip={{
-                    id: `SidebarCategorySortingMenu-ButtonTooltip-${category.id}`,
-                    text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}),
+                    text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}, {name: category.display_name}),
                     class: 'hidden-xs',
                 }}
                 menu={{

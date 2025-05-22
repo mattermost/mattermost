@@ -76,7 +76,7 @@ describe('getServerLimits', () => {
     test('should return data if user is admin', async () => {
         const userLimits: ServerLimits = {
             activeUserCount: 600,
-            maxUsersLimit: 5_000,
+            maxUsersLimit: 2_500,
 
         };
 
