@@ -57,7 +57,7 @@ func TestSaveEnterpriseAdvancedLicense(t *testing.T) {
 		ExpiresAt:    model.GetMillis() + 100000,
 	}
 
-	mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(&license, nil).Once()
+	mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(license, nil).Once()
 	licenseBytes, err := json.Marshal(license)
 	require.NoError(t, err)
 
