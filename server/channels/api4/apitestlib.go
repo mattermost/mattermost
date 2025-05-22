@@ -70,8 +70,6 @@ type TestHelper struct {
 
 	LogBuffer  *mlog.Buffer
 	TestLogger *mlog.Logger
-
-	workspace string
 }
 
 var mainHelper *testlib.MainHelper
@@ -161,7 +159,6 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 		TestLogger:        testLogger,
 		LogBuffer:         buffer,
 		Store:             dbStore,
-		workspace:         tempWorkspace,
 	}
 
 	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
@@ -428,8 +425,8 @@ func (th *TestHelper) TearDown() {
 	th.ShutdownApp()
 
 	// Cleanup the workspace
-	if th.workspace != "" {
-		err := os.RemoveAll(th.workspace)
+	if th.tempWorkspace != "" {
+		err := os.RemoveAll(th.tempWorkspace)
 		if err != nil {
 			panic(err)
 		}
