@@ -123,6 +123,30 @@ type SupportPacketPluginList struct {
 	Disabled []Manifest `json:"disabled"`
 }
 
+// SupportPacketDatabaseSchema contains the database schema information.
+// It is included in the Support Packet.
+type SupportPacketDatabaseSchema struct {
+	DatabaseCollation string          `yaml:"database_collation,omitempty"`
+	Tables           []DatabaseTable  `yaml:"tables"`
+}
+
+// DatabaseTable represents a table in the database schema.
+type DatabaseTable struct {
+	Name      string            `yaml:"name"`
+	Collation string            `yaml:"collation,omitempty"`
+	Options   map[string]string `yaml:"options,omitempty"`
+	Columns   []DatabaseColumn  `yaml:"columns"`
+}
+
+// DatabaseColumn represents a column in a database table.
+type DatabaseColumn struct {
+	Name       string `yaml:"name"`
+	DataType   string `yaml:"data_type"`
+	MaxLength  int64  `yaml:"max_length,omitempty"`
+	IsNullable bool   `yaml:"is_nullable"`
+}
+
+
 type FileData struct {
 	Filename string
 	Body     []byte

@@ -97,6 +97,7 @@ type Store interface {
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
 	Attributes() AttributesStore
+	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 }
 
 type RetentionPolicyStore interface {
