@@ -62,7 +62,7 @@ func TestBatchWorker(t *testing.T) {
 	}
 
 	t.Run("stop after first batch", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 
 		th := Setup(t).InitBasic(t)
 
@@ -90,7 +90,7 @@ func TestBatchWorker(t *testing.T) {
 	})
 
 	t.Run("stop after second batch", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 
 		th := Setup(t).InitBasic(t)
 
@@ -118,7 +118,7 @@ func TestBatchWorker(t *testing.T) {
 	})
 
 	t.Run("done after first batch", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 
 		th := Setup(t).InitBasic(t)
 
@@ -143,7 +143,7 @@ func TestBatchWorker(t *testing.T) {
 	})
 
 	t.Run("done after three batches", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 
 		th := Setup(t).InitBasic(t)
 

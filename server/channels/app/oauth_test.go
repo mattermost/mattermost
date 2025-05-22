@@ -140,7 +140,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 func TestAuthorizeOAuthUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	setup := func(t *testing.T, enable, tokenEndpoint, userEndpoint bool, serverURL string) *TestHelper {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 
 		th := Setup(t)
 

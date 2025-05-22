@@ -2774,7 +2774,7 @@ func assertWebsocketEventUserUpdatedWithEmail(t *testing.T, client *model.WebSoc
 func TestUpdateUserActive(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("basic tests", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -2832,7 +2832,7 @@ func TestUpdateUserActive(t *testing.T) {
 	})
 
 	t.Run("websocket events", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -2871,7 +2871,7 @@ func TestUpdateUserActive(t *testing.T) {
 	})
 
 	t.Run("activate guest should fail when guests feature is disable", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -2899,7 +2899,7 @@ func TestUpdateUserActive(t *testing.T) {
 	})
 
 	t.Run("activate guest should work when guests feature is enabled", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -2924,7 +2924,7 @@ func TestUpdateUserActive(t *testing.T) {
 	})
 
 	t.Run("update active status of LDAP user should fail", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5004,7 +5004,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("create token without permission", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5016,7 +5016,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("system admin and local mode can create access token", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5036,7 +5036,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create token for invalid user id", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5050,7 +5050,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create token with invalid value", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5064,7 +5064,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create token with user access tokens disabled", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5080,7 +5080,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create user access token", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5101,7 +5101,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create user access token as second user, without permission", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5113,7 +5113,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create user access token for another user, with permission", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5133,7 +5133,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create user access token for system admin, as system user manager", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5148,7 +5148,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create user access token for basic user as a system admin", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5165,7 +5165,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create user access token for remote user as a system admin", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5186,7 +5186,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create access token as oauth session", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5202,7 +5202,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create access token for bot created by user", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5249,7 +5249,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create access token for bot created by another user, only having MANAGE_BOTS permission", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5300,7 +5300,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("get for invalid user id", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5312,7 +5312,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("get for unknown user id", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5324,7 +5324,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("get my token", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5345,7 +5345,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("get user token as system admin", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5367,7 +5367,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("get token for bot created by user", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5421,7 +5421,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("get token for bot created by another user", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5477,7 +5477,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("multiple tokens, offset 0, limit 100", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5504,7 +5504,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 	})
 
 	t.Run("multiple tokens, offset 1, limit 1", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5535,7 +5535,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("GetUserAccessTokens, not a system admin", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5550,7 +5550,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 	})
 
 	t.Run("GetUserAccessTokens, as a system admin, page 1, perPage 1", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5572,7 +5572,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 	})
 
 	t.Run("GetUserAccessTokens, as a system admin, page 0, perPage 2", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5638,7 +5638,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("revoke user token", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5659,7 +5659,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("revoke token belonging to another user", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5674,7 +5674,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("revoke token for bot created by user", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5724,7 +5724,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("revoke token for bot created by another user", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5776,7 +5776,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("disable user token", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5795,7 +5795,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("disable token belonging to another user", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5810,7 +5810,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("disable token for bot created by user", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5910,7 +5910,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 func TestEnableUserAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("enable user token", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5934,7 +5934,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("enable token belonging to another user", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -5952,7 +5952,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("enable token for bot created by user", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -6005,7 +6005,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("enable token for bot created by another user", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 

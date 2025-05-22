@@ -1392,7 +1392,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 		})
 
 		t.Run("with enabled flag set to true", func(t *testing.T) {
-	mainHelper.Parallel(t)
+			mainHelper.Parallel(t)
 			th2 := SetupConfig(t, func(cfg *model.Config) {
 				cfg.FeatureFlags.AppsEnabled = true
 			})
@@ -1404,7 +1404,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 		})
 
 		t.Run("with enabled flag set to false", func(t *testing.T) {
-	mainHelper.Parallel(t)
+			mainHelper.Parallel(t)
 			th2 := SetupConfig(t, func(cfg *model.Config) {
 				cfg.FeatureFlags.AppsEnabled = false
 			})

@@ -88,7 +88,7 @@ func TestBatchReportWorker(t *testing.T) {
 	}
 
 	t.Run("should finish when the report is done, incrementing file count along the way", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 
 		th := Setup(t).InitBasic(t)
 
@@ -120,7 +120,7 @@ func TestBatchReportWorker(t *testing.T) {
 	})
 
 	t.Run("should fail job when get data throws an error", func(t *testing.T) {
-	mainHelper.Parallel(t)
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		var worker model.Worker

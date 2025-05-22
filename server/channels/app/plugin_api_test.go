@@ -1307,7 +1307,7 @@ func TestBasicAPIPlugins(t *testing.T) {
 		d := dir.Name()
 		if dir.IsDir() && !strings.HasPrefix(d, "manual.") {
 			t.Run(d, func(t *testing.T) {
-	mainHelper.Parallel(t)
+				mainHelper.Parallel(t)
 
 				mainPath := filepath.Join(testFolder, d, "main.go")
 				_, err := os.Stat(mainPath)
