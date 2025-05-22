@@ -32,6 +32,7 @@ exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoti
             <label>
               <input
                 checked=""
+                class="a11y--active a11y--focused"
                 id="renderEmoticonsAsEmojiOn"
                 name="renderEmoticonsAsEmoji"
                 type="radio"

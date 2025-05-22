@@ -121,6 +121,7 @@ type Props = OwnProps & {
     timezoneLabel: string;
     lastActiveDisplay: boolean;
     lastActiveTimeEnabled: boolean;
+    renderEmoticonsAsEmoji: string;
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         autoUpdateTimezone: (deviceTimezone: string) => void;
@@ -387,24 +388,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         this.setState({isSaving: false});
     };
-
-    renderOnOffLabel(enabled: string): JSX.Element {
-        if (enabled === 'false') {
-            return (
-                <FormattedMessage
-                    id='user.settings.advance.off'
-                    defaultMessage='Off'
-                />
-            );
-        }
-
-        return (
-            <FormattedMessage
-                id='user.settings.advance.on'
-                defaultMessage='On'
-            />
-        );
-    }
 
     createSection(props: SectionProps) {
         const {
@@ -1168,15 +1151,43 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const renderEmoticonsAsEmojiSection = (
             <div>
-                <RenderEmoticonsAsEmoji
+                <SettingItem
                     active={this.props.activeSection === 'renderEmoticonsAsEmoji'}
                     areAllSectionsInactive={this.props.activeSection === ''}
-                    renderOnOffLabel={this.renderOnOffLabel}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.renderEmoticonsAsEmojiTitle'
+                            defaultMessage='Render emoticons as emojis'
+                        />
+                    }
+                    describe={
+                        this.props.renderEmoticonsAsEmoji === 'true' ? (
+                            <FormattedMessage
+                                id='user.settings.advance.on'
+                                defaultMessage='On'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='user.settings.advance.off'
+                                defaultMessage='Off'
+                            />
+                        )
+                    }
+                    section='renderEmoticonsAsEmoji'
                     updateSection={this.updateSection}
-                    userId={this.props.user.id}
+                    max={(
+                        <RenderEmoticonsAsEmoji
+                            renderEmoticonsAsEmoji={this.props.renderEmoticonsAsEmoji}
+                            user={this.props.user}
+                            updateSection={this.updateSection}
+                            adminMode={this.props.adminMode}
+                            userPreferences={this.props.userPreferences}
+                        />
+                    )}
                 />
                 <div className='divider-dark'/>
-            </div>);
+            </div>
+        );
 
         return (
             <div

@@ -4,15 +4,28 @@
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {render, userEvent} from 'tests/react_testing_utils';
 
 import RenderEmoticonsAsEmoji from './render_emoticons_as_emoji';
 
 describe('components/user_settings/display/render_emoticons_as_emoji/render_emoticons_as_emoji', () => {
+    const user = {
+        id: 'user_id',
+        username: 'username',
+        locale: 'en',
+        timezone: {
+            useAutomaticTimezone: 'true',
+            automaticTimezone: 'America/New_York',
+            manualTimezone: '',
+        },
+    };
+
     const baseProps = {
         active: true,
         areAllSectionsInactive: false,
-        userId: 'current_user_id',
+        user: user as UserProfile,
         renderEmoticonsAsEmoji: 'true',
         updateSection: jest.fn(),
         renderOnOffLabel: jest.fn(() => 'Test Label'),
@@ -44,8 +57,8 @@ describe('components/user_settings/display/render_emoticons_as_emoji/render_emot
                 <RenderEmoticonsAsEmoji {...baseProps}/>
             </IntlProvider>);
 
-        const radioButtonOn = getByLabelText(/on/i);
-        userEvent.click(radioButtonOn);
+        const radioButtonOff = getByLabelText(/off/i);
+        userEvent.click(radioButtonOff);
 
         const submitButton = getByRole('button', {name: /save/i});
         userEvent.click(submitButton);
