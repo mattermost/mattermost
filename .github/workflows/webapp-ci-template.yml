@@ -79,7 +79,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./channels/coverage/lcov.info
+          files: ./webapp/channels/coverage/lcov.info
 
   build:
     runs-on: ubuntu-22.04
