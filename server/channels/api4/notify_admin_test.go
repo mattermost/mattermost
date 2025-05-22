@@ -20,7 +20,7 @@ func TestNotifyAdmin(t *testing.T) {
 		if mainHelper.Options.RunParallel {
 			t.Parallel()
 		}
-		th := Setup(t).InitBasic().InitLogin()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), nil)
@@ -33,7 +33,7 @@ func TestNotifyAdmin(t *testing.T) {
 		if mainHelper.Options.RunParallel {
 			t.Parallel()
 		}
-		th := Setup(t).InitBasic().InitLogin()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
@@ -50,7 +50,7 @@ func TestNotifyAdmin(t *testing.T) {
 		if mainHelper.Options.RunParallel {
 			t.Parallel()
 		}
-		th := Setup(t).InitBasic().InitLogin()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
@@ -68,7 +68,7 @@ func TestNotifyAdmin(t *testing.T) {
 		if mainHelper.Options.RunParallel {
 			t.Parallel()
 		}
-		th := Setup(t).InitBasic().InitLogin()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
@@ -85,7 +85,7 @@ func TestNotifyAdmin(t *testing.T) {
 		if mainHelper.Options.RunParallel {
 			t.Parallel()
 		}
-		th := Setup(t).InitBasic().InitLogin()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
@@ -103,7 +103,7 @@ func TestNotifyAdmin(t *testing.T) {
 		if mainHelper.Options.RunParallel {
 			t.Parallel()
 		}
-		th := Setup(t).InitBasic().InitLogin()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
@@ -128,7 +128,7 @@ func TestNotifyAdmin(t *testing.T) {
 		if mainHelper.Options.RunParallel {
 			t.Parallel()
 		}
-		th := Setup(t).InitBasic().InitLogin()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
@@ -149,7 +149,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 		if mainHelper.Options.RunParallel {
 			t.Parallel()
 		}
-		th := Setup(t).InitBasic().InitLogin()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerAdminNotifications = false })
@@ -165,7 +165,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 		if mainHelper.Options.RunParallel {
 			t.Parallel()
 		}
-		th := Setup(t).InitBasic().InitLogin()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerAdminNotifications = true })
