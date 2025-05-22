@@ -8,15 +8,11 @@ const config = {
     testPathIgnorePatterns: ['/node_modules/'],
     clearMocks: true,
     collectCoverageFrom: [
-        'src/actions/**/*.{js,jsx,ts,tsx}',
-        'src/client/**/*.{js,jsx,ts,tsx}',
-        'src/components/**/*.{jsx,tsx}',
-        'src/plugins/**/*.{js,jsx,ts,tsx}',
-        'src/reducers/**/*.{js,jsx,ts,tsx}',
-        'src/routes/**/*.{js,jsx,ts,tsx}',
-        'src/selectors/**/*.{js,jsx,ts,tsx}',
-        'src/stores/**/*.{js,jsx,ts,tsx}',
-        'src/utils/**/*.{js,jsx,ts,tsx}',
+        'src/**/*.{js,jsx,ts,tsx}',
+    ],
+    coveragePathIgnorePatterns: [
+        '/node_modules/',
+        'mattermost-redux/src/selectors/create_selector',
     ],
     coverageReporters: ['lcov', 'text-summary'],
     fakeTimers: {
