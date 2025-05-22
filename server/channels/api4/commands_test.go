@@ -17,9 +17,7 @@ import (
 )
 
 func TestEchoCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -44,9 +42,7 @@ func TestEchoCommand(t *testing.T) {
 }
 
 func TestGroupmsgCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -95,9 +91,7 @@ func TestGroupmsgCommands(t *testing.T) {
 }
 
 func TestInvitePeopleCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -176,16 +170,12 @@ func testJoinCommands(t *testing.T, alias string) {
 }
 
 func TestJoinCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	testJoinCommands(t, "join")
 }
 
 func TestLoadTestHelpCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -205,9 +195,7 @@ func TestLoadTestHelpCommands(t *testing.T) {
 }
 
 func TestLoadTestSetupCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -227,9 +215,7 @@ func TestLoadTestSetupCommands(t *testing.T) {
 }
 
 func TestLoadTestUsersCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -249,9 +235,7 @@ func TestLoadTestUsersCommands(t *testing.T) {
 }
 
 func TestLoadTestChannelsCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -271,9 +255,7 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 }
 
 func TestLoadTestPostsCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -293,9 +275,7 @@ func TestLoadTestPostsCommands(t *testing.T) {
 }
 
 func TestLeaveCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -352,9 +332,7 @@ func TestLeaveCommands(t *testing.T) {
 }
 
 func TestLogoutTestCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -363,9 +341,7 @@ func TestLogoutTestCommand(t *testing.T) {
 }
 
 func TestMeCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -393,9 +369,7 @@ func TestMeCommand(t *testing.T) {
 }
 
 func TestMsgCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -443,16 +417,12 @@ func TestMsgCommands(t *testing.T) {
 }
 
 func TestOpenCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	testJoinCommands(t, "open")
 }
 
 func TestSearchCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -461,9 +431,7 @@ func TestSearchCommand(t *testing.T) {
 }
 
 func TestSettingsCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -472,9 +440,7 @@ func TestSettingsCommand(t *testing.T) {
 }
 
 func TestShortcutsCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -483,9 +449,7 @@ func TestShortcutsCommand(t *testing.T) {
 }
 
 func TestShrugCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -506,9 +470,7 @@ func TestShrugCommand(t *testing.T) {
 }
 
 func TestStatusCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

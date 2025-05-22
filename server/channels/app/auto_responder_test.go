@@ -14,9 +14,7 @@ import (
 )
 
 func TestSetAutoResponderStatus(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -58,9 +56,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 }
 
 func TestDisableAutoResponder(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -96,9 +92,7 @@ func TestDisableAutoResponder(t *testing.T) {
 }
 
 func TestSendAutoResponseIfNecessary(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("should send auto response when enabled", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -262,9 +256,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 }
 
 func TestSendAutoResponseSuccess(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -309,9 +301,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 }
 
 func TestSendAutoResponseSuccessOnThread(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -365,9 +355,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 }
 
 func TestSendAutoResponseFailure(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

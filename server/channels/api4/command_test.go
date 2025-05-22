@@ -20,9 +20,7 @@ import (
 )
 
 func TestCreateCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -86,9 +84,7 @@ func TestCreateCommand(t *testing.T) {
 }
 
 func TestUpdateCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.SystemAdminUser
@@ -168,9 +164,7 @@ func TestUpdateCommand(t *testing.T) {
 }
 
 func TestMoveCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.SystemAdminUser
@@ -229,9 +223,7 @@ func TestMoveCommand(t *testing.T) {
 }
 
 func TestDeleteCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.SystemAdminUser
@@ -290,9 +282,7 @@ func TestDeleteCommand(t *testing.T) {
 }
 
 func TestListCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -389,9 +379,7 @@ func TestListCommands(t *testing.T) {
 }
 
 func TestListAutocompleteCommands(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -462,9 +450,7 @@ func TestListAutocompleteCommands(t *testing.T) {
 }
 
 func TestListCommandAutocompleteSuggestions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -558,9 +544,7 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 }
 
 func TestGetCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -623,9 +607,7 @@ func TestGetCommand(t *testing.T) {
 }
 
 func TestRegenToken(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -659,9 +641,7 @@ func TestRegenToken(t *testing.T) {
 }
 
 func TestExecuteInvalidCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -732,9 +712,7 @@ func TestExecuteInvalidCommand(t *testing.T) {
 }
 
 func TestExecuteGetCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -797,9 +775,7 @@ func TestExecuteGetCommand(t *testing.T) {
 }
 
 func TestExecutePostCommand(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -860,9 +836,7 @@ func TestExecutePostCommand(t *testing.T) {
 }
 
 func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -916,9 +890,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 }
 
 func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -975,9 +947,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 }
 
 func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1042,9 +1012,7 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 }
 
 func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1121,9 +1089,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 }
 
 func TestExecuteCommandReadOnly(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client

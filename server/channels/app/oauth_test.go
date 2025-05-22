@@ -25,9 +25,7 @@ import (
 )
 
 func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -77,9 +75,7 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 }
 
 func TestOAuthRevokeAccessToken(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -98,9 +94,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 }
 
 func TestOAuthDeleteApp(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -144,13 +138,9 @@ func TestOAuthDeleteApp(t *testing.T) {
 }
 
 func TestAuthorizeOAuthUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	setup := func(t *testing.T, enable, tokenEndpoint, userEndpoint bool, serverURL string) *TestHelper {
-		if mainHelper.Options.RunParallel {
-			t.Parallel()
-		}
+	mainHelper.Parallel(t)
 
 		th := Setup(t)
 
@@ -561,9 +551,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 }
 
 func TestGetAuthorizationCode(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("not enabled", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -621,9 +609,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 }
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -666,9 +652,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 }
 
 func TestDeactivatedUserOAuthApp(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

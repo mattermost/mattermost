@@ -34,9 +34,7 @@ import (
 )
 
 func TestCreatePost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -308,9 +306,7 @@ func TestCreatePost(t *testing.T) {
 }
 
 func TestCreatePostForPriority(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -485,9 +481,7 @@ func TestCreatePostForPriority(t *testing.T) {
 }
 
 func TestCreatePostWithOAuthClient(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -556,9 +550,7 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 }
 
 func TestCreatePostEphemeral(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -598,9 +590,7 @@ func testCreatePostWithOutgoingHook(
 	triggerWhen int,
 	commentPostType bool,
 ) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1108,9 +1098,7 @@ func TestMoveThread(t *testing.T) {
 }
 
 func TestCreatePostPublic(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1169,9 +1157,7 @@ func TestCreatePostPublic(t *testing.T) {
 }
 
 func TestCreatePostAll(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1239,9 +1225,7 @@ func TestCreatePostAll(t *testing.T) {
 }
 
 func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1305,9 +1289,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 }
 
 func TestCreatePostCheckOnlineStatus(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1375,9 +1357,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 }
 
 func TestUpdatePost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1729,9 +1709,7 @@ func TestUpdatePost(t *testing.T) {
 }
 
 func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	// This test checks that a sysadmin with the "EDIT_OTHERS_POSTS" permission can edit someone else's post in a
 	// channel without a team (DM/GM). This indirectly checks for the proper cascading all the way to system-wide roles
@@ -1758,9 +1736,7 @@ func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 }
 
 func TestPatchPost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2088,9 +2064,7 @@ func TestPatchPost(t *testing.T) {
 }
 
 func TestPinPost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2123,9 +2097,7 @@ func TestPinPost(t *testing.T) {
 }
 
 func TestUnpinPost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2158,9 +2130,7 @@ func TestUnpinPost(t *testing.T) {
 }
 
 func TestGetPostsForChannel(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2405,9 +2375,7 @@ func TestGetPostsForChannel(t *testing.T) {
 }
 
 func TestGetFlaggedPostsForUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2615,9 +2583,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 }
 
 func TestGetPostsBefore(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2786,9 +2752,7 @@ func TestGetPostsBefore(t *testing.T) {
 }
 
 func TestGetPostsAfter(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2938,9 +2902,7 @@ func TestGetPostsAfter(t *testing.T) {
 }
 
 func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3195,9 +3157,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 }
 
 func TestGetPost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3298,9 +3258,7 @@ func TestGetPost(t *testing.T) {
 }
 
 func TestDeletePost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3358,9 +3316,7 @@ func TestDeletePost(t *testing.T) {
 }
 
 func TestPermanentDeletePost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3439,14 +3395,10 @@ func TestPermanentDeletePost(t *testing.T) {
 }
 
 func TestWebHubMembership(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	t.Run("WithChannelIteration", func(t *testing.T) {
-		if mainHelper.Options.RunParallel {
-			t.Parallel()
-		}
+	mainHelper.Parallel(t)
 
 		th := SetupConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableWebHubChannelIteration = true
@@ -3457,9 +3409,7 @@ func TestWebHubMembership(t *testing.T) {
 	})
 
 	t.Run("WithoutChannelIteration", func(t *testing.T) {
-		if mainHelper.Options.RunParallel {
-			t.Parallel()
-		}
+	mainHelper.Parallel(t)
 
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -3589,9 +3539,7 @@ func _testWebHubMembership(th *TestHelper, t *testing.T) {
 }
 
 func TestWebHubCloseConnOnDBFail(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableWebHubChannelIteration = true
@@ -3626,9 +3574,7 @@ func TestWebHubCloseConnOnDBFail(t *testing.T) {
 }
 
 func TestDeletePostEvent(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3657,9 +3603,7 @@ func TestDeletePostEvent(t *testing.T) {
 }
 
 func TestDeletePostMessage(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
@@ -3707,9 +3651,7 @@ func TestDeletePostMessage(t *testing.T) {
 }
 
 func TestGetPostThread(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3840,9 +3782,7 @@ func TestGetPostThread(t *testing.T) {
 }
 
 func TestSearchPosts(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3996,9 +3936,7 @@ func TestSearchPosts(t *testing.T) {
 }
 
 func TestSearchHashtagPosts(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4026,9 +3964,7 @@ func TestSearchHashtagPosts(t *testing.T) {
 }
 
 func TestSearchPostsInChannel(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4084,9 +4020,7 @@ func TestSearchPostsInChannel(t *testing.T) {
 }
 
 func TestSearchPostsFromUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4156,9 +4090,7 @@ func TestSearchPostsFromUser(t *testing.T) {
 }
 
 func TestSearchPostsWithDateFlags(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4303,9 +4235,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 }
 
 func TestSetChannelUnread(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4481,9 +4411,7 @@ func TestSetChannelUnread(t *testing.T) {
 }
 
 func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4580,9 +4508,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 }
 
 func TestGetPostsByIds(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4608,9 +4534,7 @@ func TestGetPostsByIds(t *testing.T) {
 }
 
 func TestGetEditHistoryForPost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4732,9 +4656,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 }
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4889,9 +4811,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 }
 
 func TestGetPostStripActionIntegrations(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -5004,9 +4924,7 @@ func TestPostReminder(t *testing.T) {
 }
 
 func TestPostGetInfo(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -5277,9 +5195,7 @@ func TestPostGetInfo(t *testing.T) {
 }
 
 func TestAcknowledgePost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -5322,9 +5238,7 @@ func TestAcknowledgePost(t *testing.T) {
 }
 
 func TestUnacknowledgePost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -5371,9 +5285,7 @@ func TestUnacknowledgePost(t *testing.T) {
 }
 
 func TestRestorePostVersion(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

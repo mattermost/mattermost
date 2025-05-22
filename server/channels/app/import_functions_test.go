@@ -27,9 +27,7 @@ import (
 )
 
 func TestImportImportScheme(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -226,9 +224,7 @@ func TestImportImportScheme(t *testing.T) {
 }
 
 func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -417,9 +413,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 }
 
 func TestImportImportRole(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -511,9 +505,7 @@ func TestImportImportRole(t *testing.T) {
 }
 
 func TestImportImportTeam(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -611,9 +603,7 @@ func TestImportImportTeam(t *testing.T) {
 }
 
 func TestImportImportChannel(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -760,9 +750,7 @@ func TestImportImportChannel(t *testing.T) {
 }
 
 func TestImportImportUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1759,9 +1747,7 @@ func TestImportImportUser(t *testing.T) {
 }
 
 func TestImportUserTeams(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	team2 := th.CreateTeam()
@@ -1984,9 +1970,7 @@ func TestImportUserTeams(t *testing.T) {
 }
 
 func TestImportUserChannels(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
@@ -2121,9 +2105,7 @@ func TestImportUserChannels(t *testing.T) {
 }
 
 func TestImportUserDefaultNotifyProps(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -2163,9 +2145,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 }
 
 func TestImportimportMultiplePostLines(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -3225,9 +3205,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 }
 
 func TestImportImportPost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -3835,9 +3813,7 @@ func TestImportImportPost(t *testing.T) {
 }
 
 func TestImportImportDirectChannel(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user3 := th.CreateUser()
@@ -4209,9 +4185,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 }
 
 func TestImportImportDirectPost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5159,9 +5133,7 @@ func TestImportImportDirectPost(t *testing.T) {
 }
 
 func TestImportImportEmoji(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -5213,9 +5185,7 @@ func TestImportImportEmoji(t *testing.T) {
 }
 
 func TestImportAttachment(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -5238,9 +5208,7 @@ func TestImportAttachment(t *testing.T) {
 }
 
 func TestImportPostAndRepliesWithAttachments(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -5482,9 +5450,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 }
 
 func TestImportDirectPostWithAttachments(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -5612,9 +5578,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 }
 
 func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -5816,9 +5780,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 }
 
 func TestCompareFilesContent(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("empty", func(t *testing.T) {
 		ok, err := compareFilesContent(strings.NewReader(""), strings.NewReader(""), 0)
 		require.NoError(t, err)

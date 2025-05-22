@@ -101,9 +101,7 @@ MCOV5SHi05kD42JSSbmw190VAa4QRGikaeWRhDsj
 -----END CERTIFICATE-----`
 
 func TestTestLdap(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -130,9 +128,7 @@ func TestTestLdap(t *testing.T) {
 }
 
 func TestSyncLdap(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -181,9 +177,7 @@ func TestSyncLdap(t *testing.T) {
 }
 
 func TestGetLdapGroups(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -199,9 +193,7 @@ func TestGetLdapGroups(t *testing.T) {
 }
 
 func TestLinkLdapGroup(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	const entryUUID string = "foo"
 
 	th := Setup(t)
@@ -217,9 +209,7 @@ func TestLinkLdapGroup(t *testing.T) {
 }
 
 func TestUnlinkLdapGroup(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	const entryUUID string = "foo"
 
 	th := Setup(t)
@@ -235,9 +225,7 @@ func TestUnlinkLdapGroup(t *testing.T) {
 }
 
 func TestMigrateIdLdap(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -257,9 +245,7 @@ func TestMigrateIdLdap(t *testing.T) {
 }
 
 func TestUploadPublicCertificate(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -281,9 +267,7 @@ func TestUploadPublicCertificate(t *testing.T) {
 }
 
 func TestUploadPrivateCertificate(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -305,9 +289,7 @@ func TestUploadPrivateCertificate(t *testing.T) {
 }
 
 func TestAddUserToGroupSyncables(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

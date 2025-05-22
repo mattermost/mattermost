@@ -19,9 +19,7 @@ import (
 // because the websocket client is known to be racy and needs a big overhaul
 // to fix everything.
 func TestWebSocket(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	WebSocketClient, err := th.CreateWebSocketClient()

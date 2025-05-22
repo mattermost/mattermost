@@ -13,9 +13,7 @@ import (
 )
 
 func TestSidebarCategory(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -89,9 +87,7 @@ func TestSidebarCategory(t *testing.T) {
 }
 
 func TestGetSidebarCategories(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("should return the sidebar categories for the given user/team", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -149,9 +145,7 @@ func TestGetSidebarCategories(t *testing.T) {
 }
 
 func TestUpdateSidebarCategories(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("should mute and unmute all channels in a category when it is muted or unmuted", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -495,9 +489,7 @@ func TestUpdateSidebarCategories(t *testing.T) {
 }
 
 func TestDiffChannelsBetweenCategories(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("should return nothing when the categories contain identical channels", func(t *testing.T) {
 		originalCategories := []*model.SidebarCategoryWithChannels{
 			{

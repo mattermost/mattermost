@@ -11,9 +11,7 @@ import (
 )
 
 func TestAddMention(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("should initialize Mentions and store new mentions", func(t *testing.T) {
 		m := &MentionResults{}
 

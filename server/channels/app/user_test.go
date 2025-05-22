@@ -30,9 +30,7 @@ import (
 )
 
 func TestCreateOAuthUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -90,9 +88,7 @@ func TestCreateOAuthUser(t *testing.T) {
 }
 
 func TestUpdateDefaultProfileImage(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	startTime := model.GetMillis()
@@ -115,9 +111,7 @@ func TestUpdateDefaultProfileImage(t *testing.T) {
 }
 
 func TestAdjustProfileImage(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -143,9 +137,7 @@ func TestAdjustProfileImage(t *testing.T) {
 }
 
 func TestUpdateUserToRestrictedDomain(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -206,9 +198,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -252,9 +242,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestUpdateUserMissingFields(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -288,9 +276,7 @@ func TestUpdateUserMissingFields(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -361,9 +347,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestUpdateUserActive(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -382,9 +366,7 @@ func TestUpdateUserActive(t *testing.T) {
 }
 
 func TestUpdateActiveBotsSideEffect(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -437,9 +419,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 }
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -549,9 +529,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 }
 
 func TestCreateUserConflict(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -592,9 +570,7 @@ func TestCreateUserConflict(t *testing.T) {
 }
 
 func TestUpdateUserEmail(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -775,9 +751,7 @@ func createGitlabUser(t *testing.T, a *App, c request.CTX, id int64, username st
 }
 
 func TestGetUsersByStatus(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -908,9 +882,7 @@ func TestGetUsersByStatus(t *testing.T) {
 }
 
 func TestCreateUserWithInviteId(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -939,9 +911,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 }
 
 func TestCreateUserWithToken(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1136,9 +1106,7 @@ func TestCreateUserWithToken(t *testing.T) {
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 
@@ -1234,9 +1202,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 }
 
 func TestPasswordRecovery(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1292,9 +1258,7 @@ func TestPasswordRecovery(t *testing.T) {
 }
 
 func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1333,9 +1297,7 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 }
 
 func TestPasswordChangeSessionTermination(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1483,9 +1445,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 }
 
 func TestGetViewUsersRestrictions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1621,9 +1581,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 }
 
 func TestPromoteGuestToUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1760,9 +1718,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 }
 
 func TestDemoteUserToGuest(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1948,9 +1904,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 }
 
 func TestDeactivateGuests(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1975,9 +1929,7 @@ func TestDeactivateGuests(t *testing.T) {
 }
 
 func TestUpdateUserRolesWithUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	// InitBasic is used to let the first CreateUser call not be
 	// a system_admin
 	th := Setup(t).InitBasic()
@@ -2003,9 +1955,7 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 }
 
 func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	// InitBasic is used to let the first CreateUser call not be
 	// a system_admin
 	th := Setup(t).InitBasic()
@@ -2044,9 +1994,7 @@ func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
 }
 
 func TestDeactivateMfa(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("MFA is disabled", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -2062,9 +2010,7 @@ func TestDeactivateMfa(t *testing.T) {
 }
 
 func TestPatchUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2103,9 +2049,7 @@ func TestPatchUser(t *testing.T) {
 }
 
 func TestUpdateThreadReadForUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("Ensure thread membership exists before updating read", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -2134,9 +2078,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 }
 
 func TestCreateUserWithInitialPreferences(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2193,9 +2135,7 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 }
 
 func TestSendSubscriptionHistoryEvent(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	cloudProduct := &model.Product{
 		ID:                "prod_test1",
 		Name:              "name1",
@@ -2277,9 +2217,7 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 }
 
 func TestGetUsersForReporting(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("should throw error on invalid date range", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -2356,9 +2294,7 @@ func TestGetUsersForReporting(t *testing.T) {
 }
 
 func TestCreateUserOrGuest(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("base case - you can create a user", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()

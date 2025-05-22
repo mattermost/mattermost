@@ -34,9 +34,7 @@ func setupForSharedChannels(tb testing.TB) *TestHelper {
 }
 
 func TestGetAllSharedChannels(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
 
@@ -108,9 +106,7 @@ func randomBool() bool {
 }
 
 func TestGetRemoteClusterById(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
 
@@ -165,9 +161,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 }
 
 func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("should not create a local DM channel that is shared", func(t *testing.T) {
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
@@ -283,9 +277,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 }
 
 func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -544,9 +536,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 }
 
 func TestInviteRemoteClusterToChannel(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -592,9 +582,7 @@ func TestInviteRemoteClusterToChannel(t *testing.T) {
 }
 
 func TestUninviteRemoteClusterToChannel(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()

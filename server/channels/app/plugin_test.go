@@ -38,9 +38,7 @@ func getHashedKey(key string) string {
 }
 
 func TestPluginKeyValueStore(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -141,9 +139,7 @@ func TestPluginKeyValueStore(t *testing.T) {
 }
 
 func TestPluginKeyValueStoreCompareAndSet(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -201,9 +197,7 @@ func TestPluginKeyValueStoreCompareAndSet(t *testing.T) {
 }
 
 func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	pluginID := "testpluginid"
 
 	t.Run("storing a value without providing options works", func(t *testing.T) {
@@ -348,9 +342,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 }
 
 func TestServePluginRequest(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -363,9 +355,7 @@ func TestServePluginRequest(t *testing.T) {
 }
 
 func TestPrivateServePluginRequest(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -411,9 +401,7 @@ func TestPrivateServePluginRequest(t *testing.T) {
 }
 
 func TestHandlePluginRequest(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -461,9 +449,7 @@ func TestHandlePluginRequest(t *testing.T) {
 }
 
 func TestGetPluginStatusesDisabled(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -477,9 +463,7 @@ func TestGetPluginStatusesDisabled(t *testing.T) {
 }
 
 func TestGetPluginStatuses(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -493,9 +477,7 @@ func TestGetPluginStatuses(t *testing.T) {
 }
 
 func TestPluginSync(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -659,9 +641,7 @@ func TestPluginSync(t *testing.T) {
 
 // See https://github.com/mattermost/mattermost-server/issues/19189
 func TestChannelsPluginsInit(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -691,9 +671,7 @@ func TestChannelsPluginsInit(t *testing.T) {
 }
 
 func TestSyncPluginsActiveState(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -753,9 +731,7 @@ func TestSyncPluginsActiveState(t *testing.T) {
 }
 
 func TestPluginPanicLogs(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("should panic", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -804,9 +780,7 @@ func TestPluginPanicLogs(t *testing.T) {
 }
 
 func TestPluginStatusActivateError(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("should return error from OnActivate in plugin statuses", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -857,9 +831,7 @@ func (a pluginStatusById) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a pluginStatusById) Less(i, j int) bool { return a[i].PluginId < a[j].PluginId }
 
 func TestProcessPrepackagedPlugins(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	// Find the tests folder before we change directories to the temporary workspace.
 	testsPath, _ := fileutils.FindDir("tests")
 
@@ -1402,9 +1374,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 }
 
 func TestGetPluginStateOverride(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1422,9 +1392,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 		})
 
 		t.Run("with enabled flag set to true", func(t *testing.T) {
-			if mainHelper.Options.RunParallel {
-				t.Parallel()
-			}
+	mainHelper.Parallel(t)
 			th2 := SetupConfig(t, func(cfg *model.Config) {
 				cfg.FeatureFlags.AppsEnabled = true
 			})
@@ -1436,9 +1404,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 		})
 
 		t.Run("with enabled flag set to false", func(t *testing.T) {
-			if mainHelper.Options.RunParallel {
-				t.Parallel()
-			}
+	mainHelper.Parallel(t)
 			th2 := SetupConfig(t, func(cfg *model.Config) {
 				cfg.FeatureFlags.AppsEnabled = false
 			})

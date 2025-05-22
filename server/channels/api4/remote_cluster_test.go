@@ -13,9 +13,7 @@ import (
 )
 
 func TestGetRemoteClusters(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -185,9 +183,7 @@ func TestGetRemoteClusters(t *testing.T) {
 }
 
 func TestCreateRemoteCluster(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	rcWithTeamAndPassword := &model.RemoteClusterWithPassword{
 		RemoteCluster: &model.RemoteCluster{
 			Name:          "remotecluster",
@@ -300,9 +296,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 }
 
 func TestRemoteClusterAcceptinvite(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	rcAcceptInvite := &model.RemoteClusterAcceptInvite{
 		Name:          "remotecluster",
 		Invite:        "myinvitecode",
@@ -401,9 +395,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 }
 
 func TestGenerateRemoteClusterInvite(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	password := "mysupersecret"
 
 	newRC := &model.RemoteCluster{
@@ -494,9 +486,7 @@ func TestGenerateRemoteClusterInvite(t *testing.T) {
 }
 
 func TestGetRemoteCluster(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	newRC := &model.RemoteCluster{
 		Name:    "remotecluster",
 		SiteURL: "http://example.com",
@@ -555,9 +545,7 @@ func TestGetRemoteCluster(t *testing.T) {
 }
 
 func TestPatchRemoteCluster(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	newRC := &model.RemoteCluster{
 		Name:        "remotecluster",
 		DisplayName: "initialvalue",
@@ -622,9 +610,7 @@ func TestPatchRemoteCluster(t *testing.T) {
 }
 
 func TestDeleteRemoteCluster(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	newRC := &model.RemoteCluster{
 		Name:        "remotecluster",
 		DisplayName: "initialvalue",

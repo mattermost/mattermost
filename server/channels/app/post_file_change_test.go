@@ -11,9 +11,7 @@ import (
 )
 
 func TestProcessPostFileChanges(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

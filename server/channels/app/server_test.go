@@ -54,9 +54,7 @@ func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, erro
 }
 
 func TestStartServerSuccess(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	})
@@ -73,9 +71,7 @@ func TestStartServerSuccess(t *testing.T) {
 }
 
 func TestStartServerPortUnavailable(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	// Listen on the next available port
 	listener, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
@@ -94,9 +90,7 @@ func TestStartServerPortUnavailable(t *testing.T) {
 }
 
 func TestStartServerNoS3Bucket(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	s3Host := os.Getenv("CI_MINIO_HOST")
 	if s3Host == "" {
 		s3Host = "localhost"
@@ -149,9 +143,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 }
 
 func TestStartServerTLSSuccess(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		testDir, _ := fileutils.FindDir("tests")
 
@@ -177,9 +169,7 @@ func TestStartServerTLSSuccess(t *testing.T) {
 }
 
 func TestStartServerTLSVersion(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	configStore, _ := config.NewMemoryStore()
 	store, _ := config.NewStoreFromBacking(configStore, nil, false)
 	cfg := store.Get()
@@ -229,9 +219,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 }
 
 func TestStartServerTLSOverwriteCipher(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		testDir, _ := fileutils.FindDir("tests")
 
@@ -297,9 +285,7 @@ func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 }
 
 func TestPanicLog(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	// Creating a temp dir for log
 	tmpDir, err := os.MkdirTemp("", "mlog-test")
 	require.NoError(t, err, "cannot create tmp dir for log file")
@@ -514,9 +500,7 @@ func TestSentry(t *testing.T) {
 }
 
 func TestCancelTaskSetsTaskToNil(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	var taskMut sync.Mutex
 	task := model.CreateRecurringTaskFromNextIntervalTime("a test task", func() {}, 5*time.Minute)
 	require.NotNil(t, task)
@@ -526,9 +510,7 @@ func TestCancelTaskSetsTaskToNil(t *testing.T) {
 }
 
 func TestOriginChecker(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

@@ -34,9 +34,7 @@ func (rma *ReportMockApp) CleanupReportChunks(format string, prefix string, numb
 }
 
 func TestBatchReportWorker(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	setupBatchWorker := func(
 		t *testing.T,
@@ -90,9 +88,7 @@ func TestBatchReportWorker(t *testing.T) {
 	}
 
 	t.Run("should finish when the report is done, incrementing file count along the way", func(t *testing.T) {
-		if mainHelper.Options.RunParallel {
-			t.Parallel()
-		}
+	mainHelper.Parallel(t)
 
 		th := Setup(t).InitBasic(t)
 
@@ -124,9 +120,7 @@ func TestBatchReportWorker(t *testing.T) {
 	})
 
 	t.Run("should fail job when get data throws an error", func(t *testing.T) {
-		if mainHelper.Options.RunParallel {
-			t.Parallel()
-		}
+	mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		var worker model.Worker

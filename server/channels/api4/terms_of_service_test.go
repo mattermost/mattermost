@@ -14,9 +14,7 @@ import (
 )
 
 func TestGetTermsOfService(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -34,9 +32,7 @@ func TestGetTermsOfService(t *testing.T) {
 }
 
 func TestCreateTermsOfService(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -46,9 +42,7 @@ func TestCreateTermsOfService(t *testing.T) {
 }
 
 func TestCreateTermsOfServiceAdminUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.SystemAdminClient

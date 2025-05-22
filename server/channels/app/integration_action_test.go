@@ -21,9 +21,7 @@ import (
 
 // Test for MM-13598 where an invalid integration URL was causing a crash
 func TestPostActionInvalidURL(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -74,9 +72,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 }
 
 func TestPostActionEmptyResponse(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -178,9 +174,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 }
 
 func TestPostAction(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	testCases := []struct {
 		Description string
 		Channel     func(th *TestHelper) *model.Channel
@@ -472,9 +466,7 @@ func TestPostAction(t *testing.T) {
 }
 
 func TestPostActionProps(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -559,9 +551,7 @@ func TestPostActionProps(t *testing.T) {
 }
 
 func TestSubmitInteractiveDialog(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -684,9 +674,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 }
 
 func TestPostActionRelativeURL(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -900,9 +888,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 }
 
 func TestPostActionRelativePluginURL(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1100,9 +1086,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 }
 
 func TestDoPluginRequest(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

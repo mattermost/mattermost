@@ -59,9 +59,7 @@ func TestSetLicenseOnStart(t *testing.T) {
 }
 
 func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	cfg := model.Config{}
 	cfg.SetDefaults()
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
@@ -134,13 +132,9 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 }
 
 func TestMetrics(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("ensure the metrics server is not started by default", func(t *testing.T) {
-		if mainHelper.Options.RunParallel {
-			t.Parallel()
-		}
+	mainHelper.Parallel(t)
 		th := Setup(t)
 		defer th.TearDown()
 
@@ -148,9 +142,7 @@ func TestMetrics(t *testing.T) {
 	})
 
 	t.Run("ensure the metrics server is started", func(t *testing.T) {
-		if mainHelper.Options.RunParallel {
-			t.Parallel()
-		}
+	mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics())
 		defer th.TearDown()
 
@@ -178,9 +170,7 @@ func TestMetrics(t *testing.T) {
 	})
 
 	t.Run("ensure the metrics server is started with advanced metrics", func(t *testing.T) {
-		if mainHelper.Options.RunParallel {
-			t.Parallel()
-		}
+	mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics())
 		defer th.TearDown()
 
@@ -195,9 +185,7 @@ func TestMetrics(t *testing.T) {
 	})
 
 	t.Run("ensure advanced metrics have database metrics", func(t *testing.T) {
-		if mainHelper.Options.RunParallel {
-			t.Parallel()
-		}
+	mainHelper.Parallel(t)
 		mockMetricsImpl := &mocks.MetricsInterface{}
 		mockMetricsImpl.On("Register").Return()
 		mockMetricsImpl.On("ObserveStoreMethodDuration", mock.Anything, mock.Anything, mock.Anything).Return()
@@ -216,9 +204,7 @@ func TestMetrics(t *testing.T) {
 }
 
 func TestShutdown(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("should shutdown gracefully", func(t *testing.T) {
 		th := Setup(t)
 		rand.Seed(time.Now().UnixNano())
@@ -240,9 +226,7 @@ func TestShutdown(t *testing.T) {
 }
 
 func TestSetTelemetryId(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("ensure client config is regenerated after setting the telemetry id", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -259,9 +243,7 @@ func TestSetTelemetryId(t *testing.T) {
 }
 
 func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

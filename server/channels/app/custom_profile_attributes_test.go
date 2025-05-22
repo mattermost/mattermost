@@ -15,9 +15,7 @@ import (
 )
 
 func TestGetCPAField(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -122,9 +120,7 @@ func TestGetCPAField(t *testing.T) {
 }
 
 func TestListCPAFields(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -168,9 +164,7 @@ func TestListCPAFields(t *testing.T) {
 }
 
 func TestCreateCPAField(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
@@ -278,9 +272,7 @@ func TestCreateCPAField(t *testing.T) {
 }
 
 func TestPatchCPAField(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -415,9 +407,7 @@ func TestPatchCPAField(t *testing.T) {
 }
 
 func TestDeleteCPAField(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -498,9 +488,7 @@ func TestDeleteCPAField(t *testing.T) {
 }
 
 func TestGetCPAValue(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -576,9 +564,7 @@ func TestGetCPAValue(t *testing.T) {
 }
 
 func TestListCPAValues(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	}).InitBasic()
@@ -636,9 +622,7 @@ func TestListCPAValues(t *testing.T) {
 }
 
 func TestPatchCPAValue(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -763,9 +747,7 @@ func TestPatchCPAValue(t *testing.T) {
 }
 
 func TestDeleteCPAValues(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	}).InitBasic()

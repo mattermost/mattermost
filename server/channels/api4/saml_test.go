@@ -15,9 +15,7 @@ import (
 )
 
 func TestGetSamlMetadata(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -30,9 +28,7 @@ func TestGetSamlMetadata(t *testing.T) {
 }
 
 func TestSamlCompleteCSRFPass(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -61,9 +57,7 @@ func TestSamlCompleteCSRFPass(t *testing.T) {
 }
 
 func TestSamlResetId(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := SetupEnterprise(t).InitBasic()
 	defer th.TearDown()
 	th.App.Channels().Saml = &mocks.SamlInterface{}

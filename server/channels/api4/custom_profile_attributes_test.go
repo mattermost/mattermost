@@ -16,9 +16,7 @@ import (
 )
 
 func TestCreateCPAField(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	})
@@ -98,9 +96,7 @@ func TestCreateCPAField(t *testing.T) {
 }
 
 func TestListCPAFields(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	})
@@ -147,9 +143,7 @@ func TestListCPAFields(t *testing.T) {
 }
 
 func TestPatchCPAField(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	})
@@ -291,9 +285,7 @@ func TestPatchCPAField(t *testing.T) {
 }
 
 func TestDeleteCPAField(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	})
@@ -366,9 +358,7 @@ func TestDeleteCPAField(t *testing.T) {
 }
 
 func TestListCPAValues(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
@@ -457,9 +447,7 @@ func TestListCPAValues(t *testing.T) {
 }
 
 func TestPatchCPAValues(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true

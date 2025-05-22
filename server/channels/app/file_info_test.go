@@ -15,9 +15,7 @@ import (
 )
 
 func TestGetInfoForFile(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	fakeFile := make([]byte, 1000)
 
 	pngFile, err := os.ReadFile("tests/test.png")

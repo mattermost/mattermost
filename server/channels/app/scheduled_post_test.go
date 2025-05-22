@@ -14,9 +14,7 @@ import (
 )
 
 func TestSaveScheduledPost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user1ConnID := model.NewId()
@@ -228,9 +226,7 @@ func TestSaveScheduledPost(t *testing.T) {
 }
 
 func TestGetUserTeamScheduledPosts(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user1ConnID := model.NewId()
@@ -465,9 +461,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 }
 
 func TestUpdateScheduledPost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user1ConnID := model.NewId()
@@ -681,9 +675,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 }
 
 func TestDeleteScheduledPost(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user1ConnID := model.NewId()
@@ -768,9 +760,7 @@ func TestDeleteScheduledPost(t *testing.T) {
 }
 
 func TestPublishScheduledPostEvent(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

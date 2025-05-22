@@ -19,9 +19,7 @@ import (
 )
 
 func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -101,9 +99,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 }
 
 func TestUpdateSessionOnPromoteDemote(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -163,9 +159,7 @@ const (
 )
 
 func TestApp_GetSessionLengthInMillis(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -255,9 +249,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 }
 
 func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -380,9 +372,7 @@ func TestGetCloudSession(t *testing.T) {
 }
 
 func TestGetRemoteClusterSession(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	token := model.NewId()
 	remoteID := model.NewId()
@@ -418,9 +408,7 @@ func TestGetRemoteClusterSession(t *testing.T) {
 }
 
 func TestSessionsLimit(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -468,9 +456,7 @@ func TestSessionsLimit(t *testing.T) {
 }
 
 func TestSetExtraSessionProps(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

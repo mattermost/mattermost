@@ -1450,3 +1450,7 @@ func (th *TestHelper) SetupScheme(scope string) *model.Scheme {
 	}
 	return scheme
 }
+
+func (th *TestHelper) Parallel(t *testing.T) {
+	mainHelper.Parallel(t)
+}

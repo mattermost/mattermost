@@ -13,9 +13,7 @@ import (
 )
 
 func TestFilterInaccessibleFiles(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	err := th.App.Srv().Store().System().Save(&model.System{
@@ -119,9 +117,7 @@ func TestFilterInaccessibleFiles(t *testing.T) {
 }
 
 func TestGetFilteredAccessibleFiles(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	err := th.App.Srv().Store().System().Save(&model.System{
@@ -164,9 +160,7 @@ func TestGetFilteredAccessibleFiles(t *testing.T) {
 }
 
 func TestIsInaccessibleFile(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	err := th.App.Srv().Store().System().Save(&model.System{
@@ -189,9 +183,7 @@ func TestIsInaccessibleFile(t *testing.T) {
 }
 
 func TestRemoveInaccessibleContentFromFilesSlice(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	err := th.App.Srv().Store().System().Save(&model.System{

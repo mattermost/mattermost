@@ -14,9 +14,7 @@ import (
 )
 
 func TestCreateIncomingWebhook(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -111,9 +109,7 @@ func TestCreateIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -151,9 +147,7 @@ func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 }
 
 func TestGetIncomingWebhooks(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -232,9 +226,7 @@ func TestGetIncomingWebhooks(t *testing.T) {
 }
 
 func TestGetIncomingWebhooksListByUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	BasicClient := th.Client
@@ -278,9 +270,7 @@ func TestGetIncomingWebhooksListByUser(t *testing.T) {
 }
 
 func TestGetIncomingWebhooksByTeam(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	BasicClient := th.Client
@@ -323,9 +313,7 @@ func TestGetIncomingWebhooksByTeam(t *testing.T) {
 }
 
 func TestGetIncomingWebhooksWithCount(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	BasicClient := th.Client
@@ -380,9 +368,7 @@ func TestGetIncomingWebhooksWithCount(t *testing.T) {
 }
 
 func TestGetIncomingWebhook(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -419,9 +405,7 @@ func TestGetIncomingWebhook(t *testing.T) {
 }
 
 func TestDeleteIncomingWebhook(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -473,9 +457,7 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateOutgoingWebhook(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -560,9 +542,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 }
 
 func TestGetOutgoingWebhooks(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -662,9 +642,7 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 }
 
 func TestGetOutgoingWebhooksByTeam(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -706,9 +684,7 @@ func TestGetOutgoingWebhooksByTeam(t *testing.T) {
 }
 
 func TestGetOutgoingWebhooksByChannel(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -750,9 +726,7 @@ func TestGetOutgoingWebhooksByChannel(t *testing.T) {
 }
 
 func TestGetOutgoingWebhooksListByUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.LoginBasic()
@@ -795,9 +769,7 @@ func TestGetOutgoingWebhooksListByUser(t *testing.T) {
 }
 
 func TestGetOutgoingWebhook(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -833,9 +805,7 @@ func TestGetOutgoingWebhook(t *testing.T) {
 }
 
 func TestUpdateIncomingHook(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1038,9 +1008,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 }
 
 func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1078,9 +1046,7 @@ func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 }
 
 func TestRegenOutgoingHookToken(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1114,9 +1080,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 }
 
 func TestUpdateOutgoingHook(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1339,9 +1303,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 }
 
 func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1379,9 +1341,7 @@ func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
 }
 
 func TestDeleteOutgoingHook(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

@@ -20,9 +20,7 @@ import (
 )
 
 func TestListImports(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -113,9 +111,7 @@ func TestListImports(t *testing.T) {
 }
 
 func TestImportInLocalMode(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := SetupWithServerOptions(t, []app.Option{app.RunEssentialJobs})
 	defer th.TearDown()
 

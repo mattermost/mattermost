@@ -14,9 +14,7 @@ import (
 )
 
 func TestGetPostsUsage(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("returns error when AnalyticsPostCount fails", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()

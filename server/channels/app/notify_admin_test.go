@@ -15,9 +15,7 @@ import (
 )
 
 func Test_SendNotifyAdminPosts(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("no error sending non trial upgrade post when no notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()

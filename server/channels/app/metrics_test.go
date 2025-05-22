@@ -24,9 +24,7 @@ func configureMetrics(th *TestHelper) {
 }
 
 func TestMobileMetrics(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := SetupEnterprise(t, StartMetrics)
 	defer th.TearDown()
 

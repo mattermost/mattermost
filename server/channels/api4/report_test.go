@@ -14,9 +14,7 @@ import (
 )
 
 func TestGetUsersForReporting(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -62,9 +60,7 @@ func TestGetUsersForReporting(t *testing.T) {
 }
 
 func TestFillReportingBaseOptions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("default values", func(t *testing.T) {
 		values := url.Values{}
 
@@ -120,9 +116,7 @@ func TestFillReportingBaseOptions(t *testing.T) {
 }
 
 func TestFillUserReportOptions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	validTeamID := model.NewId()
 
 	t.Run("default values", func(t *testing.T) {

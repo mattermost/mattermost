@@ -47,9 +47,7 @@ var testData []model.ReportableObject = []model.ReportableObject{
 }
 
 func TestSaveReportChunk(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -72,9 +70,7 @@ func TestSaveReportChunk(t *testing.T) {
 }
 
 func TestCompileReportChunks(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -115,9 +111,7 @@ some-other-other-name,600,2022-01-01
 }
 
 func TestCheckForExistingJobs(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

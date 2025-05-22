@@ -15,9 +15,7 @@ import (
 )
 
 func TestParseStaticListArgument(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	items := []model.AutocompleteListItem{
 		{
 			Hint:     "[hint]",
@@ -94,9 +92,7 @@ func TestParseStaticListArgument(t *testing.T) {
 }
 
 func TestParseInputTextArgument(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	argument := &model.AutocompleteArg{
 		Name:     "", // positional
 		HelpText: "some_help",
@@ -142,9 +138,7 @@ func TestParseInputTextArgument(t *testing.T) {
 }
 
 func TestParseNamedArguments(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	argument := &model.AutocompleteArg{
 		Name:     "name", // named
 		HelpText: "some_help",
@@ -210,9 +204,7 @@ func TestParseNamedArguments(t *testing.T) {
 }
 
 func TestSuggestions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -339,9 +331,7 @@ func TestSuggestions(t *testing.T) {
 }
 
 func TestCommandWithOptionalArgs(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -629,9 +619,7 @@ func createJiraAutocompleteData() *model.AutocompleteData {
 }
 
 func TestDynamicListArgsForBuiltin(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

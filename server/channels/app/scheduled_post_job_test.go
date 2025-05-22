@@ -14,9 +14,7 @@ import (
 )
 
 func TestProcessScheduledPosts(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("base case - happy path", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -269,9 +267,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 }
 
 func TestHandleFailedScheduledPosts(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

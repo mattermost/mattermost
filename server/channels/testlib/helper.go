@@ -379,3 +379,9 @@ func (h *MainHelper) execOnEachReplica(query string, args ...any) error {
 	}
 	return nil
 }
+
+func (h *MainHelper) Parallel(t *testing.T) {
+	if h.Options.RunParallel {
+		t.Parallel()
+	}
+}

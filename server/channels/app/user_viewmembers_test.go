@@ -14,9 +14,7 @@ import (
 )
 
 func TestRestrictedViewMembers(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 

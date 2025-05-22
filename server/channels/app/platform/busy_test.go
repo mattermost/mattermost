@@ -16,9 +16,7 @@ import (
 )
 
 func TestBusySet(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
@@ -58,9 +56,7 @@ func TestBusySet(t *testing.T) {
 }
 
 func TestBusyExpires(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
@@ -98,9 +94,7 @@ func TestBusyExpires(t *testing.T) {
 }
 
 func TestBusyRace(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)

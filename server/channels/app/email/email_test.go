@@ -13,9 +13,7 @@ import (
 )
 
 func TestCondenseSiteURL(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	require.Equal(t, "", condenseSiteURL(""))
 	require.Equal(t, "mattermost.com", condenseSiteURL("mattermost.com"))
@@ -38,9 +36,7 @@ func TestCondenseSiteURL(t *testing.T) {
 }
 
 func TestSendInviteEmails(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.ConfigureInbucketMail()
@@ -263,9 +259,7 @@ func TestSendInviteEmails(t *testing.T) {
 }
 
 func TestSendCloudWelcomeEmail(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.ConfigureInbucketMail()
@@ -305,9 +299,7 @@ func TestSendCloudWelcomeEmail(t *testing.T) {
 }
 
 func TestMailServiceConfig(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	configuredReplyTo := "feedbackexample@test.com"
 	customReplyTo := "customreplyto@test.com"
 

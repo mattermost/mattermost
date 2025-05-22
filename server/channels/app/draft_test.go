@@ -15,9 +15,7 @@ import (
 )
 
 func TestGetDraft(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -58,9 +56,7 @@ func TestGetDraft(t *testing.T) {
 }
 
 func TestUpsertDraft(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -119,9 +115,7 @@ func TestUpsertDraft(t *testing.T) {
 }
 
 func TestCreateDraft(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -180,9 +174,7 @@ func TestCreateDraft(t *testing.T) {
 }
 
 func TestUpdateDraft(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -228,9 +220,7 @@ func TestUpdateDraft(t *testing.T) {
 }
 
 func TestGetDraftsForUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -354,9 +344,7 @@ func TestGetDraftsForUser(t *testing.T) {
 }
 
 func TestDeleteDraft(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

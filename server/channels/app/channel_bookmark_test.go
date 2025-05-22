@@ -40,9 +40,7 @@ func createBookmark(name string, bookmarkType model.ChannelBookmarkType, channel
 }
 
 func TestCreateBookmark(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -84,9 +82,7 @@ func TestCreateBookmark(t *testing.T) {
 }
 
 func TestUpdateBookmark(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -334,9 +330,7 @@ func TestUpdateBookmark(t *testing.T) {
 }
 
 func TestDeleteBookmark(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -362,9 +356,7 @@ func TestDeleteBookmark(t *testing.T) {
 }
 
 func TestGetChannelBookmarks(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -449,9 +441,7 @@ func TestGetChannelBookmarks(t *testing.T) {
 }
 
 func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

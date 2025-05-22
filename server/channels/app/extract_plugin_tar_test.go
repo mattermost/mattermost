@@ -35,9 +35,7 @@ func assertDirectoryContents(t *testing.T, dir string, expectedFiles []string) {
 }
 
 func TestExtractTarGz(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	makeArchive := func(t *testing.T, files []*tar.Header) bytes.Buffer {
 		// Build an in-memory archive with the specified files, writing the path as each
 		// file's contents when applicable.

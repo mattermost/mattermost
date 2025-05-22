@@ -17,9 +17,7 @@ import (
 )
 
 func TestGetAllRoles(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -42,9 +40,7 @@ func TestGetAllRoles(t *testing.T) {
 }
 
 func TestGetRole(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -87,9 +83,7 @@ func TestGetRole(t *testing.T) {
 }
 
 func TestGetRoleByName(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -132,9 +126,7 @@ func TestGetRoleByName(t *testing.T) {
 }
 
 func TestGetRolesByNames(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -227,9 +219,7 @@ func TestGetRolesByNames(t *testing.T) {
 }
 
 func TestPatchRole(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

@@ -25,9 +25,7 @@ const (
 )
 
 func TestCORSRequestHandling(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	for name, testcase := range map[string]struct {
 		AllowCorsFrom            string
 		CorsExposedHeaders       string

@@ -27,9 +27,7 @@ func genRateLimitSettings(useAuth, useIP bool, header string) *model.RateLimitSe
 }
 
 func TestNewRateLimiterSuccess(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	settings := genRateLimitSettings(false, false, "")
 	rateLimiter, err := NewRateLimiter(settings, nil)
 	require.NotNil(t, rateLimiter)
@@ -41,9 +39,7 @@ func TestNewRateLimiterSuccess(t *testing.T) {
 }
 
 func TestNewRateLimiterFailure(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	invalidSettings := genRateLimitSettings(false, false, "")
 	invalidSettings.MaxBurst = model.NewPointer(-100)
 	rateLimiter, err := NewRateLimiter(invalidSettings, nil)
@@ -56,9 +52,7 @@ func TestNewRateLimiterFailure(t *testing.T) {
 }
 
 func TestGenerateKey(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	cases := []struct {
 		useAuth         bool
 		useIP           bool
@@ -100,9 +94,7 @@ func TestGenerateKey(t *testing.T) {
 }
 
 func TestGenerateKey_TrustedHeader(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	req := httptest.NewRequest("GET", "/", nil)
 	req.RemoteAddr = "10.10.10.5:80"
 	req.Header.Set("X-Forwarded-For", "10.6.3.1, 10.5.1.2")

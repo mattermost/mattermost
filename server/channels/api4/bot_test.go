@@ -17,9 +17,7 @@ import (
 )
 
 func TestCreateBot(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("create bot without permissions", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -171,9 +169,7 @@ func TestCreateBot(t *testing.T) {
 }
 
 func TestPatchBot(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("patch non-existent bot", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -597,9 +593,7 @@ func TestPatchBot(t *testing.T) {
 }
 
 func TestGetBot(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -781,9 +775,7 @@ func TestGetBot(t *testing.T) {
 }
 
 func TestGetBots(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 
@@ -1092,9 +1084,7 @@ func TestGetBots(t *testing.T) {
 }
 
 func TestDisableBot(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("disable non-existent bot", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -1216,9 +1206,7 @@ func TestDisableBot(t *testing.T) {
 }
 
 func TestEnableBot(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("enable non-existent bot", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -1352,9 +1340,7 @@ func TestEnableBot(t *testing.T) {
 }
 
 func TestAssignBot(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1535,9 +1521,7 @@ func TestAssignBot(t *testing.T) {
 }
 
 func TestConvertBotToUser(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

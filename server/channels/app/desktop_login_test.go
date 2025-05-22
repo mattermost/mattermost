@@ -18,9 +18,7 @@ const (
 )
 
 func TestGenerateAndSaveDesktopToken(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -32,9 +30,7 @@ func TestGenerateAndSaveDesktopToken(t *testing.T) {
 }
 
 func TestValidateDesktopToken(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

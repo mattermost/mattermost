@@ -38,9 +38,7 @@ func getLicWithSkuShortName(skuShortName string) *model.License {
 }
 
 func TestSendNotifications(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -220,9 +218,7 @@ func TestSendNotifications(t *testing.T) {
 }
 
 func TestSendNotifications_MentionsFollowers(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -536,9 +532,7 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectio
 }
 
 func TestConnectFakeWebSocket(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -573,9 +567,7 @@ func TestConnectFakeWebSocket(t *testing.T) {
 }
 
 func TestSendNotificationsWithManyUsers(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -630,9 +622,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 }
 
 func TestSendOutOfChannelMentions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -674,9 +664,7 @@ func TestSendOutOfChannelMentions(t *testing.T) {
 }
 
 func TestFilterOutOfChannelMentions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -870,9 +858,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 }
 
 func TestGetExplicitMentions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	id1 := model.NewId()
 	id2 := model.NewId()
 	id3 := model.NewId()
@@ -1461,9 +1447,7 @@ func TestGetExplicitMentions(t *testing.T) {
 }
 
 func TestGetExplicitMentionsAtHere(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("Boundary cases", func(t *testing.T) {
 		// test all the boundary cases that we know can break up terms (and those that we know won't)
 		cases := map[string]bool{
@@ -1540,9 +1524,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 }
 
 func TestAllowChannelMentions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1581,9 +1563,7 @@ func TestAllowChannelMentions(t *testing.T) {
 }
 
 func TestAllowGroupMentions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1642,9 +1622,7 @@ func TestAllowGroupMentions(t *testing.T) {
 }
 
 func TestGetMentionKeywords(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1970,9 +1948,7 @@ func TestGetMentionKeywords(t *testing.T) {
 }
 
 func TestGetMentionKeywords_Groups(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -2222,9 +2198,7 @@ func TestGetMentionKeywords_Groups(t *testing.T) {
 }
 
 func TestGetMentionsEnabledFields(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	attachmentWithTextAndPreText := model.SlackAttachment{
 		Text:    "@here with mentions",
 		Pretext: "@Channel some comment for the channel",
@@ -2264,9 +2238,7 @@ func TestGetMentionsEnabledFields(t *testing.T) {
 }
 
 func TestPostNotificationGetChannelName(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	sender := &model.User{Id: model.NewId(), Username: "sender", FirstName: "Sender", LastName: "Sender", Nickname: "Sender"}
 	recipient := &model.User{Id: model.NewId(), Username: "recipient", FirstName: "Recipient", LastName: "Recipient", Nickname: "Recipient"}
 	otherUser := &model.User{Id: model.NewId(), Username: "other", FirstName: "Other", LastName: "Other", Nickname: "Other"}
@@ -2349,9 +2321,7 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 }
 
 func TestPostNotificationGetSenderName(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -2456,9 +2426,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 }
 
 func TestGetNotificationNameFormat(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2482,9 +2450,7 @@ func TestGetNotificationNameFormat(t *testing.T) {
 }
 
 func TestUserAllowsEmail(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -2595,9 +2561,7 @@ func TestUserAllowsEmail(t *testing.T) {
 }
 
 func TestInsertGroupMentions(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2732,9 +2696,7 @@ func TestInsertGroupMentions(t *testing.T) {
 }
 
 func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2860,9 +2822,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 }
 
 func TestReplyPostNotificationsWithCRT(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("Reply posts only shows badges for explicit mentions in collapsed threads", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -3019,9 +2979,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 }
 
 func TestChannelAutoFollowThreads(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3085,9 +3043,7 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 }
 
 func TestRemoveNotifications(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3201,9 +3157,7 @@ func TestRemoveNotifications(t *testing.T) {
 }
 
 func TestShouldAckWebsocketNotification(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("should return true if channel notify level is ALL", func(t *testing.T) {
 		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyNone, model.ChannelNotifyAll))
 	})

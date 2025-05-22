@@ -899,3 +899,7 @@ func decodeJSON[T any](o any, result *T) *T {
 
 	return result
 }
+
+func (th *TestHelper) Parallel(t *testing.T) {
+	mainHelper.Parallel(t)
+}

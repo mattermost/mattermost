@@ -67,9 +67,7 @@ func AssertChannelCount(t *testing.T, a *App, channelType model.ChannelType, exp
 }
 
 func TestImportImportLine(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -118,9 +116,7 @@ func TestImportImportLine(t *testing.T) {
 }
 
 func TestStopOnError(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -151,9 +147,7 @@ func TestStopOnError(t *testing.T) {
 }
 
 func TestImportBulkImport(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -243,9 +237,7 @@ func TestImportBulkImport(t *testing.T) {
 }
 
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	data := imports.LineImportData{
 		Type:    "version",
 		Version: model.NewPointer(1),
@@ -288,9 +280,7 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 }
 
 func TestProcessAttachments(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	c := request.TestContext(t)
 
 	genAttachments := func() *[]imports.AttachmentImportData {
@@ -473,9 +463,7 @@ func BenchmarkBulkImport(b *testing.B) {
 }
 
 func TestImportBulkImportWithAttachments(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

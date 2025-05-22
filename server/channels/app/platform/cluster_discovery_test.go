@@ -11,9 +11,7 @@ import (
 )
 
 func TestClusterDiscoveryService(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

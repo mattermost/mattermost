@@ -16,9 +16,7 @@ import (
 )
 
 func TestPluginDeadlock(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 	t.Run("Single Plugin", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()

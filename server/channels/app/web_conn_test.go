@@ -18,9 +18,7 @@ import (
 // happen inside web_hub.go before the event is actually broadcasted, and checked
 // via ShouldSendEvent.
 func TestWebConnShouldSendEvent(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
