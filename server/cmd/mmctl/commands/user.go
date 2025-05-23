@@ -90,20 +90,22 @@ var SendPasswordResetEmailCmd = &cobra.Command{
 }
 
 var UpdateUserEmailCmd = &cobra.Command{
-	Use:     "email [user] [new email]",
-	Short:   "Change email of the user",
-	Long:    "Change the email address associated with a user.",
-	Example: "  user email testuser user@example.com",
-	RunE:    withClient(updateUserEmailCmdF),
+	Use:        "email [user] [new email]",
+	Short:      "Change email of the user",
+	Long:       "Change the email address associated with a user.",
+	Example:    "  user email testuser user@example.com",
+	Deprecated: "please use 'mmctl user edit email' instead.",
+	RunE:       withClient(updateUserEmailCmdF),
 }
 
 var UpdateUsernameCmd = &cobra.Command{
-	Use:     "username [user] [new username]",
-	Short:   "Change username of the user",
-	Long:    "Change username of the user.",
-	Example: "  user username testuser newusername",
-	Args:    cobra.ExactArgs(2),
-	RunE:    withClient(updateUsernameCmdF),
+	Use:        "username [user] [new username]",
+	Short:      "Change username of the user",
+	Long:       "Change username of the user.",
+	Example:    "  user username testuser newusername",
+	Deprecated: "please use 'mmctl user edit username' instead.",
+	Args:       cobra.ExactArgs(2),
+	RunE:       withClient(updateUsernameCmdF),
 }
 
 var ChangePasswordUserCmd = &cobra.Command{
@@ -136,6 +138,43 @@ var ResetUserMfaCmd = &cobra.Command{
 If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon as they log in.`,
 	Example: "  user resetmfa user@example.com",
 	RunE:    withClient(resetUserMfaCmdF),
+}
+
+var UserEditCmd = &cobra.Command{
+	Use:   "edit",
+	Short: "Edit user properties",
+	Long:  "Edit user properties like username, email, or authdata.",
+}
+
+var UserEditUsernameCmd = &cobra.Command{
+	Use:               "username [user] [new username]",
+	Short:             "Edit user's username",
+	Long:              "Edit a user's username.",
+	Example:           "user edit username user@example.com newusername",
+	Args:              cobra.ExactArgs(2),
+	ValidArgsFunction: validateArgsWithClient(userEditCompletionF),
+	RunE:              withClient(userEditUsernameCmdF),
+}
+
+var UserEditEmailCmd = &cobra.Command{
+	Use:               "email [user] [new email]",
+	Short:             "Edit user's email",
+	Long:              "Edit a user's email address.",
+	Example:           "user edit email user@example.com newemail@example.com",
+	Args:              cobra.ExactArgs(2),
+	ValidArgsFunction: validateArgsWithClient(userEditCompletionF),
+	RunE:              withClient(userEditEmailCmdF),
+}
+
+var UserEditAuthdataCmd = &cobra.Command{
+	Use:   "authdata [user] [new authdata]",
+	Short: "Edit user's authdata",
+	Long:  "Edit a user's authentication data. Use empty string to clear authdata.",
+	Example: `user edit authdata user@example.com newid123
+  user edit authdata user@example.com ""`,
+	Args:              cobra.ExactArgs(2),
+	ValidArgsFunction: validateArgsWithClient(userEditCompletionF),
+	RunE:              withClient(userEditAuthdataCmdF),
 }
 
 var DeleteUsersCmd = &cobra.Command{
@@ -413,6 +452,7 @@ Global Flags:
 		UpdateUsernameCmd,
 		ChangePasswordUserCmd,
 		ResetUserMfaCmd,
+		UserEditCmd,
 		DeleteUsersCmd,
 		DeleteAllUsersCmd,
 		SearchUserCmd,
@@ -429,6 +469,11 @@ Global Flags:
 		PreferenceGetCmd,
 		PreferenceUpdateCmd,
 		PreferenceDeleteCmd,
+	)
+	UserEditCmd.AddCommand(
+		UserEditUsernameCmd,
+		UserEditEmailCmd,
+		UserEditAuthdataCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -1122,6 +1167,88 @@ func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string)
 	}
 
 	return errs.ErrorOrNil()
+}
+
+func userEditCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) >= 1 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	return fetchAndComplete(
+		func(ctx context.Context, c client.Client, page, perPage int) ([]*model.User, *model.Response, error) {
+			return c.GetUsers(ctx, page, perPage, "")
+		},
+		func(u *model.User) []string { return []string{u.Id, u.Username, u.Email} },
+	)(ctx, c, cmd, args, toComplete)
+}
+
+func userEditCmdF(c client.Client, _ *cobra.Command, args []string, fieldName string) error {
+	printer.SetSingle(true)
+
+	userArg := args[0]
+	newValue := args[1]
+
+	user, err := getUserFromArg(c, userArg)
+	if err != nil {
+		return err
+	}
+
+	// Update the appropriate field based on fieldName
+	switch fieldName {
+	case "username":
+		if !model.IsValidUsername(newValue) {
+			return fmt.Errorf("invalid username: '%s'", newValue)
+		}
+		user.Username = newValue
+	case "email":
+		if !model.IsValidEmail(newValue) {
+			return fmt.Errorf("invalid email: '%s'", newValue)
+		}
+		user.Email = newValue
+	case "authdata":
+		if len(newValue) > model.UserAuthDataMaxLength {
+			return fmt.Errorf("authdata too long. Maximum length is %d characters", model.UserAuthDataMaxLength)
+		}
+		if newValue == "" {
+			user.AuthData = nil
+		} else {
+			user.AuthData = &newValue
+		}
+	default:
+		return fmt.Errorf("unsupported field: %s", fieldName)
+	}
+
+	ruser, _, err := c.UpdateUser(context.TODO(), user)
+	if err != nil {
+		return fmt.Errorf("failed to update user %s: %w", fieldName, err)
+	}
+
+	// Print field-specific success message
+	switch fieldName {
+	case "username":
+		printer.PrintT("User {{.Username}} username updated successfully", ruser)
+	case "email":
+		printer.PrintT("User {{.Username}} email updated successfully", ruser)
+	case "authdata":
+		if newValue == "" {
+			printer.PrintT("User {{.Username}} authdata cleared successfully", ruser)
+		} else {
+			printer.PrintT("User {{.Username}} authdata updated successfully", ruser)
+		}
+	}
+
+	return nil
+}
+
+func userEditUsernameCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	return userEditCmdF(c, cmd, args, "username")
+}
+
+func userEditEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	return userEditCmdF(c, cmd, args, "email")
+}
+
+func userEditAuthdataCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	return userEditCmdF(c, cmd, args, "authdata")
 }
 
 type ByPreference model.Preferences
