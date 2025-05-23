@@ -1223,17 +1223,19 @@ func userEditCmdF(c client.Client, _ *cobra.Command, args []string, fieldName st
 			return fmt.Errorf("authdata too long. Maximum length is %d characters", model.UserAuthDataMaxLength)
 		}
 
-		ruser, _, err := c.UpdateUser(context.TODO(), user)
+		_, _, err := c.UpdateUserAuth(context.TODO(), user.Id, &model.UserAuth{
+			AuthData:    &newValue,
+			AuthService: user.AuthService,
+		})
 		if err != nil {
 			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
 		}
 
 		if newValue == "" {
-			printer.PrintT("User {{.Username}} authdata cleared successfully", ruser)
+			printer.PrintT("User {{.Username}} authdata cleared successfully", user)
 		} else {
-			printer.PrintT("User {{.Username}} authdata updated successfully", ruser)
+			printer.PrintT("User {{.Username}} authdata updated successfully", user)
 		}
-
 	default:
 		return fmt.Errorf("unsupported field: %s", fieldName)
 	}
