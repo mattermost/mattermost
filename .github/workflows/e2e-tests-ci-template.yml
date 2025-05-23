@@ -441,6 +441,7 @@ jobs:
 
       # Configure AWS credentials
       - name: ci/aws-configure
+        if: (inputs.TEST == 'playwright')
         uses: aws-actions/configure-aws-credentials@v4.2.0
         with:
           aws-region: us-east-1
@@ -449,25 +450,42 @@ jobs:
 
       # Upload results folder to S3
       - name: ci/upload-results-to-s3
+        if: (inputs.TEST == 'playwright')
         id: upload-to-s3
         run: |
-          S3_PATH="e2e-reports/${{ github.run_id }}/${{ inputs.TEST }}"
+          echo "Checking if results directory exists:"
+          ls -la "e2e-tests/${{ inputs.TEST }}/results/" || echo "Directory not found!"
+
+          # Use PR number if available
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+          elif [[ -n "${{ github.event.pull_request.number }}" ]]; then
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+          else
+            echo "❌ This workflow must run in the context of a PR to determine PR number."
+            exit 1
+          fi
+
+          S3_PATH="${PR_NUMBER}/e2e-reports/${{ inputs.TEST }}"
+          LOCAL_RESULTS_PATH="e2e-tests/${{ inputs.TEST }}/results/"
+
+          echo "Checking for local results directory..."
+          ls -la "$LOCAL_RESULTS_PATH" || { echo "❌ Results path not found: $LOCAL_RESULTS_PATH"; exit 1; }
 
           echo "Uploading to s3://${AWS_S3_BUCKET}/${S3_PATH}/"
-
-          aws s3 sync "e2e-tests/${{ inputs.TEST }}/results/" "s3://${AWS_S3_BUCKET}/${S3_PATH}/" \
+          aws s3 sync "$LOCAL_RESULTS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/" \
             --acl public-read \
             --cache-control "no-cache"
 
           INDEX_URL="https://${AWS_S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${S3_PATH}/reporter/index.html"
-
-          echo "Report URL: $INDEX_URL"
-          echo "report_url=${INDEX_URL}" >> "$GITHUB_OUTPUT"
+          echo "✅ Report uploaded to: $INDEX_URL"
+          echo "report_url=$INDEX_URL" >> "$GITHUB_OUTPUT"
         env:
           AWS_REGION: us-east-1
           AWS_S3_BUCKET: mattermost-cypress-report
 
       - name: Print report URL
+        if: (inputs.TEST == 'playwright')
         run: |
           echo "The report is available at: ${{ steps.upload-to-s3.outputs.report_url }}"
 
