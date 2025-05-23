@@ -259,13 +259,10 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 	})
 
 	t.Run("mysql database not supported", func(t *testing.T) {
-		// Set database driver to MySQL
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.SqlSettings.DriverName = model.DatabaseDriverMysql
-		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.SqlSettings.DriverName = model.DatabaseDriverPostgres
-		})
+		// Skip this test unless running with MySQL driver
+		if *th.App.Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
+			t.Skip("Skipping test - only runs with MySQL driver")
+		}
 
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -426,13 +423,10 @@ func TestRequestTrialLicense(t *testing.T) {
 	})
 
 	t.Run("mysql database not supported", func(t *testing.T) {
-		// Set database driver to MySQL
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.SqlSettings.DriverName = model.DatabaseDriverMysql
-		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.SqlSettings.DriverName = model.DatabaseDriverPostgres
-		})
+		// Skip this test unless running with MySQL driver
+		if *th.App.Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
+			t.Skip("Skipping test - only runs with MySQL driver")
+		}
 
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
