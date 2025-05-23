@@ -385,6 +385,7 @@ jobs:
       failed_expected: "${{ steps.calculate-results.outputs.failed_expected }}"
       pass_rate: "${{ steps.calculate-results.outputs.pass_rate }}"
       commit_status_message: "${{ steps.calculate-results.outputs.commit_status_message }}"
+      playwright_report_url: "${{ steps.read-report-url.outputs.REPORT_URL }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -426,7 +427,7 @@ jobs:
           MM_ENV: "${{ inputs.MM_ENV }}"
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
-          CI: true
+          CI: "true"
           AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
           AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           AWS_REGION: "us-east-1"
@@ -443,6 +444,47 @@ jobs:
             e2e-tests/${{ inputs.TEST }}/logs/
             e2e-tests/${{ inputs.TEST }}/results/
           overwrite: true
+
+      - name: ci/upload-report-global
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: e2e-test-results-${{ inputs.TEST }}
+          path: |
+            e2e-tests/${{ inputs.TEST }}/logs/
+            e2e-tests/${{ inputs.TEST }}/results/
+
+      # Configure AWS credentials
+      - name: ci/aws-configure
+        uses: aws-actions/configure-aws-credentials@v4.2.0
+        with:
+          aws-region: "us-east-1"
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      # Upload results folder to S3
+      - name: ci/upload-results-to-s3
+        run: |
+          # Create a unique path for this run
+          S3_PATH="e2e-reports/${{ github.run_id }}/${{ inputs.TEST }}"
+          
+          # Sync the results folder to S3
+          aws s3 sync e2e-tests/${{ inputs.TEST }}/results/ s3://${{ env.AWS_S3_BUCKET }}/$S3_PATH/ \
+            --acl public-read \
+            --cache-control "no-cache"
+          
+          # Find and output the index.html URL
+          INDEX_URL="https://${{ env.AWS_S3_BUCKET }}.s3.${{ env.AWS_REGION }}.amazonaws.com/$S3_PATH/reporter/index.html"
+          echo "Report URL: $INDEX_URL"
+          
+          # Save the URL as a step output
+          echo "REPORT_URL=$INDEX_URL" >> $GITHUB_OUTPUT
+        shell: bash
+        env:
+          AWS_REGION: "us-east-1"
+          AWS_S3_BUCKET: "mattermost-cypress-report"
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+
       - name: ci/upload-report-url
         if: "${{ inputs.enable_reporting && inputs.TEST == 'playwright' }}"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
