@@ -781,7 +781,7 @@ func TestReplicaLagQuery(t *testing.T) {
 
 			require.NoError(t, store.initConnection())
 			store.stores.post = newSqlPostStore(store, mockMetrics)
-			err = store.migrate(migrationsDirectionUp, false)
+			err = store.migrate(migrationsDirectionUp, false, true)
 			require.NoError(t, err)
 
 			defer store.Close()
@@ -795,8 +795,54 @@ func TestReplicaLagQuery(t *testing.T) {
 	}
 }
 
-var errDriverMismatch = errors.New("database drivers mismatch")
-var errDriverUnsupported = errors.New("database driver not supported")
+func TestInvalidReplicaLagDataSource(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	testDrivers := []string{
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
+	}
+
+	for _, driver := range testDrivers {
+		t.Run(driver, func(t *testing.T) {
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				t.Skip(err)
+			}
+
+			// Set an invalid DataSource that will fail to connect
+			settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
+				DataSource:       model.NewPointer("invalid://connection/string"),
+				QueryAbsoluteLag: model.NewPointer("SELECT 1"),
+				QueryTimeLag:     model.NewPointer("SELECT 1"),
+			}}
+
+			mockMetrics := &mocks.MetricsInterface{}
+			mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
+
+			store := &SqlStore{
+				rrCounter:   0,
+				srCounter:   0,
+				settings:    settings,
+				metrics:     mockMetrics,
+				logger:      logger,
+				quitMonitor: make(chan struct{}),
+				wgMonitor:   &sync.WaitGroup{},
+			}
+
+			require.NoError(t, store.initConnection())
+			defer store.Close()
+
+			// Verify no replica lag handles were added despite having ReplicaLagSettings
+			assert.Equal(t, 0, len(store.replicaLagHandles))
+		})
+	}
+}
+
+var (
+	errDriverMismatch    = errors.New("database drivers mismatch")
+	errDriverUnsupported = errors.New("database driver not supported")
+)
 
 func makeSqlSettings(driver string) (*model.SqlSettings, error) {
 	// When running under CI, only one database engine container is launched

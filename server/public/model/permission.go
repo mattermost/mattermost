@@ -167,6 +167,8 @@ var PermissionGetLogs *Permission
 var PermissionGetAnalytics *Permission
 var PermissionReadLicenseInformation *Permission
 var PermissionManageLicenseInformation *Permission
+var PermissionManagePublicChannelBanner *Permission
+var PermissionManagePrivateChannelBanner *Permission
 
 var PermissionSysconsoleReadAbout *Permission
 var PermissionSysconsoleWriteAbout *Permission
@@ -251,6 +253,9 @@ var PermissionSysconsoleWriteEnvironmentPerformanceMonitoring *Permission
 
 var PermissionSysconsoleReadEnvironmentDeveloper *Permission
 var PermissionSysconsoleWriteEnvironmentDeveloper *Permission
+
+var PermissionSysconsoleReadEnvironmentMobileSecurity *Permission
+var PermissionSysconsoleWriteEnvironmentMobileSecurity *Permission
 
 var PermissionSysconsoleReadSite *Permission
 var PermissionSysconsoleWriteSite *Permission
@@ -1280,6 +1285,20 @@ func initializePermissions() {
 		PermissionScopeChannel,
 	}
 
+	PermissionManagePublicChannelBanner = &Permission{
+		"manage_public_channel_banner",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
+	PermissionManagePrivateChannelBanner = &Permission{
+		"manage_private_channel_banner",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
 	PermissionReadOtherUsersTeams = &Permission{
 		"read_other_users_teams",
 		"authentication.permissions.read_other_users_teams.name",
@@ -1618,6 +1637,18 @@ func initializePermissions() {
 	}
 	PermissionSysconsoleWriteEnvironmentDeveloper = &Permission{
 		"sysconsole_write_environment_developer",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionSysconsoleReadEnvironmentMobileSecurity = &Permission{
+		"sysconsole_read_environment_mobile_security",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionSysconsoleWriteEnvironmentMobileSecurity = &Permission{
+		"sysconsole_write_environment_mobile_security",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -2262,6 +2293,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadEnvironmentSessionLengths,
 		PermissionSysconsoleReadEnvironmentPerformanceMonitoring,
 		PermissionSysconsoleReadEnvironmentDeveloper,
+		PermissionSysconsoleReadEnvironmentMobileSecurity,
 		PermissionSysconsoleReadSiteCustomization,
 		PermissionSysconsoleReadSiteLocalization,
 		PermissionSysconsoleReadSiteUsersAndTeams,
@@ -2321,6 +2353,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteEnvironmentSessionLengths,
 		PermissionSysconsoleWriteEnvironmentPerformanceMonitoring,
 		PermissionSysconsoleWriteEnvironmentDeveloper,
+		PermissionSysconsoleWriteEnvironmentMobileSecurity,
 		PermissionSysconsoleWriteSiteCustomization,
 		PermissionSysconsoleWriteSiteLocalization,
 		PermissionSysconsoleWriteSiteUsersAndTeams,
@@ -2503,6 +2536,8 @@ func initializePermissions() {
 		PermissionEditBookmarkPrivateChannel,
 		PermissionDeleteBookmarkPrivateChannel,
 		PermissionOrderBookmarkPrivateChannel,
+		PermissionManagePublicChannelBanner,
+		PermissionManagePrivateChannelBanner,
 	}
 
 	GroupScopedPermissions := []*Permission{

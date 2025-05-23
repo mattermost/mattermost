@@ -153,7 +153,7 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 	}
 
 	if nErr != nil {
-		return nil, model.NewAppError("errorGetPostId", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return nil, model.NewAppError("deduplicateCreatePost", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	// If another thread saved the cache record, but hasn't yet updated it with the actual post
@@ -165,8 +165,11 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 
 	// If the other thread finished creating the post, return the created post back to the
 	// client, making the API call feel idempotent.
-	actualPost, err := a.GetSinglePost(rctx, postID, false)
-	if err != nil {
+	actualPost, err := a.GetPostIfAuthorized(rctx, postID, rctx.Session(), false)
+	if err != nil && err.StatusCode == http.StatusForbidden {
+		rctx.Logger().Warn("Ignoring pending_post_id for which the user is unauthorized", mlog.String("pending_post_id", post.PendingPostId), mlog.String("post_id", postID), mlog.Err(err))
+		return nil, nil
+	} else if err != nil {
 		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -277,7 +280,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	if pchan != nil {
 		result := <-pchan
 		if result.NErr != nil {
-			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest).Wrap(result.NErr)
 		}
 		parentPostList = result.Data
 		if len(parentPostList.Posts) == 0 || !parentPostList.IsChannelId(post.ChannelId) {
@@ -297,12 +300,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	// Temporary fix so old plugins don't clobber new fields in SlackAttachment struct, see MM-13088
-	if attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment); ok {
+	if attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment); ok {
 		jsonAttachments, err := json.Marshal(attachments)
 		if err == nil {
 			attachmentsInterface := []any{}
 			err = json.Unmarshal(jsonAttachments, &attachmentsInterface)
-			post.AddProp("attachments", attachmentsInterface)
+			post.AddProp(model.PostPropsAttachments, attachmentsInterface)
 		}
 		if err != nil {
 			c.Logger().Warn("Could not convert post attachments to map interface.", mlog.Err(err))
@@ -524,9 +527,9 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 	}
 
 	if len(channelMentionsProp) > 0 {
-		post.AddProp("channel_mentions", channelMentionsProp)
+		post.AddProp(model.PostPropsChannelMentions, channelMentionsProp)
 	} else if post.GetProps() != nil {
-		post.DelProp("channel_mentions")
+		post.DelProp(model.PostPropsChannelMentions)
 	}
 
 	matched := atMentionPattern.MatchString(post.Message)
@@ -2077,7 +2080,7 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 
 func isPostMention(user *model.User, post *model.Post, keywords MentionKeywords, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
 	// Prevent the user from mentioning themselves
-	if post.UserId == user.Id && post.GetProp("from_webhook") != "true" {
+	if post.UserId == user.Id && post.GetProp(model.PostPropsFromWebhook) != "true" {
 		return false
 	}
 
@@ -2580,7 +2583,7 @@ func (a *App) CopyWranglerPostlist(c request.CTX, wpl *model.WranglerPostList, t
 func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelID string, user *model.User) *model.AppError {
 	postListResponse, appErr := a.GetPostThread(postID, model.GetPostsOptions{}, user.Id)
 	if appErr != nil {
-		return model.NewAppError("getPostThread", "app.post.move_thread_command.error", nil, "postID="+postID+", "+"UserId="+user.Id+"", http.StatusBadRequest)
+		return model.NewAppError("getPostThread", "app.post.move_thread_command.error", nil, "postID="+postID+", "+"UserId="+user.Id+"", http.StatusBadRequest).Wrap(appErr)
 	}
 	wpl := postListResponse.BuildWranglerPostList()
 

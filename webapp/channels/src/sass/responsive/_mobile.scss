@@ -35,100 +35,6 @@
                 flex: 1;
             }
 
-            .Menu {
-                position: fixed;
-                top: 48px;
-                left: 0;
-                display: block;
-                overflow: hidden;
-                width: 100%;
-                height: 100%;
-                padding: 2.5em 0 0;
-                padding-bottom: 50px;
-                background: functions.alpha-color(variables.$black, 0.9);
-                transition: all 0.35s ease;
-
-                body.announcement-bar--fixed & {
-                    top: calc(48px + #{variables.$announcement-bar-height});
-                    height: calc(100% - 48px - #{variables.$announcement-bar-height});
-                }
-            }
-
-            .Menu__content {
-                position: absolute;
-                top: 0;
-                overflow: auto;
-                width: 100%;
-                max-width: 100%;
-                height: 100%;
-                max-height: 100%;
-                padding: 2rem 2rem 5rem;
-                background: transparent;
-            }
-
-            .Menu__close {
-                position: fixed;
-                top: 70px;
-                right: 20px;
-                display: block;
-                width: 30px;
-                height: 30px;
-                padding-top: 13px;
-                border: 1px solid variables.$white;
-                border-radius: 50%;
-                margin-left: -15px;
-                color: variables.$white;
-                font-family: 'Open Sans', sans-serif;
-                font-size: 23px;
-                font-weight: 200;
-                line-height: 0;
-                opacity: 1;
-                text-align: center;
-                text-shadow: none;
-            }
-
-            .dropdown-menu {
-                .dropdown__divider {
-                    & + .dropdown__divider {
-                        display: none;
-                    }
-                }
-
-                >li {
-                    >a,
-                    >button,
-                    >.styleSelectableItemDiv {
-                        display: flex;
-                        width: 100%;
-                        height: auto;
-                        justify-content: center;
-                        padding: 0.4rem 2rem;
-                        margin: 0 auto;
-                        color: variables.$white;
-                        font-weight: 600;
-                        line-height: 32px;
-                        text-align: center;
-
-                        &:hover {
-                            background: transparent;
-                        }
-
-                        .SubMenu__icon-right {
-                            color: rgba(255, 255, 255, 0.75);
-                        }
-                    }
-
-                    .navbar-right__icon {
-                        margin: 10px;
-                    }
-
-                    hr {
-                        border-bottom: 1px solid functions.alpha-color(variables.$white, 0.3);
-                        margin: 8px auto;
-                    }
-                }
-            }
-
             .status {
                 top: 2px;
                 width: 16px;
@@ -164,16 +70,6 @@
             .settings-modal {
                 .modal-body {
                     min-height: 100%;
-                }
-
-                .nav-pills {
-                    > &__tab {
-                        &:hover {
-                            a {
-                                background: transparent !important;
-                            }
-                        }
-                    }
                 }
 
                 &.display--content {
@@ -467,41 +363,19 @@
     }
 
     .emoji-picker {
-        // !important is used to overide inline styles
-        // used on larger screens
-        top: 0 !important;
-        right: auto !important;
-        bottom: auto !important;
-        left: 0 !important;
-        width: 100%;
-        height: 100%;
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+        flex-direction: column;
         border-radius: 0;
-
-        >ul {
-            margin-top: 66px;
-        }
+        margin-right: 0;
 
         .search-grid-container {
             height: calc(100vh - 170px);
         }
     }
 
-    .emoji-picker__inner {
-        display: flex;
-        height: calc(100vh - 100px);
-        flex-direction: column;
-
-        .emoji-picker--single & {
-            height: calc(100vh - 55px);
-        }
-
-        >* {
-            flex-grow: 0;
-        }
-    }
-
-    .emoji-picker__header,
-    .modal-body .emoji-picker .emoji-picker__header {
+    .emoji-picker__header {
         display: block;
     }
 
@@ -512,19 +386,10 @@
         }
     }
 
-    .emoji-picker__search-container {
-        height: 40px;
-
-        .emoji-picker__text-container {
-            width: 95%;
-        }
-    }
-
     .emoji-picker__items {
-        flex-grow: 1;
+        flex: 1;
 
         .emoji-picker__category-header {
-            padding-top: 8px;
             font-size: 14px;
         }
     }
@@ -533,20 +398,7 @@
         width: calc(100% / 15);
         height: auto;
         padding: 0;
-        padding-top: calc(100% / 15);
-        margin: calc(100% / 45);
-
-        > div {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            display: flex;
-            width: 30px;
-            height: 30px;
-            align-items: center;
-            justify-content: center;
-            transform: translate(-50%, -50%);
-        }
+        margin-inline: calc(100% / 45);
     }
 
     .emoji-picker__preview {
@@ -558,24 +410,6 @@
         .Menu__content {
             &.dropdown-menu {
                 max-width: 100%;
-            }
-
-            &.mobile-channel-header-dropdown-enter {
-                transform: translateY(100%);
-            }
-
-            &.mobile-channel-header-dropdown-enter-active {
-                transform: translateY(0%);
-                transition: transform 0.35s ease-in;
-            }
-
-            &.mobile-channel-header-dropdown-enter-done {
-                transform: translateY(0%);
-            }
-
-            &.mobile-channel-header-dropdown-exit {
-                transform: translateY(100%);
-                transition: transform 0.35s ease-in;
             }
         }
     }
@@ -729,10 +563,6 @@
             top: 0;
             margin: 8px 0;
         }
-
-        .help__text {
-            display: none;
-        }
     }
 
     .suggestion-list__content {
@@ -838,8 +668,7 @@
     }
 
     .sidebar--left .team__header .Avatar,
-    #SidebarContainer .team__header .Avatar,
-    .sidebar--menu .team__header .Avatar {
+    #SidebarContainer .team__header .Avatar {
         display: none;
     }
 
@@ -1302,34 +1131,6 @@
         }
     }
 
-    .sidebar--menu {
-        width: 290px;
-        border: none;
-        transform: translate3d(290px, 0, 0);
-        transition: transform 0.35s ease;
-        visibility: hidden;
-
-        &.visible {
-            display: block;
-            visibility: visible;
-        }
-
-        &.move--left {
-            display: block;
-            transform: translate3d(0, 0, 0);
-            visibility: visible;
-        }
-
-        .mentions {
-            font-size: 17px;
-            font-weight: bold;
-        }
-
-        .Menu .MenuItem.MenuItem--with-icon .MenuItem__help-text {
-            padding-left: 0;
-        }
-    }
-
     .sidebar--left {
         width: 290px;
         border: none;
@@ -1434,22 +1235,6 @@
 
         &.move--right {
             transform: translate3d(0, 0, 0);
-        }
-
-        .team__header {
-            @include mixins.clearfix;
-
-            padding: 15px;
-            pointer-events: none;
-
-            .team__name,
-            .user__name {
-                max-width: 100%;
-            }
-
-            .sidebar-header-dropdown {
-                display: none;
-            }
         }
 
         .search__form {
@@ -1638,7 +1423,7 @@
     }
 
     .inner-wrap {
-        transition: all 0.35s ease;
+        transition: all 0.3s linear;
 
         .app__body & {
             &::before {
@@ -1970,7 +1755,6 @@
 
     .emoji-picker__item {
         width: calc(100% / #{variables.$emoji-per-row});
-        padding-top: calc(100% / #{variables.$emoji-per-row});
         margin: 0;
     }
 
@@ -2172,24 +1956,6 @@
 
     .signup-team-all {
         max-height: calc(75vh - (111px + 187px));
-    }
-}
-
-@media screen and (max-width: 380px) and (max-height: 580px) {
-    #navbar_wrapper {
-        .navbar-default {
-            .dropdown-menu {
-                padding-top: 1em;
-
-                >li {
-                    >a {
-                        border: none;
-                        font-size: 13px;
-                        line-height: 27px;
-                    }
-                }
-            }
-        }
     }
 }
 

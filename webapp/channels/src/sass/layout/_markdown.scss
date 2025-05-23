@@ -51,7 +51,8 @@ h6.markdown__heading {
 }
 
 #post-list,
-#rhsContainer {
+#rhsContainer,
+.textbox-preview-area {
     .markdown-inline-img {
         max-height: 500px;
         border-radius: 4px;
@@ -144,6 +145,16 @@ h6.markdown__heading {
     .broken-image--scaled-down {
         max-height: 18px;
         margin: 2px;
+    }
+}
+
+.textbox-preview-area {
+    .markdown-inline-img--hover {
+        &:hover {
+            border: 1px solid transparent;
+            box-shadow: none;
+            cursor: default;
+        }
     }
 }
 
@@ -348,6 +359,23 @@ h6.markdown__heading {
     }
 }
 
+.markdown__list {
+    >li {
+        &.list-item--task-list {
+            list-style-type: none;
+
+            input[type="checkbox"] {
+                margin-left: -17px;
+                vertical-align: top;
+
+                &:disabled {
+                    cursor: default;
+                }
+            }
+        }
+    }
+}
+
 ol.markdown__list {
     display: table;
     padding: 0;
@@ -364,6 +392,18 @@ ol.markdown__list {
             content: counter(list) ".";
             text-align: right;
             word-break: keep-all;
+        }
+        // Special rules for task items within ordered lists
+        &.list-item--task-list {
+            &::before {
+                // The counter is erased for task items
+                content: "";
+            }
+            input[type="checkbox"] {
+                // Margins are adjusted to align better the checkbox with the text
+                margin-right: 2px;
+                margin-left: -19px;
+            }
         }
     }
 }

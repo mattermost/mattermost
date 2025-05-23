@@ -44,17 +44,17 @@ func (_m *PropertyValueStore) Create(value *model.PropertyValue) (*model.Propert
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: id
-func (_m *PropertyValueStore) Delete(id string) error {
-	ret := _m.Called(id)
+// Delete provides a mock function with given fields: groupID, id
+func (_m *PropertyValueStore) Delete(groupID string, id string) error {
+	ret := _m.Called(groupID, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(groupID, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -73,6 +73,24 @@ func (_m *PropertyValueStore) DeleteForField(id string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteForTarget provides a mock function with given fields: groupID, targetType, targetID
+func (_m *PropertyValueStore) DeleteForTarget(groupID string, targetType string, targetID string) error {
+	ret := _m.Called(groupID, targetType, targetID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteForTarget")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(groupID, targetType, targetID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -170,9 +188,9 @@ func (_m *PropertyValueStore) SearchPropertyValues(opts model.PropertyValueSearc
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: values
-func (_m *PropertyValueStore) Update(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	ret := _m.Called(values)
+// Update provides a mock function with given fields: groupID, values
+func (_m *PropertyValueStore) Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	ret := _m.Called(groupID, values)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -180,19 +198,19 @@ func (_m *PropertyValueStore) Update(values []*model.PropertyValue) ([]*model.Pr
 
 	var r0 []*model.PropertyValue
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]*model.PropertyValue) ([]*model.PropertyValue, error)); ok {
-		return rf(values)
+	if rf, ok := ret.Get(0).(func(string, []*model.PropertyValue) ([]*model.PropertyValue, error)); ok {
+		return rf(groupID, values)
 	}
-	if rf, ok := ret.Get(0).(func([]*model.PropertyValue) []*model.PropertyValue); ok {
-		r0 = rf(values)
+	if rf, ok := ret.Get(0).(func(string, []*model.PropertyValue) []*model.PropertyValue); ok {
+		r0 = rf(groupID, values)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PropertyValue)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]*model.PropertyValue) error); ok {
-		r1 = rf(values)
+	if rf, ok := ret.Get(1).(func(string, []*model.PropertyValue) error); ok {
+		r1 = rf(groupID, values)
 	} else {
 		r1 = ret.Error(1)
 	}

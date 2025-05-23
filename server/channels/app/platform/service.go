@@ -38,9 +38,10 @@ import (
 // responsible for non-entity related functionalities that are required
 // by a product such as database access, configuration access, licensing etc.
 type PlatformService struct {
-	sqlStore *sqlstore.SqlStore
-	Store    store.Store
-	newStore func() (store.Store, error)
+	sqlStore     *sqlstore.SqlStore
+	Store        store.Store
+	newStore     func() (store.Store, error)
+	storeOptions []sqlstore.Option
 
 	WebSocketRouter *WebSocketRouter
 
@@ -111,6 +112,8 @@ type PlatformService struct {
 	// This is a test mode setting used to enable Redis
 	// without a license.
 	forceEnableRedis bool
+
+	pdpService einterfaces.PolicyDecisionPointInterface
 }
 
 type HookRunner interface {
@@ -230,7 +233,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace)
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace, ps.storeOptions...)
 			if err != nil {
 				return nil, err
 			}
@@ -361,9 +364,12 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	ps.Busy = NewBusy(ps.clusterIFace)
 
-	// Enable developer settings if this is a "dev" build
+	// Enable developer settings and mmctl local mode if this is a "dev" build
 	if model.BuildNumber == "dev" {
-		ps.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+		ps.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = true
+			*cfg.ServiceSettings.EnableLocalMode = true
+		})
 	}
 
 	ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
@@ -470,6 +476,10 @@ func (ps *PlatformService) initEnterprise() {
 
 	if licenseInterface != nil {
 		ps.licenseManager = licenseInterface(ps)
+	}
+
+	if accessControlServiceInterface != nil {
+		ps.pdpService = accessControlServiceInterface(ps)
 	}
 }
 

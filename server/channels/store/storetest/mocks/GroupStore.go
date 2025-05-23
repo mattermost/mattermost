@@ -74,9 +74,9 @@ func (_m *GroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs
 	return r0, r1
 }
 
-// ChannelMembersToAdd provides a mock function with given fields: since, channelID, includeRemovedMembers
-func (_m *GroupStore) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error) {
-	ret := _m.Called(since, channelID, includeRemovedMembers)
+// ChannelMembersToAdd provides a mock function with given fields: since, channelID, reAddRemovedMembers
+func (_m *GroupStore) ChannelMembersToAdd(since int64, channelID *string, reAddRemovedMembers bool) ([]*model.UserChannelIDPair, error) {
+	ret := _m.Called(since, channelID, reAddRemovedMembers)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ChannelMembersToAdd")
@@ -85,10 +85,10 @@ func (_m *GroupStore) ChannelMembersToAdd(since int64, channelID *string, includ
 	var r0 []*model.UserChannelIDPair
 	var r1 error
 	if rf, ok := ret.Get(0).(func(int64, *string, bool) ([]*model.UserChannelIDPair, error)); ok {
-		return rf(since, channelID, includeRemovedMembers)
+		return rf(since, channelID, reAddRemovedMembers)
 	}
 	if rf, ok := ret.Get(0).(func(int64, *string, bool) []*model.UserChannelIDPair); ok {
-		r0 = rf(since, channelID, includeRemovedMembers)
+		r0 = rf(since, channelID, reAddRemovedMembers)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.UserChannelIDPair)
@@ -96,7 +96,7 @@ func (_m *GroupStore) ChannelMembersToAdd(since int64, channelID *string, includ
 	}
 
 	if rf, ok := ret.Get(1).(func(int64, *string, bool) error); ok {
-		r1 = rf(since, channelID, includeRemovedMembers)
+		r1 = rf(since, channelID, reAddRemovedMembers)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -692,9 +692,9 @@ func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSour
 	return r0, r1
 }
 
-// GetByUser provides a mock function with given fields: userID
-func (_m *GroupStore) GetByUser(userID string) ([]*model.Group, error) {
-	ret := _m.Called(userID)
+// GetByUser provides a mock function with given fields: userID, opts
+func (_m *GroupStore) GetByUser(userID string, opts model.GroupSearchOpts) ([]*model.Group, error) {
+	ret := _m.Called(userID, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByUser")
@@ -702,19 +702,19 @@ func (_m *GroupStore) GetByUser(userID string) ([]*model.Group, error) {
 
 	var r0 []*model.Group
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*model.Group, error)); ok {
-		return rf(userID)
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) ([]*model.Group, error)); ok {
+		return rf(userID, opts)
 	}
-	if rf, ok := ret.Get(0).(func(string) []*model.Group); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) []*model.Group); ok {
+		r0 = rf(userID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Group)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userID)
+	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) error); ok {
+		r1 = rf(userID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1414,9 +1414,9 @@ func (_m *GroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []str
 	return r0, r1
 }
 
-// TeamMembersToAdd provides a mock function with given fields: since, teamID, includeRemovedMembers
-func (_m *GroupStore) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error) {
-	ret := _m.Called(since, teamID, includeRemovedMembers)
+// TeamMembersToAdd provides a mock function with given fields: since, teamID, reAddRemovedMembers
+func (_m *GroupStore) TeamMembersToAdd(since int64, teamID *string, reAddRemovedMembers bool) ([]*model.UserTeamIDPair, error) {
+	ret := _m.Called(since, teamID, reAddRemovedMembers)
 
 	if len(ret) == 0 {
 		panic("no return value specified for TeamMembersToAdd")
@@ -1425,10 +1425,10 @@ func (_m *GroupStore) TeamMembersToAdd(since int64, teamID *string, includeRemov
 	var r0 []*model.UserTeamIDPair
 	var r1 error
 	if rf, ok := ret.Get(0).(func(int64, *string, bool) ([]*model.UserTeamIDPair, error)); ok {
-		return rf(since, teamID, includeRemovedMembers)
+		return rf(since, teamID, reAddRemovedMembers)
 	}
 	if rf, ok := ret.Get(0).(func(int64, *string, bool) []*model.UserTeamIDPair); ok {
-		r0 = rf(since, teamID, includeRemovedMembers)
+		r0 = rf(since, teamID, reAddRemovedMembers)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.UserTeamIDPair)
@@ -1436,7 +1436,7 @@ func (_m *GroupStore) TeamMembersToAdd(since int64, teamID *string, includeRemov
 	}
 
 	if rf, ok := ret.Get(1).(func(int64, *string, bool) error); ok {
-		r1 = rf(since, teamID, includeRemovedMembers)
+		r1 = rf(since, teamID, reAddRemovedMembers)
 	} else {
 		r1 = ret.Error(1)
 	}

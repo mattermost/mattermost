@@ -3266,3 +3266,25 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/reset_failed_attempts":
+    post:
+      tags:
+        - users
+      summary: Reset the failed password attempts for a user
+      description: |
+        Reset the FailedAttempts field for a user to 0. This will only work for ldap and email/password users.
+
+        ##### Permissions
+
+        Requires `sysconsole_write_user_management_users` permission.
+
+      operationId: resetPasswordFailedAttempts
+      responses:
+        "200":
+          description: User's thread update successful
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
