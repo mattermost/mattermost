@@ -232,8 +232,8 @@ func (ps *PlatformService) SetLicense(license *model.License) bool {
 	if license != nil && license.SkuShortName == model.LicenseShortSkuEnterpriseAdvanced && *ps.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
 		if ps.logger != nil {
 			ps.logger.Error("MySQL is not supported for this license", mlog.String("sku_short_name", license.SkuShortName))
-			return false
 		}
+		return false
 	}
 
 	oldLicense := ps.licenseValue.Load()
