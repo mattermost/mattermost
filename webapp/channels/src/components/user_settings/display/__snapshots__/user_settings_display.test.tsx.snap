@@ -315,12 +315,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -682,12 +712,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -1049,12 +1109,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -1416,12 +1506,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -1710,12 +1830,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -1986,12 +2136,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -2353,12 +2533,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -2738,12 +2948,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -3032,12 +3272,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -3326,12 +3596,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -3620,12 +3920,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -3926,12 +4256,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -4220,12 +4580,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -4490,12 +4880,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <Connect(RenderEmoticonsAsEmoji)
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
-        renderOnOffLabel={[Function]}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
         updateSection={[Function]}
-        userId="user_id"
       />
       <div
         className="divider-dark"
