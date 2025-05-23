@@ -10,6 +10,7 @@ import (
 	plugin "github.com/hashicorp/go-plugin"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // The API can be used to retrieve data or perform actions on behalf of the plugin. Most methods
@@ -1411,6 +1412,24 @@ type API interface {
 	// @tag Group
 	// Minimum server version: 10.9
 	DeleteGroupConstrainedMemberships() *model.AppError
+
+	// MakeAuditRecord creates a new audit record from the provided information.
+	//
+	// @tag Audit
+	// Minimum server version: 10.10
+	MakeAuditRecord(event string, initialStatus string) *model.AuditRecord
+
+	// LogAuditRec logs an audit record using the default audit logger.
+	//
+	// @tag Audit
+	// Minimum server version: 10.10
+	LogAuditRec(rec *model.AuditRecord, err error)
+
+	// LogAuditRecWithLevel logs an audit record with a specific log level.
+	//
+	// @tag Audit
+	// Minimum server version: 10.10
+	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level, err error)
 }
 
 var handshake = plugin.HandshakeConfig{
