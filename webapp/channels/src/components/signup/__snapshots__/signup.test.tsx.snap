@@ -111,7 +111,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
           >
             Create your account
           </h2>
-          <div
+          <form
             className="signup-body-card-form"
           >
             <ForwardRef
@@ -280,7 +280,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
           >
             Create your account
           </h2>
-          <div
+          <form
             className="signup-body-card-form"
           >
             <ForwardRef
