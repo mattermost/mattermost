@@ -1219,6 +1219,9 @@ func userEditCmdF(c client.Client, _ *cobra.Command, args []string, fieldName st
 		printer.PrintT("User {{.Username}} email updated successfully", ruser)
 
 	case "authdata":
+		if newValue == "" {
+			return fmt.Errorf("cannot clear authdata as the user is using %s to log in; use mmctl user migrate-auth to change the authentication service", user.AuthService)
+		}
 		if len(newValue) > model.UserAuthDataMaxLength {
 			return fmt.Errorf("authdata too long. Maximum length is %d characters", model.UserAuthDataMaxLength)
 		}
@@ -1231,11 +1234,7 @@ func userEditCmdF(c client.Client, _ *cobra.Command, args []string, fieldName st
 			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
 		}
 
-		if newValue == "" {
-			printer.PrintT("User {{.Username}} authdata cleared successfully", user)
-		} else {
-			printer.PrintT("User {{.Username}} authdata updated successfully", user)
-		}
+		printer.PrintT("User {{.Username}} authdata updated successfully", user)
 	default:
 		return fmt.Errorf("unsupported field: %s", fieldName)
 	}

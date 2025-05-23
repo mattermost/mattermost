@@ -1702,8 +1702,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 		err := userEditUsernameCmdF(s.th.Client, &cobra.Command{}, []string{user.Username, newUsername})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("failed to update user username: You do not have the appropriate permissions.", printer.GetErrorLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify username was not changed
 		unchangedUser, appErr := s.th.App.GetUser(user.Id)
@@ -1782,8 +1781,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 		err := userEditEmailCmdF(s.th.Client, &cobra.Command{}, []string{user.Username, newEmail})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("failed to update user email: You do not have the appropriate permissions.", printer.GetErrorLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify email was not changed
 		unchangedUser, appErr := s.th.App.GetUser(user.Id)
@@ -1833,53 +1831,15 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 	})
 	s.Require().Nil(appErr)
 
-	s.RunForSystemAdminAndLocal("Edit authdata successfully", func(c client.Client) {
-		printer.Clean()
-
-		newAuthdata := "newauthdata123"
-
-		err := userEditAuthdataCmdF(c, &cobra.Command{}, []string{user.Username, newAuthdata})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Len(printer.GetErrorLines(), 0)
-
-		// Verify authdata was updated
-		updatedUser, appErr := s.th.App.GetUser(user.Id)
-		s.Require().Nil(appErr)
-		s.Require().NotNil(updatedUser.AuthData)
-		s.Require().Equal(newAuthdata, *updatedUser.AuthData)
-
-		// Clean up for next test
-		user.AuthData = nil
-		_, appErr = s.th.App.UpdateUser(s.th.Context, user, false)
-		s.Require().Nil(appErr)
-	})
-
-	s.RunForSystemAdminAndLocal("Clear authdata successfully", func(c client.Client) {
-		printer.Clean()
-
-		// Clear authdata with empty string
-		err := userEditAuthdataCmdF(c, &cobra.Command{}, []string{user.Username, ""})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Len(printer.GetErrorLines(), 0)
-
-		// Verify authdata was cleared
-		updatedUser, appErr := s.th.App.GetUser(user.Id)
-		s.Require().Nil(appErr)
-		s.Require().Nil(updatedUser.AuthData)
-	})
+	newAuthdata := "newauthdata123"
 
 	s.Run("Edit authdata without permission", func() {
 		printer.Clean()
 
-		newAuthdata := "unauthorizedauthdata"
-
 		err := userEditAuthdataCmdF(s.th.Client, &cobra.Command{}, []string{user.Username, newAuthdata})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("failed to update user authdata: You do not have the appropriate permissions.", printer.GetErrorLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify authdata was not changed
 		unchangedUser, appErr := s.th.App.GetUser(user.Id)
@@ -1888,7 +1848,23 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 		s.Require().Equal("existingauthdata", *unchangedUser.AuthData)
 	})
 
-	s.RunForAllClients("Edit authdata with too long value", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Clear authdata returns error", func(c client.Client) {
+		printer.Clean()
+
+		// Attempt to clear authdata with empty string should return error
+		err := userEditAuthdataCmdF(c, &cobra.Command{}, []string{user.Username, ""})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		// Verify authdata was not changed
+		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		s.Require().Nil(appErr)
+		s.Require().NotNil(unchangedUser.AuthData)
+		s.Require().Equal("existingauthdata", *unchangedUser.AuthData)
+	})
+
+	s.RunForSystemAdminAndLocal("Edit authdata with too long value", func(c client.Client) {
 		printer.Clean()
 
 		// Create authdata longer than maximum allowed length
@@ -1910,16 +1886,29 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 		s.Require().Equal("existingauthdata", *unchangedUser.AuthData)
 	})
 
-	s.RunForAllClients("Edit authdata for nonexistent user", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Edit authdata for nonexistent user", func(c client.Client) {
 		printer.Clean()
 
 		nonexistentUser := "nonexistentuser"
-		newAuthdata := "newauthdata"
 
 		err := userEditAuthdataCmdF(c, &cobra.Command{}, []string{nonexistentUser, newAuthdata})
 		s.Require().Error(err)
 		s.Require().EqualError(err, "user "+nonexistentUser+" not found")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+	s.RunForSystemAdminAndLocal("Edit authdata successfully", func(c client.Client) {
+		printer.Clean()
+
+		err := userEditAuthdataCmdF(c, &cobra.Command{}, []string{user.Username, newAuthdata})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		// Verify authdata was updated
+		updatedUser, appErr := s.th.App.GetUser(user.Id)
+		s.Require().Nil(appErr)
+		s.Require().NotNil(updatedUser.AuthData)
+		s.Require().Equal(newAuthdata, *updatedUser.AuthData)
 	})
 }

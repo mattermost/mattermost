@@ -3144,7 +3144,7 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 		userArg := "testUser"
 		newAuthdata := "newauth123"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com", AuthData: nil}
-		updatedUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com", AuthData: &newAuthdata}
+		userAuth := model.UserAuth{AuthData: &newAuthdata, AuthService: mockUser.AuthService}
 
 		s.client.
 			EXPECT().
@@ -3154,27 +3154,26 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateUser(context.TODO(), &updatedUser).
-			Return(&updatedUser, &model.Response{}, nil).
+			UpdateUserAuth(context.TODO(), mockUser.Id, &userAuth).
+			Return(&userAuth, &model.Response{}, nil).
 			Times(1)
 
 		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(&updatedUser, printer.GetLines()[0])
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Clear authdata successfully", func() {
+	s.Run("Clear authdata returns error", func() {
 		printer.Clean()
 
 		command := cobra.Command{}
 		userArg := "testUser"
 		newAuthdata := ""
 		authData := "existingauth"
-		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com", AuthData: &authData}
-		updatedUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com", AuthData: nil}
+		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com", AuthData: &authData, AuthService: model.UserAuthServiceGitlab}
 
 		s.client.
 			EXPECT().
@@ -3182,17 +3181,10 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		s.client.
-			EXPECT().
-			UpdateUser(context.TODO(), &updatedUser).
-			Return(&updatedUser, &model.Response{}, nil).
-			Times(1)
-
 		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
 
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(&updatedUser, printer.GetLines()[0])
+		s.Require().EqualError(err, "cannot clear authdata as the user is using gitlab to log in; use mmctl user migrate-auth to change the authentication service")
+		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -3222,7 +3214,7 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 		userArg := "testUser"
 		newAuthdata := "newauth123"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com", AuthData: nil}
-		updatedUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com", AuthData: &newAuthdata}
+		userAuth := model.UserAuth{AuthData: &newAuthdata, AuthService: mockUser.AuthService}
 
 		s.client.
 			EXPECT().
@@ -3232,7 +3224,7 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateUser(context.TODO(), &updatedUser).
+			UpdateUserAuth(context.TODO(), mockUser.Id, &userAuth).
 			Return(nil, &model.Response{}, errors.New("API error")).
 			Times(1)
 
