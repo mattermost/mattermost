@@ -7920,10 +7920,6 @@
     "translation": "%v کانال را ترک کرد."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "شما تنها عضو باقیمانده هستید ، به جای خروج ، کانال خصوصی را حذف کنید."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "ترک کانال پیام مستقیم امکان پذیر نیست."
   },

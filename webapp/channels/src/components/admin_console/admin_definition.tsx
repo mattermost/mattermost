@@ -36,11 +36,14 @@ import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/an
 import ExternalLink from 'components/external_link';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks, CacheTypes} from 'utils/constants';
+import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks, CacheTypes, getLicenseTier} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
+import PolicyList from './access_control';
+import AccessControlPolicyJobs from './access_control/jobs';
+import PolicyDetails from './access_control/policy_details';
 import * as DefinitionConstants from './admin_definition_constants';
 import AuditLoggingCertificateUploadSetting from './audit_logging';
 import Audits from './audits';
@@ -77,6 +80,7 @@ import {
     GroupsFeatureDiscovery,
     MobileSecurityFeatureDiscovery,
 } from './feature_discovery/features';
+import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/features/attribute_based_access_control';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
@@ -228,6 +232,7 @@ export const it = {
     cloudLicensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license)),
     licensedForFeature: (feature: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license[feature] === 'true'),
     licensedForSku: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license.SkuShortName === skuName),
+    minLicenseTier: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && getLicenseTier(license.SkuShortName) >= getLicenseTier(skuName)),
     licensedForCloudStarter: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license) && license.SkuShortName === LicenseSkus.Starter),
     hidePaymentInfo: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
         if (!cloud) {
@@ -662,6 +667,117 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Enterprise),
+            },
+            access_control_policy_details_edit: {
+                url: `user_management/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                ),
+                schema: {
+                    id: 'AccessControlPolicy',
+                    component: PolicyDetails,
+                },
+
+            },
+            access_control_policy_details: {
+                url: 'user_management/attribute_based_access_control/edit_policy',
+                isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'AccessControlPolicy',
+                    component: PolicyDetails,
+                },
+            },
+            attribute_based_access_control: {
+                url: 'user_management/attribute_based_access_control',
+                title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
+                isHidden: it.any(
+                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'AttributeBasedAccessControl',
+                    isBeta: true,
+                    name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access'}),
+                    sections: [
+                        {
+                            key: 'admin.accesscontrol.settings',
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnableAttributeBasedAccessControl',
+                                    label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow attribute based access controls on this server'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies'}),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'admin.accesscontrol.policies',
+                            isHidden: it.any(
+                                it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                            ),
+                            settings: [
+                                {
+                                    type: 'custom',
+                                    component: PolicyList,
+                                    key: 'PolicyListPanel',
+                                },
+                            ],
+                        },
+                        {
+                            key: 'admin.accesscontrol.policyjobs',
+                            isHidden: it.any(
+                                it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                            ),
+                            settings: [
+                                {
+                                    type: 'custom',
+                                    component: AccessControlPolicyJobs,
+                                    key: 'AcessControlPolicyJobs',
+                                },
+                            ],
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+            },
+            attribute_based_access_control_feature_discovery: {
+                url: 'user_management/attribute_based_access_control',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
+                isHidden: it.any(
+                    it.licensedForSku(LicenseSkus.EnterpriseAdvanced),
+                    it.not(it.enterpriseReady),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                ),
+                schema: {
+                    id: 'AttributeBasedAccessControl',
+                    name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access (Beta)'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: AttributeBasedAccessControlFeatureDiscovery,
+                            key: 'AttributeBasedAccessControlFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
         },
     },
@@ -1156,7 +1272,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.exportStorage', defaultMessage: 'Export Storage'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Cloud')),
-                    it.not(it.licensedForSku(LicenseSkus.Enterprise)),
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                     it.configIsFalse('FeatureFlags', 'CloudDedicatedExportUI'),
                 ),
                 schema: {
@@ -2047,7 +2163,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.mobileSecurity', defaultMessage: 'Mobile Security'}),
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
-                    it.not(it.licensedForSku(LicenseSkus.Enterprise)),
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                 ),
                 schema: {
                     id: 'MobileSecuritySettings',
@@ -2080,7 +2196,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.mobileSecurity', defaultMessage: 'Mobile Security'}),
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
-                    it.licensedForSku(LicenseSkus.Enterprise),
+                    it.minLicenseTier(LicenseSkus.Enterprise),
                     it.not(it.enterpriseReady),
                 ),
                 schema: {
@@ -2207,12 +2323,96 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                         },
                         {
+                            type: 'dropdown',
+                            key: 'SupportSettings.ReportAProblemType',
+                            label: defineMessage({id: 'admin.support.reportAProblemTypeTitle', defaultMessage: 'Report a Problem:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescription', defaultMessage: 'Select how the ‘Report a Problem’ option behaves. Choosing ‘Custom link’ or ‘Email address’ allows you to provide a URL or address in the next field. ‘Hide link’ removes the ‘Report a Problem’ option from the app.'}),
+                            options: [
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.defaultLink', defaultMessage: 'Default link'}),
+                                    value: 'default',
+                                },
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.email', defaultMessage: 'Email address'}),
+                                    value: 'email',
+                                },
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.customLink', defaultMessage: 'Custom link'}),
+                                    value: 'link',
+                                },
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.hide', defaultMessage: 'Hide link'}),
+                                    value: 'hidden',
+                                },
+                            ],
+                        },
+                        {
+                            type: 'text',
+                            key: 'defaultLicensedReportAProblemLink',
+                            label: defineMessage({id: 'admin.support.reportAProblemDefaultLinkTitle', defaultMessage: 'Default Report a Problem Link:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemDefaultLinkDescription', defaultMessage: 'Users will be directed to this link when they choose ‘Report a Problem’.'}),
+                            default: 'https://mattermost.com/pl/report_a_problem_licensed',
+                            isDisabled: it.all(),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /default/)),
+                                it.not(it.licensed),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'defaultUnlicensedReportAProblemLink',
+                            label: defineMessage({id: 'admin.support.reportAProblemDefaultLinkTitle', defaultMessage: 'Default Report a Problem Link:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemDefaultLinkDescription', defaultMessage: 'Users will be directed to this link when they choose ‘Report a Problem’.'}),
+                            default: 'https://mattermost.com/pl/report_a_problem_unlicensed',
+                            isDisabled: it.all(),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /default/)),
+                                it.licensed,
+                            ),
+                        },
+                        {
                             type: 'text',
                             key: 'SupportSettings.ReportAProblemLink',
-                            label: defineMessage({id: 'admin.support.problemTitle', defaultMessage: 'Report a Problem Link:'}),
-                            help_text: defineMessage({id: 'admin.support.problemDesc', defaultMessage: 'The URL for the Report a Problem link in the Help Menu. If this field is empty, the link is removed from the Help Menu.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
-                            isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                            label: defineMessage({id: 'admin.support.reportAProblemLinkTitle', defaultMessage: 'Custom Report a Problem Link:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemLinkDescription', defaultMessage: 'Enter the URL that users will be directed to when they choose ‘Report a Problem’.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                            ),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /link/)),
+                            ),
+                            validate: (value) => {
+                                if (!value) {
+                                    return new ValidationResult(false, defineMessage({id: 'admin.support.reportAProblemLinkError', defaultMessage: 'Link is required'}));
+                                }
+                                return new ValidationResult(true, '');
+                            },
+                        },
+                        {
+                            type: 'text',
+                            key: 'SupportSettings.ReportAProblemMail',
+                            label: defineMessage({id: 'admin.support.reportAProblemEmailTitle', defaultMessage: 'Report a Problem Email Address:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemEmailDescription', defaultMessage: 'Enter the email address that users will be prompted to send a message to when they choose ‘Report a Problem’.'}),
+                            isDisabled: (it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION))),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /email/)),
+                            ),
+                            validate: (value) => {
+                                if (!value) {
+                                    return new ValidationResult(false, defineMessage({id: 'admin.support.reportAProblemEmailError', defaultMessage: 'Email is required'}));
+                                }
+                                return new ValidationResult(true, '');
+                            },
+                        },
+                        {
+                            type: 'bool',
+                            key: 'SupportSettings.AllowDownloadLogs',
+                            label: defineMessage({id: 'admin.support.problemAllowDownloadTitle', defaultMessage: 'Allow Mobile App Log Downloads:'}),
+                            help_text: defineMessage({id: 'admin.support.problemAllowDownloadDescription', defaultMessage: 'When enabled, users can download app logs for troubleshooting. If a ‘Report a Problem’ link is shown, logs can be downloaded as part of that flow; if the ‘Report a Problem’ link is hidden, logs remain accessible as a separate option.'}),
                         },
                         {
                             type: 'text',
@@ -2253,7 +2453,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.system_properties', defaultMessage: 'System Properties'}),
                 searchableStrings: systemPropertiesSearchableStrings,
                 isHidden: it.not(it.all(
-                    it.licensedForSku(LicenseSkus.Enterprise),
+                    it.minLicenseTier(LicenseSkus.Enterprise),
                     it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
                 )),
                 schema: {
@@ -2437,8 +2637,7 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.team.customUserGroupsDescription', defaultMessage: 'When true, users with appropriate permissions can create custom user groups and enables at-mentions for those groups.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                             isHidden: it.not(it.any(
-                                it.licensedForSku(LicenseSkus.Enterprise),
-                                it.licensedForSku(LicenseSkus.Professional),
+                                it.minLicenseTier(LicenseSkus.Professional),
                             )),
                         },
                         {
@@ -3264,7 +3463,7 @@ const AdminDefinition: AdminDefinitionType = {
             ip_filtering: {
                 url: 'site_config/ip_filtering',
                 title: adminDefinitionMessages.ip_filtering_title,
-                isHidden: it.not(it.all(it.configIsTrue('FeatureFlags', 'CloudIPFiltering'), it.licensedForSku('enterprise'))),
+                isHidden: it.not(it.all(it.configIsTrue('FeatureFlags', 'CloudIPFiltering'), it.minLicenseTier(LicenseSkus.Enterprise))),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.IP_FILTERING)),
                 searchableStrings: [adminDefinitionMessages.ip_filtering_title],
                 schema: {
@@ -3924,7 +4123,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     key: 'LdapSettings.CustomProfileAttributes',
                                     component: CustomProfileAttributes,
                                     isHidden: it.not(it.all(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.minLicenseTier(LicenseSkus.Enterprise),
                                         it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
                                     )),
                                 },
@@ -3970,6 +4169,19 @@ const AdminDefinition: AdminDefinitionType = {
                                     key: 'LdapSettings.SyncIntervalMinutes',
                                     label: defineMessage({id: 'admin.ldap.syncIntervalTitle', defaultMessage: 'Synchronization Interval (minutes):'}),
                                     help_text: defineMessage({id: 'admin.ldap.syncIntervalHelpText', defaultMessage: 'AD/LDAP Synchronization updates Mattermost user information to reflect updates on the AD/LDAP server. For example, when a user\'s name changes on the AD/LDAP server, the change updates in Mattermost when synchronization is performed. Accounts removed from or disabled in the AD/LDAP server have their Mattermost accounts set to "Inactive" and have their account sessions revoked. Mattermost performs synchronization on the interval entered. For example, if 60 is entered, Mattermost synchronizes every 60 minutes.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                                        it.all(
+                                            it.stateIsFalse('LdapSettings.Enable'),
+                                            it.stateIsFalse('LdapSettings.EnableSync'),
+                                        ),
+                                    ),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'LdapSettings.ReAddRemovedMembers',
+                                    label: defineMessage({id: 'admin.ldap.reAddRemovedMembersTitle', defaultMessage: 'Re-add removed members on sync:'}),
+                                    help_text: defineMessage({id: 'admin.ldap.reAddRemovedMembersDesc', defaultMessage: 'When enabled, members who were previously removed from group-synced teams or channels will be re-added during LDAP synchronization if they are still a member of the LDAP group.'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                                         it.all(
@@ -4636,7 +4848,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SamlSettings.CustomProfileAttributes',
                             component: CustomProfileAttributes,
                             isHidden: it.not(it.all(
-                                it.licensedForSku(LicenseSkus.Enterprise),
+                                it.minLicenseTier(LicenseSkus.Enterprise),
                                 it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
                             )),
                         },
@@ -6329,9 +6541,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 ),
                             },
                             help_text_markdown: false,
-                            isHidden: it.not(it.any(
-                                it.licensedForSku(LicenseSkus.Enterprise),
-                                it.licensedForSku(LicenseSkus.E20))),
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
@@ -6350,9 +6560,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     display_name: defineMessage({id: 'admin.experimental.clientSideCertCheck.options.secondary', defaultMessage: 'secondary'}),
                                 },
                             ],
-                            isHidden: it.not(it.any(
-                                it.licensedForSku(LicenseSkus.Enterprise),
-                                it.licensedForSku(LicenseSkus.E20))),
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                                 it.stateIsFalse('ExperimentalSettings.ClientSideCertEnable'),
@@ -6615,7 +6823,11 @@ const AdminDefinition: AdminDefinitionType = {
             audit_logging: {
                 url: 'experimental/audit_logging',
                 title: defineMessage({id: 'admin.sidebar.audit_logging_experimental', defaultMessage: 'Audit Logging'}),
-                isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)), it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI'), it.not(it.licensedForSku('enterprise'))),
+                isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                    it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI'),
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                ),
                 schema: {
                     id: 'ExperimentalAuditSettings',
                     name: 'Audit Log Settings (Experimental)',
