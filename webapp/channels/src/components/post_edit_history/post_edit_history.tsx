@@ -150,7 +150,9 @@ const PostEditHistory = ({
                 renderView={renderView}
             >
                 <SearchResultsHeader>
-                    {title}
+                    <h2 id='rhsPanelTitle'>
+                        {title}
+                    </h2>
                     <div className='sidebar--right__title__channel'>{channelDisplayName}</div>
                 </SearchResultsHeader>
                 {hasError ? errorContainer : postEditItems}
