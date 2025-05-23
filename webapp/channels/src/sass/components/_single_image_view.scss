@@ -2,9 +2,11 @@
 
 .file-view--single {
     margin: 0;
+    height: 100%;
 
     .file__image {
         position: relative;
+        height: 100%;
 
         .image-header {
             // this and the following hover block need to use such an excessive
@@ -27,6 +29,7 @@
                 background: transparent;
                 font-size: 18px;
                 line-height: 18px;
+                transition: transform 250ms ease-in-out;
 
                 .icon {
                     width: 18px;
@@ -69,10 +72,49 @@
         }
 
         .image-container {
+            display: block;
             margin: 5px 0;
+            transition: all 250ms ease-in-out;
+            max-height: 1000px;
+            opacity: 1;
+            height: 100%;
+            overflow: hidden;
+            border-color: rgba(var(--center-channel-color-rgb), 0.12);
+            border-radius: 4px;
 
-            &.image-permalink {
-                margin: 5px 0 0;
+            &[data-expanded="false"] {
+                max-height: 0;
+                opacity: 0;
+                margin: 0;
+                pointer-events: none;
+            }
+
+            .image-loaded {
+                height: 100%;
+
+                > div {
+                    height: 100%;
+                }
+            }
+
+            .image-loaded-container {
+                height: 100%;
+                overflow: hidden;
+                border-radius: 4px;
+
+                &:hover {
+                    box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 10px 0 rgba(variables.$black, 0.1);
+                }
+
+                &.image-permalink {
+                    margin: 5px 0 0;
+                }
+
+                img {
+                    height: 100%;
+                    width: 100%;
+                    object-fit: cover;
+                }
             }
         }
     }

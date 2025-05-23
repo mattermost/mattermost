@@ -65,6 +65,8 @@ export type Props = {
      * The index number of starting image
      **/
     startIndex: number;
+
+    handleImageClick?: (index: number) => void;
 }
 
 type State = {
@@ -78,6 +80,7 @@ type State = {
     showZoomControls: boolean;
     scale: Record<number, number>;
     content: string;
+    isInitialLoad: boolean;
 }
 
 export default class FilePreviewModal extends React.PureComponent<Props, State> {
@@ -101,6 +104,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             showZoomControls: false,
             scale: Utils.fillRecord(ZoomSettings.DEFAULT_SCALE, this.props.fileInfos.length),
             content: '',
+            isInitialLoad: true,
         };
     }
 
@@ -131,7 +135,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     componentDidMount() {
         document.addEventListener('keyup', this.handleKeyPress);
 
-        this.showImage(this.props.startIndex);
+        // Initial load should have animation
+        this.showImage(this.props.startIndex, true);
     }
 
     componentWillUnmount() {
@@ -153,9 +158,12 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         return Object.keys(updatedState).length ? updatedState : null;
     }
 
-    showImage = (id: number) => {
-        this.setState({imageIndex: id});
-
+    showImage = (id: number, isInitialLoad = false) => {
+        // Simply switch to new image without animation for navigation
+        this.setState({
+            imageIndex: id,
+            isInitialLoad: isInitialLoad,
+        });
         const imageHeight = window.innerHeight - 100;
         this.setState({imageHeight});
 
@@ -280,7 +288,21 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     };
 
     handleModalClose = () => {
-        this.setState({show: false});
+        // Add closing animation to both image and wrapper
+        const imageElement = document.querySelector('.image_preview__image');
+        const wrapperElement = document.querySelector('.modal-image__wrapper');
+        
+        if (imageElement) {
+            imageElement.classList.add('closing');
+        }
+        if (wrapperElement) {
+            wrapperElement.classList.add('closing');
+        }
+
+        // Delay the actual modal close to allow for animation
+        setTimeout(() => {
+            this.setState({show: false});
+        }, 150); // Match animation duration
     };
 
     getContent = (content: string) => {
@@ -291,6 +313,14 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         if (e.currentTarget === e.target) {
             this.handleModalClose();
         }
+    };
+
+    handleImageClick = (index: number) => {
+        const image = document.querySelector(`.file-view--single .file__image .image-container .image-loaded img[data-index="${index}"]`);
+        if (image) {
+            image.classList.add('transitioning');
+        }
+        this.props.handleImageClick?.(index);
     };
 
     render() {
@@ -444,7 +474,9 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             >
                 <Modal.Body className='file-preview-modal__body'>
                     <div
-                        className={'modal-image__wrapper'}
+                        className={classNames('modal-image__wrapper', {
+                            'initial-load': this.state.isInitialLoad,
+                        })}
                         onClick={this.handleModalClose}
                     >
                         <div
