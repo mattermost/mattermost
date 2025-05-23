@@ -79,7 +79,6 @@ export default function FileAttachmentList(props: Props) {
                     compactDisplay={compactDisplay}
                     isInPermalink={isInPermalink}
                     disableActions={props.disableActions}
-                    enablePublicLink={enablePublicLink}
                 />
             );
         }

@@ -132,18 +132,11 @@ const ImageGallery = (props: Props) => {
                                 compactDisplay={false}
                                 isInPermalink={false}
                                 disableActions={false}
-                                isRhsOpen={false}
-                                enablePublicLink={enablePublicLink}
                                 handleImageClick={() => {
                                     const startIndex = allFilesForPost?.findIndex((f) => f.id === fileInfo.id) ?? -1;
                                     if (startIndex >= 0 && allFilesForPost) {
                                         handleImageClick(startIndex, allFilesForPost);
                                     }
-                                }}
-                                actions={{
-                                    toggleEmbedVisibility: () => {},
-                                    getFilePublicLink: () => Promise.resolve({data: {link: ''}}),
-                                    openModal: () => {},
                                 }}
                             />
                         </div>

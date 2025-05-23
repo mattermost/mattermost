@@ -4,6 +4,9 @@
 import exif2css from 'exif2css';
 
 import type {ClientConfig} from '@mattermost/types/config';
+import type {FileInfo} from '@mattermost/types/files';
+
+import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
