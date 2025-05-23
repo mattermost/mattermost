@@ -368,12 +368,8 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		printer.Clean()
 		err := deleteChannelsCmdF(s.th.Client, cmd, args)
 
-		arg := team.Id + ":" + otherChannel.Id
-		var expected error
-		expected = multierror.Append(expected, errors.New("unable to find channel '"+arg+"'"))
-
 		s.Require().NotNil(err)
-		s.Require().EqualError(err, expected.Error())
+		s.Require().EqualError(err, "Unable to delete channel(s). Error: You do not have the appropriate permissions.")
 
 		channel, err := s.th.App.GetChannel(s.th.Context, otherChannel.Id)
 
@@ -381,7 +377,7 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		s.Require().NotNil(channel)
 	})
 
-	s.RunForAllClients("Delete not existing channel", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Delete not existing channel", func(c client.Client) {
 		notExistingChannelID := "not-existing-channel-ID"
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
