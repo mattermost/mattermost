@@ -238,7 +238,7 @@ const TrialBanner = ({
             <>
                 <FormattedMessage
                     id='admin.license.trial-request.title'
-                    defaultMessage='Experience Mattermost Enterprise Edition for free for the next 30 days. No obligation to buy or credit card required. '
+                    defaultMessage='Experience all that Mattermost Enterprise Advanced has to offer with a free trial for the next 30 days. No obligation to buy and no credit card required. '
                 />
                 <FormattedMessage
                     id='admin.license.trial-request.accept-terms'
@@ -300,7 +300,7 @@ const TrialBanner = ({
             <>
                 <FormattedMessage
                     id='admin.license.upgrade-and-trial-request.title'
-                    defaultMessage='Upgrade to Enterprise Edition and Experience Mattermost Enterprise Edition for free for the next 30 days. No obligation to buy or credit card required. '
+                    defaultMessage='Upgrade to the Enterprise Edition to unlock a free 30-day trial of Mattermost Enterprise Advanced—our most powerful plan. No credit card required, no obligation to buy. '
                 />
             </>
         );
@@ -367,7 +367,7 @@ const TrialBanner = ({
             title={
                 <FormattedMessage
                     id='licensingPage.infoBanner.startTrialTitle'
-                    defaultMessage='Free 30 day trial!'
+                    defaultMessage='Start a free 30-day tral of Mattermost Enterprise Advanced'
                 />
             }
             message={

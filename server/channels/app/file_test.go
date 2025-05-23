@@ -308,7 +308,7 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, zipName, directory)
 
 		require.Error(t, err)
-		require.Equal(t, err.Error(), "only those who dare to fail greatly can ever achieve greatly")
+		require.Equal(t, err.Error(), "failed to write zip file to file backend at path directory-to-heaven/zip-file-name-to-heaven.zip: only those who dare to fail greatly can ever achieve greatly")
 	})
 
 	t.Run("write no file", func(t *testing.T) {
@@ -385,7 +385,7 @@ func TestGenerateThumbnailImage(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 		img := createDummyImage()
-		dataPath, _ := fileutils.FindDir("data")
+		dataPath := *th.App.Config().FileSettings.Directory
 		thumbnailName := "thumb.jpg"
 		thumbnailPath := filepath.Join(dataPath, thumbnailName)
 
