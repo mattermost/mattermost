@@ -9,6 +9,7 @@ exports[`components/threading/ThreadViewer should match snapshot 1`] = `
       className="post-right-comments-container"
     >
       <FileUploadOverlay
+        id="threadView"
         overlayType="right"
       />
       <DeferredRenderWrapper

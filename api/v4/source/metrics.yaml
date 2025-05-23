@@ -1,5 +1,7 @@
   /api/v4/client_perf:
     post:
+      tags:
+        - metrics
       summary: Report client performance metrics
       description: >
         Uploads client performance measurements to the server as part of the Client Performance Monitoring feature.

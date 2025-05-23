@@ -109,6 +109,10 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 
 	notifyReady()
 
+	// Wiping off any signal handlers set before.
+	// This may come from intermediary signal handlers requiring to clean
+	// up resources before server.Start can finish.
+	signal.Reset(syscall.SIGINT, syscall.SIGTERM)
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
 	signal.Notify(interruptChan, syscall.SIGINT, syscall.SIGTERM)

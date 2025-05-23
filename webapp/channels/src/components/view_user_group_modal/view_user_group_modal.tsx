@@ -7,7 +7,7 @@ import {Modal} from 'react-bootstrap';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
-import {GroupSource} from '@mattermost/types/groups';
+import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
@@ -183,6 +183,15 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                             />
                         </span>
                     }
+                    {
+                        group.source.toLowerCase().startsWith(PluginGroupSourcePrefix.Plugin) &&
+                        <span className='group-source'>
+                            <FormattedMessage
+                                id='view_user_group_modal.pluginSynced'
+                                defaultMessage='Plugin SYNCED'
+                            />
+                        </span>
+                    }
                 </div>
             );
         }
@@ -198,7 +207,7 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                 show={this.state.show}
                 onHide={this.doHide}
                 onExited={onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='viewUserGroupModalLabel'
             >
                 <ViewUserGroupModalHeader

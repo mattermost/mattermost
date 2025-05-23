@@ -47,6 +47,7 @@
         "EnableEmojiPicker": true,
         "PostEditTimeLimit": -1,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
+        "EnableCrossTeamSearch": true,
         "EnablePostSearch": true,
         "MinimumHashtagLength": 3,
         "EnableUserTypingMessages": true,
@@ -188,6 +189,7 @@
         "AboutLink": "https://mattermost.com/default-about/",
         "HelpLink": "https://mattermost.com/pl/help/",
         "ReportAProblemLink": "https://mattermost.com/pl/report-a-bug",
+        "ReportAProblemType": "link",
         "ForgotPasswordLink": "",
         "SupportEmail": "feedback@mattermost.com"
     },

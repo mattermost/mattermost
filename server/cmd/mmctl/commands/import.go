@@ -186,7 +186,7 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 
 	isLocal, _ := command.Flags().GetBool("local")
 	if isLocal {
-		printer.PrintWarning("In --local mode, you don't need to upload the file to server any more. Directly use the import process command and pass the export file.")
+		printer.PrintWarning("In --local mode, you don't need to upload the file to server any more. Directly use the import process command with the --bypass-upload flag and pass the export file.")
 	}
 
 	file, err := os.Open(filepath)

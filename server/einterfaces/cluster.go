@@ -21,7 +21,7 @@ type ClusterInterface interface {
 	// and zero means "totally healthy".
 	HealthScore() int
 	GetMyClusterInfo() *model.ClusterInfo
-	GetClusterInfos() []*model.ClusterInfo
+	GetClusterInfos() ([]*model.ClusterInfo, error)
 	SendClusterMessage(msg *model.ClusterMessage)
 	SendClusterMessageToNode(nodeID string, msg *model.ClusterMessage) error
 	NotifyMsg(buf []byte)
@@ -34,4 +34,7 @@ type ClusterInterface interface {
 	// WebConnCountForUser returns the number of active webconn connections
 	// for a given userID.
 	WebConnCountForUser(userID string) (int, *model.AppError)
+	// GetWSQueues returns the necessary websocket queues from a cluster for a given
+	// connectionID and sequence number.
+	GetWSQueues(userID, connectionID string, seqNum int64) (map[string]*model.WSQueues, error)
 }

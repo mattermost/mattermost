@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -143,7 +144,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.MetricsSettings.Enable = true
 	*memoryConfig.ServiceSettings.ListenAddress = "localhost:0"
 	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
-	configStore.Set(memoryConfig)
+	_, _, err = configStore.Set(memoryConfig)
+	require.NoError(tb, err)
 
 	options = append(options, ConfigStore(configStore))
 
@@ -152,7 +154,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 			Store: dbStore,
 		}, options...)
 	if err != nil {
-		panic(err)
+		require.NoError(tb, err)
 	}
 
 	th := &TestHelper{

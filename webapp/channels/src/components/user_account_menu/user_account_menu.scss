@@ -1,0 +1,172 @@
+@import "utils/_mixins";
+
+#userAccountMenu {
+    .userAccountMenu_nameMenuItem {
+        align-items: center;
+
+        .leading-element {
+            width: unset;
+            height: unset;
+            margin-inline-end: 12px;
+        }
+
+        .label-elements {
+            gap: 0;
+        }
+
+        span.userAccountMenu_nameMenuItem_primaryLabel {
+            max-width: 150px;
+            margin: 0;
+            font-family: 'Metropolis', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 22px;
+            @include textEllipsis;
+        }
+
+        span.userAccountMenu_nameMenuItem_secondaryLabel {
+            max-width: 150px;
+            font-size: 14px;
+            line-height: 18px;
+            @include textEllipsis;
+        }
+    }
+
+    .userAccountMenu_setCustomStatusMenuItem {
+        .userAccountMenu_setCustomStatusMenuItem_icon > svg {
+            fill: rgba(var(--center-channel-color-rgb), 0.75);
+        }
+
+        // This aligns the icon in the center, emoji icon is wrapped in a span
+        // thats why we need to align the span as well
+        > .leading-element, .userAccountMenu_setCustomStatusMenuItem_icon {
+            display: flex;
+            align-items: center;
+        }
+
+        .label-elements > span {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+        }
+    }
+
+    .userAccountMenu_customStatusMenuItem {
+        &.hasTrailingElement {
+            .label-elements {
+                > span {
+                    max-width: 156px;
+                }
+            }
+        }
+
+        .label-elements {
+            > span {
+                max-width: 196px;
+                @include textEllipsis;
+            }
+        }
+    }
+
+    .userAccountMenu_menuItemTrailingCheckIcon {
+        color: var(--button-bg);
+        font-size: 16px;
+    }
+
+    .userAccountMenu_menuItemTrailingIconClear {
+        font-size: 16px;
+    }
+
+    .userAccountMenu_profileMenuItem_tourWrapper {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+}
+
+.userAccountMenu_dndMenuItem_subMenuTitle {
+    padding: 6px 20px;
+    margin: 0;
+    color: var(--center-channel-color);
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.userAccountMenu_menuButton {
+    position: relative;
+    display: flex;
+    height: auto;
+    align-items: center;
+    align-self: center;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    margin-inline-start: 8px;
+
+    &:hover, &[aria-expanded="true"] {
+        background: var(--sidebar-text-08);
+
+        .userStatusIconWrapper {
+            background-image: linear-gradient(
+                0deg,
+                rgba(var(--global-header-text-rgb), 0.08),
+                rgba(var(--global-header-text-rgb), 0.08)
+            );
+        }
+    }
+
+    &.withCustomStatus {
+        background: rgba(var(--global-header-text-rgb), 0.16);
+
+        .userStatusIconWrapper {
+            background-image: linear-gradient(
+                0deg,
+                rgba(var(--global-header-text-rgb), 0.16),
+                rgba(var(--global-header-text-rgb), 0.16)
+            );
+        }
+    }
+
+    .userStatusIconWrapper {
+        position: absolute;
+        top: auto;
+        right: 3px;
+        bottom: 1px;
+        display: inline-flex;
+        width: 16px;
+        height: 16px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 100px;
+        margin: 0;
+        background-color: var(--global-header-background);
+        color: var(--global-header-text);
+        line-height: 0;
+        visibility: visible;
+
+        &:hover {
+            cursor: pointer;
+        }
+
+        svg {
+            top: 0;
+        }
+    }
+}
+
+.userAccountMenu_onlineMenuItem_icon {
+    color: var(--online-indicator);
+}
+
+.userAccountMenu_awayMenuItem_icon {
+    color: var(--away-indicator);
+}
+
+.userAccountMenu_dndMenuItem_icon {
+    color: var(--dnd-indicator);
+}
+
+.userAccountMenu_offlineMenuItem_icon {
+    color: rgba(141, 147, 165, 0.56);
+}

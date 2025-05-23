@@ -19,23 +19,6 @@ export function formatChannelDoughtnutData(totalPublic: any, totalPrivate: any) 
     return channelTypeData;
 }
 
-export function formatPostDoughtnutData(filePosts: any, hashtagPosts: any, totalPosts: any) {
-    const postTypeData = {
-        labels: [
-            Utils.localizeMessage({id: 'analytics.system.totalFilePosts', defaultMessage: 'Posts with Files'}),
-            Utils.localizeMessage({id: 'analytics.system.totalHashtagPosts', defaultMessage: 'Posts with Hashtags'}),
-            Utils.localizeMessage({id: 'analytics.system.textPosts', defaultMessage: 'Posts with Text-only'}),
-        ],
-        datasets: [{
-            data: [filePosts, hashtagPosts, (totalPosts - filePosts - hashtagPosts)],
-            backgroundColor: ['#46BFBD', '#F7464A', '#FDB45C'],
-            hoverBackgroundColor: ['#5AD3D1', '#FF5A5E', '#FFC870'],
-        }],
-    };
-
-    return postTypeData;
-}
-
 export function formatPostsPerDayData(labels: string[], data: any) {
     const chartData = {
         labels: [] as string[],

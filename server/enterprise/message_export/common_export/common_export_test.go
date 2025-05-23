@@ -13,7 +13,7 @@ import (
 
 func TestUpdateMetadata(t *testing.T) {
 	metadata := Metadata{
-		Channels:         map[string]MetadataChannel{},
+		Channels:         map[string]*MetadataChannel{},
 		MessagesCount:    0,
 		AttachmentsCount: 0,
 		StartTime:        0,
@@ -92,7 +92,7 @@ func TestGetJoinsAndLeavesForChannel(t *testing.T) {
 		name           string
 		channel        MetadataChannel
 		membersHistory []*model.ChannelMemberHistoryResult
-		usersInPosts   ChannelMembers
+		usersInPosts   map[string]ChannelMember
 		expectedJoins  int
 		expectedLeaves int
 	}{
@@ -160,9 +160,9 @@ func TestGetJoinsAndLeavesForChannel(t *testing.T) {
 			name:           "implicit-joins",
 			channel:        channel,
 			membersHistory: nil,
-			usersInPosts: ChannelMembers{
-				"test1": ChannelMember{UserId: "test1", Email: "test1", Username: "test1"},
-				"test2": ChannelMember{UserId: "test2", Email: "test2", Username: "test2"},
+			usersInPosts: map[string]ChannelMember{
+				"test1": {UserId: "test1", Email: "test1", Username: "test1"},
+				"test2": {UserId: "test2", Email: "test2", Username: "test2"},
 			},
 			expectedJoins:  2,
 			expectedLeaves: 0,
@@ -174,9 +174,9 @@ func TestGetJoinsAndLeavesForChannel(t *testing.T) {
 				{JoinTime: 130, LeaveTime: model.NewPointer(int64(150)), UserId: "test1", UserEmail: "test1", Username: "test1"},
 				{JoinTime: 130, LeaveTime: model.NewPointer(int64(150)), UserId: "test3", UserEmail: "test3", Username: "test3"},
 			},
-			usersInPosts: ChannelMembers{
-				"test1": ChannelMember{UserId: "test1", Email: "test1", Username: "test1"},
-				"test2": ChannelMember{UserId: "test2", Email: "test2", Username: "test2"},
+			usersInPosts: map[string]ChannelMember{
+				"test1": {UserId: "test1", Email: "test1", Username: "test1"},
+				"test2": {UserId: "test2", Email: "test2", Username: "test2"},
 			},
 			expectedJoins:  3,
 			expectedLeaves: 2,

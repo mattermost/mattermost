@@ -109,7 +109,7 @@ export const languages = {
     },
     uk: {
         value: 'uk',
-        name: 'Yкраїнська (Alpha)',
+        name: 'Yкраїнська',
         order: 16,
         url: langFiles.uk,
     },
@@ -152,7 +152,7 @@ export function getAllLanguages(includeExperimental) {
             ...langIDs.reduce((out, id) => {
                 out[id] = {
                     value: id,
-                    name: langLabels[id],
+                    name: langLabels[id] + ' (Experimental)',
                     url: langFiles[id],
                     order: order++,
                 };

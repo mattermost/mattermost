@@ -39,7 +39,7 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 
 	ds := &DatabaseStore{
 		driverName:     *mainHelper.GetSQLSettings().DriverName,
-		db:             mainHelper.GetSQLStore().GetMasterX().DB,
+		db:             mainHelper.GetSQLStore().GetMaster().DB,
 		dataSourceName: *mainHelper.Settings.DataSource,
 	}
 
@@ -80,7 +80,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 			ID    string `db:"id"`
 			Value []byte `db:"value"`
 		}
-		err := mainHelper.GetSQLStore().GetMasterX().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+		err := mainHelper.GetSQLStore().GetMaster().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 		require.NoError(t, err)
 
 		var actualCfg *model.Config
@@ -92,7 +92,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 		ID    string `db:"Id"`
 		Value []byte `db:"Value"`
 	}
-	err := mainHelper.GetSQLStore().GetMasterX().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+	err := mainHelper.GetSQLStore().GetMaster().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 	require.NoError(t, err)
 
 	var actualCfg *model.Config
@@ -548,7 +548,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		_, err = mainHelper.GetSQLStore().GetMasterX().Exec("DROP TABLE Configurations")
+		_, err = mainHelper.GetSQLStore().GetMaster().Exec("DROP TABLE Configurations")
 		require.NoError(t, err)
 
 		newCfg := minimalConfig
@@ -829,7 +829,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		truncateTables(t)
 		id := model.NewId()
-		_, err = mainHelper.GetSQLStore().GetMasterX().NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:id, :value, :createat, TRUE)", map[string]any{
+		_, err = mainHelper.GetSQLStore().GetMaster().NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:id, :value, :createat, TRUE)", map[string]any{
 			"id":       id,
 			"value":    cfgData,
 			"createat": model.GetMillis(),

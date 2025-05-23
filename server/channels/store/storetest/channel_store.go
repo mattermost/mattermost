@@ -24,11 +24,13 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	sq "github.com/mattermost/squirrel"
 )
 
 type SqlStore interface {
-	GetMasterX() SqlXExecutor
+	GetMaster() SqlXExecutor
 	DriverName() string
+	GetQueryPlaceholder() sq.PlaceholderFormat
 }
 
 type SqlXExecutor interface {
@@ -105,6 +107,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetChannelCounts", func(t *testing.T) { testChannelStoreGetChannelCounts(t, rctx, ss) })
 	t.Run("GetMembersForUser", func(t *testing.T) { testChannelStoreGetMembersForUser(t, rctx, ss) })
 	t.Run("GetMembersForUserWithPagination", func(t *testing.T) { testChannelStoreGetMembersForUserWithPagination(t, rctx, ss) })
+	t.Run("GetMembersForUserWithCursorPagination", func(t *testing.T) { testChannelStoreGetMembersForUserWithCursorPagination(t, rctx, ss) })
 	t.Run("CountPostsAfter", func(t *testing.T) { testCountPostsAfter(t, rctx, ss) })
 	t.Run("CountUrgentPostsAfter", func(t *testing.T) { testCountUrgentPostsAfter(t, rctx, ss) })
 	t.Run("UpdateLastViewedAt", func(t *testing.T) { testChannelStoreUpdateLastViewedAt(t, rctx, ss) })
@@ -204,6 +207,24 @@ func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Channel().Save(rctx, &o2, -1)
 	require.Error(t, nErr, "should have failed to save a duplicate of an archived channel")
 	require.True(t, errors.As(nErr, &cErr))
+
+	o1 = model.Channel{}
+	o1.TeamId = teamID
+	o1.DisplayName = "Name"
+	o1.Name = NewTestID()
+	o1.Type = model.ChannelTypeOpen
+	o1.BannerInfo = &model.ChannelBannerInfo{
+		Enabled:         model.NewPointer(true),
+		Text:            model.NewPointer("banner text"),
+		BackgroundColor: model.NewPointer("#000000"),
+	}
+
+	savedChannel, nErr := ss.Channel().Save(rctx, &o1, -1)
+	require.NoError(t, nErr, "should have saved channel")
+	require.NotNil(t, savedChannel.BannerInfo)
+	require.True(t, *savedChannel.BannerInfo.Enabled)
+	require.Equal(t, "banner text", *savedChannel.BannerInfo.Text)
+	require.Equal(t, "#000000", *savedChannel.BannerInfo.BackgroundColor)
 }
 
 func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -293,7 +314,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.
 	require.ElementsMatch(t, []string{u1.Id}, userIDs)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreCreateDirectChannel(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -367,6 +388,46 @@ func testChannelStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	var uniqueConstraintErr *store.ErrUniqueConstraint
 	require.ErrorAs(t, err, &uniqueConstraintErr)
 	require.Contains(t, uniqueConstraintErr.Columns, "Name")
+
+	channel := model.Channel{}
+	channel.TeamId = model.NewId()
+	channel.DisplayName = "Name"
+	channel.Name = NewTestID()
+	channel.Type = model.ChannelTypeOpen
+
+	_, nErr = ss.Channel().Save(rctx, &channel, -1)
+	require.NoError(t, nErr)
+
+	channel.BannerInfo = &model.ChannelBannerInfo{
+		Enabled:         model.NewPointer(true),
+		Text:            model.NewPointer("banner text"),
+		BackgroundColor: model.NewPointer("#000000"),
+	}
+
+	updatedChannel, err := ss.Channel().Update(rctx, &channel)
+	require.NoError(t, err, err)
+	require.NotNil(t, updatedChannel.BannerInfo)
+	require.True(t, *updatedChannel.BannerInfo.Enabled)
+	require.Equal(t, "banner text", *updatedChannel.BannerInfo.Text)
+	require.Equal(t, "#000000", *updatedChannel.BannerInfo.BackgroundColor)
+
+	// can turn off channel banners
+	channel.BannerInfo.Enabled = model.NewPointer(false)
+
+	updatedChannel, err = ss.Channel().Update(rctx, &channel)
+	require.NoError(t, err, err)
+	require.NotNil(t, updatedChannel.BannerInfo)
+	require.False(t, *updatedChannel.BannerInfo.Enabled)
+
+	// can update text and color of channel banners
+	channel.BannerInfo.Text = model.NewPointer("updated text")
+	channel.BannerInfo.BackgroundColor = model.NewPointer("#FFFFFF")
+
+	updatedChannel, err = ss.Channel().Update(rctx, &channel)
+	require.NoError(t, err, err)
+	require.NotNil(t, updatedChannel.BannerInfo)
+	require.Equal(t, "updated text", *updatedChannel.BannerInfo.Text)
+	require.Equal(t, "#FFFFFF", *updatedChannel.BannerInfo.BackgroundColor)
 }
 
 func testGetChannelUnread(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -493,7 +554,7 @@ func testChannelStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	require.True(t, errors.As(err, &nfErr))
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreGetMany(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -527,7 +588,7 @@ func testChannelStoreGetMany(t *testing.T, rctx request.CTX, ss store.Store, s S
 	require.True(t, errors.As(err, &nfErr))
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreGetChannelsByIds(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4006,7 +4067,7 @@ func testChannelStoreGetAllChannels(t *testing.T, rctx request.CTX, ss store.Sto
 	assert.Equal(t, *list[0].PolicyID, policy.ID)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreGetMoreChannels(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4148,18 +4209,34 @@ func testChannelStoreGetMoreChannels(t *testing.T, rctx request.CTX, ss store.St
 		count, err := ss.Channel().AnalyticsTypeCount(teamID, model.ChannelTypeOpen)
 		require.NoError(t, err)
 		require.EqualValues(t, 4, count)
+
+		counts, err := ss.Channel().AnalyticsCountAll(teamID)
+		require.NoError(t, err)
+		require.EqualValues(t, 4, counts[model.ChannelTypeOpen])
 	})
 
 	t.Run("verify analytics for private channels", func(t *testing.T) {
 		count, err := ss.Channel().AnalyticsTypeCount(teamID, model.ChannelTypePrivate)
 		require.NoError(t, err)
 		require.EqualValues(t, 2, count)
+
+		counts, err := ss.Channel().AnalyticsCountAll(teamID)
+		require.NoError(t, err)
+		require.EqualValues(t, 2, counts[model.ChannelTypePrivate])
 	})
 
 	t.Run("verify analytics for all channels", func(t *testing.T) {
 		count, err := ss.Channel().AnalyticsTypeCount(teamID, "")
 		require.NoError(t, err)
 		require.EqualValues(t, 6, count)
+
+		counts, err := ss.Channel().AnalyticsCountAll(teamID)
+		require.NoError(t, err)
+		total := int64(0)
+		for _, count := range counts {
+			total += count
+		}
+		require.EqualValues(t, 6, total)
 	})
 }
 
@@ -4338,12 +4415,20 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, rctx request.CTX, ss
 		count, err := ss.Channel().AnalyticsTypeCount(teamID, model.ChannelTypeOpen)
 		require.NoError(t, err)
 		require.EqualValues(t, 3, count)
+
+		counts, err := ss.Channel().AnalyticsCountAll(teamID)
+		require.NoError(t, err)
+		require.EqualValues(t, 3, counts[model.ChannelTypeOpen])
 	})
 
 	t.Run("verify analytics for private channels", func(t *testing.T) {
 		count, err := ss.Channel().AnalyticsTypeCount(teamID, model.ChannelTypePrivate)
 		require.NoError(t, err)
 		require.EqualValues(t, 1, count)
+
+		counts, err := ss.Channel().AnalyticsCountAll(teamID)
+		require.NoError(t, err)
+		require.EqualValues(t, 1, counts[model.ChannelTypePrivate])
 	})
 }
 
@@ -4633,6 +4718,93 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, rctx request.
 	members, err = ss.Channel().GetMembersForUserWithPagination(m1.UserId, 1, 1)
 	require.NoError(t, err)
 	assert.Len(t, members, 1)
+}
+
+func testChannelStoreGetMembersForUserWithCursorPagination(t *testing.T, rctx request.CTX, ss store.Store) {
+	t1 := model.Team{
+		DisplayName: "team1",
+		Name:        NewTestID(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	}
+	_, err := ss.Team().Save(&t1)
+	require.NoError(t, err)
+
+	userID := NewTestID()
+
+	var channelIDs []string
+	for i := 0; i < 20; i++ {
+		ch := &model.Channel{
+			TeamId:      t1.Id,
+			DisplayName: "Channel1",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+		}
+		ch, err = ss.Channel().Save(rctx, ch, -1)
+		require.NoError(t, err)
+		channelIDs = append(channelIDs, ch.Id)
+
+		m1 := model.ChannelMember{}
+		m1.ChannelId = ch.Id
+		m1.UserId = userID
+		m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+		_, err = ss.Channel().SaveMember(rctx, &m1)
+		require.NoError(t, err)
+	}
+
+	members, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, 200, "")
+	require.NoError(t, err)
+	assert.Len(t, members, 20)
+
+	pageSize := 6
+	channelID := ""
+	numPages := 0
+	var gotChannelIDs []string
+	for {
+		members, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, pageSize, channelID)
+		require.NoError(t, err)
+		numPages++
+		for _, m := range members {
+			gotChannelIDs = append(gotChannelIDs, m.ChannelId)
+		}
+		if len(members) < pageSize {
+			// Total 20. PageSize=6. Therefore 6*3=18 + 2 (last page)
+			assert.Len(t, members, 2)
+			break
+		}
+		if len(members) == pageSize {
+			channelID = members[len(members)-1].ChannelId
+			continue
+		}
+		require.Fail(t, "len(members) is > pageSize")
+	}
+	assert.Equal(t, numPages, 4)
+	assert.ElementsMatch(t, channelIDs, gotChannelIDs)
+
+	pageSize = 5
+	channelID = ""
+	numPages = 0
+	gotChannelIDs = []string{}
+	for {
+		members, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, pageSize, channelID)
+		numPages++
+		if numPages < 5 {
+			channelID = members[len(members)-1].ChannelId
+			require.NoError(t, err)
+		} else {
+			// For the last page, it will have no rows.
+			var nfErr *store.ErrNotFound
+			require.True(t, errors.As(err, &nfErr))
+			require.Nil(t, members)
+			break
+		}
+		for _, m := range members {
+			gotChannelIDs = append(gotChannelIDs, m.ChannelId)
+		}
+		assert.Len(t, members, pageSize)
+	}
+	assert.Equal(t, numPages, 5)
+	assert.ElementsMatch(t, channelIDs, gotChannelIDs)
 }
 
 func testCountPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -5742,6 +5914,7 @@ func (s ByChannelDisplayName) Len() int { return len(s) }
 func (s ByChannelDisplayName) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
+
 func (s ByChannelDisplayName) Less(i, j int) bool {
 	if s[i].DisplayName != s[j].DisplayName {
 		return s[i].DisplayName < s[j].DisplayName
@@ -5774,8 +5947,8 @@ func testChannelStoreSearchArchivedInTeam(t *testing.T, rctx request.CTX, ss sto
 
 	t.Run("error", func(t *testing.T) {
 		// trigger a SQL error
-		s.GetMasterX().Exec("ALTER TABLE Channels RENAME TO Channels_renamed")
-		defer s.GetMasterX().Exec("ALTER TABLE Channels_renamed RENAME TO Channels")
+		s.GetMaster().Exec("ALTER TABLE Channels RENAME TO Channels_renamed")
+		defer s.GetMaster().Exec("ALTER TABLE Channels_renamed RENAME TO Channels")
 
 		list, err := ss.Channel().SearchArchivedInTeam(teamID, "term", userID)
 		require.Error(t, err)
@@ -6219,7 +6392,7 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	})
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreSearchForUserInTeam(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -7477,54 +7650,17 @@ func testMaterializedPublicChannels(t *testing.T, rctx request.CTX, ss store.Sto
 
 	// o3 is a public channel on the team that already existed in the PublicChannels table.
 	o3 := model.Channel{
-		Id:          model.NewId(),
 		TeamId:      teamID,
 		DisplayName: "Open Channel 3",
 		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-
-	_, execerr := s.GetMasterX().NamedExec(`
-		INSERT INTO
-		    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
-		VALUES
-		    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose);
-	`, map[string]any{
-		"id":          o3.Id,
-		"deleteat":    o3.DeleteAt,
-		"teamid":      o3.TeamId,
-		"displayname": o3.DisplayName,
-		"name":        o3.Name,
-		"header":      o3.Header,
-		"purpose":     o3.Purpose,
-	})
-	require.NoError(t, execerr)
+	_, nErr = ss.Channel().Save(rctx, &o3, -1)
+	require.NoError(t, nErr)
 
 	o3.DisplayName = "Open Channel 3 - Modified"
-
-	_, execerr = s.GetMasterX().NamedExec(`
-		INSERT INTO
-		    Channels(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, LastRootPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId, TotalMsgCountRoot)
-		VALUES
-				(:id, :createat, :updateat, :deleteat, :teamid, :type, :displayname, :name, :header, :purpose, :lastpostat, :lastrootpostat, :totalmsgcount, :extraupdateat, :creatorid, 0);
-	`, map[string]any{
-		"id":             o3.Id,
-		"createat":       o3.CreateAt,
-		"updateat":       o3.UpdateAt,
-		"deleteat":       o3.DeleteAt,
-		"teamid":         o3.TeamId,
-		"type":           o3.Type,
-		"displayname":    o3.DisplayName,
-		"name":           o3.Name,
-		"header":         o3.Header,
-		"purpose":        o3.Purpose,
-		"lastpostat":     o3.LastPostAt,
-		"lastrootpostat": o3.LastRootPostAt,
-		"totalmsgcount":  o3.TotalMsgCount,
-		"extraupdateat":  o3.ExtraUpdateAt,
-		"creatorid":      o3.CreatorId,
-	})
-	require.NoError(t, execerr)
+	_, err = ss.Channel().Update(rctx, &o3)
+	require.NoError(t, err)
 
 	t.Run("verify o3 INSERT converted to UPDATE", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamID, "", true)
@@ -7543,7 +7679,7 @@ func testMaterializedPublicChannels(t *testing.T, rctx request.CTX, ss store.Sto
 	_, nErr = ss.Channel().Save(rctx, &o4, -1)
 	require.NoError(t, nErr)
 
-	_, execerr = s.GetMasterX().Exec(`
+	_, execerr := s.GetMaster().Exec(`
 		DELETE FROM
 		    PublicChannels
 		WHERE
@@ -7738,7 +7874,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, rctx request.CTX,
 	require.ElementsMatch(t, []string{u3.Id}, userIDs)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreExportAllDirectChannels(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -7795,7 +7931,7 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, rctx request.CTX, ss 
 	assert.ElementsMatch(t, []string{o1.DisplayName, o2.DisplayName}, []string{d1[0].DisplayName, d1[1].DisplayName})
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -7857,7 +7993,7 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	assert.Equal(t, o1.DisplayName, d1[0].DisplayName)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -7912,7 +8048,7 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, rctx re
 	assert.Len(t, d1[0].Members, 2)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, rctx request.CTX, ss store.Store) {

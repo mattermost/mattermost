@@ -16,10 +16,28 @@ import (
 
 type SqlLinkMetadataStore struct {
 	*SqlStore
+
+	linkMetadataColumns []string
+	linkMetadataQuery   sq.SelectBuilder
 }
 
 func newSqlLinkMetadataStore(sqlStore *SqlStore) store.LinkMetadataStore {
-	return &SqlLinkMetadataStore{sqlStore}
+	s := &SqlLinkMetadataStore{
+		SqlStore: sqlStore,
+		linkMetadataColumns: []string{
+			"Hash",
+			"URL",
+			"Timestamp",
+			"Type",
+			"Data",
+		},
+	}
+
+	s.linkMetadataQuery = s.getQueryBuilder().
+		Select(s.linkMetadataColumns...).
+		From("LinkMetadata")
+
+	return s
 }
 
 func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, error) {
@@ -38,7 +56,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 
 	query := s.getQueryBuilder().
 		Insert("LinkMetadata").
-		Columns("Hash", "URL", "Timestamp", "Type", "Data").
+		Columns(s.linkMetadataColumns...).
 		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, metadataBytes)
 
 	if s.DriverName() == model.DatabaseDriverMysql {
@@ -52,7 +70,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 		return nil, errors.Wrap(err, "metadata_tosql")
 	}
 
-	_, err = s.GetMasterX().Exec(q, args...)
+	_, err = s.GetMaster().Exec(q, args...)
 	if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
 		return nil, errors.Wrap(err, "could not save link metadata")
 	}
@@ -62,15 +80,13 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 
 func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
 	var metadata model.LinkMetadata
-	query, args, err := s.getQueryBuilder().
-		Select("*").
-		From("LinkMetadata").
+	query, args, err := s.linkMetadataQuery.
 		Where(sq.Eq{"URL": url, "Timestamp": timestamp}).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create query with querybuilder")
 	}
-	err = s.GetReplicaX().Get(&metadata, query, args...)
+	err = s.GetReplica().Get(&metadata, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("LinkMetadata", "url="+url)

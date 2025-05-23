@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {ScheduledPost, ScheduledPostsState} from '@mattermost/types/schedule_post';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ScheduledPostTypes, UserTypes} from 'mattermost-redux/action_types';
 
-function byId(state: ScheduledPostsState['byId'] = {}, action: AnyAction) {
+function byId(state: ScheduledPostsState['byId'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
         const {scheduledPostsByTeamId} = action.data;
@@ -51,7 +51,7 @@ function byId(state: ScheduledPostsState['byId'] = {}, action: AnyAction) {
     }
 }
 
-function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction) {
+function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
         const {scheduledPostsByTeamId} = action.data;
@@ -111,7 +111,7 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
     }
 }
 
-function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, action: AnyAction) {
+function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
         const {scheduledPostsByTeamId} = action.data;
@@ -172,20 +172,25 @@ function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, actio
     }
 }
 
-function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] = {}, action: AnyAction) {
+function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
-        const {scheduledPostsByTeamId} = action.data;
-        const newState = {...state};
+        const {scheduledPostsByTeamId, prune} = action.data;
+        const newState = prune ? {} : {...state};
 
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
             if (Object.hasOwn(scheduledPostsByTeamId, teamId)) {
                 scheduledPostsByTeamId[teamId].forEach((scheduledPost: ScheduledPost) => {
                     const id = scheduledPost.root_id || scheduledPost.channel_id;
 
+                    // Check if the entry for that channel/thread ID exists
                     if (newState[id]) {
-                        newState[id].push(scheduledPost.id);
+                        // Only add if its not already there
+                        if (!newState[id].includes(scheduledPost.id)) {
+                            newState[id] = [...newState[id], scheduledPost.id];
+                        }
                     } else {
+                        // If the entry does not exist at this moment, create it
                         newState[id] = [scheduledPost.id];
                     }
                 });

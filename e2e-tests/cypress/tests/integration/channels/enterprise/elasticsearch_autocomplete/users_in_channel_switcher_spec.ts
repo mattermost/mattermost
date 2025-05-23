@@ -12,7 +12,8 @@
 
 import {getRandomLetter} from '../../../../utils';
 import {doTestQuickChannelSwitcher} from '../../autocomplete/common_test';
-import {createSearchData, enableElasticSearch, SimpleUser} from '../../autocomplete/helpers';
+import {createSearchData, SimpleUser} from '../../autocomplete/helpers';
+import {enableElasticSearch} from './helpers';
 
 describe('Autocomplete with Elasticsearch - Users', () => {
     const prefix = getRandomLetter(3);
@@ -37,7 +38,7 @@ describe('Autocomplete with Elasticsearch - Users', () => {
 
             // # Open quick channel switcher
             cy.typeCmdOrCtrl().type('k');
-            cy.findByRole('textbox', {name: 'quick switch input'}).should('be.visible');
+            cy.findByRole('combobox', {name: 'quick switch input'}).should('be.visible');
         });
     });
 

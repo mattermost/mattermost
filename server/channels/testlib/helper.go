@@ -143,7 +143,7 @@ func (h *MainHelper) setupStore(withReadReplica bool) {
 	h.ClusterInterface = &FakeClusterInterface{}
 
 	var err error
-	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		panic(err)
 	}
@@ -160,7 +160,7 @@ func (h *MainHelper) ToggleReplicasOff() {
 	lic := h.SQLStore.GetLicense()
 
 	var err error
-	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		panic(err)
 	}
@@ -175,7 +175,7 @@ func (h *MainHelper) ToggleReplicasOn() {
 	lic := h.SQLStore.GetLicense()
 
 	var err error
-	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		panic(err)
 	}
@@ -222,7 +222,7 @@ func (h *MainHelper) PreloadMigrations() {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	}
-	handle := h.SQLStore.GetMasterX()
+	handle := h.SQLStore.GetMaster()
 	_, err = handle.Exec(string(buf))
 	if err != nil {
 		panic(errors.Wrap(err, "Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly"))

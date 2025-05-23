@@ -22,7 +22,7 @@ describe('SignIn Authentication', () => {
             cy.visit('/login');
 
             // # Remove autofocus from login input
-            cy.get('.login-body-card-content').should('be.visible').focus();
+            cy.get('.login-body-card-title').click();
         });
     });
 
@@ -42,13 +42,13 @@ describe('SignIn Authentication', () => {
             cy.url().should('include', '/channels/town-square');
 
             // # Click logout via user menu
-            cy.uiOpenUserMenu('Log Out');
+            cy.uiOpenUserMenu('Log out');
 
             // * Check that it logout successfully and it redirects into the login page
             cy.url().should('include', '/login');
 
             // # Remove autofocus from login input
-            cy.get('.login-body-card-content').should('be.visible').focus();
+            cy.get('.login-body-card-title').click();
 
             // # Enter actual user's username in the email field
             cy.findByPlaceholderText(loginPlaceholder).clear().type(testUser.username);
