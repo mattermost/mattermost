@@ -224,14 +224,14 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             ...defaultProps.actions,
             patchGroupSyncable,
         };
-        
+
         const wrapper = shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
             />,
         );
-        
+
         const instance = getAnyInstance(wrapper);
         instance.setState({
             rolesToChange: {
@@ -239,9 +239,9 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
                 'channel1/public-channel': false,
             },
         });
-        
+
         await instance.handleRolesToUpdate();
-        
+
         expect(patchGroupSyncable).toHaveBeenCalledTimes(2);
         expect(patchGroupSyncable).toHaveBeenCalledWith(
             'xxxxxxxxxxxxxxxxxxxxxxxxxx',
@@ -255,7 +255,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             'channel',
             {scheme_admin: false},
         );
-        
+
         // Verify auto_add was not included in any of the patch calls
         patchGroupSyncable.mock.calls.forEach((call) => {
             expect(call[3]).not.toHaveProperty('auto_add');
