@@ -73,6 +73,10 @@ const MultiValueSelector = ({
     }, [values, updateValues]);
 
     const handleInputKeyDownForMenu = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key !== 'Tab') {
+            e.stopPropagation();
+        }
+
         if (e.key === 'Enter' && actualAllowCreateForMenu && filter.trim()) {
             e.preventDefault();
             handleCreateValue(filter);
@@ -85,8 +89,8 @@ const MultiValueSelector = ({
         updateValues(newValues);
     }, [values, updateValues]);
 
-    // Get cell contents (display of values)
-    const getCellContents = () => {
+    // Memoize cell contents to prevent unnecessary re-renders
+    const cellContents = useMemo(() => {
         if (values.length === 0) {
             let visualPlaceholderText = defaultMultiPlaceholder;
             if (actualAllowCreateForMenu && options.length === 0) {
@@ -129,7 +133,7 @@ const MultiValueSelector = ({
                 ))}
             </div>
         );
-    };
+    }, [values, disabled]);
 
     return (
         <div className='values-editor'>
@@ -141,7 +145,7 @@ const MultiValueSelector = ({
                     }),
                     children: (
                         <span className='value-selector-menu-button__inner-wrapper'>
-                            {getCellContents()}
+                            {cellContents}
                             <ChevronDownIcon
                                 size={18}
                                 color='rgba(var(--center-channel-color-rgb), 0.5)'

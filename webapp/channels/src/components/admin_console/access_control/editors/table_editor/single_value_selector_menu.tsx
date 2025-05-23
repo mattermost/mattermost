@@ -85,6 +85,10 @@ const SingleValueSelector = ({
     }, [updateValue]);
 
     const handleInputKeyDownForMenu = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key !== 'Tab') {
+            e.stopPropagation();
+        }
+
         if (e.key === 'Enter' && allowCreateValue && filter.trim()) {
             e.preventDefault();
             handleCreateValue(filter);
