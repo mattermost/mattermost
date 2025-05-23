@@ -57,6 +57,21 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
         submitPreference();
     };
 
+    const options = [
+        {
+            option: 'true',
+            inputId: 'renderEmoticonsAsEmojiOn',
+            messageId: 'user.settings.advance.on',
+            defaultMessage: 'On',
+        },
+        {
+            option: 'false',
+            inputId: 'renderEmoticonsAsEmojiOff',
+            messageId: 'user.settings.advance.off',
+            defaultMessage: 'Off',
+        },
+    ];
+
     const input = (
         <fieldset key='renderEmoticonsAsEmojiSetting'>
             <legend className='form-legend hidden-label'>
@@ -65,28 +80,30 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
                     defaultMessage='Render emoticons as emojis'
                 />
             </legend>
-            {['true', 'false'].map((v) => (
-                <div
-                    className='radio'
-                    key={v}
-                >
-                    <label>
-                        <input
-                            id={v === 'true' ? 'renderEmoticonsAsEmojiOn' : 'renderEmoticonsAsEmojiOff'}
-                            type='radio'
-                            name='renderEmoticonsAsEmoji'
-                            value={v}
-                            checked={value === v}
-                            onChange={handleChange}
-                        />
-                        <FormattedMessage
-                            id={v === 'true' ? 'user.settings.advance.on' : 'user.settings.advance.off'}
-                            defaultMessage={v === 'true' ? 'On' : 'Off'}
-                        />
-                    </label>
-                    <br/>
-                </div>
-            ))}
+            {options.map(({option, inputId, messageId, defaultMessage}) => {
+                return (
+                    <div
+                        className='radio'
+                        key={option}
+                    >
+                        <label>
+                            <input
+                                id={inputId}
+                                type='radio'
+                                name='renderEmoticonsAsEmoji'
+                                value={option}
+                                checked={value === option}
+                                onChange={handleChange}
+                            />
+                            <FormattedMessage
+                                id={messageId}
+                                defaultMessage={defaultMessage}
+                            />
+                        </label>
+                        <br/>
+                    </div>
+                );
+            })}
             <div className='mt-5'>
                 <FormattedMessage
                     id='user.settings.display.renderEmoticonsAsEmojiDesc'
