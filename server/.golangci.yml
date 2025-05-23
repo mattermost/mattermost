@@ -4,6 +4,7 @@ linters:
   enable:
     - bidichk
     - errcheck
+    - gosec
     - govet
     - ineffassign
     - makezero
@@ -14,6 +15,25 @@ linters:
     - unused
     - whitespace
   settings:
+    gosec:
+      includes:
+        - G304
+      excludes:
+        - G101
+        - G107
+        - G110
+        - G112
+        - G115
+        - G203
+        - G204
+        - G305
+        - G306
+        - G401
+        - G402
+        - G404
+        - G501
+        - G505
+        - G602
     govet:
       disable:
         - fieldalignment
@@ -25,6 +45,9 @@ linters:
       - legacy
       - std-error-handling
     rules:
+      - path: _test\.go
+        linters:
+          - gosec
       - linters:
           - unused
         text: SetupEnterprise
