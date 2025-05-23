@@ -37,7 +37,17 @@ func (c *SearchChannelStore) deleteChannelIndex(rctx request.CTX, channel *model
 }
 
 func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Channel) {
-	var userIDs, teamMemberIDs []string
+	teamMemberIDs, err := c.GetTeamMembersForChannel(channel.Id)
+	if err != nil {
+		rctx.Logger().Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+		return
+	}
+
+	c.indexChannelWithTeamMembers(rctx, channel, teamMemberIDs)
+}
+
+func (c *SearchChannelStore) indexChannelWithTeamMembers(rctx request.CTX, channel *model.Channel, teamMemberIDs []string) {
+	var userIDs []string
 	var err error
 	if channel.Type == model.ChannelTypePrivate {
 		userIDs, err = c.GetAllChannelMemberIdsByChannelId(channel.Id)
@@ -45,12 +55,6 @@ func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Chann
 			rctx.Logger().Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 			return
 		}
-	}
-
-	teamMemberIDs, err = c.GetTeamMembersForChannel(channel.Id)
-	if err != nil {
-		rctx.Logger().Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
-		return
 	}
 
 	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
