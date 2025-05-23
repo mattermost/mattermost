@@ -26,9 +26,9 @@ func TestStatusStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore)
 }
 
 func testSaveOrUpdateMany(t *testing.T, _ request.CTX, ss store.Store) {
-	// Test with empty slice
+	// Test with empty map
 	err := ss.Status().SaveOrUpdateMany(map[string]*model.Status{})
-	require.NoError(t, err, "SaveOrUpdateMany with empty slice should succeed")
+	require.NoError(t, err, "SaveOrUpdateMany with empty map should succeed")
 
 	// Test with single status
 	status1 := &model.Status{UserId: model.NewId(), Status: model.StatusOnline, Manual: false, LastActivityAt: 10, ActiveChannel: ""}
@@ -41,7 +41,7 @@ func testSaveOrUpdateMany(t *testing.T, _ request.CTX, ss store.Store) {
 	retrieved, err := ss.Status().Get(status1.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, status1.UserId, retrieved.UserId)
-	assert.Equal(t, model.StatusOnline, retrieved.Status)
+	assert.Equal(t, status1.Status, retrieved.Status)
 
 	// Test with multiple statuses
 	status2 := &model.Status{UserId: model.NewId(), Status: model.StatusAway, Manual: true, LastActivityAt: 20, ActiveChannel: ""}
@@ -57,6 +57,14 @@ func testSaveOrUpdateMany(t *testing.T, _ request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	require.Len(t, statuses, 2, "should have retrieved both statuses")
 
+	// Verify the retrieved statuses are actually the ones from status2 and status3
+	statusMap := make(map[string]*model.Status)
+	for _, status := range statuses {
+		statusMap[status.UserId] = status
+	}
+	assert.Equal(t, status2.Status, statusMap[status2.UserId].Status)
+	assert.Equal(t, status3.Status, statusMap[status3.UserId].Status)
+
 	// Test with duplicate userIds (last one should win)
 	status4 := &model.Status{UserId: status1.UserId, Status: model.StatusOffline, Manual: true, LastActivityAt: 40, ActiveChannel: ""}
 	status5 := &model.Status{UserId: status1.UserId, Status: model.StatusDnd, Manual: false, LastActivityAt: 50, ActiveChannel: ""}
@@ -70,7 +78,7 @@ func testSaveOrUpdateMany(t *testing.T, _ request.CTX, ss store.Store) {
 	retrieved, err = ss.Status().Get(status1.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, status1.UserId, retrieved.UserId)
-	assert.Equal(t, model.StatusDnd, retrieved.Status)
+	assert.Equal(t, status5.Status, retrieved.Status)
 	assert.Equal(t, int64(50), retrieved.LastActivityAt)
 }
 

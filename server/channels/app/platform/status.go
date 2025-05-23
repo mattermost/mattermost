@@ -453,12 +453,14 @@ func (ps *PlatformService) processStatusUpdates() {
 			statusBatch[status.UserId] = status
 
 			if len(statusBatch) >= statusUpdateFlushThreshold {
+				ps.logger.Debug("Flushing statuses because the current buffer exceeded the flush threshold.", mlog.Int("current_buffer", len(statusBatch)), mlog.Int("flush_threshold", statusUpdateFlushThreshold))
 				flush()
 			}
 		case <-ticker.C:
 			flush()
 		case <-ps.statusUpdateExitSignal:
 			// Process any remaining statuses before shutting down
+			ps.logger.Debug("Exit signal received. Flushing any remaining statuses.")
 			flush()
 			return
 		}

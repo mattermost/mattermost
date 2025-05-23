@@ -101,7 +101,7 @@ func TestQueueSetStatusOffline(t *testing.T) {
 
 	// Wait for the background processor to handle the updates
 	// Use eventually consistent approach with retries
-	for _, userID := range userIDs {
+	for idx, userID := range userIDs {
 		var status *model.Status
 		var err *model.AppError
 
@@ -113,21 +113,14 @@ func TestQueueSetStatusOffline(t *testing.T) {
 
 		// For the duplicated user IDs, check that manual setting is based on the last call
 		// User[0] and User[1] are duplicated at the end of the slice
-		if userID == userIDs[0] {
+		switch idx {
+		case 0, 4: // first duplicated user
 			// Last update for userIDs[0] was at index 4 (i%2 == 0, so manual = true)
 			require.True(t, status.Manual, "User should have manual status (duplicate case)")
-		} else if userID == userIDs[1] {
+		case 1, 5:
 			// Last update for userIDs[1] was at index 5 (i%2 == 1, so manual = false)
 			require.False(t, status.Manual, "User should have automatic status (duplicate case)")
-		} else {
-			// Check manual flag is set correctly for other users
-			idx := -1
-			for i, id := range userIDs[:4] { // original users only
-				if id == userID {
-					idx = i
-					break
-				}
-			}
+		default:
 			require.Equal(t, idx%2 == 0, status.Manual, "Manual flag incorrect")
 		}
 	}

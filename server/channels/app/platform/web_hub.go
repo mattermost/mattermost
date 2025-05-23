@@ -481,7 +481,19 @@ func (h *Hub) ProcessAsync(f func()) {
 			<-h.hubSemaphore
 		}()
 
-		f()
+		// Add timeout protection
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			f()
+		}()
+
+		select {
+		case <-done:
+			// Function completed normally
+		case <-time.After(30 * time.Second):
+			h.platform.Log().Warn("ProcessAsync function timed out after 30 seconds")
+		}
 	}()
 }
 
