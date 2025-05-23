@@ -206,7 +206,7 @@ function PolicyDetails({
         setSaveNeeded(false);
         setShowConfirmationModal(false);
         actions.setNavigationBlocked(false);
-        getHistory().push('/admin_console/user_management/attribute_based_access_control');
+        getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
     };
 
     const handleDelete = async () => {
@@ -236,7 +236,7 @@ function PolicyDetails({
         }
 
         if (success) {
-            getHistory().push('/admin_console/user_management/attribute_based_access_control');
+            getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
         }
     };
 
@@ -292,7 +292,7 @@ function PolicyDetails({
             <AdminHeader withBackButton={true}>
                 <div>
                     <BlockableLink
-                        to='/admin_console/user_management/attribute_based_access_control'
+                        to='/admin_console/system_attributes/attribute_based_access_control'
                         className='fa fa-angle-left back'
                     />
                     <FormattedMessage
@@ -560,7 +560,7 @@ function PolicyDetails({
                 />
                 <BlockableLink
                     className='btn btn-quaternary'
-                    to='/admin_console/user_management/attribute_based_access_control'
+                    to='/admin_console/system_attributes/attribute_based_access_control'
                 >
                     <FormattedMessage
                         id='admin.access_control.edit_policy.cancel'

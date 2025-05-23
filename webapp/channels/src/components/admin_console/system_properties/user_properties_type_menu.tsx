@@ -74,7 +74,7 @@ const SelectType = (props: Props) => {
                     key='filter_types'
                     id='filter_types'
                     type='text'
-                    placeholder={formatMessage({id: 'admin.system_properties.user_properties.table.filter_type', defaultMessage: 'Property type'})}
+                    placeholder={formatMessage({id: 'admin.system_properties.user_properties.table.filter_type', defaultMessage: 'Attribute type'})}
                     className='search-teams-selector-search'
                     value={filter}
                     onChange={onFilterChange}
