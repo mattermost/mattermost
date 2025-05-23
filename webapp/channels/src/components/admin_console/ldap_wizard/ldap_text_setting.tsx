@@ -39,13 +39,17 @@ const LDAPTextSetting = (props: TextSettingProps) => {
         inputType = 'textarea';
     }
 
-    let value = '';
+    let value: string;
     if (props.setting.dynamic_value) {
-        value = props.setting.dynamic_value(value, props.config, props.state);
+        const baseValue = props.state[props.setting.key] ?? (props.setting.default || '');
+        const dynamicValue = props.setting.dynamic_value(baseValue, props.config, props.state);
+        value = sanitizeValue(dynamicValue);
     } else if (props.setting.multiple) {
-        value = props.state[props.setting.key] ? (props.state[props.setting.key] as string[]).join(',') : '';
+        const arrayValue = props.state[props.setting.key] ? (props.state[props.setting.key] as string[]).join(',') : '';
+        value = sanitizeValue(arrayValue);
     } else {
-        value = (props.state[props.setting.key] as string) ?? (props.setting.default as string || '');
+        const rawValue = (props.state[props.setting.key] as string) ?? (props.setting.default as string || '');
+        value = sanitizeValue(rawValue);
     }
 
     let footer = null;
@@ -80,5 +84,12 @@ const LDAPTextSetting = (props: TextSettingProps) => {
         />
     );
 };
+
+function sanitizeValue(value: any): string {
+    if (value === null || value === undefined || Number.isNaN(value)) {
+        return '';
+    }
+    return String(value);
+}
 
 export default LDAPTextSetting;
