@@ -5359,8 +5359,16 @@
     "translation": "Error occurred fetching scheduled posts."
   },
   {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Unable to create group syncable memberships."
+  },
+  {
     "id": "app.group.crud_permission",
     "translation": "Unable to perform operation for that source type."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Unable to delete invalid group syncable memberships."
   },
   {
     "id": "app.group.group_syncable_already_deleted",

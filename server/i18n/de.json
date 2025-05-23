@@ -208,10 +208,6 @@
     "translation": "Ein Direktnachrichtenkanal kann nicht verlassen werden."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Du bist das letzte Mitglied. Versuche die private Gruppe zu löschen, anstatt sie zu verlassen."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v hat den Kanal verlassen."
   },
