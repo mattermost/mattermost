@@ -208,237 +208,90 @@ func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
 }
 
 func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
-	testCases := []struct {
-		name          string
-		configUpdater func(*Config)
-		expectedError string
+	// Define Unicode whitespace characters to test
+	unicodeWhitespaces := []struct {
+		name string
+		char string
 	}{
-		// Directory tests - regular spaces
-		{
-			name: "Valid Directory path",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.Directory = NewPointer("/path/to/directory")
-			},
-			expectedError: "",
-		},
-		{
-			name: "Directory with space in the middle (valid)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.Directory = NewPointer("/path/to/my directory")
-			},
-			expectedError: "",
-		},
-		{
-			name: "Directory with leading whitespace",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.Directory = NewPointer(" /path/to/directory")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "Directory with trailing whitespace",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.Directory = NewPointer("/path/to/directory ")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
+		{"Regular Space", " "},
+		{"Standard Space (U+0020)", "\u0020"},
+		{"No-Break Space (U+00A0)", "\u00A0"},
+		{"En Space (U+2002)", "\u2002"},
+	}
 
-		// Directory tests - UTF-8 spaces
+	// Define all FileSettings path fields to test
+	pathSettings := []struct {
+		name         string
+		validValue   string
+		configSetter func(*Config, *string)
+	}{
 		{
-			name: "Directory with leading Standard Space (U+0020)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.Directory = NewPointer("\u0020/path/to/directory")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
+			"Directory",
+			"/path/to/directory",
+			func(cfg *Config, value *string) { cfg.FileSettings.Directory = value },
 		},
 		{
-			name: "Directory with trailing Standard Space (U+0020)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.Directory = NewPointer("/path/to/directory\u0020")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
+			"AmazonS3PathPrefix",
+			"files/",
+			func(cfg *Config, value *string) { cfg.FileSettings.AmazonS3PathPrefix = value },
 		},
 		{
-			name: "Directory with leading No-Break Space (U+00A0)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.Directory = NewPointer("\u00A0/path/to/directory")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
+			"ExportAmazonS3PathPrefix",
+			"exports/",
+			func(cfg *Config, value *string) { cfg.FileSettings.ExportAmazonS3PathPrefix = value },
 		},
 		{
-			name: "Directory with trailing No-Break Space (U+00A0)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.Directory = NewPointer("/path/to/directory\u00A0")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "Directory with leading En Space (U+2002)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.Directory = NewPointer("\u2002/path/to/directory")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "Directory with trailing En Space (U+2002)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.Directory = NewPointer("/path/to/directory\u2002")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-
-		// AmazonS3PathPrefix tests
-		{
-			name: "Valid AmazonS3PathPrefix",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.AmazonS3PathPrefix = NewPointer("files/")
-			},
-			expectedError: "",
-		},
-		{
-			name: "AmazonS3PathPrefix with leading whitespace",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.AmazonS3PathPrefix = NewPointer(" files/")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "AmazonS3PathPrefix with trailing whitespace",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.AmazonS3PathPrefix = NewPointer("files/ ")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "AmazonS3PathPrefix with leading Unicode space (U+0020)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.AmazonS3PathPrefix = NewPointer("\u0020files/")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "AmazonS3PathPrefix with trailing Unicode space (U+0020)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.AmazonS3PathPrefix = NewPointer("files/\u0020")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "AmazonS3PathPrefix with trailing Unicode whitespace (U+2003)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.AmazonS3PathPrefix = NewPointer("files/\u2003")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-
-		// ExportAmazonS3PathPrefix tests
-		{
-			name: "Valid ExportAmazonS3PathPrefix",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.ExportAmazonS3PathPrefix = NewPointer("exports/")
-			},
-			expectedError: "",
-		},
-		{
-			name: "ExportAmazonS3PathPrefix with leading whitespace",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.ExportAmazonS3PathPrefix = NewPointer(" exports/")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "ExportAmazonS3PathPrefix with trailing whitespace",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.ExportAmazonS3PathPrefix = NewPointer("exports/ ")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "ExportAmazonS3PathPrefix with leading Unicode space (U+0020)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.ExportAmazonS3PathPrefix = NewPointer("\u0020exports/")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "ExportAmazonS3PathPrefix with trailing Unicode space (U+0020)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.ExportAmazonS3PathPrefix = NewPointer("exports/\u0020")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "ExportAmazonS3PathPrefix with leading Unicode whitespace (U+2009)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.ExportAmazonS3PathPrefix = NewPointer("\u2009exports/")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-
-		// ExportDirectory tests
-		{
-			name: "Valid ExportDirectory",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.ExportDirectory = NewPointer("/path/to/exports")
-			},
-			expectedError: "",
-		},
-		{
-			name: "ExportDirectory with leading whitespace",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.ExportDirectory = NewPointer(" /path/to/exports")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "ExportDirectory with trailing whitespace",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.ExportDirectory = NewPointer("/path/to/exports ")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "ExportDirectory with leading Unicode space (U+0020)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.ExportDirectory = NewPointer("\u0020/path/to/exports")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "ExportDirectory with trailing Unicode space (U+0020)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.ExportDirectory = NewPointer("/path/to/exports\u0020")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
-		},
-		{
-			name: "ExportDirectory with trailing Unicode whitespace (U+00A0)",
-			configUpdater: func(cfg *Config) {
-				cfg.FileSettings.ExportDirectory = NewPointer("/path/to/exports\u00A0")
-			},
-			expectedError: "model.config.is_valid.directory_whitespace.app_error",
+			"ExportDirectory",
+			"/path/to/exports",
+			func(cfg *Config, value *string) { cfg.FileSettings.ExportDirectory = value },
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// Create a valid config to start with
+	// Test valid paths first
+	for _, setting := range pathSettings {
+		t.Run(fmt.Sprintf("Valid %s", setting.name), func(t *testing.T) {
 			cfg := &Config{}
 			cfg.SetDefaults()
+			setting.configSetter(cfg, NewPointer(setting.validValue))
 
-			// Apply the test-specific configuration update
-			tc.configUpdater(cfg)
-
-			// Validate the FileSettings directly
 			err := cfg.FileSettings.isValid()
-
-			if tc.expectedError == "" {
-				require.Nil(t, err, "Expected no error but got: %v", err)
-			} else {
-				require.NotNil(t, err, "Expected an error but got none")
-				assert.Equal(t, tc.expectedError, err.Id)
-			}
+			require.Nil(t, err, "Expected no error but got: %v", err)
 		})
+	}
+
+	// Test path with space in the middle (should be valid)
+	t.Run("Directory with space in the middle (valid)", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.Directory = NewPointer("/path/to/my directory")
+
+		err := cfg.FileSettings.isValid()
+		require.Nil(t, err, "Expected no error but got: %v", err)
+	})
+
+	// Test all combinations of settings, whitespace characters, and positions
+	for _, setting := range pathSettings {
+		for _, ws := range unicodeWhitespaces {
+			for _, position := range []string{"leading", "trailing"} {
+				t.Run(fmt.Sprintf("%s with %s %s whitespace", setting.name, position, ws.name), func(t *testing.T) {
+					cfg := &Config{}
+					cfg.SetDefaults()
+
+					var testValue string
+					if position == "leading" {
+						testValue = ws.char + setting.validValue
+					} else {
+						testValue = setting.validValue + ws.char
+					}
+
+					setting.configSetter(cfg, NewPointer(testValue))
+
+					err := cfg.FileSettings.isValid()
+					require.NotNil(t, err, "Expected an error but got none")
+					assert.Equal(t, "model.config.is_valid.directory_whitespace.app_error", err.Id)
+				})
+			}
+		}
 	}
 }
 
