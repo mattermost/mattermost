@@ -258,7 +258,30 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("mysql database not supported", func(t *testing.T) {
+		// Set database driver to MySQL
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SqlSettings.DriverName = model.DatabaseDriverMysql
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SqlSettings.DriverName = model.DatabaseDriverPostgres
+		})
+
+		licenseManagerMock := &mocks.LicenseInterface{}
+		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
+
+		resp, err := th.SystemAdminClient.RequestTrialLicenseWithExtraFields(context.Background(), validTrialRequest)
+		CheckErrorID(t, err, "api.license.request-trial.mysql.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("trial license user count less than current users", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
@@ -295,6 +318,11 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 	})
 
 	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
@@ -325,6 +353,11 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 	})
 
 	t.Run("returns status 400 if request is a mix of legacy and new fields", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		validTrialRequest.CompanyCountry = ""
 		validTrialRequest.Users = 100
 		defer func() { validTrialRequest.CompanyCountry = "US" }()
@@ -365,6 +398,11 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 
 	th.App.Srv().Platform().SetLicenseManager(nil)
 	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		resp, err := th.SystemAdminClient.RequestTrialLicenseWithExtraFields(context.Background(), validTrialRequest)
 		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
 		CheckForbiddenStatus(t, resp)
@@ -387,7 +425,30 @@ func TestRequestTrialLicense(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("mysql database not supported", func(t *testing.T) {
+		// Set database driver to MySQL
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SqlSettings.DriverName = model.DatabaseDriverMysql
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SqlSettings.DriverName = model.DatabaseDriverPostgres
+		})
+
+		licenseManagerMock := &mocks.LicenseInterface{}
+		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
+
+		resp, err := th.SystemAdminClient.RequestTrialLicense(context.Background(), 1000)
+		CheckErrorID(t, err, "api.license.request-trial.mysql.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("trial license invalid JSON", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		// the JSON is invalid because it is missing a closing brace
 
 		licenseManagerMock := &mocks.LicenseInterface{}
@@ -400,6 +461,11 @@ func TestRequestTrialLicense(t *testing.T) {
 	})
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		nUsers := 1
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewPointer(nUsers)
@@ -435,6 +501,11 @@ func TestRequestTrialLicense(t *testing.T) {
 	})
 
 	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		nUsers := 1
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewPointer(nUsers)
@@ -467,6 +538,11 @@ func TestRequestTrialLicense(t *testing.T) {
 
 	th.App.Srv().Platform().SetLicenseManager(nil)
 	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		resp, err := th.SystemAdminClient.RequestTrialLicense(context.Background(), 1)
 		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
 		CheckForbiddenStatus(t, resp)

@@ -2373,6 +2373,10 @@
     "translation": "Failed to apply new trial license as your workspace has already applied a trial license. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
   },
   {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "Trial licenses are not supported for MySQL databases. Please use PostgreSQL to access trial features."
+  },
+  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
