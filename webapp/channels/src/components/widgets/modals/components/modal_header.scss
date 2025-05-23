@@ -20,11 +20,11 @@
 
     &__vertical-divider {
         display: inline-block;
-        vertical-align: middle;
         width: 1px;
         height: 24px;
-        background: rgba(var(--center-channel-color-rgb), 0.16);
         margin: 0 8px;
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+        vertical-align: middle;
     }
 
     &__subtitle {
@@ -38,8 +38,8 @@
         font-weight: 400;
         line-height: 20px;
         text-overflow: ellipsis;
-        white-space: nowrap;
         vertical-align: middle;
+        white-space: nowrap;
     }
 
     &__ctr {
