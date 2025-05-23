@@ -208,10 +208,6 @@
     "translation": "개인 메시지 채널은 나갈 수 없습니다."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "비공개 그룹에 당신밖에 남지 않았습니다. 이 그룹을 떠나는 대신 그룹을 삭제하세요."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v 가 채널을 떠났습니다."
   },

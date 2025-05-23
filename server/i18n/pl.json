@@ -208,10 +208,6 @@
     "translation": "Nie można opuścić kanału wiadomości bezpośrednich."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Jesteś ostatnim uczestnikiem grupy, spróbuj usunąć Prywatny Kanał zamiast go opuszczać."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v opuścił kanał."
   },

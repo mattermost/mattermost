@@ -6955,10 +6955,6 @@
     "translation": "%v har lämnat den här kanalen."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Du är den enda medlemmen kvar, prova med att ta bort den privata gruppen istället för att lämna."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Kan inte lämna en kanal för direktmeddelanden."
   },
