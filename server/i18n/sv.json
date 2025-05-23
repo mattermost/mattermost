@@ -73,15 +73,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Version 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6955,10 +6955,6 @@
     "translation": "%v har lämnat den här kanalen."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Du är den enda medlemmen kvar, prova med att ta bort den privata gruppen istället för att lämna."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Kan inte lämna en kanal för direktmeddelanden."
   },
@@ -8195,7 +8191,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Misslyckades med att installera ny testlicens. Du har tidigare använt en testlicens på denna Mattermost-instans. [Kontakta försäljningsteamet] (https://mattermost.com/contact-us/) om du vill utöka testperioden."
+    "translation": "Misslyckades med att installera ny testlicens eftersom din arbetsyta tidigare använt en testlicens. [Kontakta försäljningsteamet] (https://mattermost.com/contact-us/) om du vill utöka testperioden."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -10400,10 +10396,6 @@
     "translation": "Kunde inte uppdatera sorteringsordningen av bokmärken i kanalen."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "försöker korrigera ett fält som inte finns"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Det går inte att hämta bokmärken för en arkiverad kanal"
   },
@@ -10458,5 +10450,201 @@
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
     "translation": "Kanalbannerns infotext är för lång. Maximal tillåten längd är {{.maxLength}} tecken."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Ditt konto är låst på grund av för många misslyckade lösenordsförsök. Vänligen kontakta din systemadministratör."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Autentiseringstjänsten måste vara LDAP eller e-post."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Du har inte behörighet att uppdatera denna resurs."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Ogiltigt policy-id."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Misslyckades med att hämta användare."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "ogiltig förändring av attributfält för anpassad profil"
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Misslyckades med att återställa inloggningsförsök."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Funktionen är inte tillgänglig med den aktuella licensen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Det går inte att konvertera egenskapsfältet till ett attributfält för anpassad profil"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Ogiltiga attribut på egenskap : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAP-licens krävs."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Ogiltig import enligt policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Ogiltigt namn enligt policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Ogiltig revidering av policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Regel är ogiltig."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Policy måste antingen importera eller definiera regler."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Ogiltig policy-typ."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Ogiltig version för denna åtkomst-policy."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Ogiltigt värde för ldap-attributet max antal inloggningsförsök. Måste vara ett positivt värde."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Kunde inte radera användarens utkast."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix kan inte vara tom om GlobalSearchPrefix har ett innehåll."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} ska vara ett prefix från IndexPrefix {{.IndexPrefix}}."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Kunde inte ta bort användarens värden på anpassade profilattribut"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Misslyckades att validera egenskapens värde"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "Misslyckades att hämta CPA-fält"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "Fel vid uppdatering av CPA-värden"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "Fel när CPA-värde uppdaterades"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Tomt LDAP-attributvärde"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "Misslyckades med att hämta CPA-fält"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAML assertion attribute statement är ogiltigt"
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Misslyckades med att analysera formuläret för webhook {{.hook_id}}."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Misslyckades med att lägga till certifikat."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "För många filer under \"certifikat\" i begäran."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Misslyckades med att ta bort certifikat."
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Det gick inte att öppna profilbildens fil: {{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Misslyckades med att läsa bilddata för profilbilden."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Misslyckades med att analysera multipartformulär för webhook {{.hook_id}}."
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Misslyckades med att beräkna månatliga aktiva användare."
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Ett fel uppstod vid avkodningen av JSON-svaret från den interaktiva dialogrutan."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Ett fel uppstod vid läsning av svarsmeddelandet från en interaktiv dialog."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Ogiltigt AD/LDAP-id"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Ogiltigt AD/LDAP-id"
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "Ingen användare registrerad på AD/LDAP-servern som matchar SAML-användaren."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "Funktionen {{.Feature}} är inte tillgänglig med den aktuella licensen"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Ogiltig länk för att rapportera ett problem. Måste vara en giltig URL och börja med http:// eller https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "En länk för att rapportera ett problem krävs."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Ogiltigt mejladress för att rapportera ett problem. Måste vara en giltig mejladress."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Mejladress för att rapportera ett problem krävs."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Det går inte att uppdatera värdet i ett synkroniserat fält i en anpassad profil"
   }
 ]

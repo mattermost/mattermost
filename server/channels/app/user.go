@@ -876,7 +876,7 @@ func (a *App) SetProfileImage(c request.CTX, userID string, imageData *multipart
 
 func (a *App) SetProfileImageFromMultiPartFile(c request.CTX, userID string, file multipart.File) *model.AppError {
 	if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
-		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest).Wrap(limitErr)
 	}
 
 	return a.SetProfileImageFromFile(c, userID, file)
@@ -1044,6 +1044,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		}
 	}
 	ruser := userUpdate.New
+	a.InvalidateCacheForUser(user.Id)
 
 	if !active {
 		if err := a.RevokeAllSessions(c, ruser.Id); err != nil {
@@ -1057,8 +1058,6 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	if appErr := a.invalidateUserChannelMembersCaches(c, user.Id); appErr != nil {
 		c.Logger().Warn("Error while invalidating user channel members caches", mlog.Err(appErr))
 	}
-	a.InvalidateCacheForUser(user.Id)
-
 	a.sendUpdatedUserEvent(ruser)
 
 	if !active && user.DeleteAt != 0 {
@@ -1594,7 +1593,7 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 
 	result, eErr := a.Srv().EmailService.SendPasswordResetEmail(user.Email, token, user.Locale, siteURL)
 	if eErr != nil {
-		return result, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+eErr.Error(), http.StatusInternalServerError)
+		return result, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "", http.StatusInternalServerError).Wrap(eErr)
 	}
 
 	return result, nil
@@ -2091,6 +2090,26 @@ func (a *App) SearchUsersInChannel(channelID string, term string, options *model
 
 func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
+
+	ctx := request.EmptyContext(a.Log())
+	if ok, err := a.ChannelAccessControlled(ctx, channelID); err != nil {
+		return nil, err
+	} else if ok {
+		acs := a.Srv().Channels().AccessControl
+		if acs != nil {
+			users, _, appErr := acs.QueryUsersForResource(ctx, channelID, "*", model.SubjectSearchOptions{
+				Term:   term,
+				TeamID: teamID,
+				Limit:  options.Limit,
+			})
+			if appErr != nil {
+				return nil, appErr
+			}
+
+			return users, nil
+		}
+	}
+
 	users, err := a.Srv().Store().User().SearchNotInChannel(teamID, channelID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("SearchUsersNotInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

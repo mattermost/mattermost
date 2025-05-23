@@ -274,13 +274,13 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.existing_reserved_name_error", nil, "", http.StatusBadRequest)
 				return
 			}
-			//check if a user already has this group name
+			// check if a user already has this group name
 			user, _ := c.App.GetUserByUsername(*groupPatch.Name)
 			if user != nil {
 				c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.existing_user_name_error", nil, "", http.StatusBadRequest)
 				return
 			}
-			//check if a mentionable group already has this name
+			// check if a mentionable group already has this name
 			searchOpts := model.GroupSearchOpts{
 				FilterAllowReference: true,
 			}
@@ -914,7 +914,6 @@ func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError
 		Groups: groups,
 		Count:  totalCount,
 	})
-
 	if err != nil {
 		return nil, model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1346,6 +1345,13 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, userID := range newMembers.UserIds {
+		if !model.IsValidId(userID) {
+			c.SetInvalidParamWithDetails("user_id", fmt.Sprintf("UserID %s is invalid", userID))
+			return
+		}
+	}
+
 	auditRec := c.MakeAuditRecord("addGroupMembers", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "addGroupMembers_userids", newMembers.UserIds)
@@ -1412,6 +1418,13 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&deleteBody); err != nil || deleteBody == nil {
 		c.SetInvalidParamWithErr("deleteGroupMembers", err)
 		return
+	}
+
+	for _, userID := range deleteBody.UserIds {
+		if !model.IsValidId(userID) {
+			c.SetInvalidParamWithDetails("user_id", fmt.Sprintf("UserID %s is invalid", userID))
+			return
+		}
 	}
 
 	auditRec := c.MakeAuditRecord("deleteGroupMembers", audit.Fail)
@@ -1482,7 +1495,7 @@ func licensedAndConfiguredForGroupBySource(app *app.App, source model.GroupSourc
 		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 	}
 
-	if source == model.GroupSourceCustom && lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
+	if source == model.GroupSourceCustom && !model.MinimumProfessionalLicense(lic) {
 		return model.NewAppError("", "api.custom_groups.license_error", nil, "", http.StatusBadRequest)
 	}
 

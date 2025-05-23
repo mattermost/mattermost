@@ -137,7 +137,7 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Ingen fil under \"sertifikat\" i forespørslen."
+    "translation": "August"
   },
   {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
@@ -314,5 +314,141 @@
   {
     "id": "api.templates.invite_body_guest.subTitle",
     "translation": "Du ble invitert som gjest for å samarbeide med teamet"
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v ble med i kanalen."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Det er ikke mulig å forlate standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "Du har ikke de riktige tillatelsene."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Kan ikke forlate en direkte meldingskanal."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Kunne ikke oppdatere kanalen."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Kunne ikke legge til sertifikat."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "For mange filer under 'sertifikat' i forespørselen."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Kunne ikke fjerne sertifikatet."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Ugyldig innholdstype."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Manglende innholdstype."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Ugyldig tekst i sertifikatet."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v forlot kanalen."
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v ble med i kanalen som gjest."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Lisensen din støtter ikke moderering av kanaler"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "Du har ikke tillatelse til å invitere nye brukere til denne serveren."
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "Kan ikke finne kanalen."
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "Det oppstod en feil under opplisting av kanaler."
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "bli med"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marketplace"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Logg av Mattermost"
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "forlat"
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Prøvde å utføre en ugyldig oppdatering av standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Kanaltype kan ikke oppdateres."
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Forlat nåværende kanal"
+  },
+  {
+    "id": "api.command_kick.name",
+    "translation": "spark"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Åpne Marketplace"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "Logg av"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Marketplace-kommandoen er ikke støttet på enheten din."
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "Det oppstod en feil under opprettelse av direktemeldingen."
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Det oppstod en feil under sending av en melding til brukeren."
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "Kan ikke finne brukeren."
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "melding"
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "Det oppstod en feil under tilkoblingen til kanalen."
+  },
+  {
+    "id": "api.command_join.desc",
+    "translation": "Bli med i den åpne kanalen"
   }
 ]

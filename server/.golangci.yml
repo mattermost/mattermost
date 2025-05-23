@@ -29,6 +29,7 @@ linters:
     - makezero
     - whitespace
     - errcheck
+    - bidichk
 
 issues:
   exclude-rules:
@@ -88,37 +89,10 @@ issues:
         channels/api4/team_local.go|\
         channels/api4/websocket_test.go|\
         channels/app/bot_test.go|\
-        channels/app/brand.go|\
-        channels/app/config_test.go|\
-        channels/app/file.go|\
-        channels/app/file_bench_test.go|\
         channels/app/file_test.go|\
         channels/app/helper_test.go|\
-        channels/app/import_functions.go|\
-        channels/app/integration_action.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
-        channels/app/platform/license.go|\
-        channels/app/platform/session.go|\
-        channels/app/platform/status.go|\
-        channels/app/platform/web_hub_test.go|\
-        channels/app/plugin_test.go|\
-        channels/app/post_helpers_test.go|\
-        channels/app/post_test.go|\
-        channels/app/slack.go|\
-        channels/app/slashcommands/auto_environment.go|\
-        channels/app/slashcommands/command_test.go|\
-        channels/app/slashcommands/helper_test.go|\
-        channels/app/support_packet_test.go|\
-        channels/app/team.go|\
-        channels/app/team_test.go|\
-        channels/app/upload.go|\
-        channels/app/webhook_test.go|\
-        channels/jobs/batch_worker_test.go|\
-        channels/jobs/helper_test.go|\
-        channels/jobs/hosted_purchase_screening/worker.go|\
-        channels/jobs/jobs.go|\
-        channels/manualtesting/manual_testing.go|\
         channels/store/localcachelayer/channel_layer.go|\
         channels/store/localcachelayer/channel_layer_test.go|\
         channels/store/localcachelayer/emoji_layer.go|\
@@ -164,11 +138,7 @@ issues:
         channels/store/storetest/team_store.go|\
         channels/store/storetest/thread_store.go|\
         channels/store/storetest/user_store.go|\
-        channels/utils/license_test.go|\
-        channels/web/oauth_test.go|\
-        channels/web/saml.go|\
         channels/web/web_test.go|\
-        channels/web/webhook.go|\
         cmd/mattermost/commands/cmdtestlib.go|\
         cmd/mattermost/commands/db.go|\
         cmd/mattermost/commands/export.go|\

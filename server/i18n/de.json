@@ -208,10 +208,6 @@
     "translation": "Ein Direktnachrichtenkanal kann nicht verlassen werden."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Du bist das letzte Mitglied. Versuche die private Gruppe zu löschen, anstatt sie zu verlassen."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v hat den Kanal verlassen."
   },
@@ -4644,15 +4640,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Version 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7000,7 +6996,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Neue Testlizenz konnte nicht angewendet werden. Du hast bereits eine Testlizenz auf diese Mattermost-Instanz angewendet... Wenn du deine Testphase verlängern willst, kontaktiere bitte [unser Vertriebsteam](https://mattermost.com/contact-us/)."
+    "translation": "Die Anwendung einer neuen Testlizenz ist fehlgeschlagen, da dein Arbeitsbereich bereits eine Testlizenz hat. Wenn du deinen Testzeitraum verlängern möchtest, wende dich bitte [an unser Vertriebsteam](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -10404,10 +10400,6 @@
     "translation": "Die Sortierreihenfolge des Kanal-Lesezeichens konnte nicht aktualisiert werden."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "Versuch, ein Feld zu patchen, das nicht existiert"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Lesezeichen für einen archivierten Kanal können nicht abgerufen werden"
   },
@@ -10496,15 +10488,163 @@
     "translation": "Funktion ist für die aktuelle Lizenz nicht verfügbar"
   },
   {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Das Eigenschaftsfeld kann nicht in ein benutzerdefiniertes Profilattributfeld umgewandelt werden"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
     "translation": "Das Eigenschaftsfeld kann nicht in ein benutzerdefiniertes Profilattributfeld umgewandelt werden"
   },
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
     "translation": "Ungültige Eigenschaftswertattribute : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Ungültiger Name für die Richtlinie."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Ungültige Richtlinienänderung."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Regel(n) ist nicht gültig."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Die Richtlinie muss entweder Regeln importieren oder definieren."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Ungültiger Richtlinientyp."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Version ist für diese Zugriffskontrollrichtlinie nicht gültig."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Ungültige Policy ID."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Ungültige Importe für die Richtlinie."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Ungültiger Patch für benutzerdefiniertes Profilattributfeld"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} sollte ein Präfix von IndexPrefix {{.IndexPrefix}} sein."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix kann nicht leer sein, wenn GlobalSearchPrefix gesetzt ist."
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Validierung des Eigenschaftswertes fehlgeschlagen"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "Fehler beim Patchen des CPA-Werts"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "CPA-Felder konnten nicht abgerufen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Benutzerdefinierte Profilattributwerte für den Benutzer können nicht gelöscht werden"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Leerer LDAP-Attributwert"
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Das Formular für den Webhook {{.hook_id}} konnte nicht verarbeitet werden."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Das mehrteilige Formular für den Webhook {{.hook_id}} konnte nicht analysiert werden."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Das Hinzufügen des Zertifikats ist fehlgeschlagen."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Zu viele Dateien unter 'Zertifikat' in der Anfrage."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Das Zertifikat konnte nicht entfernt werden."
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Die Profilbilddatei konnte nicht geöffnet werden: {{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Die Profilbilddaten konnten nicht gelesen werden."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Es ist ein Fehler beim Lesen des Response Body eines interaktiven Dialogs aufgetreten."
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Es wurde ein Fehler beim Dekodieren der JSON-Antwort von der interaktiven Dialogübermittlung festgestellt."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Ungültige AD/LDAP ID"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Ungültige AD/LDAP ID"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "CPA-Feld(er) konnte(n) nicht abgerufen werden"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAML-Assertion Attributanweisung ist ungültig"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "Fehler bei der Aktualisierung der CPA-Werte"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Die Berechnung der monatlich aktiven Nutzer ist fehlgeschlagen."
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "Auf dem AD/LDAP-Server ist kein Benutzer registriert, der dem SAML-Benutzer entspricht."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} Funktion ist für die aktuelle Lizenz nicht verfügbar"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Ungültiger Link zum Melden eines Problems. Muss eine gültige URL sein und mit http:// oder https:// beginnen."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Problem-melden-Link ist erforderlich."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Ungültige Mail zum Melden eines Problems. Muss eine gültige E-Mail Adresse sein."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "\"Melde ein Problem\"-Mail ist erforderlich."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Wert für ein synchronisiertes benutzerdefiniertes Profilattributfeld kann nicht aktualisiert werden"
   }
 ]

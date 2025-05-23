@@ -4,10 +4,12 @@
 /* eslint-disable max-lines */
 
 import React, {PureComponent} from 'react';
-import {defineMessage, defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessage, defineMessages, FormattedDate, FormattedMessage, FormattedList, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
+import ReactSelect from 'react-select';
+import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
@@ -23,6 +25,7 @@ import SettingPicture from 'components/setting_picture';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
+import {validHttpUrl} from 'utils/url';
 import * as Utils from 'utils/utils';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
@@ -44,6 +47,10 @@ const holders = defineMessages({
     validEmail: {
         id: 'user.settings.general.validEmail',
         defaultMessage: 'Please enter a valid email address.',
+    },
+    validUrl: {
+        id: 'user.settings.general.validUrl',
+        defaultMessage: 'Please enter a valid url.',
     },
     emailMatch: {
         id: 'user.settings.general.emailMatch',
@@ -99,6 +106,34 @@ const holders = defineMessages({
     },
 });
 
+export type SelectOption = {
+    value: string;
+    label: string;
+};
+
+const selectStyles: StylesConfig<SelectOption, true> = {
+    valueContainer: (baseStyles) => ({
+        ...baseStyles,
+        height: 'auto',
+        minHeight: '38px',
+        flexWrap: 'wrap',
+        whiteSpace: 'normal',
+    }),
+    multiValue: (baseStyles) => ({
+        ...baseStyles,
+        margin: '2px',
+    }),
+    control: (baseStyles) => ({
+        ...baseStyles,
+        height: 'auto',
+        minHeight: '38px',
+    }),
+    multiValueLabel: (baseStyles) => ({
+        ...baseStyles,
+        padding: '2px 6px',
+    }),
+};
+
 export type Props = {
     intl: IntlShape;
     user: UserProfile;
@@ -117,8 +152,8 @@ export type Props = {
         sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
         uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
-        saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult<Record<string, string>>>;
-        getCustomProfileAttributeValues: (userID: string) => Promise<ActionResult<Record<string, string>>>;
+        getCustomProfileAttributeValues: (userID: string) => Promise<ActionResult<Record<string, string | string[]>>>;
+        saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string | string[]) => Promise<ActionResult<Record<string, string | string[]>>>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -151,7 +186,7 @@ type State = {
     clientError?: string | null;
     serverError?: string | {server_error_id: string; message: string};
     emailError?: string;
-    customAttributeValues: Record<string, string>;
+    customAttributeValues: Record<string, string | string[]>;
 }
 
 export class UserSettingsGeneralTab extends PureComponent<Props, State> {
@@ -407,23 +442,51 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     };
 
     submitAttribute = async (settings: string[]) => {
+        const {formatMessage} = this.props.intl;
+
         const attributeID = settings[0];
-        const attributeValue = this.state.customAttributeValues?.[attributeID];
-        if (attributeValue == null) {
+        const attributeField = this.props.customProfileAttributeFields.find((field) => field.id === attributeID);
+        if (attributeField === undefined) {
             return;
         }
+        let attributeValue: string | string[] = this.state.customAttributeValues?.[attributeID];
 
+        if (typeof attributeValue === 'string' && attributeField.attrs && attributeField.attrs.value_type) {
+            if (attributeField.attrs.value_type === 'email') {
+                if (attributeValue !== '' && !isEmail(attributeValue)) {
+                    this.setState({clientError: formatMessage(holders.validEmail), emailError: '', serverError: ''});
+                    return;
+                }
+            }
+            if (attributeField.attrs.value_type === 'url') {
+                if (attributeValue !== '') {
+                    const validURL = validHttpUrl(attributeValue);
+                    if (!validURL) {
+                        this.setState({clientError: formatMessage(holders.validUrl), emailError: '', serverError: ''});
+                        return;
+                    }
+                    let validLink = validURL.toString();
+                    if (validLink.endsWith('/')) {
+                        validLink = validLink.slice(0, -1);
+                    }
+                    attributeValue = validLink;
+                }
+            }
+        }
+        if (attributeField.type === 'multiselect' && !attributeValue) {
+            attributeValue = [];
+        }
         trackEvent('settings', 'user_settings_update', {field: 'customAttributeValues-' + attributeID});
 
         this.setState({sectionIsSaving: true});
 
-        this.props.actions.saveCustomProfileAttribute(this.props.user.id, attributeID, attributeValue).
+        this.props.actions.saveCustomProfileAttribute(this.props.user.id, attributeID, attributeValue as string).
             then(({data, error: err}) => {
                 if (data) {
                     this.updateSection('');
                     this.setState({customAttributeValues: {...this.state.customAttributeValues, ...data}});
                 } else if (err) {
-                    const serverError = err;
+                    const serverError = err.message;
                     this.setState({serverError, emailError: '', clientError: '', sectionIsSaving: false});
                 }
             });
@@ -470,6 +533,27 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         } else {
             this.setState({pictureFile: null});
         }
+    };
+
+    updateSelectAttribute = (selectedOption: OnChangeValue<SelectOption, boolean>, action: ActionMeta<SelectOption>, fieldID: string) => {
+        const attributeValues = {...this.state.customAttributeValues};
+
+        if (!selectedOption) {
+            attributeValues[fieldID] = '';
+        } else if (Array.isArray(selectedOption)) {
+            // Handle multi-select
+            attributeValues[fieldID] = selectedOption.
+                filter((option): option is SelectOption =>
+                    Boolean(option && Object.hasOwn(option, 'value'))).
+                map((option) => option.value);
+        } else if ('value' in selectedOption) {
+            // Handle single select
+            attributeValues[fieldID] = selectedOption.value || '';
+        } else {
+            attributeValues[fieldID] = '';
+        }
+
+        this.setState({customAttributeValues: attributeValues});
     };
 
     updateAttribute = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1320,7 +1404,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     };
 
     createCustomAttributeSection = () => {
-        if (!this.props.enableCustomProfileAttributes || this.props.customProfileAttributeFields == null) {
+        const {formatMessage} = this.props.intl;
+        if (this.props.customProfileAttributeFields == null) {
             return <></>;
         }
 
@@ -1329,54 +1414,130 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             const active = this.props.activeSection === sectionName;
             let max = null;
 
-            if (active) {
-                const inputs = [];
-
-                let attributeLabel: JSX.Element | string = (
-                    attribute.name
-                );
-                if (this.props.isMobileView) {
-                    attributeLabel = '';
+            const getDisplayValue = (attributeValue: string | string[]) => {
+                if (!attributeValue || (!Array.isArray(attributeValue) && !attributeValue.length)) {
+                    return '';
                 }
 
-                inputs.push(
-                    <div
-                        key={sectionName}
-                        className='form-group'
-                    >
-                        <label className='col-sm-5 control-label'>{attributeLabel}</label>
-                        <div className='col-sm-7'>
-                            <input
-                                id={sectionName}
-                                autoFocus={true}
-                                className='form-control'
-                                type='text'
-                                onChange={this.updateAttribute}
-                                value={this.state.customAttributeValues[attribute.id] || ''}
-                                maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
-                                autoCapitalize='off'
-                                onFocus={Utils.moveCursorToEnd}
-                                aria-label={attribute.name}
-                            />
-                        </div>
-                    </div>,
-                );
+                if (attribute.type === 'select' || attribute.type === 'multiselect') {
+                    const attribOptions = attribute.attrs.options;
+                    if (!attribOptions) {
+                        return '';
+                    }
+                    if (Array.isArray(attributeValue)) {
+                        return attributeValue.map((value) => {
+                            const option = attribOptions.find((o) => o.id === value);
+                            if (option) {
+                                return {label: option?.name, value: option?.id};
+                            }
+                            return null;
+                        }).filter((value) => value != null);
+                    }
 
-                const extraInfo = (
-                    <span>
-                        <FormattedMessage
-                            id='user.settings.general.attributeExtra'
-                            defaultMessage='This will be shown in your profile popover.'
-                        />
-                    </span>
-                );
+                    // Handle single select
+                    const option = attribOptions.find((o) => o.id === attributeValue);
+                    if (option) {
+                        return {label: option?.name, value: option?.id};
+                    }
+                    return '';
+                }
+
+                return attributeValue as string;
+            };
+
+            if (active) {
+                const inputs = [];
+                let extraInfo: JSX.Element|string;
+                let submit = null;
+
+                if ((this.props.user.auth_service === Constants.LDAP_SERVICE && attribute.attrs?.ldap) ||
+                    (this.props.user.auth_service === Constants.SAML_SERVICE && attribute.attrs?.saml)) {
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.field_handled_externally'
+                                defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                            />
+                        </span>
+                    );
+                } else {
+                    let attributeLabel: JSX.Element | string = (
+                        attribute.name
+                    );
+                    if (this.props.isMobileView) {
+                        attributeLabel = '';
+                    }
+
+                    if (attribute.type === 'select' || attribute.type === 'multiselect') {
+                        const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
+                        const opts = attribOptions.map((o) => {
+                            return {label: o.name, value: o.id} as SelectOption;
+                        });
+                        inputs.push(
+                            <ReactSelect
+                                isMulti={attribute.type === 'multiselect' ? true : undefined}
+                                key={sectionName}
+                                id={'customProfileAttribute_' + attribute.id}
+                                inputId={'customProfileAttribute_' + attribute.id + '_input'}
+                                className='react-select inlineSelect'
+                                classNamePrefix='react-select'
+                                options={opts}
+                                isClearable={true}
+                                isSearchable={false}
+                                isDisabled={false}
+                                placeholder={formatMessage({
+                                    id: 'user.settings.general.select',
+                                    defaultMessage: 'Select',
+                                })}
+                                components={{IndicatorSeparator: null}}
+                                styles={selectStyles}
+                                value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
+                                onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
+                            />,
+                        );
+                    } else {
+                        const inputType = attribute.type as string;
+                        inputs.push(
+                            <div
+                                key={sectionName}
+                                className='form-group'
+                            >
+                                <label className='col-sm-5 control-label'>{attributeLabel}</label>
+                                <div className='col-sm-7'>
+                                    <input
+                                        id={sectionName}
+                                        autoFocus={true}
+                                        className='form-control'
+                                        type={inputType}
+                                        onChange={this.updateAttribute}
+                                        value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as string}
+                                        maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                                        autoCapitalize='off'
+                                        onFocus={Utils.moveCursorToEnd}
+                                        aria-label={attribute.name}
+                                    />
+                                </div>
+                            </div>,
+                        );
+                    }
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.attributeExtra'
+                                defaultMessage='This will be shown in your profile popover.'
+                            />
+                        </span>
+                    );
+
+                    submit = this.submitAttribute.bind(this, [attribute.id]);
+                }
 
                 max = (
                     <SettingItemMax
                         key={'settingItemMax_' + attribute.id}
                         title={attribute.name}
                         inputs={inputs}
-                        submit={this.submitAttribute.bind(this, [attribute.id])}
+                        submit={submit}
                         saving={this.state.sectionIsSaving}
                         serverError={this.state.serverError}
                         clientError={this.state.clientError}
@@ -1386,10 +1547,19 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 );
             }
             let describe: JSX.Element|string = '';
-            const attributeValue = this.props.user.custom_profile_attributes?.[attribute.id];
-            if (attributeValue) {
-                describe = attributeValue;
-            } else {
+            if (this.props.user.custom_profile_attributes?.[attribute.id]) {
+                const attributeValue = getDisplayValue(this.props.user.custom_profile_attributes?.[attribute.id]);
+                if (attributeValue) {
+                    if (typeof attributeValue === 'string') {
+                        describe = attributeValue;
+                    } else if (Array.isArray(attributeValue) && attributeValue.length > 0) {
+                        describe = <FormattedList value={attributeValue.map((attrib) => attrib?.label || null)}/>;
+                    } else if (!Array.isArray(attributeValue) && Object.hasOwn(attributeValue, 'label')) {
+                        describe = attributeValue.label || '';
+                    }
+                }
+            }
+            if (!describe) {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.emptyAttribute'

@@ -208,10 +208,6 @@
     "translation": "Nie można opuścić kanału wiadomości bezpośrednich."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Jesteś ostatnim uczestnikiem grupy, spróbuj usunąć Prywatny Kanał zamiast go opuszczać."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v opuścił kanał."
   },
@@ -4605,15 +4601,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 119+"
+    "translation": "Wersja 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 132+"
+    "translation": "Wersja 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 132+"
+    "translation": "Wersja 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7081,7 +7077,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Nie udało się zastosować nowej licencji próbnej. Zastosowano już wcześniej licencję próbną do tej instancji Mattermost... Jeśli chcesz przedłużyć okres próbny, prosimy o [kontakt z naszym zespołem sprzedaży](https://mattermost.com/contact-us/)."
+    "translation": "Nie udało się zastosować nowej licencji próbnej, ponieważ Twój obszar roboczy ma już licencję próbną. Jeśli chcesz przedłużyć okres próbny, skontaktuj się z naszym zespołem sprzedaży (https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -10396,10 +10392,6 @@
     "translation": "Nie udało się zaktualizować kolejności sortowania zakładki kanału."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "próba załatania pola, które nie istnieje"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Nie można pobrać zakładek dla zarchiwizowanego kanału"
   },
@@ -10504,11 +10496,159 @@
     "translation": "Nie można przekonwertować pola właściwości na niestandardowe pole atrybutu profilu"
   },
   {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Nie można przekonwertować pola właściwości na niestandardowe pole atrybutu profilu"
-  },
-  {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
     "translation": "Nieprawidłowe atrybuty wartości właściwości: {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Nieprawidłowa poprawka pola atrybutu profilu niestandardowego"
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Nieprawidłowy typ polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Wersja nie jest ważna dla tej polityki kontroli dostępu."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Nieprawidłowy identyfikator polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Nieprawidłowy import dla polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Nieprawidłowa nazwa polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Nieprawidłowa zmiana zasad."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Reguła(y) jest(są) nieważna(e)."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Polityka musi importować lub definiować reguły."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix nie może być pusty, jeśli ustawiony jest GlobalSearchPrefix."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} powinien być prefiksem IndexPrefix {{.IndexPrefix}}."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Nie można usunąć wartości atrybutu profilu niestandardowego dla użytkownika"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Nie udało się zweryfikować wartości właściwości"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Pusta wartość atrybutu LDAP"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "Błędy patchowania wartości CPA"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "Nie udało się pobrać pól CPA"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "Deklaracja atrybutu asercji SAML jest nieprawidłowa"
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Nie udało się przeanalizować wieloczęściowego formularza dla webhooka {{.hook_id}}."
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "Błędy aktualizacji wartości CPA"
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Nie udało się przeanalizować formularza dla webhooka {{.hook_id}}."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Nie udało się dodać certyfikatu."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Zbyt wiele plików pod \"Certyfikat\" w żądaniu."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Nie udało się usunąć certyfikatu."
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Nie udało się otworzyć pliku obrazu profilu: {{.FileName}}"
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Napotkano błąd dekodowania odpowiedzi JSON z interaktywnego przesyłania okna dialogowego."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Napotkano błąd odczytu treści odpowiedzi z interaktywnego przesłania okna dialogowego."
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "Nie udało się pobrać pól CPA"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Nieprawidłowy identyfikator AD/LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Nieprawidłowy identyfikator AD/LDAP"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Nie udało się obliczyć miesięcznej liczby aktywnych użytkowników."
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Nie udało się odczytać danych obrazu profilu."
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "Żaden użytkownik zarejestrowany na serwerze AD/LDAP nie pasuje do użytkownika SAML."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} funkcja nie jest dostępna dla bieżącej licencji"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Nieprawidłowy link do zgłoszenia problemu. Musi być prawidłowym adresem URL i zaczynać się od http:// lub https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Wymagany jest link Zgłoś problem."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Nieprawidłowe zgłoszenie problemu. Musi to być prawidłowy adres e-mail."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Wymagane jest zgłoszenie problemu pocztą."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Nie można zaktualizować wartości dla zsynchronizowanego pola atrybutu profilu niestandardowego"
   }
 ]

@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -619,6 +620,18 @@ func (c *Client4) customProfileAttributeFieldRoute(fieldID string) string {
 
 func (c *Client4) customProfileAttributeValuesRoute() string {
 	return fmt.Sprintf("%s/values", c.customProfileAttributesRoute())
+}
+
+func (c *Client4) accessControlPoliciesRoute() string {
+	return "/access_control_policies"
+}
+
+func (c *Client4) celRoute() string {
+	return "/access_control_policies/cel"
+}
+
+func (c *Client4) accessControlPolicyRoute(policyID string) string {
+	return fmt.Sprintf(c.accessControlPoliciesRoute()+"/%v", policyID)
 }
 
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
@@ -3696,6 +3709,37 @@ func (c *Client4) GetChannelMembersWithTeamData(ctx context.Context, userID stri
 	defer closeBody(r)
 
 	var ch ChannelMembersWithTeamData
+
+	// Check if we need to handle NDJSON format (when page is -1)
+	if page == -1 {
+		// Process NDJSON format (each JSON object on new line)
+		contentType := r.Header.Get("Content-Type")
+		if contentType == "application/x-ndjson" {
+			scanner := bufio.NewScanner(r.Body)
+			ch = ChannelMembersWithTeamData{}
+
+			for scanner.Scan() {
+				line := scanner.Text()
+				if line == "" {
+					continue
+				}
+
+				var member ChannelMemberWithTeamData
+				if err2 := json.Unmarshal([]byte(line), &member); err2 != nil {
+					return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err2)
+				}
+				ch = append(ch, member)
+			}
+
+			if err2 := scanner.Err(); err2 != nil {
+				return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err2)
+			}
+
+			return ch, BuildResponse(r), nil
+		}
+	}
+
+	// Standard JSON format
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -4168,6 +4212,9 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 	if opts.SkipFetchThreads {
 		values.Set("skipFetchThreads", "true")
 	}
+	if opts.UpdatesOnly {
+		values.Set("updatesOnly", "true")
+	}
 	if opts.PerPage != 0 {
 		values.Set("perPage", strconv.Itoa(opts.PerPage))
 	}
@@ -4176,6 +4223,9 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 	}
 	if opts.FromCreateAt != 0 {
 		values.Set("fromCreateAt", strconv.FormatInt(opts.FromCreateAt, 10))
+	}
+	if opts.FromUpdateAt != 0 {
+		values.Set("fromUpdateAt", strconv.FormatInt(opts.FromUpdateAt, 10))
 	}
 	if opts.Direction != "" {
 		values.Set("direction", opts.Direction)
@@ -5091,6 +5141,23 @@ func (c *Client4) RemoveLicenseFile(ctx context.Context) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
+// GetLicenseLoadMetric retrieves the license load metric from the server.
+// The load is calculated as (monthly active users / licensed users) * 1000.
+func (c *Client4) GetLicenseLoadMetric(ctx context.Context) (map[string]int, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.licenseRoute()+"/load_metric", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var loadData map[string]int
+	if err := json.NewDecoder(r.Body).Decode(&loadData); err != nil {
+		return nil, BuildResponse(r), NewAppError("GetLicenseLoadMetric", "api.unmarshal_error", nil, "", r.StatusCode).Wrap(err)
+	}
+
+	return loadData, BuildResponse(r), nil
+}
+
 // GetAnalyticsOld will retrieve analytics using the old format. New format is not
 // available but the "/analytics" endpoint is reserved for it. The "name" argument is optional
 // and defaults to "standard". The "teamId" argument is optional and will limit results
@@ -5692,16 +5759,23 @@ func (c *Client4) GetClusterStatus(ctx context.Context) ([]*ClusterInfo, *Respon
 
 // LDAP Section
 
-// SyncLdap will force a sync with the configured LDAP server.
-// If includeRemovedMembers is true, then group members who left or were removed from a
+// SyncLdap starts a run of the LDAP sync job.
+//
+// If reAddRemovedMembers is true, then group members who left or were removed from a
 // synced team/channel will be re-joined; otherwise, they will be excluded.
-func (c *Client4) SyncLdap(ctx context.Context, includeRemovedMembers bool) (*Response, error) {
-	reqBody, err := json.Marshal(map[string]any{
-		"include_removed_members": includeRemovedMembers,
-	})
+//
+// The ReAddRemovedMembers option is deprecated. Use LdapSettings.ReAddRemovedMembers instead.
+func (c *Client4) SyncLdap(ctx context.Context, reAddRemovedMembers *bool) (*Response, error) {
+	data := map[string]any{}
+	if reAddRemovedMembers != nil {
+		data["include_removed_members"] = *reAddRemovedMembers
+	}
+
+	reqBody, err := json.Marshal(data)
 	if err != nil {
 		return nil, NewAppError("SyncLdap", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
 	r, err := c.DoAPIPostBytes(ctx, c.ldapRoute()+"/sync", reqBody)
 	if err != nil {
 		return BuildResponse(r), err
@@ -7940,8 +8014,8 @@ func (c *Client4) RestoreGroup(ctx context.Context, groupID string, etag string)
 	}
 	defer closeBody(r)
 	var p Group
-	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
-		return nil, nil, NewAppError("DeleteGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		return nil, nil, NewAppError("DeleteGroup", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &p, BuildResponse(r), nil
 }
@@ -9241,8 +9315,8 @@ func (c *Client4) AcknowledgePost(ctx context.Context, postId, userId string) (*
 	}
 	defer closeBody(r)
 	var ack *PostAcknowledgement
-	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
-		return nil, nil, NewAppError("AcknowledgePost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&ack); err != nil {
+		return nil, nil, NewAppError("AcknowledgePost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ack, BuildResponse(r), nil
 }
@@ -9508,4 +9582,192 @@ func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]json.Raw
 	}
 
 	return patchedValues, BuildResponse(r), nil
+}
+
+// Access Control Policies Section
+
+// CreateAccessControlPolicy creates a new access control policy.
+func (c *Client4) CreateAccessControlPolicy(ctx context.Context, policy *AccessControlPolicy) (*AccessControlPolicy, *Response, error) {
+	b, err := json.Marshal(policy)
+	if err != nil {
+		return nil, nil, NewAppError("CreateAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPutBytes(ctx, c.accessControlPoliciesRoute(), b)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var p AccessControlPolicy
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		return nil, nil, NewAppError("CreateAccessControlPolicy", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &p, BuildResponse(r), nil
+}
+
+func (c *Client4) GetAccessControlPolicy(ctx context.Context, id string) (*AccessControlPolicy, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.accessControlPolicyRoute(id), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var policy AccessControlPolicy
+	if err := json.NewDecoder(r.Body).Decode(&policy); err != nil {
+		return nil, nil, NewAppError("GetAccessControlPolicy", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &policy, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteAccessControlPolicy(ctx context.Context, id string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.accessControlPolicyRoute(id))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) CheckExpression(ctx context.Context, expression string) ([]CELExpressionError, *Response, error) {
+	checkExpressionRequest := struct {
+		Expression string `json:"expression"`
+	}{
+		Expression: expression,
+	}
+	b, err := json.Marshal(checkExpressionRequest)
+	if err != nil {
+		return nil, nil, NewAppError("CheckExpression", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.celRoute()+"/check", b)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var errors []CELExpressionError
+	if err := json.NewDecoder(r.Body).Decode(&errors); err != nil {
+		return nil, nil, NewAppError("CheckExpression", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return errors, BuildResponse(r), nil
+}
+
+func (c *Client4) TestExpression(ctx context.Context, params QueryExpressionParams) (*AccessControlPolicyTestResponse, *Response, error) {
+	b, err := json.Marshal(params)
+	if err != nil {
+		return nil, nil, NewAppError("TestExpression", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.celRoute()+"/test", b)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var testResponse AccessControlPolicyTestResponse
+	if err := json.NewDecoder(r.Body).Decode(&testResponse); err != nil {
+		return nil, nil, NewAppError("TestExpression", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &testResponse, BuildResponse(r), nil
+}
+
+func (c *Client4) SearchAccessControlPolicies(ctx context.Context, options AccessControlPolicySearch) (*AccessControlPoliciesWithCount, *Response, error) {
+	b, err := json.Marshal(options)
+	if err != nil {
+		return nil, nil, NewAppError("SearchAccessControlPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.accessControlPoliciesRoute()+"/search", b)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var policies AccessControlPoliciesWithCount
+	if err := json.NewDecoder(r.Body).Decode(&policies); err != nil {
+		return nil, nil, NewAppError("SearchAccessControlPolicies", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &policies, BuildResponse(r), nil
+}
+
+func (c *Client4) AssignAccessControlPolicies(ctx context.Context, policyID string, resourceIDs []string) (*Response, error) {
+	var assignments struct {
+		ChannelIds []string `json:"channel_ids"`
+	}
+	assignments.ChannelIds = resourceIDs
+
+	b, err := json.Marshal(assignments)
+	if err != nil {
+		return nil, NewAppError("AssignAccessControlPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.accessControlPolicyRoute(policyID)+"/assign", b)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) UnassignAccessControlPolicies(ctx context.Context, policyID string, resourceIDs []string) (*Response, error) {
+	var unassignments struct {
+		ChannelIds []string `json:"channel_ids"`
+	}
+	unassignments.ChannelIds = resourceIDs
+
+	b, err := json.Marshal(unassignments)
+	if err != nil {
+		return nil, NewAppError("UnassignAccessControlPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIDeleteBytes(ctx, c.accessControlPolicyRoute(policyID)+"/unassign", b)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetChannelsForAccessControlPolicy(ctx context.Context, policyID string, after string, limit int) (*ChannelsWithCount, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.accessControlPolicyRoute(policyID)+"/resources/channels?after="+after+"&limit="+strconv.Itoa(limit), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var channels ChannelsWithCount
+	if err := json.NewDecoder(r.Body).Decode(&channels); err != nil {
+		return nil, nil, NewAppError("GetChannelsForAccessControlPolicy", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &channels, BuildResponse(r), nil
+}
+
+func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, policyID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
+	b, err := json.Marshal(options)
+	if err != nil {
+		return nil, nil, NewAppError("SearchChannelsForAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.accessControlPolicyRoute(policyID)+"/resources/channels/search", b)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var channels ChannelsWithCount
+	if err := json.NewDecoder(r.Body).Decode(&channels); err != nil {
+		return nil, nil, NewAppError("SearchChannelsForAccessControlPolicy", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &channels, BuildResponse(r), nil
 }

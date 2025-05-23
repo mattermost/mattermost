@@ -3,17 +3,23 @@
 
 import {Locator, expect} from '@playwright/test';
 
+import {ChannelsPage} from '../pages';
+
 export default class GlobalHeader {
+    readonly channelsPage: ChannelsPage;
     readonly container: Locator;
 
+    readonly accountMenuButton;
     readonly productSwitchMenu;
     readonly recentMentionsButton;
     readonly settingsButton;
     readonly searchBox;
 
-    constructor(container: Locator) {
+    constructor(channelsPage: ChannelsPage, container: Locator) {
+        this.channelsPage = channelsPage;
         this.container = container;
 
+        this.accountMenuButton = container.getByRole('button', {name: "'s account menu"});
         this.productSwitchMenu = container.getByRole('button', {name: 'Product switch menu'});
         this.recentMentionsButton = container.getByRole('button', {name: 'Recent mentions'});
         this.settingsButton = container.getByRole('button', {name: 'Settings'});
@@ -32,6 +38,10 @@ export default class GlobalHeader {
     async openSettings() {
         await expect(this.settingsButton).toBeVisible();
         await this.settingsButton.click();
+
+        await this.channelsPage.settingsModal.toBeVisible();
+
+        return this.channelsPage.settingsModal;
     }
 
     async openRecentMentions() {

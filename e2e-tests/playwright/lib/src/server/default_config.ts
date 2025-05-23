@@ -277,6 +277,7 @@ const defaultServerConfig: AdminConfig = {
         FileCompress: false,
         FileMaxQueueSize: 1000,
         AdvancedLoggingJSON: {},
+        Certificate: '',
     },
     NotificationLogSettings: {
         EnableConsole: true,
@@ -395,6 +396,9 @@ const defaultServerConfig: AdminConfig = {
         AboutLink: 'https://mattermost.com/pl/about-mattermost',
         HelpLink: 'https://mattermost.com/pl/help/',
         ReportAProblemLink: 'https://mattermost.com/pl/report-a-bug',
+        ReportAProblemType: 'default',
+        ReportAProblemMail: '',
+        AllowDownloadLogs: true,
         ForgotPasswordLink: '',
         SupportEmail: '',
         CustomTermsOfServiceEnabled: false,
@@ -626,6 +630,7 @@ const defaultServerConfig: AdminConfig = {
         AggregatePostsAfterDays: 365,
         PostsAggregatorJobStartTime: '03:00',
         IndexPrefix: '',
+        GlobalSearchPrefix: '',
         LiveIndexingBatchSize: 10,
         BatchSize: 10000,
         RequestTimeoutSeconds: 30,
@@ -781,5 +786,9 @@ const defaultServerConfig: AdminConfig = {
         EnableRemoteClusterService: false,
         DisableSharedChannelsStatusSync: false,
         MaxPostsPerSync: 50,
+    },
+    AccessControlSettings: {
+        EnableAttributeBasedAccessControl: false,
+        EnableChannelScopeAccessControl: false,
     },
 };

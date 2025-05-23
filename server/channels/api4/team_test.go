@@ -497,6 +497,88 @@ func TestUpdateTeam(t *testing.T) {
 	})
 }
 
+func TestUpdateTeamPrivacyInvitePermissions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	// Create a team with AllowOpenInvite=true and Type=TeamOpen
+	team := &model.Team{
+		DisplayName:     "Test Team",
+		Name:            GenerateTestTeamName(),
+		Email:           th.GenerateTestEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: true,
+	}
+	team, _, err := client.CreateTeam(context.Background(), team)
+	require.NoError(t, err)
+
+	// Save the original invite ID
+	originalInviteId := team.InviteId
+
+	// Test case: User with InviteUser permission can change privacy settings that regenerate invite ID
+	t.Run("user with invite permission can change privacy", func(t *testing.T) {
+		// Ensure the user has the InviteUser permission
+		th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
+		// Change from Open to Invite (should regenerate invite ID)
+		_, resp, err := client.UpdateTeamPrivacy(context.Background(), team.Id, model.TeamInvite)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Verify the team's invite ID was regenerated
+		updatedTeam, _, err := client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.NotEqual(t, originalInviteId, updatedTeam.InviteId, "InviteId should have been regenerated")
+		require.Equal(t, model.TeamInvite, updatedTeam.Type, "Team type should be Invite")
+		require.False(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should be false")
+	})
+
+	// Test case: User without InviteUser permission cannot change privacy settings that regenerate invite ID
+	t.Run("user without invite permission cannot change privacy", func(t *testing.T) {
+		// First, make sure the team is in a state where changing privacy will regenerate invite ID
+		// Change to Open type first
+		_, resp, err := client.UpdateTeamPrivacy(context.Background(), team.Id, model.TeamOpen)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Verify the team's privacy settings changed
+		updatedTeam, _, err := client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, model.TeamOpen, updatedTeam.Type, "Team type should be Open")
+		require.True(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should be true")
+
+		// Now remove the InviteUser permission from both team user and team admin roles
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Try to change from Open to Invite (should fail because this would regenerate invite ID)
+		_, resp, err = client.UpdateTeamPrivacy(context.Background(), team.Id, model.TeamInvite)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Verify the team's privacy settings didn't change
+		updatedTeam, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, model.TeamOpen, updatedTeam.Type, "Team type should still be Open")
+		require.True(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should still be true")
+	})
+
+	// Test case: System admin can change privacy settings regardless of permissions
+	t.Run("system admin can change privacy", func(t *testing.T) {
+		// Change from Invite to Open using system admin
+		_, resp, err := th.SystemAdminClient.UpdateTeamPrivacy(context.Background(), team.Id, model.TeamOpen)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Verify the team's privacy settings changed
+		updatedTeam, _, err := th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, model.TeamOpen, updatedTeam.Type, "Team type should be Open")
+		require.True(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should be true")
+	})
+}
+
 func TestUpdateTeamSanitization(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -986,7 +1068,7 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 		name                string
 		team                *model.Team
 		privacy             string
-		errChecker          func(t testing.TB, resp *model.Response)
+		errChecker          func(tb testing.TB, resp *model.Response)
 		wantType            string
 		wantOpenInvite      bool
 		wantInviteIdChanged bool

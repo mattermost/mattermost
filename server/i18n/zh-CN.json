@@ -208,10 +208,6 @@
     "translation": "无法退出私信频道。"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "你是本组最后一人，请删除私有组而不是离开。"
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v 已退出该频道。"
   },
@@ -7963,7 +7959,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "无法应用新的试用授权。您已经给这个 Mattermost 实例应用过试用授权了。如果您想延长试用期，请[联系我们的销售团队](https://mattermost.com/contact-us/)。"
+    "translation": "由于您的工作区已申请了试用版许可证，无法应用新的试用版许可证。如果您想延长试用期，请[联系我们的销售团队](https://mattermost.com/contact-us/)。"
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -10398,10 +10394,6 @@
     "translation": "删除频道书签失败。"
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "尝试更新一个不存在的字段"
-  },
-  {
     "id": "app.file_info.get_storage_usage.app_error",
     "translation": "获取文件总存储占用失败。"
   },
@@ -10484,5 +10476,141 @@
   {
     "id": "model.channel.is_valid.banner_info.text.empty.app_error",
     "translation": "频道横幅启用时，频道横幅信息文本不能为空"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "添加证书失败。"
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "无法删除用户的自定义个人资料属性值"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "验证属性值失败"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "无效的属性值属性：{{.AttributeName}} ({{.Reason}})。"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "获取 CPA 字段失败"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "空的 LDAP 属性值"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "修补 CPA 值时出错"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "更新 CPA 值时出错"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "规则无效。"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAML 断言属性声明无效"
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "无法解析 webhook {{.hook_id}} 的表单。"
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "无法解析 webhook {{.hook_id}} 的 multipart 表单。"
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "请求中 'certificate' 下的文件过多。"
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "移除证书失败。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "无法将属性字段转换为自定义个人资料属性字段"
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "无法打开个人头像文件：{{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "无法读取个人头像数据。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "解码提交的 JSON 响应时发生错误。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "读取提交的响应正文时发生错误。"
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "无效的 AD/LDAP ID"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "无效的 AD/LDAP ID"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "无法检索 CPA 字段"
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "无效的策略 ID。"
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "无效的策略导入。"
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "无效的策略名称。"
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "无效的策略版本。"
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "无效的自定义个人资料属性字段更新"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "策略必须导入或定义规则。"
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "无效的策略类型。"
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "此访问控制策略的版本无效。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "如果设置了 GlobalSearchPrefix，则 IndexPrefix 不能为空。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} 必须是 IndexPrefix {{.IndexPrefix}} 的前缀。"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "计算月活用户失败。"
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "没有匹配该 SAML 用户的 AD/LDAP 服务器上的已注册用户。"
   }
 ]

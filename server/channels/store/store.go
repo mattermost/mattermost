@@ -96,6 +96,7 @@ type Store interface {
 	PropertyField() PropertyFieldStore
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
+	Attributes() AttributesStore
 }
 
 type RetentionPolicyStore interface {
@@ -266,6 +267,7 @@ type ChannelStore interface {
 	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
 	GetTeamMembersForChannel(channelID string) ([]string, error)
 	GetMembersForUserWithPagination(userID string, page, perPage int) (model.ChannelMembersWithTeamData, error)
+	GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string) (model.ChannelMembersWithTeamData, error)
 	Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error)
 	AutocompleteInTeam(rctx request.CTX, teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error)
 	AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error)
@@ -913,17 +915,17 @@ type GroupStore interface {
 	// based on the groups configurations. The returned list can be optionally scoped to a single given team.
 	//
 	// Typically since will be the last successful group sync time.
-	// If includeRemovedMembers is true, then team members who left or were removed from the team will
+	// If reAddRemovedMembers is true, then team members who left or were removed from the team will
 	// be included; otherwise, they will be excluded.
-	TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error)
+	TeamMembersToAdd(since int64, teamID *string, reAddRemovedMembers bool) ([]*model.UserTeamIDPair, error)
 
 	// ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
 	// based on the groups configurations. The returned list can be optionally scoped to a single given channel.
 	//
 	// Typically since will be the last successful group sync time.
-	// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+	// If reAddRemovedMembers is true, then channel members who left or were removed from the channel will
 	// be included; otherwise, they will be excluded.
-	ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error)
+	ChannelMembersToAdd(since int64, channelID *string, reAddRemovedMembers bool) ([]*model.UserChannelIDPair, error)
 
 	// TeamMembersToRemove returns all team members that should be removed based on group constraints.
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, error)
@@ -1091,6 +1093,7 @@ type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
 	Get(groupID, id string) (*model.PropertyField, error)
 	GetMany(groupID string, ids []string) ([]*model.PropertyField, error)
+	GetFieldByName(groupID, targetID, name string) (*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
@@ -1106,6 +1109,7 @@ type PropertyValueStore interface {
 	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(groupID string, id string) error
 	DeleteForField(id string) error
+	DeleteForTarget(groupID string, targetType string, targetID string) error
 }
 
 type AccessControlPolicyStore interface {
@@ -1113,7 +1117,14 @@ type AccessControlPolicyStore interface {
 	Delete(c request.CTX, id string) error
 	SetActiveStatus(c request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
 	Get(c request.CTX, id string) (*model.AccessControlPolicy, error)
-	GetAll(rctxc request.CTX, opts GetPolicyOptions) ([]*model.AccessControlPolicy, error)
+	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
+}
+
+type AttributesStore interface {
+	RefreshAttributes() error
+	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
+	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
+	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.
@@ -1126,27 +1137,30 @@ type AccessControlPolicyStore interface {
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
 type ChannelSearchOpts struct {
-	Term                     string
-	NotAssociatedToGroup     string
-	IncludeDeleted           bool
-	Deleted                  bool
-	ExcludeChannelNames      []string
-	TeamIds                  []string
-	GroupConstrained         bool
-	ExcludeGroupConstrained  bool
-	PolicyID                 string
-	ExcludePolicyConstrained bool
-	IncludePolicyID          bool
-	IncludeTeamInfo          bool
-	IncludeSearchByID        bool
-	ExcludeRemote            bool
-	CountOnly                bool
-	Public                   bool
-	Private                  bool
-	Page                     *int
-	PerPage                  *int
-	LastDeleteAt             int
-	LastUpdateAt             int
+	Term                               string
+	NotAssociatedToGroup               string
+	IncludeDeleted                     bool
+	Deleted                            bool
+	ExcludeChannelNames                []string
+	TeamIds                            []string
+	GroupConstrained                   bool
+	ExcludeGroupConstrained            bool
+	PolicyID                           string
+	ExcludePolicyConstrained           bool
+	IncludePolicyID                    bool
+	IncludeTeamInfo                    bool
+	IncludeSearchByID                  bool
+	ExcludeRemote                      bool
+	CountOnly                          bool
+	Public                             bool
+	Private                            bool
+	Page                               *int
+	PerPage                            *int
+	LastDeleteAt                       int
+	LastUpdateAt                       int
+	AccessControlPolicyEnforced        bool
+	ExcludeAccessControlPolicyEnforced bool
+	ParentAccessControlPolicyId        string
 }
 
 func (c *ChannelSearchOpts) IsPaginated() bool {
@@ -1207,12 +1221,4 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
-}
-
-// GetPolicyOptions contains options for filtering policy records.
-type GetPolicyOptions struct {
-	// ParentID will filter policy records where they inherit parent with PolicyID.
-	ParentID string
-	// Type will filter policy records where they are associated with the Type.
-	Type string
 }

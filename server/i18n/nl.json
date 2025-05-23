@@ -208,10 +208,6 @@
     "translation": "Een direct kanaal kan niet verlaten worden."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Je bent het laatste lid, probeer de privékanaal te verwijderen in plaats van dit te verlaten."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v heeft het kanaal verlaten."
   },
@@ -4624,15 +4620,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 119+"
+    "translation": "Versie 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 132+"
+    "translation": "Versie 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 132+"
+    "translation": "Versie 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8195,7 +8191,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Fout bij het toevoegen van de nieuwe proeflicentie. Je hebt eerder al een proeflicentie toegepast op deze Mattermost instance.Als je jouw proefperiode wil verlengen, neem dan [contact op met ons verkoopteam](https://mattermost.com/contact-us/)."
+    "translation": "Het is niet gelukt om een nieuwe proeflicentie toe te passen omdat je werkruimte al een proeflicentie heeft. Als je je proefperiode wilt verlengen, neem dan [contact op met ons verkoopteam](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -10225,7 +10221,7 @@
     "id": "app.scheduled_post.failed_message_detail",
     "translation": {
       "one": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}",
-      "other": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}"
+      "other": "- {{.Count}} in kanalen {{.ChannelName}}. Reden: {{.ErrorReason}}"
     }
   },
   {
@@ -10428,10 +10424,6 @@
     "translation": "Het is niet gelukt om het opslaggebruik van alle bestanden op te halen."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "proberen een veld te patchen dat niet bestaat"
-  },
-  {
     "id": "api.context.get_session.app_error",
     "translation": "Sessie niet gevonden."
   },
@@ -10508,15 +10500,163 @@
     "translation": "Ongeldige maximale aanmeldpogingen voor ldap-instellingen. Moet een positief getal zijn."
   },
   {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Kan het eigenschapveld niet converteren naar een aangepast profielattribuutveld"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
     "translation": "Kan het eigenschapveld niet converteren naar een aangepast profielattribuutveld"
   },
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
     "translation": "Ongeldige eigenschap waarde attributen : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Ongeldige patch voor aangepaste profieleigenschappen"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Beleid moet of regels importeren of definiëren."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Ongeldig beleidstype."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Versie is niet geldig voor dit toegangscontrolebeleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Regel(s) is/zijn niet geldig."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Ongeldig policy id."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Ongeldige invoer voor het beleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Ongeldige naam voor het beleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Ongeldige beleidsherziening."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix kan niet leeg zijn als GlobalSearchPrefix is ingesteld."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} moet een prefix zijn van IndexPrefix {{.IndexPrefix}}."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Kan aangepaste profielattribuutwaarden voor gebruiker niet verwijderen"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Fout bij het valideren van de waarde van de eigenschap"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "Fout bij het ophalen van CPA-velden"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Lege LDAP attribuutwaarde"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "Fout(en) bij het patchen van CPA-waarde"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "Fout bij het ophalen van CPA-veld(en)"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAML assertie attribuut verklaring is ongeldig"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "Fout(en) bij het bijwerken van CPA-waarden"
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Mislukt bij het parsen van het formulier voor webhook {{.hook_id}}."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Het is niet gelukt om een certificaat toe te voegen."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Te veel bestanden onder 'certificaat' in aanvraag."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Fout bij het verwijderen van het certificaat."
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Fout bij het openen van het profielafbeeldingsbestand: {{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Fout bij het lezen van profielafbeeldingsgegevens."
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Er is een fout opgetreden bij het decoderen van de JSON-respons van een interactief dialoogvenster."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Er is een fout opgetreden bij het lezen van het antwoord van een interactief dialoogvenster."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Ongeldige AD/LDAP-id"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Ongeldige AD/LDAP-id"
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Fout bij het parsen van het multipart formulier voor webhook {{.hook_id}}."
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Fout bij het berekenen van maandelijkse actieve gebruikers."
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "Er is geen gebruiker geregistreerd op de AD/LDAP-server die overeenkomt met de SAML-gebruiker."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} functie is niet beschikbaar binnen de huidige licentie"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Ongeldige link om een probleem te melden. Moet een geldige URL zijn en beginnen met http:// of https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "De link Een probleem melden is vereist."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Ongeldig e-mailadres voor Een probleem melden. Moet een geldig e-mailadres zijn."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Een probleem melden mail is vereist."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Kan de waarde voor een gesynchroniseerd aangepast profielattribuutveld niet bijwerken"
   }
 ]
