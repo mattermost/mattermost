@@ -250,7 +250,7 @@ const Input = React.forwardRef((
                     Input_fieldset___error: hasError || limitExceeded > 0 || isMinLengthError || customInputLabel?.type === 'error',
                     Input_fieldset___legend: showLegend,
                 })}
-                data-testid='input-fieldset'
+                data-testid='input-wrapper'
             >
                 {useLegend && (
                     <label className={classNames('Input_legend', {Input_legend___focus: showLegend})}>

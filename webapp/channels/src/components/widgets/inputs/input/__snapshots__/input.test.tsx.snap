@@ -7,7 +7,7 @@ exports[`components/widgets/inputs/Input should match snapshot 1`] = `
   >
     <div
       class="Input_fieldset"
-      data-testid="input-fieldset"
+      data-testid="input-wrapper"
     >
       <label
         class="Input_legend"

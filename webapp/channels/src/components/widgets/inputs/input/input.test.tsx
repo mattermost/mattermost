@@ -70,7 +70,7 @@ describe('components/widgets/inputs/Input', () => {
             );
 
             // Check for error styling
-            const fieldset = screen.getByTestId('input-fieldset');
+            const fieldset = screen.getByTestId('input-wrapper');
             expect(fieldset).toHaveClass('Input_fieldset___error');
 
             // Check for error message
@@ -99,7 +99,7 @@ describe('components/widgets/inputs/Input', () => {
             });
 
             // Check for error styling
-            const fieldset = screen.getByTestId('input-fieldset');
+            const fieldset = screen.getByTestId('input-wrapper');
             expect(fieldset).toHaveClass('Input_fieldset___error');
 
             // Check for error message
@@ -149,7 +149,7 @@ describe('components/widgets/inputs/Input', () => {
             expect(indicator).toBeInTheDocument();
 
             // Check for error styling
-            const fieldset = screen.getByTestId('input-fieldset');
+            const fieldset = screen.getByTestId('input-wrapper');
             expect(fieldset).toHaveClass('Input_fieldset___error');
         });
 
@@ -199,7 +199,7 @@ describe('components/widgets/inputs/Input', () => {
             expect(errorMessage).toBeInTheDocument();
 
             // Check for error styling
-            const fieldset = screen.getByTestId('input-fieldset');
+            const fieldset = screen.getByTestId('input-wrapper');
             expect(fieldset).toHaveClass('Input_fieldset___error');
         });
 

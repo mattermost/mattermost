@@ -68,7 +68,7 @@ Object {
               >
                 <div
                   class="Input_fieldset name_input"
-                  data-testid="input-fieldset"
+                  data-testid="input-wrapper"
                 >
                   <label
                     class="Input_legend"
@@ -94,7 +94,7 @@ Object {
               >
                 <div
                   class="Input_fieldset email_input Input_fieldset___error Input_fieldset___legend"
-                  data-testid="input-fieldset"
+                  data-testid="input-wrapper"
                 >
                   <label
                     class="Input_legend Input_legend___focus"
@@ -135,7 +135,7 @@ Object {
               >
                 <div
                   class="Input_fieldset company_name_input"
-                  data-testid="input-fieldset"
+                  data-testid="input-wrapper"
                 >
                   <label
                     class="Input_legend"
