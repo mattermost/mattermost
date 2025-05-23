@@ -12,6 +12,7 @@ import (
 	timePkg "time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type apiTimerLayer struct {
@@ -1496,4 +1497,23 @@ func (api *apiTimerLayer) DeleteGroupConstrainedMemberships() *model.AppError {
 	_returnsA := api.apiImpl.DeleteGroupConstrainedMemberships()
 	api.recordTime(startTime, "DeleteGroupConstrainedMemberships", _returnsA == nil)
 	return _returnsA
+}
+
+func (api *apiTimerLayer) MakeAuditRecord(event string, initialStatus string) *model.AuditRecord {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.MakeAuditRecord(event, initialStatus)
+	api.recordTime(startTime, "MakeAuditRecord", true)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) LogAuditRec(rec *model.AuditRecord, err error) {
+	startTime := timePkg.Now()
+	api.apiImpl.LogAuditRec(rec, err)
+	api.recordTime(startTime, "LogAuditRec", true)
+}
+
+func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level, err error) {
+	startTime := timePkg.Now()
+	api.apiImpl.LogAuditRecWithLevel(rec, level, err)
+	api.recordTime(startTime, "LogAuditRecWithLevel", true)
 }
