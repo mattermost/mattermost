@@ -59,7 +59,7 @@ const UserGroupsFilter = (props: Props) => {
                 menu={{
                     id: 'groupsFilterDropdownMenu',
                     onToggle: props.onToggle,
-                    'aria-label': intl.formatMessage({id: 'user_groups_modal.filterAriaLabel', defaultMessage: 'Groups Filter Menu'}),
+                    'aria-label': intl.formatMessage({id: 'user_groups_modal.filterAriaLabel', defaultMessage: 'Groups Filter'}),
                 }}
             >
                 <Menu.Item
