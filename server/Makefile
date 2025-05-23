@@ -293,16 +293,27 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	done
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
-golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.7
-
-	@echo Running golangci-lint
-	$(GOBIN)/golangci-lint run ./...
-	$(GOBIN)/golangci-lint run ./public/...
+GOLANGCI_DOCKER_ENTERISE_MOUNT =
+GOLANGCI_DOCKER_MODULES_LIST = ./... ./public/...
+GOLANGCI_MODULES_LIST = ./... ./public/...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-  ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-		$(GOBIN)/golangci-lint run $(BUILD_ENTERPRISE_DIR)/...
-  endif
+	GOLANGCI_DOCKER_ENTERISE_MOUNT = -v $(realpath $(BUILD_ENTERPRISE_DIR)):/enterprise
+	GOLANGCI_DOCKER_MODULES_LIST += /enterprise/...
+	GOLANGCI_MODULES_LIST += $(BUILD_ENTERPRISE_DIR)/...
+endif
+
+golangci-lint: ## Run golangci-lint on codebase
+ifneq ($(MM_NO_DOCKER),true)
+	docker run -t --rm -v $(PWD):/app $(GOLANGCI_DOCKER_ENTERISE_MOUNT) \
+		-v $(shell $(GO) env GOCACHE):/.cache/go-build -e GOCACHE=/.cache/go-build \
+		-v $(shell $(GO) env GOMODCACHE):/.cache/mod -e GOMODCACHE=/.cache/mod \
+		-v ~/.cache/golangci-lint:/.cache/golangci-lint -e GOLANGCI_LINT_CACHE=/.cache/golangci-lint \
+		-w /app \
+		golangci/golangci-lint:v2.1.6 golangci-lint run $(GOLANGCI_DOCKER_MODULES_LIST)
+else ifneq (,$(findstring 2.1.6,$(shell golangci-lint --version)))
+	golangci-lint run $(GOLANGCI_MODULES_LIST)
+else
+	$(error Please install golangci-lint v2.1.6, or unset MM_NO_DOCKER)
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
