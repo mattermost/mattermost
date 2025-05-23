@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
@@ -13,13 +13,12 @@ import {FileTypes, ModalIdentifiers} from 'utils/constants';
 import {getFileType} from 'utils/utils';
 
 import ImageGallery from './image_gallery/index';
+
 import type {OwnProps, PropsFromRedux} from './index';
 
 type Props = OwnProps & PropsFromRedux;
 
 export default function FileAttachmentList(props: Props) {
-    const [isGalleryCollapsed, setIsGalleryCollapsed] = useState(false);
-
     const handleImageClick = (indexClicked: number) => {
         props.actions.openModal({
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
@@ -40,7 +39,6 @@ export default function FileAttachmentList(props: Props) {
         locale,
         isInPermalink,
         enablePublicLink,
-        actions,
         isEmbedVisible,
         post,
     } = props;

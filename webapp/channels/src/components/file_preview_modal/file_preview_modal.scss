@@ -51,8 +51,8 @@
 
                         &__image {
                             animation: modalImageFadeIn 0.25s ease-in-out;
-                            will-change: transform, opacity;
                             transform-origin: center;
+                            will-change: transform, opacity;
 
                             &.closing {
                                 animation: modalImageFadeOut 0.15s ease-in-out forwards;
@@ -67,8 +67,8 @@
                     display: block;
 
                     &__image {
-                        will-change: transform, opacity;
                         transform-origin: center;
+                        will-change: transform, opacity;
 
                         &.closing {
                             animation: modalImageFadeOut 0.15s ease-in-out forwards;

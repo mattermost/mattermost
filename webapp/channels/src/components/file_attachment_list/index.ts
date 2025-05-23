@@ -19,8 +19,10 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {openModal} from 'actions/views/modals';
 import {getCurrentLocale} from 'selectors/i18n';
 import {isEmbedVisible} from 'selectors/posts';
-import {ModalIdentifiers} from 'utils/constants';
+
 import FilePreviewModal from 'components/file_preview_modal';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 

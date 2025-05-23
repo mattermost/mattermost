@@ -6,23 +6,23 @@
 // Add keyframes for the modal transition
 @keyframes expandImageToModal {
     from {
-        transform: scale(1) translateY(0);
         opacity: 1;
+        transform: scale(1) translateY(0);
     }
     to {
-        transform: scale(1.5) translateY(-10%);
         opacity: 0;
+        transform: scale(1.5) translateY(-10%);
     }
 }
 
 @keyframes collapseImageFromModal {
     from {
-        transform: scale(1.5) translateY(-10%);
         opacity: 0;
+        transform: scale(1.5) translateY(-10%);
     }
     to {
-        transform: scale(1) translateY(0);
         opacity: 1;
+        transform: scale(1) translateY(0);
     }
 }
 
@@ -32,21 +32,21 @@
     &__header {
         display: flex;
         align-items: center;
-        gap: 8px;
         margin-bottom: 8px;
+        gap: 8px;
     }
 
     &__toggle,
     &__download-all {
         display: flex;
         align-items: center;
-        gap: 4px;
+        padding: 0;
+        border: none;
+        background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
         font-size: 12px;
-        border: none;
-        background: transparent;
-        padding: 0;
+        gap: 4px;
 
         &:hover:not(:disabled) {
             color: var(--center-channel-color);
@@ -66,14 +66,14 @@
 
     &__body {
         display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: flex-start;
+        overflow: hidden;
         // Max height calculation: 216px (item height) + 8px (gap) = 224px per row
         // Allow for up to 10 rows of images: 224px * 10 = 2240px
         max-height: 2240px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 8px;
         opacity: 1;
-        overflow: hidden;
         transition: all 250ms ease-in-out;
 
         &.collapsed {
@@ -83,16 +83,16 @@
     }
 
     &__item {
-        flex: none;
-        height: 216px; // needs to be updated in image_gallery.tsx
-        border-radius: 4px;
         position: relative;
         overflow: hidden; // Prevent images from overflowing the container
+        height: 216px; // needs to be updated in image_gallery.tsx
+        flex: none;
+        border-radius: 4px;
 
         // Override SingleImageView styles to fit our grid
         .file-view--single {
-            margin: 0;
             height: 100%;
+            margin: 0;
 
             .file__image {
                 height: 100%;
@@ -102,31 +102,31 @@
                 }
 
                 .image-container {
-                    margin: 0;
                     height: 100%;
+                    margin: 0;
 
                     // Loading state styling - more specific selector
                     .image-loading__container {
-                        height: 100%;
+                        display: flex;
                         width: 100%;
                         max-width: none; // Override the maxWidth set by SizeAwareImage
-                        display: flex;
+                        height: 100%;
                         align-items: center;
                         justify-content: center;
                         
                         // More specific selector to override inline styles
                         img[src] {
-                            height: 100%;
                             width: 100%;
-                            object-fit: cover;
+                            height: 100%;
                             filter: blur(8px); // Add blur effect to mini preview
+                            object-fit: cover;
                             transform: scale(1.1); // Scale up to hide blurred edges
                             transition: filter 0.3s ease, transform 0.3s ease;
                         }
                         
                         svg {
-                            height: 100%;
                             width: 100%;
+                            height: 100%;
                             object-fit: cover;
                         }
                     }
@@ -136,8 +136,8 @@
 
                         img {
                             height: 100%;
-                            object-fit: cover;
                             filter: none; // Remove blur when loaded
+                            object-fit: cover;
                             transition: filter 0.3s ease, transform 0.15s ease-in-out; // Include transform transition for hover effect
                             
                             // Ensure hover effect works

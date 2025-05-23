@@ -3,18 +3,17 @@
 
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
-import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import type {FileInfo} from '@mattermost/types/files';
 
-import {makeGetFilesForPost} from '../../../packages/mattermost-redux/src/selectors/entities/files';
-import {openModal} from '../../../actions/views/modals';
-import {ModalIdentifiers} from '../../../utils/constants';
-import FilePreviewModal from '../../../components/file_preview_modal';
-import type {GlobalState} from '../../../types/store';
-
 import ImageGallery from './image_gallery';
+
+import {openModal} from '../../../actions/views/modals';
+import FilePreviewModal from '../../../components/file_preview_modal';
+import {makeGetFilesForPost} from '../../../packages/mattermost-redux/src/selectors/entities/files';
+import type {GlobalState} from '../../../types/store';
+import {ModalIdentifiers} from '../../../utils/constants';
 
 function makeMapStateToProps() {
     const selectFilesForPost = makeGetFilesForPost();
@@ -48,4 +47,4 @@ const connector = connect(makeMapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default connector(ImageGallery); 
+export default connector(ImageGallery);

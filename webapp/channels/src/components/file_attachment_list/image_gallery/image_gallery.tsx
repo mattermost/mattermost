@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
-import classNames from 'classnames';
 
 import {DownloadOutlineIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
@@ -33,10 +33,10 @@ const ImageGallery = (props: Props) => {
         isEmbedVisible = true,
         postId,
     } = props;
-    
+
     // Use the allFilesForPost from props (either passed explicitly or from Redux)
     const allFilesForPost = props.allFilesForPost;
-    
+
     const [isCollapsed, setIsCollapsed] = useState(!isEmbedVisible);
     const [isDownloading, setIsDownloading] = useState(false);
     const {formatMessage} = useIntl();
@@ -113,11 +113,11 @@ const ImageGallery = (props: Props) => {
                     collapsed: isCollapsed,
                 })}
             >
-                {fileInfos.map((fileInfo, index) => {
+                {fileInfos.map((fileInfo) => {
                     // Calculate the width based on the image's aspect ratio
                     const aspectRatio = fileInfo.width && fileInfo.height ? fileInfo.width / fileInfo.height : 1;
                     const itemWidth = 216 * aspectRatio; // 200px is the fixed height
-                    
+
                     return (
                         <div
                             key={fileInfo.id}
@@ -154,4 +154,4 @@ const ImageGallery = (props: Props) => {
     );
 };
 
-export default ImageGallery; 
+export default ImageGallery;

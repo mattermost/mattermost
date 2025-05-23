@@ -1,9 +1,15 @@
-import type {FileInfo} from '@mattermost/types/files';
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import type {ClientConfig} from '@mattermost/types/config';
+import type {FileInfo} from '@mattermost/types/files';
+
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
+
 import {isMobileApp} from 'utils/user_agent';
 
 export const FileSizes = {
+
     // Bytes
     Byte: 1,
     Kilobyte: 1024,
@@ -43,7 +49,7 @@ export function canDownloadFiles(config: Partial<ClientConfig>): boolean {
     return true;
 }
 
-export async function downloadMultipleFiles(files: FileInfo[]) {
+export function downloadMultipleFiles(files: FileInfo[]) {
     // Create a hidden container for the download links
     const container = document.createElement('div');
     container.style.display = 'none';
@@ -58,12 +64,9 @@ export async function downloadMultipleFiles(files: FileInfo[]) {
             link.style.display = 'none';
             container.appendChild(link);
             link.click();
-            
-            // Small delay between downloads to prevent browser throttling
-            await new Promise((resolve) => setTimeout(resolve, 100));
         }
     } finally {
         // Clean up the container
         document.body.removeChild(container);
     }
-} 
+}

@@ -162,7 +162,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         // Simply switch to new image without animation for navigation
         this.setState({
             imageIndex: id,
-            isInitialLoad: isInitialLoad,
+            isInitialLoad,
         });
         const imageHeight = window.innerHeight - 100;
         this.setState({imageHeight});
@@ -291,7 +291,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         // Add closing animation to both image and wrapper
         const imageElement = document.querySelector('.image_preview__image');
         const wrapperElement = document.querySelector('.modal-image__wrapper');
-        
+
         if (imageElement) {
             imageElement.classList.add('closing');
         }

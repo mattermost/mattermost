@@ -12,8 +12,8 @@ import ExternalLink from 'components/external_link';
 import AttachmentIcon from 'components/widgets/icons/attachment_icon';
 import WithTooltip from 'components/with_tooltip';
 
-import {localizeMessage} from 'utils/utils';
 import Constants from 'utils/constants';
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
 

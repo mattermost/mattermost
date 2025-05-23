@@ -5,8 +5,10 @@ import classNames from 'classnames';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent} from 'react';
 
+import {MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilePreviewModal from 'components/file_preview_modal';
@@ -18,9 +20,6 @@ import {
 } from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-
-import {MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
 
 const PREVIEW_IMAGE_MIN_DIMENSION = 50;
 const DISPROPORTIONATE_HEIGHT_RATIO = 20;
@@ -96,13 +95,13 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
 
     handleImageClick = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLDivElement | HTMLImageElement>)) => {
         e.preventDefault();
-        
+
         // If a parent handleImageClick is provided, use it instead of opening the modal ourselves
         if (this.props.handleImageClick) {
             this.props.handleImageClick();
             return;
         }
-        
+
         // Default behavior: open modal with this component's logic
         this.props.actions.openModal({
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
