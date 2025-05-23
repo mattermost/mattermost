@@ -4446,7 +4446,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		require.NoError(t, err2)
 
 		nowMillis := int64(1 + 30*model.DayInMilliseconds + 1)
-		deleted, _, err2 := ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		deleted, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
 			Now:                 nowMillis,
 			GlobalPolicyEndTime: 2,
 			Limit:               1000,
@@ -4521,7 +4521,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		_, err = ss.Post().Get(context.Background(), np3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err, "Should have found updated post 3 after purge")
 
-		rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rows))
 		require.Equal(t, 3, len(rows[0].Ids))
@@ -4581,7 +4581,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 
 		np3, err = ss.Post().Update(rctx, np3, p3)
 
-		deleted, _, err := ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		deleted, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
 			Now:                 0,
 			GlobalPolicyEndTime: 2000,
 			Limit:               1000,
@@ -4602,7 +4602,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		_, err = ss.Post().Get(context.Background(), np3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Should have not found updated post 3 after purge")
 
-		rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rows))
 		require.Equal(t, 4, len(rows[0].Ids))
