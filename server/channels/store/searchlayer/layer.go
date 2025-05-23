@@ -126,8 +126,18 @@ func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
 		return
 	}
 
+	if len(channels) == 0 {
+		return
+	}
+
+	teamMemberIDs, err := s.channel.GetTeamMembersForChannel(channels[0].Id)
+	if err != nil {
+		rctx.Logger().Warn("Encountered error while retrveiving team members for channel", mlog.String("channel_id", channels[0].Id), mlog.Err(err))
+		return
+	}
+
 	for _, channel := range channels {
-		s.channel.indexChannel(rctx, channel)
+		s.channel.indexChannelWithTeamMembers(rctx, channel, teamMemberIDs)
 	}
 }
 
