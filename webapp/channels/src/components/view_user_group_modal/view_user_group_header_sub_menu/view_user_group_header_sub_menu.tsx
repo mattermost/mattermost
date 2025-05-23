@@ -89,11 +89,11 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
                     id: `detailsCustomWrapper-${group.id}`,
                     class: 'btn btn-icon',
                     children: (<i className='icon icon-dots-vertical'/>),
-                    'aria-label': formatMessage({id: 'view_user_group_header_sub_menu.menuAriaLabel', defaultMessage: 'User group actions menu'}),
+                    'aria-label': formatMessage({id: 'view_user_group_header_sub_menu.menuAriaLabel', defaultMessage: 'User group actions'}),
                 }}
                 menu={{
                     id: 'details-group-actions-menu',
-                    'aria-label': formatMessage({id: 'view_user_group_header_sub_menu.menuAriaLabel', defaultMessage: 'User group actions menu'}),
+                    'aria-labelledby': `detailsCustomWrapper-${group.id}`,
                     className: 'group-actions-menu',
                 }}
             >

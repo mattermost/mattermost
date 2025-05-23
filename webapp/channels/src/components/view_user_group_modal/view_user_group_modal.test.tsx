@@ -83,12 +83,6 @@ describe('component/view_user_group_modal', () => {
             />,
         );
 
-        // Wait for the initial data load to complete
-        await Promise.all([
-            baseProps.actions.getGroup(),
-            baseProps.actions.getUsersInGroup(),
-        ]);
-
         // Simulate search input change
         const searchInput = wrapper.find('ForwardRef[data-testid="searchInput"]');
         searchInput.simulate('change', {target: {value: ''}});

@@ -110,7 +110,6 @@ const UserGroupsList = (props: Props) => {
     }, [actions.openModal, onExited, backButtonAction]);
 
     const Item = ({index, style}: ListChildComponentProps) => {
-        const itemRef = useRef<HTMLButtonElement>(null);
         if (groups.length === 0 && searchTerm) {
             return (
                 <NoResultsIndicator
@@ -130,7 +129,6 @@ const UserGroupsList = (props: Props) => {
                     className='group-row'
                     style={style}
                     key={group.id}
-                    ref={itemRef}
                     onClick={() => {
                         goToViewGroupModal(group);
                     }}
