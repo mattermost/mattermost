@@ -61,7 +61,7 @@
         padding: 10px 16px;
         border: none;
         border-radius: 4px;
-        background: var(--denim-button-bg);
+        background: var(--button-bg);
         color: white;
         font-size: 12px;
         font-weight: 600;
@@ -126,7 +126,7 @@
         background: rgba(var(--online-indicator-rgb), 0.08);
 
         .AlertBanner__icon {
-            color: var(--denim-status-online);
+            color: var(--online-indicator);
         }
     }
 
