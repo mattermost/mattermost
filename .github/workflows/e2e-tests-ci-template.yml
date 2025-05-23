@@ -426,11 +426,6 @@ jobs:
           MM_ENV: "${{ inputs.MM_ENV }}"
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
-          CI: true
-          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
-          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          AWS_REGION: "us-east-1"
-          AWS_S3_BUCKET: "mattermost-cypress-report"
         run: |
           make report
       # The results dir may have been modified as part of the reporting: re-upload
@@ -443,12 +438,39 @@ jobs:
             e2e-tests/${{ inputs.TEST }}/logs/
             e2e-tests/${{ inputs.TEST }}/results/
           overwrite: true
-      - name: ci/upload-report-url
-        if: "${{ inputs.enable_reporting && inputs.TEST == 'playwright' }}"
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+
+      # Configure AWS credentials
+      - name: ci/aws-configure
+        uses: aws-actions/configure-aws-credentials@v4.2.0
         with:
-          name: playwright-report-url
-          path: e2e-tests/playwright/report-url.txt
+          aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      # Upload results folder to S3
+      - name: ci/upload-results-to-s3
+        id: upload-to-s3
+        run: |
+          S3_PATH="e2e-reports/${{ github.run_id }}/${{ inputs.TEST }}"
+
+          echo "Uploading to s3://${AWS_S3_BUCKET}/${S3_PATH}/"
+
+          aws s3 sync "e2e-tests/${{ inputs.TEST }}/results/" "s3://${AWS_S3_BUCKET}/${S3_PATH}/" \
+            --acl public-read \
+            --cache-control "no-cache"
+
+          INDEX_URL="https://${AWS_S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${S3_PATH}/reporter/index.html"
+
+          echo "Report URL: $INDEX_URL"
+          echo "report_url=${INDEX_URL}" >> "$GITHUB_OUTPUT"
+        env:
+          AWS_REGION: us-east-1
+          AWS_S3_BUCKET: mattermost-cypress-report
+
+      - name: Print report URL
+        run: |
+          echo "The report is available at: ${{ steps.upload-to-s3.outputs.report_url }}"
+
       - name: ci/report-calculate-results
         id: calculate-results
         env:

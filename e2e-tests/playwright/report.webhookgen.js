@@ -23,9 +23,9 @@ const {
     MM_DOCKER_IMAGE,
     MM_DOCKER_TAG,
     RELEASE_DATE,
-    AWS_S3_BUCKET,
-    AWS_ACCESS_KEY_ID,
-    AWS_SECRET_ACCESS_KEY,
+    // AWS_S3_BUCKET,
+    // AWS_ACCESS_KEY_ID,
+    // AWS_SECRET_ACCESS_KEY,
 } = process.env;
 
 const resultsFile = 'results/reporter/results.json';
@@ -36,99 +36,99 @@ const passRate = (summary.passed * 100) / (summary.passed + summary.failed);
 const totalSpecs = summary.passed + summary.failed;
 const playwrightVersion = results.config.version;
 const playwrightDuration = dayjs.duration(results.stats.duration, 'millisecond').format('HH:mm:ss');
-const bucketName = process.env.AWS_S3_BUCKET;
-const region = process.env.AWS_REGION || 'us-east-1';
-const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+// const bucketName = process.env.AWS_S3_BUCKET;
+// const region = process.env.AWS_REGION || 'us-east-1';
+// const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+// const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 
-const s3 = new S3({
-    region,
-    credentials: {
-        accessKeyId,
-        secretAccessKey,
-    },
-});
+// const s3 = new S3({
+//     region,
+//     credentials: {
+//         accessKeyId,
+//         secretAccessKey,
+//     },
+// });
 
-async function uploadFile(filePath, s3Key) {
-    const fileStream = fs.createReadStream(filePath);
-    const contentType = mime.lookup(filePath) || 'application/octet-stream';
+// async function uploadFile(filePath, s3Key) {
+//     const fileStream = fs.createReadStream(filePath);
+//     const contentType = mime.lookup(filePath) || 'application/octet-stream';
 
-    const upload = new Upload({
-        client: s3,
-        params: {
-            Bucket: bucketName,
-            Key: s3Key,
-            Body: fileStream,
-            ContentType: contentType,
-            ACL: 'public-read',
-        },
-    });
+//     const upload = new Upload({
+//         client: s3,
+//         params: {
+//             Bucket: bucketName,
+//             Key: s3Key,
+//             Body: fileStream,
+//             ContentType: contentType,
+//             ACL: 'public-read',
+//         },
+//     });
 
-    try {
-        await upload.done();
-        return `https://${bucketName}.s3.${region}.amazonaws.com/${s3Key}`;
-    } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Error uploading file:', err);
-        throw err;
-    }
-}
+//     try {
+//         await upload.done();
+//         return `https://${bucketName}.s3.${region}.amazonaws.com/${s3Key}`;
+//     } catch (err) {
+//         // eslint-disable-next-line no-console
+//         console.error('Error uploading file:', err);
+//         throw err;
+//     }
+// }
 
-/**
- * Recursively upload directory contents to AWS S3
- * @param {string} baseDir - Base directory to walk
- * @param {string} relativeRoot - Root path to preserve relative structure
- */
-function walkAndUpload(baseDir, relativeRoot = '') {
-    const items = fs.readdirSync(baseDir);
+// /**
+//  * Recursively upload directory contents to AWS S3
+//  * @param {string} baseDir - Base directory to walk
+//  * @param {string} relativeRoot - Root path to preserve relative structure
+//  */
+// function walkAndUpload(baseDir, relativeRoot = '') {
+//     const items = fs.readdirSync(baseDir);
 
-    for (const item of items) {
-        const fullPath = path.join(baseDir, item);
-        const relPath = path.join(relativeRoot, item);
-        const stats = fs.statSync(fullPath);
+//     for (const item of items) {
+//         const fullPath = path.join(baseDir, item);
+//         const relPath = path.join(relativeRoot, item);
+//         const stats = fs.statSync(fullPath);
 
-        if (stats.isDirectory()) {
-            walkAndUpload(fullPath, relPath);
-        } else {
-            uploadFile(fullPath, relPath);
-        }
-    }
-}
+//         if (stats.isDirectory()) {
+//             walkAndUpload(fullPath, relPath);
+//         } else {
+//             uploadFile(fullPath, relPath);
+//         }
+//     }
+// }
 
-/**
- * Save artifacts to AWS S3
- * @return {Object} - {reportLink} when successful
- */
-async function saveArtifacts() {
-    if (!AWS_S3_BUCKET || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
-        // eslint-disable-next-line no-console
-        console.log('Missing AWS S3 environment variables');
-        return {success: false};
-    }
+// /**
+//  * Save artifacts to AWS S3
+//  * @return {Object} - {reportLink} when successful
+//  */
+// async function saveArtifacts() {
+//     if (!AWS_S3_BUCKET || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+//         // eslint-disable-next-line no-console
+//         console.log('Missing AWS S3 environment variables');
+//         return {success: false};
+//     }
 
-    // eslint-disable-next-line no-console
-    console.log('Current working directory:', process.cwd());
+//     // eslint-disable-next-line no-console
+//     console.log('Current working directory:', process.cwd());
 
-    const reporterPath = path.join(__dirname, 'results/reporter');
-    const reportFiles = fs.readdirSync(reporterPath);
+//     const reporterPath = path.join(__dirname, 'results/reporter');
+//     const reportFiles = fs.readdirSync(reporterPath);
 
-    for (const file of reportFiles) {
-        const filePath = path.join(reporterPath, file);
-        const stats = fs.statSync(filePath);
+//     for (const file of reportFiles) {
+//         const filePath = path.join(reporterPath, file);
+//         const stats = fs.statSync(filePath);
 
-        if (stats.isDirectory()) {
-            walkAndUpload(filePath, path.join(file)); // preserve directory structure
-        } else {
-            await uploadFile(filePath, file);
-        }
-    }
+//         if (stats.isDirectory()) {
+//             walkAndUpload(filePath, path.join(file)); // preserve directory structure
+//         } else {
+//             await uploadFile(filePath, file);
+//         }
+//     }
 
-    const reportLink = `https://${AWS_S3_BUCKET}.s3.amazonaws.com/e2e-reports/${BUILD_ID}/index.html`;
-    if (process.env.CI) {
-        fs.writeFileSync('report-url.txt', reportLink);
-    }
-    return {success: true, reportLink};
-}
+//     const reportLink = `https://${AWS_S3_BUCKET}.s3.amazonaws.com/e2e-reports/${BUILD_ID}/index.html`;
+//     if (process.env.CI) {
+//         fs.writeFileSync('report-url.txt', reportLink);
+//     }
+//     return {success: true, reportLink};
+// }
 
 function generateTitle() {
     let dockerImageLink = '';
@@ -183,10 +183,10 @@ async function generateWebhookBody() {
 
     // Upload artifacts to S3 if environment variables are set
     let summaryField = `${passRate.toFixed(2)}% (${summary.passed}/${totalSpecs}) | ${playwrightDuration} | playwright@${playwrightVersion}`;
-    const artifactResult = await saveArtifacts();
-    if (artifactResult && artifactResult.success) {
-        summaryField += ` | [Report](${artifactResult.reportLink})`;
-    }
+    // const artifactResult = await saveArtifacts();
+    // if (artifactResult && artifactResult.success) {
+    //     summaryField += ` | [Report](${artifactResult.reportLink})`;
+    // }
 
     const serverTypeField = SERVER_TYPE ? '\nTest server: ' + SERVER_TYPE : '';
     const mmEnvField = MM_ENV ? '\nTest server override: ' + MM_ENV : '';
