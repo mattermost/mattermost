@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitElasticsearch() {
@@ -53,7 +52,7 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func purgeElasticsearchIndexes(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("purgeElasticsearchIndexes", audit.Fail)
+	auditRec := c.MakeAuditRecord("purgeElasticsearchIndexes", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionPurgeElasticsearchIndexes) {

@@ -10,7 +10,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitTermsOfService() {
@@ -41,7 +40,7 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createTermsOfService", audit.Fail)
+	auditRec := c.MakeAuditRecord("createTermsOfService", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	props := model.MapFromJSON(r.Body)

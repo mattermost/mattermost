@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -112,7 +111,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 		} else {
 			CommandPrettyPrintln("SUCCESS: Message export job complete")
 
-			auditRec := a.MakeAuditRecord(rctx, "scheduleExport", audit.Success)
+			auditRec := a.MakeAuditRecord(rctx, "scheduleExport", model.AuditStatusSuccess)
 			auditRec.AddMeta("format", format)
 			auditRec.AddMeta("start", startTime)
 			a.LogAuditRec(rctx, auditRec, nil)
@@ -179,7 +178,7 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	auditRec := a.MakeAuditRecord(rctx, "bulkExport", audit.Success)
+	auditRec := a.MakeAuditRecord(rctx, "bulkExport", model.AuditStatusSuccess)
 	auditRec.AddMeta("all_teams", allTeams)
 	auditRec.AddMeta("file", args[0])
 	a.LogAuditRec(rctx, auditRec, nil)

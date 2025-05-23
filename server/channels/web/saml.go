@@ -13,7 +13,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -104,7 +103,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps = model.MapFromJSON(strings.NewReader(stateStr))
 	}
 
-	auditRec := c.MakeAuditRecord("completeSaml", audit.Fail)
+	auditRec := c.MakeAuditRecord("completeSaml", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 

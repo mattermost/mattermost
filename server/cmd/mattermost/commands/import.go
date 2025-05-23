@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 var ImportCmd = &cobra.Command{
@@ -94,7 +93,7 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Finished Slack Import.")
 	CommandPrettyPrintln("")
 
-	auditRec := a.MakeAuditRecord(rctx, "slackImport", audit.Success)
+	auditRec := a.MakeAuditRecord(rctx, "slackImport", model.AuditStatusSuccess)
 	auditRec.AddMeta("team", team)
 	auditRec.AddMeta("file", args[1])
 	a.LogAuditRec(rctx, auditRec, nil)
@@ -166,7 +165,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	if apply {
 		CommandPrettyPrintln("Finished Bulk Import.")
-		auditRec := a.MakeAuditRecord(rctx, "bulkImport", audit.Success)
+		auditRec := a.MakeAuditRecord(rctx, "bulkImport", model.AuditStatusSuccess)
 		auditRec.AddMeta("file", args[0])
 		a.LogAuditRec(rctx, auditRec, nil)
 	} else {
