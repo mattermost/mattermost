@@ -1199,41 +1199,43 @@ func userEditCmdF(c client.Client, _ *cobra.Command, args []string, fieldName st
 			return fmt.Errorf("invalid username: '%s'", newValue)
 		}
 		user.Username = newValue
+
+		ruser, _, err := c.UpdateUser(context.TODO(), user)
+		if err != nil {
+			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
+		}
+		printer.PrintT("User {{.Username}} username updated successfully", ruser)
+
 	case "email":
 		if !model.IsValidEmail(newValue) {
 			return fmt.Errorf("invalid email: '%s'", newValue)
 		}
 		user.Email = newValue
+
+		ruser, _, err := c.UpdateUser(context.TODO(), user)
+		if err != nil {
+			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
+		}
+		printer.PrintT("User {{.Username}} email updated successfully", ruser)
+
 	case "authdata":
 		if len(newValue) > model.UserAuthDataMaxLength {
 			return fmt.Errorf("authdata too long. Maximum length is %d characters", model.UserAuthDataMaxLength)
 		}
-		if newValue == "" {
-			user.AuthData = nil
-		} else {
-			user.AuthData = &newValue
+
+		ruser, _, err := c.UpdateUser(context.TODO(), user)
+		if err != nil {
+			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
 		}
-	default:
-		return fmt.Errorf("unsupported field: %s", fieldName)
-	}
 
-	ruser, _, err := c.UpdateUser(context.TODO(), user)
-	if err != nil {
-		return fmt.Errorf("failed to update user %s: %w", fieldName, err)
-	}
-
-	// Print field-specific success message
-	switch fieldName {
-	case "username":
-		printer.PrintT("User {{.Username}} username updated successfully", ruser)
-	case "email":
-		printer.PrintT("User {{.Username}} email updated successfully", ruser)
-	case "authdata":
 		if newValue == "" {
 			printer.PrintT("User {{.Username}} authdata cleared successfully", ruser)
 		} else {
 			printer.PrintT("User {{.Username}} authdata updated successfully", ruser)
 		}
+
+	default:
+		return fmt.Errorf("unsupported field: %s", fieldName)
 	}
 
 	return nil
