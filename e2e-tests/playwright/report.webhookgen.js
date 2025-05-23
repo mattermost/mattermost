@@ -105,43 +105,20 @@ async function saveArtifacts() {
         console.log('Missing AWS S3 environment variables');
         return {success: false};
     }
-    // eslint-disable-next-line no-console
 
-    console.log('Current working directory files:');
-    // Print all files in current directory recursively
-    function printFiles(dir, prefix = '') {
-        const files = fs.readdirSync(dir);
-        for (const file of files) {
-            const fullPath = path.join(dir, file);
-            const stats = fs.statSync(fullPath);
-            if (stats.isDirectory()) {
-                // eslint-disable-next-line no-console
-                console.log(`${prefix}📁 ${file}/`);
-                printFiles(fullPath, `${prefix}  `);
-            } else {
-                // eslint-disable-next-line no-console
-                console.log(`${prefix}📄 ${file}`);
-            }
-        }
-    }
-    printFiles(process.cwd());
+    // eslint-disable-next-line no-console
+    console.log('Current working directory:', process.cwd());
 
     const reporterPath = path.join(__dirname, 'results/reporter');
-    // eslint-disable-next-line no-console
-    console.log(`\nProcessing reporter files from: ${reporterPath}`);
     const reportFiles = fs.readdirSync(reporterPath);
 
     for (const file of reportFiles) {
         const filePath = path.join(reporterPath, file);
         const stats = fs.statSync(filePath);
-        // eslint-disable-next-line no-console
-        console.log(`Found: ${filePath} (${stats.isDirectory() ? 'directory' : 'file'})`);
 
         if (stats.isDirectory()) {
-            walkAndUpload(filePath, path.join(file));
+            walkAndUpload(filePath, path.join(file)); // preserve directory structure
         } else {
-            // eslint-disable-next-line no-console
-            console.log(`Uploading: ${file}`);
             await uploadFile(filePath, file);
         }
     }
@@ -149,11 +126,7 @@ async function saveArtifacts() {
     const reportLink = `https://${AWS_S3_BUCKET}.s3.amazonaws.com/e2e-reports/${BUILD_ID}/index.html`;
     if (process.env.CI) {
         fs.writeFileSync('report-url.txt', reportLink);
-        // eslint-disable-next-line no-console
-        console.log(`Report URL saved to report-url.txt: ${reportLink}`);
     }
-    // eslint-disable-next-line no-console
-    console.log('Artifact saving completed');
     return {success: true, reportLink};
 }
 
