@@ -9317,6 +9317,22 @@ func (s *TimerLayerSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syn
 	return err
 }
 
+func (s *TimerLayerSharedChannelStore) UpdateGlobalUserSyncCursor(remoteID string, syncAt int64) error {
+	start := time.Now()
+
+	err := s.SharedChannelStore.UpdateGlobalUserSyncCursor(remoteID, syncAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateGlobalUserSyncCursor", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 	start := time.Now()
 

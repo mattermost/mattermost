@@ -44,6 +44,7 @@ func remoteClusterFields(prefix string) []string {
 		prefix + "CreatorId",
 		prefix + "PluginID",
 		prefix + "Options",
+		prefix + "LastGlobalUserSyncAt",
 	}
 }
 
@@ -99,7 +100,8 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 			DefaultTeamId = :DefaultTeamId,
 			Topics = :Topics,
 			PluginID = :PluginID,
-			Options = :Options
+			Options = :Options,
+			LastGlobalUserSyncAt = :LastGlobalUserSyncAt
 			WHERE RemoteId = :RemoteId AND Name = :Name`
 
 	if _, err := s.GetMaster().NamedExec(query, remoteCluster); err != nil {
