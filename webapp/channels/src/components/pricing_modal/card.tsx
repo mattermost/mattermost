@@ -20,7 +20,6 @@ export enum ButtonCustomiserClasses {
     grayed = 'grayed',
     active = 'active',
     special = 'special',
-    secondary = 'secondary',
     green = 'green',
 }
 
