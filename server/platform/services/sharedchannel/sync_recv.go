@@ -21,6 +21,7 @@ var (
 	ErrRemoteIDMismatch  = errors.New("remoteID mismatch")
 	ErrChannelIDMismatch = errors.New("channelID mismatch")
 	ErrUserDMPermission  = errors.New("users cannot DM each other")
+	ErrChannelNotShared  = errors.New("channel is no longer shared")
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
@@ -79,7 +80,8 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
 	}
 	if !exists {
-		return fmt.Errorf("cannot process sync message; channel not shared with remote: %w", ErrRemoteIDMismatch)
+		return fmt.Errorf("cannot process sync message; %w: %s",
+			ErrChannelNotShared, syncMsg.ChannelId)
 	}
 
 	// add/update users before posts
