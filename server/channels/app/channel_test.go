@@ -493,6 +493,7 @@ func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
 	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
 	assert.Equal(t, privateChannel.Id, histories[0].ChannelId)
 }
+
 func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2476,7 +2477,8 @@ func TestClearChannelMembersCache(t *testing.T) {
 	mockChannelStore.On("GetMembers", "channelID", 100, 100).Return(model.ChannelMembers{
 		model.ChannelMember{
 			ChannelId: "1",
-		}}, nil)
+		},
+	}, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
@@ -2899,7 +2901,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	mockChannelStore.On("GetAllChannelMembersNotifyPropsForChannel", "channelidchannelidchanneli", true).Return(map[string]model.StringMap{}, nil)
 	mockChannelStore.On("IncrementMentionCount", "", []string{}, true, false).Return(nil)
 	mockChannelStore.On("DeleteAllSidebarChannelForChannel", "channelidchannelidchanneli").Return(nil)
-	mockChannelStore.On("GetSidebarCategories", "user_id_1", &store.SidebarCategorySearchOpts{TeamID: "team_id_1", ExcludeTeam: false, Type: "channels"}).Return(
+	mockChannelStore.On("GetSidebarCategories", "user_id_1", &store.SidebarCategorySearchOpts{TeamID: "team_id_1", Type: "channels"}).Return(
 		&model.OrderedSidebarCategories{
 			Categories: model.SidebarCategoriesWithChannels{
 				{
@@ -2909,7 +2911,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 				},
 			},
 		}, nil)
-	mockChannelStore.On("GetSidebarCategories", "user_id_2", &store.SidebarCategorySearchOpts{TeamID: "team_id_1", ExcludeTeam: false, Type: "channels"}).Return(
+	mockChannelStore.On("GetSidebarCategories", "user_id_2", &store.SidebarCategorySearchOpts{TeamID: "team_id_1", Type: "channels"}).Return(
 		&model.OrderedSidebarCategories{
 			Categories: model.SidebarCategoriesWithChannels{
 				{
