@@ -448,24 +448,21 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # Upload results folder to S3
+      # Upload the playwright reports to S3
       - name: ci/upload-results-to-s3
         if: (inputs.TEST == 'playwright')
         id: upload-to-s3
         run: |
-          pwd
-          find . -not -path "*/node_modules/*" -not -path "*/lib/*" -not -path "*/storage_state/*" -print
           echo "🔍 Checking if results directory exists..."
 
-          LOCAL_RESULTS_PATH="e2e-tests/${{ inputs.TEST }}/results/"
-          LOCAL_LOGS_PATH="e2e-tests/${{ inputs.TEST }}/logs/"
+          LOCAL_RESULTS_PATH="${{ inputs.TEST }}/results/"
+          LOCAL_LOGS_PATH="${{ inputs.TEST }}/logs/"
 
           if [[ ! -d "$LOCAL_RESULTS_PATH" && ! -d "$LOCAL_LOGS_PATH" ]]; then
             echo "❌ Neither logs nor results folder found — skipping upload"
             exit 0
           fi
 
-          # Determine PR number
           if [[ -n "${{ github.event.pull_request.number }}" ]]; then
             PR_NUMBER="${{ github.event.pull_request.number }}"
           else
@@ -473,25 +470,27 @@ jobs:
             exit 1
           fi
 
-          S3_PATH="${PR_NUMBER}/e2e-reports/${{ inputs.TEST }}"
+          RUN_ID="${{ github.run_id }}"
+          S3_PATH="pr-${PR_NUMBER}/e2e-reports/${{ inputs.TEST }}/${RUN_ID}"
 
-          echo "📤 Uploading logs and results to s3://${AWS_S3_BUCKET}/${S3_PATH}/"
-          
-          # Upload logs
+          echo "📤 Uploading to s3://${AWS_S3_BUCKET}/${S3_PATH}/"
+
           if [[ -d "$LOCAL_LOGS_PATH" ]]; then
             aws s3 sync "$LOCAL_LOGS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/logs/" \
               --acl public-read \
               --cache-control "no-cache"
           fi
 
-          # Upload results
           if [[ -d "$LOCAL_RESULTS_PATH" ]]; then
             aws s3 sync "$LOCAL_RESULTS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/results/" \
               --acl public-read \
               --cache-control "no-cache"
           fi
 
-          echo "✅ Uploaded reports to s3://${AWS_S3_BUCKET}/${S3_PATH}/"
+          REPORT_URL="https://${AWS_S3_BUCKET}.s3.amazonaws.com/${S3_PATH}/results/reporter/index.html"
+          echo "✅ Report uploaded to: $REPORT_URL"
+
+          echo "report_url=$REPORT_URL" >> "$GITHUB_OUTPUT"
         env:
           AWS_REGION: us-east-1
           AWS_S3_BUCKET: mattermost-cypress-report
@@ -499,7 +498,8 @@ jobs:
       - name: Print report URL
         if: (inputs.TEST == 'playwright')
         run: |
-          echo "The report is available at: ${{ steps.upload-to-s3.outputs.report_url }}"
+          echo "The report is available at:"
+          echo "${{ steps.upload-to-s3.outputs.report_url }}"
 
       - name: ci/report-calculate-results
         id: calculate-results
