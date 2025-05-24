@@ -48,15 +48,48 @@ func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
 		Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
 
 	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Status = ?, `Manual` = ?, LastActivityAt = ?, DNDEndTime = ?, PrevStatus = ?",
-			st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus))
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Status = VALUES(Status), `Manual` = VALUES(`Manual`), LastActivityAt = VALUES(LastActivityAt), DNDEndTime = VALUES(DNDEndTime), PrevStatus = VALUES(PrevStatus)"))
 	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = ?, Manual = ?, LastActivityAt = ?, DNDEndTime = ?, PrevStatus = ?",
-			st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus))
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
 	}
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return errors.Wrap(err, "failed to upsert Status")
+	}
+
+	return nil
+}
+
+func (s SqlStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) error {
+	if len(statuses) == 0 {
+		return nil
+	}
+
+	// If there's only one status, use the existing method
+	if len(statuses) == 1 {
+		for _, st := range statuses {
+			return s.SaveOrUpdate(st)
+		}
+	}
+
+	query := s.getQueryBuilder().
+		Insert("Status").
+		Columns("UserId", "Status", quoteColumnName(s.DriverName(), "Manual"), "LastActivityAt", "DNDEndTime", "PrevStatus")
+
+	// Add values for each unique status
+	for _, st := range statuses {
+		query = query.Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
+	}
+
+	// Handle different databases
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Status = VALUES(Status), `Manual` = VALUES(`Manual`), LastActivityAt = VALUES(LastActivityAt), DNDEndTime = VALUES(DNDEndTime), PrevStatus = VALUES(PrevStatus)"))
+	} else {
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
+	}
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to upsert multiple Status records")
 	}
 
 	return nil
