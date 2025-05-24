@@ -63,6 +63,9 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
                     <Bullet user={props.user}/>
                     <span className='AdminUserCard__user-nickname'>{props.user.nickname}</span>
                 </div>
+            </div>
+            <div className='AdminUserCard__body'>
+                {props.body}
                 <div className='AdminUserCard__user-id'>
                     <FormattedMessage
                         id='admin.userManagement.userDetail.userId'
@@ -72,9 +75,6 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
                         }}
                     />
                 </div>
-            </div>
-            <div className='AdminUserCard__body'>
-                {props.body}
             </div>
             <div className='AdminUserCard__footer'>
                 {props.footer}
