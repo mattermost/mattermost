@@ -11,8 +11,7 @@ import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct 
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 import WithTooltip from 'components/with_tooltip';
 
 import {CloudProducts} from 'utils/constants';
@@ -33,13 +32,9 @@ letter-spacing: 0.02em;
 color: var(--button-color);
 `;
 
-let openPricingModal: (telemetryProps?: TelemetryProps) => void;
-
 const PlanUpgradeButton = (): JSX.Element | null => {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
-
-    openPricingModal = useOpenPricingModal();
     const isCloud = useSelector(isCurrentLicenseCloud);
 
     useEffect(() => {
@@ -54,6 +49,7 @@ const PlanUpgradeButton = (): JSX.Element | null => {
     const product = useSelector(selectSubscriptionProduct);
     const config = useSelector(getConfig);
     const license = useSelector(getLicense);
+    const openPricingDetails = useOpenPricingDetails();
 
     const isEnterpriseTrial = subscription?.is_free_trial === 'true';
 
@@ -88,8 +84,7 @@ const PlanUpgradeButton = (): JSX.Element | null => {
         >
             <UpgradeButton
                 id='UpgradeButton'
-                aria-haspopup='dialog'
-                onClick={() => openPricingModal({trackingLocation: 'global_header_plan_upgrade_button'})}
+                onClick={() => openPricingDetails({trackingLocation: 'global_header_plan_upgrade_button'})}
             >
                 {formatMessage({id: 'pricing_modal.btn.viewPlans', defaultMessage: 'View plans'})}
             </UpgradeButton>
@@ -97,4 +92,3 @@ const PlanUpgradeButton = (): JSX.Element | null => {
 };
 
 export default PlanUpgradeButton;
-export {openPricingModal};
