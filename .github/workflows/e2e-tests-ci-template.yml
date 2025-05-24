@@ -453,6 +453,8 @@ jobs:
         if: (inputs.TEST == 'playwright')
         id: upload-to-s3
         run: |
+          pwd
+          find . -not -path "*/node_modules/*" -not -path "*/lib/*" -not -path "*/storage_state/*" -print
           echo "🔍 Checking if results directory exists..."
 
           LOCAL_RESULTS_PATH="e2e-tests/${{ inputs.TEST }}/results/"
@@ -544,17 +546,6 @@ jobs:
       - test
       - report
     steps:
-      - name: ci/download-report-url
-        if: ${{ inputs.TEST == 'playwright' }}
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: playwright-report-url
-      - name: ci/read-report-url
-        if: ${{ inputs.TEST == 'playwright' }}
-        id: read-report-url
-        run: |
-          REPORT_URL=$(cat playwright-report-url/*.txt)
-          echo "REPORT_URL=${REPORT_URL}" >> $GITHUB_OUTPUT
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -564,7 +555,7 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: failure
-          target_url: "${{ inputs.TEST == 'playwright' && steps.read-report-url.outputs.REPORT_URL || needs.generate-test-cycle.outputs.status_check_url }}"
+          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
 
   update-success-final-status:
     runs-on: ubuntu-latest
@@ -574,17 +565,6 @@ jobs:
       - test
       - report
     steps:
-      - name: ci/download-report-url
-        if: ${{ inputs.TEST == 'playwright' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: playwright-report-url
-      - name: ci/read-report-url
-        if: ${{ inputs.TEST == 'playwright' }}
-        id: read-report-url
-        run: |
-          REPORT_URL=$(cat playwright-report-url/*.txt)
-          echo "REPORT_URL=${REPORT_URL}" >> $GITHUB_OUTPUT
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -594,4 +574,4 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: success
-          target_url: "${{ inputs.TEST == 'playwright' && steps.read-report-url.outputs.REPORT_URL || needs.generate-test-cycle.outputs.status_check_url }}"
+          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
