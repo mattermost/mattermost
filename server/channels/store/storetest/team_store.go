@@ -71,6 +71,7 @@ func TestTeamStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testTeamStoreClearAllCustomRoleAssignments(t, rctx, ss) })
 	t.Run("AnalyticsGetTeamCountForScheme", func(t *testing.T) { testTeamStoreAnalyticsGetTeamCountForScheme(t, rctx, ss) })
 	t.Run("GetAllForExportAfter", func(t *testing.T) { testTeamStoreGetAllForExportAfter(t, rctx, ss) })
+	t.Run("GetForExport", func(t *testing.T) { testTeamStoreGetForExport(t, rctx, ss) })
 	t.Run("GetTeamMembersForExport", func(t *testing.T) { testTeamStoreGetTeamMembersForExport(t, rctx, ss) })
 	t.Run("GetTeamsForUserWithPagination", func(t *testing.T) { testTeamMembersWithPagination(t, rctx, ss) })
 	t.Run("GroupSyncedTeamCount", func(t *testing.T) { testGroupSyncedTeamCount(t, rctx, ss) })
@@ -3544,6 +3545,23 @@ func testTeamStoreGetAllForExportAfter(t *testing.T, rctx request.CTX, ss store.
 		}
 	}
 	assert.True(t, found)
+}
+
+func testTeamStoreGetForExport(t *testing.T, rctx request.CTX, ss store.Store) {
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = NewTestID()
+	t1.Email = MakeEmail()
+	t1.Type = model.TeamOpen
+	_, err := ss.Team().Save(&t1)
+	require.NoError(t, err)
+
+	retrieved, err := ss.Team().GetForExport(t1.Id)
+	assert.NoError(t, err)
+
+	assert.Equal(t, t1.Id, retrieved.Id)
+	assert.Nil(t, retrieved.SchemeId)
+	assert.Equal(t, t1.Name, retrieved.Name)
 }
 
 func testTeamStoreGetTeamMembersForExport(t *testing.T, rctx request.CTX, ss store.Store) {
