@@ -24,8 +24,8 @@ var (
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	if msg.Topic != TopicSync {
-		return fmt.Errorf("wrong topic, expected `%s`, got `%s`", TopicSync, msg.Topic)
+	if msg.Topic != TopicSync && msg.Topic != TopicChannelMembership && msg.Topic != TopicChannelMembershipBatch {
+		return fmt.Errorf("wrong topic, expected sync-related topic, got `%s`", msg.Topic)
 	}
 
 	if len(msg.Payload) == 0 {

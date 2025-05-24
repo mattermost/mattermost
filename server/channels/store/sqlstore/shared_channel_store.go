@@ -417,6 +417,7 @@ func sharedChannelRemoteFields(prefix string) []string {
 		"COALESCE(" + prefix + "LastPostCreateID,'') AS LastPostCreateID",
 		prefix + "LastPostUpdateAt",
 		"COALESCE(" + prefix + "LastPostId,'') AS LastPostUpdateID",
+		prefix + "LastMembersSyncAt",
 	}
 }
 

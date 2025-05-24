@@ -100,7 +100,7 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 
 	u, err := url.Parse(task.rc.SiteURL)
 	if err != nil {
-		rcs.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Invalid siteURL while sending message to remote",
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Invalid siteURL while sending message to remote",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("msgId", task.msg.Id),
 			mlog.Err(err),
@@ -129,16 +129,16 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 			fields = append(fields, mlog.String("user_operations", strings.Join(userInfos, ",")))
 		}
 
-		rcs.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed", fields...)
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed", fields...)
 		errResp = err
 	} else {
-		rcs.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("msgId", task.msg.Id),
 		)
 
 		if err = json.Unmarshal(respJSON, &response); err != nil {
-			rcs.GetLogger().Error("Invalid response sending message to remote cluster",
+			rcs.server.Log().Error("Invalid response sending message to remote cluster",
 				mlog.String("remote", task.rc.DisplayName),
 				mlog.Err(err),
 			)

@@ -395,6 +395,26 @@ func (scs *Service) processTask(task syncTask) error {
 		for _, change := range batchInfo.Changes {
 			userIDs = append(userIDs, change.UserId)
 		}
+
+		// If remoteID is empty, process for all remotes
+		if task.remoteID == "" {
+			// Get all remotes for this channel
+			filter := model.RemoteClusterQueryFilter{
+				InChannel:     batchInfo.ChannelId,
+				OnlyConfirmed: true,
+			}
+			remotes, err := scs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
+			if err != nil {
+				return fmt.Errorf("failed to get remotes for batch membership sync: %w", err)
+			}
+
+			// Process batch for each remote
+			for _, remote := range remotes {
+				scs.processMembershipBatch(batchInfo.ChannelId, userIDs, remote.RemoteId, batchInfo.ChangeTime)
+			}
+			return nil
+		}
+		// Process for specific remote
 		scs.processMembershipBatch(batchInfo.ChannelId, userIDs, task.remoteID, batchInfo.ChangeTime)
 		return nil
 	}
@@ -442,6 +462,7 @@ func (scs *Service) processTask(task syncTask) error {
 	for _, rc := range remotesMap {
 		rtask := task
 		rtask.remoteID = rc.RemoteId
+
 		if err := scs.syncForRemote(rtask, rc); err != nil {
 			// retry...
 			if rtask.incRetry() {

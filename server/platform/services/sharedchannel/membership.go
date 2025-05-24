@@ -23,6 +23,7 @@ func (scs *Service) isChannelMemberSyncEnabled() bool {
 func (scs *Service) queueMembershipSyncTask(channelID, userID, remoteID string, syncMsg *model.SyncMsg, retryMsg *model.SyncMsg) {
 	task := newSyncTask(channelID, userID, remoteID, syncMsg, retryMsg)
 	task.schedule = time.Now().Add(NotifyMinimumDelay)
+
 	scs.addTask(task)
 }
 
@@ -54,6 +55,7 @@ func (scs *Service) HandleMembershipChange(channelID, userID string, isAdd bool,
 // It creates a task to notify all remote clusters about the batch membership changes.
 func (scs *Service) HandleMembershipBatchChange(channelID string, userIDs []string, isAdd bool, remoteID string) {
 	if !scs.isChannelMemberSyncEnabled() {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Channel member sync is disabled in HandleMembershipBatchChange")
 		return
 	}
 
@@ -101,17 +103,27 @@ func (scs *Service) HandleMembershipBatchChange(channelID string, userIDs []stri
 // This is typically called when a channel is first shared with a remote cluster.
 func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) error {
 	if !scs.isChannelMemberSyncEnabled() {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Channel member sync is disabled")
 		return nil
 	}
 
 	// Verify the channel exists and is shared
 	if _, err := scs.server.GetStore().SharedChannel().Get(channelID); err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Failed to get shared channel",
+			mlog.String("channel_id", channelID),
+			mlog.Err(err),
+		)
 		return fmt.Errorf("failed to get shared channel %s: %w", channelID, err)
 	}
 
 	// Get the remote to ensure it exists
 	remote, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
 	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Failed to get remote",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.Err(err),
+		)
 		return fmt.Errorf("failed to get remote for channel %s: %w", channelID, err)
 	}
 
@@ -127,6 +139,7 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 			UpdatedAfter: lastSyncAt,
 			Limit:        maxPerPage,
 		}
+
 		members, err := scs.server.GetStore().Channel().GetMembers(opts)
 		if err != nil {
 			return fmt.Errorf("failed to get members for channel %s: %w", channelID, err)
@@ -431,6 +444,7 @@ func (scs *Service) processMembershipBatch(channelID string, memberIDs []string,
 			)
 		}
 	}
+
 	err = scs.server.GetRemoteClusterService().SendMsg(ctx, msg, rc, callback)
 
 	if err != nil {
