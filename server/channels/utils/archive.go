@@ -12,13 +12,20 @@ import (
 	"strings"
 )
 
-func sanitizePath(p string) string {
-	dir := strings.ReplaceAll(filepath.Dir(filepath.Clean(p)), "..", "")
-	base := filepath.Base(p)
-	if strings.Count(base, ".") == len(base) {
-		return ""
+func sanitizePath(outPath, p string) (string, error) {
+	cleanedPath := filepath.Clean(p)
+	absOutPath, err := filepath.Abs(outPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve output path: %w", err)
 	}
-	return filepath.Join(dir, base)
+	absPath, err := filepath.Abs(filepath.Join(absOutPath, cleanedPath))
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve file path: %w", err)
+	}
+	if !strings.HasPrefix(absPath, absOutPath) {
+		return "", fmt.Errorf("invalid filepath `%s`", p)
+	}
+	return absPath, nil
 }
 
 // UnzipToPath extracts a given zip archive into a given path.
@@ -31,11 +38,11 @@ func UnzipToPath(zipFile io.ReaderAt, size int64, outPath string) ([]string, err
 
 	paths := make([]string, len(rd.File))
 	for i, f := range rd.File {
-		filePath := sanitizePath(f.Name)
-		if filePath == "" {
-			return nil, fmt.Errorf("invalid filepath `%s`", f.Name)
+		filePath, err := sanitizePath(outPath, f.Name)
+		if err != nil {
+			return nil, fmt.Errorf("invalid filepath `%s`: %w", f.Name, err)
 		}
-		path := filepath.Join(outPath, filePath)
+		path := filePath
 		paths[i] = path
 		if f.FileInfo().IsDir() {
 			if err := os.Mkdir(path, 0700); err != nil {
