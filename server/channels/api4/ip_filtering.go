@@ -64,7 +64,7 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("applyIPFilters", audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventApplyIPFilters, audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	allowedRanges := &model.AllowedIPRanges{} // Initialize the allowedRanges variable
