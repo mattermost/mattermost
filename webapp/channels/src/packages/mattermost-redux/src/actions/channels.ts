@@ -19,6 +19,7 @@ import type {
 import type {OptsSignalExt} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {ChannelTypes, PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -34,6 +35,7 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {GetStateFunc, ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
@@ -423,6 +425,46 @@ export function getChannelTimezones(channelId: string): ActionFuncAsync<string[]
         }
 
         return {data: channelTimezones};
+    };
+}
+
+export function getUsersCountByStatus(channelId: string, status: string): ActionFuncAsync<number> {
+    return async (dispatch, getState) => {
+        const options = {status};
+        const pageSize = 200;
+
+        let profiles = [];
+
+        let page = 0;
+        for (;;) {
+            let data: UserProfile[];
+
+            try {
+                // eslint-disable-next-line no-await-in-loop
+                data = await Client4.getProfilesInChannel(channelId, page, pageSize, '', options);
+            } catch (error) {
+                forceLogoutIfNecessary(error, dispatch, getState);
+                dispatch(logError(error));
+                return {error};
+            }
+
+            if (!data) {
+                break;
+            }
+
+            profiles.push(...data);
+
+            if (data.length >= pageSize) {
+                ++page;
+            } else {
+                break;
+            }
+        }
+
+        const currentUserId = getCurrentUserId(getState());
+        profiles = profiles.filter((userProfile) => userProfile.id !== currentUserId);
+
+        return {data: profiles.length};
     };
 }
 
