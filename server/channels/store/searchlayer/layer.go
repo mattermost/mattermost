@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
@@ -108,6 +109,35 @@ func (s *SearchStore) indexUser(rctx request.CTX, user *model.User) {
 				rctx.Logger().Debug("Indexed user in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", user.Id))
 			})
 		}
+	}
+}
+
+func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
+	var (
+		perPage  = 100
+		channels []*model.Channel
+	)
+
+	channels, err := utils.Pager(func(page int) ([]*model.Channel, error) {
+		return s.channel.GetPublicChannelsForTeam(teamID, page, perPage)
+	}, perPage)
+	if err != nil {
+		rctx.Logger().Warn("Encountered error while retreiving public channels for indexing", mlog.String("team_id", teamID), mlog.Err(err))
+		return
+	}
+
+	if len(channels) == 0 {
+		return
+	}
+
+	teamMemberIDs, err := s.channel.GetTeamMembersForChannel(channels[0].Id)
+	if err != nil {
+		rctx.Logger().Warn("Encountered error while retrveiving team members for channel", mlog.String("channel_id", channels[0].Id), mlog.Err(err))
+		return
+	}
+
+	for _, channel := range channels {
+		s.channel.indexChannelWithTeamMembers(rctx, channel, teamMemberIDs)
 	}
 }
 
