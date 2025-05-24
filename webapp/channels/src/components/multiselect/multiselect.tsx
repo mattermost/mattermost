@@ -7,7 +7,7 @@ import type {ComponentProps, ReactNode} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {GetOptionValue, InputActionMeta, SelectInstance} from 'react-select';
+import type {GetOptionValue, InputActionMeta, MultiValueRemoveProps, SelectInstance} from 'react-select';
 
 import SaveButton from 'components/save_button';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
@@ -265,12 +265,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         this.props.handleDelete(values);
     };
 
-    MultiValueRemove = ({children, innerProps}: any) => (
-        <div {...innerProps}>
-            {children || <CloseCircleSolidIcon/>}
-        </div>
-    );
-
     formatOptionLabel = (user: any) => {
         const profileImg = imageURLForUser(user.id, user.last_picture_update);
 
@@ -291,6 +285,29 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
     valueRenderer = (props: any) => {
         return this.props.valueWithImage ? <components.MultiValueLabel {...props}/> : this.props.valueRenderer;
     };
+
+    private MultiValueRemove = ({children, innerProps, data}: MultiValueRemoveProps<T>) => (
+        <div
+            {...innerProps}
+            role='button'
+            tabIndex={0}
+            aria-label={this.props.intl.formatMessage({
+                id: 'multiselect.remove',
+                defaultMessage: 'Remove {label}',
+            }, {
+                label: this.props.ariaLabelRenderer(data),
+            })}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    innerProps.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
+                }
+            }}
+        >
+            {children || <CloseCircleSolidIcon/>}
+        </div>
+    );
 
     public render() {
         const options = Object.assign([...this.props.options]);
@@ -534,6 +551,14 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                     e.preventDefault();
                                     if (this.props.backButtonClick) {
                                         this.props.backButtonClick();
+                                    }
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        if (this.props.backButtonClick) {
+                                            this.props.backButtonClick();
+                                        }
                                     }
                                 }}
                                 className={classNames('btn btn-tertiary', this.props.backButtonClass)}
