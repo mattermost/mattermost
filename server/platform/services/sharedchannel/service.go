@@ -73,6 +73,14 @@ type AppIface interface {
 	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
 	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 	Publish(message *model.WebSocketEvent)
+	SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError)
+	SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string) (*model.PostAcknowledgement, *model.AppError)
+	SaveAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError)
+	SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Post, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError)
+	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
+	DeleteAcknowledgementsForPost(c request.CTX, postID string) *model.AppError
+	DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError
+	SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post, *model.AppError)
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -276,4 +284,10 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
 	scs.app.Publish(messageWs)
+}
+
+// UpsertSyncPostForTesting exposes upsertSyncPost for testing purposes.
+// This allows direct testing of post metadata synchronization.
+func (scs *Service) UpsertSyncPostForTesting(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
+	return scs.upsertSyncPost(post, targetChannel, rc)
 }
