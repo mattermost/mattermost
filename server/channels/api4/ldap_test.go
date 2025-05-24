@@ -143,35 +143,23 @@ func TestSyncLdap(t *testing.T) {
 	})
 
 	ldapMock := &mocks.LdapInterface{}
-	mockCall := ldapMock.On(
+	ldapMock.On(
 		"StartSynchronizeJob",
 		mock.AnythingOfType("*request.Context"),
 		mock.AnythingOfType("bool"),
-		mock.AnythingOfType("*bool"),
 	).Return(nil, nil)
-	ready := make(chan bool)
-	reAddRemovedMembers := false
-	mockCall.RunFn = func(args mock.Arguments) {
-		reAddRemovedMembers = *args[2].(*bool)
-		ready <- true
-	}
 	th.App.Channels().Ldap = ldapMock
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, err := client.SyncLdap(context.Background(), model.NewPointer(false))
-		<-ready
-		require.NoError(t, err)
-		require.False(t, reAddRemovedMembers)
-
-		_, err = client.SyncLdap(context.Background(), model.NewPointer(true))
-		<-ready
-		require.NoError(t, err)
-		require.True(t, reAddRemovedMembers)
+	t.Run("unauthenticated request", func(t *testing.T) {
+		resp, err := th.Client.SyncLdap(context.Background())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
-	resp, err := th.Client.SyncLdap(context.Background(), model.NewPointer(false))
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, err := client.SyncLdap(context.Background())
+		require.NoError(t, err)
+	})
 }
 
 func TestGetLdapGroups(t *testing.T) {
