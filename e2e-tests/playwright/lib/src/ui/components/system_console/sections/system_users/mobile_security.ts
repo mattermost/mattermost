@@ -15,6 +15,10 @@ export default class MobileSecurity {
     readonly preventScreenCaptureToggleFalse: Locator;
     readonly jailbreakProtectionToggleTrue: Locator;
     readonly jailbreakProtectionToggleFalse: Locator;
+    readonly enableSecureFilePreviewToggleTrue: Locator;
+    readonly enableSecureFilePreviewToggleFalse: Locator;
+    readonly allowPdfLinkNavigationToggleTrue: Locator;
+    readonly allowPdfLinkNavigationToggleFalse: Locator;
 
     readonly saveButton: Locator;
 
@@ -40,6 +44,27 @@ export default class MobileSecurity {
         );
         this.jailbreakProtectionToggleFalse = this.container.getByTestId(
             'NativeAppSettings.MobileJailbreakProtectionfalse',
+        );
+
+        this.jailbreakProtectionToggleTrue = this.container.getByTestId(
+            'NativeAppSettings.MobileJailbreakProtectiontrue',
+        );
+        this.jailbreakProtectionToggleFalse = this.container.getByTestId(
+            'NativeAppSettings.MobileJailbreakProtectionfalse',
+        );
+
+        this.enableSecureFilePreviewToggleTrue = this.container.getByTestId(
+            'NativeAppSettings.MobileEnableSecureFilePreviewtrue',
+        );
+        this.enableSecureFilePreviewToggleFalse = this.container.getByTestId(
+            'NativeAppSettings.MobileEnableSecureFilePreviewfalse',
+        );
+
+        this.allowPdfLinkNavigationToggleTrue = this.container.getByTestId(
+            'NativeAppSettings.MobileAllowPdfLinkNavigationtrue',
+        );
+        this.allowPdfLinkNavigationToggleFalse = this.container.getByTestId(
+            'NativeAppSettings.MobileAllowPdfLinkNavigationfalse',
         );
 
         this.saveButton = this.container.getByRole('button', {name: 'Save'});
@@ -71,6 +96,22 @@ export default class MobileSecurity {
 
     async clickJailbreakProtectionToggleFalse() {
         await this.jailbreakProtectionToggleFalse.click();
+    }
+
+    async clickEnableSecureFilePreviewToggleTrue() {
+        await this.enableSecureFilePreviewToggleTrue.click();
+    }
+
+    async clickEnableSecureFilePreviewToggleFalse() {
+        await this.enableSecureFilePreviewToggleFalse.click();
+    }
+
+    async clickAllowPdfLinkNavigationToggleTrue() {
+        await this.allowPdfLinkNavigationToggleTrue.click();
+    }
+
+    async clickAllowPdfLinkNavigationToggleFalse() {
+        await this.allowPdfLinkNavigationToggleFalse.click();
     }
 
     async clickSaveButton() {
