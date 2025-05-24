@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -138,7 +139,7 @@ func NewChannels(s *Server) (*Channels, error) {
 		ch.AccessControl = accessControlServiceInterface(app)
 
 		appErr := ch.AccessControl.Init(request.EmptyContext(s.Log()))
-		if appErr != nil {
+		if appErr != nil && appErr.StatusCode != http.StatusNotImplemented {
 			s.Log().Error("An error occurred while initializing Access Control", mlog.Err(appErr))
 		}
 

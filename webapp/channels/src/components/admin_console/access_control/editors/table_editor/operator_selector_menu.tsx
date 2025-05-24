@@ -13,8 +13,10 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as Menu from 'components/menu';
 
+import {OperatorLabel} from '../shared';
 import './selector_menus.scss';
 
+// TODO: Use Compass icons once a newer version is released
 const AlphaEIcon: React.FC<IconProps> = ({size, color, ...rest}: IconProps): JSX.Element => (
     <svg
         xmlns='http://www.w3.org/2000/svg'
@@ -79,22 +81,23 @@ interface OperatorSelectorProps {
 }
 
 const OperatorSelectorMenu = ({currentOperator, disabled, onChange}: OperatorSelectorProps) => {
-    const handleOperatorChange = (descriptor: OperatorDescriptor) => {
-        onChange(descriptor.operatorValue);
+    const {formatMessage} = useIntl();
+    const [filter, setFilter] = useState('');
+
+    const handleOperatorChange = React.useCallback((descriptor: OperatorDescriptor) => {
+        onChange(descriptor.id);
         setFilter('');
-    };
+    }, [onChange]);
 
     const currentOperatorDescriptor = useMemo(() => {
         return getOperatorDescriptor(currentOperator);
     }, [currentOperator]);
 
     const CurrentOperatorIcon = currentOperatorDescriptor.icon;
-    const {formatMessage} = useIntl();
-    const [filter, setFilter] = useState('');
 
-    const onFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onFilterChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFilter(e.target.value);
-    };
+    }, []);
 
     const filteredOperators = useMemo(() => {
         return Object.values(OPERATOR_DESCRIPTORS).filter((desc) => {
@@ -164,7 +167,7 @@ export default OperatorSelectorMenu;
 
 const getOperatorDescriptor = (operatorValue: string): OperatorDescriptor => {
     for (const descriptor of Object.values(OPERATOR_DESCRIPTORS)) {
-        if (descriptor.operatorValue === operatorValue) {
+        if (descriptor.id === operatorValue) {
             return descriptor;
         }
     }
@@ -172,64 +175,57 @@ const getOperatorDescriptor = (operatorValue: string): OperatorDescriptor => {
     return OPERATOR_DESCRIPTORS.is;
 };
 
-type OperatorID = 'is' | 'is_not' | 'in' | 'starts_with' | 'ends_with' | 'contains';
+type OperatorID = OperatorLabel.IS | OperatorLabel.IS_NOT | OperatorLabel.IN | OperatorLabel.STARTS_WITH | OperatorLabel.ENDS_WITH | OperatorLabel.CONTAINS;
 
 type OperatorDescriptor = {
     id: OperatorID;
-    operatorValue: string;
     icon: ComponentType<IconProps>;
     label: MessageDescriptor;
 };
 
 const OPERATOR_DESCRIPTORS: IDMappedObjects<OperatorDescriptor> = {
-    is: {
-        id: 'is',
-        operatorValue: 'is',
+    [OperatorLabel.IS]: {
+        id: OperatorLabel.IS,
         icon: EqualIcon,
         label: defineMessage({
             id: 'admin.access_control.table_editor.operator.is',
             defaultMessage: 'is',
         }),
     },
-    is_not: {
-        id: 'is_not',
-        operatorValue: 'is not',
+    [OperatorLabel.IS_NOT]: {
+        id: OperatorLabel.IS_NOT,
         icon: NotEqualIcon,
         label: defineMessage({
             id: 'admin.access_control.table_editor.operator.is_not',
             defaultMessage: 'is not',
         }),
     },
-    in: {
-        id: 'in',
-        operatorValue: 'in',
+    [OperatorLabel.IN]: {
+        id: OperatorLabel.IN,
         icon: AlphaEIcon,
         label: defineMessage({
             id: 'admin.access_control.table_editor.operator.in',
             defaultMessage: 'in',
         }),
     },
-    starts_with: {
-        id: 'starts_with',
-        operatorValue: 'starts with',
+    [OperatorLabel.STARTS_WITH]: {
+        id: OperatorLabel.STARTS_WITH,
         icon: FunctionIcon,
         label: defineMessage({
             id: 'admin.access_control.table_editor.operator.starts_with',
             defaultMessage: 'starts with',
         }),
     },
-    ends_with: {
-        id: 'ends_with',
-        operatorValue: 'ends with',
+    [OperatorLabel.ENDS_WITH]: {
+        id: OperatorLabel.ENDS_WITH,
         icon: FunctionIcon,
         label: defineMessage({
             id: 'admin.access_control.table_editor.operator.ends_with',
             defaultMessage: 'ends with',
         }),
     },
-    contains: {
-        id: 'contains',
-        operatorValue: 'contains',
+    [OperatorLabel.CONTAINS]: {
+        id: OperatorLabel.CONTAINS,
         icon: FunctionIcon,
         label: defineMessage({
             id: 'admin.access_control.table_editor.operator.contains',

@@ -720,7 +720,17 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnableAttributeBasedAccessControl',
                                     label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow attribute based access controls on this server'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes (properties) in the {userAttributes} section.'}),
+                                    help_text_values: {
+                                        userAttributes: (
+                                            <a href='../site_config/system_properties'>
+                                                <FormattedMessage
+                                                    id='admin.system_properties.user_properties.title'
+                                                    defaultMessage='User Attributes'
+                                                />
+                                            </a>
+                                        ),
+                                    },
                                 },
                             ],
                         },

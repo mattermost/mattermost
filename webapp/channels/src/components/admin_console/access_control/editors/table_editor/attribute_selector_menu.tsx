@@ -2,60 +2,110 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo, useState, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 
-import {CheckIcon, MenuVariantIcon} from '@mattermost/compass-icons/components';
+import {
+    CheckIcon,
+    MenuVariantIcon,
+    ChevronDownCircleOutlineIcon,
+    EmailOutlineIcon,
+    FormatListBulletedIcon,
+    LinkVariantIcon,
+    PoundIcon,
+} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import type {UserPropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
 
 import './selector_menus.scss';
 
-interface AttributeOption {
-    attribute: string;
-    values: string[];
-}
+// Define AttributeIcon outside the main component
+const AttributeIcon = (props: IconProps & { attribute?: UserPropertyField }) => {
+    const {attribute, ...iconProps} = props;
+    if (attribute) {
+        const valueType = attribute.attrs?.value_type;
+        if (valueType === 'email') {
+            return <EmailOutlineIcon {...iconProps}/>;
+        }
+        if (valueType === 'url') {
+            return <LinkVariantIcon {...iconProps}/>;
+        }
+        if (valueType === 'phone') {
+            return <PoundIcon {...iconProps}/>;
+        }
+
+        // If no specific value_type, check the field type
+        switch (attribute.type) {
+        case 'select':
+            return <ChevronDownCircleOutlineIcon {...iconProps}/>;
+        case 'multiselect':
+            return <FormatListBulletedIcon {...iconProps}/>;
+        case 'text':
+        default:
+            return <MenuVariantIcon {...iconProps}/>;
+        }
+    }
+    return <MenuVariantIcon {...iconProps}/>;
+};
 
 interface AttributeSelectorProps {
     currentAttribute: string;
-    availableAttributes: AttributeOption[];
+    availableAttributes: UserPropertyField[];
     disabled: boolean;
     onChange: (attribute: string) => void;
+    menuId: string;
+    buttonId: string;
+    autoOpen?: boolean;
+    onMenuOpened?: () => void;
 }
 
-const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled, onChange}: AttributeSelectorProps) => {
+const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled, onChange, menuId, buttonId, autoOpen = false, onMenuOpened}: AttributeSelectorProps) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
 
-    const onFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onFilterChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFilter(e.target.value);
-    };
+    }, []); // setFilter is stable
 
     const options = useMemo(() => {
         return availableAttributes.filter((attr) => {
-            return attr.attribute.toLowerCase().includes(filter.toLowerCase());
+            return attr.name.toLowerCase().includes(filter.toLowerCase());
         });
     }, [availableAttributes, filter]);
 
-    const handleAttributeChange = (attribute: string) => {
+    const handleAttributeChange = React.useCallback((attribute: string) => {
         onChange(attribute);
-        setFilter('');
-    };
+        setFilter(''); // Reset filter after selection
+    }, [onChange]); // setFilter is stable, onChange is a dependency
 
-    // TODO: We can use different icons for different attributes types
-    const AttributeIcon = (props: IconProps) => <MenuVariantIcon {...props}/>;
+    const selectedAttributeObject = useMemo(() => {
+        return availableAttributes.find((attr) => attr.name === currentAttribute);
+    }, [currentAttribute, availableAttributes]);
+
+    useEffect(() => {
+        if (autoOpen) {
+            const buttonElement = document.getElementById(buttonId);
+            if (buttonElement) {
+                buttonElement.click();
+            }
+            if (onMenuOpened) {
+                onMenuOpened();
+            }
+        }
+    }, [autoOpen, buttonId, onMenuOpened]);
 
     return (
         <Menu.Container
             menuButton={{
-                id: 'attribute-selector-button',
+                id: buttonId,
                 class: classNames('btn btn-transparent field-selector-menu-button', {
                     disabled,
                 }),
                 children: (
                     <>
-                        <AttributeIcon/>
+                        <AttributeIcon attribute={selectedAttributeObject}/>
                         {currentAttribute || formatMessage({id: 'admin.access_control.table_editor.selector.select_attribute', defaultMessage: 'Select attribute'})}
                     </>
                 ),
@@ -63,35 +113,37 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 disabled,
             }}
             menu={{
-                id: 'attribute-selector-menu',
+                id: menuId,
                 'aria-label': 'Select attribute',
                 className: 'select-attribute-mui-menu',
             }}
         >
-            {[
-                <Menu.InputItem
-                    key='filter_attributes'
-                    id='filter_attributes'
-                    type='text'
-                    placeholder={formatMessage({id: 'admin.access_control.table_editor.selector.filter_attributes', defaultMessage: 'Search attributes...'})}
-                    className='attribute-selector-search'
-                    value={filter}
-                    onChange={onFilterChange}
-                />,
-            ]}
+            <Menu.InputItem
+                key='filter_attributes'
+                id='filter_attributes'
+                type='text'
+                placeholder={formatMessage({id: 'admin.access_control.table_editor.selector.filter_attributes', defaultMessage: 'Search attributes...'})}
+                className='attribute-selector-search'
+                value={filter}
+                onChange={onFilterChange}
+            />
             {options.map((option) => {
-                const {attribute} = option;
+                const {name} = option;
                 return (
                     <Menu.Item
-                        id={`attribute-${attribute}`}
-                        key={attribute}
+                        id={`attribute-${name}`}
+                        key={name}
                         role='menuitemradio'
                         forceCloseOnSelect={true}
-                        aria-checked={attribute === currentAttribute}
-                        onClick={() => handleAttributeChange(attribute)}
-                        labels={<span>{attribute}</span>}
-                        leadingElement={<AttributeIcon size={18}/>}
-                        trailingElements={attribute === currentAttribute && (
+                        aria-checked={name === currentAttribute}
+                        onClick={() => handleAttributeChange(name)}
+                        labels={<span>{name}</span>}
+                        leadingElement={
+                            <AttributeIcon
+                                attribute={option}
+                                size={18}
+                            />}
+                        trailingElements={name === currentAttribute && (
                             <CheckIcon/>
                         )}
                     />

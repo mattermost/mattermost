@@ -9,7 +9,7 @@ import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {JobTypeBase} from '@mattermost/types/jobs';
-import type {PropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -19,6 +19,7 @@ import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import SaveButton from 'components/save_button';
+import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
 
@@ -46,6 +47,7 @@ interface PolicyActions {
     getAccessControlFields: (after: string, limit: number) => Promise<ActionResult>;
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
     updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
+    getVisualAST: (expression: string) => Promise<ActionResult>;
 }
 
 export interface PolicyDetailsProps {
@@ -78,10 +80,12 @@ function PolicyDetails({
     });
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
-    const [autocompleteResult, setAutocompleteResult] = useState<PropertyField[]>([]);
+    const [autocompleteResult, setAutocompleteResult] = useState<UserPropertyField[]>([]);
+    const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     const {formatMessage} = useIntl();
+
     useEffect(() => {
         loadPage();
     }, [policyId]);
@@ -96,11 +100,11 @@ function PolicyDetails({
         // or user.attributes.X.startsWith/endsWith/contains("Y")
         return expr.split('&&').every((condition) => {
             const trimmed = condition.trim();
-            return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]+['"]$/) ||
+            return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
                    trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]+['"].*?\)$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]+['"].*?\)$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]+['"].*?\)$/);
+                   trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
+                   trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
+                   trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/);
         });
     };
 
@@ -110,6 +114,7 @@ function PolicyDetails({
             if (result.data) {
                 setAutocompleteResult(result.data);
             }
+            setAttributesLoaded(true);
         });
 
         if (policyId) {
@@ -131,6 +136,19 @@ function PolicyDetails({
             // Policy name, expression, etc., are already initialized from props or defaults by useState.
             await fieldsPromise;
         }
+    };
+
+    const preSaveCheck = () => {
+        if (policyName.length === 0) {
+            setServerError('Please add a name to the policy');
+            return false;
+        }
+        if (expression.length === 0) {
+            setServerError('Please add an expression to the policy');
+            return false;
+        }
+
+        return true;
     };
 
     const handleSubmit = async (apply = false) => {
@@ -323,6 +341,7 @@ function PolicyDetails({
                             }}
                             labelClassName='col-sm-4 vertically-centered-label'
                             inputClassName='col-sm-8'
+                            autoFocus={policyId === undefined}
                         />
                         <BooleanSetting
                             id='admin.access_control.policy.edit_policy.autoSyncMembership'
@@ -348,7 +367,30 @@ function PolicyDetails({
                             }
                         />
                     </div>
-
+                    {attributesLoaded && autocompleteResult.length === 0 && (<div className='admin-console__warning-notice'>
+                        <SectionNotice
+                            type='warning'
+                            title={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.notice.title'
+                                    defaultMessage='Please add user attributes and values to use Attribute-Based Access Control'
+                                />
+                            }
+                            text={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.notice.text',
+                                defaultMessage: 'You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Properties.',
+                            })}
+                            primaryButton={{
+                                text: formatMessage({
+                                    id: 'admin.access_control.policy.edit_policy.notice.button',
+                                    defaultMessage: 'Configure user attributes',
+                                }),
+                                onClick: () => {
+                                    getHistory().push('/admin_console/site_config/system_properties');
+                                },
+                            }}
+                        />
+                    </div>)}
                     <Card
                         expanded={true}
                         className={'console'}
@@ -374,8 +416,7 @@ function PolicyDetails({
                                 isDisabled={editorMode === 'cel' && !isSimpleExpression(expression)}
                                 tooltipText={
                                     editorMode === 'cel' && !isSimpleExpression(expression) ?
-                                        'Complex expression detected. Simple expressions editor is not available at the moment.' :
-                                        undefined
+                                        'Complex expression detected. Simple expressions editor is not available at the moment.' : undefined
                                 }
                             />
                         </Card.Header>
@@ -401,10 +442,13 @@ function PolicyDetails({
                                         setSaveNeeded(true);
                                     }}
                                     onValidate={() => {}}
-                                    userAttributes={autocompleteResult.map((attr) => ({
-                                        attribute: attr.name,
-                                        values: [],
-                                    }))}
+                                    userAttributes={autocompleteResult}
+                                    onParseError={() => {
+                                        setEditorMode('cel');
+                                    }}
+                                    actions={{
+                                        getVisualAST: actions.getVisualAST,
+                                    }}
                                 />
                             )}
                         </Card.Body>
@@ -545,6 +589,9 @@ function PolicyDetails({
                 <SaveButton
                     disabled={!saveNeeded}
                     onClick={() => {
+                        if (!preSaveCheck()) {
+                            return;
+                        }
                         if (hasChannels()) {
                             setShowConfirmationModal(true);
                         } else {
