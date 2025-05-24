@@ -27,15 +27,23 @@ func (a *App) GetSuggestions(c request.CTX, commandArgs *model.CommandArgs, comm
 		return strings.Compare(strings.ToLower(commands[i].Trigger), strings.ToLower(commands[j].Trigger)) < 0
 	})
 
+	userInput := commandArgs.Command
+
 	autocompleteData := []*model.AutocompleteData{}
 	for _, command := range commands {
 		if command.AutocompleteData == nil {
 			command.AutocompleteData = model.NewAutocompleteData(command.Trigger, command.AutoCompleteHint, command.AutoCompleteDesc)
 		}
+
+		if command.AutocompleteRequestURL != "" {
+			externalAutoComplete, err := a.getCommandExternalSuggestions(c, commandArgs, command)
+			if err == nil && externalAutoComplete != nil {
+				command.AutocompleteData = externalAutoComplete
+			}
+		}
 		autocompleteData = append(autocompleteData, command.AutocompleteData)
 	}
 
-	userInput := commandArgs.Command
 	suggestions := a.getSuggestions(c, commandArgs, autocompleteData, "", userInput, roleID)
 	for i, suggestion := range suggestions {
 		for _, command := range commands {
