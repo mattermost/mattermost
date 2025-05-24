@@ -487,12 +487,6 @@ jobs:
           AWS_REGION: us-east-1
           AWS_S3_BUCKET: mattermost-cypress-report
 
-      - name: Print report URL
-        if: (inputs.TEST == 'playwright')
-        run: |
-          echo "The report is available at:"
-          echo "${{ steps.upload-to-s3.outputs.report_url }}"
-
       - name: ci/report-calculate-results
         id: calculate-results
         env:
