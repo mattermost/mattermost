@@ -55,7 +55,7 @@ export const noBillingHistory = (
         <ExternalLink
             location='billing_summary'
             href={CloudLinks.BILLING_DOCS}
-            className='BillingSummary__noBillingHistory-link'
+            className='btn btn-primary BillingSummary__noBillingHistory-link'
             onClick={() => trackEvent('cloud_admin', 'click_how_billing_works', {screen: 'subscriptions'})}
         >
             <FormattedMessage

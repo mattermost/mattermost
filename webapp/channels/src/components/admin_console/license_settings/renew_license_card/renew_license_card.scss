@@ -1,4 +1,44 @@
 .RenewLicenseCard {
+    &__buttons {
+        display: flex;
+    }
+
+    &__text {
+        &-title {
+            margin-bottom: 5px;
+            color: var(--sys-sidebar-text-active-border);
+            font-family: 'Open Sans', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 24px;
+
+            &.critical {
+                color: var(--sys-error-text);
+            }
+        }
+
+        &-description {
+            margin-bottom: 5px;
+            color: var(--sys-center-channel-color);
+            font-family: 'Open Sans', sans-serif;
+            font-size: 14px;
+            line-height: 30px;
+
+            &.bolder {
+                font-weight: 600;
+            }
+        }
+    }
+
+    &__licensedUsersNum,
+    &__activeUsersNum {
+        display: inline-block;
+    }
+
+    &__activeUsersNum {
+        margin-left: 25px;
+    }
+
     .annnouncementBar__purchaseNow {
         display: block;
         padding: 12px 20px;
@@ -15,43 +55,10 @@
         }
     }
 
-    &__buttons {
-        display: flex;
+    &__alertBanner {
+        padding: 12px 20px;
+        border: 1px solid rgba(var(--error-text-color-rgb), 0.16);
+        margin-top: 4px;
+        background: rgba(var(--error-text-color-rgb), 0.08);
     }
-}
-
-.RenewLicenseCard__text-title {
-    margin-bottom: 5px;
-    color: var(--sys-sidebar-text-active-border);
-    font-family: Open Sans;
-    font-size: 18px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 24px;
-
-    &.critical {
-        color: var(--sys-error-text);
-    }
-}
-
-.RenewLicenseCard__text-description {
-    margin-bottom: 5px;
-    color: var(--sys-center-channel-color);
-    font-family: Open Sans;
-    font-size: 14px;
-    font-style: normal;
-    line-height: 30px;
-
-    &.bolder {
-        font-weight: 600;
-    }
-}
-
-.RenewLicenseCard__licensedUsersNum {
-    display: inline-block;
-}
-
-.RenewLicenseCard__activeUsersNum {
-    display: inline-block;
-    margin-left: 25px;
 }
