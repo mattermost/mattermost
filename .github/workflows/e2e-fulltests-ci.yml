@@ -260,6 +260,7 @@ jobs:
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
       ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
       ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
+      PR_NUMBER: "${{ inputs.PR_NUMBER }}"
     secrets:
       MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
@@ -295,6 +296,7 @@ jobs:
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
       ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
       ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
+      PR_NUMBER: "${{ inputs.PR_NUMBER }}"
     secrets:
       MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
       PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
