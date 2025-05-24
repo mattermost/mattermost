@@ -266,6 +266,43 @@ describe('components/sidebar/show_start_trial_modal', () => {
         expect(mockDispatch).toHaveBeenCalledTimes(0);
     });
 
+    test('should NOT dispatch the modal when database is MySQL', () => {
+        const isAdminUser = {
+            currentUserId: 'current_user_id',
+            profiles: {
+                current_user_id: {roles: 'system_admin system_user'},
+            },
+        };
+
+        const moreThan10Users = 11;
+        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
+
+        const notPreviouslyLicensed = {
+            prevTrialLicense: {
+                IsLicensed: 'false',
+            },
+        };
+
+        const moreThan6HoursWithMySQL = {
+            config: {
+
+                // installation date is set to be 10 hours before current time
+                InstallationDate: new Date().getTime() - ((10 * 60 * 60) * 1000),
+                SQLDriverName: 'mysql',
+            },
+            license: {
+                IsLicensed: 'false',
+            },
+        };
+
+        mockState = {...mockState, entities: {...mockState.entities, users: isAdminUser, admin: notPreviouslyLicensed, general: moreThan6HoursWithMySQL}};
+
+        mount(
+            <ShowStartTrialModal/>,
+        );
+        expect(mockDispatch).toHaveBeenCalledTimes(0);
+    });
+
     test('should dispatch the modal when there are more than 10 users', () => {
         const isAdminUser = {
             currentUserId: 'current_user_id',
@@ -288,6 +325,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
 
                 // installation date is set to be 10 hours before current time
                 InstallationDate: new Date().getTime() - ((10 * 60 * 60) * 1000),
+                SQLDriverName: 'postgres',
             },
             license: {
                 IsLicensed: 'false',
