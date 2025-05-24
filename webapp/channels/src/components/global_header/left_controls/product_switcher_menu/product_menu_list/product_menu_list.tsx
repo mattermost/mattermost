@@ -1,26 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
 
 import {
     AccountMultipleOutlineIcon,
-    ApplicationCogIcon,
     DownloadOutlineIcon,
     InformationOutlineIcon,
     ViewGridPlusOutlineIcon,
     WebhookIncomingIcon,
 } from '@mattermost/compass-icons/components';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import AboutBuildModal from 'components/about_build_modal';
-import {VisitSystemConsoleTour} from 'components/onboarding_tasks';
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import UserGroupsModal from 'components/user_groups_modal';
@@ -32,131 +26,47 @@ import {LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants
 import {makeUrlSafe} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 
-import type {ModalData} from 'types/actions';
+import type {PropsFromRedux} from './index';
 
-import './product_menu_list.scss';
-
-export type Props = {
-    isMobile: boolean;
-    teamId?: string;
-    teamName?: string;
-    siteName: string;
-    currentUser: UserProfile;
-    appDownloadLink: string;
+export interface Props extends PropsFromRedux {
     isMessaging: boolean;
-    enableCommands: boolean;
-    enableIncomingWebhooks: boolean;
-    enableOAuthServiceProvider: boolean;
-    enableOutgoingWebhooks: boolean;
-    canManageSystemBots: boolean;
-    canManageIntegrations: boolean;
-    enablePluginMarketplace: boolean;
-    showVisitSystemConsoleTour: boolean;
-    isStarterFree: boolean;
-    isFreeTrial: boolean;
-    onClick?: React.MouseEventHandler<HTMLElement>;
-    handleVisitConsoleClick: React.MouseEventHandler<HTMLElement>;
-    enableCustomUserGroups?: boolean;
-    actions: {
-        openModal: <P>(modalData: ModalData<P>) => void;
-        getPrevTrialLicense: () => void;
-    };
-};
+}
 
-const ProductMenuList = (props: Props): JSX.Element | null => {
-    const {
-        teamId,
-        teamName,
-        siteName,
-        currentUser,
-        appDownloadLink,
-        isMessaging,
-        enableCommands,
-        enableIncomingWebhooks,
-        enableOAuthServiceProvider,
-        enableOutgoingWebhooks,
-        canManageSystemBots,
-        canManageIntegrations,
-        enablePluginMarketplace,
-        showVisitSystemConsoleTour,
-        isStarterFree,
-        isFreeTrial,
-        onClick,
-        handleVisitConsoleClick,
-        isMobile = false,
-        enableCustomUserGroups,
-    } = props;
+export default function ProductMenuList(props: Props) {
     const {formatMessage} = useIntl();
-    const isAdmin = useSelector(isCurrentUserSystemAdmin);
 
-    useEffect(() => {
-        props.actions.getPrevTrialLicense();
-    }, []);
-
-    if (!currentUser) {
-        return null;
-    }
-
-    const openGroupsModal = () => {
-        props.actions.openModal({
+    function openGroupsModal() {
+        props.openModal({
             modalId: ModalIdentifiers.USER_GROUPS,
             dialogType: UserGroupsModal,
             dialogProps: {
                 backButtonAction: openGroupsModal,
             },
         });
-    };
-
-    const someIntegrationEnabled = enableIncomingWebhooks || enableOutgoingWebhooks || enableCommands || enableOAuthServiceProvider || canManageSystemBots;
-    const showIntegrations = !isMobile && someIntegrationEnabled && canManageIntegrations;
+    }
 
     return (
         <Menu.Group>
-            <div onClick={onClick}>
-                <Menu.CloudTrial id='menuCloudTrial'/>
-                <Menu.ItemCloudLimit id='menuItemCloudLimit'/>
-                <SystemPermissionGate permissions={Permissions.SYSCONSOLE_READ_PERMISSIONS}>
-                    <Menu.ItemLink
-                        id='systemConsole'
-                        show={!isMobile}
-                        to='/admin_console'
-                        text={(
-                            <>
-                                {formatMessage({id: 'navbar_dropdown.console', defaultMessage: 'System Console'})}
-                                {showVisitSystemConsoleTour && (
-                                    <div
-                                        onClick={handleVisitConsoleClick}
-                                        className={'system-console-visit'}
-                                    >
-                                        <VisitSystemConsoleTour/>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                        icon={<ApplicationCogIcon size={18}/>}
-                    />
-                </SystemPermissionGate>
+            <div>
                 <Menu.ItemLink
                     id='integrations'
-                    show={isMessaging && showIntegrations}
-                    to={'/' + teamName + '/integrations'}
+                    show={props.isMessaging && props.areIntegrationsEnabled}
+                    to={'/' + props.teamName + '/integrations'}
                     text={formatMessage({id: 'navbar_dropdown.integrations', defaultMessage: 'Integrations'})}
                     icon={<WebhookIncomingIcon size={18}/>}
                 />
                 <Menu.ItemToggleModalRedux
                     id='userGroups'
                     modalId={ModalIdentifiers.USER_GROUPS}
-                    show={enableCustomUserGroups || isStarterFree || isFreeTrial}
+                    show={props.haveEnabledCustomUserGroups || props.isFreeTrial}
                     dialogType={UserGroupsModal}
                     dialogProps={{
                         backButtonAction: openGroupsModal,
                     }}
                     text={formatMessage({id: 'navbar_dropdown.userGroups', defaultMessage: 'User Groups'})}
                     icon={<AccountMultipleOutlineIcon size={18}/>}
-                    disabled={isStarterFree}
-                    sibling={(isAdmin && (isStarterFree || isFreeTrial)) && (
+                    sibling={(props.isCurrentUserAdmin && props.isFreeTrial) && (
                         <RestrictedIndicator
-                            blocked={isStarterFree}
                             feature={MattermostFeatures.CUSTOM_USER_GROUPS}
                             minimumPlanRequiredForFeature={LicenseSkus.Professional}
                             tooltipMessage={formatMessage({
@@ -195,13 +105,13 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                     )}
                 />
                 <TeamPermissionGate
-                    teamId={teamId}
+                    teamId={props.teamId}
                     permissions={[Permissions.SYSCONSOLE_WRITE_PLUGINS]}
                 >
                     <Menu.ItemToggleModalRedux
                         id='marketplaceModal'
                         modalId={ModalIdentifiers.PLUGIN_MARKETPLACE}
-                        show={isMessaging && !isMobile && enablePluginMarketplace}
+                        show={props.isMessaging && props.haveEnabledPluginMarketplace}
                         dialogType={MarketplaceModal}
                         dialogProps={{openedFrom: 'product_menu'}}
                         text={formatMessage({id: 'navbar_dropdown.marketplace', defaultMessage: 'App Marketplace'})}
@@ -210,8 +120,8 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                 </TeamPermissionGate>
                 <Menu.ItemExternalLink
                     id='nativeAppLink'
-                    show={appDownloadLink && !UserAgent.isMobileApp()}
-                    url={makeUrlSafe(appDownloadLink)}
+                    show={props.appDownloadLink && !UserAgent.isMobileApp()}
+                    url={makeUrlSafe(props.appDownloadLink)}
                     text={formatMessage({id: 'navbar_dropdown.nativeApps', defaultMessage: 'Download Apps'})}
                     icon={<DownloadOutlineIcon size={18}/>}
                 />
@@ -219,12 +129,10 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                     id='about'
                     modalId={ModalIdentifiers.ABOUT}
                     dialogType={AboutBuildModal}
-                    text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: siteName})}
+                    text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: props.siteName})}
                     icon={<InformationOutlineIcon size={18}/>}
                 />
             </div>
         </Menu.Group>
     );
-};
-
-export default ProductMenuList;
+}

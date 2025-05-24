@@ -3,6 +3,7 @@
 
 import type {GlobalState} from 'types/store';
 
+// REMOVE THIS
 export function isSwitcherOpen(state: GlobalState): boolean {
     return state.views.productMenu.switcherOpen;
 }
