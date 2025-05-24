@@ -70,8 +70,8 @@ function UrlInput({
             onBlur(event);
         }
     };
-
-    const handleOnButtonClick = () => {
+    const handleOnButtonClick = (event: React.KeyboardEvent<HTMLButtonElement> | React.MouseEvent<HTMLButtonElement>) => {
+        event.stopPropagation();
         if (!hasError) {
             setEditing(!editing);
         }
@@ -116,12 +116,14 @@ function UrlInput({
                         hasError={hasError}
                         onChange={handleOnInputChange}
                         onBlur={handleOnInputBlur}
+                        aria-describedby='url-input-error'
                     />
                 )}
                 <button
                     className={classNames('url-input-button', {disabled: hasError})}
                     disabled={hasError}
                     onClick={handleOnButtonClick}
+                    onKeyDown={handleOnButtonClick}
                 >
                     <span className='url-input-button-label'>
                         {editing ? formatMessage({id: 'url_input.buttonLabel.done', defaultMessage: 'Done'}) : formatMessage({id: 'url_input.buttonLabel.edit', defaultMessage: 'Edit'})}
@@ -131,7 +133,12 @@ function UrlInput({
             {error && (
                 <div className='url-input-error'>
                     <i className='icon icon-alert-outline'/>
-                    <span>{error}</span>
+                    <span
+                        id='url-input-error'
+                        role='alert'
+                    >
+                        {error}
+                    </span>
                 </div>
             )}
         </div>
