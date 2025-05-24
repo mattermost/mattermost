@@ -21,7 +21,7 @@ import type {RhsState} from 'types/store/rhs';
 
 type Props = WrappedComponentProps & {
     isExpanded: boolean;
-    isMobileView: boolean;
+    isTabletView: boolean;
     rootPostId: string;
     previousRhsState?: RhsState;
     relativeTeamUrl: string;
@@ -59,7 +59,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
     };
 
     handleJumpClick = () => {
-        if (this.props.isMobileView) {
+        if (this.props.isTabletView) {
             this.props.closeRightHandSide();
         }
 
