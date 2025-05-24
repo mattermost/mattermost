@@ -26,6 +26,7 @@ type SharedChannelServiceIFace interface {
 	CheckChannelNotShared(channelID string) error
 	CheckChannelIsShared(channelID string) error
 	CheckCanInviteToSharedChannel(channelId string) error
+	IsRemoteClusterDirectlyConnected(remoteId string) bool
 }
 
 func NewMockSharedChannelService(service SharedChannelServiceIFace) *mockSharedChannelService {
@@ -90,4 +91,12 @@ func (mrcs *mockSharedChannelService) SendChannelInvite(channel *model.Channel, 
 
 func (mrcs *mockSharedChannelService) NumInvitations() int {
 	return mrcs.numInvitations
+}
+
+func (mrcs *mockSharedChannelService) IsRemoteClusterDirectlyConnected(remoteId string) bool {
+	if mrcs.SharedChannelServiceIFace != nil {
+		return mrcs.SharedChannelServiceIFace.IsRemoteClusterDirectlyConnected(remoteId)
+	}
+	// Default behavior for mock: Local server is always connected
+	return remoteId == ""
 }
