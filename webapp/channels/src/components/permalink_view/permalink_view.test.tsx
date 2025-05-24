@@ -23,6 +23,7 @@ import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
+import {joinPrivateChannelPrompt} from 'utils/channel_utils';
 import {ErrorPageTypes} from 'utils/constants';
 
 jest.mock('actions/channel_actions', () => ({
@@ -543,13 +544,7 @@ describe('components/PermalinkView', () => {
                         },
                     };
 
-                    jest.mock('utils/channel_utils', () => ({
-                        joinPrivateChannelPrompt: jest.fn(() => {
-                            return async () => {
-                                return {data: {join: true}};
-                            };
-                        }),
-                    }));
+                    jest.mocked(joinPrivateChannelPrompt).mockReturnValueOnce(async () => ({data: {join: true}}));
 
                     const postId = 'privatepostid1';
                     nockInfoForPrivatePost(postId);
