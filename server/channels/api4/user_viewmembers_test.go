@@ -13,6 +13,7 @@ import (
 )
 
 func TestAPIRestrictedViewMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

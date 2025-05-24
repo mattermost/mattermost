@@ -17,6 +17,7 @@ import (
 )
 
 func TestDataRetentionGetPolicy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -26,6 +27,7 @@ func TestDataRetentionGetPolicy(t *testing.T) {
 }
 
 func TestGetPolicies(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -112,6 +114,7 @@ func TestGetPolicies(t *testing.T) {
 }
 
 func TestGetDataRetentionPoliciesCount(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -159,6 +162,7 @@ func TestGetDataRetentionPoliciesCount(t *testing.T) {
 }
 
 func TestGetPolicy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -244,6 +248,7 @@ func TestGetPolicy(t *testing.T) {
 }
 
 func TestCreatePolicy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -340,6 +345,7 @@ func TestCreatePolicy(t *testing.T) {
 }
 
 func TestPatchPolicy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -455,6 +461,7 @@ func TestPatchPolicy(t *testing.T) {
 }
 
 func TestDeletePolicy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -522,6 +529,7 @@ func TestDeletePolicy(t *testing.T) {
 }
 
 func TestGetTeamPoliciesForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -607,6 +615,7 @@ func TestGetTeamPoliciesForUser(t *testing.T) {
 }
 
 func TestGetChannelPoliciesForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -692,6 +701,7 @@ func TestGetChannelPoliciesForUser(t *testing.T) {
 }
 
 func TestGetTeamsForPolicy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -782,6 +792,7 @@ func TestGetTeamsForPolicy(t *testing.T) {
 }
 
 func TestAddTeamsToPolicy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -852,6 +863,7 @@ func TestAddTeamsToPolicy(t *testing.T) {
 }
 
 func TestRemoveTeamsFromPolicy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -922,6 +934,7 @@ func TestRemoveTeamsFromPolicy(t *testing.T) {
 }
 
 func TestGetChannelsForPolicy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1022,6 +1035,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 }
 
 func TestAddChannelsToPolicy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1141,6 +1155,7 @@ func TestAddChannelsToPolicy(t *testing.T) {
 }
 
 func TestRemoveChannelsFromPolicy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

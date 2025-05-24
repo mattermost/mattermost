@@ -20,6 +20,7 @@ func setupSharedChannels(tb testing.TB) *TestHelper {
 }
 
 func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := setupSharedChannels(t).InitBasic()
 
 	channel1 := th.CreateChannel(th.Context, th.BasicTeam)

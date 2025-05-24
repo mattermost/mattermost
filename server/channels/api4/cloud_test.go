@@ -17,6 +17,7 @@ import (
 )
 
 func Test_GetSubscription(t *testing.T) {
+	mainHelper.Parallel(t)
 	deliquencySince := int64(2000000000)
 
 	subscription := &model.Subscription{
@@ -52,6 +53,7 @@ func Test_GetSubscription(t *testing.T) {
 	}
 
 	t.Run("NON Admin users receive the user facing subscription", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -77,6 +79,7 @@ func Test_GetSubscription(t *testing.T) {
 	})
 
 	t.Run("Admin users receive the full subscription information", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -103,7 +106,9 @@ func Test_GetSubscription(t *testing.T) {
 }
 
 func Test_validateBusinessEmail(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Returns forbidden for invalid business email", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -129,6 +134,7 @@ func Test_validateBusinessEmail(t *testing.T) {
 	})
 
 	t.Run("Validate business email for admin", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -154,6 +160,7 @@ func Test_validateBusinessEmail(t *testing.T) {
 	})
 
 	t.Run("Empty body returns bad request", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -169,7 +176,9 @@ func Test_validateBusinessEmail(t *testing.T) {
 }
 
 func Test_validateWorkspaceBusinessEmail(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("validate the Cloud Customer has used a valid email to create the workspace", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -201,6 +210,7 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 	})
 
 	t.Run("validate the Cloud Customer has used a invalid email to create the workspace and must validate admin email", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -237,6 +247,7 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 	})
 
 	t.Run("Error while grabbing the cloud customer returns bad request", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -271,6 +282,7 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 }
 
 func TestGetCloudProducts(t *testing.T) {
+	mainHelper.Parallel(t)
 	cloudProducts := []*model.Product{
 		{
 			ID:                "prod_test1",
@@ -337,6 +349,7 @@ func TestGetCloudProducts(t *testing.T) {
 		},
 	}
 	t.Run("get products for admins", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -359,6 +372,7 @@ func TestGetCloudProducts(t *testing.T) {
 	})
 
 	t.Run("get products for non admins", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -418,6 +432,7 @@ func TestGetCloudProducts(t *testing.T) {
 }
 
 func TestGetSelfHostedProducts(t *testing.T) {
+	mainHelper.Parallel(t)
 	products := []*model.Product{
 		{
 			ID:                "prod_test",
@@ -459,6 +474,7 @@ func TestGetSelfHostedProducts(t *testing.T) {
 	}
 
 	t.Run("get products for admins", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -479,6 +495,7 @@ func TestGetSelfHostedProducts(t *testing.T) {
 	})
 
 	t.Run("get products for non admins", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 

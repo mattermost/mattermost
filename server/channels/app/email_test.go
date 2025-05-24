@@ -15,6 +15,7 @@ import (
 )
 
 func TestSendInviteEmailRateLimits(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

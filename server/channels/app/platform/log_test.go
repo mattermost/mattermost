@@ -19,6 +19,8 @@ import (
 )
 
 func TestGetMattermostLog(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -72,6 +74,8 @@ func TestGetMattermostLog(t *testing.T) {
 }
 
 func TestGetNotificationLogFile(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -117,6 +121,8 @@ func TestGetNotificationLogFile(t *testing.T) {
 }
 
 func TestGetAdvancedLogs(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t)
 	defer th.TearDown()
 

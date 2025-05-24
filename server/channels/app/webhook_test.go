@@ -23,6 +23,7 @@ import (
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -155,6 +156,7 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 }
 
 func TestUpdateIncomingWebhook(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -293,6 +295,7 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateWebhookPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	testCluster := &testlib.FakeClusterInterface{}
 	th := SetupWithClusterMock(t, testCluster).InitBasic()
 	defer th.TearDown()
@@ -395,6 +398,7 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 }
 
 func TestCreateWebhookPostWithPriority(t *testing.T) {
+	mainHelper.Parallel(t)
 	testCluster := &testlib.FakeClusterInterface{}
 	th := SetupWithClusterMock(t, testCluster).InitBasic()
 	defer th.TearDown()
@@ -445,6 +449,7 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 }
 
 func TestCreateWebhookPostLinks(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -479,6 +484,7 @@ func TestCreateWebhookPostLinks(t *testing.T) {
 }
 
 func TestSplitWebhookPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	type TestCase struct {
 		Post     *model.Post
 		Expected []*model.Post
@@ -592,6 +598,7 @@ func makePost(message int, attachments []int) *model.Post {
 }
 
 func TestSplitWebhookPostAttachments(t *testing.T) {
+	mainHelper.Parallel(t)
 	maxPostSize := 10000
 	testCases := []struct {
 		name     string
@@ -652,6 +659,7 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 }
 
 func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -683,6 +691,7 @@ func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 }
 
 func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
+	mainHelper.Parallel(t)
 	getPayload := func(hook *model.OutgoingWebhook, th *TestHelper, channel *model.Channel) *model.OutgoingWebhookPayload {
 		return &model.OutgoingWebhookPayload{
 			Token:       hook.Token,
@@ -824,6 +833,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 }
 
 func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
+	mainHelper.Parallel(t)
 	getPayload := func(hook *model.OutgoingWebhook, th *TestHelper, channel *model.Channel) *model.OutgoingWebhookPayload {
 		return &model.OutgoingWebhookPayload{
 			Token:       hook.Token,
@@ -931,6 +941,7 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 }
 
 func TestDoOutgoingWebhookRequest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
