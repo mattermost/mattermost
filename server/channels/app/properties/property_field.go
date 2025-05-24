@@ -59,7 +59,7 @@ func (ps *PropertyService) DeletePropertyField(groupID, id string) error {
 		}
 	}
 
-	if err := ps.valueStore.DeleteForField(id); err != nil {
+	if err := ps.valueStore.DeleteForField(groupID, id); err != nil {
 		return err
 	}
 

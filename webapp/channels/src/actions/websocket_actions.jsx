@@ -1952,9 +1952,23 @@ export function handleCustomAttributesCreated(msg) {
 }
 
 export function handleCustomAttributesUpdated(msg) {
-    return {
-        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
-        data: msg.data.field,
+    return (dispatch) => {
+        const {field, delete_values: deleteValues} = msg.data;
+
+        // Check if server indicates values should be deleted
+        if (deleteValues) {
+            // Clear values for the field when type changes
+            dispatch({
+                type: UserTypes.CLEAR_CPA_VALUES,
+                data: {fieldId: field.id},
+            });
+        }
+
+        // Update the field
+        dispatch({
+            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+            data: field,
+        });
     };
 }
 
