@@ -37,8 +37,17 @@ func newSyncTask(channelID, userID string, remoteID string, existingMsg, retryMs
 		retryID = retryMsg.Id
 	}
 
+	// Generate a unique task ID
+	taskID := channelID + userID + remoteID + retryID // combination of ids to avoid duplicates
+
+	// For batch tasks, add a batch identifier to make the ID unique
+	if existingMsg != nil && existingMsg.MembershipBatchInfo != nil {
+		batchID := model.NewId()[:8] // Use a short unique ID for the batch
+		taskID = channelID + "batch" + batchID + remoteID + retryID
+	}
+
 	return syncTask{
-		id:          channelID + userID + remoteID + retryID, // combination of ids to avoid duplicates
+		id:          taskID,
 		channelID:   channelID,
 		userID:      userID,
 		remoteID:    remoteID, // empty means update all remote clusters
@@ -365,6 +374,51 @@ func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 
 // processTask updates one or more remote clusters with any new channel content.
 func (scs *Service) processTask(task syncTask) error {
+	// Check if this is a membership change task
+	if task.existingMsg != nil && task.existingMsg.MembershipInfo != nil {
+		// Check if feature flag is enabled
+		if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
+			return nil
+		}
+		scs.processMembershipChange(task.existingMsg)
+		return nil
+	}
+
+	// Check if this is a batch membership change task
+	if task.existingMsg != nil && task.existingMsg.MembershipBatchInfo != nil {
+		// Check if feature flag is enabled
+		if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
+			return nil
+		}
+		batchInfo := task.existingMsg.MembershipBatchInfo
+		userIDs := make([]string, 0, len(batchInfo.Changes))
+		for _, change := range batchInfo.Changes {
+			userIDs = append(userIDs, change.UserId)
+		}
+
+		// If remoteID is empty, process for all remotes
+		if task.remoteID == "" {
+			// Get all remotes for this channel
+			filter := model.RemoteClusterQueryFilter{
+				InChannel:     batchInfo.ChannelId,
+				OnlyConfirmed: true,
+			}
+			remotes, err := scs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
+			if err != nil {
+				return fmt.Errorf("failed to get remotes for batch membership sync: %w", err)
+			}
+
+			// Process batch for each remote
+			for _, remote := range remotes {
+				scs.processMembershipBatch(batchInfo.ChannelId, userIDs, remote.RemoteId, batchInfo.ChangeTime)
+			}
+			return nil
+		}
+		// Process for specific remote
+		scs.processMembershipBatch(batchInfo.ChannelId, userIDs, task.remoteID, batchInfo.ChangeTime)
+		return nil
+	}
+
 	// map is used to ensure remotes don't get sync'd twice, such as when
 	// they have the autoinvited flag and have explicitly subscribed to a channel.
 	remotesMap := make(map[string]*model.RemoteCluster)
@@ -408,6 +462,7 @@ func (scs *Service) processTask(task syncTask) error {
 	for _, rc := range remotesMap {
 		rtask := task
 		rtask.remoteID = rc.RemoteId
+
 		if err := scs.syncForRemote(rtask, rc); err != nil {
 			// retry...
 			if rtask.incRetry() {

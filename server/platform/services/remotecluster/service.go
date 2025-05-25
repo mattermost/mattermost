@@ -289,3 +289,24 @@ func (rcs *Service) pause() {
 
 	rcs.server.Log().Debug("Remote Cluster Service inactive")
 }
+
+// SetActive forces the service to be active or inactive
+func (rcs *Service) SetActive(active bool) {
+	rcs.mux.Lock()
+	defer rcs.mux.Unlock()
+
+	if rcs.active == active {
+		return
+	}
+
+	if active {
+		rcs.resume()
+	} else {
+		rcs.pause()
+	}
+}
+
+// SetDisablePingForTesting allows tests to disable ping functionality
+func SetDisablePingForTesting(disabled bool) {
+	disablePing = disabled
+}

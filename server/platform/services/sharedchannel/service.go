@@ -24,12 +24,15 @@ const (
 	TopicSync                    = "sharedchannel_sync"
 	TopicChannelInvite           = "sharedchannel_invite"
 	TopicUploadCreate            = "sharedchannel_upload"
+	TopicChannelMembership       = "sharedchannel_membership"
+	TopicChannelMembershipBatch  = "sharedchannel_membership_batch" // For batch processing
 	MaxRetries                   = 3
 	MaxUsersPerSync              = 25
 	NotifyRemoteOfflineThreshold = time.Second * 10
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
+	// Default value for MaxMembersPerBatch is now defined in config.go as ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
@@ -42,6 +45,7 @@ type ServerIface interface {
 	Log() *mlog.Logger
 	GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace
 	GetMetrics() einterfaces.MetricsInterface
+	GetClusterId() string
 }
 
 type PlatformIface interface {
@@ -56,6 +60,7 @@ type AppIface interface {
 	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
 	AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError
+	RemoveUserFromChannel(c request.CTX, userID string, removerUserId string, channel *model.Channel) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
 	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError)
 	UpdatePost(c request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError)
@@ -88,9 +93,10 @@ type Service struct {
 	changeSignal chan struct{}
 
 	// everything below guarded by `mux`
-	mux                       sync.RWMutex
-	active                    bool
-	leaderListenerId          string
+	mux              sync.RWMutex
+	active           bool
+	leaderListenerId string
+
 	connectionStateListenerId string
 	done                      chan struct{}
 	tasks                     map[string]syncTask
@@ -129,6 +135,9 @@ func (scs *Service) Start() error {
 	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
 	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
 	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
+	// Register the membership change handlers
+	rcs.AddTopicListener(TopicChannelMembership, scs.onReceiveSyncMessage)
+	rcs.AddTopicListener(TopicChannelMembershipBatch, scs.onReceiveSyncMessage)
 	scs.connectionStateListenerId = rcs.AddConnectionStateListener(scs.onConnectionStateChange)
 	scs.mux.Unlock()
 
@@ -176,6 +185,11 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 	scs.app.SendEphemeralPost(request.EmptyContext(scs.server.Log()), userId, ephemeral)
 }
 
+// OnReceiveSyncMessageForTesting is an exported wrapper for testing the sync message handling flow
+func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	return scs.onReceiveSyncMessage(msg, rc, response)
+}
+
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (scs *Service) onClusterLeaderChange() {
 	if scs.server.IsLeader() {
@@ -214,6 +228,20 @@ func (scs *Service) pause() {
 	scs.done = nil
 
 	scs.server.Log().Debug("Shared Channel Service inactive")
+}
+
+// getMyClusterId returns the ID of this cluster
+func (scs *Service) getMyClusterId() string {
+	// Get the cluster ID from the server interface
+	return scs.server.GetClusterId()
+}
+
+// GetMemberSyncBatchSize returns the configured batch size for member synchronization
+func (scs *Service) GetMemberSyncBatchSize() int {
+	if scs.server.Config().ConnectedWorkspacesSettings.MemberSyncBatchSize != nil {
+		return *scs.server.Config().ConnectedWorkspacesSettings.MemberSyncBatchSize
+	}
+	return model.ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
 }
 
 // Makes the remote channel to be read-only(announcement mode, only admins can create posts and reactions).
