@@ -60,8 +60,11 @@ COPY --from=builder /usr/lib/libfontconfig.so* /usr/lib/
 # Copy mattermost from builder stage 
 COPY --from=builder --chown=2000:2000 /mattermost /mattermost
 
+# Copy passwd including mattermost user
+COPY  passwd /etc/passwd
+
 # We should refrain from running as privileged user
-USER 2000:2000
+USER mattermost
 
 # Healthcheck to make sure container is ready - using mmctl instead of curl for distroless compatibility
 HEALTHCHECK --interval=30s --timeout=10s \
