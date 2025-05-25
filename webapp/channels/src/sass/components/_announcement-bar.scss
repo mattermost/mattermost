@@ -1,15 +1,15 @@
-@charset 'UTF-8';
+@use "utils/variables";
 
 .announcement-bar {
     display: flex;
     overflow: hidden;
     width: 100vw;
-    min-height: $announcement-bar-height;
-    max-height: $announcement-bar-height;
+    min-height: variables.$announcement-bar-height;
+    max-height: variables.$announcement-bar-height;
     align-items: center;
     justify-content: center;
     background-color: #579eff;
-    color: $white;
+    color: variables.$white;
     text-align: center;
 
     .announcement-bar__text {
@@ -48,7 +48,7 @@
         }
 
         .annnouncementBar__renewLicense {
-            border-color: $white;
+            border-color: variables.$white;
         }
     }
 
@@ -66,14 +66,14 @@
             top: 5px;
             right: 0;
             padding: 0 10px;
-            color: $white;
+            color: variables.$white;
             font-family: 'Open Sans', sans-serif;
             font-size: 20px;
             font-weight: 600;
             text-decoration: none;
 
             &:hover {
-                color: $white;
+                color: variables.$white;
                 text-decoration: none;
             }
         }
@@ -107,7 +107,7 @@
         font-size: 12px;
         font-style: normal;
         font-weight: 600;
-        line-height: 16px;
+        line-height: 14px;
     }
 }
 

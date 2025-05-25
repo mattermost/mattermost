@@ -70,15 +70,19 @@ func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model
 		}
 	}
 
+	var appErr *model.AppError
 	serverNames := logFilter.ServerNames
 	if len(serverNames) > 0 {
 		for _, nodeName := range serverNames {
 			if nodeName == "default" {
-				AddLocalLogs(rctx, logData, s, page, perPage, nodeName, logFilter)
+				appErr = addLocalLogs(rctx, logData, s, page, perPage, nodeName, logFilter)
 			}
 		}
 	} else {
-		AddLocalLogs(rctx, logData, s, page, perPage, serverName, logFilter)
+		appErr = addLocalLogs(rctx, logData, s, page, perPage, serverName, logFilter)
+	}
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	if s.platform.Cluster() != nil && *s.Config().ClusterSettings.Enable {
@@ -101,7 +105,7 @@ func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model
 	return logData, nil
 }
 
-func AddLocalLogs(rctx request.CTX, logData map[string][]string, s *Server, page, perPage int, serverName string, logFilter *model.LogFilter) *model.AppError {
+func addLocalLogs(rctx request.CTX, logData map[string][]string, s *Server, page, perPage int, serverName string, logFilter *model.LogFilter) *model.AppError {
 	currentServerLogs, err := s.GetLogsSkipSend(rctx, page, perPage, logFilter)
 	if err != nil {
 		return err
@@ -127,22 +131,19 @@ func (a *App) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *mo
 	return a.Srv().GetLogsSkipSend(rctx, page, perPage, logFilter)
 }
 
-func (a *App) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
-	infos := make([]*model.ClusterInfo, 0)
-
-	if a.Cluster() != nil {
-		infos = a.Cluster().GetClusterInfos()
+func (a *App) GetClusterStatus(rctx request.CTX) ([]*model.ClusterInfo, error) {
+	if a.Cluster() == nil {
+		return make([]*model.ClusterInfo, 0), nil
 	}
-
-	return infos
+	return a.Cluster().GetClusterInfos()
 }
 
 func (s *Server) InvalidateAllCaches() *model.AppError {
 	return s.platform.InvalidateAllCaches()
 }
 
-func (s *Server) InvalidateAllCachesSkipSend() {
-	s.platform.InvalidateAllCachesSkipSend()
+func (s *Server) InvalidateAllCachesSkipSend() *model.AppError {
+	return s.platform.InvalidateAllCachesSkipSend()
 }
 
 func (a *App) RecycleDatabaseConnection(rctx request.CTX) {
@@ -237,6 +238,6 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 	return releaseInfoResponse, nil
 }
 
-func (a *App) ClearLatestVersionCache(rctx request.CTX) {
-	latestVersionCache.Remove("latest_version_cache")
+func (a *App) clearLatestVersionCache() error {
+	return latestVersionCache.Remove("latest_version_cache")
 }

@@ -95,7 +95,20 @@ class BrowserStoreClass {
     clearLandingPreference(siteUrl?: string) {
         localStorage.removeItem(StoragePrefixes.LANDING_PREFERENCE + String(siteUrl));
     }
+
+    getHideNotificationPermissionRequestBanner() {
+        return localStorage.getItem(StoragePrefixes.HIDE_NOTIFICATION_PERMISSION_REQUEST_BANNER) === 'true';
+    }
+
+    setHideNotificationPermissionRequestBanner() {
+        localStorage.setItem(StoragePrefixes.HIDE_NOTIFICATION_PERMISSION_REQUEST_BANNER, 'true');
+    }
+
+    clearHideNotificationPermissionRequestBanner() {
+        localStorage.removeItem(StoragePrefixes.HIDE_NOTIFICATION_PERMISSION_REQUEST_BANNER);
+    }
 }
 
 const BrowserStore = new BrowserStoreClass();
+
 export default BrowserStore;

@@ -10,7 +10,7 @@ exports[`components/threading/common/thread_menu should match snapshot 1`] = `
     test
   </button>
   <Menu
-    ariaLabel=""
+    ariaLabel="Actions"
     openLeft={true}
   >
     <MenuItemAction
@@ -53,7 +53,7 @@ exports[`components/threading/common/thread_menu should match snapshot after ope
     test
   </button>
   <Menu
-    ariaLabel=""
+    ariaLabel="Actions"
     openLeft={true}
   >
     <MenuItemAction

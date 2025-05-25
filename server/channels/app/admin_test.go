@@ -43,9 +43,10 @@ func TestGetLatestVersion(t *testing.T) {
 	})
 
 	t.Run("get latest mm version from cache", func(t *testing.T) {
-		th.App.ClearLatestVersionCache(th.Context)
-		originalResult, err := th.App.GetLatestVersion(th.Context, ts.URL)
-		require.Nil(t, err)
+		err := th.App.clearLatestVersionCache()
+		require.NoError(t, err)
+		originalResult, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
+		require.Nil(t, appErr)
 
 		// Call same function but mock the GET request to return a different result.
 		// We are hoping the function will use the cache instead of making the GET request
@@ -66,16 +67,18 @@ func TestGetLatestVersion(t *testing.T) {
 			_, err := w.Write(updatedJSON)
 			require.NoError(t, err)
 		}))
-		defer ts.Close()
+		defer updatedServer.Close()
 
-		cachedResult, err := th.App.GetLatestVersion(th.Context, updatedServer.URL)
-		require.Nil(t, err)
+		cachedResult, appErr := th.App.GetLatestVersion(th.Context, updatedServer.URL)
+		require.Nil(t, appErr)
 
 		require.Equal(t, originalResult.TagName, cachedResult.TagName, "did not get cached result")
 	})
 
 	t.Run("get latest mm version error from external", func(t *testing.T) {
-		th.App.ClearLatestVersionCache(th.Context)
+		err := th.App.clearLatestVersionCache()
+		require.NoError(t, err)
+
 		errorServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, err := w.Write([]byte(`
@@ -85,7 +88,7 @@ func TestGetLatestVersion(t *testing.T) {
 			`))
 			require.NoError(t, err)
 		}))
-		defer ts.Close()
+		defer errorServer.Close()
 
 		_, appErr := th.App.GetLatestVersion(th.Context, errorServer.URL)
 		require.NotNil(t, appErr)

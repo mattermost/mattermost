@@ -5,13 +5,15 @@ import React, {Fragment, useCallback, useEffect, useMemo, useRef, memo} from 're
 import type {ChangeEvent, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
-import type {ValueType, OptionsType} from 'react-select';
+import type {OnChangeValue, Options} from 'react-select';
 
 import type {UserNotifyProps} from '@mattermost/types/users';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
+import NotificationPermissionSectionNotice from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_section_notice';
+import NotificationPermissionTitleTag from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_title_tag';
 
 import Constants, {NotificationLevels, UserSettingsNotificationSections} from 'utils/constants';
 
@@ -86,7 +88,7 @@ function DesktopAndMobileNotificationSettings({
         setParentState('desktopAndMobileSettingsDifferent', value);
     }, [setParentState]);
 
-    const handleChangeForSendMobileNotificationsSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
+    const handleChangeForSendMobileNotificationsSelect = useCallback((selectedOption: OnChangeValue<SelectOption, boolean>) => {
         if (selectedOption && 'value' in selectedOption) {
             setParentState('pushActivity', selectedOption.value);
         }
@@ -97,7 +99,7 @@ function DesktopAndMobileNotificationSettings({
         setParentState('pushThreads', value);
     }, [setParentState]);
 
-    const handleChangeForTriggerMobileNotificationsSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
+    const handleChangeForTriggerMobileNotificationsSelect = useCallback((selectedOption: OnChangeValue<SelectOption, boolean>) => {
         if (selectedOption && 'value' in selectedOption) {
             setParentState('pushStatus', selectedOption.value);
         }
@@ -201,7 +203,6 @@ function DesktopAndMobileNotificationSettings({
                         className='react-select singleSelect'
                         classNamePrefix='react-select'
                         options={optionsOfSendNotifications}
-                        clearable={false}
                         isClearable={false}
                         isSearchable={false}
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
@@ -255,7 +256,6 @@ function DesktopAndMobileNotificationSettings({
                         className='react-select singleSelect'
                         classNamePrefix='react-select'
                         options={optionsOfSendMobileNotificationsWhenSelect}
-                        clearable={false}
                         isClearable={false}
                         isSearchable={false}
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
@@ -322,6 +322,7 @@ function DesktopAndMobileNotificationSettings({
                 saving={saving}
                 serverError={error}
                 updateSection={handleChangeForMaxSection}
+                extraContentBeforeSettingList={<NotificationPermissionSectionNotice/>}
             />
         );
     }
@@ -330,10 +331,13 @@ function DesktopAndMobileNotificationSettings({
         <SettingItemMin
             ref={editButtonRef}
             title={
-                <FormattedMessage
-                    id='user.settings.notifications.desktopAndMobile.title'
-                    defaultMessage='Desktop and mobile notifications'
-                />
+                <>
+                    <FormattedMessage
+                        id='user.settings.notifications.desktopAndMobile.title'
+                        defaultMessage='Desktop and mobile notifications'
+                    />
+                    <NotificationPermissionTitleTag/>
+                </>
             }
             describe={getCollapsedText(desktopActivity, pushActivity)}
             section={UserSettingsNotificationSections.DESKTOP_AND_MOBILE}
@@ -420,7 +424,7 @@ function shouldShowSendMobileNotificationsSection(sendPushNotifications: UserSet
     return false;
 }
 
-export function getValueOfSendMobileNotificationForSelect(pushActivity: UserNotifyProps['push']): ValueType<SelectOption> {
+export function getValueOfSendMobileNotificationForSelect(pushActivity: UserNotifyProps['push']): OnChangeValue<SelectOption, boolean> {
     if (!pushActivity) {
         return optionsOfSendNotifications[1];
     }
@@ -456,7 +460,7 @@ export function shouldShowTriggerMobileNotificationsSection(sendPushNotification
     return true;
 }
 
-const optionsOfSendMobileNotificationsWhenSelect: OptionsType<SelectOption> = [
+const optionsOfSendMobileNotificationsWhenSelect: Options<SelectOption> = [
     {
         label: (
             <FormattedMessage
@@ -486,7 +490,7 @@ const optionsOfSendMobileNotificationsWhenSelect: OptionsType<SelectOption> = [
     },
 ];
 
-export function getValueOfSendMobileNotificationWhenSelect(pushStatus?: UserNotifyProps['push_status']): ValueType<SelectOption> {
+export function getValueOfSendMobileNotificationWhenSelect(pushStatus?: UserNotifyProps['push_status']): OnChangeValue<SelectOption, boolean> {
     if (!pushStatus) {
         return optionsOfSendMobileNotificationsWhenSelect[2];
     }

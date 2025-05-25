@@ -23,6 +23,7 @@ import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'matt
 import {logError} from './errors';
 import {forceLogoutIfNecessary} from './helpers';
 import {getPostThread} from './posts';
+import {getMyTeamUnreads} from './teams';
 
 type ExtendedPost = Post & { system_post_ids?: string[] };
 
@@ -391,6 +392,12 @@ export function setThreadFollow(userId: string, teamId: string, threadId: string
             dispatch(logError(error));
             return {error};
         }
+
+        // As a short term fix for https://mattermost.atlassian.net/browse/MM-62113, we will fetch
+        // the users team unreads after following or unfollowing a thread. This will ensure that the unreads are
+        // updated correctly in the case where the user is following or unfollowing a thread that has unread messages.
+        dispatch(getMyTeamUnreads(isCollapsedThreadsEnabled(getState())));
+
         return {};
     };
 }

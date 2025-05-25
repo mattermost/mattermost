@@ -41,4 +41,19 @@ describe('components/analytics/statistic_count.tsx', () => {
 
         expect(wrapper).toMatchSnapshot();
     });
+
+    test('should apply formatter function when provided', () => {
+        const mockFormatter = (value: number) => `${value}%`;
+        const wrapper = shallow(
+            <StatisticCount
+                title='Test'
+                icon='test-icon'
+                count={42}
+                id='test-stat'
+                formatter={mockFormatter}
+            />,
+        );
+
+        expect(wrapper.find('[data-testid="test-stat"]').text()).toBe('42%');
+    });
 });

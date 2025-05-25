@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @messaging
 
 import {verifyDraftIcon} from './helpers';
@@ -26,7 +25,7 @@ describe('Message Draft and Switch Channels', () => {
     });
 
     it('MM-T131 Message Draft Pencil Icon - CTRL/CMD+K & "Jump to"', () => {
-        const {name, display_name: displayName} = testChannel;
+        const {name, display_name: displayName, id} = testChannel;
         const message = 'message draft test';
 
         // * Validate if the draft icon is not visible at LHS before making a draft
@@ -56,10 +55,10 @@ describe('Message Draft and Switch Channels', () => {
         // * Suggestion list is visible
         cy.get('#suggestionList').should('be.visible').within(() => {
             // * A pencil icon before the channel name in the filtered list is visible
-            cy.get(`#switchChannel_${name}`).find('.icon-pencil-outline').should('be.visible');
+            cy.get(`#switchChannel_${id}`).find('.icon-pencil-outline').should('be.visible');
 
             // # Click to switch back to the test channel
-            cy.get(`#switchChannel_${name}`).click({force: true});
+            cy.get(`#switchChannel_${id}`).click({force: true});
         });
 
         // * Draft is saved in the text input box of the test channel

@@ -35,7 +35,7 @@ describe('Autocomplete with Database - Users', () => {
 
             // # Open quick channel switcher
             cy.typeCmdOrCtrl().type('k');
-            cy.findByRole('textbox', {name: 'quick switch input'}).should('be.visible');
+            cy.findByRole('combobox', {name: 'quick switch input'}).should('be.visible');
         });
     });
 

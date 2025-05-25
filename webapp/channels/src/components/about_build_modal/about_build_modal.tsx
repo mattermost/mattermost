@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 
+import {Client4} from 'mattermost-redux/client';
+
 import ExternalLink from 'components/external_link';
 import Nbsp from 'components/html_entities/nbsp';
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
@@ -14,6 +16,11 @@ import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 import {AboutLinks} from 'utils/constants';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';
+
+type SocketStatus = {
+    connected: boolean;
+    serverHostname: string | undefined;
+}
 
 type Props = {
 
@@ -31,10 +38,13 @@ type Props = {
      * Global license object
      */
     license: ClientLicense;
+
+    socketStatus: SocketStatus;
 };
 
 type State = {
     show: boolean;
+    loadMetric: number | null;
 };
 
 export default class AboutBuildModal extends React.PureComponent<Props, State> {
@@ -43,7 +53,24 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
 
         this.state = {
             show: true,
+            loadMetric: 0,
         };
+    }
+
+    componentDidMount() {
+        const fetchLoadMetric = async () => {
+            try {
+                const result = await Client4.getLicenseLoadMetric();
+                if (result?.load) {
+                    this.setState({loadMetric: result.load});
+                }
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.error('Error fetching load metric:', e);
+            }
+        };
+
+        fetchLoadMetric();
     }
 
     doHide = () => {
@@ -182,13 +209,68 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
 
         const mmversion: string | undefined = config.BuildNumber === 'dev' ? config.BuildNumber : config.Version;
 
+        let serverHostname;
+        if (!this.props.socketStatus.connected) {
+            serverHostname = (
+                <div>
+                    <FormattedMessage
+                        id='about.serverHostname'
+                        defaultMessage='Hostname:'
+                    />
+                    <Nbsp/>
+                    <FormattedMessage
+                        id='about.serverDisconnected'
+                        defaultMessage='disconnected'
+                    />
+                </div>
+            );
+        } else if (this.props.socketStatus.serverHostname) {
+            serverHostname = (
+                <div>
+                    <FormattedMessage
+                        id='about.serverHostname'
+                        defaultMessage='Hostname:'
+                    />
+                    <Nbsp/>
+                    {this.props.socketStatus.serverHostname}
+                </div>
+            );
+        } else {
+            serverHostname = (
+                <div>
+                    <FormattedMessage
+                        id='about.serverHostname'
+                        defaultMessage='Hostname:'
+                    />
+                    <Nbsp/>
+                    <FormattedMessage
+                        id='about.serverUnknown'
+                        defaultMessage='server did not provide hostname'
+                    />
+                </div>
+            );
+        }
+
+        let loadMetricComponent: JSX.Element | null = null;
+        if (this.state.loadMetric !== null && this.state.loadMetric > 0) {
+            loadMetricComponent = (
+                <div data-testid='aboutModalLoadMetric'>
+                    <FormattedMessage
+                        id='about.loadmetric'
+                        defaultMessage='Load Metric:'
+                    />
+                    <span>{'\u00a0' + this.state.loadMetric}</span>
+                </div>
+            );
+        }
+
         return (
             <Modal
                 dialogClassName='a11y__modal about-modal'
                 show={this.state.show}
                 onHide={this.doHide}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='aboutModalLabel'
             >
                 <Modal.Header closeButton={true}>
@@ -229,6 +311,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                                         {'\u00a0' + mmversion}
                                     </span>
                                 </div>
+                                {loadMetricComponent}
                                 <div data-testid='aboutModalDBVersionString'>
                                     <FormattedMessage
                                         id='about.dbversion'
@@ -246,6 +329,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                                     />
                                     {'\u00a0' + config.SQLDriverName}
                                 </div>
+                                {serverHostname}
                             </div>
                             {licensee}
                         </div>

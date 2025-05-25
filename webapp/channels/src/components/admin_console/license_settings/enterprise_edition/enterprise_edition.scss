@@ -5,7 +5,7 @@
         text-align: center;
 
         svg {
-            margin: 0 auto;
+            margin: 0 auto 24px auto;
         }
     }
 
@@ -60,9 +60,7 @@
     font-family: Metropolis;
 
     &__Grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: 1fr;
+        display: flex;
     }
 
     .PlanDetails__viewPlansButton {

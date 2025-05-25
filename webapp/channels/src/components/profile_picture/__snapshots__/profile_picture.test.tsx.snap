@@ -39,21 +39,24 @@ exports[`components/ProfilePicture should match snapshot, no user specified, ove
 exports[`components/ProfilePicture should match snapshot, profile and src, default props 1`] = `
 <ProfilePopoverController
   src="http://example.com/image.png"
-  triggerComponentClass="status-wrapper"
+  triggerComponentAs="button"
+  triggerComponentClass="status-wrapper style--none"
+  triggerComponentStyle={
+    Object {
+      "borderRadius": "50%",
+      "height": "32px",
+      "width": "32px",
+    }
+  }
   userId="uid"
 >
-  <RoundButton
-    className="style--none"
-    size="md"
+  <span
+    className="profile-icon "
   >
-    <span
-      className="profile-icon "
-    >
-      <Memo(Avatar)
-        url="http://example.com/emoji.png"
-      />
-    </span>
-  </RoundButton>
+    <Memo(Avatar)
+      url="http://example.com/emoji.png"
+    />
+  </span>
   <Memo(StatusIcon)
     status="away"
   />

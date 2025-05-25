@@ -281,7 +281,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 	if prepackagedPlugin != nil {
 		fileReader, err := os.Open(prepackagedPlugin.Path)
 		if err != nil {
-			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, fmt.Sprintf("failed to open prepackaged plugin %s: %s", prepackagedPlugin.Path, err.Error()), http.StatusInternalServerError)
+			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, fmt.Sprintf("failed to open prepackaged plugin %s", prepackagedPlugin.Path), http.StatusInternalServerError).Wrap(err)
 		}
 		defer fileReader.Close()
 
@@ -389,7 +389,9 @@ func (ch *Channels) installPluginLocally(bundle io.ReadSeeker, installationStrat
 
 // extractPlugin unpacks the given plugin bundle into the specified directory.
 func extractPlugin(bundle io.ReadSeeker, extractDir string) (*model.Manifest, string, *model.AppError) {
-	bundle.Seek(0, 0)
+	if _, err := bundle.Seek(0, 0); err != nil {
+		return nil, "", model.NewAppError("extractPlugin", "app.plugin.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 	if err := extractTarGz(bundle, extractDir); err != nil {
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.extract.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -457,12 +459,12 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 
 			version, err = semver.Parse(manifest.Version)
 			if err != nil {
-				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
 			existingVersion, err = semver.Parse(existingManifest.Version)
 			if err != nil {
-				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusInternalServerError)
+				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			if version.LTE(existingVersion) {
@@ -474,7 +476,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 		// Otherwise remove the existing installation prior to installing below.
 		logger.Info("Removing existing installation of plugin before local install", mlog.String("existing_version", existingManifest.Version))
 		if err := ch.removePluginLocally(existingManifest.Id); err != nil {
-			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.install_id_failed_remove.app_error", nil, "", http.StatusInternalServerError)
+			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.install_id_failed_remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 

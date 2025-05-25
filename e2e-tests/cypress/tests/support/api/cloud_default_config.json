@@ -34,7 +34,6 @@
         "EnableDeveloper": false,
         "DeveloperFlags": "",
         "EnableClientPerformanceDebugging": false,
-        "EnableOpenTracing": false,
         "EnableSecurityFixAlert": false,
         "EnableInsecureOutgoingConnections": false,
         "AllowedUntrustedInternalConnections": "localhost",
@@ -191,6 +190,7 @@
         "AboutLink": "https://mattermost.com/pl/about-mattermost",
         "HelpLink": "https://mattermost.com/pl/help/",
         "ReportAProblemLink": "https://mattermost.com/pl/report-a-bug",
+        "ReportAProblemType": "link",
         "ForgotPasswordLink": "",
         "SupportEmail": "",
         "CustomTermsOfServiceEnabled": false,
@@ -346,7 +346,10 @@
         "LoginButtonTextColor": "#ffffff"
     },
     "NativeAppSettings": {
-        "AppCustomURLSchemes": ["mmauth://", "mmauthbeta://"],
+        "AppCustomURLSchemes": [
+            "mmauth://",
+            "mmauthbeta://"
+        ],
         "AppDownloadLink": "https://mattermost.com/pl/download-apps",
         "AndroidAppDownloadLink": "https://mattermost.com/pl/android-app/",
         "IosAppDownloadLink": "https://mattermost.com/pl/ios-app/"

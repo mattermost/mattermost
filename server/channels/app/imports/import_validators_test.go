@@ -393,7 +393,7 @@ func TestImportValidateChannelImportData(t *testing.T) {
 
 	data.Name = model.NewPointer("A")
 	err = ValidateChannelImportData(&data)
-	require.NotNil(t, err, "Should have failed due to short name.")
+	require.Nil(t, err, "Should not have failed due to uppercased name.")
 
 	// Test team various invalid display names.
 	data = ChannelImportData{
@@ -532,20 +532,27 @@ func TestImportValidateUserImportData(t *testing.T) {
 	// Test a valid User with all fields populated.
 	testsDir, _ := fileutils.FindDir("tests")
 	data = UserImportData{
-		ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
-		Username:     model.NewPointer("bob"),
-		Email:        model.NewPointer("bob@example.com"),
-		AuthService:  model.NewPointer("ldap"),
-		AuthData:     model.NewPointer("bob"),
-		Nickname:     model.NewPointer("BobNick"),
-		FirstName:    model.NewPointer("Bob"),
-		LastName:     model.NewPointer("Blob"),
-		Position:     model.NewPointer("The Boss"),
-		Roles:        model.NewPointer("system_user"),
-		Locale:       model.NewPointer("en"),
+		Avatar: Avatar{
+			ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
+		},
+		Username:    model.NewPointer("bob"),
+		Email:       model.NewPointer("bob@example.com"),
+		AuthService: model.NewPointer("ldap"),
+		AuthData:    model.NewPointer("bob"),
+		Nickname:    model.NewPointer("BobNick"),
+		FirstName:   model.NewPointer("Bob"),
+		LastName:    model.NewPointer("Blob"),
+		Position:    model.NewPointer("The Boss"),
+		Roles:       model.NewPointer("system_user"),
+		Locale:      model.NewPointer("en"),
 	}
 	err = ValidateUserImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with not-all lowercase username
+	data.Username = model.NewPointer("Bob")
+	err = ValidateUserImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid even the username has uppercase letters.")
 
 	// Test various invalid optional field values.
 	data.Nickname = model.NewPointer(strings.Repeat("abcdefghij", 7))
@@ -669,6 +676,61 @@ func TestImportValidateUserAuth(t *testing.T) {
 			require.NotNil(t, err, fmt.Sprintf("authService: %v, authData: %v", test.authService, test.authData))
 		}
 	}
+}
+
+func TestImportValidateBotImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	data := BotImportData{
+		Username:    model.NewPointer("bob"),
+		DisplayName: model.NewPointer("Display Name"),
+		Owner:       model.NewPointer("owner"),
+	}
+	err := ValidateBotImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with not-all lowercase username
+	data.Username = model.NewPointer("Bob")
+	err = ValidateBotImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid even the username has uppercase letters.")
+
+	// Test with various invalid names.
+	data.Username = nil
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to nil Username.")
+
+	data.Username = model.NewPointer("")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to 0 length Username.")
+
+	data.Username = model.NewPointer(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long Username.")
+
+	data.Username = model.NewPointer("i am a username with spaces and !!!")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid characters in Username.")
+
+	data.Username = model.NewPointer("bob")
+
+	// Invalid Display Name.
+	data.DisplayName = model.NewPointer(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.DisplayName = model.NewPointer("Display Name")
+
+	// Invalid Owner Name.
+	data.Owner = nil
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.Owner = model.NewPointer("")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.Owner = model.NewPointer(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long OwnerID.")
 }
 
 func TestImportValidateUserTeamsImportData(t *testing.T) {
@@ -977,16 +1039,20 @@ func TestImportValidatePostImportData(t *testing.T) {
 	})
 
 	t.Run("Test with valid all optional parameters", func(t *testing.T) {
+		postCreateAt := model.GetMillis()
+		repliesCreateAt := postCreateAt + 1
+		reactionsCreateAt := postCreateAt + 2
+
 		reactions := []ReactionImportData{{
 			User:      model.NewPointer("username"),
 			EmojiName: model.NewPointer("emoji"),
-			CreateAt:  model.NewPointer(model.GetMillis()),
+			CreateAt:  model.NewPointer(reactionsCreateAt),
 		}}
 
 		replies := []ReplyImportData{{
 			User:     model.NewPointer("username"),
 			Message:  model.NewPointer("message"),
-			CreateAt: model.NewPointer(model.GetMillis()),
+			CreateAt: model.NewPointer(repliesCreateAt),
 		}}
 
 		data := PostImportData{
@@ -994,7 +1060,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 			Channel:   model.NewPointer("channelname"),
 			User:      model.NewPointer("username"),
 			Message:   model.NewPointer("message"),
-			CreateAt:  model.NewPointer(model.GetMillis()),
+			CreateAt:  model.NewPointer(postCreateAt),
 			Reactions: &reactions,
 			Replies:   &replies,
 		}
@@ -1416,4 +1482,117 @@ func checkError(t *testing.T, err *model.AppError) {
 
 func checkNoError(t *testing.T, err *model.AppError) {
 	require.Nil(t, err, "Unexpected Error: %v", err)
+}
+
+func TestIsValidGuestRoles(t *testing.T) {
+	var testCases = []struct {
+		name     string
+		input    UserImportData
+		expected bool
+	}{
+		{
+			name: "Valid case: User is a guest in all places",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamGuestRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
+						},
+					},
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "Invalid case: User is a guest in a team but not in another team",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamGuestRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
+						},
+					},
+					{
+						Roles: model.NewPointer(model.TeamUserRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelUserRoleId)},
+						},
+					},
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "Invalid case: User is a guest in a team but not in another team and has no channel membership",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamGuestRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
+						},
+					},
+					{
+						Roles:    model.NewPointer(model.TeamUserRoleId),
+						Channels: &[]UserChannelImportData{},
+					},
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "Invalid case: User is system guest but not guest in team and channel",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+			},
+			expected: false,
+		},
+		{
+			name: "Invalid case: User has mixed roles",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamUserRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
+						},
+					},
+				},
+			},
+			expected: false,
+		},
+		{
+			name:     "Valid case: User does not have any role defined in any place",
+			input:    UserImportData{},
+			expected: true,
+		},
+		{
+			name: "Valid case: User is not a guest in any place",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemUserRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamAdminRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelAdminRoleId)},
+						},
+					},
+				},
+			},
+			expected: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := isValidGuestRoles(tc.input)
+			assert.Equal(t, tc.expected, result, tc.name)
+		})
+	}
 }

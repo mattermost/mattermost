@@ -20,11 +20,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         Create your Mattermost account to start collaborating with your team
       </p>
-      <div
-        className="signup-body-message-svg"
-      >
-        <Svg />
-      </div>
     </div>
     <div
       className="signup-body-action"
@@ -40,8 +35,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         <div
           className="signup-body-card-content"
-          onKeyDown={[Function]}
-          tabIndex={0}
         >
           <p
             className="signup-body-card-title"
@@ -97,11 +90,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         Create your Mattermost account to start collaborating with your team
       </p>
-      <div
-        className="signup-body-message-svg"
-      >
-        <Svg />
-      </div>
     </div>
     <div
       className="signup-body-action"
@@ -117,21 +105,20 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         <div
           className="signup-body-card-content"
-          onKeyDown={[Function]}
-          tabIndex={0}
         >
           <p
             className="signup-body-card-title"
           >
             Create your account
           </p>
-          <div
+          <form
             className="signup-body-card-form"
           >
             <ForwardRef
               autoFocus={true}
               className="signup-body-card-form-email-input"
               customMessage={null}
+              data-testid="signup-body-card-form-email-input"
               disabled={false}
               inputSize="large"
               name="email"
@@ -150,6 +137,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                   "value": "You can use lowercase letters, numbers, periods, dashes, and underscores.",
                 }
               }
+              data-testid="signup-body-card-form-name-input"
               disabled={false}
               inputSize="large"
               name="name"
@@ -162,6 +150,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
             <ForwardRef
               className="signup-body-card-form-password-input"
               createMode={true}
+              data-testid="signup-body-card-form-password-input"
               disabled={false}
               error=""
               info="Must be 5-72 characters long."
@@ -200,7 +189,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               saving={false}
               savingMessage="Creating account…"
             />
-          </div>
+          </form>
           <div
             className="signup-body-card-form-divider"
           >
@@ -270,11 +259,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         Create your Mattermost account to start collaborating with your team
       </p>
-      <div
-        className="signup-body-message-svg"
-      >
-        <Svg />
-      </div>
     </div>
     <div
       className="signup-body-action"
@@ -290,21 +274,20 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         <div
           className="signup-body-card-content"
-          onKeyDown={[Function]}
-          tabIndex={0}
         >
           <p
             className="signup-body-card-title"
           >
             Create your account
           </p>
-          <div
+          <form
             className="signup-body-card-form"
           >
             <ForwardRef
               autoFocus={true}
               className="signup-body-card-form-email-input"
               customMessage={null}
+              data-testid="signup-body-card-form-email-input"
               disabled={false}
               inputSize="large"
               name="email"
@@ -323,6 +306,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                   "value": "You can use lowercase letters, numbers, periods, dashes, and underscores.",
                 }
               }
+              data-testid="signup-body-card-form-name-input"
               disabled={false}
               inputSize="large"
               name="name"
@@ -335,6 +319,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
             <ForwardRef
               className="signup-body-card-form-password-input"
               createMode={true}
+              data-testid="signup-body-card-form-password-input"
               disabled={false}
               error=""
               info="Must be 5-72 characters long."
@@ -373,7 +358,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               saving={false}
               savingMessage="Creating account…"
             />
-          </div>
+          </form>
           <div
             className="signup-body-card-form-divider"
           >

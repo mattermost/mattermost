@@ -14,19 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
-func (ps *PlatformService) ReturnSessionToPool(session *model.Session) {
-	if session != nil {
-		session.Id = ""
-		// All existing prop fields are cleared once the session is retrieved from the pool.
-		// To speed up that process, clear the props here to avoid doing that in the hot path.
-		//
-		// If the request handler spawns a goroutine that uses the session, it might race with this code.
-		// In that case, the handler should copy the session and use the copy in the goroutine.
-		clear(session.Props)
-		ps.sessionPool.Put(session)
-	}
-}
-
 func (ps *PlatformService) CreateSession(c request.CTX, session *model.Session) (*model.Session, error) {
 	session.Token = ""
 
@@ -35,7 +22,9 @@ func (ps *PlatformService) CreateSession(c request.CTX, session *model.Session) 
 		return nil, err
 	}
 
-	ps.AddSessionToCache(session)
+	if err := ps.AddSessionToCache(session); err != nil {
+		ps.Logger().Error("Failed to add session to cache", mlog.Err(err))
+	}
 
 	return session, nil
 }
@@ -52,8 +41,8 @@ func (ps *PlatformService) GetLRUSessions(c request.CTX, userID string, limit ui
 	return ps.Store.Session().GetLRUSessions(c, userID, limit, offset)
 }
 
-func (ps *PlatformService) AddSessionToCache(session *model.Session) {
-	ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute)
+func (ps *PlatformService) AddSessionToCache(session *model.Session) error {
+	return ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute)
 }
 
 func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
@@ -103,8 +92,8 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 	}
 }
 
-func (ps *PlatformService) ClearAllUsersSessionCacheLocal() {
-	ps.sessionCache.Purge()
+func (ps *PlatformService) ClearAllUsersSessionCacheLocal() error {
+	return ps.sessionCache.Purge()
 }
 
 func (ps *PlatformService) ClearUserSessionCache(userID string) {
@@ -120,8 +109,10 @@ func (ps *PlatformService) ClearUserSessionCache(userID string) {
 	}
 }
 
-func (ps *PlatformService) ClearAllUsersSessionCache() {
-	ps.ClearAllUsersSessionCacheLocal()
+func (ps *PlatformService) ClearAllUsersSessionCache() error {
+	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
+		return err
+	}
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
@@ -130,11 +121,12 @@ func (ps *PlatformService) ClearAllUsersSessionCache() {
 		}
 		ps.clusterIFace.SendClusterMessage(msg)
 	}
+	return nil
 }
 
 func (ps *PlatformService) GetSession(c request.CTX, token string) (*model.Session, error) {
-	var session = ps.sessionPool.Get().(*model.Session)
-	if err := ps.sessionCache.Get(token, session); err == nil {
+	var session model.Session
+	if err := ps.sessionCache.Get(token, &session); err == nil {
 		if m := ps.metricsIFace; m != nil {
 			m.IncrementMemCacheHitCounterSession()
 		}
@@ -145,7 +137,7 @@ func (ps *PlatformService) GetSession(c request.CTX, token string) (*model.Sessi
 	}
 
 	if session.Id != "" {
-		return session, nil
+		return &session, nil
 	}
 
 	return ps.GetSessionContext(c, token)
@@ -166,7 +158,9 @@ func (ps *PlatformService) RevokeSessionsFromAllUsers() error {
 		return err
 	}
 
-	ps.ClearAllUsersSessionCache()
+	if err := ps.ClearAllUsersSessionCache(); err != nil {
+		ps.logger.Error("Failed to clear session cache", mlog.Err(err))
+	}
 	return nil
 }
 
@@ -205,8 +199,6 @@ func (ps *PlatformService) RevokeSession(c request.CTX, session *model.Session) 
 
 func (ps *PlatformService) RevokeAccessToken(c request.CTX, token string) error {
 	session, _ := ps.GetSession(c, token)
-
-	defer ps.ReturnSessionToPool(session)
 
 	schan := make(chan error, 1)
 	go func() {
@@ -253,7 +245,9 @@ func (ps *PlatformService) ExtendSessionExpiry(session *model.Session, newExpiry
 	// ensures each node will get an extended expiry within the next 10 minutes.
 	// Worst case is another node may generate a redundant expiry update.
 	session.ExpiresAt = newExpiry
-	ps.AddSessionToCache(session)
+	if err := ps.AddSessionToCache(session); err != nil {
+		ps.Logger().Error("Failed to update session cache", mlog.Err(err))
+	}
 
 	return nil
 }
@@ -276,7 +270,9 @@ func (ps *PlatformService) UpdateSessionsIsGuest(c request.CTX, user *model.User
 			c.Logger().Warn("Unable to update isGuest session", mlog.Err(err))
 			continue
 		}
-		ps.AddSessionToCache(session)
+		if err := ps.AddSessionToCache(session); err != nil {
+			ps.Logger().Error("Failed to update session cache", mlog.Err(err))
+		}
 	}
 	return nil
 }
@@ -288,7 +284,9 @@ func (ps *PlatformService) RevokeAllSessions(c request.CTX, userID string) error
 	}
 	for _, session := range sessions {
 		if session.IsOAuth {
-			ps.RevokeAccessToken(c, session.Token)
+			if err := ps.RevokeAccessToken(c, session.Token); err != nil {
+				return err
+			}
 		} else {
 			if err := ps.Store.Session().Remove(session.Id); err != nil {
 				return fmt.Errorf("%s: %w", err.Error(), DeleteSessionError)

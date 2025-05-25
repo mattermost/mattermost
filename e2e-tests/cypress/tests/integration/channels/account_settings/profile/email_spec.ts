@@ -163,9 +163,6 @@ describe('Profile > Profile Settings > Email', () => {
             // # Click on the link
             cy.visit(permalink);
 
-            // * Verify announcement bar
-            cy.get('.announcement-bar').should('be.visible').should('contain.text', 'Email verified');
-
             // # Wait for one second for the mail to be sent out.
             cy.wait(TIMEOUTS.FIVE_SEC);
 
@@ -199,7 +196,7 @@ describe('Profile > Profile Settings > Email', () => {
 
         // # Close modal then logout
         cy.get('body').type('{esc}');
-        cy.uiOpenUserMenu('Log Out');
+        cy.uiLogout();
 
         // # Wait for one second for the mail to be sent out.
         cy.wait(TIMEOUTS.ONE_SEC);

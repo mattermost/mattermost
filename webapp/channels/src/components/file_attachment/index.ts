@@ -17,11 +17,15 @@ import type {GlobalState} from 'types/store';
 
 import FileAttachment from './file_attachment';
 
-function mapStateToProps(state: GlobalState) {
+export type OwnProps = {
+    preventDownload?: boolean;
+}
+
+function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);
 
     return {
-        canDownloadFiles: canDownloadFiles(config),
+        canDownloadFiles: !ownProps.preventDownload && canDownloadFiles(config),
         enableSVGs: config.EnableSVGs === 'true',
         enablePublicLink: config.EnablePublicLink === 'true',
         pluginMenuItems: getFilesDropdownPluginMenuItems(state),

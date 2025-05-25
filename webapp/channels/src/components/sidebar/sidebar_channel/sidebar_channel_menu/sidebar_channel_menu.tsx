@@ -39,7 +39,7 @@ const SidebarChannelMenu = ({
     isUnread,
     managePrivateChannelMembers,
     managePublicChannelMembers,
-    markMultipleChannelsAsRead,
+    readMultipleChannels,
     markMostRecentPostInChannelAsUnread,
     muteChannel,
     onMenuToggle,
@@ -56,7 +56,7 @@ const SidebarChannelMenu = ({
     if (isUnread) {
         function handleMarkAsRead() {
             // We use mark multiple to not update the active channel in the server
-            markMultipleChannelsAsRead({[channel.id]: Date.now()});
+            readMultipleChannels([channel.id]);
             trackEvent('ui', 'ui_sidebar_channel_menu_markAsRead');
         }
 
@@ -148,8 +148,8 @@ const SidebarChannelMenu = ({
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             muteChannelText = (
                 <FormattedMessage
-                    id='sidebar_left.sidebar_channel_menu.unmuteConversation'
-                    defaultMessage='Unmute Conversation'
+                    id='sidebar_left.sidebar_channel_menu.unmute'
+                    defaultMessage='Unmute'
                 />
             );
         }
@@ -176,8 +176,8 @@ const SidebarChannelMenu = ({
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             muteChannelText = (
                 <FormattedMessage
-                    id='sidebar_left.sidebar_channel_menu.muteConversation'
-                    defaultMessage='Mute Conversation'
+                    id='sidebar_left.sidebar_channel_menu.mute'
+                    defaultMessage='Mute'
                 />
             );
         }
@@ -297,7 +297,6 @@ const SidebarChannelMenu = ({
                 children: <DotsVerticalIcon size={16}/>,
             }}
             menuButtonTooltip={{
-                id: `SidebarChannelMenu-ButtonTooltip-${channel.id}`,
                 class: 'hidden-xs',
                 text: formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'}),
             }}

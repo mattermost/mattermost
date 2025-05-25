@@ -18,11 +18,11 @@ import (
 func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 	s.Run("Sync without errors", func() {
 		printer.Clean()
-		outputMessage := map[string]interface{}{"status": "ok"}
+		outputMessage := map[string]any{"status": "ok"}
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO(), false).
+			SyncLdap(context.TODO(), nil).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -35,11 +35,11 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 	s.Run("Not able to Sync", func() {
 		printer.Clean()
-		outputMessage := map[string]interface{}{"status": "error"}
+		outputMessage := map[string]any{"status": "error"}
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO(), false).
+			SyncLdap(context.TODO(), nil).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -56,7 +56,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO(), false).
+			SyncLdap(context.TODO(), nil).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -67,18 +67,20 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Sync with includeRemoveMembers", func() {
+	s.Run("Sync with deprecated includeRemoveMembers", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("include-removed-members", true, "")
+
+		cmd := newLDAPSyncCmd()
+		err := cmd.ParseFlags([]string{"--include-removed-members"})
+		s.Require().Nil(err)
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO(), true).
+			SyncLdap(context.TODO(), model.NewPointer(true)).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := ldapSyncCmdF(s.client, cmd, []string{})
+		err = ldapSyncCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 	})
 }

@@ -6,7 +6,9 @@ Object {
   "baseElement": <body>
     <div>
       <div
-        id="notificationSettings"
+        aria-labelledby="notificationsButton"
+        id="notificationsSettings"
+        role="tabpanel"
       >
         <div
           class="modal-header"
@@ -92,6 +94,7 @@ Object {
                 id="desktopAndMobileTitle"
               >
                 Desktop and mobile notifications
+                <div />
               </h4>
               <button
                 aria-expanded="false"
@@ -257,15 +260,61 @@ Object {
             class="divider-light"
           />
           <div
-            class="divider-dark"
+            class="divider-light"
           />
+          <div
+            style="margin-top: 20px;"
+          >
+            <div
+              class="sectionNoticeContainer hint"
+            >
+              <div
+                class="sectionNoticeContent"
+              >
+                <i
+                  class="icon sectionNoticeIcon icon-lightbulb-outline hint"
+                />
+                <div
+                  class="sectionNoticeBody"
+                >
+                  <h4
+                    class="sectionNoticeTitle"
+                  >
+                    Troubleshooting notifications
+                  </h4>
+                  <p>
+                    Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
+                  </p>
+                  <div
+                    class="sectionNoticeActions"
+                  >
+                    <button
+                      class="btn btn-sm sectionNoticeButton btn-primary"
+                    >
+                      Send a test notification
+                    </button>
+                    <button
+                      class="btn btn-sm sectionNoticeButton btn-tertiary"
+                    >
+                      Troubleshooting docs
+                      <i
+                        class="icon icon-open-in-new"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </body>,
   "container": <div>
     <div
-      id="notificationSettings"
+      aria-labelledby="notificationsButton"
+      id="notificationsSettings"
+      role="tabpanel"
     >
       <div
         class="modal-header"
@@ -351,6 +400,7 @@ Object {
               id="desktopAndMobileTitle"
             >
               Desktop and mobile notifications
+              <div />
             </h4>
             <button
               aria-expanded="false"
@@ -516,8 +566,52 @@ Object {
           class="divider-light"
         />
         <div
-          class="divider-dark"
+          class="divider-light"
         />
+        <div
+          style="margin-top: 20px;"
+        >
+          <div
+            class="sectionNoticeContainer hint"
+          >
+            <div
+              class="sectionNoticeContent"
+            >
+              <i
+                class="icon sectionNoticeIcon icon-lightbulb-outline hint"
+              />
+              <div
+                class="sectionNoticeBody"
+              >
+                <h4
+                  class="sectionNoticeTitle"
+                >
+                  Troubleshooting notifications
+                </h4>
+                <p>
+                  Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
+                </p>
+                <div
+                  class="sectionNoticeActions"
+                >
+                  <button
+                    class="btn btn-sm sectionNoticeButton btn-primary"
+                  >
+                    Send a test notification
+                  </button>
+                  <button
+                    class="btn btn-sm sectionNoticeButton btn-tertiary"
+                  >
+                    Troubleshooting docs
+                    <i
+                      class="icon icon-open-in-new"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>,
@@ -583,7 +677,9 @@ Object {
   "baseElement": <body>
     <div>
       <div
-        id="notificationSettings"
+        aria-labelledby="notificationsButton"
+        id="notificationsSettings"
+        role="tabpanel"
       >
         <div
           class="modal-header"
@@ -669,6 +765,7 @@ Object {
                 id="desktopAndMobileTitle"
               >
                 Desktop and mobile notifications
+                <div />
               </h4>
               <button
                 aria-expanded="false"
@@ -837,15 +934,61 @@ Object {
             </div>
           </div>
           <div
-            class="divider-dark"
+            class="divider-light"
           />
+          <div
+            style="margin-top: 20px;"
+          >
+            <div
+              class="sectionNoticeContainer hint"
+            >
+              <div
+                class="sectionNoticeContent"
+              >
+                <i
+                  class="icon sectionNoticeIcon icon-lightbulb-outline hint"
+                />
+                <div
+                  class="sectionNoticeBody"
+                >
+                  <h4
+                    class="sectionNoticeTitle"
+                  >
+                    Troubleshooting notifications
+                  </h4>
+                  <p>
+                    Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
+                  </p>
+                  <div
+                    class="sectionNoticeActions"
+                  >
+                    <button
+                      class="btn btn-sm sectionNoticeButton btn-primary"
+                    >
+                      Send a test notification
+                    </button>
+                    <button
+                      class="btn btn-sm sectionNoticeButton btn-tertiary"
+                    >
+                      Troubleshooting docs
+                      <i
+                        class="icon icon-open-in-new"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </body>,
   "container": <div>
     <div
-      id="notificationSettings"
+      aria-labelledby="notificationsButton"
+      id="notificationsSettings"
+      role="tabpanel"
     >
       <div
         class="modal-header"
@@ -931,6 +1074,7 @@ Object {
               id="desktopAndMobileTitle"
             >
               Desktop and mobile notifications
+              <div />
             </h4>
             <button
               aria-expanded="false"
@@ -1099,8 +1243,52 @@ Object {
           </div>
         </div>
         <div
-          class="divider-dark"
+          class="divider-light"
         />
+        <div
+          style="margin-top: 20px;"
+        >
+          <div
+            class="sectionNoticeContainer hint"
+          >
+            <div
+              class="sectionNoticeContent"
+            >
+              <i
+                class="icon sectionNoticeIcon icon-lightbulb-outline hint"
+              />
+              <div
+                class="sectionNoticeBody"
+              >
+                <h4
+                  class="sectionNoticeTitle"
+                >
+                  Troubleshooting notifications
+                </h4>
+                <p>
+                  Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
+                </p>
+                <div
+                  class="sectionNoticeActions"
+                >
+                  <button
+                    class="btn btn-sm sectionNoticeButton btn-primary"
+                  >
+                    Send a test notification
+                  </button>
+                  <button
+                    class="btn btn-sm sectionNoticeButton btn-tertiary"
+                  >
+                    Troubleshooting docs
+                    <i
+                      class="icon icon-open-in-new"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>,
@@ -1166,7 +1354,9 @@ Object {
   "baseElement": <body>
     <div>
       <div
-        id="notificationSettings"
+        aria-labelledby="notificationsButton"
+        id="notificationsSettings"
+        role="tabpanel"
       >
         <div
           class="modal-header"
@@ -1252,6 +1442,7 @@ Object {
                 id="desktopAndMobileTitle"
               >
                 Desktop and mobile notifications
+                <div />
               </h4>
               <button
                 aria-expanded="false"
@@ -1382,15 +1573,61 @@ Object {
             class="divider-light"
           />
           <div
-            class="divider-dark"
+            class="divider-light"
           />
+          <div
+            style="margin-top: 20px;"
+          >
+            <div
+              class="sectionNoticeContainer hint"
+            >
+              <div
+                class="sectionNoticeContent"
+              >
+                <i
+                  class="icon sectionNoticeIcon icon-lightbulb-outline hint"
+                />
+                <div
+                  class="sectionNoticeBody"
+                >
+                  <h4
+                    class="sectionNoticeTitle"
+                  >
+                    Troubleshooting notifications
+                  </h4>
+                  <p>
+                    Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
+                  </p>
+                  <div
+                    class="sectionNoticeActions"
+                  >
+                    <button
+                      class="btn btn-sm sectionNoticeButton btn-primary"
+                    >
+                      Send a test notification
+                    </button>
+                    <button
+                      class="btn btn-sm sectionNoticeButton btn-tertiary"
+                    >
+                      Troubleshooting docs
+                      <i
+                        class="icon icon-open-in-new"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </body>,
   "container": <div>
     <div
-      id="notificationSettings"
+      aria-labelledby="notificationsButton"
+      id="notificationsSettings"
+      role="tabpanel"
     >
       <div
         class="modal-header"
@@ -1476,6 +1713,7 @@ Object {
               id="desktopAndMobileTitle"
             >
               Desktop and mobile notifications
+              <div />
             </h4>
             <button
               aria-expanded="false"
@@ -1606,8 +1844,52 @@ Object {
           class="divider-light"
         />
         <div
-          class="divider-dark"
+          class="divider-light"
         />
+        <div
+          style="margin-top: 20px;"
+        >
+          <div
+            class="sectionNoticeContainer hint"
+          >
+            <div
+              class="sectionNoticeContent"
+            >
+              <i
+                class="icon sectionNoticeIcon icon-lightbulb-outline hint"
+              />
+              <div
+                class="sectionNoticeBody"
+              >
+                <h4
+                  class="sectionNoticeTitle"
+                >
+                  Troubleshooting notifications
+                </h4>
+                <p>
+                  Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
+                </p>
+                <div
+                  class="sectionNoticeActions"
+                >
+                  <button
+                    class="btn btn-sm sectionNoticeButton btn-primary"
+                  >
+                    Send a test notification
+                  </button>
+                  <button
+                    class="btn btn-sm sectionNoticeButton btn-tertiary"
+                  >
+                    Troubleshooting docs
+                    <i
+                      class="icon icon-open-in-new"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>,

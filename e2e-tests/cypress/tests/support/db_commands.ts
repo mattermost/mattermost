@@ -53,7 +53,7 @@ interface GetUserParam {
     username: string;
 }
 interface GetUserResult {
-    user: Cypress.UserProfile;
+    user: Cypress.UserProfile & {mfasecret: string};
 }
 function dbGetUser(params: GetUserParam): ChainableT<GetUserResult> {
     return cy.task('dbGetUser', {dbConfig, params}).then(({user, errorMessage, error}) => {
@@ -95,6 +95,14 @@ function dbUpdateUserSession(params: UpdateUserSessionParam): ChainableT<UpdateU
     });
 }
 Cypress.Commands.add('dbUpdateUserSession', dbUpdateUserSession);
+
+function dbRefreshPostStats(): ChainableT<{success?: boolean; skipped?: boolean; message?: string}> {
+    return cy.task('dbRefreshPostStats', {dbConfig}).then(({success, skipped, message, errorMessage, error}) => {
+        verifyError(error, errorMessage);
+        return cy.wrap({success, skipped, message});
+    });
+}
+Cypress.Commands.add('dbRefreshPostStats', dbRefreshPostStats);
 
 function verifyError(error, errorMessage) {
     if (errorMessage) {
@@ -150,6 +158,15 @@ declare global {
              * @returns {Session} session
              */
             dbUpdateUserSession: typeof dbUpdateUserSession;
+
+            /**
+             * Refreshes PostgreSQL materialized views for post statistics
+             * @returns {Object} result
+             * @returns {boolean} result.success - true if refresh was successful
+             * @returns {boolean} result.skipped - true if operation was skipped (non-PostgreSQL)
+             * @returns {string} result.message - message when operation is skipped
+             */
+            dbRefreshPostStats: typeof dbRefreshPostStats;
         }
     }
 }

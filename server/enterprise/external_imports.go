@@ -15,8 +15,6 @@ import (
 	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/data_retention"
 	// Needed to ensure the init() method in the EE gets run
-	_ "github.com/mattermost/enterprise/elasticsearch"
-	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/ldap"
 	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/cloud"
@@ -36,4 +34,6 @@ import (
 	_ "github.com/mattermost/enterprise/ip_filtering"
 	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/outgoing_oauth_connections"
+	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/enterprise/access_control"
 )

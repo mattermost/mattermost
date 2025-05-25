@@ -4,6 +4,7 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
+import type {AccessControlAttributes} from '@mattermost/types/access_control';
 import type {
     Channel,
     ChannelNotifyProps,
@@ -35,6 +36,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import type {GetStateFunc, ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
+import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
 import {logError} from './errors';
@@ -212,15 +214,15 @@ export function createGroupChannel(userIds: string[]): ActionFuncAsync<Channel> 
         // posts is because it existed before.
         if (created.total_msg_count > 0) {
             const storeMember = getMyChannelMemberSelector(getState(), created.id);
-            if (storeMember === null) {
+            if (storeMember) {
+                member = storeMember;
+            } else {
                 try {
                     member = await Client4.getMyChannelMember(created.id);
                 } catch (error) {
                     // Log the error and keep going with the generated membership.
                     dispatch(logError(error));
                 }
-            } else {
-                member = storeMember;
             }
         }
 
@@ -426,8 +428,8 @@ export function getChannelTimezones(channelId: string): ActionFuncAsync<string[]
 
 export function fetchChannelsAndMembers(teamId: string): ActionFuncAsync<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
     return async (dispatch, getState) => {
-        let channels;
-        let channelMembers;
+        let channels: ServerChannel[] = [];
+        let channelMembers: ChannelMembership[] = [];
         try {
             [channels, channelMembers] = await Promise.all([
                 Client4.getMyChannels(teamId),
@@ -470,32 +472,33 @@ export function fetchAllMyChannelMembers(): ActionFuncAsync {
         const state = getState();
         const {currentUserId} = state.entities.users;
 
-        let channelsMembers: ChannelMembership[] = [];
-        let hasMoreMembers = true;
-        let page = 0;
+        let channelMembers: ChannelMembership[] = [];
         try {
-            while (hasMoreMembers) {
-                // Expected to disable since we don't have number of pages, so we can't use Promise.all
-                // eslint-disable-next-line no-await-in-loop
-                const data = await Client4.getAllChannelsMembers(currentUserId, page, 200);
-                channelsMembers = [...channelsMembers, ...data];
-                if (data.length < 200) {
-                    hasMoreMembers = false;
-                }
-                page++;
-            }
+            // The server exposes a streaming API if page is set to -1
+            // We don't need to paginate through the responses, and thefore pageSize doesn't matter
+            channelMembers = await Client4.getAllChannelsMembers(currentUserId, -1);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }
 
+        const roles = new Set<string>();
+        for (const member of channelMembers) {
+            for (const role of member.roles.split(' ')) {
+                roles.add(role);
+            }
+        }
+        if (roles.size > 0) {
+            dispatch(loadRolesIfNeeded(roles));
+        }
+
         dispatch({
             type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
-            data: channelsMembers,
+            data: channelMembers,
             currentUserId,
         });
-        return {data: channelsMembers};
+        return {data: channelMembers};
     };
 }
 
@@ -511,7 +514,7 @@ export function fetchAllMyTeamsChannels(): ActionFuncAsync {
         }
 
         dispatch({
-            type: ChannelTypes.RECEIVED_ALL_CHANNELS,
+            type: ChannelTypes.RECEIVED_CHANNELS,
             data: channels,
         });
         return {data: channels};
@@ -787,13 +790,13 @@ export function getArchivedChannels(teamId: string, page = 0, perPage: number = 
     };
 }
 
-export function getAllChannelsWithCount(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, includeDeleted = false, excludePolicyConstrained = false): ActionFuncAsync<ChannelsWithTotalCount> {
+export function getAllChannelsWithCount(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, includeDeleted = false, excludePolicyConstrained = false, accessControlPolicyEnforced = false, excludeAccessControlPolicyEnforced = false): ActionFuncAsync<ChannelsWithTotalCount> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
 
         let payload;
         try {
-            payload = await Client4.getAllChannels(page, perPage, notAssociatedToGroup, excludeDefaultChannels, true, includeDeleted, excludePolicyConstrained);
+            payload = await Client4.getAllChannels(page, perPage, notAssociatedToGroup, excludeDefaultChannels, true, includeDeleted, excludePolicyConstrained, accessControlPolicyEnforced, excludeAccessControlPolicyEnforced);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.GET_ALL_CHANNELS_FAILURE, error});
@@ -819,13 +822,13 @@ export function getAllChannelsWithCount(page = 0, perPage: number = General.CHAN
     };
 }
 
-export function getAllChannels(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, excludePolicyConstrained = false): ActionFuncAsync<ChannelWithTeamData[]> {
+export function getAllChannels(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, excludePolicyConstrained = false, excludeAccessControlPolicyEnforced = false, accessControlPolicyEnforced = false): ActionFuncAsync<ChannelWithTeamData[]> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
 
         let channels;
         try {
-            channels = await Client4.getAllChannels(page, perPage, notAssociatedToGroup, excludeDefaultChannels, false, false, excludePolicyConstrained);
+            channels = await Client4.getAllChannels(page, perPage, notAssociatedToGroup, excludeDefaultChannels, false, false, excludePolicyConstrained, accessControlPolicyEnforced, excludeAccessControlPolicyEnforced);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.GET_ALL_CHANNELS_FAILURE, error});
@@ -1232,7 +1235,7 @@ export function actionsToMarkChannelAsRead(getState: GetStateFunc, channelId: st
     return actions;
 }
 
-export function actionsToMarkChannelAsUnread(getState: GetStateFunc, teamId: string, channelId: string, mentions: string[], fetchedChannelMember = false, isRoot = false, priority = '') {
+export function actionsToMarkChannelAsUnread(getState: GetStateFunc, teamId: string, channelId: string, mentions: string, fetchedChannelMember = false, isRoot = false, priority = '') {
     const state = getState();
     const {myMembers} = state.entities.channels;
     const {currentUserId} = state.entities.users;
@@ -1426,6 +1429,47 @@ export function getChannelMemberCountsByGroup(channelId: string) {
     });
 }
 
+export function fetchMissingChannels(channelIDs: string[]): ActionFuncAsync<Array<Channel['id']>> {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.missingChannelLoader) {
+            loaders.missingChannelLoader = new DelayedDataLoader<Channel['id']>({
+                fetchBatch: (channelIDs) => {
+                    return channelIDs.length ? dispatch(getChannel(channelIDs[0])) : Promise.resolve();
+                },
+                maxBatchSize: 1,
+                wait: 100,
+            });
+        }
+
+        const state = getState();
+        const missingChannelIDs = channelIDs.filter((channelId) => !getChannelSelector(state, channelId));
+
+        if (missingChannelIDs.length > 0) {
+            const loader = loaders.missingChannelLoader as DelayedDataLoader<Channel['id']>;
+            loader.queue(missingChannelIDs);
+        }
+
+        return {
+            data: missingChannelIDs,
+        };
+    };
+}
+
+export function getChannelAccessControlAttributes(channelId: string): ActionFuncAsync<AccessControlAttributes> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.getChannelAccessControlAttributes(channelId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        return {data};
+    };
+}
+
 export default {
     selectChannel,
     createChannel,
@@ -1455,4 +1499,5 @@ export default {
     membersMinusGroupMembers,
     getChannelModerations,
     getChannelMemberCountsByGroup,
+    getChannelAccessControlAttributes,
 };

@@ -14,11 +14,11 @@ import ExternalLink from 'components/external_link';
 
 import {DocLinks, JobTypes, exportFormats} from 'utils/constants';
 
-import type {BaseProps, BaseState} from './admin_settings';
-import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import DropdownSetting from './dropdown_setting';
 import JobsTable from './jobs';
+import OLDAdminSettings from './old_admin_settings';
+import type {BaseProps, BaseState} from './old_admin_settings';
 import RadioSetting from './radio_setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
@@ -82,7 +82,7 @@ string | MessageDescriptor | [MessageDescriptor, { [key: string]: any }]
     messages.globalRelayEmailAddress_description,
 ];
 
-export class MessageExportSettings extends AdminSettings<BaseProps & WrappedComponentProps, State> {
+export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedComponentProps, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.MessageExportSettings.EnableExport = this.state.enableComplianceExport;
         config.MessageExportSettings.ExportFormat = this.state.exportFormat;
@@ -169,6 +169,11 @@ export class MessageExportSettings extends AdminSettings<BaseProps & WrappedComp
                         </div>,
                     );
                 }
+            }
+            if (job.data.progress_message) {
+                message.push(
+                    <div>{job.data.progress_message}</div>,
+                );
             }
             return message;
         }

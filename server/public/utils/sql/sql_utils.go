@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	DBPingTimeoutSecs = 10
+	DBPingTimeout    = 10 * time.Second
+	DBConnRetrySleep = 2 * time.Second
 
 	replicaLagPrefix = "replica-lag"
 )
@@ -63,17 +64,19 @@ func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string
 		mlog.String("dataSource", sanitized),
 	)
 
-	for i := 0; i < attempts; i++ {
-		logger.Info("Pinging SQL")
-		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeoutSecs*time.Second)
+	for attempt := 1; attempt <= attempts; attempt++ {
+		if attempt > 1 {
+			logger.Info("Pinging SQL", mlog.Int("attempt", attempt))
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeout)
 		defer cancel()
 		err = db.PingContext(ctx)
 		if err != nil {
-			if i == attempts-1 {
+			if attempt == attempts {
 				return nil, err
 			}
-			logger.Error("Failed to ping DB", mlog.Int("retrying in seconds", DBPingTimeoutSecs), mlog.Err(err))
-			time.Sleep(DBPingTimeoutSecs * time.Second)
+			logger.Error("Failed to ping DB", mlog.Float("retrying in seconds", DBConnRetrySleep.Seconds()), mlog.Err(err))
+			time.Sleep(DBConnRetrySleep)
 			continue
 		}
 		break
@@ -107,11 +110,19 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 			return "", err
 		}
 		u.User = url.UserPassword("****", "****")
+
+		// Remove username and password from query string
 		params := u.Query()
 		params.Del("user")
 		params.Del("password")
 		u.RawQuery = params.Encode()
-		return u.String(), nil
+
+		// Unescape the URL to make it human-readable
+		out, err := url.QueryUnescape(u.String())
+		if err != nil {
+			return "", err
+		}
+		return out, nil
 	case model.DatabaseDriverMysql:
 		cfg, err := mysql.ParseDSN(dataSource)
 		if err != nil {

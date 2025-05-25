@@ -1,0 +1,32 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "ES2022",
+        "lib": [
+            "ES2022"
+        ],
+        "declaration": true,
+        "strict": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "jsx": "react",
+        "outDir": "./lib",
+        "rootDir": "../../channels/src/packages/mattermost-redux/src",
+        "composite": true,
+        "useUnknownInCatchVariables": false,
+        "tsBuildInfoFile": "tsconfig.tsbuildinfo",
+        "paths": {
+            "mattermost-redux/*": ["../../channels/src/packages/mattermost-redux/src/*"]
+        }
+    },
+    "include": [
+        "../../channels/src/packages/mattermost-redux/src/**/*"
+    ],
+    "exclude": [
+        "../../**/*.test.*"
+    ]
+}

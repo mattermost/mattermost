@@ -1,0 +1,88 @@
+name: Server CI Report
+
+on:
+  workflow_run:
+    workflows:
+      - "Server CI PR"
+      - "Server CI Master"
+    types:
+      - completed
+
+jobs:
+  generate-report-matrix:
+    runs-on: ubuntu-22.04
+    outputs:
+      REPORT_MATRIX: ${{ steps.report.outputs.REPORT_MATRIX }}
+    steps:
+      - name: report/download-artifacts-from-PR-workflow
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          pattern: "*-test-logs"
+          path: reports
+      
+      - name: report/generate-report-matrix
+        id: report
+        run: |
+          find "reports" -type f -name "test-name" | while read -r test_file; do
+            folder=$(basename "$(dirname "$test_file")")
+            test_name=$(cat "$test_file")
+            echo "{\"artifact\": \"$folder\", \"name\": \"$test_name\"}"
+          done | jq -s '{ "test": . }' | tee /tmp/report-matrix
+          echo REPORT_MATRIX=$(cat /tmp/report-matrix | jq --compact-output --monochrome-output) >> ${GITHUB_OUTPUT}
+      
+  publish-report:
+    runs-on: ubuntu-22.04
+    name: Publish Report ${{ matrix.test.name }}
+    needs: 
+      - generate-report-matrix
+    permissions:
+      pull-requests: write
+      checks: write
+      issues: write
+    strategy:
+      matrix: ${{ fromJson(needs.generate-report-matrix.outputs.REPORT_MATRIX) }}
+    steps:
+      - name: report/download-artifacts-from-PR-workflow
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          name: ${{ matrix.test.artifact }}
+          path: ${{ matrix.test.artifact }}
+      - name: report/fetch-pr-number
+        if: github.event.workflow_run.name == 'Server CI PR'
+        id: incoming-pr
+        run: echo "NUMBER=$(cat ${{ matrix.test.artifact }}/pr-number)" >> ${GITHUB_OUTPUT}
+      - name: Publish test report
+        id: report
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5.5.1
+        with:
+          report_paths: ${{ matrix.test.artifact }}/report.xml
+          check_name: ${{ matrix.test.name }} (Results)
+          job_name: ${{ matrix.test.name }}
+          commit: ${{ github.event.workflow_run.head_commit.id }}
+          require_tests: true
+          check_retries: true
+          flaky_summary: true
+          include_passed: true
+          check_annotations: true
+
+      - name: Report retried tests (pull request)
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && github.event.workflow_run.name == 'Server CI PR' }}
+        env:
+          TEST_NAME: "${{ matrix.test.name }}"
+          FLAKY_SUMMARY: "${{ steps.report.outputs.flaky_summary }}"
+          PR_NUMBER: "${{ steps.incoming-pr.outputs.NUMBER }}"
+        with:
+          script: |
+            const body = `#### ⚠️  One or more flaky tests detected ⚠️\n* Failing job: [github.com/mattermost/mattermost:${process.env.TEST_NAME}](${{ github.event.workflow_run.html_url }})\n* Double check your code to ensure you haven't introduced a flaky test.\n* If this seems to be unrelated to your changes, submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.\n\n${process.env.FLAKY_SUMMARY}`
+
+            await github.rest.issues.createComment({
+              issue_number: process.env.PR_NUMBER,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            })

@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 
-import {render, screen, userEvent} from 'tests/react_testing_utils';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {screen, userEvent, renderWithContext} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
-import SubMenuItem from './submenu_item';
+import SubMenuItem, {SubMenuItem as SubMenuItemClass} from './submenu_item';
 
 jest.mock('../is_mobile_view_hack', () => ({
     isMobile: jest.fn(() => false),
@@ -15,7 +15,7 @@ jest.mock('../is_mobile_view_hack', () => ({
 
 describe('components/widgets/menu/menu_items/submenu_item', () => {
     test('empty subMenu should match snapshot', () => {
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <SubMenuItem
                 key={'_pluginmenuitem'}
                 id={'1'}
@@ -30,7 +30,7 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
     });
 
     test('present subMenu should match snapshot with submenu', () => {
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <SubMenuItem
                 key={'_pluginmenuitem'}
                 id={'1'}
@@ -60,7 +60,7 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
         const action2 = jest.fn();
         const action3 = jest.fn();
 
-        render(
+        renderWithContext(
             <SubMenuItem
                 key={'_pluginmenuitem'}
                 id={'Z'}
@@ -98,7 +98,7 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
     });
 
     test('should show/hide submenu based on keyboard commands', () => {
-        const wrapper = mount<SubMenuItem>(
+        const wrapper = mountWithIntl(
             <SubMenuItem
                 key={'_pluginmenuitem'}
                 id={'1'}
@@ -109,16 +109,18 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
             />,
         );
 
-        wrapper.instance().show = jest.fn();
-        wrapper.instance().hide = jest.fn();
+        const instance = wrapper.find(SubMenuItemClass).instance() as SubMenuItemClass;
 
-        wrapper.instance().handleKeyDown({keyCode: Constants.KeyCodes.ENTER[1]} as any);
-        expect(wrapper.instance().show).toHaveBeenCalled();
+        instance.show = jest.fn();
+        instance.hide = jest.fn();
 
-        wrapper.instance().handleKeyDown({keyCode: Constants.KeyCodes.LEFT[1]} as any);
-        expect(wrapper.instance().hide).toHaveBeenCalled();
+        instance.handleKeyDown({keyCode: Constants.KeyCodes.ENTER[1]} as any);
+        expect(instance.show).toHaveBeenCalled();
 
-        wrapper.instance().handleKeyDown({keyCode: Constants.KeyCodes.RIGHT[1]} as any);
-        expect(wrapper.instance().show).toHaveBeenCalled();
+        instance.handleKeyDown({keyCode: Constants.KeyCodes.LEFT[1]} as any);
+        expect(instance.hide).toHaveBeenCalled();
+
+        instance.handleKeyDown({keyCode: Constants.KeyCodes.RIGHT[1]} as any);
+        expect(instance.show).toHaveBeenCalled();
     });
 });

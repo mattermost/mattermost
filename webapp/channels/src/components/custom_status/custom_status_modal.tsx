@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -28,12 +28,11 @@ import CustomStatusSuggestion from 'components/custom_status/custom_status_sugge
 import DateTimeInput, {getRoundedTime} from 'components/custom_status/date_time_input';
 import ExpiryMenu from 'components/custom_status/expiry_menu';
 import RenderEmoji from 'components/emoji/render_emoji';
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
+import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
-import {A11yCustomEventTypes, Constants, ModalIdentifiers} from 'utils/constants';
-import type {A11yFocusEventDetail} from 'utils/constants';
+import {Constants, ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
@@ -49,7 +48,6 @@ type Props = {
 // This is the same limit set
 // https://github.com/mattermost/mattermost-server/pull/16835/files#diff-73c61af5954b16f5e3cb5ee786af9eb698f660eff0d65db5556949be5fb6e60bR15
 const CUSTOM_STATUS_TEXT_CHARACTER_LIMIT = 100;
-const EMOJI_PICKER_WIDTH_OFFSET = 308;
 
 type DefaultUserCustomStatus = {
     emoji: string;
@@ -118,8 +116,6 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
     const currentCustomStatus = useSelector(getCustomStatus);
     const customStatusExpired = useSelector((state: GlobalState) => isCustomStatusExpired(state, currentCustomStatus));
     const recentCustomStatuses = useSelector(getRecentCustomStatuses);
-    const customStatusControlRef = useRef<HTMLDivElement>(null);
-    const emojiButtonRef = useRef<HTMLButtonElement>(null);
     const {formatMessage} = useIntl();
     const isCurrentCustomStatusSet = !customStatusExpired && (currentCustomStatus?.text || currentCustomStatus?.emoji);
     const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
@@ -138,13 +134,13 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         initialCustomExpiryTime = moment(currentCustomStatus.expires_at);
     }
     const [customExpiryTime, setCustomExpiryTime] = useState<Moment>(initialCustomExpiryTime);
-    const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(false);
+    const [isInteracting, setIsInteracting] = useState<boolean>(false);
 
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
-        if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isDatePickerOpen) {
+        if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isInteracting) {
             props.onExited();
         }
-    }, [isDatePickerOpen, props.onExited]);
+    }, [isInteracting, props.onExited]);
 
     useEffect(() => {
         document.addEventListener('keydown', handleKeyDown);
@@ -180,9 +176,13 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         if (inCustomEmojiPath) {
             dispatch(closeModal(ModalIdentifiers.CUSTOM_STATUS));
         }
-    }, [inCustomEmojiPath]);
+    }, [dispatch, inCustomEmojiPath]);
 
     const handleSetStatus = () => {
+        if (isInteracting) {
+            return;
+        }
+
         const expiresAt = calculateExpiryTime();
         const customStatus: UserCustomStatus = {
             emoji: emoji || 'speech_balloon',
@@ -193,7 +193,14 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
             customStatus.expires_at = expiresAt;
         }
         dispatch(setCustomStatus(customStatus));
+        dispatch(closeModal(ModalIdentifiers.CUSTOM_STATUS));
     };
+
+    const handleEnterKeyPressed = useCallback(() => {
+        if (!isInteracting) {
+            handleSetStatus();
+        }
+    }, [isInteracting, handleSetStatus]);
 
     const calculateExpiryTime = (): string => {
         switch (duration) {
@@ -206,7 +213,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         case FOUR_HOURS:
             return moment().add(4, 'hours').seconds(0).milliseconds(0).toISOString();
         case TODAY:
-            return moment().add(1, 'day').set({hour: 8, minute: 0}).toISOString();
+            return moment().endOf('day').add(1, 'minute').seconds(0).milliseconds(0).toISOString();
         case THIS_WEEK:
             return moment().endOf('week').toISOString();
         case DATE_AND_TIME:
@@ -219,54 +226,10 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
 
     const handleClearStatus = isCurrentCustomStatusSet ? () => dispatch(unsetCustomStatus()) : undefined;
 
-    const getCustomStatusControlRef = () => customStatusControlRef.current;
-
-    const handleEmojiClose = () => {
-        setShowEmojiPicker(false);
-        if (emojiButtonRef.current) {
-            document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
-                A11yCustomEventTypes.FOCUS, {
-                    detail: {
-                        target: emojiButtonRef.current as HTMLElement,
-                        keyboardOnly: true,
-                    },
-                },
-            ));
-        }
-    };
-
-    const handleEmojiExited = () => {
-        if (emojiButtonRef.current) {
-            document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
-                A11yCustomEventTypes.FOCUS, {
-                    detail: {
-                        target: emojiButtonRef.current as HTMLElement,
-                        keyboardOnly: true,
-                    },
-                },
-            ));
-        }
-    };
-
     const handleEmojiClick = (selectedEmoji: Emoji) => {
         setShowEmojiPicker(false);
         const emojiName = ('short_name' in selectedEmoji) ? selectedEmoji.short_name : selectedEmoji.name;
         setEmoji(emojiName);
-        if (emojiButtonRef.current) {
-            document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
-                A11yCustomEventTypes.FOCUS, {
-                    detail: {
-                        target: emojiButtonRef.current as HTMLElement,
-                        keyboardOnly: true,
-                    },
-                },
-            ));
-        }
-    };
-
-    const toggleEmojiPicker = (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
-        e?.stopPropagation();
-        setShowEmojiPicker((prevShow) => !prevShow);
     };
 
     const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => setText(event.target.value);
@@ -280,6 +243,17 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         />
     ) : <EmojiIcon className={'icon icon--emoji'}/>;
 
+    const {
+        emojiPicker,
+        getReferenceProps,
+        setReference,
+    } = useEmojiPicker({
+        showEmojiPicker,
+        setShowEmojiPicker,
+
+        onEmojiClick: handleEmojiClick,
+    });
+
     const clearHandle = () => {
         setEmoji('');
         setText('');
@@ -290,19 +264,6 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         setEmoji(status.emoji);
         setText(status.text);
         setDuration(status.duration || DONT_CLEAR);
-    };
-
-    const calculateRightOffSet = () => {
-        let rightOffset = Constants.DEFAULT_EMOJI_PICKER_RIGHT_OFFSET;
-        const target = getCustomStatusControlRef();
-        if (target) {
-            rightOffset = window.innerWidth - target.getBoundingClientRect().left - EMOJI_PICKER_WIDTH_OFFSET;
-            if (rightOffset < 0) {
-                rightOffset = Constants.DEFAULT_EMOJI_PICKER_RIGHT_OFFSET;
-            }
-        }
-
-        return rightOffset;
     };
 
     const recentStatuses = (
@@ -404,43 +365,29 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
             id='custom_status_modal'
             className={'StatusModal'}
             handleConfirm={handleSetStatus}
-            handleEnterKeyPress={handleSetStatus}
+            handleEnterKeyPress={handleEnterKeyPressed}
             handleCancel={handleClearStatus}
             confirmButtonClassName='btn btn-primary'
             ariaLabel={formatMessage({id: 'custom_status.set_status', defaultMessage: 'Set a status'})}
             keyboardEscape={false}
             tabIndex={-1}
+            autoCloseOnConfirmButton={false}
         >
             <div className='StatusModal__body'>
                 <div className='StatusModal__input'>
-                    <div
-                        ref={customStatusControlRef}
-                        className='StatusModal__emoji-container'
-                    >
-                        {showEmojiPicker && (
-                            <EmojiPickerOverlay
-                                target={getCustomStatusControlRef}
-                                show={showEmojiPicker}
-                                onHide={handleEmojiClose}
-                                onEmojiClick={handleEmojiClick}
-                                rightOffset={calculateRightOffSet()}
-                                leftOffset={3}
-                                topOffset={3}
-                                defaultHorizontalPosition='right'
-                                onExited={handleEmojiExited}
-                            />
-                        )}
+                    <div className='StatusModal__emoji-container'>
                         <button
                             type='button'
-                            onClick={toggleEmojiPicker}
-                            ref={emojiButtonRef}
+                            ref={setReference}
                             aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                             className={classNames('emoji-picker__container', 'StatusModal__emoji-button', {
                                 'StatusModal__emoji-button--active': showEmojiPicker,
                             })}
+                            {...getReferenceProps()}
                         >
                             {customStatusEmoji}
                         </button>
+                        {emojiPicker}
                     </div>
                     <QuickInput
                         inputComponent={MaxLengthInput}
@@ -450,7 +397,6 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                         onClear={clearHandle}
                         className='emoji-quick-input form-control'
                         clearClassName='StatusModal__clear-container'
-                        tooltipPosition='top'
                         onChange={handleTextChange}
                         placeholder={formatMessage({id: 'custom_status.set_status', defaultMessage: 'Set a status'})}
                         autoFocus={true}
@@ -469,7 +415,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                         time={customExpiryTime}
                         handleChange={setCustomExpiryTime}
                         timezone={timezone}
-                        setIsDatePickerOpen={setIsDatePickerOpen}
+                        setIsInteracting={setIsInteracting}
                     />
                 )}
             </div>

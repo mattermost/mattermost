@@ -92,9 +92,7 @@ function UrlInput({
             <div className='url-input-container'>
                 {isShortenedURL ? (
                     <WithTooltip
-                        id='urlTooltip'
                         title={fullURL}
-                        placement='top'
                     >
                         {urlInputLabel}
                     </WithTooltip>

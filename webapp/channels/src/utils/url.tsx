@@ -241,7 +241,7 @@ export function mightTriggerExternalRequest(url: string, siteURL?: string): bool
 }
 
 export function isInternalURL(url: string, siteURL?: string): boolean {
-    return url.startsWith(siteURL || '') || url.startsWith('/');
+    return url.startsWith(siteURL || '') || url.startsWith('/') || url.startsWith('#');
 }
 
 export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourcePaths?: string[]): boolean {
@@ -354,3 +354,20 @@ export function parseLink(href: string, defaultSecure = location.protocol === 'h
 
     return outHref;
 }
+
+export const validHttpUrl = (input: string) => {
+    const val = parseLink(input);
+
+    if (!val || !isValidUrl(val)) {
+        return null;
+    }
+
+    let url;
+    try {
+        url = new URL(val);
+    } catch {
+        return null;
+    }
+
+    return url;
+};

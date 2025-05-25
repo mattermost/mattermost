@@ -172,7 +172,6 @@ export default class SettingPicture extends Component<Props, State> {
                 <div className={`${imageContext}-img-preview`}>
                     <div className='img-preview__image'>
                         <div
-                            alt={`${imageContext} image preview`}
                             style={imageStyles}
                             className={`${imageContext}-img-preview`}
                         />
@@ -232,9 +231,7 @@ export default class SettingPicture extends Component<Props, State> {
                         {imageElement}
                     </div>
                     <WithTooltip
-                        id='removeIcon'
                         title={title ?? ''}
-                        placement='right'
                         disabled={!title}
                     >
                         <button
