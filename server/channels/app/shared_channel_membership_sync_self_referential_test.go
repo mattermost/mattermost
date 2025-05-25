@@ -70,13 +70,18 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		EnsureCleanState(t, th, ss)
 		// Track sync messages received
 		var syncMessageCount int32
+		var syncHandler *SelfReferentialSyncHandler
 
 		// Create a test HTTP server that acts as the "remote" cluster
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
 			case "/api/v4/remotecluster/msg":
 				atomic.AddInt32(&syncMessageCount, 1)
-				writeOKResponse(w)
+				if syncHandler != nil {
+					syncHandler.HandleRequest(w, r)
+				} else {
+					writeOKResponse(w)
+				}
 			case "/api/v4/remotecluster/ping":
 				writeOKResponse(w)
 			default:
@@ -111,6 +116,9 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 		selfCluster, err = ss.RemoteCluster().Save(selfCluster)
 		require.NoError(t, err)
+
+		// Initialize sync handler
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
 
 		// Share the channel with our self-referential cluster
 		scr := &model.SharedChannelRemote{
