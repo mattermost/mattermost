@@ -23,7 +23,28 @@ fi
 
 if [ "$TEST" = "cypress" ]; then
   mme2e_log "Prepare Cypress: install dependencies"
-  ${MME2E_DC_SERVER} exec -T -u 0 -- cypress bash -c "id $MME2E_UID || useradd -u $MME2E_UID -m nodeci" # Works around the node image's assumption that the app files are owned by user 1000
+  # Create user directly with logging
+  mme2e_log "Creating user for ID: $MME2E_UID in Cypress container"
+  ${MME2E_DC_SERVER} exec -T -u 0 -- cypress bash -c "
+echo \"Running user creation for user ID: $MME2E_UID\"
+if ! id $MME2E_UID > /dev/null 2>&1; then
+  echo \"User $MME2E_UID does not exist, attempting to create\"
+  if ! useradd -u $MME2E_UID -m nodeci > /dev/null 2>&1; then
+    echo \"useradd failed, adding user manually to /etc/passwd\"
+    echo \"nodeci:x:$MME2E_UID:$MME2E_UID:nodeci:/home/nodeci:/bin/bash\" >> /etc/passwd
+    mkdir -p /home/nodeci
+    chown $MME2E_UID:$MME2E_UID /home/nodeci
+    echo \"Manual user creation completed\"
+  else
+    echo \"User created successfully with useradd\"
+  fi
+else
+  echo \"User $MME2E_UID already exists\"
+fi
+echo \"Verifying user creation:\"
+id $MME2E_UID || echo \"WARNING: User verification failed\"
+" || mme2e_log "WARNING: User creation failed, but continuing anyway"
+  mme2e_log "User setup completed"
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress npm i
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress cypress install
   mme2e_log "Prepare Cypress: populating fixtures"
