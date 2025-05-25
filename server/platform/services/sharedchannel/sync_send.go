@@ -41,7 +41,7 @@ func newSyncTask(channelID, userID string, remoteID string, existingMsg, retryMs
 	taskID := channelID + userID + remoteID + retryID // combination of ids to avoid duplicates
 
 	// For batch tasks, add a batch identifier to make the ID unique
-	if existingMsg != nil && existingMsg.MembershipBatchInfo != nil {
+	if existingMsg != nil && len(existingMsg.MembershipChanges) > 1 {
 		batchID := model.NewId()[:8] // Use a short unique ID for the batch
 		taskID = channelID + "batch" + batchID + remoteID + retryID
 	}
@@ -244,6 +244,7 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 // addTask adds or re-adds a task to the queue.
 func (scs *Service) addTask(task syncTask) {
 	task.AddedAt = time.Now()
+
 	scs.mux.Lock()
 	if originalTask, ok := scs.tasks[task.id]; ok {
 		// if the task was already scheduled, we only update the
@@ -375,47 +376,12 @@ func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 // processTask updates one or more remote clusters with any new channel content.
 func (scs *Service) processTask(task syncTask) error {
 	// Check if this is a membership change task
-	if task.existingMsg != nil && task.existingMsg.MembershipInfo != nil {
+	if task.existingMsg != nil && len(task.existingMsg.MembershipChanges) > 0 {
 		// Check if feature flag is enabled
 		if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
 			return nil
 		}
 		scs.processMembershipChange(task.existingMsg)
-		return nil
-	}
-
-	// Check if this is a batch membership change task
-	if task.existingMsg != nil && task.existingMsg.MembershipBatchInfo != nil {
-		// Check if feature flag is enabled
-		if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
-			return nil
-		}
-		batchInfo := task.existingMsg.MembershipBatchInfo
-		userIDs := make([]string, 0, len(batchInfo.Changes))
-		for _, change := range batchInfo.Changes {
-			userIDs = append(userIDs, change.UserId)
-		}
-
-		// If remoteID is empty, process for all remotes
-		if task.remoteID == "" {
-			// Get all remotes for this channel
-			filter := model.RemoteClusterQueryFilter{
-				InChannel:     batchInfo.ChannelId,
-				OnlyConfirmed: true,
-			}
-			remotes, err := scs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
-			if err != nil {
-				return fmt.Errorf("failed to get remotes for batch membership sync: %w", err)
-			}
-
-			// Process batch for each remote
-			for _, remote := range remotes {
-				scs.processMembershipBatch(batchInfo.ChannelId, userIDs, remote.RemoteId, batchInfo.ChangeTime)
-			}
-			return nil
-		}
-		// Process for specific remote
-		scs.processMembershipBatch(batchInfo.ChannelId, userIDs, task.remoteID, batchInfo.ChangeTime)
 		return nil
 	}
 

@@ -25,7 +25,6 @@ const (
 	TopicChannelInvite           = "sharedchannel_invite"
 	TopicUploadCreate            = "sharedchannel_upload"
 	TopicChannelMembership       = "sharedchannel_membership"
-	TopicChannelMembershipBatch  = "sharedchannel_membership_batch" // For batch processing
 	MaxRetries                   = 3
 	MaxUsersPerSync              = 25
 	NotifyRemoteOfflineThreshold = time.Second * 10
@@ -135,9 +134,8 @@ func (scs *Service) Start() error {
 	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
 	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
 	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
-	// Register the membership change handlers
+	// Register the membership change handler
 	rcs.AddTopicListener(TopicChannelMembership, scs.onReceiveSyncMessage)
-	rcs.AddTopicListener(TopicChannelMembershipBatch, scs.onReceiveSyncMessage)
 	scs.connectionStateListenerId = rcs.AddConnectionStateListener(scs.onConnectionStateChange)
 	scs.mux.Unlock()
 

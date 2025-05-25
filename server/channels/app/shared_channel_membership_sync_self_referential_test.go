@@ -267,16 +267,11 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Initialize sync handler with callbacks
-		syncHandler = &SelfReferentialSyncHandler{
-			t:                t,
-			service:          service,
-			selfCluster:      selfCluster,
-			syncMessageCount: new(int32),
-			OnBatchSync: func(userIds []string, messageNumber int32) {
-				mu.Lock()
-				batchedUserIDs = append(batchedUserIDs, userIds)
-				mu.Unlock()
-			},
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
+		syncHandler.OnBatchSync = func(userIds []string, messageNumber int32) {
+			mu.Lock()
+			batchedUserIDs = append(batchedUserIDs, userIds)
+			mu.Unlock()
 		}
 
 		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
@@ -860,20 +855,12 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 				if json.Unmarshal(bodyBytes, &frame) == nil {
 					var syncMsg model.SyncMsg
 					if json.Unmarshal(frame.Msg.Payload, &syncMsg) == nil && frame.Msg.Topic == "sharedchannel_membership" {
-						if syncMsg.MembershipInfo != nil {
-							if syncMsg.MembershipInfo.IsAdd {
+						// Count membership changes from the unified field
+						for _, change := range syncMsg.MembershipChanges {
+							if change.IsAdd {
 								atomic.AddInt32(&addOperations, 1)
 							} else {
 								atomic.AddInt32(&removeOperations, 1)
-							}
-						}
-						if syncMsg.MembershipBatchInfo != nil {
-							for _, change := range syncMsg.MembershipBatchInfo.Changes {
-								if change.IsAdd {
-									atomic.AddInt32(&addOperations, 1)
-								} else {
-									atomic.AddInt32(&removeOperations, 1)
-								}
 							}
 						}
 					}
@@ -1189,12 +1176,14 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Create a sync message as if it came from cluster-2 adding this user
 		syncMsg := model.NewSyncMsg(channel.Id)
-		syncMsg.MembershipInfo = &model.MembershipChangeMsg{
-			ChannelId:  channel.Id,
-			UserId:     userFromCluster2.Id,
-			IsAdd:      true,
-			RemoteId:   clusters[1].RemoteId, // from cluster-2
-			ChangeTime: model.GetMillis(),
+		syncMsg.MembershipChanges = []*model.MembershipChangeMsg{
+			{
+				ChannelId:  channel.Id,
+				UserId:     userFromCluster2.Id,
+				IsAdd:      true,
+				RemoteId:   clusters[1].RemoteId, // from cluster-2
+				ChangeTime: model.GetMillis(),
+			},
 		}
 
 		// Wrap it in a RemoteClusterMsg

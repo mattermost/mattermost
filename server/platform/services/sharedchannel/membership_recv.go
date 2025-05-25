@@ -42,132 +42,68 @@ func (scs *Service) checkMembershipConflict(userID, channelID string, changeTime
 	return false, nil
 }
 
-// onReceiveMembershipChange processes a channel membership change (add/remove) from a remote cluster
-func (scs *Service) onReceiveMembershipChange(syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+// onReceiveMembershipChanges processes channel membership changes from a remote cluster
+func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	// Check if feature flag is enabled
 	if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
 		return nil
 	}
 
-	if syncMsg.MembershipInfo == nil {
-		return fmt.Errorf("onReceiveMembershipChange missing MembershipInfo")
+	if len(syncMsg.MembershipChanges) == 0 {
+		return fmt.Errorf("onReceiveMembershipChanges: no membership changes")
 	}
 
-	memberInfo := syncMsg.MembershipInfo
-
 	// Get the channel to make sure it exists and is shared
-	channel, err := scs.server.GetStore().Channel().Get(memberInfo.ChannelId, true)
+	channel, err := scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true)
 	if err != nil {
-		return fmt.Errorf("cannot get channel for membership change: %w", err)
+		return fmt.Errorf("cannot get channel for membership changes: %w", err)
 	}
 
 	// Verify this is a valid shared channel
-	_, err = scs.server.GetStore().SharedChannel().Get(memberInfo.ChannelId)
+	_, err = scs.server.GetStore().SharedChannel().Get(syncMsg.ChannelId)
 	if err != nil {
-		return fmt.Errorf("cannot get shared channel for membership change: %w", err)
+		return fmt.Errorf("cannot get shared channel for membership changes: %w", err)
 	}
 
-	// Check for conflicts
-	shouldSkip, _ := scs.checkMembershipConflict(memberInfo.UserId, memberInfo.ChannelId, memberInfo.ChangeTime)
-	if shouldSkip {
-		return nil
-	}
-
-	// Create a MembershipChangeMsg to use with our common processing functions
-	change := &model.MembershipChangeMsg{
-		ChannelId:  memberInfo.ChannelId,
-		UserId:     memberInfo.UserId,
-		IsAdd:      memberInfo.IsAdd,
-		RemoteId:   memberInfo.RemoteId,
-		ChangeTime: memberInfo.ChangeTime,
-	}
-
-	// Process the add/remove using our common helper functions
-	var processErr error
-	if memberInfo.IsAdd {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Adding user to channel from remote cluster",
-			mlog.String("user_id", memberInfo.UserId),
-			mlog.String("channel_id", memberInfo.ChannelId),
-			mlog.String("remote_id", rc.RemoteId),
-		)
-		processErr = scs.processMemberAdd(change, channel, rc)
-	} else {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Removing user from channel from remote cluster",
-			mlog.String("user_id", memberInfo.UserId),
-			mlog.String("channel_id", memberInfo.ChannelId),
-			mlog.String("remote_id", rc.RemoteId),
-		)
-		processErr = scs.processMemberRemove(change, rc)
-	}
-
-	if processErr != nil {
-		return processErr
-	}
-
-	return nil
-}
-
-// onReceiveMembershipBatch processes a batch of channel membership changes from a remote cluster
-func (scs *Service) onReceiveMembershipBatch(syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	// Check if feature flag is enabled
-	if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
-		return nil
-	}
-
-	if syncMsg.MembershipBatchInfo == nil {
-		return fmt.Errorf("onReceiveMembershipBatch missing MembershipBatchInfo")
-	}
-
-	batchInfo := syncMsg.MembershipBatchInfo
-
-	// Get the channel to make sure it exists and is shared
-	channel, err := scs.server.GetStore().Channel().Get(batchInfo.ChannelId, true)
-	if err != nil {
-		return fmt.Errorf("cannot get channel for membership batch: %w", err)
-	}
-
-	// Verify this is a valid shared channel
-	_, err = scs.server.GetStore().SharedChannel().Get(batchInfo.ChannelId)
-	if err != nil {
-		return fmt.Errorf("cannot get shared channel for membership batch: %w", err)
-	}
-
-	// Process each change in the batch
+	// Process each change
 	var successCount, skipCount, failCount int
 
-	for _, change := range batchInfo.Changes {
-		// Check for conflicts using our helper function
-		skipThisChange, _ := scs.checkMembershipConflict(change.UserId, change.ChannelId, change.ChangeTime)
-		if skipThisChange {
+	for _, change := range syncMsg.MembershipChanges {
+		// Check for conflicts
+		shouldSkip, _ := scs.checkMembershipConflict(change.UserId, change.ChannelId, change.ChangeTime)
+		if shouldSkip {
 			skipCount++
 			continue
 		}
 
 		// Process the membership change based on whether it's an add or remove
+		var processErr error
 		if change.IsAdd {
-			// Add the user to the channel
-			if processErr := scs.processMemberAdd(change, channel, rc); processErr != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to add user in membership batch",
-					mlog.String("user_id", change.UserId),
-					mlog.String("channel_id", change.ChannelId),
-					mlog.String("remote_id", rc.RemoteId),
-					mlog.Err(processErr),
-				)
-				failCount++
-				continue
-			}
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Adding user to channel from remote cluster",
+				mlog.String("user_id", change.UserId),
+				mlog.String("channel_id", change.ChannelId),
+				mlog.String("remote_id", rc.RemoteId),
+			)
+			processErr = scs.processMemberAdd(change, channel, rc)
 		} else {
-			// Remove the user from the channel
-			if processErr := scs.processMemberRemove(change, rc); processErr != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to remove user in membership batch",
-					mlog.String("user_id", change.UserId),
-					mlog.String("channel_id", change.ChannelId),
-					mlog.String("remote_id", rc.RemoteId),
-					mlog.Err(processErr),
-				)
-				failCount++
-				continue
-			}
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Removing user from channel from remote cluster",
+				mlog.String("user_id", change.UserId),
+				mlog.String("channel_id", change.ChannelId),
+				mlog.String("remote_id", rc.RemoteId),
+			)
+			processErr = scs.processMemberRemove(change, rc)
+		}
+
+		if processErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to process membership change",
+				mlog.String("user_id", change.UserId),
+				mlog.String("channel_id", change.ChannelId),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Bool("is_add", change.IsAdd),
+				mlog.Err(processErr),
+			)
+			failCount++
+			continue
 		}
 
 		successCount++

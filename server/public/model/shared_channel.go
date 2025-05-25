@@ -282,23 +282,14 @@ type MembershipChangeMsg struct {
 	ChangeTime int64  `json:"change_time"`
 }
 
-// MembershipChangeBatchMsg represents a batch of membership changes
-type MembershipChangeBatchMsg struct {
-	ChannelId  string                 `json:"channel_id"`
-	Changes    []*MembershipChangeMsg `json:"changes"`
-	RemoteId   string                 `json:"remote_id"`
-	ChangeTime int64                  `json:"change_time"`
-}
-
 type SyncMsg struct {
-	Id                  string                    `json:"id"`
-	ChannelId           string                    `json:"channel_id"`
-	Users               map[string]*User          `json:"users,omitempty"`
-	Posts               []*Post                   `json:"posts,omitempty"`
-	Reactions           []*Reaction               `json:"reactions,omitempty"`
-	Statuses            []*Status                 `json:"statuses,omitempty"`
-	MembershipInfo      *MembershipChangeMsg      `json:"membership_info,omitempty"`
-	MembershipBatchInfo *MembershipChangeBatchMsg `json:"membership_batch_info,omitempty"`
+	Id                string                 `json:"id"`
+	ChannelId         string                 `json:"channel_id"`
+	Users             map[string]*User       `json:"users,omitempty"`
+	Posts             []*Post                `json:"posts,omitempty"`
+	Reactions         []*Reaction            `json:"reactions,omitempty"`
+	Statuses          []*Status              `json:"statuses,omitempty"`
+	MembershipChanges []*MembershipChangeMsg `json:"membership_changes,omitempty"`
 }
 
 func NewSyncMsg(channelID string) *SyncMsg {

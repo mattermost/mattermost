@@ -24,7 +24,7 @@ var (
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	if msg.Topic != TopicSync && msg.Topic != TopicChannelMembership && msg.Topic != TopicChannelMembershipBatch {
+	if msg.Topic != TopicSync && msg.Topic != TopicChannelMembership {
 		return fmt.Errorf("wrong topic, expected sync-related topic, got `%s`", msg.Topic)
 	}
 
@@ -60,21 +60,12 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 	}
 
 	// Check if this is a membership change message
-	if syncMsg.MembershipInfo != nil {
+	if len(syncMsg.MembershipChanges) > 0 {
 		// Check if feature flag is enabled
 		if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
 			return nil
 		}
-		return scs.onReceiveMembershipChange(syncMsg, rc, response)
-	}
-
-	// Check if this is a batch membership change message
-	if syncMsg.MembershipBatchInfo != nil {
-		// Check if feature flag is enabled
-		if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
-			return nil
-		}
-		return scs.onReceiveMembershipBatch(syncMsg, rc, response)
+		return scs.onReceiveMembershipChanges(syncMsg, rc, response)
 	}
 
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Sync msg received",

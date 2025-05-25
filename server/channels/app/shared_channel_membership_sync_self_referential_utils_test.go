@@ -92,26 +92,24 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 				if unmarshalErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); unmarshalErr == nil {
 					syncResp := &model.SyncResponse{}
 
-					// Handle individual membership sync
-					if syncMsg.MembershipInfo != nil {
-						syncResp.UsersSyncd = []string{syncMsg.MembershipInfo.UserId}
-
-						if h.OnIndividualSync != nil {
-							h.OnIndividualSync(syncMsg.MembershipInfo.UserId, currentCall)
-						}
-					}
-
-					// Handle batch membership sync
-					if syncMsg.MembershipBatchInfo != nil {
+					// Handle membership sync using unified field
+					if len(syncMsg.MembershipChanges) > 0 {
 						batch := make([]string, 0)
-						for _, change := range syncMsg.MembershipBatchInfo.Changes {
+						for _, change := range syncMsg.MembershipChanges {
 							if change.IsAdd {
 								syncResp.UsersSyncd = append(syncResp.UsersSyncd, change.UserId)
 								batch = append(batch, change.UserId)
 							}
 						}
-						if len(batch) > 0 && h.OnBatchSync != nil {
-							h.OnBatchSync(batch, currentCall)
+
+						// Call appropriate callback
+						if len(batch) > 0 {
+							if h.OnBatchSync != nil {
+								h.OnBatchSync(batch, currentCall)
+							}
+							if len(batch) == 1 && h.OnIndividualSync != nil {
+								h.OnIndividualSync(batch[0], currentCall)
+							}
 						}
 					}
 
@@ -149,16 +147,9 @@ func (h *SelfReferentialSyncHandler) GetSyncMessageCount() int32 {
 func GetUsersFromSyncMsg(msg model.SyncMsg) []string {
 	var userIds []string
 
-	// Check individual membership
-	if msg.MembershipInfo != nil {
-		userIds = append(userIds, msg.MembershipInfo.UserId)
-	}
-
-	// Check batch membership
-	if msg.MembershipBatchInfo != nil {
-		for _, change := range msg.MembershipBatchInfo.Changes {
-			userIds = append(userIds, change.UserId)
-		}
+	// Extract from unified membership changes field
+	for _, change := range msg.MembershipChanges {
+		userIds = append(userIds, change.UserId)
 	}
 
 	return userIds

@@ -172,14 +172,9 @@ func extractUserIDsFromPayload(msg model.RemoteClusterMsg) []string {
 
 	userIDs := []string{}
 
-	// Check for individual membership
-	if syncMsg.MembershipInfo != nil && syncMsg.MembershipInfo.UserId != "" {
-		userIDs = append(userIDs, formatMembershipInfo(syncMsg.MembershipInfo.UserId, syncMsg.MembershipInfo.IsAdd))
-	}
-
-	// Check for batch membership
-	if syncMsg.MembershipBatchInfo != nil && len(syncMsg.MembershipBatchInfo.Changes) > 0 {
-		for _, change := range syncMsg.MembershipBatchInfo.Changes {
+	// Check for membership changes
+	if len(syncMsg.MembershipChanges) > 0 {
+		for _, change := range syncMsg.MembershipChanges {
 			if change.UserId != "" {
 				userIDs = append(userIDs, formatMembershipInfo(change.UserId, change.IsAdd))
 			}
