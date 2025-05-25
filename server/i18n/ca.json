@@ -4204,10 +4204,6 @@
     "translation": "%v ha deixat el canal."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Ets l'únic membre, intenta eliminar el canal privat en lloc de sortir."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "No es pot deixar un canal de missatge directe"
   },

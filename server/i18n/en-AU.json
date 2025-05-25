@@ -7703,10 +7703,6 @@
     "translation": "%v left the channel."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "You're the only member left, try removing the Private Channel instead of leaving."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Unable to leave a direct message channel."
   },
