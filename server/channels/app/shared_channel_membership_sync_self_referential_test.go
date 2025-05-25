@@ -74,18 +74,11 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Create a test HTTP server that acts as the "remote" cluster
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			switch r.URL.Path {
-			case "/api/v4/remotecluster/msg":
-				atomic.AddInt32(&syncMessageCount, 1)
-				if syncHandler != nil {
-					syncHandler.HandleRequest(w, r)
-				} else {
-					writeOKResponse(w)
-				}
-			case "/api/v4/remotecluster/ping":
+			atomic.AddInt32(&syncMessageCount, 1)
+			if syncHandler != nil {
+				syncHandler.HandleRequest(w, r)
+			} else {
 				writeOKResponse(w)
-			default:
-				w.WriteHeader(http.StatusNotFound)
 			}
 		}))
 		defer testServer.Close()

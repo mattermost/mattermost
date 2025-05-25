@@ -305,8 +305,3 @@ func (rcs *Service) SetActive(active bool) {
 		rcs.pause()
 	}
 }
-
-// SetDisablePingForTesting allows tests to disable ping functionality
-func SetDisablePingForTesting(disabled bool) {
-	disablePing = disabled
-}
