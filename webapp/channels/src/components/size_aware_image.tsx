@@ -93,6 +93,11 @@ export type Props = WrappedComponentProps & {
     * Prevents display of utility buttons when image in a location that makes them inappropriate
     */
     hideUtilities?: boolean;
+
+    /*
+    * Custom threshold for determining if an image is considered "small" (defaults to 48px)
+    */
+    smallImageThreshold?: number;
 }
 
 type State = {
@@ -141,7 +146,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     };
 
     isSmallImage = (width: number, height: number) => {
-        return width < MIN_IMAGE_SIZE || height < MIN_IMAGE_SIZE;
+        const threshold = this.props.smallImageThreshold ?? MIN_IMAGE_SIZE;
+        return width < threshold || height < threshold;
     };
 
     handleLoad = (event: SyntheticEvent<HTMLImageElement, Event>) => {

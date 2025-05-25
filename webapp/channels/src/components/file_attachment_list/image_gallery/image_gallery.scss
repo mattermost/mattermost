@@ -67,8 +67,8 @@
     &__body {
         display: flex;
         overflow: hidden;
-        // Max height calculation: 216px (item height) + 8px (gap) = 224px per row
-        // Allow for up to 10 rows of images: 224px * 10 = 2240px
+        // Max height calculation: dynamic gallery height + 8px (gap) per row
+        // Allow for up to 10 rows of images with dynamic height
         max-height: 2240px;
         flex-wrap: wrap;
         align-items: flex-start;
@@ -84,10 +84,51 @@
 
     &__item {
         position: relative;
-        overflow: hidden; // Prevent images from overflowing the container
-        height: 216px; // needs to be updated in image_gallery.tsx
         flex: none;
         border-radius: 4px;
+
+        // Special handling for small images - center them within the gallery height
+        &--small {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            .file-view--single {
+                position: relative;
+                overflow: visible;
+                height: auto;
+                
+                .file__image {
+                    overflow: visible;
+                    height: auto;
+                    
+                    .image-container {
+                        height: auto;
+                        padding: 8px;
+                        border-radius: 4px;
+                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+
+                        &:hover {
+                            background-color: rgba(var(--center-channel-color-rgb), 0.16);
+                        }
+                        
+                        .image-loaded {
+                            height: auto;
+
+                            .small-image__container {
+                                border: none;
+                                border-radius: 4px;
+                                background-color: transparent;
+
+                                &:hover {
+                                    box-shadow: none;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         // Override SingleImageView styles to fit our grid
         .file-view--single {
@@ -102,25 +143,26 @@
                 }
 
                 .image-container {
+                    overflow: hidden;
                     height: 100%;
+                    border-radius: 4px;
                     margin: 0;
 
-                    // Loading state styling - more specific selector
+                    // Loading state styling
                     .image-loading__container {
                         display: flex;
                         width: 100%;
-                        max-width: none; // Override the maxWidth set by SizeAwareImage
+                        max-width: none;
                         height: 100%;
                         align-items: center;
                         justify-content: center;
                         
-                        // More specific selector to override inline styles
                         img[src] {
                             width: 100%;
                             height: 100%;
-                            filter: blur(8px); // Add blur effect to mini preview
+                            filter: blur(8px);
                             object-fit: cover;
-                            transform: scale(1.1); // Scale up to hide blurred edges
+                            transform: scale(1.1);
                             transition: filter 0.3s ease, transform 0.3s ease;
                         }
                         
@@ -136,11 +178,10 @@
 
                         img {
                             height: 100%;
-                            filter: none; // Remove blur when loaded
+                            filter: none;
                             object-fit: cover;
-                            transition: filter 0.3s ease, transform 0.15s ease-in-out; // Include transform transition for hover effect
+                            transition: filter 0.3s ease, transform 0.15s ease-in-out;
                             
-                            // Ensure hover effect works
                             &:hover {
                                 transform: scale(1.05);
                             }

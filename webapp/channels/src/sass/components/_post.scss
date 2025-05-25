@@ -1579,6 +1579,17 @@
             width: 38px;
         }
 
+        // Gallery-specific overrides for small images
+        .image-gallery &--small-image,
+        .image-gallery &--small-image-no-copy-button {
+            position: absolute;
+            z-index: 10;
+            top: 8px;
+            right: 8px;
+            left: auto !important;
+            width: auto !important;
+        }
+
         &:hover button.size-aware-image__copy_link,
         &:hover a.size-aware-image__download {
             color: rgba(var(--center-channel-color-rgb), 0.75);

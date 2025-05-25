@@ -26,7 +26,6 @@ type Props = PropsFromRedux & {
 const ImageGallery = (props: Props) => {
     const {
         fileInfos,
-        enablePublicLink = false,
         canDownloadFiles = true,
         handleImageClick,
         onToggleCollapse,
@@ -40,6 +39,21 @@ const ImageGallery = (props: Props) => {
     const [isCollapsed, setIsCollapsed] = useState(!isEmbedVisible);
     const [isDownloading, setIsDownloading] = useState(false);
     const {formatMessage} = useIntl();
+
+    // Calculate the dynamic gallery height based on the tallest image, up to 216px max
+    // For small images (< 216px), add 16px padding to their height in the calculation
+    const galleryHeight = Math.min(
+        Math.max(
+            ...fileInfos.map((fileInfo) => {
+                const imageHeight = fileInfo.height || 0;
+
+                // If it's a small image, add padding to the height for gallery calculation
+                return imageHeight < 216 ? imageHeight + 16 : imageHeight;
+            }),
+            48, // Minimum height to ensure usability
+        ),
+        216, // Maximum height
+    );
 
     const toggleGallery = () => {
         const newCollapsed = !isCollapsed;
@@ -116,13 +130,25 @@ const ImageGallery = (props: Props) => {
                 {fileInfos.map((fileInfo) => {
                     // Calculate the width based on the image's aspect ratio
                     const aspectRatio = fileInfo.width && fileInfo.height ? fileInfo.width / fileInfo.height : 1;
-                    const itemWidth = 216 * aspectRatio; // 200px is the fixed height
+
+                    // For small images (height < 216px), use their natural width but gallery height for container
+                    // For larger images, calculate width based on dynamic gallery height
+                    const isSmallImage = (fileInfo.height || 0) < 216;
+                    const itemWidth = isSmallImage ? (fileInfo.width || 0) + 16 : galleryHeight * aspectRatio; // Add 16px for left/right padding
+
+                    // For height: if small image and it's the tallest, use natural height + padding
+                    // Otherwise, use gallery height to match other taller images
+                    const naturalHeightWithPadding = (fileInfo.height || 0) + 16;
+                    const itemHeight = isSmallImage && naturalHeightWithPadding === galleryHeight ? naturalHeightWithPadding : galleryHeight;
 
                     return (
                         <div
                             key={fileInfo.id}
-                            className='image-gallery__item'
-                            style={{width: `${itemWidth}px`}}
+                            className={`image-gallery__item ${isSmallImage ? 'image-gallery__item--small' : ''}`}
+                            style={{
+                                width: `${itemWidth}px`,
+                                height: `${itemHeight}px`,
+                            }}
                         >
                             <SingleImageView
                                 fileInfo={fileInfo}
@@ -132,6 +158,7 @@ const ImageGallery = (props: Props) => {
                                 compactDisplay={false}
                                 isInPermalink={false}
                                 disableActions={false}
+                                smallImageThreshold={216}
                                 handleImageClick={() => {
                                     const startIndex = allFilesForPost?.findIndex((f) => f.id === fileInfo.id) ?? -1;
                                     if (startIndex >= 0 && allFilesForPost) {

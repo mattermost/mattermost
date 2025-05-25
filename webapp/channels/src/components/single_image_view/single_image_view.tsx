@@ -35,6 +35,7 @@ export interface Props extends PropsFromRedux {
     isInPermalink?: boolean;
     disableActions?: boolean;
     handleImageClick?: () => void;
+    smallImageThreshold?: number;
     actions: {
         toggleEmbedVisibility: (postId: string) => void;
         getFilePublicLink: (fileId: string) => Promise<ActionResult<{link: string}>>;
@@ -269,6 +270,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                     enablePublicLink={this.props.enablePublicLink}
                                     getFilePublicLink={this.getFilePublicLink}
                                     hideUtilities={this.props.disableActions}
+                                    smallImageThreshold={this.props.smallImageThreshold}
                                 />
                             </div>
                         </div>

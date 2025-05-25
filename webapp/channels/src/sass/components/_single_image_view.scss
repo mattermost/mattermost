@@ -76,8 +76,6 @@
             overflow: hidden;
             height: 100%;
             max-height: 1000px;
-            border-color: rgba(var(--center-channel-color-rgb), 0.12);
-            border-radius: 4px;
             margin: 5px 0;
             opacity: 1;
             transition: all 250ms ease-in-out;
@@ -100,7 +98,6 @@
             .image-loaded-container {
                 overflow: hidden;
                 height: 100%;
-                border-radius: 4px;
 
                 &:hover {
                     box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 10px 0 rgba(variables.$black, 0.1);
