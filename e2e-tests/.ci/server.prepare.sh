@@ -23,7 +23,7 @@ fi
 
 if [ "$TEST" = "cypress" ]; then
   mme2e_log "Prepare Cypress: install dependencies"
-  ${MME2E_DC_SERVER} exec -T -u 0 -- cypress bash -c "id $MME2E_UID || useradd -u $MME2E_UID -m nodeci" # Works around the node image's assumption that the app files are owned by user 1000
+  ${MME2E_DC_SERVER} exec -T -u 0 -- cypress bash -c "id $MME2E_UID || useradd -u $MME2E_UID -m nodeci || (echo 'nodeci:x:$MME2E_UID:$MME2E_UID:nodeci:/home/nodeci:/bin/bash' >> /etc/passwd && mkdir -p /home/nodeci && chown $MME2E_UID:$MME2E_UID /home/nodeci)" # Works around the node image's assumption that the app files are owned by user 1000. Fallback to direct passwd entry if useradd fails
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress npm i
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress cypress install
   mme2e_log "Prepare Cypress: populating fixtures"
