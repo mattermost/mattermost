@@ -375,8 +375,6 @@ func TestCopyFileInfos(t *testing.T) {
 	defer func() {
 		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
 		require.NoError(t, err)
-		appErr := th.App.RemoveFile(info1.Path)
-		require.Nil(t, appErr)
 	}()
 
 	infoIds, err := th.App.CopyFileInfos(th.Context, userID, []string{info1.Id})
