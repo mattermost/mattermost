@@ -432,17 +432,16 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	th.TeamAdminUser = th.CreateUser()
 	_, appErr = th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
 	require.Nil(th.TB, appErr)
-	th.TeamAdminUser, _ = th.App.GetUser(th.TeamAdminUser.Id)
+	th.TeamAdminUser, appErr = th.App.GetUser(th.TeamAdminUser.Id)
+	require.Nil(th.TB, appErr)
 
 	th.BasicUser = th.CreateUser()
-	th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
+	th.BasicUser, appErr = th.App.GetUser(th.BasicUser.Id)
+	require.Nil(th.TB, appErr)
 
 	th.BasicUser2 = th.CreateUser()
-	th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
-
-	users := []*model.User{th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser}
-	err := mainHelper.GetSQLStore().User().InsertUsers(users)
-	require.NoError(th.TB, err)
+	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
+	require.Nil(th.TB, appErr)
 
 	// restore non hashed password for login
 	th.SystemAdminUser.Password = "Pa$$word11"
