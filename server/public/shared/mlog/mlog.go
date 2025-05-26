@@ -6,7 +6,6 @@ package mlog
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -195,56 +194,6 @@ func NewLogger(options ...Option) (*Logger, error) {
 		log:        &log,
 		lockConfig: &lockConfig,
 	}, nil
-}
-
-// Configure provides a new configuration for this logger.
-// Zero or more sources of config can be provided:
-//
-//	cfgFile    - path to file containing JSON
-//	cfgEscaped - JSON string probably from ENV var
-//
-// For each case JSON containing log targets is provided. Target name collisions are resolved
-// using the following precedence:
-//
-//	cfgFile > cfgEscaped
-//
-// An optional set of factories can be provided which will be called to create any target
-// types or formatters not built-in.
-func (l *Logger) Configure(cfgFile string, cfgEscaped string, factories *Factories) error {
-	if atomic.LoadInt32(l.lockConfig) != 0 {
-		return ErrConfigurationLock
-	}
-
-	cfgMap := make(LoggerConfiguration)
-
-	// Add config from file
-	if cfgFile != "" {
-		b, err := os.ReadFile(cfgFile)
-		if err != nil {
-			return fmt.Errorf("error reading logger config file %s: %w", cfgFile, err)
-		}
-
-		var mapCfgFile LoggerConfiguration
-		if err := json.Unmarshal(b, &mapCfgFile); err != nil {
-			return fmt.Errorf("error decoding logger config file %s: %w", cfgFile, err)
-		}
-		cfgMap.Append(mapCfgFile)
-	}
-
-	// Add config from escaped json string
-	if cfgEscaped != "" {
-		var mapCfgEscaped LoggerConfiguration
-		if err := json.Unmarshal([]byte(cfgEscaped), &mapCfgEscaped); err != nil {
-			return fmt.Errorf("error decoding logger config as escaped json: %w", err)
-		}
-		cfgMap.Append(mapCfgEscaped)
-	}
-
-	if len(cfgMap) == 0 {
-		return nil
-	}
-
-	return logrcfg.ConfigureTargets(l.log.Logr(), cfgMap.toTargetCfg(), factories)
 }
 
 // ConfigureTargets provides a new configuration for this logger via a `LoggerConfig` map.
