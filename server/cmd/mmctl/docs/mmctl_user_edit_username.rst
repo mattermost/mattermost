@@ -1,26 +1,26 @@
-.. _mmctl_user_username:
+.. _mmctl_user_edit_username:
 
-mmctl user username
--------------------
+mmctl user edit username
+------------------------
 
-Change username of the user
+Edit user's username
 
 Synopsis
 ~~~~~~~~
 
 
-Change username of the user.
+Edit a user's username.
 
 ::
 
-  mmctl user username [user] [new username] [flags]
+  mmctl user edit username [user] [new username] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    user username testuser newusername
+  user edit username user@example.com newusername
 
 Options
 ~~~~~~~
@@ -47,5 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl user edit <mmctl_user_edit.rst>`_ 	 - Edit user properties
 

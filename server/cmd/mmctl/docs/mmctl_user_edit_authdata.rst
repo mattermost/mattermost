@@ -1,33 +1,34 @@
-.. _mmctl_user_email:
+.. _mmctl_user_edit_authdata:
 
-mmctl user email
-----------------
+mmctl user edit authdata
+------------------------
 
-Change email of the user
+Edit user's authdata
 
 Synopsis
 ~~~~~~~~
 
 
-Change the email address associated with a user.
+Edit a user's authentication data. Use empty string to clear authdata.
 
 ::
 
-  mmctl user email [user] [new email] [flags]
+  mmctl user edit authdata [user] [new authdata] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    user email testuser user@example.com
+  user edit authdata user@example.com newid123
+    user edit authdata user@example.com ""
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for email
+  -h, --help   help for authdata
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,5 +48,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl user edit <mmctl_user_edit.rst>`_ 	 - Edit user properties
 
