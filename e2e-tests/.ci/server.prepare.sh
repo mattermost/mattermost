@@ -40,10 +40,8 @@ fi" || mme2e_log "WARNING: User creation failed, but continuing anyway"
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress cypress install
   mme2e_log "Prepare Cypress: populating fixtures"
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress tee tests/fixtures/keycloak.crt >/dev/null <../../server/build/docker/keycloak/keycloak.crt
-  # Add more detailed debugging for plugin downloads
-  mme2e_log "Starting plugin download process with detailed debugging"
+  # Download plugins using wget in the Cypress container
 
-  # Only download first plugin for faster debugging
   for PLUGIN_URL in \
     "https://github.com/mattermost/mattermost-plugin-gitlab/releases/download/v1.3.0/com.github.manland.mattermost-plugin-gitlab-1.3.0.tar.gz" \
     "https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.9.0/com.mattermost.demo-plugin-0.9.0.tar.gz" \
@@ -52,29 +50,18 @@ fi" || mme2e_log "WARNING: User creation failed, but continuing anyway"
     PLUGIN_NAME="${PLUGIN_URL##*/}"
     PLUGIN_PATH="tests/fixtures/$PLUGIN_NAME"
 
-    # Check if cypress container can access filesystem
-    mme2e_log "DEBUG: Checking if plugin directory exists"
+    # Ensure the directory exists
     ${MME2E_DC_SERVER} exec -T -- cypress bash -c "ls -la /cypress/tests/fixtures || mkdir -p /cypress/tests/fixtures"
 
-    # Check if file exists with more logging
-    mme2e_log "DEBUG: Checking if plugin already exists"
+    # Check if file exists
     if ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress test -f "$PLUGIN_PATH"; then
       mme2e_log "Skipping installation of plugin $PLUGIN_NAME: file exists"
       continue
     fi
 
-    # First download to a temporary file to verify curl works
-    mme2e_log "DEBUG: Testing curl in cypress container"
-    ${MME2E_DC_SERVER} exec -T -- cypress bash -c "curl --version && curl -L --silent -o /tmp/test_plugin.tar.gz '${PLUGIN_URL}' && ls -la /tmp/test_plugin.tar.gz" || mme2e_log "ERROR: curl in cypress container failed"
-
-    # Download the plugin with explicit error handling
+    # Use wget instead of curl for distroless compatibility
     mme2e_log "Downloading $PLUGIN_NAME to fixtures directory"
-    # Use the cypress container to download instead of the server container, since distroless doesn't have curl
-    ${MME2E_DC_SERVER} exec -T -- cypress curl -L -o "/tmp/$PLUGIN_NAME" "${PLUGIN_URL}" || mme2e_log "ERROR: curl download failed"
-
-    # Copy the file to the proper location
-    mme2e_log "DEBUG: Copying plugin to fixtures directory"
-    ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash -c "cat /tmp/$PLUGIN_NAME > /cypress/$PLUGIN_PATH && ls -la /cypress/$PLUGIN_PATH" || mme2e_log "ERROR: copying plugin failed"
+    ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress wget -q -O "/cypress/$PLUGIN_PATH" "$PLUGIN_URL" || mme2e_log "ERROR: wget download failed"
   done
 
   mme2e_log "Plugin download process complete"
