@@ -69,11 +69,29 @@
             background-color: rgba(var(--center-channel-color-rgb), 0.16);
         }
     }
-}
 
-// Add spacing between trailing icons
-.MenuItem__trailing-elements {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    &__simple-input {
+        width: 100%;
+        height: 40px;
+        border: none;
+        background: transparent;
+        font-size: 14px;
+        padding-inline-start: 22px;
+
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.06);
+            outline: none;
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    }
+
+    .MenuItem__trailing-elements {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
 }
