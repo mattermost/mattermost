@@ -23,7 +23,21 @@ fi
 
 if [ "$TEST" = "cypress" ]; then
   mme2e_log "Prepare Cypress: install dependencies"
-  ${MME2E_DC_SERVER} exec -T -u 0 -- cypress bash -c "id $MME2E_UID || useradd -u $MME2E_UID -m nodeci || (echo 'nodeci:x:$MME2E_UID:$MME2E_UID:nodeci:/home/nodeci:/bin/bash' >> /etc/passwd && mkdir -p /home/nodeci && chown $MME2E_UID:$MME2E_UID /home/nodeci)" # Works around the node image's assumption that the app files are owned by user 1000. Fallback to direct passwd entry if useradd fails
+  # Create a temporary script to handle user creation
+  cat > /tmp/create_user.sh << EOF
+#!/bin/bash
+if ! id $MME2E_UID > /dev/null 2>&1; then
+  if ! useradd -u $MME2E_UID -m nodeci > /dev/null 2>&1; then
+    echo "nodeci:x:$MME2E_UID:$MME2E_UID:nodeci:/home/nodeci:/bin/bash" >> /etc/passwd
+    mkdir -p /home/nodeci
+    chown $MME2E_UID:$MME2E_UID /home/nodeci
+  fi
+fi
+EOF
+  chmod +x /tmp/create_user.sh
+  ${MME2E_DC_SERVER} cp /tmp/create_user.sh cypress:/tmp/create_user.sh
+  ${MME2E_DC_SERVER} exec -T -u 0 -- cypress /tmp/create_user.sh
+  rm /tmp/create_user.sh
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress npm i
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress cypress install
   mme2e_log "Prepare Cypress: populating fixtures"
