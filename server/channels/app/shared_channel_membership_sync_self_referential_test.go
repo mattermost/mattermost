@@ -216,7 +216,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			require.Nil(t, appErr)
 		}
 
-		// Add users that should NOT be synced
+		// Add users that should be synced (including bots and system admins)
 		// Add a bot
 		bot := th.CreateBot()
 		botUser, appErr := th.App.GetUser(bot.UserId)
@@ -278,8 +278,8 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Calculate expected number of batches
-		// Should include regular users + guest + BasicUser, but NOT bot or system admin
-		expectedTotal := numRegularUsers + 1 + 1 // regular users + guest + BasicUser
+		// Should include regular users + guest + BasicUser + bot + system admin
+		expectedTotal := numRegularUsers + 1 + 1 + 1 + 1 // regular users + guest + BasicUser + bot + system admin
 		expectedBatches := (expectedTotal + batchSize - 1) / batchSize
 
 		// Wait for batch messages to be received
@@ -311,12 +311,12 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 		mu.Unlock()
 
-		assert.Equal(t, expectedTotal, totalSynced, "All regular users and guest should be synced")
+		assert.Equal(t, expectedTotal, totalSynced, "All users including bots and system admins should be synced")
 		assert.Equal(t, expectedBatches, len(batchedUserIDs), fmt.Sprintf("Should have %d batches with batch size %d", expectedBatches, batchSize))
 
-		// Verify that bot and system admin were NOT synced
-		assert.NotContains(t, allSyncedUserIDs, bot.UserId, "Bot should NOT be synced")
-		assert.NotContains(t, allSyncedUserIDs, systemAdmin.Id, "System admin should NOT be synced")
+		// Verify that bot and system admin WERE synced
+		assert.Contains(t, allSyncedUserIDs, bot.UserId, "Bot should be synced")
+		assert.Contains(t, allSyncedUserIDs, systemAdmin.Id, "System admin should be synced")
 
 		// Verify that guest WAS synced
 		assert.Contains(t, allSyncedUserIDs, guest.Id, "Guest user should be synced")

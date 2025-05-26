@@ -190,13 +190,12 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 }
 
 // shouldSyncUser determines if a user should be synchronized to remote clusters.
-// Returns false for bots and system admins.
+// Returns true for all valid users including bots and system admins.
 //
-// System admins are excluded because they might have elevated permissions that should
-// not be replicated to remote instances. Bots are excluded because they typically
-// operate only on the local instance and don't need to be synced to remotes.
-// This filtering ensures that only regular users and guests are synchronized across
-// shared channels.
+// All users are synced to remote clusters, but their roles are normalized to
+// system_user when they arrive at the destination cluster. This ensures that
+// elevated permissions (like system admin) are not replicated to remote instances,
+// while still allowing all users to participate in shared channels.
 func (scs *Service) shouldSyncUser(channelID string, userID string) (*model.User, bool) {
 	user, err := scs.server.GetStore().User().Get(context.Background(), userID)
 	if err != nil {
@@ -206,11 +205,6 @@ func (scs *Service) shouldSyncUser(channelID string, userID string) (*model.User
 			mlog.Err(err),
 		)
 		return nil, false
-	}
-
-	// Skip system users and bots as they might not be needed on the remote
-	if user.IsBot || user.IsSystemAdmin() {
-		return user, false
 	}
 
 	return user, true
