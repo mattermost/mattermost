@@ -14,6 +14,7 @@ import (
 // Overwrites any existing files at dst.
 // Permissions are copied from file at src to the new file at dst.
 func CopyFile(src, dst string) (err error) {
+	//nolint:gosec // os.Open is essential to CopyFile. The caller must provide sanitized paths.
 	in, err := os.Open(src)
 	if err != nil {
 		return
@@ -23,6 +24,8 @@ func CopyFile(src, dst string) (err error) {
 	if err = os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
 		return
 	}
+
+	//nolint:gosec // os.Create is essential to CopyFile. The caller must provide sanitized paths.
 	out, err := os.Create(dst)
 	if err != nil {
 		return
