@@ -79,7 +79,8 @@ class AdminSidebar extends React.PureComponent<Props, State> {
             this.props.actions.getPlugins();
         }
 
-        if (this.searchRef.current) {
+        if (this.searchRef.current && !getHistory().location.hash) {
+            // default focus if no other target/hash is specified for auto-focus
             this.searchRef.current.focus();
         }
 
@@ -208,13 +209,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                             definitionKey={subDefinitionKey}
                             name={item.url}
                             restrictedIndicator={item.restrictedIndicator?.shouldDisplay(license, subscriptionProduct) ? item.restrictedIndicator.value(cloud) : undefined}
-                            title={
-                                typeof item.title === 'string' ?
-                                    item.title :
-                                    <FormattedMessage
-                                        {...item.title}
-                                    />
-                            }
+                            title={typeof item.title === 'string' ? item.title : (
+                                <FormattedMessage
+                                    {...item.title}
+                                />
+                            )}
                         />
                     ));
                 });
@@ -237,13 +236,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         parentLink='/admin_console'
                         icon={section.icon}
                         sectionClass=''
-                        title={
-                            typeof section.sectionTitle === 'string' ?
-                                section.sectionTitle :
-                                <FormattedMessage
-                                    {...section.sectionTitle}
-                                />
-                        }
+                        title={typeof section.sectionTitle === 'string' ? section.sectionTitle : (
+                            <FormattedMessage
+                                {...section.sectionTitle}
+                            />
+                        )}
                     >
                         {sidebarItems}
                     </AdminSidebarCategory>
