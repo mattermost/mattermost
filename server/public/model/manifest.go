@@ -456,6 +456,7 @@ func convertTypeToPluginSettingType(t string) (PluginSettingType, error) {
 func FindManifest(dir string) (manifest *Manifest, path string, err error) {
 	for _, name := range []string{"plugin.yml", "plugin.yaml"} {
 		path = filepath.Join(dir, name)
+		//nolint:gosec // The caller is trusted to provide a valid path.
 		f, ferr := os.Open(path)
 		if ferr != nil {
 			if !os.IsNotExist(ferr) {
@@ -479,6 +480,8 @@ func FindManifest(dir string) (manifest *Manifest, path string, err error) {
 	}
 
 	path = filepath.Join(dir, "plugin.json")
+
+	//nolint:gosec // The caller is trusted to provide a valid path.
 	f, ferr := os.Open(path)
 	if ferr != nil {
 		if os.IsNotExist(ferr) {
