@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
@@ -29,6 +30,7 @@ type LocalFileBackend struct {
 // Overwrites any existing files at dst.
 // Permissions are copied from file at src to the new file at dst.
 func copyFile(src, dst string) (err error) {
+	//nolint:gosec // Trust the caller to provide a valid path.
 	in, err := os.Open(src)
 	if err != nil {
 		return
@@ -38,6 +40,8 @@ func copyFile(src, dst string) (err error) {
 	if err = os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
 		return
 	}
+
+	//nolint:gosec // Trust the caller to provide a valid path.
 	out, err := os.Create(dst)
 	if err != nil {
 		return
@@ -76,16 +80,16 @@ func (b *LocalFileBackend) DriverName() string {
 
 func (b *LocalFileBackend) TestConnection() error {
 	f := bytes.NewReader([]byte("testingwrite"))
-	if _, err := writeFileLocally(f, filepath.Join(b.directory, TestFilePath)); err != nil {
+	if _, err := b.WriteFile(f, TestFilePath); err != nil {
 		return errors.Wrap(err, "unable to write to the local filesystem storage")
 	}
-	os.Remove(filepath.Join(b.directory, TestFilePath))
+	os.Remove(utils.SafeJoin(b.directory, TestFilePath))
 	mlog.Debug("Able to write files to local storage.")
 	return nil
 }
 
 func (b *LocalFileBackend) Reader(path string) (ReadCloseSeeker, error) {
-	f, err := os.Open(filepath.Join(b.directory, path))
+	f, err := os.Open(utils.SafeJoin(b.directory, path))
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to open file %s", path)
 	}
@@ -93,7 +97,7 @@ func (b *LocalFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 }
 
 func (b *LocalFileBackend) ReadFile(path string) ([]byte, error) {
-	f, err := os.ReadFile(filepath.Join(b.directory, path))
+	f, err := os.ReadFile(utils.SafeJoin(b.directory, path))
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read file %s", path)
 	}
@@ -101,7 +105,7 @@ func (b *LocalFileBackend) ReadFile(path string) ([]byte, error) {
 }
 
 func (b *LocalFileBackend) FileExists(path string) (bool, error) {
-	_, err := os.Stat(filepath.Join(b.directory, path))
+	_, err := os.Stat(utils.SafeJoin(b.directory, path))
 
 	if os.IsNotExist(err) {
 		return false, nil
@@ -114,7 +118,7 @@ func (b *LocalFileBackend) FileExists(path string) (bool, error) {
 }
 
 func (b *LocalFileBackend) FileSize(path string) (int64, error) {
-	info, err := os.Stat(filepath.Join(b.directory, path))
+	info, err := os.Stat(utils.SafeJoin(b.directory, path))
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to get file size for %s", path)
 	}
@@ -122,7 +126,7 @@ func (b *LocalFileBackend) FileSize(path string) (int64, error) {
 }
 
 func (b *LocalFileBackend) FileModTime(path string) (time.Time, error) {
-	info, err := os.Stat(filepath.Join(b.directory, path))
+	info, err := os.Stat(utils.SafeJoin(b.directory, path))
 	if err != nil {
 		return time.Time{}, errors.Wrapf(err, "unable to get modification time for file %s", path)
 	}
@@ -130,18 +134,18 @@ func (b *LocalFileBackend) FileModTime(path string) (time.Time, error) {
 }
 
 func (b *LocalFileBackend) CopyFile(oldPath, newPath string) error {
-	if err := copyFile(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
+	if err := copyFile(utils.SafeJoin(b.directory, oldPath), utils.SafeJoin(b.directory, newPath)); err != nil {
 		return errors.Wrapf(err, "unable to copy file from %s to %s", oldPath, newPath)
 	}
 	return nil
 }
 
 func (b *LocalFileBackend) MoveFile(oldPath, newPath string) error {
-	if err := os.MkdirAll(filepath.Dir(filepath.Join(b.directory, newPath)), 0750); err != nil {
+	if err := os.MkdirAll(filepath.Dir(utils.SafeJoin(b.directory, newPath)), 0750); err != nil {
 		return errors.Wrapf(err, "unable to create the new destination directory %s", filepath.Dir(newPath))
 	}
 
-	if err := os.Rename(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
+	if err := os.Rename(utils.SafeJoin(b.directory, oldPath), utils.SafeJoin(b.directory, newPath)); err != nil {
 		return errors.Wrapf(err, "unable to move the file to %s to the destination directory", newPath)
 	}
 
@@ -149,14 +153,14 @@ func (b *LocalFileBackend) MoveFile(oldPath, newPath string) error {
 }
 
 func (b *LocalFileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
-	return writeFileLocally(fr, filepath.Join(b.directory, path))
-}
+	path = utils.SafeJoin(b.directory, path)
 
-func writeFileLocally(fr io.Reader, path string) (int64, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 		directory, _ := filepath.Abs(filepath.Dir(path))
 		return 0, errors.Wrapf(err, "unable to create the directory %s for the file %s", directory, path)
 	}
+
+	//nolint:gosec // path is constructed safely above
 	fw, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to open the file %s to write the data", path)
@@ -170,10 +174,12 @@ func writeFileLocally(fr io.Reader, path string) (int64, error) {
 }
 
 func (b *LocalFileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
-	fp := filepath.Join(b.directory, path)
+	fp := utils.SafeJoin(b.directory, path)
 	if _, err := os.Stat(fp); err != nil {
 		return 0, errors.Wrapf(err, "unable to find the file %s to append the data", path)
 	}
+
+	//nolint:gosec // path is constructed safely above
 	fw, err := os.OpenFile(fp, os.O_WRONLY|os.O_APPEND, 0600)
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to open the file %s to append the data", path)
@@ -187,7 +193,7 @@ func (b *LocalFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 }
 
 func (b *LocalFileBackend) RemoveFile(path string) error {
-	if err := os.Remove(filepath.Join(b.directory, path)); err != nil {
+	if err := os.Remove(utils.SafeJoin(b.directory, path)); err != nil {
 		return errors.Wrapf(err, "unable to remove the file %s", path)
 	}
 	return nil
@@ -198,7 +204,7 @@ func (b *LocalFileBackend) RemoveFile(path string) error {
 // maxDepth: parameter to prevent infinite recursion, once this is reached we won't look any further
 func appendRecursively(basePath, path string, maxDepth int) ([]string, error) {
 	results := []string{}
-	dirEntries, err := os.ReadDir(filepath.Join(basePath, path))
+	dirEntries, err := os.ReadDir(utils.SafeJoin(basePath, path))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return results, nil
@@ -207,7 +213,7 @@ func appendRecursively(basePath, path string, maxDepth int) ([]string, error) {
 	}
 	for _, dirEntry := range dirEntries {
 		entryName := dirEntry.Name()
-		entryPath := filepath.Join(path, entryName)
+		entryPath := utils.SafeJoin(path, entryName)
 		if entryName == "." || entryName == ".." || entryPath == path {
 			continue
 		}
@@ -231,7 +237,7 @@ func appendRecursively(basePath, path string, maxDepth int) ([]string, error) {
 
 func (b *LocalFileBackend) ListDirectory(path string) ([]string, error) {
 	results := []string{}
-	dirEntries, err := os.ReadDir(filepath.Join(b.directory, path))
+	dirEntries, err := os.ReadDir(utils.SafeJoin(b.directory, path))
 	if err != nil {
 		if os.IsNotExist(err) {
 			// ideally os.ErrNotExist should've been returned but to keep the
@@ -253,7 +259,7 @@ func (b *LocalFileBackend) ListDirectoryRecursively(path string) ([]string, erro
 }
 
 func (b *LocalFileBackend) RemoveDirectory(path string) error {
-	if err := os.RemoveAll(filepath.Join(b.directory, path)); err != nil {
+	if err := os.RemoveAll(utils.SafeJoin(b.directory, path)); err != nil {
 		return errors.Wrapf(err, "unable to remove the directory %s", path)
 	}
 	return nil
@@ -267,7 +273,7 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 		deflateMethod = zip.Deflate
 	}
 
-	fullPath := filepath.Join(b.directory, path)
+	fullPath := utils.SafeJoin(b.directory, path)
 	baseInfo, err := os.Stat(fullPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to stat path %s", path)
@@ -325,6 +331,7 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 				return errors.Wrapf(err, "unable to create zip entry for %s", relPath)
 			}
 
+			//nolint:gosec // Walking a directory is safe here as we control the input.
 			file, err := os.Open(filePath)
 			if err != nil {
 				return errors.Wrapf(err, "unable to open file %s", filePath)
@@ -337,7 +344,6 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 
 			return nil
 		})
-
 		if err != nil {
 			pw.CloseWithError(errors.Wrap(err, "error walking directory"))
 		}
