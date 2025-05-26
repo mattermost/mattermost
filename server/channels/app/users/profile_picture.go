@@ -194,6 +194,8 @@ func getFont(initialFont string) (*truetype.Font, error) {
 	}
 
 	fontDir, _ := fileutils.FindDir("fonts")
+
+	//nolint:gosec // Trust fileutils.FindDir.
 	fontBytes, err := os.ReadFile(filepath.Join(fontDir, initialFont))
 	if err != nil {
 		return nil, err
