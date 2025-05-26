@@ -3501,7 +3501,6 @@
   "channel_loader.postedImage": " 上传了个图片",
   "channel_loader.socketError": "请检查连接，无法连接 Mattermost。如果仍有问题，请让管理员[检查 WebSocket 端口](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port)。",
   "channel_loader.someone": "某人",
-  "channel_loader.something": " 做了新事",
   "channel_loader.unknown_error": "我们从服务器上接收到一个异常状态码。",
   "channel_loader.uploadedFile": " 上传了个文件",
   "channel_loader.uploadedImage": " 上传了张图片",

@@ -3501,7 +3501,6 @@
   "channel_loader.postedImage": " hat ein Bild hochgeladen",
   "channel_loader.socketError": "Bitte Verbindung prüfen, Mattermost nicht erreichbar. Falls der Fehler weiterhin besteht, bitte den Administrator [den WebSocket-Port zu prüfen](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Jemand",
-  "channel_loader.something": " hat etwas neues gemacht",
   "channel_loader.unknown_error": "Es wurde ein unerwarteter Statuscode vom Server empfangen.",
   "channel_loader.uploadedFile": " hat eine Datei hochgeladen",
   "channel_loader.uploadedImage": " hat ein Bild hochgeladen",
