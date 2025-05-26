@@ -103,12 +103,14 @@ func verifySignature(filename string, sigfilename string, publicKey []byte) erro
 		return NewInvalidSignature()
 	}
 
+	//nolint:gosec // We're trusting the caller supplier filenames.
 	mattermost_tar, err := os.Open(filename)
 	if err != nil {
 		mlog.Debug("Unable to open the Mattermost .tar file to verify the file signature", mlog.Err(err))
 		return NewInvalidSignature()
 	}
 
+	//nolint:gosec // We're trusting the caller supplier filenames.
 	signature, err := os.Open(sigfilename)
 	if err != nil {
 		mlog.Debug("Unable to open the Mattermost .sig file verify the file signature", mlog.Err(err))
@@ -278,6 +280,7 @@ func download(url string) (string, error) {
 }
 
 func getFilePermissionsOrDefault(filename string, def os.FileMode) os.FileMode {
+	//nolint:gosec // We're trusting the caller supplier filename.
 	file, err := os.Open(filename)
 	if err != nil {
 		mlog.Warn("Unable to get the file permissions", mlog.String("filename", filename), mlog.Err(err))
@@ -294,6 +297,7 @@ func getFilePermissionsOrDefault(filename string, def os.FileMode) os.FileMode {
 }
 
 func extractBinary(executablePath string, filename string) error {
+	//nolint:gosec // We're trusting the caller supplier filename.
 	gzipStream, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -329,6 +333,8 @@ func extractBinary(executablePath string, filename string) error {
 			if err != nil {
 				return err
 			}
+
+			//nolint:gosec // We're trusting the caller supplier filename.
 			outFile, err := os.Create(executablePath)
 			if err != nil {
 				err2 := os.Rename(tmpFileName, executablePath)
