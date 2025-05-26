@@ -188,6 +188,13 @@ func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, r
 	return scs.onReceiveSyncMessage(msg, rc, response)
 }
 
+// HasPendingTasksForTesting returns true if there are pending sync tasks in the queue
+func (scs *Service) HasPendingTasksForTesting() bool {
+	scs.mux.RLock()
+	defer scs.mux.RUnlock()
+	return len(scs.tasks) > 0
+}
+
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (scs *Service) onClusterLeaderChange() {
 	if scs.server.IsLeader() {

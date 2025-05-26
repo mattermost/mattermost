@@ -160,9 +160,17 @@ func GetUsersFromSyncMsg(msg model.SyncMsg) []string {
 func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 	t.Helper()
 
-	// First, shutdown and restart services to stop any async operations
+	// First, wait for any pending async tasks to complete, then shutdown services
 	scsInterface := th.App.Srv().GetSharedChannelSyncService()
 	if scsInterface != nil && scsInterface.Active() {
+		// Cast to concrete type to access testing methods
+		if service, ok := scsInterface.(*sharedchannel.Service); ok {
+			// Wait for any pending tasks from previous tests to complete
+			require.Eventually(t, func() bool {
+				return !service.HasPendingTasksForTesting()
+			}, 5*time.Second, 100*time.Millisecond, "All pending sync tasks should complete before cleanup")
+		}
+
 		// Shutdown the shared channel service to stop any async operations
 		_ = scsInterface.Shutdown()
 
