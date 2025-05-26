@@ -1849,18 +1849,20 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for sync to complete and cursor to be updated
 		var firstCursor int64
+		var scrUpdated *model.SharedChannelRemote
 		require.Eventually(t, func() bool {
 			scr1, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
 			if scrErr != nil {
 				return false
 			}
+			scrUpdated = scr1
 			firstCursor = scr1.LastMembersSyncAt
 			return firstCursor > 0
 		}, 5*time.Second, 100*time.Millisecond, "Should have cursor after first sync")
 
 		// Set an extremely large cursor value to test edge case handling
-		scr.LastMembersSyncAt = 9223372036854775807 // Max int64
-		_, err = ss.SharedChannel().UpdateRemote(scr)
+		scrUpdated.LastMembersSyncAt = 9223372036854775807 // Max int64
+		_, err = ss.SharedChannel().UpdateRemote(scrUpdated)
 		require.NoError(t, err)
 
 		// Attempt sync with extreme cursor - it should still handle it gracefully
@@ -1875,8 +1877,8 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		t.Logf("Cursor after extreme value test: %d", updatedScr.LastMembersSyncAt)
 
 		// Reset cursor to a valid value
-		scr.LastMembersSyncAt = 0
-		_, err = ss.SharedChannel().UpdateRemote(scr)
+		updatedScr.LastMembersSyncAt = 0
+		_, err = ss.SharedChannel().UpdateRemote(updatedScr)
 		require.NoError(t, err)
 
 		// Now sync should work normally
