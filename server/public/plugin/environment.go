@@ -560,13 +560,13 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 
 	sourceBundleFilepath := filepath.Join(destinationPath, filepath.Base(bundlePath))
 
-	sourceBundleFileContents, err := os.ReadFile(sourceBundleFilepath)
+	bundleFileContents, err := os.ReadFile(bundlePath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read webapp bundle: %v", id)
 	}
 
 	hash := fnv.New64a()
-	if _, err = hash.Write(sourceBundleFileContents); err != nil {
+	if _, err = hash.Write(bundleFileContents); err != nil {
 		return nil, errors.Wrapf(err, "unable to generate hash for webapp bundle: %v", id)
 	}
 	manifest.Webapp.BundleHash = hash.Sum([]byte{})
