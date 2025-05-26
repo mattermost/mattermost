@@ -947,7 +947,7 @@ func testUpdateGlobalUserSyncCursor(t *testing.T, rctx request.CTX, ss store.Sto
 	futureTimestamp := model.GetMillis() + 3600000 // 1 hour in the future
 
 	t.Run("Update global user sync cursor for remote", func(t *testing.T) {
-		err := ss.SharedChannel().UpdateGlobalUserSyncCursor(rcSaved.RemoteId, futureTimestamp)
+		err := ss.RemoteCluster().UpdateLastGlobalUserSyncAt(rcSaved.RemoteId, futureTimestamp)
 		require.NoError(t, err, "update global user sync cursor should not error", err)
 
 		// Verify that the LastGlobalUserSyncAt field was updated in the RemoteCluster table
@@ -960,7 +960,7 @@ func testUpdateGlobalUserSyncCursor(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 
 	t.Run("Update global user sync cursor for non-existent remote", func(t *testing.T) {
-		err := ss.SharedChannel().UpdateGlobalUserSyncCursor(model.NewId(), futureTimestamp)
+		err := ss.RemoteCluster().UpdateLastGlobalUserSyncAt(model.NewId(), futureTimestamp)
 		require.Error(t, err, "update non-existent remote should error", err)
 	})
 }

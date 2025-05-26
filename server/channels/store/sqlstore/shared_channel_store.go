@@ -948,22 +948,3 @@ func (s SqlSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime in
 	}
 	return nil
 }
-
-// UpdateGlobalUserSyncCursor updates the LastGlobalUserSyncAt timestamp for the specified RemoteCluster.
-func (s SqlSharedChannelStore) UpdateGlobalUserSyncCursor(remoteID string, syncAt int64) error {
-	query := s.getQueryBuilder().
-		Update("RemoteClusters").
-		Set("LastGlobalUserSyncAt", syncAt).
-		Where(sq.Eq{"RemoteId": remoteID})
-
-	result, err := s.GetMaster().ExecBuilder(query)
-	if err != nil {
-		return errors.Wrap(err, "failed to update LastGlobalUserSyncAt for RemoteCluster")
-	}
-
-	count, err := result.RowsAffected()
-	if err != nil || count == 0 {
-		return fmt.Errorf("remote cluster not found: %s", remoteID)
-	}
-	return nil
-}

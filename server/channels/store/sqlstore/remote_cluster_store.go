@@ -312,3 +312,24 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 	}
 	return nil
 }
+
+func (s sqlRemoteClusterStore) UpdateLastGlobalUserSyncAt(remoteID string, syncAt int64) error {
+	query := s.getQueryBuilder().
+		Update("RemoteClusters").
+		Set("LastGlobalUserSyncAt", syncAt).
+		Where(sq.Eq{"RemoteId": remoteID})
+
+	result, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrap(err, "failed to update LastGlobalUserSyncAt for RemoteCluster")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to determine rows affected")
+	}
+	if count == 0 {
+		return fmt.Errorf("remote cluster not found: %s", remoteID)
+	}
+	return nil
+}

@@ -85,7 +85,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	// Empty channelID indicates a global user sync task
 	// Normal syncTasks always include a valid channelID
 	if task.channelID == "" {
-		return scs.handleGlobalUserSyncTask(rc)
+		return scs.syncAllUsers(rc)
 	}
 
 	rcs := scs.server.GetRemoteClusterService()
@@ -518,7 +518,7 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 
 	// send users
 	if len(sd.users) != 0 {
-		if err := scs.sendUserSyncData(sd); err != nil {
+		if err := scs.sendUserSyncData(sd, 0); err != nil {
 			merr.Append(fmt.Errorf("cannot send user sync data: %w", err))
 		}
 	}
@@ -560,7 +560,7 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 }
 
 // sendUserSyncData sends the collected user updates to the remote cluster.
-func (scs *Service) sendUserSyncData(sd *syncData) error {
+func (scs *Service) sendUserSyncData(sd *syncData, latestTimestamp int64) error {
 	start := time.Now()
 	defer func() {
 		if metrics := scs.server.GetMetrics(); metrics != nil {
@@ -572,6 +572,11 @@ func (scs *Service) sendUserSyncData(sd *syncData) error {
 	msg.Users = sd.users
 
 	err := scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+		// Only update cursor on successful sync
+		if errResp == nil && latestTimestamp > 0 {
+			scs.updateGlobalSyncCursor(sd.rc, latestTimestamp)
+		}
+
 		for _, userID := range syncResp.UsersSyncd {
 			if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(userID, sd.task.channelID, sd.rc.RemoteId); err != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Cannot update shared channel user LastSyncAt",
@@ -703,10 +708,10 @@ func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteClust
 	return latestUserUpdateTime > rc.LastGlobalUserSyncAt, nil
 }
 
-// syncAllUsersForRemote synchronizes all local users to a remote cluster.
+// syncAllUsers synchronizes all local users to a remote cluster.
 // This is called when a connection with a remote cluster is established or when handling a global user sync task.
 // Uses cursor-based approach with LastGlobalUserSyncAt to resume after interruptions.
-func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
+func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
 	// Check if feature is enabled
 	if !scs.server.Config().FeatureFlags.EnableSyncAllUsersForRemoteCluster {
 		return nil
@@ -753,16 +758,13 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 	sd.users = users
 
 	// Send the collected users to remote
-	if err := scs.sendUserSyncData(sd); err != nil {
+	if err := scs.sendUserSyncData(sd, latestTimestamp); err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error sending user batch during sync",
 			mlog.String("remote_id", rc.RemoteId),
 			mlog.Err(err),
 		)
 		return fmt.Errorf("error sending user batch during sync: %w", err)
 	}
-
-	// Update cursor on successful sync
-	scs.updateGlobalSyncCursor(rc, latestTimestamp)
 
 	// Schedule next batch if needed
 	if hasMore {
@@ -777,6 +779,11 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 	}
 
 	return nil
+}
+
+// GetUserSyncBatchSizeForTesting returns the configured batch size for user syncing (exported for testing)
+func (scs *Service) GetUserSyncBatchSizeForTesting() int {
+	return scs.getGlobalUserSyncBatchSize()
 }
 
 // getGlobalUserSyncBatchSize returns the configured batch size for user syncing
@@ -862,7 +869,7 @@ func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize
 
 // updateGlobalSyncCursor updates the LastGlobalUserSyncAt value for the remote cluster
 func (scs *Service) updateGlobalSyncCursor(rc *model.RemoteCluster, newTimestamp int64) {
-	if err := scs.server.GetStore().SharedChannel().UpdateGlobalUserSyncCursor(rc.RemoteId, newTimestamp); err == nil {
+	if err := scs.server.GetStore().RemoteCluster().UpdateLastGlobalUserSyncAt(rc.RemoteId, newTimestamp); err == nil {
 		rc.LastGlobalUserSyncAt = newTimestamp
 	} else {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update global user sync cursor",
@@ -901,7 +908,14 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 	if err != nil {
 		return err
 	}
-	rcMsg := model.NewRemoteClusterMsg(TopicSync, b)
+	// Use appropriate topic based on message type
+	topic := TopicSync
+	if msg.ChannelId == "" && len(msg.Users) > 0 &&
+		len(msg.Posts) == 0 && len(msg.Reactions) == 0 &&
+		len(msg.Statuses) == 0 && len(msg.MembershipChanges) == 0 {
+		topic = TopicGlobalUserSync
+	}
+	rcMsg := model.NewRemoteClusterMsg(topic, b)
 
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
@@ -942,9 +956,9 @@ func (scs *Service) sendSyncMsgToPlugin(msg *model.SyncMsg, rc *model.RemoteClus
 	return errResp
 }
 
-// Performs a global user sync
-func (scs *Service) handleGlobalUserSyncTask(rc *model.RemoteCluster) error {
-	return scs.syncAllUsersForRemote(rc)
+// HandleSyncAllUsersForTesting exposes handleGlobalUserSyncTask for testing
+func (scs *Service) HandleSyncAllUsersForTesting(rc *model.RemoteCluster) error {
+	return scs.syncAllUsers(rc)
 }
 
 func sanitizeSyncData(sd *syncData) {

@@ -652,24 +652,6 @@ func (_m *SharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime int
 	return r0
 }
 
-// UpdateGlobalUserSyncCursor provides a mock function with given fields: remoteID, syncAt
-func (_m *SharedChannelStore) UpdateGlobalUserSyncCursor(remoteID string, syncAt int64) error {
-	ret := _m.Called(remoteID, syncAt)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateGlobalUserSyncCursor")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(remoteID, syncAt)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // UpdateRemote provides a mock function with given fields: remote
 func (_m *SharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 	ret := _m.Called(remote)
