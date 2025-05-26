@@ -81,6 +81,8 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
 
 	staticDir, _ := fileutils.FindDir(model.ClientDir)
+
+	//nolint:gosec // Trust result of fileutils.FindDir.
 	contents, err := os.ReadFile(filepath.Join(staticDir, "root.html"))
 	if err != nil {
 		c.Logger.Warn("Failed to read content from file",
