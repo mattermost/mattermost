@@ -36,8 +36,10 @@ func NewFileStore(path string, createFileIfNotExists bool) (fs *FileStore, err e
 		return nil, err
 	}
 
+	//nolint:gosec // We're trusting the administrators to provide a valid path.
 	f, err := os.Open(resolvedPath)
 	if err != nil && errors.Is(err, os.ErrNotExist) && createFileIfNotExists {
+		//nolint:gosec // We're trusting the administrators to provide a valid path.
 		file, err2 := os.Create(resolvedPath)
 		if err2 != nil {
 			return nil, fmt.Errorf("could not create config file: %w", err2)
@@ -147,6 +149,7 @@ func (fs *FileStore) Load() ([]byte, error) {
 func (fs *FileStore) GetFile(name string) ([]byte, error) {
 	resolvedPath := fs.resolveFilePath(name)
 
+	//nolint:gosec // We're trusting the administrators to provide a valid path.
 	data, err := os.ReadFile(resolvedPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read file from %s", resolvedPath)
