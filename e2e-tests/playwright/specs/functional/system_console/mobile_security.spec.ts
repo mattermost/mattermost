@@ -8,7 +8,10 @@ test('should be able to enable mobile security settings when licensed', async ({
 
     const license = await adminClient.getClientLicenseOld();
 
-    test.skip(license.SkuShortName !== 'enterprise' || license.short_sku_name !== 'advanced', 'Skipping test - server has no enterprise or enterprise advanced license');
+    test.skip(
+        license.SkuShortName !== 'enterprise' || license.short_sku_name !== 'advanced',
+        'Skipping test - server has no enterprise or enterprise advanced license',
+    );
 
     if (!adminUser) {
         throw new Error('Failed to create admin user');
