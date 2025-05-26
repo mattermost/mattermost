@@ -21,6 +21,8 @@ import (
 
 func ReadTestFile(name string) ([]byte, error) {
 	path, _ := fileutils.FindDir("tests")
+
+	//nolint:gosec // Trust fileutils.FindDir, especially inside test utility function.
 	file, err := os.Open(filepath.Join(path, name))
 	if err != nil {
 		return nil, err
