@@ -3470,7 +3470,6 @@
   "channel_loader.postedImage": " laddade upp en bild",
   "channel_loader.socketError": "Kontrollera uppkopplingen, når inte Mattermost-servern. Om detta fortgår, be systemadministratören att [kontrollera WebSocket-porten](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Någon",
-  "channel_loader.something": " gjorde något nytt",
   "channel_loader.unknown_error": "En okänd statuskod mottogs från servern.",
   "channel_loader.uploadedFile": " laddade upp en fil",
   "channel_loader.uploadedImage": " laddade upp en bild",

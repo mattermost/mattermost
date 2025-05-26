@@ -3436,7 +3436,6 @@
   "channel_loader.postedImage": " wysłano obraz",
   "channel_loader.socketError": "Proszę sprawdzić swoje połączenie, Mattermost jest niedostępny. Jeśli problem nie ustępuje, zapytaj się administratora o [sprawdzenie portu Websocket](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Ktoś",
-  "channel_loader.something": " zrobił/a coś nowego",
   "channel_loader.unknown_error": "Otrzymaliśmy nieoczekiwany kod statusu z serwera.",
   "channel_loader.uploadedFile": " dodał/a plik",
   "channel_loader.uploadedImage": " wysłał/a obraz",
