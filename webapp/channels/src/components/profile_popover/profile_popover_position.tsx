@@ -25,7 +25,7 @@ const ProfilePopoverPosition = ({position, haveOverrideProp}: Props) => {
                 className='user-popover__subtitle'
             >
                 <FormattedMessage
-                    id='general_tab.position'
+                    id='user.settings.general.position'
                     defaultMessage='Position'
                 />
             </strong>

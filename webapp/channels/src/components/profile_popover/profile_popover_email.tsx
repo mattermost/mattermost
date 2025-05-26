@@ -30,8 +30,8 @@ const ProfilePopoverEmail = ({
                 className='user-popover__subtitle'
             >
                 <FormattedMessage
-                    id='general_tab.emailAddress'
-                    defaultMessage='Email Address'
+                    id='user.settings.general.email'
+                    defaultMessage='Email'
                 />
             </strong>
             <p
