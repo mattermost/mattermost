@@ -236,8 +236,9 @@ func (sup *supervisor) Implements(hookId int) bool {
 
 func getPluginExecutableChecksum(executablePath string) ([]byte, error) {
 	pathHash := sha256.New()
-	file, err := os.Open(executablePath)
 
+	//nolint:gosec // executablePath is a trusted path managed by the plugin subsubsystem.
+	file, err := os.Open(executablePath)
 	if err != nil {
 		return nil, err
 	}
