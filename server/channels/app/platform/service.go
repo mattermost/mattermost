@@ -141,7 +141,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		},
 		licenseListeners:          map[string]func(*model.License, *model.License){},
 		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
-		statusUpdateChan:          make(chan *model.Status, statusUpdateBuffer),
+		statusUpdateChan:          make(chan *model.Status, statusUpdateBufferSize),
 		statusUpdateExitSignal:    make(chan struct{}),
 		statusUpdateDoneSignal:    make(chan struct{}),
 	}

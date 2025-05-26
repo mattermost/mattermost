@@ -401,14 +401,15 @@ func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool) {
 		// Successfully queued
 	default:
 		// Channel is full, fall back to direct update
+		ps.Log().Warn("Status update channel is full. Falling back to direct update")
 		ps._setStatusOfflineAndNotify(userID, manual)
 	}
 }
 
 const (
-	statusUpdateBuffer         = sendQueueSize // We use the webConn sendQueue size as a reference point for the buffer size.
-	statusUpdateFlushThreshold = statusUpdateBuffer / 8
-	batchInterval              = 500 * time.Millisecond // Max time to wait before processing
+	statusUpdateBufferSize     = sendQueueSize // We use the webConn sendQueue size as a reference point for the buffer size.
+	statusUpdateFlushThreshold = statusUpdateBufferSize / 8
+	statusUpdateBatchInterval  = 500 * time.Millisecond // Max time to wait before processing
 )
 
 // processStatusUpdates processes status updates in batches for better performance
@@ -417,7 +418,7 @@ func (ps *PlatformService) processStatusUpdates() {
 	defer close(ps.statusUpdateDoneSignal)
 
 	statusBatch := make(map[string]*model.Status)
-	ticker := time.NewTicker(batchInterval)
+	ticker := time.NewTicker(statusUpdateBatchInterval)
 	defer ticker.Stop()
 
 	flush := func() {

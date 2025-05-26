@@ -65,6 +65,8 @@ type webConnCountMessage struct {
 	result chan int
 }
 
+var hubSemaphoreCount = runtime.NumCPU() * 4
+
 // Hub is the central place to manage all websocket connections in the server.
 // It handles different websocket events and sending messages to individual
 // user connections.
@@ -107,7 +109,7 @@ func newWebHub(ps *PlatformService) *Hub {
 		checkRegistered: make(chan *webConnSessionMessage),
 		checkConn:       make(chan *webConnCheckMessage),
 		connCount:       make(chan *webConnCountMessage),
-		hubSemaphore:    make(chan struct{}, runtime.NumCPU()*4),
+		hubSemaphore:    make(chan struct{}, hubSemaphoreCount),
 	}
 }
 
@@ -501,6 +503,11 @@ func (h *Hub) ProcessAsync(f func()) {
 func (h *Hub) Stop() {
 	close(h.stop)
 	<-h.didStop
+	// Ensure that all remaining elements are processed
+	// before shutting down.
+	for i := 0; i < hubSemaphoreCount; i++ {
+		h.hubSemaphore <- struct{}{}
+	}
 }
 
 // Start starts the hub.
