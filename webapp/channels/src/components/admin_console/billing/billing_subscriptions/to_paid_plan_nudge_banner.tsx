@@ -43,7 +43,7 @@ interface ToPaidPlanDismissPreference {
 export const ToPaidPlanBannerDismissable = () => {
     const dispatch = useDispatch();
 
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const currentUser = useSelector(getCurrentUser);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
@@ -131,6 +131,10 @@ export const ToPaidPlanBannerDismissable = () => {
     }
 
     if (!currentProductStarter) {
+        return null;
+    }
+
+    if (isAirGapped) {
         return null;
     }
 

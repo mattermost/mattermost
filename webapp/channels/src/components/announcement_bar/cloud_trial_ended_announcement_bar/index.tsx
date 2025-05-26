@@ -42,7 +42,7 @@ const CloudTrialEndAnnouncementBar: React.FC = () => {
     );
     const subscriptionProduct = useSelector((state: GlobalState) => getSubscriptionProduct(state));
 
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const shouldShowBanner = () => {
         if (!subscription || !subscriptionProduct) {
@@ -85,7 +85,7 @@ const CloudTrialEndAnnouncementBar: React.FC = () => {
         return true;
     };
 
-    if (!shouldShowBanner()) {
+    if (!shouldShowBanner() || isAirGapped) {
         return null;
     }
 

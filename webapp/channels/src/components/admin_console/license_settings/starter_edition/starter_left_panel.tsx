@@ -29,10 +29,10 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
     fileInputRef,
     handleChange,
 }: StarterEditionProps) => {
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const intl = useIntl();
 
-    const viewPlansButton = (
+    const viewPlansButton = !isAirGapped ? (
         <button
             id='starter_edition_view_plans'
             onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
@@ -43,7 +43,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                 defaultMessage: 'View plans',
             })}
         </button>
-    );
+    ) : null;
 
     return (
         <div className='StarterLeftPanel'>
@@ -81,7 +81,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                         >
                             {'here'}
                         </a>
-                        {' for “Enterprise Edition License” for details. '}
+                        {' for "Enterprise Edition License" for details. '}
                         {'See NOTICE.txt for information about open source software used in the system.'}
                     </p>
                 </> : <p>

@@ -12,7 +12,6 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import WithTooltip from 'components/with_tooltip';
 
 import {CloudProducts} from 'utils/constants';
@@ -33,13 +32,11 @@ letter-spacing: 0.02em;
 color: var(--button-color);
 `;
 
-let openPricingModal: (telemetryProps?: TelemetryProps) => void;
-
 const PlanUpgradeButton = (): JSX.Element | null => {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
-    openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const isCloud = useSelector(isCurrentLicenseCloud);
 
     useEffect(() => {
@@ -82,6 +79,11 @@ const PlanUpgradeButton = (): JSX.Element | null => {
         return null;
     }
 
+    // Don't show the button if air-gapped
+    if (isAirGapped) {
+        return null;
+    }
+
     return (
         <WithTooltip
             title={formatMessage({id: 'pricing_modal.btn.tooltip', defaultMessage: 'Only visible to system admins'})}
@@ -97,4 +99,3 @@ const PlanUpgradeButton = (): JSX.Element | null => {
 };
 
 export default PlanUpgradeButton;
-export {openPricingModal};

@@ -15,11 +15,17 @@ type Props = {
 }
 
 export function UpgradeExportDataModal({onExited}: Props) {
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const confirm = () => {
         openPricingModal();
     };
+
+    // Don't show the modal if air-gapped
+    if (isAirGapped) {
+        onExited();
+        return null;
+    }
 
     const title = (
         <FormattedMessage
