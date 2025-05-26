@@ -421,7 +421,7 @@ func (ps *PlatformService) processStatusUpdates() {
 	ticker := time.NewTicker(statusUpdateBatchInterval)
 	defer ticker.Stop()
 
-	flush := func() {
+	flush := func(broadcast bool) {
 		if len(statusBatch) == 0 {
 			return
 		}
@@ -436,11 +436,13 @@ func (ps *PlatformService) processStatusUpdates() {
 			ps.logger.Warn("Failed to save multiple statuses", mlog.Err(err))
 		}
 
-		// Broadcast each status
-		for _, status := range statusBatch {
-			ps.BroadcastStatus(status)
-			if ps.sharedChannelService != nil {
-				ps.sharedChannelService.NotifyUserStatusChanged(status)
+		// Broadcast each status only if hub is still running
+		if broadcast {
+			for _, status := range statusBatch {
+				ps.BroadcastStatus(status)
+				if ps.sharedChannelService != nil {
+					ps.sharedChannelService.NotifyUserStatusChanged(status)
+				}
 			}
 		}
 
@@ -455,14 +457,15 @@ func (ps *PlatformService) processStatusUpdates() {
 
 			if len(statusBatch) >= statusUpdateFlushThreshold {
 				ps.logger.Debug("Flushing statuses because the current buffer exceeded the flush threshold.", mlog.Int("current_buffer", len(statusBatch)), mlog.Int("flush_threshold", statusUpdateFlushThreshold))
-				flush()
+				flush(true)
 			}
 		case <-ticker.C:
-			flush()
+			flush(true)
 		case <-ps.statusUpdateExitSignal:
 			// Process any remaining statuses before shutting down
+			// Skip broadcast since hub is already stopped
 			ps.logger.Debug("Exit signal received. Flushing any remaining statuses.")
-			flush()
+			flush(false)
 			return
 		}
 	}

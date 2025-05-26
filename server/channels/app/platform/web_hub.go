@@ -493,8 +493,8 @@ func (h *Hub) ProcessAsync(f func()) {
 		select {
 		case <-done:
 			// Function completed normally
-		case <-time.After(30 * time.Second):
-			h.platform.Log().Warn("ProcessAsync function timed out after 30 seconds")
+		case <-time.After(5 * time.Second):
+			h.platform.Log().Warn("ProcessAsync function timed out after 5 seconds")
 		}
 	}()
 }
