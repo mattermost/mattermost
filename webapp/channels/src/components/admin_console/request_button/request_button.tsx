@@ -103,6 +103,18 @@ type Props = {
      * An element to display adjacent to the request button.
      */
     alternativeActionElement?: React.ReactNode;
+
+    /**
+     * True if the button should be displayed flush left without the col-sm-offset-4 class,
+     * otherwise false.
+     */
+    flushLeft?: boolean;
+
+    /**
+     * The button type/variant to apply. Determines the button's visual style.
+     * Defaults to 'tertiary'.
+     */
+    buttonType?: 'primary' | 'secondary' | 'tertiary';
 };
 
 type State = {
@@ -216,7 +228,7 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                     {this.props.label}
                 </label>
             );
-        } else {
+        } else if (!this.props.flushLeft) {
             widgetClassNames = 'col-sm-offset-4 ' + widgetClassNames;
         }
 
@@ -230,7 +242,7 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                     <div>
                         <button
                             type='button'
-                            className='btn btn-tertiary'
+                            className={`btn btn-${this.props.buttonType || 'tertiary'}`}
                             onClick={this.handleRequest}
                             disabled={this.props.disabled}
                         >

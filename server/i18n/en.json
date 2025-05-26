@@ -8241,6 +8241,10 @@
     "translation": "Unable to create LDAP user."
   },
   {
+    "id": "ent.ldap.connection.test",
+    "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKey: {{.PrivateKey}}, PublicCertificate: {{.PublicCert}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
+  },
+  {
     "id": "ent.ldap.disabled.app_error",
     "translation": "AD/LDAP disabled or licence does not support AD/LDAP."
   },
