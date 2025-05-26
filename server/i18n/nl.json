@@ -208,10 +208,6 @@
     "translation": "Een direct kanaal kan niet verlaten worden."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Je bent het laatste lid, probeer de privékanaal te verwijderen in plaats van dit te verlaten."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v heeft het kanaal verlaten."
   },

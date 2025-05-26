@@ -208,10 +208,6 @@
     "translation": "无法退出私信频道。"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "你是本组最后一人，请删除私有组而不是离开。"
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v 已退出该频道。"
   },
