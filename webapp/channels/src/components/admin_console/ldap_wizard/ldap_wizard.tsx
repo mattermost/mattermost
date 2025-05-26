@@ -39,6 +39,12 @@ export type LDAPDefinitionSettingButton = AdminDefinitionSettingButton & {
     action: (success: () => void, error: (error: { message: string }) => void, settings?: Record<string, any>) => void;
 }
 
+export type LDAPDefinitionSetting = AdminDefinitionSetting & {
+    help_text_hover?: string | JSX.Element | MessageDescriptor;
+    help_text_hover_markdown?: boolean;
+    help_text_hover_values?: {[key: string]: any};
+}
+
 export type LDAPAdminDefinitionConfigSchemaSettings = AdminDefinitionSubSectionSchema & {
     sections?: LDAPAdminDefinitionConfigSchemaSection[];
 }
@@ -48,7 +54,7 @@ export type LDAPAdminDefinitionConfigSchemaSection = AdminDefinitionConfigSchema
 }
 
 export type GeneralSettingProps = {
-    setting: AdminDefinitionSetting;
+    setting: LDAPDefinitionSetting;
     schema: AdminDefinitionSubSectionSchema | null;
 }
 
