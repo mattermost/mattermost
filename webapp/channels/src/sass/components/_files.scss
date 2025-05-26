@@ -691,7 +691,6 @@ $max-image-height: 350px;
 .small-image__container {
     display: flex;
     min-width: 48px;
-    max-width: calc(100% - 5px);
     min-height: 48px;
     max-height: inherit;
     align-items: center;

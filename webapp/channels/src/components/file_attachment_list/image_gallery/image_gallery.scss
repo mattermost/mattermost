@@ -95,7 +95,7 @@
             
             .file-view--single {
                 position: relative;
-                overflow: visible;
+                overflow: hidden;
                 height: auto;
                 
                 .file__image {
@@ -104,16 +104,21 @@
                     
                     .image-container {
                         height: auto;
-                        padding: 8px;
-                        border-radius: 4px;
-                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-
-                        &:hover {
-                            background-color: rgba(var(--center-channel-color-rgb), 0.16);
-                        }
                         
                         .image-loaded {
                             height: auto;
+
+                            .small-image-utility-buttons-wrapper {
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                padding: 8px;
+                                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+
+                                &:hover {
+                                    background-color: rgba(var(--center-channel-color-rgb), 0.16);
+                                }
+                            }
 
                             .small-image__container {
                                 border: none;
