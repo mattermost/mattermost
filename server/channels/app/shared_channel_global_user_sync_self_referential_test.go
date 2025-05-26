@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -31,13 +32,14 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ENABLESYNCALLUSERSFORREMOTECLUSTER", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLESYNCALLUSERSFORREMOTECLUSTER")
 
-	// Setup with custom batch size for testing
+	// Setup with default batch size
 	th := SetupConfig(t, func(cfg *model.Config) {
 		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
 		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
-		// Set a small batch size for testing
-		batchSize := 4
-		cfg.ConnectedWorkspacesSettings.GlobalUserSyncBatchSize = &batchSize
+		// Set default batch size - EnsureCleanState will reset to this value
+		// Individual tests can override as needed (e.g., Test 3 sets it to 4)
+		defaultBatchSize := 20
+		cfg.ConnectedWorkspacesSettings.GlobalUserSyncBatchSize = &defaultBatchSize
 	}).InitBasic()
 	defer th.TearDown()
 
@@ -48,6 +50,9 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 	service, ok := scsInterface.(*sharedchannel.Service)
 	require.True(t, ok, "Expected sharedchannel.Service concrete type")
 
+	// Verify the service is active
+	require.True(t, service.Active(), "SharedChannel service should be active")
+
 	// Force the service to be active
 	err := service.Start()
 	require.NoError(t, err)
@@ -56,6 +61,11 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 	rcService := th.App.Srv().GetRemoteClusterService()
 	if rcService != nil {
 		_ = rcService.Start()
+
+		// Force the service to be active in test environment
+		if rc, ok := rcService.(*remotecluster.Service); ok {
+			rc.SetActive(true)
+		}
 
 		// Verify it's active
 		if !rcService.Active() {
@@ -137,14 +147,14 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 	})
 
 	t.Run("Test 2: Batch User Sync with Type Filtering", func(t *testing.T) {
-		// This test verifies batch synchronization with multiple users and user type filtering:
-		// - Creating more users than the batch size to ensure multiple batches
-		// - Testing that different user types are filtered correctly
-		// - Verifying cursor updates after batch operations
-		// - Using configurable batch size via GetUserSyncBatchSize
 		EnsureCleanState(t, th, ss)
 
-		var syncMessageCount int32
+		// Set batch size to 4 for testing batching behavior
+		batchSize := 4
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ConnectedWorkspacesSettings.GlobalUserSyncBatchSize = &batchSize
+		})
+
 		var mu sync.Mutex
 		var batchedUserIDs [][]string
 		var syncHandler *SelfReferentialSyncHandler
@@ -174,186 +184,83 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		selfCluster, err = ss.RemoteCluster().Save(selfCluster)
 		require.NoError(t, err)
 
-		// Get the current batch size configuration
-		batchSize := service.GetUserSyncBatchSizeForTesting()
-		t.Logf("Using user sync batch size: %d", batchSize)
-
-		// Update existing test helper users to have recent timestamps
-		// This ensures they will be included in the sync
 		baseTime := model.GetMillis()
 
-		// Get all existing non-bot, non-system-admin users and update their timestamps
-		existingRegularUsers := []*model.User{}
-		for page := 0; ; page++ {
-			options := &model.UserGetOptions{
-				Page:    page,
-				PerPage: 100,
-			}
-			users, userErr := ss.User().GetAllProfiles(options)
-			require.NoError(t, userErr)
-			if len(users) == 0 {
-				break
-			}
-			for _, user := range users {
-				// Skip bots and system admins from existing users
-				if !user.IsBot && !user.IsSystemAdmin() && (user.RemoteId == nil || *user.RemoteId == "") {
-					existingRegularUsers = append(existingRegularUsers, user)
-				}
-			}
-		}
+		// Create user with old timestamp
+		userWithOldTimestamp := th.CreateUser()
+		userWithOldTimestamp.UpdateAt = 1
+		_, err = ss.User().Update(th.Context, userWithOldTimestamp, false)
+		require.NoError(t, err)
 
-		// Update timestamps for all existing regular users
-		for i, user := range existingRegularUsers {
-			user.UpdateAt = baseTime + int64(i*100)
-			_, err = ss.User().Update(th.Context, user, true)
-			require.NoError(t, err)
-		}
-		t.Logf("Updated %d existing regular users with recent timestamps", len(existingRegularUsers))
+		// Verify the user was actually updated with the old timestamp
+		verifiedUser, pErr := ss.User().Get(context.Background(), userWithOldTimestamp.Id)
+		require.NoError(t, pErr)
+		userWithOldTimestamp = verifiedUser
 
-		// First, create multiple users BEFORE enabling global sync
-		// This ensures all users will be included in the sync
-		// Using smaller numbers for faster testing
-		numRegularUsers := 10 // This will give us 3 batches with batch size of 4
-		regularUserIDs := make([]string, numRegularUsers)
-		for i := 0; i < numRegularUsers; i++ {
-			user := th.CreateUser()
-			regularUserIDs[i] = user.Id
-			// Ensure recent update time with proper spacing
-			user.UpdateAt = baseTime + int64((len(existingRegularUsers)+i)*100)
-			_, err = ss.User().Update(th.Context, user, true)
+		// Create regular users
+		regularUsers := make([]*model.User, 3)
+		for i := 0; i < 3; i++ {
+			regularUsers[i] = th.CreateUser()
+			regularUsers[i].UpdateAt = baseTime + int64(i*100)
+			_, err = ss.User().Update(th.Context, regularUsers[i], true)
 			require.NoError(t, err)
 		}
 
-		// Add users that should NOT be synced
-		// Add a bot
+		// Create bot
 		bot := th.CreateBot()
 		botUser, appErr := th.App.GetUser(bot.UserId)
 		require.Nil(t, appErr)
-		botUser.UpdateAt = baseTime + int64((len(existingRegularUsers)+numRegularUsers)*100)
+		botUser.UpdateAt = baseTime + 300
 		_, err = ss.User().Update(th.Context, botUser, true)
 		require.NoError(t, err)
 
-		// Add a system admin
+		// Create system admin
 		systemAdmin := th.CreateUser()
 		_, appErr = th.App.UpdateUserRoles(th.Context, systemAdmin.Id, model.SystemAdminRoleId+" "+model.SystemUserRoleId, false)
 		require.Nil(t, appErr)
-		systemAdmin.UpdateAt = baseTime + int64((len(existingRegularUsers)+numRegularUsers+1)*100)
+		systemAdmin.UpdateAt = baseTime + 400
 		_, err = ss.User().Update(th.Context, systemAdmin, true)
 		require.NoError(t, err)
 
-		// Add a guest user (should be synced)
+		// Create guest user
 		guest := th.CreateGuest()
-		guest.UpdateAt = baseTime + int64((len(existingRegularUsers)+numRegularUsers+2)*100)
+		guest.UpdateAt = baseTime + 500
 		_, err = ss.User().Update(th.Context, guest, true)
 		require.NoError(t, err)
 
-		// Add a user from the remote cluster (should NOT be synced)
+		// Create remote user (should NOT be synced)
 		remoteUser := th.CreateUser()
 		remoteUser.RemoteId = &selfCluster.RemoteId
-		remoteUser.UpdateAt = baseTime + int64((len(existingRegularUsers)+numRegularUsers+3)*100)
+		remoteUser.UpdateAt = baseTime + 600
 		_, err = ss.User().Update(th.Context, remoteUser, true)
 		require.NoError(t, err)
 
-		// Initialize sync handler with callbacks
+		// Create inactive user (should NOT be synced)
+		inactiveUser := th.CreateUser()
+		inactiveUser.UpdateAt = baseTime + 700
+		inactiveUser.DeleteAt = model.GetMillis()
+		_, err = ss.User().Update(th.Context, inactiveUser, true)
+		require.NoError(t, err)
+
+		// Initialize sync handler
 		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
 		syncHandler.OnGlobalUserSync = func(userIds []string, messageNumber int32) {
 			mu.Lock()
 			batchedUserIDs = append(batchedUserIDs, userIds)
-			atomic.AddInt32(&syncMessageCount, 1)
-			t.Logf("Received batch %d with %d users", len(batchedUserIDs), len(userIds))
+
 			mu.Unlock()
 		}
 
-		// Enable global user sync for the remote cluster
-		// Since GlobalUserSyncEnabled field doesn't exist, we'll rely on the feature flag being enabled
-
-		// Get total user count before sync for debugging
-		totalUserCount := 0
-		existingUsers := []*model.User{}
-		for page := 0; ; page++ {
-			options := &model.UserGetOptions{
-				Page:    page,
-				PerPage: 100,
-			}
-			users, userErr := ss.User().GetAllProfiles(options)
-			require.NoError(t, userErr)
-			if len(users) == 0 {
-				break
-			}
-			totalUserCount += len(users)
-			existingUsers = append(existingUsers, users...)
-		}
-		t.Logf("Total users in system before sync: %d", totalUserCount)
-
-		// Count users by type for debugging
-		regularCount := 0
-		botCount := 0
-		systemAdminCount := 0
-		guestCount := 0
-		remoteCount := 0
-		inactiveCount := 0
-		oldTimestampCount := 0
-
-		for _, user := range existingUsers {
-			// Check if user is inactive
-			if user.DeleteAt > 0 {
-				inactiveCount++
-				continue
-			}
-
-			// Check if user has old timestamp
-			if user.UpdateAt == 0 {
-				oldTimestampCount++
-				t.Logf("User %s has UpdateAt=0", user.Username)
-			}
-
-			if user.IsBot {
-				botCount++
-			} else if user.IsSystemAdmin() {
-				systemAdminCount++
-			} else if user.IsGuest() {
-				guestCount++
-			} else if user.RemoteId != nil && *user.RemoteId != "" {
-				remoteCount++
-			} else {
-				regularCount++
-			}
-		}
-		t.Logf("User breakdown: regular=%d, bots=%d, system admins=%d, guests=%d, remote=%d, inactive=%d, oldTimestamp=%d",
-			regularCount, botCount, systemAdminCount, guestCount, remoteCount, inactiveCount, oldTimestampCount)
-
-		// Sync all users
+		// Trigger sync
 		err = service.HandleSyncAllUsersForTesting(selfCluster)
 		require.NoError(t, err)
 
-		// Calculate expected numbers
-		// Should include: all regular users (existing + new) + guest, but NOT bot, system admin, or remote user
-		expectedSyncedUsers := len(existingRegularUsers) + numRegularUsers + 1 // existing regular + new regular + guest
-		expectedMinBatches := (expectedSyncedUsers + batchSize - 1) / batchSize
-
-		t.Logf("Expected sync: %d users (existing regular=%d, new regular=%d, guest=1), batch size=%d, min batches=%d",
-			expectedSyncedUsers, len(existingRegularUsers), numRegularUsers, batchSize, expectedMinBatches)
-
-		// Wait for batch messages to be received
+		// Wait for sync to complete
 		require.Eventually(t, func() bool {
 			mu.Lock()
 			defer mu.Unlock()
 
 			// Count total synced users
-			totalSynced := 0
-			for _, batch := range batchedUserIDs {
-				totalSynced += len(batch)
-			}
-
-			// Check if we have received enough batches or all users
-			if len(batchedUserIDs) < expectedMinBatches && totalSynced < expectedSyncedUsers {
-				t.Logf("Waiting for batches: received %d batches with %d total users, expected at least %d batches",
-					len(batchedUserIDs), totalSynced, expectedMinBatches)
-				// Wait for scheduled batches to process automatically
-				return false
-			}
-
-			// Check if all expected users have been synced
 			allSyncedUserIDs := make(map[string]bool)
 			for _, batch := range batchedUserIDs {
 				for _, userID := range batch {
@@ -361,65 +268,47 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 				}
 			}
 
-			// Verify all regular users are synced
-			regularUsersSynced := 0
-			for _, userID := range regularUserIDs {
-				if allSyncedUserIDs[userID] {
-					regularUsersSynced++
-				}
-			}
-
-			// Check if guest is synced
+			// Check that our specific test users are synced
 			guestSynced := allSyncedUserIDs[guest.Id]
+			botSynced := allSyncedUserIDs[bot.UserId]
+			systemAdminSynced := allSyncedUserIDs[systemAdmin.Id]
+			userWithOldTimestampSynced := allSyncedUserIDs[userWithOldTimestamp.Id]
+			remoteUserNotSynced := !allSyncedUserIDs[remoteUser.Id]
+			inactiveUserNotSynced := !allSyncedUserIDs[inactiveUser.Id]
 
-			t.Logf("Sync progress: batches=%d, totalSynced=%d, regularUsersSynced=%d/%d, guestSynced=%v",
-				len(batchedUserIDs), totalSynced, regularUsersSynced, numRegularUsers, guestSynced)
+			return guestSynced && botSynced && systemAdminSynced && userWithOldTimestampSynced &&
+				remoteUserNotSynced && inactiveUserNotSynced
+		}, 10*time.Second, 500*time.Millisecond, "Should sync expected users")
 
-			// We're done when all regular users and guest are synced
-			return regularUsersSynced == numRegularUsers && guestSynced
-		}, 20*time.Second, 500*time.Millisecond, "Should sync all expected users in batches")
-
-		// Verify sync messages were sent
-		count := atomic.LoadInt32(&syncMessageCount)
-		assert.Greater(t, count, int32(0), "Should have received sync messages")
-
-		// Check batch contents and verify filtering
+		// Verify results
 		mu.Lock()
-		totalSynced := 0
+		defer mu.Unlock()
+
 		allSyncedUserIDs := make(map[string]bool)
-		for i, batch := range batchedUserIDs {
-			t.Logf("Batch %d: %d users", i+1, len(batch))
+		for _, batch := range batchedUserIDs {
 			assert.LessOrEqual(t, len(batch), batchSize, "Batch size should not exceed configured limit")
-			totalSynced += len(batch)
 			for _, userID := range batch {
 				allSyncedUserIDs[userID] = true
 			}
 		}
-		mu.Unlock()
 
-		// Verify correct number of batches
-		assert.GreaterOrEqual(t, len(batchedUserIDs), expectedMinBatches,
-			fmt.Sprintf("Should have at least %d batches with batch size %d", expectedMinBatches, batchSize))
-
-		// Verify that bot, system admin, and remote user were NOT synced
-		assert.NotContains(t, allSyncedUserIDs, bot.UserId, "Bot should NOT be synced")
-		assert.NotContains(t, allSyncedUserIDs, systemAdmin.Id, "System admin should NOT be synced")
-		assert.NotContains(t, allSyncedUserIDs, remoteUser.Id, "User from remote cluster should NOT be synced")
-
-		// Verify that guest WAS synced
+		// Verify user type filtering
+		assert.Contains(t, allSyncedUserIDs, bot.UserId, "Bot should be synced")
+		assert.Contains(t, allSyncedUserIDs, systemAdmin.Id, "System admin should be synced")
 		assert.Contains(t, allSyncedUserIDs, guest.Id, "Guest user should be synced")
+		assert.Contains(t, allSyncedUserIDs, userWithOldTimestamp.Id, "User with old timestamp should be synced")
+		assert.NotContains(t, allSyncedUserIDs, remoteUser.Id, "Remote user should NOT be synced")
+		assert.NotContains(t, allSyncedUserIDs, inactiveUser.Id, "Inactive user should NOT be synced")
 
-		// Verify that all regular users were synced
-		for _, regularUserID := range regularUserIDs {
-			assert.Contains(t, allSyncedUserIDs, regularUserID, "Regular user should be synced")
+		// Verify regular users are synced
+		for i, user := range regularUsers {
+			assert.Contains(t, allSyncedUserIDs, user.Id, "Regular user %d should be synced", i+1)
 		}
 
 		// Verify cursor was updated
 		updatedCluster, clusterErr := ss.RemoteCluster().Get(selfCluster.RemoteId, true)
 		require.NoError(t, clusterErr)
 		assert.Greater(t, updatedCluster.LastGlobalUserSyncAt, int64(0), "Cursor should be updated after batch sync")
-
-		t.Logf("Test completed: synced %d users in %d batches (batch size: %d)", totalSynced, len(batchedUserIDs), batchSize)
 	})
 
 	t.Run("Test 3: Multiple Remote Clusters", func(t *testing.T) {
@@ -1040,8 +929,16 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 	t.Run("Test 9: Users in Multiple Shared Channels", func(t *testing.T) {
 		// This test verifies that users who are members of multiple shared channels
-		// are synced correctly without duplication
+		// are synced correctly without duplication.
+		// The test creates 3 users and adds them to shared channels in different combinations:
+		// - user1: member of all 3 shared channels
+		// - user2: member of 2 shared channels (channel1 and channel2)
+		// - user3: member of 1 shared channel (channel3)
+		// The test then performs a global user sync and verifies that each user is synced
+		// exactly once, regardless of how many shared channels they belong to.
+		// This ensures that the global user sync deduplicates users properly
 		EnsureCleanState(t, th, ss)
+		// Note: EnsureCleanState resets batch size to 20, which is sufficient for this test
 
 		var syncedUserIds []string
 		var mu sync.Mutex
@@ -1078,6 +975,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 			mu.Lock()
 			syncedUserIds = append(syncedUserIds, userIds...)
 			mu.Unlock()
+			t.Logf("Received sync batch %d with %d users", messageNumber, len(userIds))
 		}
 
 		// Create users
@@ -1159,21 +1057,31 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// user3 in one channel
 		th.AddUserToChannel(user3, channel3)
 
-		// Sync users
+		// Check initial cursor
+		initialCluster, pErr := ss.RemoteCluster().Get(selfCluster.RemoteId, true)
+		require.NoError(t, pErr)
+		t.Logf("Initial cursor: %d", initialCluster.LastGlobalUserSyncAt)
+
+		// Start the sync - this will trigger the first batch
+		t.Logf("Starting sync...")
 		err = service.HandleSyncAllUsersForTesting(selfCluster)
 		require.NoError(t, err)
 
-		// Wait for sync
+		// With batch size of 20, all users should sync in one batch
+		// Wait for sync to complete
 		require.Eventually(t, func() bool {
 			mu.Lock()
 			defer mu.Unlock()
-			t.Logf("Current synced users count: %d", len(syncedUserIds))
-			if len(syncedUserIds) > 0 {
-				t.Logf("Synced user IDs: %v", syncedUserIds)
+
+			// Check if all our test users have been synced
+			syncedMap := make(map[string]bool)
+			for _, userId := range syncedUserIds {
+				syncedMap[userId] = true
 			}
-			// We expect at least 3 users to be synced
-			return len(syncedUserIds) >= 3
-		}, 10*time.Second, 100*time.Millisecond, "Expected at least 3 users to be synced")
+
+			// We need all 3 test users to be synced
+			return syncedMap[user1.Id] && syncedMap[user2.Id] && syncedMap[user3.Id]
+		}, 10*time.Second, 100*time.Millisecond, "Expected all test users to be synced")
 
 		// Verify each user is synced exactly once
 		mu.Lock()

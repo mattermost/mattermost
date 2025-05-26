@@ -584,8 +584,15 @@ func (us SqlUserStore) GetEtagForAllProfiles() string {
 
 func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, error) {
 	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
+
+	// Determine ordering based on Sort option - default to Username ASC for backwards compatibility
+	orderBy := "Users.Username ASC"
+	if options.Sort == "update_at_asc" {
+		orderBy = "Users.UpdateAt ASC"
+	}
+
 	query := us.usersQuery.
-		OrderBy("Users.Username ASC").
+		OrderBy(orderBy).
 		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)

@@ -98,6 +98,7 @@ type Service struct {
 	syncTopicListenerId       string
 	inviteTopicListenerId     string
 	uploadTopicListenerId     string
+	globalSyncTopicListenedId string
 	siteURL                   *url.URL
 }
 
@@ -130,7 +131,7 @@ func (scs *Service) Start() error {
 	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
 	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
 	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
-	rcs.AddTopicListener(TopicGlobalUserSync, scs.onReceiveSyncMessage)
+	scs.globalSyncTopicListenedId = rcs.AddTopicListener(TopicGlobalUserSync, scs.onReceiveSyncMessage)
 	scs.connectionStateListenerId = rcs.AddConnectionStateListener(scs.onConnectionStateChange)
 	scs.mux.Unlock()
 

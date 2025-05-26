@@ -219,12 +219,35 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 		}
 	}
 
+	// Get all active users and deactivate non-basic ones
+	options := &model.UserGetOptions{
+		Page:    0,
+		PerPage: 200,
+		Active:  true,
+	}
+	users, _ := ss.User().GetAllProfiles(options)
+	for _, user := range users {
+		// Keep only the basic test users active
+		if user.Id != th.BasicUser.Id && user.Id != th.BasicUser2.Id &&
+			user.Id != th.SystemAdminUser.Id {
+			// Deactivate the user (soft delete)
+			user.DeleteAt = model.GetMillis()
+			_, _ = ss.User().Update(th.Context, user, true)
+		}
+	}
+
 	// Verify cleanup is complete
 	require.Eventually(t, func() bool {
 		sharedChannels, _ := ss.SharedChannel().GetAll(0, 1000, model.SharedChannelFilterOpts{})
 		remoteClusters, _ := ss.RemoteCluster().GetAll(0, 1000, model.RemoteClusterQueryFilter{})
 		return len(sharedChannels) == 0 && len(remoteClusters) == 0
 	}, 2*time.Second, 100*time.Millisecond, "Failed to clean up shared channels and remote clusters")
+
+	// Reset batch size to default to ensure test isolation
+	defaultBatchSize := 20
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ConnectedWorkspacesSettings.GlobalUserSyncBatchSize = &defaultBatchSize
+	})
 
 	// Ensure services are running and ready
 	scsInterface := th.App.Srv().GetSharedChannelSyncService()

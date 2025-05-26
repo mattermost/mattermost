@@ -704,7 +704,11 @@ func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteClust
 		latestUserUpdateTime = user.LastPictureUpdate
 	}
 
-	// Simple check: user needs sync if their latest update is newer than the last global sync
+	// For initial sync (LastGlobalUserSyncAt=0), sync all users
+	// For incremental sync, only sync users updated after the last sync
+	if rc.LastGlobalUserSyncAt == 0 {
+		return true, nil
+	}
 	return latestUserUpdateTime > rc.LastGlobalUserSyncAt, nil
 }
 
@@ -742,7 +746,7 @@ func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
 	}
 
 	// Collect users to sync
-	users, latestTimestamp, totalCount, hasMore, err := scs.collectUsersForGlobalSync(rc, batchSize)
+	users, latestTimestamp, _, hasMore, err := scs.collectUsersForGlobalSync(rc, batchSize)
 	if err != nil {
 		return err
 	}
@@ -769,13 +773,6 @@ func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
 	// Schedule next batch if needed
 	if hasMore {
 		scs.scheduleNextUserSyncBatch(rc, latestTimestamp, batchSize, len(users))
-	} else {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Global user sync complete",
-			mlog.String("remote_id", rc.RemoteId),
-			mlog.Int("processed", len(users)),
-			mlog.Int("total_found", totalCount),
-			mlog.Int("cursor", int(latestTimestamp)),
-		)
 	}
 
 	return nil
@@ -801,10 +798,16 @@ func (scs *Service) getGlobalUserSyncBatchSize() int {
 // collectUsersForGlobalSync fetches users that need to be synced to the remote
 func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize int) (map[string]*model.User, int64, int, bool, error) {
 	options := &model.UserGetOptions{
-		Page:         0,
-		PerPage:      100, // Database fetch batch size
-		Active:       true,
-		UpdatedAfter: rc.LastGlobalUserSyncAt,
+		Page:    0,
+		PerPage: 100, // Database fetch batch size
+		Active:  true,
+		Sort:    "update_at_asc", // Order by UpdateAt ASC to ensure cursor consistency
+	}
+
+	// Only use UpdatedAfter for incremental syncs, not the initial sync
+	// This ensures users with UpdateAt=0 are included in the first sync
+	if rc.LastGlobalUserSyncAt > 0 {
+		options.UpdatedAfter = rc.LastGlobalUserSyncAt
 	}
 
 	users := make(map[string]*model.User)
@@ -881,14 +884,10 @@ func (scs *Service) updateGlobalSyncCursor(rc *model.RemoteCluster, newTimestamp
 
 // scheduleNextUserSyncBatch creates a new task for the next batch of user sync
 func (scs *Service) scheduleNextUserSyncBatch(rc *model.RemoteCluster, timestamp int64, batchSize, processedCount int) {
-	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Scheduling next batch for global user sync",
-		mlog.String("remote_id", rc.RemoteId),
-		mlog.Int("processed_in_current_batch", processedCount),
-		mlog.Int("batch_size", batchSize),
-		mlog.Int("cursor", int(timestamp)),
-	)
-
-	task := newSyncTask("", "", rc.RemoteId, nil, nil)
+	// Use timestamp as userID to make each batch task unique
+	// This prevents task ID collisions between different batches for the same remote
+	timestampStr := fmt.Sprintf("%d", timestamp)
+	task := newSyncTask("", timestampStr, rc.RemoteId, nil, nil)
 	task.schedule = time.Now().Add(NotifyMinimumDelay)
 	scs.addTask(task)
 }
@@ -908,6 +907,7 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 	if err != nil {
 		return err
 	}
+
 	// Use appropriate topic based on message type
 	topic := TopicSync
 	if msg.ChannelId == "" && len(msg.Users) > 0 &&
