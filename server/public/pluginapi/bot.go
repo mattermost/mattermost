@@ -2,13 +2,13 @@ package pluginapi
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/pluginapi/cluster"
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
@@ -211,7 +211,7 @@ func (b *BotService) readFile(path string) ([]byte, error) {
 		return nil, errors.Wrap(err, "failed to get bundle path")
 	}
 
-	imageBytes, err := os.ReadFile(filepath.Join(bundlePath, path))
+	imageBytes, err := os.ReadFile(utils.SafeJoin(bundlePath, path))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read image")
 	}
