@@ -21,11 +21,11 @@ func TestGetSchemaDefinition(t *testing.T) {
 				t.Skip("Skipping test as database is not MySQL")
 			}
 
-			// Schema dump is only supported for PostgreSQL
+			// Schema dump is only supported for Postgres
 			schemaInfo, err := ss.GetSchemaDefinition()
 			require.Error(t, err)
 			require.Nil(t, schemaInfo)
-			assert.Contains(t, err.Error(), "only supported for PostgreSQL")
+			assert.Contains(t, err.Error(), "only supported for Postgres")
 		})
 
 		t.Run("PostgreSQL", func(t *testing.T) {

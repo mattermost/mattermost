@@ -126,8 +126,9 @@ func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, e
 			var currentColumns []model.DatabaseColumn
 
 			for rows.Next() {
-				var tableName, columnName, dataType, isNullable, collationName string
+				var tableName, columnName, dataType, isNullable string
 				var characterMaxLength sql.NullInt64
+				var collationName sql.NullString
 
 				err = rows.Scan(&tableName, &columnName, &dataType, &characterMaxLength, &isNullable, &collationName)
 				if err != nil {
@@ -136,9 +137,9 @@ func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, e
 				}
 
 				// Track collation names for tables - we only need the first non-null one
-				if collationName != "" {
+				if collationName.Valid && collationName.String != "" {
 					if _, ok := tableCollations[tableName]; !ok {
-						tableCollations[tableName] = collationName
+						tableCollations[tableName] = collationName.String
 					}
 				}
 
