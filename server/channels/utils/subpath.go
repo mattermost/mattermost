@@ -63,6 +63,8 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 
 	// Read the old root.html file
 	rootHTMLPath := filepath.Join(staticDir, "root.html")
+
+	//nolint:gosec // Trust results of fileutils.FindDir.
 	oldRootHTML, err := os.ReadFile(rootHTMLPath)
 	if err != nil {
 		return errors.Wrap(err, "failed to open root.html")
@@ -148,6 +150,7 @@ func updateManifestAndCSSFiles(staticDir, pathToReplace, newPath, subpath string
 	// Rewrite the manifest.json and *.css references to `/static/*` (or a previously rewritten subpath).
 	err := filepath.Walk(staticDir, func(walkPath string, info os.FileInfo, err error) error {
 		if filepath.Base(walkPath) == "manifest.json" || filepath.Ext(walkPath) == ".css" {
+			//nolint:gosec // Trust filesystem provided path.
 			old, err := os.ReadFile(walkPath)
 			if err != nil {
 				return errors.Wrapf(err, "failed to open %s", walkPath)
