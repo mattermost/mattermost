@@ -6948,10 +6948,6 @@
     "translation": "%v напусна канала."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вие сте единствения останал участник, опитайте да изтриете частния канал, вместо да го напускате."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Не може да се напусне канал за директни съобщения."
   },

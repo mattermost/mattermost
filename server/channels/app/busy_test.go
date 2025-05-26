@@ -16,7 +16,6 @@ import (
 )
 
 func TestBusySet(t *testing.T) {
-	t.Skip("https://mattermost.atlassian.net/browse/MM-63300")
 	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
@@ -26,11 +25,11 @@ func TestBusySet(t *testing.T) {
 
 	require.False(t, busy.IsBusy())
 
-	busy.Set(time.Millisecond * 500)
+	busy.Set(time.Second * 5)
 	require.True(t, busy.IsBusy())
 	require.True(t, compareBusyState(t, busy, cluster.Busy))
 
-	// should automatically expire after 500ms.
+	// should automatically expire after 5s.
 	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*100)
 	// allow a moment for cluster to sync.
 	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
@@ -105,13 +104,16 @@ func compareBusyState(t *testing.T, busy1 *Busy, busy2 *Busy) bool {
 	if busy1.IsBusy() != busy2.IsBusy() {
 		busy1JSON, _ := busy1.ToJSON()
 		busy2JSON, _ := busy2.ToJSON()
-		t.Logf("busy1:%s;  busy2:%s\n", busy1JSON, busy2JSON)
+		t.Logf("IsBusy() is not equal: busy1:%s;  busy2:%s\n", busy1JSON, busy2JSON)
 		return false
 	}
-	if busy1.Expires().Unix() != busy2.Expires().Unix() {
+	// busy2 is the cluster expiry which could potentially be later
+	// than busy1 because of the recalculation of new time at ClusterEventChanged
+	// and then again at setWithoutNotify.
+	if busy1.Expires().Unix() < busy2.Expires().Unix() {
 		busy1JSON, _ := busy1.ToJSON()
 		busy2JSON, _ := busy2.ToJSON()
-		t.Logf("busy1:%s;  busy2:%s\n", busy1JSON, busy2JSON)
+		t.Logf("busy1.Expires().Unix():%s is not less than busy2Expires().Unix():%s\n", busy1JSON, busy2JSON)
 		return false
 	}
 	return true
@@ -138,11 +140,11 @@ func (c *ClusterMock) StartInterNodeCommunication() {}
 func (c *ClusterMock) StopInterNodeCommunication()  {}
 func (c *ClusterMock) RegisterClusterMessageHandler(event model.ClusterEvent, crm einterfaces.ClusterMessageHandler) {
 }
-func (c *ClusterMock) GetClusterId() string                  { return "cluster_mock" }
-func (c *ClusterMock) IsLeader() bool                        { return false }
-func (c *ClusterMock) GetMyClusterInfo() *model.ClusterInfo  { return nil }
-func (c *ClusterMock) GetClusterInfos() []*model.ClusterInfo { return nil }
-func (c *ClusterMock) NotifyMsg(buf []byte)                  {}
+func (c *ClusterMock) GetClusterId() string                           { return "cluster_mock" }
+func (c *ClusterMock) IsLeader() bool                                 { return false }
+func (c *ClusterMock) GetMyClusterInfo() *model.ClusterInfo           { return nil }
+func (c *ClusterMock) GetClusterInfos() ([]*model.ClusterInfo, error) { return nil, nil }
+func (c *ClusterMock) NotifyMsg(buf []byte)                           {}
 func (c *ClusterMock) GetClusterStats(rctx request.CTX) ([]*model.ClusterStats, *model.AppError) {
 	return nil, nil
 }
