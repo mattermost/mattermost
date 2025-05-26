@@ -10654,5 +10654,41 @@
   {
     "id": "app.channel.get.app_error",
     "translation": "Kunde inte hämta kanalen."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Policystyrda kanaler kan inte uppdateras."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "Ett fel inträffade i OnSamlLogin-anslutningen. Kontakta systemadministratören."
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Fel vid uppdatering av grupp. Användaren med användarnamn \"{{.Username}}\" kunde inte hittas."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "Kunde inte kontrollera uttrycket."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Det gick inte att skapa en policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Det gick inte att ta bort en policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Det går inte att ta bort en policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Kunde inte hämta attribut för kanalen."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Kunde inte hämta kanalmedlemmar som ska tas bort."
   }
 ]
