@@ -17,8 +17,7 @@ import (
 )
 
 func TestIncomingWebhook(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	if !*th.App.Config().ServiceSettings.EnableIncomingWebhooks {
 		_, err := http.Post(apiClient.URL+"/hooks/123", "", strings.NewReader("123"))
@@ -238,8 +237,7 @@ func TestIncomingWebhook(t *testing.T) {
 }
 
 func TestCommandWebhooks(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cmd, appErr := th.App.CreateCommand(&model.Command{
 		CreatorId: th.BasicUser.Id,

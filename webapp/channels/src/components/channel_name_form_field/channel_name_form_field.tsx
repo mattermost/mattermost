@@ -40,7 +40,7 @@ function validateDisplayName(intl: IntlShape, displayNameParam: string) {
     const displayName = displayNameParam.trim();
 
     if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
-        errors.push(intl.formatMessage({id: 'channel_modal.name.longer', defaultMessage: 'Channel names must have at least 2 characters.'}));
+        errors.push(intl.formatMessage({id: 'channel_modal.name.longer', defaultMessage: 'Channel names must have at least 1 character.'}));
     }
 
     if (displayName.length > Constants.MAX_CHANNELNAME_LENGTH) {

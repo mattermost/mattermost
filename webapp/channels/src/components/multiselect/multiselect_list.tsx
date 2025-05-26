@@ -225,7 +225,6 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                         id='multiSelectList'
                         className='more-modal__options'
                         role='presentation'
-                        aria-hidden={true}
                     >
                         {optionControls}
                     </div>
