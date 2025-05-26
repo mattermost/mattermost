@@ -9,17 +9,9 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
-)
 
-func sanitizePath(p string) string {
-	dir := strings.ReplaceAll(filepath.Dir(filepath.Clean(p)), "..", "")
-	base := filepath.Base(p)
-	if strings.Count(base, ".") == len(base) {
-		return ""
-	}
-	return filepath.Join(dir, base)
-}
+	"github.com/mattermost/mattermost/server/public/utils"
+)
 
 // UnzipToPath extracts a given zip archive into a given path.
 // It returns a list of extracted paths.
@@ -31,11 +23,7 @@ func UnzipToPath(zipFile io.ReaderAt, size int64, outPath string) ([]string, err
 
 	paths := make([]string, len(rd.File))
 	for i, f := range rd.File {
-		filePath := sanitizePath(f.Name)
-		if filePath == "" {
-			return nil, fmt.Errorf("invalid filepath `%s`", f.Name)
-		}
-		path := filepath.Join(outPath, filePath)
+		path := utils.SafeJoin(outPath, f.Name)
 		paths[i] = path
 		if f.FileInfo().IsDir() {
 			if err := os.Mkdir(path, 0700); err != nil {
@@ -48,6 +36,8 @@ func UnzipToPath(zipFile io.ReaderAt, size int64, outPath string) ([]string, err
 				return nil, fmt.Errorf("failed to create directory: %w", err)
 			}
 		}
+
+		//nolint:gosec // path is sanitized by utils.SafeJoin.
 		outFile, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0600)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create file: %w", err)

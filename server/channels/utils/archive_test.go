@@ -6,6 +6,7 @@ package utils
 import (
 	"archive/zip"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,76 +15,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
-
-func TestSanitizePath(t *testing.T) {
-	cases := []struct {
-		input    string
-		expected string
-	}{
-		{
-			".",
-			"",
-		},
-		{
-			"../",
-			"",
-		},
-		{
-			"...",
-			"",
-		},
-		{
-			"..//.",
-			"",
-		},
-		{
-			"/../",
-			"",
-		},
-		{
-			"/path/...../to/file",
-			"/path/to/file",
-		},
-		{
-			"/path/to/file...",
-			"/path/to/file...",
-		},
-		{
-			"/path/to/../../../file",
-			"/file",
-		},
-		{
-			"../../../../file",
-			"/file",
-		},
-		{
-			"/path/to/file..ext",
-			"/path/to/file..ext",
-		},
-		{
-			"/path/to/...file..ext",
-			"/path/to/...file..ext",
-		},
-		{
-			"./path/to/...file..ext",
-			"path/to/...file..ext",
-		},
-		{
-			"./...file",
-			"...file",
-		},
-		{
-			"path/",
-			"path",
-		},
-	}
-
-	for _, c := range cases {
-		t.Run(c.input, func(t *testing.T) {
-			require.Equal(t, c.expected, sanitizePath(c.input))
-		})
-	}
-}
 
 func TestUnzipToPath(t *testing.T) {
 	testDir, _ := fileutils.FindDir("tests")
@@ -144,5 +75,55 @@ func TestUnzipToPath(t *testing.T) {
 			return nil
 		})
 		require.NoError(t, err)
+	})
+
+	t.Run("sanitized paths", func(t *testing.T) {
+		// Create a malicious zip archive with path traversal attempts
+		maliciousZip, err := os.CreateTemp("", "malicious*.zip")
+		require.NoError(t, err)
+		defer os.Remove(maliciousZip.Name())
+		defer maliciousZip.Close()
+
+		zipWriter := zip.NewWriter(maliciousZip)
+
+		// Create files with malicious paths that attempt to escape the target directory
+		maliciousPaths := []string{
+			"../escape.txt",
+			"../../escape2.txt",
+			"subdir/../../../escape3.txt",
+			"normal.txt", // One normal file for contrast
+		}
+
+		for _, maliciousPath := range maliciousPaths {
+			var writer io.Writer
+			writer, err = zipWriter.Create(maliciousPath)
+			require.NoError(t, err)
+			_, err = writer.Write([]byte("malicious content"))
+			require.NoError(t, err)
+		}
+
+		err = zipWriter.Close()
+		require.NoError(t, err)
+
+		// Reopen the file for reading
+		err = maliciousZip.Close()
+		require.NoError(t, err)
+
+		file, err := os.Open(maliciousZip.Name())
+		require.NoError(t, err)
+		defer file.Close()
+
+		info, err := file.Stat()
+		require.NoError(t, err)
+
+		paths, err := UnzipToPath(file, info.Size(), dir)
+		require.NoError(t, err)
+		require.NotEmpty(t, paths)
+
+		// Expect the following directory structure, and thus weren't written outside the target directory.
+		require.FileExists(t, filepath.Join(dir, "normal.txt"))
+		require.FileExists(t, filepath.Join(dir, "escape.txt"))
+		require.FileExists(t, filepath.Join(dir, "escape2.txt"))
+		require.FileExists(t, filepath.Join(dir, "escape3.txt"))
 	})
 }
