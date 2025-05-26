@@ -133,7 +133,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	fileBytesReader := bytes.NewReader(fileBytes)
 
-	// Prevent caching of support packets always be fresh
+	// Prevent caching so support packets are always fresh
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
 	// Send the zip file back to client
