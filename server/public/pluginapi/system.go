@@ -167,6 +167,8 @@ func (s *SystemService) GeneratePacketMetadata(path string, pluginMeta map[strin
 		return "", errors.Wrap(err, "failed to get packet metadata")
 	}
 	filePath := filePath.Join(path, model.PacketMetadataFileName)
+
+	//nolint:gosec // filePath is a plugin-provided path, we don't want to validate it
 	f, err := os.Create(filePath)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create packet metadata file")
