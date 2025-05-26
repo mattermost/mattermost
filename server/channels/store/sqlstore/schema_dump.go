@@ -72,7 +72,7 @@ func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, e
 				var tableName string
 				var optionValue string
 
-				err := optionsRows.Scan(&tableName, &optionValue)
+				err = optionsRows.Scan(&tableName, &optionValue)
 				if err != nil {
 					rErr = multierror.Append(rErr, errors.Wrap(err, "failed to scan table options row"))
 					continue

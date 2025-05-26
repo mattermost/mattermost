@@ -127,7 +127,7 @@ type SupportPacketPluginList struct {
 // It is included in the Support Packet.
 type SupportPacketDatabaseSchema struct {
 	DatabaseCollation string          `yaml:"database_collation,omitempty"`
-	Tables           []DatabaseTable  `yaml:"tables"`
+	Tables            []DatabaseTable `yaml:"tables"`
 }
 
 // DatabaseTable represents a table in the database schema.
@@ -145,7 +145,6 @@ type DatabaseColumn struct {
 	MaxLength  int64  `yaml:"max_length,omitempty"`
 	IsNullable bool   `yaml:"is_nullable"`
 }
-
 
 type FileData struct {
 	Filename string
