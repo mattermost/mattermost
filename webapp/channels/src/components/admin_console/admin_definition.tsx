@@ -7,6 +7,10 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import {Link} from 'react-router-dom';
+import {AboutLinks, CacheTypes, CloudProducts, Constants, DeveloperLinks, DocLinks, LicenseSkus, getLicenseTier} from 'utils/constants';
+import {isCloudLicense} from 'utils/license_utils';
+import {ID_PATH_PATTERN} from 'utils/path';
+import {getSiteURL} from 'utils/url';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon} from '@mattermost/compass-icons/components';
 import type {CloudState, Product} from '@mattermost/types/cloud';
@@ -48,11 +52,6 @@ import TeamAnalytics from 'components/analytics/team_analytics';
 import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/analytics/team_analytics/team_analytics';
 import ExternalLink from 'components/external_link';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
-
-import {AboutLinks, CacheTypes, CloudProducts, Constants, DeveloperLinks, DocLinks, LicenseSkus, getLicenseTier} from 'utils/constants';
-import {isCloudLicense} from 'utils/license_utils';
-import {ID_PATH_PATTERN} from 'utils/path';
-import {getSiteURL} from 'utils/url';
 
 import PolicyList from './access_control';
 import AccessControlPolicyJobs from './access_control/jobs';
@@ -6329,19 +6328,6 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 ),
             },
             {
-                type: 'number',
-                key: 'LdapSettings.MaximumLoginAttempts',
-                label: defineMessage({id: 'admin.ldap.maximumLoginAttemptsTitle', defaultMessage: 'Maximum Login Attempts:'}),
-                help_text: defineMessage({id: 'admin.ldap.maximumLoginAttemptsDesc', defaultMessage: 'The maximum number of login attempts before the Mattermost account is locked. You can unlock the account in system console on the users page. Setting this value lower than your LDAP maximum login attempts ensures that the users won\'t be locked out of your LDAP server because of failed login attempts in Mattermost.'}),
-                isDisabled: it.any(
-                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                    it.all(
-                        it.stateIsFalse('LdapSettings.Enable'),
-                        it.stateIsFalse('LdapSettings.EnableSync'),
-                    ),
-                ),
-            },
-            {
                 type: 'text',
                 key: 'LdapSettings.LdapServer',
                 label: defineMessage({id: 'admin.ldap.serverTitle', defaultMessage: 'AD/LDAP Server:'}),
@@ -6361,6 +6347,32 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 label: defineMessage({id: 'admin.ldap.portTitle', defaultMessage: 'AD/LDAP Port:'}),
                 help_text: defineMessage({id: 'admin.ldap.portDesc', defaultMessage: 'The port Mattermost will use to connect to the AD/LDAP server. Default is 389.'}),
                 placeholder: defineMessage({id: 'admin.ldap.portEx', defaultMessage: 'E.g.: "389"'}),
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                    it.all(
+                        it.stateIsFalse('LdapSettings.Enable'),
+                        it.stateIsFalse('LdapSettings.EnableSync'),
+                    ),
+                ),
+            },
+            {
+                type: 'text',
+                key: 'LdapSettings.BindUsername',
+                label: defineMessage({id: 'admin.ldap.bindUserTitle', defaultMessage: 'Bind Username:'}),
+                help_text: defineMessage({id: 'admin.ldap.bindUserDesc', defaultMessage: 'The username used to perform the AD/LDAP search. This should typically be an account created specifically for use with Mattermost. It should have access limited to read the portion of the AD/LDAP tree specified in the Base DN field.'}),
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                    it.all(
+                        it.stateIsFalse('LdapSettings.Enable'),
+                        it.stateIsFalse('LdapSettings.EnableSync'),
+                    ),
+                ),
+            },
+            {
+                type: 'text',
+                key: 'LdapSettings.BindPassword',
+                label: defineMessage({id: 'admin.ldap.bindPwdTitle', defaultMessage: 'Bind Password:'}),
+                help_text: defineMessage({id: 'admin.ldap.bindPwdDesc', defaultMessage: 'Password of the user given in "Bind Username".'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
@@ -6447,23 +6459,10 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 remove_action: removePublicLdapCertificate,
             },
             {
-                type: 'text',
-                key: 'LdapSettings.BindUsername',
-                label: defineMessage({id: 'admin.ldap.bindUserTitle', defaultMessage: 'Bind Username:'}),
-                help_text: defineMessage({id: 'admin.ldap.bindUserDesc', defaultMessage: 'The username used to perform the AD/LDAP search. This should typically be an account created specifically for use with Mattermost. It should have access limited to read the portion of the AD/LDAP tree specified in the Base DN field.'}),
-                isDisabled: it.any(
-                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                    it.all(
-                        it.stateIsFalse('LdapSettings.Enable'),
-                        it.stateIsFalse('LdapSettings.EnableSync'),
-                    ),
-                ),
-            },
-            {
-                type: 'text',
-                key: 'LdapSettings.BindPassword',
-                label: defineMessage({id: 'admin.ldap.bindPwdTitle', defaultMessage: 'Bind Password:'}),
-                help_text: defineMessage({id: 'admin.ldap.bindPwdDesc', defaultMessage: 'Password of the user given in "Bind Username".'}),
+                type: 'number',
+                key: 'LdapSettings.MaximumLoginAttempts',
+                label: defineMessage({id: 'admin.ldap.maximumLoginAttemptsTitle', defaultMessage: 'Maximum Login Attempts:'}),
+                help_text: defineMessage({id: 'admin.ldap.maximumLoginAttemptsDesc', defaultMessage: 'The maximum number of login attempts before the Mattermost account is locked. You can unlock the account in system console on the users page. Setting this value lower than your LDAP maximum login attempts ensures that the users won\'t be locked out of your LDAP server because of failed login attempts in Mattermost.'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
@@ -6477,20 +6476,9 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 action: ldapTestConnection,
                 key: 'LdapSettings.TestConnection',
                 label: defineMessage({id: 'admin.ldap.testConnectionTitle', defaultMessage: 'Test Connection'}),
-                help_text: defineMessage({id: 'admin.ldap.testHelpText', defaultMessage: 'Tests if the Mattermost server can connect to the AD/LDAP server specified.'}),
-                help_text_values: {
-                    link: (msg: string) => (
-                        <ExternalLink
-                            location='admin_console'
-                            href={DocLinks.CONFIGURE_AD_LDAP_QUERY_TIMEOUT}
-                        >
-                            {msg}
-                        </ExternalLink>
-                    ),
-                },
                 help_text_markdown: false,
-                error_message: defineMessage({id: 'admin.ldap.testFailure', defaultMessage: 'AD/LDAP Test Connection Failure: {error}'}),
-                success_message: defineMessage({id: 'admin.ldap.testSuccess', defaultMessage: 'AD/LDAP Test Connection Successful'}),
+                error_message: defineMessage({id: 'admin.ldap.testConnectionFailure', defaultMessage: 'Test Connection Failure: {error}'}),
+                success_message: defineMessage({id: 'admin.ldap.testConnectionSuccess', defaultMessage: 'Test Connection Successful'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
