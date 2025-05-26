@@ -104,6 +104,7 @@ func ReadCredentialsList() (*CredentialsList, error) {
 		return nil, errors.WithMessage(err, "cannot read user credentials, maybe you need to use login first")
 	}
 
+	//nolint:gosec // Trust default or administrator supplied configuration path.
 	fileContents, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, errors.WithMessage(err, "there was a problem reading the credentials file")
@@ -219,6 +220,7 @@ func SetUser(newUser *user.User) {
 // will read the scret from file, if there is one
 func readSecretFromFile(file string, secret *string) error {
 	if file != "" {
+		//nolint:gosec // Trust administrator supplied paths.
 		b, err := os.ReadFile(file)
 		if err != nil {
 			return err

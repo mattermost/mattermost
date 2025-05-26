@@ -236,9 +236,11 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 		return fmt.Errorf("export file already exists")
 	case err != nil:
 		// file does not exist, we create it
+		//nolint:gosec // Trust administrator supplied path.
 		outFile, err = os.Create(path)
 	default:
 		// no error, file exists, we open it
+		//nolint:gosec // Trust administrator supplied path.
 		outFile, err = os.OpenFile(path, os.O_WRONLY, 0600)
 	}
 

@@ -191,6 +191,7 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 		filename = rFilename
 	}
 
+	//nolint:gosec // Trust either administrator supplied path, or generated support packet path.
 	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to create zip file: %w", err)

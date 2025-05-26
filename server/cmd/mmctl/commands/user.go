@@ -530,7 +530,6 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	ruser, _, err := c.CreateUser(context.TODO(), user)
-
 	if err != nil {
 		return errors.New("Unable to create user. Error: " + err.Error())
 	}
@@ -1032,6 +1031,7 @@ func migrateAuthToSamlCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 	if !auto {
 		matchesFile := userArgs[2]
 
+		//nolint:gosec // Trust administrator supplied path.
 		file, err := os.ReadFile(matchesFile)
 		if err != nil {
 			return fmt.Errorf("could not read file: %w", err)
@@ -1160,7 +1160,6 @@ func preferencesListCmdF(c client.Client, cmd *cobra.Command, userArgs []string)
 		var err error
 		if category == "" {
 			preferences, _, err = c.GetPreferences(context.TODO(), user.Id)
-
 			if err != nil {
 				err = fmt.Errorf("unable to list user preferences %s: %w", userArgs[i], err)
 				errs = multierror.Append(errs, err)
@@ -1169,7 +1168,6 @@ func preferencesListCmdF(c client.Client, cmd *cobra.Command, userArgs []string)
 			}
 		} else {
 			preferences, _, err = c.GetPreferencesByCategory(context.TODO(), user.Id, category)
-
 			if err != nil {
 				err = fmt.Errorf("unable to list user preferences by category %s for %s: %w", category, userArgs[i], err)
 				errs = multierror.Append(errs, err)

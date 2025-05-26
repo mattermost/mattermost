@@ -98,6 +98,7 @@ func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var multiErr *multierror.Error
 
 	for i, plugin := range args {
+		//nolint:gosec // Trust administrator supplied paths.
 		fileReader, err := os.Open(plugin)
 		if err != nil {
 			return err

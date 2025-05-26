@@ -189,6 +189,7 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 		printer.PrintWarning("In --local mode, you don't need to upload the file to server any more. Directly use the import process command with the --bypass-upload flag and pass the export file.")
 	}
 
+	//nolint:gosec // Trust administrator supplied paths.
 	file, err := os.Open(filepath)
 	if err != nil {
 		return fmt.Errorf("failed to open import file: %w", err)
