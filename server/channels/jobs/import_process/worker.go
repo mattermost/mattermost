@@ -60,6 +60,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 
 			importFileSize = info.Size()
 
+			//nolint:gosec // Trust importFileName as its set by the server during job creation.
 			importFile, err = os.Open(importFileName)
 			if err != nil {
 				return err
