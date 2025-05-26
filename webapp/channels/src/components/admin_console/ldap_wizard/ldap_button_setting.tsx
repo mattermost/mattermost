@@ -56,7 +56,7 @@ const LDAPButtonSetting = (props: Props) => {
             errorMessage={props.setting.error_message}
             successMessage={props.setting.success_message}
             flushLeft={true}
-            buttonType="primary"
+            buttonType={'primary'}
         />
     );
 };

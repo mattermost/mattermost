@@ -7,9 +7,10 @@ import {useIntl} from 'react-intl';
 import FileUploadSetting from 'components/admin_console/file_upload_setting';
 import RemoveFileSetting from 'components/admin_console/remove_file_setting';
 
+import {renderLDAPSettingHelpText} from './ldap_helpers';
 import type {GeneralSettingProps} from './ldap_wizard';
 
-import {descriptorOrStringToString, renderLabel, renderSettingHelpText} from '../schema_admin_settings';
+import {descriptorOrStringToString, renderLabel} from '../schema_admin_settings';
 import type {AdminDefinitionSettingFileUpload} from '../types';
 
 type Props = {
@@ -43,7 +44,7 @@ const LDAPFileUploadSetting = (props: Props) => {
         };
 
         const label = renderLabel(props.setting, props.schema, intl);
-        const helpText = renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
+        const helpText = renderLDAPSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
 
         return (
             <RemoveFileSetting
@@ -73,7 +74,7 @@ const LDAPFileUploadSetting = (props: Props) => {
     };
 
     const label = renderLabel(props.setting, props.schema, intl);
-    const helpText = renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
+    const helpText = renderLDAPSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
 
     return (
         <FileUploadSetting
