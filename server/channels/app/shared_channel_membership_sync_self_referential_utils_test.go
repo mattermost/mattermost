@@ -160,6 +160,18 @@ func GetUsersFromSyncMsg(msg model.SyncMsg) []string {
 func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 	t.Helper()
 
+	// First, shutdown and restart services to stop any async operations
+	scsInterface := th.App.Srv().GetSharedChannelSyncService()
+	if scsInterface != nil && scsInterface.Active() {
+		// Shutdown the shared channel service to stop any async operations
+		_ = scsInterface.Shutdown()
+
+		// Wait for shutdown to complete
+		require.Eventually(t, func() bool {
+			return !scsInterface.Active()
+		}, 2*time.Second, 100*time.Millisecond, "Shared channel service should be inactive after shutdown")
+	}
+
 	// Clear all shared channels and remotes from previous tests
 	allSharedChannels, _ := ss.SharedChannel().GetAll(0, 1000, model.SharedChannelFilterOpts{})
 	for _, sc := range allSharedChannels {
@@ -232,12 +244,16 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 		return len(sharedChannels) == 0 && len(remoteClusters) == 0
 	}, 2*time.Second, 100*time.Millisecond, "Failed to clean up shared channels and remote clusters")
 
-	// Ensure services are running and ready
-	scsInterface := th.App.Srv().GetSharedChannelSyncService()
-	if scs, ok := scsInterface.(*sharedchannel.Service); ok {
-		require.Eventually(t, func() bool {
-			return scs.Active()
-		}, 2*time.Second, 100*time.Millisecond, "Shared channel service should be active")
+	// Restart services and ensure they are running and ready
+	if scsInterface != nil {
+		// Restart the shared channel service
+		_ = scsInterface.Start()
+
+		if scs, ok := scsInterface.(*sharedchannel.Service); ok {
+			require.Eventually(t, func() bool {
+				return scs.Active()
+			}, 2*time.Second, 100*time.Millisecond, "Shared channel service should be active after restart")
+		}
 	}
 
 	rcService := th.App.Srv().GetRemoteClusterService()

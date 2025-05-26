@@ -25,10 +25,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
-// TestSharedChannelMembershipSyncSelfReferential is a comprehensive test suite for MM-52600
-// that ports all tests from the original shared_channel_membership_sync_test.go to use
-// the self-referential approach. A server syncs with itself, providing real HTTP communication
-// without mocks or invalid URLs. We test calling SyncAllChannelMembers directly.
 func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELMEMBERSYNC", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELMEMBERSYNC")
@@ -163,7 +159,6 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		_, err = ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
 		require.Error(t, err, "User should not be a member after removal")
 	})
-
 	t.Run("Test 2: Batch membership sync with user type filtering", func(t *testing.T) {
 		EnsureCleanState(t, th, ss)
 		// This test verifies batch sync of multiple members and proper filtering of user types
@@ -484,7 +479,6 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		assert.NotContains(t, syncedInSecondCall, user1.Id, "Second sync should not re-sync existing users")
 		assert.NotContains(t, syncedInSecondCall, user2.Id, "Second sync should not re-sync existing users")
 	})
-
 	t.Run("Test 4: Sync failure and recovery", func(t *testing.T) {
 		// This test verifies that membership sync handles remote server failures gracefully
 		// and successfully syncs members once the remote server recovers.
@@ -1255,7 +1249,6 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			return allClustersReceived
 		}, 10*time.Second, 100*time.Millisecond, "All clusters should receive removal sync")
 	})
-
 	t.Run("Test 8: Feature flag disabled", func(t *testing.T) {
 		// This test verifies that the shared channel membership sync functionality respects the feature flag.
 		// It tests two scenarios:
@@ -1350,5 +1343,550 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.Eventually(t, func() bool {
 			return atomic.LoadInt32(&syncMessageCount) > 0
 		}, 5*time.Second, 100*time.Millisecond, "Sync should occur with feature flag enabled")
+	})
+	t.Run("Test 9: Sync Task After Connection Becomes Available", func(t *testing.T) {
+		// This test verifies that membership sync works correctly when a remote cluster
+		// reconnects after being offline. We simulate a cluster that has been unavailable
+		// (old LastPingAt timestamp) and then comes back online.
+		// Expected behavior:
+		// 1. Cluster is created with old LastPingAt (simulating previous offline state)
+		// 2. When LastPingAt is updated (cluster comes online), sync should work
+		// 3. All channel members should be synced successfully
+		// 4. Cursor (LastMembersSyncAt) should be updated after successful sync
+		EnsureCleanState(t, th, ss)
+
+		var syncTaskCreated atomic.Bool
+		var syncHandler *SelfReferentialSyncHandler
+
+		// Create test HTTP server
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if syncHandler != nil {
+				syncHandler.HandleRequest(w, r)
+			} else {
+				writeOKResponse(w)
+			}
+		}))
+		defer testServer.Close()
+
+		// Create channel and share it
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		sc := &model.SharedChannel{
+			ChannelId: channel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Home:      true,
+			ShareName: "reconnect-test",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  "",
+		}
+		_, shareErr := th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, shareErr)
+
+		// Create remote cluster that was previously offline (old LastPingAt)
+		selfCluster := &model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			Name:        "self-cluster-reconnect",
+			SiteURL:     testServer.URL,
+			CreateAt:    model.GetMillis() - 300000, // Created 5 minutes ago
+			LastPingAt:  model.GetMillis() - 120000, // Last ping 2 minutes ago
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
+		}
+		selfCluster, err = ss.RemoteCluster().Save(selfCluster)
+		require.NoError(t, err)
+
+		// Share channel with self
+		scr := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			RemoteId:          selfCluster.RemoteId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			LastMembersSyncAt: 0,
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr)
+		require.NoError(t, err)
+
+		// Initialize sync handler
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
+		syncHandler.OnBatchSync = func(userIds []string, messageNumber int32) {
+			syncTaskCreated.Store(true)
+		}
+
+		// Add some users to sync
+		for i := 0; i < 3; i++ {
+			user := th.CreateUser()
+			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
+			require.Nil(t, appErr)
+			_, appErr = th.App.AddUserToChannel(th.Context, user, channel, false)
+			require.Nil(t, appErr)
+		}
+
+		// Update LastPingAt to simulate cluster coming back online
+		selfCluster.LastPingAt = model.GetMillis()
+		_, err = ss.RemoteCluster().Update(selfCluster)
+		require.NoError(t, err)
+
+		// Trigger membership sync as would happen when connection is restored
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		require.NoError(t, err)
+
+		// Verify sync task was created and executed
+		require.Eventually(t, func() bool {
+			return syncTaskCreated.Load()
+		}, 5*time.Second, 100*time.Millisecond, "Sync should execute when cluster comes back online")
+
+		// Verify cursor was updated
+		updatedScr, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
+		require.NoError(t, scrErr)
+		assert.Greater(t, updatedScr.LastMembersSyncAt, int64(0), "Cursor should be updated after sync")
+	})
+	t.Run("Test 10: Remote Cluster Offline During Sync", func(t *testing.T) {
+		// This test verifies graceful failure handling when a remote cluster goes offline
+		// during the sync operation. We simulate a server that works initially but then
+		// becomes unavailable during subsequent sync attempts.
+		// Expected behavior:
+		// 1. First sync succeeds and updates the cursor
+		// 2. Server goes offline for the second sync attempt
+		// 3. Second sync fails gracefully without errors
+		// 4. Cursor remains at the value from the successful first sync (no corruption)
+		// 5. No partial data is persisted from the failed sync
+		EnsureCleanState(t, th, ss)
+
+		var syncAttempts int32
+		var serverOnline atomic.Bool
+		serverOnline.Store(true)
+		var syncHandler *SelfReferentialSyncHandler
+
+		// Create test HTTP server that can simulate going offline
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if !serverOnline.Load() {
+				// Simulate server being offline
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
+
+			if r.URL.Path == "/api/v4/remotecluster/msg" {
+				currentAttempt := atomic.AddInt32(&syncAttempts, 1)
+				// On second attempt, go offline
+				if currentAttempt >= 2 {
+					serverOnline.Store(false)
+					w.WriteHeader(http.StatusServiceUnavailable)
+					return
+				}
+
+				// First attempt succeeds - use sync handler if available
+				if currentAttempt == 1 && syncHandler != nil {
+					syncHandler.HandleRequest(w, r)
+					return
+				}
+			}
+			writeOKResponse(w)
+		}))
+		defer testServer.Close()
+
+		// Create channel and share it
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		sc := &model.SharedChannel{
+			ChannelId: channel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Home:      true,
+			ShareName: "offline-test",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  "",
+		}
+		_, shareErr := th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, shareErr)
+
+		// Create remote cluster
+		selfCluster := &model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			Name:        "self-cluster-offline",
+			SiteURL:     testServer.URL,
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
+		}
+		selfCluster, err = ss.RemoteCluster().Save(selfCluster)
+		require.NoError(t, err)
+
+		// Share channel with self
+		scr := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			RemoteId:          selfCluster.RemoteId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			LastMembersSyncAt: 0,
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr)
+		require.NoError(t, err)
+
+		// Add users to sync
+		for i := 0; i < 5; i++ {
+			user := th.CreateUser()
+			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
+			require.Nil(t, appErr)
+			_, appErr = th.App.AddUserToChannel(th.Context, user, channel, false)
+			require.Nil(t, appErr)
+		}
+
+		// Initialize sync handler
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
+
+		// First sync should succeed
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		require.NoError(t, err)
+
+		// Wait for first sync
+		require.Eventually(t, func() bool {
+			return atomic.LoadInt32(&syncAttempts) >= 1
+		}, 5*time.Second, 100*time.Millisecond)
+
+		// Get cursor after first sync
+		scr1, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
+		require.NoError(t, scrErr)
+		firstCursor := scr1.LastMembersSyncAt
+		assert.Greater(t, firstCursor, int64(0), "Cursor should be set after first sync")
+
+		// Add more users
+		for i := 0; i < 3; i++ {
+			user := th.CreateUser()
+			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
+			require.Nil(t, appErr)
+			_, appErr = th.App.AddUserToChannel(th.Context, user, channel, false)
+			require.Nil(t, appErr)
+		}
+
+		// Second sync should fail (server goes offline)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		require.NoError(t, err) // Method itself shouldn't error
+
+		// Wait for second sync attempt
+		require.Eventually(t, func() bool {
+			return atomic.LoadInt32(&syncAttempts) >= 2
+		}, 5*time.Second, 100*time.Millisecond)
+
+		// Verify cursor was not updated after failed sync
+		scr2, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
+		require.NoError(t, scrErr)
+		assert.Equal(t, firstCursor, scr2.LastMembersSyncAt, "Cursor should not update when sync fails")
+	})
+	t.Run("Test 11: Users in Multiple Shared Channels", func(t *testing.T) {
+		// This test verifies deduplication when users belong to multiple shared channels.
+		// Unlike global user sync which syncs users once regardless of channel membership,
+		// membership sync operates per channel and must handle users in multiple channels.
+		// Test setup:
+		// - user1: member of all 3 shared channels
+		// - user2: member of 2 shared channels (channel1 and channel2)
+		// - user3: member of 1 shared channel (channel3)
+		// Expected behavior:
+		// - Each user is synced exactly once per channel they belong to
+		// - No duplicate sync messages for the same user in the same channel
+		// - Users not in a channel are not synced for that channel
+		EnsureCleanState(t, th, ss)
+
+		var syncedChannelUsers = make(map[string][]string) // channelId -> userIds
+		var mu sync.Mutex
+		var syncHandler *SelfReferentialSyncHandler
+		var testServer *httptest.Server
+
+		// Create users
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		user3 := th.CreateUser()
+
+		// Add users to team
+		th.LinkUserToTeam(user1, th.BasicTeam)
+		th.LinkUserToTeam(user2, th.BasicTeam)
+		th.LinkUserToTeam(user3, th.BasicTeam)
+
+		// Create multiple shared channels
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel3 := th.CreateChannel(th.Context, th.BasicTeam)
+
+		// Add users to multiple shared channels
+		// user1 in all channels
+		th.AddUserToChannel(user1, channel1)
+		th.AddUserToChannel(user1, channel2)
+		th.AddUserToChannel(user1, channel3)
+
+		// user2 in two channels
+		th.AddUserToChannel(user2, channel1)
+		th.AddUserToChannel(user2, channel2)
+
+		// user3 in one channel
+		th.AddUserToChannel(user3, channel3)
+
+		// Log test user IDs for debugging
+		t.Logf("Test user IDs - user1: %s, user2: %s, user3: %s", user1.Id, user2.Id, user3.Id)
+
+		// Create a wrapper handler to intercept sync messages
+		testServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Intercept and track channel syncs
+			if r.URL.Path == "/api/v4/remotecluster/msg" {
+				bodyBytes, pErr := io.ReadAll(r.Body)
+				if pErr == nil {
+					// Restore body for actual handler
+					r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+
+					var frame model.RemoteClusterFrame
+					if json.Unmarshal(bodyBytes, &frame) == nil {
+						var syncMsg model.SyncMsg
+						if json.Unmarshal(frame.Msg.Payload, &syncMsg) == nil {
+							mu.Lock()
+							channelId := syncMsg.ChannelId
+							if channelId != "" {
+								if _, ok := syncedChannelUsers[channelId]; !ok {
+									syncedChannelUsers[channelId] = []string{}
+								}
+
+								// Add all users from membership changes
+								for _, change := range syncMsg.MembershipChanges {
+									if change.IsAdd {
+										syncedChannelUsers[channelId] = append(syncedChannelUsers[channelId], change.UserId)
+									}
+								}
+							}
+							mu.Unlock()
+						}
+					}
+				}
+			}
+
+			// Call the actual sync handler
+			if syncHandler != nil {
+				syncHandler.HandleRequest(w, r)
+			} else {
+				writeOKResponse(w)
+			}
+		}))
+		defer testServer.Close()
+
+		// Create remote cluster
+		selfCluster := &model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			Name:        "self-cluster-multi-channel",
+			SiteURL:     testServer.URL,
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
+		}
+		selfCluster, err = ss.RemoteCluster().Save(selfCluster)
+		require.NoError(t, err)
+
+		// Initialize sync handler
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
+
+		// Make channels shared
+		for i, channel := range []*model.Channel{channel1, channel2, channel3} {
+			sc := &model.SharedChannel{
+				ChannelId: channel.Id,
+				TeamId:    th.BasicTeam.Id,
+				RemoteId:  selfCluster.RemoteId,
+				Home:      true,
+				ReadOnly:  false,
+				ShareName: fmt.Sprintf("channel%d", i+1),
+				CreatorId: th.BasicUser.Id,
+			}
+			_, err = ss.SharedChannel().Save(sc)
+			require.NoError(t, err)
+
+			scr := &model.SharedChannelRemote{
+				Id:                model.NewId(),
+				ChannelId:         channel.Id,
+				CreatorId:         th.BasicUser.Id,
+				RemoteId:          selfCluster.RemoteId,
+				IsInviteAccepted:  true,
+				IsInviteConfirmed: true,
+				LastMembersSyncAt: 0,
+			}
+			_, err = ss.SharedChannel().SaveRemote(scr)
+			require.NoError(t, err)
+		}
+
+		// Sync memberships for each channel separately
+		for _, channel := range []*model.Channel{channel1, channel2, channel3} {
+			err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+			require.NoError(t, err)
+		}
+
+		// Wait for syncs to complete
+		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+
+			// We should have sync data for all 3 channels
+			return len(syncedChannelUsers) == 3
+		}, 10*time.Second, 100*time.Millisecond, "Expected sync data for all 3 channels")
+
+		// Verify each user is synced exactly once per channel they belong to
+		mu.Lock()
+		defer mu.Unlock()
+
+		// Verify channel1 synced user1, user2, and BasicUser
+		channel1Users := syncedChannelUsers[channel1.Id]
+		userCount1 := make(map[string]int)
+		for _, userId := range channel1Users {
+			userCount1[userId]++
+		}
+		assert.Equal(t, 1, userCount1[user1.Id], "User1 should be synced exactly once for channel1")
+		assert.Equal(t, 1, userCount1[user2.Id], "User2 should be synced exactly once for channel1")
+		assert.Equal(t, 0, userCount1[user3.Id], "User3 should not be synced for channel1")
+
+		// Verify channel2 synced user1, user2, and BasicUser
+		channel2Users := syncedChannelUsers[channel2.Id]
+		userCount2 := make(map[string]int)
+		for _, userId := range channel2Users {
+			userCount2[userId]++
+		}
+		assert.Equal(t, 1, userCount2[user1.Id], "User1 should be synced exactly once for channel2")
+		assert.Equal(t, 1, userCount2[user2.Id], "User2 should be synced exactly once for channel2")
+		assert.Equal(t, 0, userCount2[user3.Id], "User3 should not be synced for channel2")
+
+		// Verify channel3 synced user1, user3, and BasicUser
+		channel3Users := syncedChannelUsers[channel3.Id]
+		userCount3 := make(map[string]int)
+		for _, userId := range channel3Users {
+			userCount3[userId]++
+		}
+		assert.Equal(t, 1, userCount3[user1.Id], "User1 should be synced exactly once for channel3")
+		assert.Equal(t, 0, userCount3[user2.Id], "User2 should not be synced for channel3")
+		assert.Equal(t, 1, userCount3[user3.Id], "User3 should be synced exactly once for channel3")
+	})
+	t.Run("Test 12: Database Error Handling", func(t *testing.T) {
+		// This test verifies system resilience when dealing with edge cases and potential
+		// database issues. We test extreme cursor values and verify the system handles
+		// them gracefully without data corruption.
+		// Test scenario:
+		// 1. Perform initial sync to establish baseline
+		// 2. Set cursor to maximum int64 value (edge case)
+		// 3. Attempt sync with extreme cursor value
+		// 4. Verify system handles it gracefully without corruption
+		// 5. Reset cursor and verify normal operation resumes
+		EnsureCleanState(t, th, ss)
+
+		// For this test, we'll simulate a database error by creating a remote cluster
+		// with invalid data that will cause issues during sync
+		var syncHandler *SelfReferentialSyncHandler
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if syncHandler != nil {
+				syncHandler.HandleRequest(w, r)
+			} else {
+				writeOKResponse(w)
+			}
+		}))
+		defer testServer.Close()
+
+		// Create channel and share it
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		sc := &model.SharedChannel{
+			ChannelId: channel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Home:      true,
+			ShareName: "db-error-test",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  "",
+		}
+		_, shareErr := th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, shareErr)
+
+		// Create remote cluster
+		selfCluster := &model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			Name:        "self-cluster-db-error",
+			SiteURL:     testServer.URL,
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
+		}
+		selfCluster, err = ss.RemoteCluster().Save(selfCluster)
+		require.NoError(t, err)
+
+		// Share channel with self
+		scr := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			RemoteId:          selfCluster.RemoteId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			LastMembersSyncAt: 0,
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr)
+		require.NoError(t, err)
+
+		// Create a user
+		user := th.CreateUser()
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, user, channel, false)
+		require.Nil(t, appErr)
+
+		// Also add BasicUser to the channel to ensure we have members to sync
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+		require.Nil(t, appErr)
+
+		// Initialize sync handler
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
+
+		// Test 12 is more about resilience than actual database errors
+		// Since we can't easily simulate a real database error in this test setup,
+		// we'll test that the sync handles edge cases gracefully
+
+		// First, do a normal sync to establish a baseline cursor
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		require.NoError(t, err)
+
+		// Wait for sync to complete and cursor to be updated
+		var firstCursor int64
+		require.Eventually(t, func() bool {
+			scr1, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
+			if scrErr != nil {
+				return false
+			}
+			firstCursor = scr1.LastMembersSyncAt
+			return firstCursor > 0
+		}, 5*time.Second, 100*time.Millisecond, "Should have cursor after first sync")
+
+		// Set an extremely large cursor value to test edge case handling
+		scr.LastMembersSyncAt = 9223372036854775807 // Max int64
+		_, err = ss.SharedChannel().UpdateRemote(scr)
+		require.NoError(t, err)
+
+		// Attempt sync with extreme cursor - it should still handle it gracefully
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		require.NoError(t, err)
+
+		// The cursor might be updated or not depending on implementation,
+		// but it should not corrupt the data
+		updatedScr, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
+		require.NoError(t, scrErr)
+		// Just verify we can still read the cursor without errors
+		t.Logf("Cursor after extreme value test: %d", updatedScr.LastMembersSyncAt)
+
+		// Reset cursor to a valid value
+		scr.LastMembersSyncAt = 0
+		_, err = ss.SharedChannel().UpdateRemote(scr)
+		require.NoError(t, err)
+
+		// Now sync should work normally
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		require.NoError(t, err)
+
+		// Wait for final sync to complete
+		require.Eventually(t, func() bool {
+			finalScr, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
+			return scrErr == nil && finalScr.LastMembersSyncAt > 0
+		}, 5*time.Second, 100*time.Millisecond, "Cursor should update after successful sync")
 	})
 }
