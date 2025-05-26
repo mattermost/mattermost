@@ -33,6 +33,7 @@ func checkInteractiveTerminal() error {
 }
 
 func zipDir(zipPath, dir string) error {
+	//nolint:gosec // Trust caller to provide a valid path.
 	zipFile, err := os.Create(zipPath)
 	if err != nil {
 		return fmt.Errorf("cannot create file %q: %w", zipPath, err)
@@ -85,6 +86,7 @@ func addToZip(zipWriter *zip.Writer, basedir, path string) error {
 			continue
 		}
 
+		//nolint:gosec // Iterating over directory, and trusting the filesystem.
 		file, err := os.Open(filepath.Join(dirPath, fileInfo.Name()))
 		if err != nil {
 			return fmt.Errorf("cannot open file %q: %w", filePath, err)
