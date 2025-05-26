@@ -211,12 +211,16 @@ func (h *MainHelper) PreloadMigrations() {
 	switch *h.Settings.DriverName {
 	case model.DatabaseDriverPostgres:
 		finalPath := filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "postgres_migration_warmup.sql")
+
+		//nolint:gosec // Trust finalPath, especially in test code.
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	case model.DatabaseDriverMysql:
 		finalPath := filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "mysql_migration_warmup.sql")
+
+		//nolint:gosec // Trust finalPath, especially in test code.
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
