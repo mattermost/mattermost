@@ -75,6 +75,9 @@ const (
 
 	FakeSetting = "********************************"
 
+	// SanitizedPassword is the placeholder used for redacting passwords in data sources
+	SanitizedPassword = "****"
+
 	RestrictEmojiCreationAll         = "all"
 	RestrictEmojiCreationAdmin       = "admin"
 	RestrictEmojiCreationSystemAdmin = "system_admin"
@@ -4666,6 +4669,14 @@ func (s *ImageProxySettings) isValid() *AppError {
 	return nil
 }
 
+// SanitizeOptions specifies options for the Config.Sanitize method.
+type SanitizeOptions struct {
+	// PartiallyRedactDataSources, when true, only redacts usernames and passwords
+	// from data sources, keeping other connection parameters visible.
+	// When false, replaces the entire data source with FakeSetting.
+	PartiallyRedactDataSources bool
+}
+
 func (o *Config) GetSanitizeOptions() map[string]bool {
 	options := map[string]bool{}
 	options["fullname"] = *o.PrivacySettings.ShowFullName
@@ -4679,8 +4690,24 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 //
 // Parameters:
 //   - pluginManifests: Plugin manifests for sanitizing plugin settings.
-//   - partiallySanitizeDataSources: Whether to partially sanitize SQL data sources instead of fully replacing it with [FakeSetting].
-func (o *Config) Sanitize(pluginManifests []*Manifest, partiallySanitizeDataSources bool) {
+//   - opts: Options for controlling sanitization behavior. If nil, defaults are used. See [SanitizeOptions].
+func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
+	if opts == nil {
+		opts = &SanitizeOptions{}
+	}
+
+	driverName := *o.SqlSettings.DriverName
+	sanitizeDataSourceField := func(dataSource string, fieldName string) string {
+		if opts.PartiallyRedactDataSources {
+			sanitized, err := SanitizeDataSource(driverName, dataSource)
+			if err != nil {
+				mlog.Warn("Failed to sanitize "+fieldName, mlog.Err(err))
+				return dataSource
+			}
+			return sanitized
+		}
+		return FakeSetting
+	}
 	if o.LdapSettings.BindPassword != nil && *o.LdapSettings.BindPassword != "" {
 		*o.LdapSettings.BindPassword = FakeSetting
 	}
@@ -4714,16 +4741,7 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, partiallySanitizeDataSour
 	}
 
 	if o.SqlSettings.DataSource != nil {
-		if partiallySanitizeDataSources {
-			sanitized, err := SanitizeDataSource(*o.SqlSettings.DriverName, *o.SqlSettings.DataSource)
-			if err != nil {
-				mlog.Warn("Failed to sanitize SqlSettings.DataSource", mlog.Err(err))
-			} else {
-				*o.SqlSettings.DataSource = sanitized
-			}
-		} else {
-			*o.SqlSettings.DataSource = FakeSetting
-		}
+		*o.SqlSettings.DataSource = sanitizeDataSourceField(*o.SqlSettings.DataSource, "SqlSettings.DataSource")
 	}
 
 	if o.SqlSettings.AtRestEncryptKey != nil {
@@ -4735,41 +4753,17 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, partiallySanitizeDataSour
 	}
 
 	for i := range o.SqlSettings.DataSourceReplicas {
-		if partiallySanitizeDataSources {
-			sanitized, err := SanitizeDataSource(*o.SqlSettings.DriverName, o.SqlSettings.DataSourceReplicas[i])
-			if err != nil {
-				mlog.Warn("Failed to sanitize SqlSettings.DataSourceReplicas", mlog.Err(err))
-				continue
-			}
-			o.SqlSettings.DataSourceReplicas[i] = sanitized
-		} else {
-			o.SqlSettings.DataSourceReplicas[i] = FakeSetting
-		}
+		o.SqlSettings.DataSourceReplicas[i] = sanitizeDataSourceField(o.SqlSettings.DataSourceReplicas[i], "SqlSettings.DataSourceReplicas")
 	}
 
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
-		if partiallySanitizeDataSources {
-			sanitized, err := SanitizeDataSource(*o.SqlSettings.DriverName, o.SqlSettings.DataSourceSearchReplicas[i])
-			if err != nil {
-				mlog.Warn("Failed to sanitize SqlSettings.DataSourceSearchReplicas", mlog.Err(err))
-				continue
-			}
-			o.SqlSettings.DataSourceSearchReplicas[i] = sanitized
-		} else {
-			o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
-		}
+		o.SqlSettings.DataSourceSearchReplicas[i] = sanitizeDataSourceField(o.SqlSettings.DataSourceSearchReplicas[i], "SqlSettings.DataSourceSearchReplicas")
 	}
 
 	for i := range o.SqlSettings.ReplicaLagSettings {
-		if partiallySanitizeDataSources {
-			sanitized, err := SanitizeDataSource(*o.SqlSettings.DriverName, *o.SqlSettings.ReplicaLagSettings[i].DataSource)
-			if err != nil {
-				mlog.Warn("Failed to sanitize SqlSettings.ReplicaLagSettings", mlog.Err(err))
-				continue
-			}
+		if o.SqlSettings.ReplicaLagSettings[i].DataSource != nil {
+			sanitized := sanitizeDataSourceField(*o.SqlSettings.ReplicaLagSettings[i].DataSource, "SqlSettings.ReplicaLagSettings")
 			o.SqlSettings.ReplicaLagSettings[i].DataSource = NewPointer(sanitized)
-		} else {
-			o.SqlSettings.ReplicaLagSettings[i].DataSource = NewPointer(FakeSetting)
 		}
 	}
 
@@ -4790,14 +4784,33 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, partiallySanitizeDataSour
 	o.PluginSettings.Sanitize(pluginManifests)
 }
 
+// SanitizeDataSource redacts sensitive information (username and password) from a database
+// connection string while preserving other connection parameters.
+//
+// Parameters:
+//   - driverName: The database driver name (postgres or mysql)
+//   - dataSource: The database connection string to sanitize
+//
+// Returns:
+//   - The sanitized connection string with username/password replaced by SanitizedPassword
+//   - An error if the driverName is not supported or if parsing fails
+//
+// Examples:
+//   - PostgreSQL: "postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
+//   - MySQL: "user:pass@tcp(host:3306)/db" -> "****:****@tcp(host:3306)/db"
 func SanitizeDataSource(driverName, dataSource string) (string, error) {
+	// Handle empty data source
+	if dataSource == "" {
+		return "", nil
+	}
+
 	switch driverName {
 	case DatabaseDriverPostgres:
 		u, err := url.Parse(dataSource)
 		if err != nil {
 			return "", err
 		}
-		u.User = url.UserPassword("****", "****")
+		u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
 
 		// Remove username and password from query string
 		params := u.Query()
@@ -4816,8 +4829,8 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		cfg.User = "****"
-		cfg.Passwd = "****"
+		cfg.User = SanitizedPassword
+		cfg.Passwd = SanitizedPassword
 		return cfg.FormatDSN(), nil
 	default:
 		return "", errors.New("invalid drivername. Not postgres or mysql.")
