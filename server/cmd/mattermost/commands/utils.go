@@ -75,6 +75,7 @@ func loadCustomDefaults() (*model.Config, error) {
 		return nil, nil
 	}
 
+	//nolint:gosec // Trust administrator supplied path.
 	file, err := os.Open(customDefaultsPath)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open custom defaults file at %q: %w", customDefaultsPath, err)
