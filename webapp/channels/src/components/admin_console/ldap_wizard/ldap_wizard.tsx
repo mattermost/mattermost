@@ -35,7 +35,7 @@ import SchemaText from '../schema_text';
 import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess} from '../types';
 import './ldap_wizard.scss';
 
-export type LDAPDefinitionSettingButton = Omit<AdminDefinitionSettingButton, 'action'> & {
+export type LDAPDefinitionSettingButton = AdminDefinitionSettingButton & {
     action: (success: () => void, error: (error: { message: string }) => void, settings?: Record<string, any>) => void;
 }
 
@@ -164,7 +164,7 @@ const LDAPWizard = (props: Props) => {
         );
     };
 
-    const buildButtonSetting = (setting: AdminDefinitionSetting) => {
+    const buildButtonSetting = (setting: AdminDefinitionSetting | LDAPDefinitionSettingButton) => {
         let config = JSON.parse(JSON.stringify(props.config));
         config = getConfigFromState(config, state, schema, isDisabled);
 
