@@ -70,3 +70,10 @@
         }
     }
 }
+
+// Add spacing between trailing icons
+.MenuItem__trailing-elements {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}

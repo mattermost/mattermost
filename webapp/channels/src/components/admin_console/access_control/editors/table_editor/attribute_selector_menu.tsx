@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useMemo, useState, useEffect} from 'react';
+import React, {useMemo, useState, useEffect, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
 import {
@@ -13,11 +13,14 @@ import {
     FormatListBulletedIcon,
     LinkVariantIcon,
     PoundIcon,
+    InformationOutlineIcon,
+    SyncIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
+import WithTooltip from 'components/with_tooltip';
 
 import './selector_menus.scss';
 
@@ -65,7 +68,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
 
-    const onFilterChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const onFilterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFilter(e.target.value);
     }, []); // setFilter is stable
 
@@ -87,9 +90,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
     useEffect(() => {
         if (autoOpen) {
             const buttonElement = document.getElementById(buttonId);
-            if (buttonElement) {
-                buttonElement.click();
-            }
+            buttonElement?.click();
             if (onMenuOpened) {
                 onMenuOpened();
             }
@@ -129,25 +130,75 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
             />
             {options.map((option) => {
                 const {name} = option;
-                return (
+                const hasSpaces = name.includes(' ');
+                const isSynced = option.attrs?.ldap || option.attrs?.saml;
+
+                const menuItem = (
                     <Menu.Item
                         id={`attribute-${name}`}
                         key={name}
                         role='menuitemradio'
                         forceCloseOnSelect={true}
                         aria-checked={name === currentAttribute}
-                        onClick={() => handleAttributeChange(name)}
+                        onClick={hasSpaces ? undefined : () => handleAttributeChange(name)}
                         labels={<span>{name}</span>}
+                        disabled={hasSpaces}
                         leadingElement={
                             <AttributeIcon
                                 attribute={option}
                                 size={18}
-                            />}
-                        trailingElements={name === currentAttribute && (
-                            <CheckIcon/>
+                            />
+                        }
+                        trailingElements={(
+                            <>
+                                {hasSpaces && (
+                                    <InformationOutlineIcon
+                                        size={18}
+                                    />
+                                )}
+                                {isSynced && (
+                                    <SyncIcon
+                                        size={18}
+                                        color='rgba(var(--center-channel-color-rgb), 0.5)'
+                                    />
+                                )}
+                                {name === currentAttribute &&
+                                    <CheckIcon/>
+                                }
+                            </>
                         )}
                     />
                 );
+
+                // Determine tooltip content based on conditions
+                let tooltipContent = null;
+                if (hasSpaces) {
+                    tooltipContent = formatMessage({
+                        id: 'admin.access_control.table_editor.attribute_spaces_not_supported',
+                        defaultMessage: 'CEL is not compatible with variable names containing spaces',
+                    });
+                } else if (isSynced) {
+                    tooltipContent = formatMessage({
+                        id: 'admin.access_control.table_editor.attribute_synced',
+                        defaultMessage: 'This attribute is synced from an external source',
+                    });
+                }
+
+                // Wrap in tooltip if needed
+                if (tooltipContent) {
+                    return (
+                        <WithTooltip
+                            key={name}
+                            title={tooltipContent}
+                        >
+                            <div className='menu-item-tooltip-wrapper'>
+                                {menuItem}
+                            </div>
+                        </WithTooltip>
+                    );
+                }
+
+                return menuItem;
             })}
         </Menu.Container>
     );
