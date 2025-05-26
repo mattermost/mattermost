@@ -52,10 +52,11 @@ const LDAPButtonSetting = (props: Props) => {
             loadingText={descriptorOrStringToString(props.setting.loading, intl)}
             buttonText={<span>{label}</span>}
             showSuccessMessage={Boolean(props.setting.success_message)}
-            includeDetailedError={true}
             disabled={props.disabled}
             errorMessage={props.setting.error_message}
             successMessage={props.setting.success_message}
+            flushLeft={true}
+            buttonType="primary"
         />
     );
 };
