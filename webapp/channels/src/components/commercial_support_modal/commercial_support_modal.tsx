@@ -110,10 +110,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
         this.setState({loading: true, error: undefined});
         const res = await fetch(this.genereateDownloadURLWithParams(), {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/zip',
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-            },
+            headers: {'Content-Type': 'application/zip'},
         });
         if (!res.ok) {
             const data = await res.json();
