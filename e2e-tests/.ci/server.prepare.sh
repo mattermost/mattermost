@@ -23,21 +23,28 @@ fi
 
 if [ "$TEST" = "cypress" ]; then
   mme2e_log "Prepare Cypress: install dependencies"
-  # Create a temporary script to handle user creation
-  cat > /tmp/create_user.sh << EOF
-#!/bin/bash
+  # Create user directly with logging
+  mme2e_log "Creating user for ID: $MME2E_UID in Cypress container"
+  ${MME2E_DC_SERVER} exec -T -u 0 -- cypress bash -c "
+echo \"Running user creation for user ID: $MME2E_UID\"
 if ! id $MME2E_UID > /dev/null 2>&1; then
+  echo \"User $MME2E_UID does not exist, attempting to create\"
   if ! useradd -u $MME2E_UID -m nodeci > /dev/null 2>&1; then
-    echo "nodeci:x:$MME2E_UID:$MME2E_UID:nodeci:/home/nodeci:/bin/bash" >> /etc/passwd
+    echo \"useradd failed, adding user manually to /etc/passwd\"
+    echo \"nodeci:x:$MME2E_UID:$MME2E_UID:nodeci:/home/nodeci:/bin/bash\" >> /etc/passwd
     mkdir -p /home/nodeci
     chown $MME2E_UID:$MME2E_UID /home/nodeci
+    echo \"Manual user creation completed\"
+  else
+    echo \"User created successfully with useradd\"
   fi
+else
+  echo \"User $MME2E_UID already exists\"
 fi
-EOF
-  chmod +x /tmp/create_user.sh
-  ${MME2E_DC_SERVER} cp /tmp/create_user.sh cypress:/tmp/create_user.sh
-  ${MME2E_DC_SERVER} exec -T -u 0 -- cypress /tmp/create_user.sh
-  rm /tmp/create_user.sh
+echo \"Verifying user creation:\"
+id $MME2E_UID || echo \"WARNING: User verification failed\"
+" || mme2e_log "WARNING: User creation failed, but continuing anyway"
+  mme2e_log "User setup completed"
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress npm i
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress cypress install
   mme2e_log "Prepare Cypress: populating fixtures"
