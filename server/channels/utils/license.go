@@ -126,6 +126,7 @@ func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte,
 }
 
 func GetLicenseFileFromDisk(fileName string) []byte {
+	//nolint:gosec // Trust administrator supplied or filesystem discovered filename.
 	file, err := os.Open(fileName)
 	if err != nil {
 		mlog.Error("Failed to open license key from disk at", mlog.String("filename", fileName), mlog.Err(err))
