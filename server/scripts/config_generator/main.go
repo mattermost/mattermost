@@ -34,6 +34,7 @@ func main() {
 		os.Exit(2)
 	}
 
+	//nolint:gosec // This is a script that generates a config file, not a security-sensitive operation.
 	if file, err := os.Create(outputFile); err == nil {
 		err = generateDefaultConfig(file)
 		_ = file.Close()
