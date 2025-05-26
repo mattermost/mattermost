@@ -8,6 +8,7 @@
     ],
     "rules": {
         "@stylistic/indentation": 4,
+        "@stylistic/no-missing-end-of-source-newline": true,
         "no-descending-specificity": null,
         "font-family-no-missing-generic-family-keyword": null,
         "property-no-unknown": [
