@@ -61,7 +61,8 @@ id $MME2E_UID || echo \"WARNING: User verification failed\"
       continue
     fi
     mme2e_log "Downloading $PLUGIN_NAME to fixtures directory"
-    ${MME2E_DC_SERVER} exec -T -- server curl -L --silent "${PLUGIN_URL}" | ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress tee "$PLUGIN_PATH" >/dev/null
+    # Use the cypress container to download instead of the server container, since distroless doesn't have curl
+    ${MME2E_DC_SERVER} exec -T -- cypress curl -L --silent "${PLUGIN_URL}" | ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress tee "$PLUGIN_PATH" >/dev/null
   done
 fi
 
