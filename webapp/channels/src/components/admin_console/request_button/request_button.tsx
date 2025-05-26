@@ -223,12 +223,15 @@ export default class RequestButton extends React.PureComponent<Props, State> {
         let widgetClassNames = 'col-sm-8';
         let label = null;
         if (this.props.label) {
+            // When there's a label, widget takes remaining 8 columns regardless of flushLeft
             label = (
                 <label className='control-label col-sm-4'>
                     {this.props.label}
                 </label>
             );
-        } else if (!this.props.flushLeft) {
+        } else if (this.props.flushLeft) {
+            widgetClassNames = 'col-sm-12';
+        } else {
             widgetClassNames = 'col-sm-offset-4 ' + widgetClassNames;
         }
 

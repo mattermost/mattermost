@@ -6,9 +6,10 @@ import {useIntl} from 'react-intl';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
 
+import {renderLDAPSettingHelpText} from './ldap_helpers';
 import type {GeneralSettingProps} from './ldap_wizard';
 
-import {renderLabel, renderSettingHelpText} from '../schema_admin_settings';
+import {renderLabel} from '../schema_admin_settings';
 
 type BoolSettingProps = {
     value: boolean;
@@ -25,7 +26,7 @@ const LDAPBooleanSetting = (props: BoolSettingProps) => {
     }
 
     const label = renderLabel(props.setting, props.schema, intl);
-    const helpText = renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
+    const helpText = renderLDAPSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
 
     return (
         <BooleanSetting

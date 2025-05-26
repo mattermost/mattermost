@@ -9,14 +9,13 @@ import type {AdminConfig} from '@mattermost/types/config';
 
 import TextSetting from 'components/admin_console/text_setting';
 import FormError, {TYPE_BACKSTAGE} from 'components/form_error';
-import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 
+import {renderLDAPSettingHelpText} from './ldap_helpers';
 import type {GeneralSettingProps} from './ldap_wizard';
 
 import {renderLabel} from '../schema_admin_settings';
-import SchemaText from '../schema_text';
 
 type TextSettingProps = {
     config: Partial<AdminConfig>;
@@ -26,90 +25,6 @@ type TextSettingProps = {
     disabled: boolean;
     setByEnv: boolean;
 } & GeneralSettingProps
-
-const LDAPHelpTextWithHover: React.FC<{
-    baseText: string | JSX.Element | MessageDescriptor;
-    baseIsMarkdown?: boolean;
-    baseTextValues?: {[key: string]: any};
-    hoverText: string | JSX.Element | MessageDescriptor;
-    hoverIsMarkdown?: boolean;
-    hoverTextValues?: {[key: string]: any};
-}> = ({baseText, baseIsMarkdown, baseTextValues, hoverText, hoverIsMarkdown, hoverTextValues}) => {
-    return (
-        <>
-            <SchemaText
-                isMarkdown={baseIsMarkdown}
-                text={baseText}
-                textValues={baseTextValues}
-            />
-            {' '}
-            <WithTooltip
-                title={(
-                    <SchemaText
-                        isMarkdown={hoverIsMarkdown}
-                        text={hoverText}
-                        textValues={hoverTextValues}
-                    />
-                )}
-            >
-                <span
-                    style={{
-                        color: '#0066cc',
-                        cursor: 'pointer',
-                        textDecoration: 'underline',
-                    }}
-                >
-                    More Info
-                </span>
-            </WithTooltip>
-        </>
-    );
-};
-
-const renderLDAPSettingHelpText = (
-    setting: GeneralSettingProps['setting'],
-    schema: GeneralSettingProps['schema'],
-    isDisabled: boolean,
-) => {
-    if (!schema || setting.type === 'banner' || !setting.help_text) {
-        return <span>{''}</span>;
-    }
-
-    let helpText;
-    let isMarkdown;
-    let helpTextValues;
-    if ('disabled_help_text' in setting && setting.disabled_help_text && isDisabled) {
-        helpText = setting.disabled_help_text;
-        isMarkdown = setting.disabled_help_text_markdown;
-        helpTextValues = setting.disabled_help_text_values;
-    } else {
-        helpText = setting.help_text;
-        isMarkdown = setting.help_text_markdown;
-        helpTextValues = setting.help_text_values;
-    }
-
-    // Check if hover text is available (LDAP-specific extension)
-    if (setting.help_text_hover) {
-        return (
-            <LDAPHelpTextWithHover
-                baseText={helpText}
-                baseIsMarkdown={isMarkdown}
-                baseTextValues={helpTextValues}
-                hoverText={setting.help_text_hover}
-                hoverIsMarkdown={setting.help_text_hover_markdown}
-                hoverTextValues={setting.help_text_hover_values}
-            />
-        );
-    }
-
-    return (
-        <SchemaText
-            isMarkdown={isMarkdown}
-            text={helpText}
-            textValues={helpTextValues}
-        />
-    );
-};
 
 const LDAPTextSetting = (props: TextSettingProps) => {
     const intl = useIntl();
