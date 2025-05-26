@@ -6,9 +6,23 @@
         overflow: hidden; // Prevent double scrollbars on the body if content overflows
         flex-grow: 1;
         padding-top: 20px;
+
+        .config-section {
+            margin-top: 32px;
+            border-radius: 8px;
+            color: rgba(var(--center-channel-color-rgb), 0.12);
+
+            .section-body {
+                padding: 32px 48px 48px;
+            }
+
+            &:first-child {
+                margin-top: 0;
+            }
+        }
     }
 
-    
+
     .ldap-wizard-sidebar {
         position: sticky;
         top: 0;
@@ -64,9 +78,9 @@
         flex-direction: column;
         align-items: flex-start;
         align-self: stretch;
-        padding: 48px 32px 4px 32px;
+        padding: 48px 48px 0;
         border-bottom: 0;
-        gap: 12px;
+        gap: 10px;
 
         .section-title {
             color: var(--center-channel-color);
