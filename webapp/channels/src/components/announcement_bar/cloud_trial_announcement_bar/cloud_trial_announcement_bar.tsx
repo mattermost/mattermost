@@ -204,7 +204,7 @@ const messages = defineMessages({
 // Wrapper component to use the hook
 const CloudTrialAnnouncementBar: React.FC<Props> = (props) => {
     const {openPricingModal, isAirGapped} = useOpenPricingModal();
-    
+
     return (
         <CloudTrialAnnouncementBarInternal
             {...props}

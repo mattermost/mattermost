@@ -144,7 +144,7 @@ export default function CenterMessageLock(props: Props) {
             );
         }
 
-        cta = !isAirGapped ? (
+        cta = isAirGapped ? null : (
             <button
                 className='btn is-admin'
                 onClick={() => openPricingModal({trackingLocation: 'center_channel_posts_over_limit_banner'})}
@@ -156,7 +156,7 @@ export default function CenterMessageLock(props: Props) {
                     })
                 }
             </button>
-        ) : null;
+        );
     }
 
     return (<div className='CenterMessageLock'>

@@ -123,7 +123,7 @@ export const PlanDetailsTopElements = ({
         return monthlyBadge;
     };
 
-    const viewPlansButton = !isAirGapped ? (
+    const viewPlansButton = isAirGapped ? null : (
         <button
             onClick={() => openPricingModal({trackingLocation: 'billing_plan_details_view_plans'})}
             className='btn btn-secondary PlanDetails__viewPlansButton'
@@ -133,7 +133,7 @@ export const PlanDetailsTopElements = ({
                 defaultMessage: 'View plans',
             })}
         </button>
-    ) : null;
+    );
 
     return (
         <>

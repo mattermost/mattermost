@@ -29,13 +29,13 @@ export default function LHSNearingLimitsModal() {
 
     const [limits] = useGetLimits();
 
-    const primaryAction = !isAirGapped ? {
+    const primaryAction = isAirGapped ? undefined : {
         message: defineMessage({
             id: 'workspace_limits.modals.view_plans',
             defaultMessage: 'View plans',
         }),
         onClick: () => openPricingModal({trackingLocation: 'cloud_usage_lhs_nearing_limit_modal'}),
-    } : undefined;
+    };
     const secondaryAction = {
         message: defineMessage({
             id: 'workspace_limits.modals.close',

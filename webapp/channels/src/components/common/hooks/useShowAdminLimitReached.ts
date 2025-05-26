@@ -38,7 +38,7 @@ export default function useShowAdminLimitReached() {
 
     if (usage.messages.history > messageLimit) {
         setShownLimitsReachedOnLogin('true');
-        
+
         const modalProps: any = {
             title: defineMessage({
                 id: 'workspace_limits.modals.limits_reached.title',

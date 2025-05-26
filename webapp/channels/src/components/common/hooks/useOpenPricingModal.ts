@@ -24,11 +24,11 @@ export type UseOpenPricingModalReturn = {
 export default function useOpenPricingModal(): UseOpenPricingModalReturn {
     const isCloud = useSelector(isCurrentLicenseCloud);
     const cwsAvailability = useCWSAvailabilityCheck();
-    
+
     const isAirGapped = cwsAvailability === CSWAvailabilityCheckTypes.Unavailable;
-    const canAccessExternalPricing = cwsAvailability === CSWAvailabilityCheckTypes.Available || 
+    const canAccessExternalPricing = cwsAvailability === CSWAvailabilityCheckTypes.Available ||
                                      cwsAvailability === CSWAvailabilityCheckTypes.NotApplicable;
-    
+
     const openPricingModal = useCallback((telemetryProps?: TelemetryProps) => {
         let category;
 
@@ -40,11 +40,12 @@ export default function useOpenPricingModal(): UseOpenPricingModalReturn {
         trackEvent(category, 'click_open_pricing_modal', {
             callerInfo: telemetryProps?.trackingLocation,
         });
-        
+
         if (canAccessExternalPricing) {
             // Redirect to external pricing page
             window.open('https://mattermost.com/pricing', '_blank', 'noopener,noreferrer');
         }
+
         // For air-gapped instances, we don't open anything since the pricing modal has been removed
     }, [isCloud, canAccessExternalPricing]);
 

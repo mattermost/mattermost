@@ -73,7 +73,7 @@ const EnterpriseEditionLeftPanel = ({
     const skuName = getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true');
     const expirationDays = getRemainingDaysFromFutureTimestamp(parseInt(unsanitizedLicense.ExpiresAt, 10));
 
-    const viewPlansButton = !isAirGapped ? (
+    const viewPlansButton = isAirGapped ? null : (
         <button
             id='enterprise_edition_view_plans'
             onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
@@ -84,7 +84,7 @@ const EnterpriseEditionLeftPanel = ({
                 defaultMessage: 'View plans',
             })}
         </button>
-    ) : null;
+    );
 
     return (
         <div

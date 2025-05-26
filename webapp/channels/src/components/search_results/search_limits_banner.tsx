@@ -83,11 +83,11 @@ function SearchLimitsBanner(props: Props) {
     };
 
     switch (props.searchType) {
-    case DataSearchTypes.FILES_SEARCH_TYPE:
+    case DataSearchTypes.FILES_SEARCH_TYPE: {
         if ((fileStorageLimit === undefined) || !(currentFileStorageUsage > fileStorageLimit)) {
             return null;
         }
-        const filesBannerMessage = isAirGapped ? 
+        const filesBannerMessage = isAirGapped ?
             formatMessage({
                 id: 'workspace_limits.search_files_limit.banner_text_airgapped',
                 defaultMessage: 'Some older files may not be shown because your workspace has met its file storage limit of {storage}.',
@@ -109,8 +109,9 @@ function SearchLimitsBanner(props: Props) {
                 ),
             });
         return renderBanner(filesBannerMessage, `${DataSearchTypes.FILES_SEARCH_TYPE}_search_limits_banner`);
+    }
 
-    case DataSearchTypes.MESSAGES_SEARCH_TYPE:
+    case DataSearchTypes.MESSAGES_SEARCH_TYPE: {
         if ((messagesLimit === undefined) || !(currentMessagesUsage > messagesLimit)) {
             return null;
         }
@@ -136,6 +137,7 @@ function SearchLimitsBanner(props: Props) {
                 ),
             });
         return renderBanner(messagesBannerMessage, `${DataSearchTypes.MESSAGES_SEARCH_TYPE}_search_limits_banner`);
+    }
     default:
         return null;
     }
