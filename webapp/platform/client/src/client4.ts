@@ -2093,6 +2093,13 @@ export default class Client4 {
         );
     };
 
+    getRemoteClusterInfo = (remoteId: string) => {
+        return this.doFetch<RemoteClusterInfo>(
+            `${this.getBaseRoute()}/sharedchannels/remote_info/${remoteId}`,
+            {method: 'GET'},
+        );
+    };
+
     sharedChannelRemoteInvite = (remoteId: string, channelId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/invite`,
