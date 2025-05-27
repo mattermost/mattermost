@@ -8,6 +8,7 @@ import type {Dispatch} from 'redux';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {searchGroupChannels} from 'mattermost-redux/actions/channels';
+import {fetchRemoteClusters} from 'mattermost-redux/actions/shared_channels';
 import {
     getProfiles,
     getProfilesInTeam,
@@ -24,6 +25,7 @@ import {
     makeSearchProfilesStartingWithTerm,
     searchProfilesInCurrentTeam,
     getTotalUsersStats as getTotalUsersStatsSelector,
+    userCanSeeOtherUser,
 } from 'mattermost-redux/selectors/entities/users';
 
 import {openDirectChannelToUserId, openGroupChannelToUserIds} from 'actions/channel_actions';
@@ -73,6 +75,11 @@ export const makeMapStateToProps = () => {
             users = getProfilesInCurrentTeam(state, filters);
         }
 
+        // Filter out users that can't be messaged directly because they're from indirectly connected remote clusters
+        if (enableSharedChannelsDMs) {
+            users = users.filter((user) => userCanSeeOtherUser(state, user.id));
+        }
+
         const team = getCurrentTeam(state);
         const stats = getTotalUsersStatsSelector(state) || {total_users_count: 0};
 
@@ -103,6 +110,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             searchProfiles,
             searchGroupChannels,
             setModalSearchTerm,
+            fetchRemoteClusters,
         }, dispatch),
     };
 }

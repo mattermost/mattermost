@@ -58,6 +58,7 @@ export type Props = {
         searchProfiles: (term: string, options: any) => Promise<ActionResult<UserProfile[]>>;
         searchGroupChannels: (term: string) => Promise<ActionResult<Channel[]>>;
         setModalSearchTerm: (term: string) => void;
+        fetchRemoteClusters: () => Promise<ActionResult>;
     };
     focusOriginElement: string;
 }
@@ -107,6 +108,13 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         this.getUserProfiles();
         this.props.actions.getTotalUsersStats();
         this.props.actions.loadProfilesMissingStatus(this.props.users);
+
+        // Load remote clusters data if any remote users exist
+        // This is needed for the userCanSeeOtherUser selector to work properly
+        const hasRemoteUsers = this.props.users.some((user) => user.remote_id);
+        if (hasRemoteUsers) {
+            this.props.actions.fetchRemoteClusters();
+        }
     };
 
     updateFromProps(prevProps: Props) {
@@ -142,6 +150,12 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
 
         if (prevProps.users.length !== this.props.users.length) {
             this.props.actions.loadProfilesMissingStatus(this.props.users);
+
+            // Check if we have any remote users and load remote clusters data if needed
+            const hasRemoteUsers = this.props.users.some((user) => user.remote_id);
+            if (hasRemoteUsers) {
+                this.props.actions.fetchRemoteClusters();
+            }
         }
     }
 

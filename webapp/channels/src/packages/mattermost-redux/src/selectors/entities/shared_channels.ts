@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
+import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 import type {GlobalState} from '@mattermost/types/store';
 
 export function getRemoteNamesForChannel(state: GlobalState, channelId: string): string[] {
@@ -14,4 +15,14 @@ export function getRemoteNamesForChannel(state: GlobalState, channelId: string):
 
 export function getRemotesForChannel(state: GlobalState, channelId: string): RemoteClusterInfo[] {
     return state.entities?.sharedChannels?.remotes?.[channelId] || [];
+}
+
+export function getAllRemoteClusters(state: GlobalState): RemoteCluster[] {
+    return state.entities?.remoteClusters ?
+        Object.values(state.entities.remoteClusters) :
+        [];
+}
+
+export function getRemoteClusterById(state: GlobalState, remoteId: string): RemoteCluster | undefined {
+    return state.entities?.remoteClusters?.[remoteId];
 }
