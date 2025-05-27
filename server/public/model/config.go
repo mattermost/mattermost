@@ -4669,7 +4669,7 @@ func (s *ImageProxySettings) isValid() *AppError {
 	return nil
 }
 
-// SanitizeOptions specifies options for the Config.Sanitize method.
+// SanitizeOptions specifies options for the [Config.Sanitize] method.
 type SanitizeOptions struct {
 	// PartiallyRedactDataSources, when true, only redacts usernames and passwords
 	// from data sources, keeping other connection parameters visible.
