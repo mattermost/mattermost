@@ -691,6 +691,48 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 	}
 }
 
+// handleChannelNotSharedError processes the case when a remote indicates a channel
+// is no longer shared. It removes the remote from the shared channel locally and,
+// if it was the last remote, completely unshares the channel.
+func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.RemoteCluster) {
+	logger := scs.server.Log()
+
+	logger.Log(mlog.LvlSharedChannelServiceDebug, "Remote indicated channel is no longer shared; unsharing locally",
+		mlog.String("remote", rc.Name),
+		mlog.String("channel_id", msg.ChannelId),
+	)
+
+	// Get the SharedChannelRemote record for this channel and remote
+	scr, getErr := scs.server.GetStore().SharedChannel().GetRemoteByIds(msg.ChannelId, rc.RemoteId)
+	if getErr != nil {
+		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to get shared channel remote",
+			mlog.String("remote", rc.Name),
+			mlog.String("channel_id", msg.ChannelId),
+			mlog.Err(getErr),
+		)
+		return
+	}
+
+	// Get channel details for posting the system message
+	channel, channelErr := scs.server.GetStore().Channel().Get(msg.ChannelId, true)
+	if channelErr != nil {
+		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to get channel details",
+			mlog.String("remote", rc.Name),
+			mlog.String("channel_id", msg.ChannelId),
+			mlog.Err(channelErr),
+		)
+		return
+	}
+
+	// Post a system message to notify users that the channel is no longer shared with this remote
+	scs.postUnshareNotification(msg.ChannelId, scr.CreatorId, channel, rc)
+
+	if err := scs.UninviteRemoteFromChannel(msg.ChannelId, rc.RemoteId); err != nil {
+		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to uninvite remote from shared channel", mlog.Err(err))
+		return
+	}
+}
+
 // sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).
 func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
 	rcs := scs.server.GetRemoteClusterService()
@@ -717,18 +759,34 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 	err = rcs.SendMsg(ctx, rcMsg, rc, func(rcMsg model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, errResp error) {
 		defer wg.Done()
 
-		var syncResp model.SyncResponse
-		if err2 := json.Unmarshal(rcResp.Payload, &syncResp); err2 != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Invalid sync msg response from remote cluster",
-				mlog.String("remote", rc.Name),
-				mlog.String("channel_id", msg.ChannelId),
-				mlog.Err(err2),
-			)
+		// Check for ErrChannelNotShared in the response error
+		if errResp != nil && strings.Contains(errResp.Error(), ErrChannelNotShared.Error()) {
+			scs.handleChannelNotSharedError(msg, rc)
 			return
 		}
 
-		if f != nil {
-			f(syncResp, errResp)
+		var syncResp model.SyncResponse
+		if errResp == nil {
+			if rcResp != nil && len(rcResp.Payload) > 0 {
+				if err2 := json.Unmarshal(rcResp.Payload, &syncResp); err2 != nil {
+					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Invalid sync msg response from remote cluster",
+						mlog.String("remote", rc.Name),
+						mlog.String("channel_id", msg.ChannelId),
+						mlog.Err(err2),
+					)
+					return
+				}
+
+				if f != nil {
+					f(syncResp, errResp)
+				}
+			} else {
+				// No error but response is nil or empty
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Empty or nil response payload from remote cluster",
+					mlog.String("remote", rc.Name),
+					mlog.String("channel_id", msg.ChannelId),
+				)
+			}
 		}
 	})
 

@@ -30,6 +30,7 @@ const (
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
+	UnshareMessage               = "This channel is no longer shared."
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
@@ -290,4 +291,33 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 // This allows direct testing of post metadata synchronization.
 func (scs *Service) UpsertSyncPostForTesting(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
 	return scs.upsertSyncPost(post, targetChannel, rc)
+}
+
+// postUnshareNotification posts a system message to notify users that the channel is no longer shared.
+func (scs *Service) postUnshareNotification(channelID string, creatorID string, channel *model.Channel, rc *model.RemoteCluster) {
+	post := &model.Post{
+		UserId:    creatorID,
+		ChannelId: channelID,
+		Message:   UnshareMessage,
+		Type:      model.PostTypeSystemGeneric,
+	}
+
+	logger := scs.server.Log()
+	_, appErr := scs.app.CreatePost(request.EmptyContext(logger), post, channel, model.CreatePostFlags{})
+
+	if appErr != nil {
+		scs.server.Log().Log(
+			mlog.LvlSharedChannelServiceError,
+			"Error creating unshare notification post",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.String("remote_name", rc.Name),
+			mlog.Err(appErr),
+		)
+	}
+}
+
+// HandleChannelNotSharedErrorForTesting is a wrapper to expose handleChannelNotSharedError for testing purposes
+func (scs *Service) HandleChannelNotSharedErrorForTesting(msg *model.SyncMsg, rc *model.RemoteCluster) {
+	scs.handleChannelNotSharedError(msg, rc)
 }
