@@ -187,6 +187,7 @@ func (a *App) CreateRemoteClusterInvite(remoteId, siteURL, token, password strin
 		RemoteId: remoteId,
 		SiteURL:  siteURL,
 		Token:    token,
+		Version:  2,
 	}
 
 	encrypted, err := invite.Encrypt(password)
