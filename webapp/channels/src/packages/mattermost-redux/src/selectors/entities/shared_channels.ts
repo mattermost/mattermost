@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
+import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
 import type {GlobalState} from '@mattermost/types/store';
 
 export function getRemoteNamesForChannel(state: GlobalState, channelId: string): string[] {

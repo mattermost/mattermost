@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
+import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-import {ActionTypes} from '../reducers/entities/shared_channels';
 import {ActionTypes as RemoteClusterActionTypes} from '../reducers/entities/remote_clusters';
+import {ActionTypes} from '../reducers/entities/shared_channels';
 
 export function receivedChannelRemotes(channelId: string, remotes: RemoteClusterInfo[]) {
     return {
