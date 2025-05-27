@@ -8,6 +8,8 @@ import (
 	io "io"
 	http "net/http"
 
+	logr "github.com/mattermost/logr/v2"
+
 	mock "github.com/stretchr/testify/mock"
 
 	model "github.com/mattermost/mattermost/server/public/model"
@@ -4000,6 +4002,16 @@ func (_m *API) LoadPluginConfiguration(dest interface{}) error {
 	return r0
 }
 
+// LogAuditRec provides a mock function with given fields: rec
+func (_m *API) LogAuditRec(rec *model.AuditRecord) {
+	_m.Called(rec)
+}
+
+// LogAuditRecWithLevel provides a mock function with given fields: rec, level
+func (_m *API) LogAuditRecWithLevel(rec *model.AuditRecord, level logr.Level) {
+	_m.Called(rec, level)
+}
+
 // LogDebug provides a mock function with given fields: msg, keyValuePairs
 func (_m *API) LogDebug(msg string, keyValuePairs ...interface{}) {
 	var _ca []interface{}
@@ -4030,6 +4042,26 @@ func (_m *API) LogWarn(msg string, keyValuePairs ...interface{}) {
 	_ca = append(_ca, msg)
 	_ca = append(_ca, keyValuePairs...)
 	_m.Called(_ca...)
+}
+
+// MakeAuditRecord provides a mock function with given fields: event, initialStatus
+func (_m *API) MakeAuditRecord(event string, initialStatus string) *model.AuditRecord {
+	ret := _m.Called(event, initialStatus)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MakeAuditRecord")
+	}
+
+	var r0 *model.AuditRecord
+	if rf, ok := ret.Get(0).(func(string, string) *model.AuditRecord); ok {
+		r0 = rf(event, initialStatus)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AuditRecord)
+		}
+	}
+
+	return r0
 }
 
 // OpenInteractiveDialog provides a mock function with given fields: dialog
