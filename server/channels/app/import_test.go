@@ -421,7 +421,7 @@ func TestProcessAttachmentPaths(t *testing.T) {
 		}
 
 		err := processAttachmentPaths(c, attachments, "data", nil)
-		require.EqualError(t, err, "2 errors occurred:\n\t* invalid attachment path \"../../invalid.txt\"\n\t* invalid attachment path \"../../../invalid.txt\"\n\n")
+		require.EqualError(t, err, "invalid attachment path \"../../invalid.txt\"\ninvalid attachment path \"../../../invalid.txt\"")
 		require.Equal(t, expected, attachments)
 	})
 
@@ -445,7 +445,7 @@ func TestProcessAttachmentPaths(t *testing.T) {
 		}
 
 		err := processAttachmentPaths(c, attachments, "data", nil)
-		require.EqualError(t, err, "1 error occurred:\n\t* invalid attachment path \"../../invalid.txt\"\n\n")
+		require.EqualError(t, err, "invalid attachment path \"../../invalid.txt\"")
 		require.Equal(t, expected, attachments)
 	})
 }
