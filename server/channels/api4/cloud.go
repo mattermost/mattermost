@@ -84,7 +84,6 @@ func getPreviewSubscription(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	// Preview subscription is a special case for cloud preview licenses.
 	if c.App.Channels().License().IsCloudPreview() {
 		getPreviewSubscription(c, w, r)
