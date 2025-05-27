@@ -94,7 +94,7 @@ var UpdateUserEmailCmd = &cobra.Command{
 	Short:      "Change email of the user",
 	Long:       "Change the email address associated with a user.",
 	Example:    "  user email testuser user@example.com",
-	Deprecated: "please use 'mmctl user edit email' instead.",
+	Deprecated: "Please use 'mmctl user edit email' instead.",
 	RunE:       withClient(updateUserEmailCmdF),
 }
 
@@ -103,7 +103,7 @@ var UpdateUsernameCmd = &cobra.Command{
 	Short:      "Change username of the user",
 	Long:       "Change username of the user.",
 	Example:    "  user username testuser newusername",
-	Deprecated: "please use 'mmctl user edit username' instead.",
+	Deprecated: "Please use 'mmctl user edit username' instead.",
 	Args:       cobra.ExactArgs(2),
 	RunE:       withClient(updateUsernameCmdF),
 }
