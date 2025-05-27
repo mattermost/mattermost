@@ -68,8 +68,8 @@ func getPreviewSubscription(c *Context, w http.ResponseWriter, r *http.Request) 
 		ID:             "cloud-preview",
 		ProductID:      license.SkuName,
 		StartAt:        license.StartsAt,
-		TrialEndAt:     1748363517000,
-		EndAt:          1748363517000,
+		TrialEndAt:     license.ExpiresAt,
+		EndAt:          license.ExpiresAt,
 		IsFreeTrial:    "true",
 		IsCloudPreview: true,
 	}
@@ -86,7 +86,7 @@ func getPreviewSubscription(c *Context, w http.ResponseWriter, r *http.Request) 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Preview subscription is a special case for cloud preview licenses.
-	if true {
+	if c.App.Channels().License().IsCloudPreview() {
 		getPreviewSubscription(c, w, r)
 		return
 	}
