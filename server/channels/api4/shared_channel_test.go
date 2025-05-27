@@ -168,14 +168,14 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		// Create a self-referential remote cluster
 		selfCluster := &model.RemoteCluster{
-			RemoteId:     model.NewId(),
-			Name:         "test-cluster-priority",
-			SiteURL:      testServer.URL,
-			CreateAt:     model.GetMillis(),
-			LastPingAt:   model.GetMillis(),
-			Token:        model.NewId(),
-			CreatorId:    th.BasicUser.Id,
-			RemoteToken:  model.NewId(),
+			RemoteId:    model.NewId(),
+			Name:        "test-cluster-priority",
+			SiteURL:     testServer.URL,
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
 		}
 		selfCluster, err = th.App.Srv().Store().RemoteCluster().Save(selfCluster)
 		require.NoError(t, err)
@@ -188,7 +188,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		require.Nil(t, appErr)
 		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, testChannel, false)
 		require.Nil(t, appErr)
-		
+
 		// Create shared channel
 		sc := &model.SharedChannel{
 			ChannelId: testChannel.Id,
@@ -218,9 +218,9 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		syncHandler.OnPostSync = func(post *model.Post) {
 			t.Logf("Received synced post: ID=%s, Message=%s, HasMetadata=%v", post.Id, post.Message, post.Metadata != nil)
 			if post.Metadata != nil && post.Metadata.Priority != nil {
-				t.Logf("Post has priority metadata: Priority=%v, RequestedAck=%v, PersistentNotifications=%v", 
-					post.Metadata.Priority.Priority, 
-					post.Metadata.Priority.RequestedAck, 
+				t.Logf("Post has priority metadata: Priority=%v, RequestedAck=%v, PersistentNotifications=%v",
+					post.Metadata.Priority.Priority,
+					post.Metadata.Priority.RequestedAck,
 					post.Metadata.Priority.PersistentNotifications)
 			}
 			syncedPosts = append(syncedPosts, post)
@@ -241,13 +241,13 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		}, testChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		require.NotNil(t, originalPost)
-		
+
 		// Debug: Verify the original post has metadata
 		t.Logf("Original post created: ID=%s, HasMetadata=%v", originalPost.Id, originalPost.Metadata != nil)
 		if originalPost.Metadata != nil && originalPost.Metadata.Priority != nil {
-			t.Logf("Original post priority metadata: Priority=%v, RequestedAck=%v, PersistentNotifications=%v", 
-				originalPost.Metadata.Priority.Priority, 
-				originalPost.Metadata.Priority.RequestedAck, 
+			t.Logf("Original post priority metadata: Priority=%v, RequestedAck=%v, PersistentNotifications=%v",
+				originalPost.Metadata.Priority.Priority,
+				originalPost.Metadata.Priority.RequestedAck,
 				originalPost.Metadata.Priority.PersistentNotifications)
 		}
 
@@ -288,14 +288,14 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		// Create remote cluster
 		selfCluster := &model.RemoteCluster{
-			RemoteId:     model.NewId(),
-			Name:         "test-cluster-acks",
-			SiteURL:      testServer.URL,
-			CreateAt:     model.GetMillis(),
-			LastPingAt:   model.GetMillis(),
-			Token:        model.NewId(),
-			CreatorId:    th.BasicUser.Id,
-			RemoteToken:  model.NewId(),
+			RemoteId:    model.NewId(),
+			Name:        "test-cluster-acks",
+			SiteURL:     testServer.URL,
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
 		}
 		selfCluster, err = th.App.Srv().Store().RemoteCluster().Save(selfCluster)
 		require.NoError(t, err)
@@ -396,14 +396,14 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		// Create remote cluster
 		selfCluster := &model.RemoteCluster{
-			RemoteId:     model.NewId(),
-			Name:         "test-cluster-notifications",
-			SiteURL:      testServer.URL,
-			CreateAt:     model.GetMillis(),
-			LastPingAt:   model.GetMillis(),
-			Token:        model.NewId(),
-			CreatorId:    th.BasicUser.Id,
-			RemoteToken:  model.NewId(),
+			RemoteId:    model.NewId(),
+			Name:        "test-cluster-notifications",
+			SiteURL:     testServer.URL,
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
 		}
 		selfCluster, err = th.App.Srv().Store().RemoteCluster().Save(selfCluster)
 		require.NoError(t, err)
@@ -485,7 +485,6 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 func randomBool() bool {
 	return rnd.Intn(2) != 0
 }
-
 
 func TestGetRemoteClusterById(t *testing.T) {
 	th := setupForSharedChannels(t).InitBasic()

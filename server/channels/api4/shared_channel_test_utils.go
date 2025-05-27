@@ -37,7 +37,6 @@ func writeOKResponse(w http.ResponseWriter) {
 // SelfReferentialSyncHandler handles incoming sync messages for self-referential tests.
 type SelfReferentialSyncHandler struct {
 	t                *testing.T
-	th               *TestHelper
 	handler          func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error
 	syncMessageCount *int32
 
@@ -77,7 +76,7 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 		if err == nil {
 			// Debug: Log the raw sync message
 			h.t.Logf("Received sync message: Type=%s", frame.Msg.Topic)
-			
+
 			// Parse the message first to see what's being sent
 			var syncMsg model.SyncMsg
 			if unmarshalErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); unmarshalErr == nil {
@@ -85,9 +84,9 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 				for i, post := range syncMsg.Posts {
 					h.t.Logf("Post %d: ID=%s, Message=%s, HasMetadata=%v", i, post.Id, post.Message, post.Metadata != nil)
 					if post.Metadata != nil && post.Metadata.Priority != nil {
-						h.t.Logf("  Priority metadata: Priority=%v, RequestedAck=%v, PersistentNotifications=%v", 
-							post.Metadata.Priority.Priority, 
-							post.Metadata.Priority.RequestedAck, 
+						h.t.Logf("  Priority metadata: Priority=%v, RequestedAck=%v, PersistentNotifications=%v",
+							post.Metadata.Priority.Priority,
+							post.Metadata.Priority.RequestedAck,
 							post.Metadata.Priority.PersistentNotifications)
 					}
 				}
@@ -191,20 +190,4 @@ func ensureCleanState(t *testing.T, th *TestHelper) {
 			return rcService.Active()
 		}, 2*time.Second, 100*time.Millisecond, "Remote cluster service should be active")
 	}
-}
-
-// Global variables for managing the sync handler
-var (
-	globalSyncHandler *SelfReferentialSyncHandler
-	syncMessageCount  int32
-)
-
-// setSyncHandler sets the global sync handler for the test server
-func setSyncHandler(handler *SelfReferentialSyncHandler) {
-	globalSyncHandler = handler
-}
-
-// getSyncHandler gets the current global sync handler
-func getSyncHandler() *SelfReferentialSyncHandler {
-	return globalSyncHandler
 }
