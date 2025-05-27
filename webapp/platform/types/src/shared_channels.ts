@@ -28,4 +28,5 @@ export type RemoteClusterInfo = {
 
 export type SharedChannelsState = {
     remotes: Record<string, RemoteClusterInfo[]>;
+    remotesByRemoteId: Record<string, RemoteClusterInfo>;
 }

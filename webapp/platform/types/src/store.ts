@@ -81,6 +81,7 @@ export type GlobalState = {
         scheduledPosts: ScheduledPostsState;
         sharedChannels?: {
             remotes?: Record<string, RemoteClusterInfo[]>;
+            remotesByRemoteId?: Record<string, RemoteClusterInfo>;
         };
         remoteClusters: Record<string, RemoteCluster>;
     };
