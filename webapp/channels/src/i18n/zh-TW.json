@@ -3241,7 +3241,6 @@
   "channel_loader.postedImage": " 已上傳一張圖片",
   "channel_loader.socketError": "請檢查連線，無法連接 Mattermost。若此問題持續發生，請通知管理員[檢查 WebSocket 通訊埠](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port)。",
   "channel_loader.someone": "某人",
-  "channel_loader.something": " 更新了狀態",
   "channel_loader.unknown_error": "從伺服器收到不在預期內的狀態碼。",
   "channel_loader.uploadedFile": " 已上傳一個檔案",
   "channel_loader.uploadedImage": " 已上傳一張圖片",
