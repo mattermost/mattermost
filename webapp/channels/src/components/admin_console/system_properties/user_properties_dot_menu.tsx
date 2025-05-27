@@ -3,20 +3,16 @@
 
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {localizeMessage} from 'utils/utils';
-
 import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
-import {GenericModal} from '@mattermost/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
-
 import {Client4} from 'mattermost-redux/client';
 
 import * as Menu from 'components/menu';
-import QuickInput, {MaxLengthInput} from 'components/quick_input';
-
-import './user_properties_dot_menu.scss';
+import AttributeModal from './attribute_modal';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 import {isCreatePending} from './user_properties_utils';
+
+import './user_properties_dot_menu.scss';
 
 type Props = {
     field: UserPropertyField;
@@ -27,63 +23,6 @@ type Props = {
 }
 
 const menuId = 'user-property-field_dotmenu';
-
-const MAX_LDAP_LENGTH = 64;
-
-const AttributeModal: React.FC<{
-    initialValue: string;
-    onExited: () => void;
-    onSave: (value: string) => Promise<void>;
-    error: string | null;
-    helpTextId: string;
-    helpTextDefault: string;
-    modalHeaderText: JSX.Element;
-}> = ({initialValue, onExited, onSave, error, helpTextId, helpTextDefault, modalHeaderText}) => {
-    const [value, setValue] = useState(initialValue);
-    const handleClear = () => setValue('');
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value);
-    const handleCancel = () => onExited();
-    const handleConfirm = () => onSave(value);
-    const isConfirmDisabled = () => value.length > MAX_LDAP_LENGTH;
-    return (
-        <GenericModal
-            id='attributeModal'
-            modalHeaderText={modalHeaderText}
-            confirmButtonText={
-                <FormattedMessage
-                    id='save'
-                    defaultMessage='Save'
-                />
-            }
-            compassDesign={true}
-            onExited={onExited}
-            handleEnterKeyPress={handleConfirm}
-            handleConfirm={handleConfirm}
-            handleCancel={handleCancel}
-            isConfirmDisabled={isConfirmDisabled()}
-        >
-            <QuickInput
-                inputComponent={MaxLengthInput}
-                autoFocus={true}
-                className='form-control filter-textbox'
-                type='text'
-                value={value}
-                placeholder={localizeMessage({id: 'admin.system_properties.user_properties.dotmenu.ad_ldap.modal.placeholder', defaultMessage: 'E.g.: department'})}
-                clearable={true}
-                onClear={handleClear}
-                onChange={handleChange}
-                maxLength={MAX_LDAP_LENGTH}
-            />
-            <span className='help-text'>
-                <FormattedMessage
-                    id={helpTextId}
-                    defaultMessage={helpTextDefault}
-                />
-            </span>
-            {error && <div className='error-text'>{error}</div>}
-        </GenericModal>
-    );
-};
 
 const DotMenu = ({
     field,
