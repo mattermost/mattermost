@@ -23,25 +23,14 @@ fi
 
 if [ "$TEST" = "cypress" ]; then
   mme2e_log "Prepare Cypress: install dependencies"
-  # Create user in Cypress container
+  # Create user in Cypress container and work around the node image's assumption that the app files are owned by user 1000
   mme2e_log "Creating user for Cypress container"
-  ${MME2E_DC_SERVER} exec -T -u 0 -- cypress bash -c "
-# Check if user already exists
-if ! id $MME2E_UID > /dev/null 2>&1; then
-  # Try to create user with useradd
-  if ! useradd -u $MME2E_UID -m nodeci > /dev/null 2>&1; then
-    # Fall back to manual user creation
-    echo \"nodeci:x:$MME2E_UID:$MME2E_UID:nodeci:/home/nodeci:/bin/bash\" >> /etc/passwd
-    mkdir -p /home/nodeci
-    chown $MME2E_UID:$MME2E_UID /home/nodeci
-  fi
-fi" || mme2e_log "WARNING: User creation failed, but continuing anyway"
+  ${MME2E_DC_SERVER} exec -T -u 0 -- cypress bash -c "id $MME2E_UID || useradd -u $MME2E_UID -m nodeci"
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress npm i
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress cypress install
   mme2e_log "Prepare Cypress: populating fixtures"
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress tee tests/fixtures/keycloak.crt >/dev/null <../../server/build/docker/keycloak/keycloak.crt
   # Download plugins using wget in the Cypress container
-
   for PLUGIN_URL in \
     "https://github.com/mattermost/mattermost-plugin-gitlab/releases/download/v1.3.0/com.github.manland.mattermost-plugin-gitlab-1.3.0.tar.gz" \
     "https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.9.0/com.mattermost.demo-plugin-0.9.0.tar.gz" \
@@ -50,21 +39,16 @@ fi" || mme2e_log "WARNING: User creation failed, but continuing anyway"
     PLUGIN_NAME="${PLUGIN_URL##*/}"
     PLUGIN_PATH="tests/fixtures/$PLUGIN_NAME"
 
-    # Ensure the directory exists
-    ${MME2E_DC_SERVER} exec -T -- cypress bash -c "ls -la /cypress/tests/fixtures || mkdir -p /cypress/tests/fixtures"
-
     # Check if file exists
     if ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress test -f "$PLUGIN_PATH"; then
       mme2e_log "Skipping installation of plugin $PLUGIN_NAME: file exists"
       continue
     fi
 
-    # Use wget instead of curl for distroless compatibility
+    # Use wget in the Cypress container instead of curl in server (for distroless compatibility)
     mme2e_log "Downloading $PLUGIN_NAME to fixtures directory"
-    ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress wget -q -O "/cypress/$PLUGIN_PATH" "$PLUGIN_URL" || mme2e_log "ERROR: wget download failed"
+    ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress wget -q -O "/cypress/$PLUGIN_PATH" "$PLUGIN_URL"
   done
-
-  mme2e_log "Plugin download process complete"
 fi
 
 # Run service-specific initialization steps
