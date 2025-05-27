@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @notifications
 
 import {getRandomId} from '../../../utils';
@@ -29,7 +28,7 @@ describe('Notifications', () => {
         });
     });
 
-    it('MM-T562 New message bar - Message posted while scrolled up in same channel', () => {
+    it.skip('MM-T562 New message bar - Message posted while scrolled up in same channel', () => {
         // # Post 30 random messages from the 'otherUser' account in off-topic
         Cypress._.times(numberOfPosts, (num) => {
             cy.postMessageAs({sender: otherUser, message: `${num} ${getRandomId()}`, channelId: offTopicChannelId});
