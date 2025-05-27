@@ -80,8 +80,8 @@ describe('Profile', () => {
         // # Save
         cy.uiSave();
 
-        // * Verify for error message: "Must be 5-72 characters long."
-        cy.get('#clientError').should('be.visible').should('have.text', 'Must be 5-72 characters long.');
+        // * Verify for error message: "Your password must be 5-72 characters long."
+        cy.get('#clientError').should('be.visible').should('have.text', 'Your password must be 5-72 characters long.');
     });
 
     it('MM-T2084 Password: Cancel out of password changes causes no changes to be made', () => {

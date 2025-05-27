@@ -1,0 +1,55 @@
+.editor__test-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border: 1px solid var(--button-bg);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--button-bg);
+    cursor: pointer;
+    font-weight: 600;
+    
+    i {
+        margin-right: 8px;
+    }
+    
+    &:hover {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+    }
+
+    &:disabled {
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.32);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: not-allowed;
+        opacity: 0.4;
+    }
+}
+
+.editor__add-row-button {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    border: 1px solid var(--button-bg);
+    border-radius: 4px;
+    background-color: transparent;
+    color: var(--button-bg);
+    cursor: pointer;
+    font-weight: 600;
+    
+    i {
+        margin-right: 8px;
+        font-size: 14px;
+    }
+    
+    &:hover {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+    }
+
+    &:disabled {
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.32);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: not-allowed;
+        opacity: 0.4;
+    }
+}
