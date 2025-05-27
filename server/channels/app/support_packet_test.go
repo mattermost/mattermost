@@ -74,7 +74,11 @@ func TestGenerateSupportPacket(t *testing.T) {
 		"cpu.prof",
 		"heap.prof",
 		"goroutines",
-		"database_schema.yaml",
+	}
+
+	// database_schema.yaml is only generated for Postgres
+	if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverPostgres {
+		expectedFileNames = append(expectedFileNames, "database_schema.yaml")
 	}
 
 	expectedFileNamesWithLogs := append(expectedFileNames, []string{
