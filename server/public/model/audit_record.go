@@ -3,6 +3,8 @@
 
 package model
 
+import "encoding/json"
+
 const (
 	AuditKeyActor     = "actor"
 	AuditKeyAPIPath   = "api_path"
@@ -94,7 +96,7 @@ func AddEventParameterAuditable(rec *AuditRecord, key string, val Auditable) {
 		rec.EventData.Parameters = make(map[string]any)
 	}
 
-	rec.EventData.Parameters[key] = val.Auditable()
+	rec.EventData.Parameters[key] = makeGobSafe(val)
 }
 
 // AddEventParameterAuditableArray adds an array of objects of type Auditable to the event
@@ -105,7 +107,7 @@ func AddEventParameterAuditableArray[T Auditable](rec *AuditRecord, key string, 
 
 	processedAuditables := make([]map[string]any, 0, len(val))
 	for _, auditableVal := range val {
-		processedAuditables = append(processedAuditables, auditableVal.Auditable())
+		processedAuditables = append(processedAuditables, makeGobSafe(auditableVal))
 	}
 
 	rec.EventData.Parameters[key] = processedAuditables
@@ -113,12 +115,12 @@ func AddEventParameterAuditableArray[T Auditable](rec *AuditRecord, key string, 
 
 // AddEventPriorState adds the prior state of the modified object to the audit record
 func (rec *AuditRecord) AddEventPriorState(object Auditable) {
-	rec.EventData.PriorState = object.Auditable()
+	rec.EventData.PriorState = makeGobSafe(object)
 }
 
 // AddEventResultState adds the result state of the modified object to the audit record
 func (rec *AuditRecord) AddEventResultState(object Auditable) {
-	rec.EventData.ResultState = object.Auditable()
+	rec.EventData.ResultState = makeGobSafe(object)
 }
 
 // AddEventObjectType adds the object type of the modified object to the audit record
@@ -146,4 +148,20 @@ func (rec *AuditRecord) AddErrorDesc(description string) {
 func (rec *AuditRecord) AddAppError(err *AppError) {
 	rec.AddErrorCode(err.StatusCode)
 	rec.AddErrorDesc(err.Error())
+}
+
+// makeGobSafe converts Auditable data to a gob-safe representation via JSON round-trip.
+// This eliminates problematic types like nil pointers in interfaces that cause gob
+// encoding to fail when sending audit data over RPC via the plugin API. Without this,
+// a *string(nil) within the data could cause a plugin to panic when calling the API.
+func makeGobSafe(auditable Auditable) map[string]any {
+	jsonBytes, err := json.Marshal(auditable.Auditable())
+	if err != nil {
+		return map[string]any{"error": "failed to serialize audit data"}
+	}
+	var gobSafe map[string]any
+	if err := json.Unmarshal(jsonBytes, &gobSafe); err != nil {
+		return map[string]any{"error": "failed to deserialize audit data"}
+	}
+	return gobSafe
 }
