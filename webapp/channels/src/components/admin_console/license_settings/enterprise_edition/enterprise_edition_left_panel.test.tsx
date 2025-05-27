@@ -14,7 +14,7 @@ import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-import {OverActiveUserLimits, SelfHostedProducts} from 'utils/constants';
+import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import EnterpriseEditionLeftPanel from './enterprise_edition_left_panel';
@@ -132,30 +132,9 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(screen.getByText('ACTIVE USERS:')).not.toHaveClass('legend--over-seats-purchased');
     });
 
-    test('should add warning class to active users', () => {
-        const minWarning = Math.ceil(parseInt(license.Users, 10) * OverActiveUserLimits.MIN) + parseInt(license.Users, 10);
-        const props = {
-            ...baseProps,
-            statsActiveUsers: minWarning,
-        };
-
-        renderWithContext(
-            <EnterpriseEditionLeftPanel
-                {...props}
-            />,
-            initialState,
-        );
-
-        expect(screen.getByText(Intl.NumberFormat('en').format(minWarning))).toHaveClass('value');
-        expect(screen.getByText(Intl.NumberFormat('en').format(minWarning))).toHaveClass('value--warning-over-seats-purchased');
-        expect(screen.getByText(Intl.NumberFormat('en').format(minWarning))).not.toHaveClass('value--over-seats-purchased');
-        expect(screen.getByText('ACTIVE USERS:')).toHaveClass('legend');
-        expect(screen.getByText('ACTIVE USERS:')).toHaveClass('legend--warning-over-seats-purchased');
-        expect(screen.getByText('ACTIVE USERS:')).not.toHaveClass('legend--over-seats-purchased');
-    });
-
     test('should add over-seats-purchased class to active users', () => {
-        const exceedHighLimitExtraUsersError = Math.ceil(parseInt(license.Users, 10) * OverActiveUserLimits.MAX) + parseInt(license.Users, 10);
+        // Changed to not use the constant OverActiveUserLimits.MAX given that we are currently set to 0. So the active users will be 0
+        const exceedHighLimitExtraUsersError = Math.ceil(parseInt(license.Users, 10) * 0.2) + parseInt(license.Users, 10);
         const props = {
             ...baseProps,
             statsActiveUsers: exceedHighLimitExtraUsersError,

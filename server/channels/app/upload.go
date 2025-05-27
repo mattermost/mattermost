@@ -230,7 +230,16 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 			return nil, err
 		}
 		if written < minFirstPartSize && written != us.FileSize {
-			a.RemoveFile(uploadPath)
+			if fileErr := a.RemoveFile(uploadPath); fileErr != nil {
+				c.Logger().Warn("Failed to remove initial upload chunk that was too small",
+					mlog.Err(fileErr),
+					mlog.String("upload_path", uploadPath),
+					mlog.String("upload_id", us.Id),
+					mlog.String("filename", us.Filename),
+					mlog.Int("chunk_size", int(written)),
+					mlog.Int("min_size", minFirstPartSize),
+				)
+			}
 			var errStr string
 			if err != nil {
 				errStr = err.Error()
