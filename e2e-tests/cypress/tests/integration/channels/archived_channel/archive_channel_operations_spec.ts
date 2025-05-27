@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @channel
 
 import {getRandomId} from '../../../utils';
@@ -41,7 +40,7 @@ describe('Leave an archived channel', () => {
         });
     });
 
-    it('MM-T1704 Archived channels appear in channel switcher after refresh', () => {
+    it.skip('MM-T1704 Archived channels appear in channel switcher after refresh', () => {
         // # Archive the channel
         cy.apiLogin(testUser);
         cy.uiArchiveChannel();

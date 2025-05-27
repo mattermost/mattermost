@@ -141,8 +141,12 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Cluster */
 	if cluster := ps.Cluster(); cluster != nil {
 		d.Cluster.ID = cluster.GetClusterId()
-		clusterInfo := cluster.GetClusterInfos()
-		d.Cluster.NumberOfNodes = len(clusterInfo)
+		clusterInfo, e := cluster.GetClusterInfos()
+		if e != nil {
+			rErr = multierror.Append(rErr, errors.Wrap(e, "error while getting cluster infos"))
+		} else {
+			d.Cluster.NumberOfNodes = len(clusterInfo)
+		}
 	}
 
 	/* LDAP */

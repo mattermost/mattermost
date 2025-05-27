@@ -1,9 +1,8 @@
 components:
   securitySchemes:
-    bearerAuth:            # arbitrary name for the security scheme
+    bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: Token
   responses:
     Forbidden:
       description: Do not have appropriate permissions
@@ -174,8 +173,6 @@ components:
         team_id:
           type: string
         total_member_count:
-          type: integer
-        active_member_count:
           type: integer
     TeamExists:
       type: object
@@ -1574,6 +1571,12 @@ components:
               type: string
             ReportAProblemLink:
               type: string
+            ReportAProblemType:
+              type: string
+            ReportAProblemMail:
+              type: string
+            AllowDownloadLogs:
+              type: boolean
             SupportEmail:
               type: string
         GitLabSettings:
@@ -2047,6 +2050,12 @@ components:
             HelpLink:
               type: boolean
             ReportAProblemLink:
+              type: boolean
+            ReportAProblemType:
+              type: boolean
+            ReportAProblemMail:
+              type: boolean
+            AllowDownloadLogs:
               type: boolean
             SupportEmail:
               type: boolean
@@ -3924,6 +3933,181 @@ components:
           description: Explains the error behind why a scheduled post could not have been sent
         metadata:
           $ref: "#/components/schemas/PostMetadata"
+    AccessControlFieldsAutocompleteResponse:
+      type: object
+      properties:
+        fields:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: The name of the field.
+              description:
+                type: string
+                description: A description of the field.
+    AccessControlPoliciesWithCount:
+      type: object
+      properties:
+        policies:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccessControlPolicy"
+        total_count:
+          type: integer
+          description: The total number of policies.
+    AccessControlPolicy:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the policy.
+        name:
+          type: string
+          description: The unique name for the policy.
+        display_name:
+          type: string
+          description: The human-readable name for the policy.
+        description:
+          type: string
+          description: A description of the policy.
+        expression:
+          type: string
+          description: The CEL expression defining the policy rules.
+        is_active:
+          type: boolean
+          description: Whether the policy is currently active and enforced.
+        create_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the policy was created.
+        update_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the policy was last updated.
+        delete_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the policy was deleted.
+    AccessControlPolicySearch:
+      type: object
+      properties:
+        term:
+          type: string
+          description: The search term to match against policy names or display names.
+        is_active:
+          type: boolean
+          description: Filter policies by active status.
+        page:
+          type: integer
+          description: The page number to return.
+        per_page:
+          type: integer
+          description: The number of policies to return per page.
+        # Add other potential search/filter fields like sort_by, sort_direction
+    AccessControlPolicyTestResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+          description: A list of users affected by the policy expression.
+        total_count:
+          type: integer
+          description: The total number of users affected.
+    ChannelSearch: # Added based on dataretention.yaml and access_control.go usage
+      type: object
+      properties:
+        term:
+          type: string
+          description: The string to search in the channel name, display name, and purpose.
+        team_ids:
+          type: array
+          items:
+            type: string
+          description: Filters results to channels belonging to the given team ids.
+        public:
+          type: boolean
+          description: Filters results to only return Public / Open channels.
+        private:
+          type: boolean
+          description: Filters results to only return Private channels.
+        deleted:
+          type: boolean
+          description: Filters results to only return deleted / archived channels.
+        include_deleted:
+          type: boolean
+          description: Whether to include deleted channels in the search results.
+        # Add other potential search fields like not_associated_to_group, exclude_default_channels etc.
+    ChannelsWithCount: # Added based on access_control.go usage
+      type: object
+      properties:
+        channels:
+          $ref: "#/components/schemas/ChannelListWithTeamData" # Referencing existing type used in similar contexts
+        total_count:
+          type: integer
+          description: The total number of channels.
+    ExpressionError:
+      type: object
+      properties:
+        message:
+          type: string
+          description: The error message.
+        field:
+          type: string
+          description: The field related to the error, if applicable.
+        line:
+          type: integer
+          description: The line number where the error occurred in the expression.
+        column:
+          type: integer
+          description: The column number where the error occurred in the expression.
+    QueryExpressionParams:
+      type: object
+      properties:
+        expression:
+          type: string
+          description: The policy expression to test.
+        term:
+          type: string
+          description: A search term to filter users against whom the expression is tested.
+        limit:
+          type: integer
+          description: The maximum number of users to return.
+        after:
+          type: string
+          description: The ID of the user to start the test after (for pagination).
+    CELExpression:
+      type: object
+      properties:
+        expression:
+          type: string
+          description: The CEL expression to visualize.
+    VisualExpression:
+      type: object
+      properties:
+        conditions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Condition"
+          description: The visual AST for the CEL expression
+    Condition:
+      type: object
+      properties:
+        attribute:
+          type: string
+          description: The attribute name.
+        operator:
+          type: string
+          description: The operator of a single condition.
+        value:
+          type: string
+          description: The value.
+        value_type:
+          type: string
+          description: The value type.
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

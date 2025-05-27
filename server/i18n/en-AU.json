@@ -7703,10 +7703,6 @@
     "translation": "%v left the channel."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "You're the only member left, try removing the Private Channel instead of leaving."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Unable to leave a direct message channel."
   },
@@ -8192,7 +8188,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Failed to apply new trial licence. You have previously applied a trial license to this Mattermost instance. If you would like to extend your trial period please [contact the sales team](https://mattermost.com/contact-us/)."
+    "translation": "Failed to apply new trial licence as your workspace has already applied a trial licence. If you would like to extend your trial period please [contact the sales team](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -10487,5 +10483,141 @@
   {
     "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
     "translation": "Invalid maximum login attempts for LDAP settings. Must be a positive number."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Unable to delete Custom Profile Attribute Values for user"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Failed to add certificate."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Too many files under 'certificate' in request."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Failed to remove certificate."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Unable to convert the property field to a custom profile attribute field"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "Failed to retrieve CPA fields"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "Error(s) patching CPA value"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "Failed to retrieve CPA field(s)"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAML assertion attribute statement is invalid"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "Error(s) updating CPA values"
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Invalid policy type."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Version is not valid for this access control policy."
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Failed to parse form for webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Failed to parse multipart form for webhook {{.hook_id}}."
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Failed to validate property value"
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Failed to open the profile image file: {{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Failed to read profile image data."
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Encountered an error decoding JSON response from interactive dialog submission."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Encountered an error reading response body from interactive dialog submission."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Invalid AD/LDAP ID"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Empty LDAP attribute value"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Invalid AD/LDAP ID"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Invalid property value attributes : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Invalid name for the policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Invalid policy revision."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Invalid rule(s)."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Policy must either import or define rules."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Invalid policy ID."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Invalid imports for the policy."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix cannot be empty if GlobalSearchPrefix is set."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} should be a prefix of IndexPrefix {{.IndexPrefix}}."
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Failed to compute monthly active users."
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "No user registered on AD/LDAP server that matches the SAML user."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "invalid custom profile attribute field patch"
   }
 ]

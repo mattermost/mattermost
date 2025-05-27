@@ -4848,10 +4848,6 @@
     "translation": "%v opustil kanál."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Zůstali jste jediným členem, zkuste soukromý kanál odebrat místo opuštění."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Nelze opustit kanál přímých zpráv."
   },
@@ -5289,15 +5285,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Verze 119+"
+    "translation": "Verze 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verze 132+"
+    "translation": "Verze 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verze 132+"
+    "translation": "Verze 134+"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
@@ -10408,10 +10404,6 @@
     "translation": "Nepodařilo se aktualizovat pořadí záložek kanálu."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "pokoušíte se upravit pole, které neexistuje"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Nelze načíst záložky pro archivovaný kanál"
   },
@@ -10500,15 +10492,163 @@
     "translation": "Nepodařilo se zresetovat pokusy o přihlášení uživatele."
   },
   {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Nelze převést pole vlastnosti na pole vlastního atributu profilu"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
     "translation": "Nelze převést pole vlastnosti na pole vlastního atributu profilu"
   },
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
     "translation": "Neplatné atributy hodnoty vlastnosti: {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Nelze smazat hodnoty atributu vlastního profilu pro uživatele"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "Nepodařilo se načíst pole CPA"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Nepodařilo se ověřit hodnotu vlastnosti"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "Chyba(y) opravy hodnoty CPA"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Prázdná hodnota atributu LDAP"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "nepodařilo se načíst pole CPA"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "Příkaz atributu výrazu SAML je neplatný"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "Chyby při aktualizaci hodnot CPA"
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Nepodařilo se analyzovat formulář pro webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Nepodařilo se analyzovat vícedílný formulář pro webhook {{.hook_id}}."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Certifikát se nepodařilo přidat."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "V požadavku je příliš mnoho souborů pod 'certifikátem'."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Certifikát se nepodařilo odebrat."
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Nepodařilo se otevřít soubor s obrázkem profilu: {{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Nepodařilo se přečíst data profilového obrázku."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Neplatné ID AD/LDAP"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Neplatné id AD/LDAP"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Nepodařilo se vypočítat aktivní uživatele za měsíc."
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Při dekódování odpovědi JSON při odeslání interaktivního dialogu došlo k chybě."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Při čtení těla odpovědi z interaktivního dialogu došlo k chybě."
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "Na serveru AD/LDAP není registrován žádný uživatel, který by odpovídal uživateli SAML."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Neplatné ID zásady."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "neplatná oprava pole atributu vlastního profilu"
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Verze není platná pro tuto zásadu řízení přístupu."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Neplatný název zásady."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Neplatné importy pro zásady."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Neplatná revize zásad."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Pravidlo(a) není platné."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Zásady musí buď importovat, nebo definovat pravidla."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Neplatný typ zásady."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "Funkce {{.Feature}} není pro aktuální licenci dostupná"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Je vyžadován e-mail nahlásit problém."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Neplatný odkaz na nahlášení problému. Musí to být platná adresa URL a začínat http:// nebo https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Je vyžadován odkaz nahlásit problém."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Neplatná zpráva o problémovém e-mailu. Musí to být platná e-mailová adresa."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix nemůže být prázdný, pokud je nastaven GlobalSearchPrefix."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} by měl být předponou IndexPrefix {{.IndexPrefix}}."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Nelze aktualizovat hodnotu pro synchronizované pole vlastního atributu profilu"
   }
 ]

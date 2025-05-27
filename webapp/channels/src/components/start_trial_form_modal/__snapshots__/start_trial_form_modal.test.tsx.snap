@@ -121,7 +121,6 @@ Object {
                   role="alert"
                 >
                   <i
-                    aria-hidden="true"
                     class="icon error icon-alert-circle-outline"
                   />
                   <span>

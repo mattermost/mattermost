@@ -49,7 +49,7 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Nenhum arquivo sob o 'certificate' na requisição."
+    "translation": "Nenhum arquivo sob o 'certificado' na requisição."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -206,10 +206,6 @@
   {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Não é possível sair de um canal de mensagem direta."
-  },
-  {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Você é o único membro que restou, tente remover o Canal Privado ao invés de sair."
   },
   {
     "id": "api.channel.leave.left",
@@ -8545,7 +8541,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Falha ao aplicar a nova licença de avaliação. Você já aplicou uma licença de avaliação a esta instância do Mattermost anteriormente. Se desejar estender seu período de avaliação, [entre em contato com nossa equipe de vendas](https://mattermost.com/contact-us/)."
+    "translation": "Falha ao aplicar a nova licença de teste, pois seu espaço de trabalho já aplicou uma licença de teste. Se desejar estender seu período de teste, por favor [entre em contato com nossa equipe de vendas](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request_trial_license.embargoed",
@@ -10026,5 +10022,101 @@
   {
     "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
     "translation": "Falha ao criar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Falha ao deletar o marcador deste canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Falha ao atualizar o marcador deste canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Falha ao atualizar a ordem de exibição do marcador deste canal."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Falha ao adicionar certificado"
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Há muitos arquivos dentro de 'certificado' na solicitação"
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Falha ao remover o certificado."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Não é possível executar comandos em um canal deletado."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Não é possível deletar valores de atributos de perfil personalizados para o usuário"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Não é possível recuperar os favoritos de um canal arquivado"
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Sessão não encontrada."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Não é possível registrar o grupo de propriedades Custom Profile Attributes"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Não é possível criar o campo Atributo de perfil personalizado"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Não é possível obter o campo Atributo de perfil personalizado"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "O limite do campo atributos de perfil personalizado foi atingido"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Não é possível obter valores de atributos de perfil personalizados"
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "O banner do canal só pode ser configurado em canais Públicos ou Privados."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Não é possível contar o número de campos para o grupo de atributos do perfil personalizado"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Sua licença não oferece suporte a Atributos de Perfil Personalizados."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Não foi possível obter um leitor de arquivo zip."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Campo de patch de atributo de perfil personalizado inválido"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Falha ao calcular os usuários ativos mensais."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "O serviço de autenticação do usuário deve ser LDAP ou e-mail."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Você não tem permissão para atualizar esse recurso."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Sua conta está bloqueada devido ao número excessivo de tentativas de senha com falha. Entre em contato com o administrador do sistema."
   }
 ]

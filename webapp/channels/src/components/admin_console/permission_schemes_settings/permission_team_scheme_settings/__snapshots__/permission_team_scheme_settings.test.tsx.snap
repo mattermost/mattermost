@@ -1,28 +1,436 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/admin_console/permission_schemes_settings/permission_team_scheme_settings/permission_team_scheme_settings should match snapshot on edit with permissions 1`] = `<LoadingScreen />`;
+exports[`components/admin_console/permission_schemes_settings/permission_team_scheme_settings/permission_team_scheme_settings should match snapshot on edit with permissions 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader
+    withBackButton={true}
+  >
+    <div>
+      <Connect(Component)
+        className="fa fa-angle-left back"
+        to="/admin_console/user_management/permissions"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="Team Scheme"
+        id="admin.permissions.teamScheme"
+      />
+    </div>
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="banner info"
+      >
+        <div
+          className="banner__content"
+        >
+          <span>
+            <MemoizedFormattedMessage
+              defaultMessage="<linkOverrideTeam>Team Override Schemes</linkOverrideTeam> set the permissions for Team Admins, Channel Admins and other members in specific teams. Use a Team Override Scheme when specific teams need permission exceptions to the <linkSystemScheme>System Scheme</linkSystemScheme>."
+              id="admin.permissions.teamScheme.introBanner"
+              values={
+                Object {
+                  "linkOverrideTeam": [Function],
+                  "linkSystemScheme": [Function],
+                }
+              }
+            />
+          </span>
+        </div>
+      </div>
+      <AdminPanel
+        subtitle={
+          Object {
+            "defaultMessage": "Set the name and description for this scheme.",
+            "id": "admin.permissions.teamScheme.schemeDetailsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Scheme Details",
+            "id": "admin.permissions.teamScheme.schemeDetailsTitle",
+          }
+        }
+      >
+        <div
+          className="team-scheme-details"
+        >
+          <div
+            className="form-group"
+          >
+            <label
+              className="control-label"
+              htmlFor="scheme-name"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="Scheme Name:"
+                id="admin.permissions.teamScheme.schemeNameLabel"
+              />
+            </label>
+            <LocalizedPlaceholderInput
+              className="form-control"
+              disabled={false}
+              id="scheme-name"
+              onChange={[Function]}
+              placeholder={
+                Object {
+                  "defaultMessage": "Scheme Name",
+                  "id": "admin.permissions.teamScheme.schemeNamePlaceholder",
+                }
+              }
+              type="text"
+              value="Test scheme"
+            />
+          </div>
+          <div
+            className="form-group"
+          >
+            <label
+              className="control-label"
+              htmlFor="scheme-description"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="Scheme Description:"
+                id="admin.permissions.teamScheme.schemeDescriptionLabel"
+              />
+            </label>
+            <LocalizedPlaceholderTextarea
+              className="form-control"
+              disabled={false}
+              id="scheme-description"
+              onChange={[Function]}
+              placeholder={
+                Object {
+                  "defaultMessage": "Scheme Description",
+                  "id": "admin.permissions.teamScheme.schemeDescriptionPlaceholder",
+                }
+              }
+              rows={5}
+              value="Test scheme description"
+            />
+          </div>
+        </div>
+      </AdminPanel>
+      <AdminPanelWithButton
+        buttonText={
+          Object {
+            "defaultMessage": "Add Teams",
+            "id": "admin.permissions.teamScheme.addTeams",
+          }
+        }
+        className="permissions-block"
+        disabled={false}
+        onButtonClick={[Function]}
+        subtitle={
+          Object {
+            "defaultMessage": "Select teams where permission exceptions are required.",
+            "id": "admin.permissions.teamScheme.selectTeamsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Select teams to override permissions",
+            "id": "admin.permissions.teamScheme.selectTeamsTitle",
+          }
+        }
+      >
+        <div
+          className="teams-list"
+        >
+          <div
+            className="no-team-schemes"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="No team selected. Please add teams to this list."
+              id="admin.permissions.teamScheme.noTeams"
+            />
+          </div>
+        </div>
+      </AdminPanelWithButton>
+      <AdminPanelTogglable
+        className="permissions-block all_users"
+        id="all_users"
+        onToggle={[Function]}
+        open={true}
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to all members, including administrators and newly created users.",
+            "id": "admin.permissions.systemScheme.allMembersDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "All Members",
+            "id": "admin.permissions.systemScheme.allMembersTitle",
+          }
+        }
+      >
+        <Connect(PermissionsTree)
+          onToggle={[Function]}
+          readOnly={false}
+          role={
+            Object {
+              "displayName": "All members",
+              "name": "all_users",
+              "permissions": Array [
+                "invite_user",
+                "add_reaction",
+                "delete_post",
+                "delete_post",
+              ],
+            }
+          }
+          scope="team_scope"
+          selectRow={[Function]}
+        />
+      </AdminPanelTogglable>
+      <AdminPanelTogglable
+        className="permissions-block channel_admin"
+        onToggle={[Function]}
+        open={true}
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to channel creators and any users promoted to Channel Administrator.",
+            "id": "admin.permissions.systemScheme.channelAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Channel Administrators",
+            "id": "admin.permissions.systemScheme.channelAdminsTitle",
+          }
+        }
+      >
+        <Connect(PermissionsTree)
+          onToggle={[Function]}
+          parentRole={
+            Object {
+              "displayName": "All members",
+              "name": "all_users",
+              "permissions": Array [
+                "invite_user",
+                "add_reaction",
+                "delete_post",
+                "delete_post",
+              ],
+            }
+          }
+          readOnly={false}
+          role={
+            Object {
+              "name": "channel_admin",
+              "permissions": Array [
+                "delete_post",
+              ],
+            }
+          }
+          scope="channel_scope"
+          selectRow={[Function]}
+        />
+      </AdminPanelTogglable>
+      <AdminPanelTogglable
+        className="permissions-block"
+        onToggle={[Function]}
+        open={true}
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to administrators of a playbook.",
+            "id": "admin.permissions.systemScheme.playbookAdminSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Playbook Administrator",
+            "id": "admin.permissions.systemScheme.playbookAdmin",
+          }
+        }
+      >
+        <PermissionsTreePlaybooks
+          license={
+            Object {
+              "CustomPermissionsSchemes": "true",
+              "GuestAccountsPermissions": "true",
+              "IsLicensed": "true",
+            }
+          }
+          onToggle={[Function]}
+          parentRole={
+            Object {
+              "displayName": "All members",
+              "name": "all_users",
+              "permissions": Array [
+                "invite_user",
+                "add_reaction",
+                "delete_post",
+                "delete_post",
+              ],
+            }
+          }
+          readOnly={false}
+          role={
+            Object {
+              "permissions": Array [
+                "delete_post",
+              ],
+            }
+          }
+          scope="playbook_scope"
+          selectRow={[Function]}
+        />
+      </AdminPanelTogglable>
+      <AdminPanelTogglable
+        className="permissions-block team_admin"
+        onToggle={[Function]}
+        open={true}
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to team creators and any users promoted to Team Administrator.",
+            "id": "admin.permissions.systemScheme.teamAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Administrators",
+            "id": "admin.permissions.systemScheme.teamAdminsTitle",
+          }
+        }
+      >
+        <Connect(PermissionsTree)
+          onToggle={[Function]}
+          parentRole={
+            Object {
+              "displayName": "All members",
+              "name": "all_users",
+              "permissions": Array [
+                "invite_user",
+                "add_reaction",
+                "delete_post",
+                "delete_post",
+              ],
+            }
+          }
+          readOnly={false}
+          role={
+            Object {
+              "name": "team_admin",
+              "permissions": Array [
+                "add_user_to_team",
+              ],
+            }
+          }
+          scope="team_scope"
+          selectRow={[Function]}
+        />
+      </AdminPanelTogglable>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      disabled={true}
+      onClick={[Function]}
+      saving={false}
+      savingMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Saving Config..."
+          id="admin.saving"
+        />
+      }
+    />
+    <Connect(Component)
+      className="cancel-button"
+      to="/admin_console/user_management/permissions"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="admin.permissions.permissionSchemes.cancel"
+      />
+    </Connect(Component)>
+    <div
+      className="error-message"
+    >
+      <Memo(FormError)
+        error={null}
+      />
+    </div>
+  </div>
+</div>
+`;
 
 exports[`components/admin_console/permission_schemes_settings/permission_team_scheme_settings/permission_team_scheme_settings should match snapshot on edit with permissions 2`] = `
 Object {
   "all_users": Object {
     "displayName": "All members",
     "name": "all_users",
-    "permissions": Array [],
+    "permissions": Array [
+      "invite_user",
+      "add_reaction",
+      "delete_post",
+      "delete_post",
+    ],
   },
-  "channel_admin": undefined,
-  "channel_guest": undefined,
-  "channel_user": undefined,
+  "channel_admin": Object {
+    "name": "channel_admin",
+    "permissions": Array [
+      "delete_post",
+    ],
+  },
+  "channel_guest": Object {
+    "permissions": Array [
+      "delete_post",
+    ],
+  },
+  "channel_user": Object {
+    "permissions": Array [
+      "add_reaction",
+    ],
+  },
   "guests": Object {
     "displayName": "Guests",
     "name": "guests",
-    "permissions": undefined,
+    "permissions": Array [
+      "edit_post",
+      "delete_post",
+    ],
   },
-  "playbook_admin": undefined,
-  "playbook_member": undefined,
-  "run_member": undefined,
-  "team_admin": undefined,
-  "team_guest": undefined,
-  "team_user": undefined,
+  "playbook_admin": Object {
+    "permissions": Array [
+      "delete_post",
+    ],
+  },
+  "playbook_member": Object {
+    "permissions": Array [
+      "delete_post",
+    ],
+  },
+  "run_member": Object {
+    "permissions": Array [
+      "delete_post",
+    ],
+  },
+  "team_admin": Object {
+    "name": "team_admin",
+    "permissions": Array [
+      "add_user_to_team",
+    ],
+  },
+  "team_guest": Object {
+    "permissions": Array [
+      "edit_post",
+    ],
+  },
+  "team_user": Object {
+    "permissions": Array [
+      "invite_user",
+    ],
+  },
 }
 `;
 

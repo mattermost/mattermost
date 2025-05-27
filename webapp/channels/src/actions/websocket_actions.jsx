@@ -34,6 +34,7 @@ import {
     getChannelMemberCountsByGroup,
     fetchAllMyChannelMembers,
     fetchAllMyTeamsChannels,
+    fetchChannelsAndMembers,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
@@ -847,9 +848,11 @@ async function handlePostDeleteEvent(msg) {
             }
         } else {
             const res = await dispatch(getPostThread(post.root_id));
-            const {order, posts} = res.data;
-            const rootPost = posts[order[0]];
-            dispatch(receivedPost(rootPost));
+            if (res.data) {
+                const {order, posts} = res.data;
+                const rootPost = posts[order[0]];
+                dispatch(receivedPost(rootPost));
+            }
         }
     }
 
@@ -880,6 +883,7 @@ async function handleTeamAddedEvent(msg) {
     await dispatch(TeamActions.getMyTeamMembers());
     const state = getState();
     await dispatch(TeamActions.getMyTeamUnreads(isCollapsedThreadsEnabled(state)));
+    await dispatch(fetchChannelsAndMembers(msg.data.team_id));
     const license = getLicense(state);
     if (license.Cloud === 'true') {
         dispatch(getTeamsUsage());

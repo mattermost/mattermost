@@ -208,10 +208,6 @@
     "translation": "Невозможно покинуть канал личных сообщений."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вы единственный оставшийся участник, попробуйте удалить частный канал вместо того, чтобы покинуть."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v покинул канал."
   },
@@ -10084,10 +10080,6 @@
     "translation": "Невозможно выполнить команду в удаленном канале."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "пытаюсь исправить поле, которого не существует"
-  },
-  {
     "id": "api.context.get_session.app_error",
     "translation": "Сеанс не найден."
   },
@@ -10242,5 +10234,57 @@
   {
     "id": "app.group.license_error",
     "translation": "Требуется лицензия LDAP."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Патч для недействительного поля атрибута пользовательского профиля"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Ваша учётная запись заблокирована из-за слишком большого количества неудачных попыток ввода пароля. Обратитесь к своему системному администратору."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Невозможно преобразовать поле свойства в поле атрибута пользовательского профиля"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Не удалось удалить запланированное сообщение из базы данных."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Запланированное сообщение не существует."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Невозможно вставить пользовательские поля атрибутов профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Невозможно удалить поле Атрибут пользовательского профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Поле Атрибут пользовательского профиля не найдено"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Невозможно выполнить поиск по полям пользовательских атрибутов профиля"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Служба аутентификации пользователей должна быть LDAP или Email."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "У вас нет разрешения на обновление этого ресурса."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Невозможно обновить поле Атрибут пользовательского профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Неверное значение свойства Атрибут : {{.AttributeName}} ({{.Reason}})."
   }
 ]
