@@ -28,7 +28,7 @@ import FilePreviewModalFooter from './file_preview_modal_footer/file_preview_mod
 import FilePreviewModalHeader from './file_preview_modal_header/file_preview_modal_header';
 import ImagePreview from './image_preview';
 import PopoverBar from './popover_bar';
-import {isFileInfo} from './types';
+import {isFileInfo, isLinkInfo} from './types';
 import type {LinkInfo} from './types';
 
 import './file_preview_modal.scss';
@@ -164,21 +164,51 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
     };
 
+    isImageUrl = (url: string): boolean => {
+        const fileType = Utils.getFileType(url);
+        return fileType === FileTypes.IMAGE || fileType === FileTypes.SVG;
+    };
+
+    private getFileTypeFromFileInfo = (fileInfo: FileInfo | LinkInfo): typeof FileTypes[keyof typeof FileTypes] => {
+        if (isFileInfo(fileInfo)) {
+            return Utils.getFileType(fileInfo.extension);
+        }
+
+        if (isLinkInfo(fileInfo)) {
+            // if extension is not available or is longer than 5 characters, use the link to determine the file type
+            const maxLenghtExtension = 11; // applescript is the longest extension
+            const extensionOrLink = fileInfo.extension && fileInfo.extension.length <= maxLenghtExtension ? fileInfo.extension : fileInfo.link;
+            return Utils.getFileType(extensionOrLink);
+        }
+
+        return FileTypes.OTHER;
+    };
+
     loadImage = (index: number) => {
         const fileInfo = this.props.fileInfos[index];
         if (isFileInfo(fileInfo) && fileInfo.archived) {
             this.handleImageLoaded(index);
             return;
         }
-        const fileType = Utils.getFileType(fileInfo.extension);
 
-        if (fileType === FileTypes.IMAGE && isFileInfo(fileInfo)) {
-            let previewUrl;
-            if (fileInfo.has_preview_image) {
-                previewUrl = getFilePreviewUrl(fileInfo.id);
-            } else {
-                // some images (eg animated gifs) just show the file itself and not a preview
-                previewUrl = getFileUrl(fileInfo.id);
+        // Determine file type using helper method
+        const fileType = this.getFileTypeFromFileInfo(fileInfo);
+
+        // Check if this is an image
+        const isImage = fileType === FileTypes.IMAGE;
+
+        if (isImage) {
+            let previewUrl = '';
+            if (isFileInfo(fileInfo)) {
+                if (fileInfo.has_preview_image) {
+                    previewUrl = getFilePreviewUrl(fileInfo.id);
+                } else {
+                    // some images (eg animated gifs) just show the file itself and not a preview
+                    previewUrl = getFileUrl(fileInfo.id);
+                }
+            } else if (isLinkInfo(fileInfo)) {
+                // For LinkInfo, use the link directly
+                previewUrl = fileInfo.link;
             }
 
             Utils.loadImage(
@@ -269,7 +299,9 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
 
         const fileInfo = this.props.fileInfos[this.state.imageIndex];
-        const fileType = Utils.getFileType(fileInfo.extension);
+
+        // Determine file type using helper method
+        const fileType = this.getFileTypeFromFileInfo(fileInfo);
 
         let showPublicLink;
         let fileName;

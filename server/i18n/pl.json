@@ -208,10 +208,6 @@
     "translation": "Nie można opuścić kanału wiadomości bezpośrednich."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Jesteś ostatnim uczestnikiem grupy, spróbuj usunąć Prywatny Kanał zamiast go opuszczać."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v opuścił kanał."
   },
@@ -4605,15 +4601,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 119+"
+    "translation": "Wersja 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 132+"
+    "translation": "Wersja 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 132+"
+    "translation": "Wersja 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10630,5 +10626,29 @@
   {
     "id": "ent.saml.login.ldap_user_missing",
     "translation": "Żaden użytkownik zarejestrowany na serwerze AD/LDAP nie pasuje do użytkownika SAML."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} funkcja nie jest dostępna dla bieżącej licencji"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Nieprawidłowy link do zgłoszenia problemu. Musi być prawidłowym adresem URL i zaczynać się od http:// lub https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Wymagany jest link Zgłoś problem."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Nieprawidłowe zgłoszenie problemu. Musi to być prawidłowy adres e-mail."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Wymagane jest zgłoszenie problemu pocztą."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Nie można zaktualizować wartości dla zsynchronizowanego pola atrybutu profilu niestandardowego"
   }
 ]
