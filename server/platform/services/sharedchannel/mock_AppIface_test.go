@@ -361,6 +361,38 @@ func (_m *MockAppIface) GetOrCreateDirectChannel(c request.CTX, userId string, o
 	return r0, r1
 }
 
+// GetPriorityForPost provides a mock function with given fields: postID
+func (_m *MockAppIface) GetPriorityForPost(postID string) (*model.PostPriority, *model.AppError) {
+	ret := _m.Called(postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPriorityForPost")
+	}
+
+	var r0 *model.PostPriority
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (*model.PostPriority, *model.AppError)); ok {
+		return rf(postID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.PostPriority); ok {
+		r0 = rf(postID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostPriority)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(postID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetProfileImage provides a mock function with given fields: user
 func (_m *MockAppIface) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	ret := _m.Called(user)
@@ -398,6 +430,24 @@ func (_m *MockAppIface) GetProfileImage(user *model.User) ([]byte, bool, *model.
 	}
 
 	return r0, r1, r2
+}
+
+// IsPostPriorityEnabled provides a mock function with given fields:
+func (_m *MockAppIface) IsPostPriorityEnabled() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsPostPriorityEnabled")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
 }
 
 // MentionsToTeamMembers provides a mock function with given fields: c, message, teamID
@@ -535,6 +585,26 @@ func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Cha
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// PreparePostForClient provides a mock function with given fields: c, post, isNewPost, includeDeleted, includePriority
+func (_m *MockAppIface) PreparePostForClient(c request.CTX, post *model.Post, isNewPost bool, includeDeleted bool, includePriority bool) *model.Post {
+	ret := _m.Called(c, post, isNewPost, includeDeleted, includePriority)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PreparePostForClient")
+	}
+
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, bool, bool, bool) *model.Post); ok {
+		r0 = rf(c, post, isNewPost, includeDeleted, includePriority)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 

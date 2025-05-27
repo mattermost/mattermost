@@ -81,6 +81,9 @@ type AppIface interface {
 	DeleteAcknowledgementsForPost(c request.CTX, postID string) *model.AppError
 	DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError
 	SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post, *model.AppError)
+	GetPriorityForPost(postID string) (*model.PostPriority, *model.AppError)
+	IsPostPriorityEnabled() bool
+	PreparePostForClient(c request.CTX, post *model.Post, isNewPost, includeDeleted, includePriority bool) *model.Post
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -290,4 +293,10 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 // This allows direct testing of post metadata synchronization.
 func (scs *Service) UpsertSyncPostForTesting(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
 	return scs.upsertSyncPost(post, targetChannel, rc)
+}
+
+// OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing purposes.
+// This allows testing the complete sync message flow including post metadata preservation.
+func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	return scs.onReceiveSyncMessage(msg, rc, response)
 }
