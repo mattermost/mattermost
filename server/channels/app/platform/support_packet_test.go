@@ -365,6 +365,12 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 
 	// Ensure feature flags are present
 	assert.Equal(t, "true", config.FeatureFlags.TestFeature)
+
+	// Ensure DataSource is partially sanitized (not completely replaced with FakeSetting)
+	// The default test database connection string should have username/password redacted
+	assert.Contains(t, *config.SqlSettings.DataSource, "****:****")
+	assert.Contains(t, *config.SqlSettings.DataSource, "localhost")
+	assert.NotEqual(t, model.FakeSetting, *config.SqlSettings.DataSource)
 }
 
 func TestGetCPUProfile(t *testing.T) {

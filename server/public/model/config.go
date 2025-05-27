@@ -4696,9 +4696,12 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		opts = &SanitizeOptions{}
 	}
 
-	driverName := *o.SqlSettings.DriverName
+	var driverName string
+	if o.SqlSettings.DriverName != nil {
+		driverName = *o.SqlSettings.DriverName
+	}
 	sanitizeDataSourceField := func(dataSource string, fieldName string) string {
-		if opts.PartiallyRedactDataSources {
+		if opts.PartiallyRedactDataSources && driverName != "" {
 			sanitized, err := SanitizeDataSource(driverName, dataSource)
 			if err != nil {
 				mlog.Warn("Failed to sanitize "+fieldName, mlog.Err(err))
