@@ -9226,7 +9226,7 @@
   },
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "Maximum File Backups of audit logs config must be greater than zero."
+    "translation": "Maximum File Size of audit logs config must be greater than zero."
   },
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
