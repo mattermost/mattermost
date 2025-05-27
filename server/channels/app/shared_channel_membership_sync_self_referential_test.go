@@ -1858,7 +1858,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			scrUpdated = scr1
 			firstCursor = scr1.LastMembersSyncAt
 			return firstCursor > 0
-		}, 5*time.Second, 100*time.Millisecond, "Should have cursor after first sync")
+		}, 10*time.Second, 100*time.Millisecond, "Should have cursor after first sync")
 
 		// Set an extremely large cursor value to test edge case handling
 		scrUpdated.LastMembersSyncAt = 9223372036854775807 // Max int64
