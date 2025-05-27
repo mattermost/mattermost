@@ -713,9 +713,9 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 	}
 
 	// Post a system message to notify users that the channel is no longer shared with this remote
-	scs.postUnshareNotification(msg.ChannelId, scr.CreatorId, channel, rc.Name)
+	scs.postUnshareNotification(msg.ChannelId, scr.CreatorId, channel, rc)
 
-	if err := scs.app.UninviteRemoteFromChannel(msg.ChannelId, rc.RemoteId); err != nil {
+	if err := scs.UninviteRemoteFromChannel(msg.ChannelId, rc.RemoteId); err != nil {
 		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to uninvite remote from shared channel", mlog.Err(err))
 		return
 	}

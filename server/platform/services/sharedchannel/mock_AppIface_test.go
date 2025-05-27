@@ -531,24 +531,6 @@ func (_m *MockAppIface) SendEphemeralPost(c request.CTX, userId string, post *mo
 	return r0
 }
 
-// UninviteRemoteFromChannel provides a mock function with given fields: channelID, remoteID
-func (_m *MockAppIface) UninviteRemoteFromChannel(channelID string, remoteID string) error {
-	ret := _m.Called(channelID, remoteID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UninviteRemoteFromChannel")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(channelID, remoteID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // UpdatePost provides a mock function with given fields: c, post, updatePostOptions
 func (_m *MockAppIface) UpdatePost(c request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
 	ret := _m.Called(c, post, updatePostOptions)

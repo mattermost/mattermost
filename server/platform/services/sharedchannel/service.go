@@ -74,7 +74,6 @@ type AppIface interface {
 	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
 	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 	Publish(message *model.WebSocketEvent)
-	UninviteRemoteFromChannel(channelID, remoteID string) error
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -281,7 +280,7 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 }
 
 // postUnshareNotification posts a system message to notify users that the channel is no longer shared.
-func (scs *Service) postUnshareNotification(channelID string, creatorID string, channel *model.Channel, remoteName string) {
+func (scs *Service) postUnshareNotification(channelID string, creatorID string, channel *model.Channel, rc *model.RemoteCluster) {
 	post := &model.Post{
 		UserId:    creatorID,
 		ChannelId: channelID,
@@ -293,16 +292,14 @@ func (scs *Service) postUnshareNotification(channelID string, creatorID string, 
 	_, appErr := scs.app.CreatePost(request.EmptyContext(logger), post, channel, model.CreatePostFlags{})
 
 	if appErr != nil {
-		fields := []mlog.Field{
+		scs.server.Log().Log(
+			mlog.LvlSharedChannelServiceError,
+			"Error creating unshare notification post",
 			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.String("remote_name", rc.Name),
 			mlog.Err(appErr),
-		}
-
-		if remoteName != "" {
-			fields = append(fields, mlog.String("remote", remoteName))
-		}
-
-		logger.Log(mlog.LvlSharedChannelServiceError, "Error creating unshare notification post", fields...)
+		)
 	}
 }
 
