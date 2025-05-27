@@ -7200,14 +7200,13 @@ func (s *apiRPCServer) MakeAuditRecord(args *Z_MakeAuditRecordArgs, returns *Z_M
 
 type Z_LogAuditRecArgs struct {
 	A *model.AuditRecord
-	B error
 }
 
 type Z_LogAuditRecReturns struct {
 }
 
-func (g *apiRPCClient) LogAuditRec(rec *model.AuditRecord, err error) {
-	_args := &Z_LogAuditRecArgs{rec, err}
+func (g *apiRPCClient) LogAuditRec(rec *model.AuditRecord) {
+	_args := &Z_LogAuditRecArgs{rec}
 	_returns := &Z_LogAuditRecReturns{}
 	if err := g.client.Call("Plugin.LogAuditRec", _args, _returns); err != nil {
 		log.Printf("RPC call to LogAuditRec API failed: %s", err.Error())
@@ -7217,9 +7216,9 @@ func (g *apiRPCClient) LogAuditRec(rec *model.AuditRecord, err error) {
 
 func (s *apiRPCServer) LogAuditRec(args *Z_LogAuditRecArgs, returns *Z_LogAuditRecReturns) error {
 	if hook, ok := s.impl.(interface {
-		LogAuditRec(rec *model.AuditRecord, err error)
+		LogAuditRec(rec *model.AuditRecord)
 	}); ok {
-		hook.LogAuditRec(args.A, args.B)
+		hook.LogAuditRec(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API LogAuditRec called but not implemented."))
 	}
@@ -7229,14 +7228,13 @@ func (s *apiRPCServer) LogAuditRec(args *Z_LogAuditRecArgs, returns *Z_LogAuditR
 type Z_LogAuditRecWithLevelArgs struct {
 	A *model.AuditRecord
 	B mlog.Level
-	C error
 }
 
 type Z_LogAuditRecWithLevelReturns struct {
 }
 
-func (g *apiRPCClient) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level, err error) {
-	_args := &Z_LogAuditRecWithLevelArgs{rec, level, err}
+func (g *apiRPCClient) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level) {
+	_args := &Z_LogAuditRecWithLevelArgs{rec, level}
 	_returns := &Z_LogAuditRecWithLevelReturns{}
 	if err := g.client.Call("Plugin.LogAuditRecWithLevel", _args, _returns); err != nil {
 		log.Printf("RPC call to LogAuditRecWithLevel API failed: %s", err.Error())
@@ -7246,9 +7244,9 @@ func (g *apiRPCClient) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.L
 
 func (s *apiRPCServer) LogAuditRecWithLevel(args *Z_LogAuditRecWithLevelArgs, returns *Z_LogAuditRecWithLevelReturns) error {
 	if hook, ok := s.impl.(interface {
-		LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level, err error)
+		LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 	}); ok {
-		hook.LogAuditRecWithLevel(args.A, args.B, args.C)
+		hook.LogAuditRecWithLevel(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API LogAuditRecWithLevel called but not implemented."))
 	}

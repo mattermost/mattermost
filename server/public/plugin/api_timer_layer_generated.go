@@ -1506,14 +1506,14 @@ func (api *apiTimerLayer) MakeAuditRecord(event string, initialStatus string) *m
 	return _returnsA
 }
 
-func (api *apiTimerLayer) LogAuditRec(rec *model.AuditRecord, err error) {
+func (api *apiTimerLayer) LogAuditRec(rec *model.AuditRecord) {
 	startTime := timePkg.Now()
-	api.apiImpl.LogAuditRec(rec, err)
+	api.apiImpl.LogAuditRec(rec)
 	api.recordTime(startTime, "LogAuditRec", true)
 }
 
-func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level, err error) {
+func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level) {
 	startTime := timePkg.Now()
-	api.apiImpl.LogAuditRecWithLevel(rec, level, err)
+	api.apiImpl.LogAuditRecWithLevel(rec, level)
 	api.recordTime(startTime, "LogAuditRecWithLevel", true)
 }

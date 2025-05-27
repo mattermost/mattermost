@@ -141,3 +141,9 @@ func (rec *AuditRecord) AddErrorCode(code int) {
 func (rec *AuditRecord) AddErrorDesc(description string) {
 	rec.Error.Description = description
 }
+
+// AddAppError adds an AppError to the audit record
+func (rec *AuditRecord) AddAppError(err *AppError) {
+	rec.AddErrorCode(err.StatusCode)
+	rec.AddErrorDesc(err.Error())
+}

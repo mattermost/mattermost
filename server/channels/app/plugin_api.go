@@ -213,7 +213,9 @@ func (api *PluginAPI) MakeAuditRecord(event string, initialStatus string) *model
 			XForwardedFor: "",
 		},
 		EventData: model.AuditEventData{
-			Parameters:  map[string]any{},
+			Parameters: map[string]any{
+				"plugin_id": api.id,
+			},
 			PriorState:  map[string]any{},
 			ResultState: map[string]any{},
 			ObjectType:  "",
@@ -223,21 +225,13 @@ func (api *PluginAPI) MakeAuditRecord(event string, initialStatus string) *model
 	return rec
 }
 
-func (api *PluginAPI) LogAuditRec(rec *model.AuditRecord, err error) {
-	api.LogAuditRecWithLevel(rec, mlog.LvlAuditCLI, err)
+func (api *PluginAPI) LogAuditRec(rec *model.AuditRecord) {
+	api.LogAuditRecWithLevel(rec, mlog.LvlAuditCLI)
 }
 
-func (api *PluginAPI) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level, err error) {
+func (api *PluginAPI) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level) {
 	if rec == nil {
 		return
-	}
-	if err != nil {
-		appErr, ok := err.(*model.AppError)
-		if ok {
-			rec.AddErrorCode(appErr.StatusCode)
-		}
-		rec.AddErrorDesc(err.Error())
-		rec.Fail()
 	}
 	api.app.Srv().Audit.LogRecord(level, *rec)
 }

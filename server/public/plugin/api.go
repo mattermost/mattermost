@@ -1423,13 +1423,13 @@ type API interface {
 	//
 	// @tag Audit
 	// Minimum server version: 10.10
-	LogAuditRec(rec *model.AuditRecord, err error)
+	LogAuditRec(rec *model.AuditRecord)
 
 	// LogAuditRecWithLevel logs an audit record with a specific log level.
 	//
 	// @tag Audit
 	// Minimum server version: 10.10
-	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level, err error)
+	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 }
 
 var handshake = plugin.HandshakeConfig{
