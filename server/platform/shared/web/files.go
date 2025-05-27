@@ -60,7 +60,7 @@ func WriteStreamResponse(w http.ResponseWriter, r io.Reader, filename string, co
 	setHeaders(w, contentType, forceDownload, filename)
 
 	if _, err := io.Copy(w, r); err != nil {
-		return errors.Wrap(err, "error streaming ReadCloser")
+		return errors.Wrap(err, "error streaming Reader")
 	}
 
 	return nil
