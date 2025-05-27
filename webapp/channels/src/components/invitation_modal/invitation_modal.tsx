@@ -83,7 +83,7 @@ export type Props = {
     initialValue?: string;
     inviteAsGuest?: boolean;
     roleForTrackFlow: {started_by_role: string};
-    focusOriginElement: string;
+    focusOriginElement?: string;
 }
 
 export const View = {
@@ -132,7 +132,9 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     handleExit = () => {
-        focusElement(this.props.focusOriginElement, true);
+        if (this.props.focusOriginElement) {
+            focusElement(this.props.focusOriginElement, true);
+        }
         this.props.onExited?.();
     };
 

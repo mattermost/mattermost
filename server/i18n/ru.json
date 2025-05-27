@@ -208,10 +208,6 @@
     "translation": "Невозможно покинуть канал личных сообщений."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вы единственный оставшийся участник, попробуйте удалить частный канал вместо того, чтобы покинуть."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v покинул канал."
   },
@@ -10084,10 +10080,6 @@
     "translation": "Невозможно выполнить команду в удаленном канале."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "пытаюсь исправить поле, которого не существует"
-  },
-  {
     "id": "api.context.get_session.app_error",
     "translation": "Сеанс не найден."
   },
@@ -10098,5 +10090,201 @@
   {
     "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
     "translation": "Баннер канала можно настроить только на публичных и приватных каналах."
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Не удалось получить участников приватного канала"
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Возникла ошибка при получении запланированных сообщений."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Невозможно найти владельца бота"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Невозможно запланировать сообщение в заархивированном канале."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Произошла ошибка при сохранении запланированного сообщения."
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Строка импортируемых данных имеет тип \"бот\", но объект бота - null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Владелец бота пропал"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Не удалось получить количество всех файлов."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Не удалось получить данные об использовании хранилища для всех файлов."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Невозможно обновить дополнительные свойства сеанса."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Сообщение не может быть создано"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Невозможно получить системного бота"
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Не удалось восстановить вложения файлов в сообщении."
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Роли пользователей не соответствуют статусу гостя."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Невозможно удалить роль."
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Невозможно перейти к началу GIF данных."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Неверное содержимое сообщения"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Не участник канала"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Нет разрешения на сообщение в канале"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Обсуждение было удалено"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Неизвестная ошибка"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Учётная запись пользователя удалена"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Невозможно отправить сообщение"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Пользователь не существует"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "few": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}",
+      "many": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}",
+      "one": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "few": "Не удалось отправить {{.Count}} запланированных сообщения.",
+      "many": "Не удалось отправить {{.Count}} запланированных сообщений.",
+      "one": "Не удалось отправить {{.Count}} запланированное сообщение."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Невозможно удалить запланированные сообщения для пользователя."
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Неизвестный канал"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Приватный канал"
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Запланированное сообщение не существует."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Не удалось окончательно удалить файл для сообщения."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Канал не найден"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Канал отправлен в архив"
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "Требуется лицензия LDAP."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Патч для недействительного поля атрибута пользовательского профиля"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Ваша учётная запись заблокирована из-за слишком большого количества неудачных попыток ввода пароля. Обратитесь к своему системному администратору."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Невозможно преобразовать поле свойства в поле атрибута пользовательского профиля"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Не удалось удалить запланированное сообщение из базы данных."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Запланированное сообщение не существует."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Невозможно вставить пользовательские поля атрибутов профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Невозможно удалить поле Атрибут пользовательского профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Поле Атрибут пользовательского профиля не найдено"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Невозможно выполнить поиск по полям пользовательских атрибутов профиля"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Служба аутентификации пользователей должна быть LDAP или Email."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "У вас нет разрешения на обновление этого ресурса."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Невозможно обновить поле Атрибут пользовательского профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Неверное значение свойства Атрибут : {{.AttributeName}} ({{.Reason}})."
   }
 ]

@@ -76,6 +76,7 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
+                      aria-invalid="false"
                       aria-label="Name"
                       class="Input form-control large"
                       id="input_name"
@@ -102,6 +103,8 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
+                      aria-describedby="error_email"
+                      aria-invalid="true"
                       aria-label="Business Email"
                       class="Input form-control large Input__focus"
                       id="input_email"
@@ -114,6 +117,8 @@ Object {
                 </fieldset>
                 <div
                   class="Input___customMessage Input___error"
+                  id="error_email"
+                  role="alert"
                 >
                   <i
                     class="icon error icon-alert-circle-outline"
@@ -136,6 +141,7 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
+                      aria-invalid="false"
                       aria-label="Company Name"
                       class="Input form-control large"
                       id="input_company_name"

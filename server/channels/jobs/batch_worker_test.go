@@ -18,7 +18,6 @@ import (
 // cases of the batch worker. Use the -race flag while testing this.
 func TestBatchWorkerRace(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	worker := jobs.MakeBatchWorker(th.Server.Jobs, th.Server.Store(), 1*time.Second, func(rctx *request.Context, job *model.Job) bool {
 		return false
@@ -54,12 +53,12 @@ func TestBatchWorker(t *testing.T) {
 
 		batchNumber++
 		job.Data["batch_number"] = strconv.Itoa(batchNumber)
-		th.Server.Jobs.SetJobProgress(job, 0)
+		appErr := th.Server.Jobs.SetJobProgress(job, 0)
+		require.Nil(t, appErr)
 	}
 
 	t.Run("stop after first batch", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
 		worker, job := createBatchWorker(t, th, func(rctx *request.Context, job *model.Job) bool {
@@ -85,8 +84,7 @@ func TestBatchWorker(t *testing.T) {
 	})
 
 	t.Run("stop after second batch", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
 		worker, job := createBatchWorker(t, th, func(rctx *request.Context, job *model.Job) bool {
@@ -112,8 +110,7 @@ func TestBatchWorker(t *testing.T) {
 	})
 
 	t.Run("done after first batch", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
 		worker, job := createBatchWorker(t, th, func(rctx *request.Context, job *model.Job) bool {
@@ -136,8 +133,7 @@ func TestBatchWorker(t *testing.T) {
 	})
 
 	t.Run("done after three batches", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
 		worker, job := createBatchWorker(t, th, func(rctx *request.Context, job *model.Job) bool {

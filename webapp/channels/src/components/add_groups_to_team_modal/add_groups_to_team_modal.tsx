@@ -17,6 +17,7 @@ import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 
 import groupsAvatar from 'images/groups-avatar.png';
+import {focusElement} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
 
 const GROUPS_PER_PAGE = 50;
@@ -30,6 +31,7 @@ type Props = {
     intl: IntlShape;
     searchTerm: string;
     groups: Group[];
+    focusOriginElement?: string;
 
     // used in tandem with 'skipCommit' to allow using this component without performing actual linking
     excludeGroups?: Group[];
@@ -114,6 +116,9 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
 
     // public for tests
     public handleExit = (): void => {
+        if (this.props.focusOriginElement) {
+            focusElement(this.props.focusOriginElement, true);
+        }
         this.props.onExited();
     };
 
