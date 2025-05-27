@@ -405,10 +405,6 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 
 	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
 	require.Nil(t, appErr)
-	defer func() {
-		appErr = th.App.DeleteIncomingWebhook(hook.Id)
-		require.Nil(t, appErr, "Error cleaning up webhook")
-	}()
 
 	t.Run("should set props based on icon_url", func(t *testing.T) {
 		post, appErr := th.App.CreateWebhookPost(
