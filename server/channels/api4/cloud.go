@@ -62,7 +62,35 @@ func ensureCloudInterface(c *Context, where string) bool {
 	return true
 }
 
+func getPreviewSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
+	license := c.App.Channels().License()
+	subscription := &model.Subscription{
+		ID:             "cloud-preview",
+		ProductID:      license.SkuName,
+		StartAt:        license.StartsAt,
+		TrialEndAt:     1748363517000,
+		EndAt:          1748363517000,
+		IsFreeTrial:    "true",
+		IsCloudPreview: true,
+	}
+
+	json, err := json.Marshal(subscription)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(json)
+}
+
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	// Preview subscription is a special case for cloud preview licenses.
+	if true {
+		getPreviewSubscription(c, w, r)
+		return
+	}
+
 	ensured := ensureCloudInterface(c, "Api4.getSubscription")
 	if !ensured {
 		return
