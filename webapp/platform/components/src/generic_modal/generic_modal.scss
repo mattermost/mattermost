@@ -54,6 +54,7 @@
 
             &:focus {
                 border-color: var(--button-bg);
+                box-shadow: 0 0 0 1px var(--button-bg);
             }
 
             &.has-error {
