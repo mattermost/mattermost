@@ -42,7 +42,7 @@ func TestCreateEmoji(t *testing.T) {
 	emojiHeight := app.MaxEmojiHeight * 2
 	// check that emoji gets resized correctly, respecting proportions, and is of expected type
 	checkEmojiFile := func(id, expectedImageType string) {
-		path, _ := fileutils.FindDir("data")
+		path := *th.App.Config().FileSettings.Directory
 		file, fileErr := os.Open(filepath.Join(path, "/emoji/"+id+"/image"))
 		require.NoError(t, fileErr)
 		defer file.Close()

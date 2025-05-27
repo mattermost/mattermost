@@ -208,10 +208,6 @@
     "translation": "Неможливо покинути канал приватних повідомлень."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Ви єдиний учасник, який залишився, спробуйте видалити приватний канал замість того, щоб виходити."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v покинув канал."
   },
