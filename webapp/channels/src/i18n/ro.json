@@ -2299,7 +2299,6 @@
   "channel_loader.postedImage": " a postat o imagine",
   "channel_loader.socketError": "Vă rugăm să verificați conexiunea, Mattermost de neatins. Dacă problema persistă, cereți administratorului de a [a verifica portul WebSocket](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Cineva",
-  "channel_loader.something": " a făcut ceva nou",
   "channel_loader.unknown_error": "Am primit un cod de stare neașteptat de la server.",
   "channel_loader.uploadedFile": " a încărcat un fișier",
   "channel_loader.uploadedImage": " a încărcat o imagine",

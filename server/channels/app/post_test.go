@@ -27,27 +27,38 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 )
 
+func makePendingPostId(user *model.User) string {
+	return fmt.Sprintf("%s:%s", user.Id, strconv.FormatInt(model.GetMillis(), 10))
+}
+
 func TestCreatePostDeduplicate(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("duplicate create post is idempotent", func(t *testing.T) {
-		pendingPostId := model.NewId()
-		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+		session := &model.Session{
+			UserId: th.BasicUser.Id,
+		}
+		session, err := th.App.CreateSession(th.Context, session)
+		require.Nil(t, err)
+
+		pendingPostId := makePendingPostId(th.BasicUser)
+
+		post, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
 			PendingPostId: pendingPostId,
-		}, "", true)
+		}, session.Id, true)
 		require.Nil(t, err)
 		require.Equal(t, "message", post.Message)
 
-		duplicatePost, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+		duplicatePost, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
 			PendingPostId: pendingPostId,
-		}, "", true)
+		}, session.Id, true)
 		require.Nil(t, err)
 		require.Equal(t, post.Id, duplicatePost.Id, "should have returned previously created post id")
 		require.Equal(t, "message", duplicatePost.Message)
@@ -81,23 +92,30 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			}
 		`, `{"id": "testrejectfirstpost", "server": {"executable": "backend.exe"}}`, "testrejectfirstpost", th.App, th.Context)
 
-		pendingPostId := model.NewId()
-		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+		session := &model.Session{
+			UserId: th.BasicUser.Id,
+		}
+		session, err := th.App.CreateSession(th.Context, session)
+		require.Nil(t, err)
+
+		pendingPostId := makePendingPostId(th.BasicUser)
+
+		post, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
 			PendingPostId: pendingPostId,
-		}, "", true)
+		}, session.Id, true)
 		require.NotNil(t, err)
 		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
 		require.Nil(t, post)
 
-		duplicatePost, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+		duplicatePost, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
 			PendingPostId: pendingPostId,
-		}, "", true)
+		}, session.Id, true)
 		require.Nil(t, err)
 		require.Equal(t, "message", duplicatePost.Message)
 	})
@@ -131,8 +149,14 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			}
 		`, `{"id": "testdelayfirstpost", "server": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App, th.Context)
 
+		session := &model.Session{
+			UserId: th.BasicUser.Id,
+		}
+		session, err := th.App.CreateSession(th.Context, session)
+		require.Nil(t, err)
+
 		var post *model.Post
-		pendingPostId := model.NewId()
+		pendingPostId := makePendingPostId(th.BasicUser)
 
 		wg := sync.WaitGroup{}
 
@@ -142,12 +166,12 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			var appErr *model.AppError
-			post, appErr = th.App.CreatePostAsUser(th.Context, &model.Post{
+			post, appErr = th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 				UserId:        th.BasicUser.Id,
 				ChannelId:     th.BasicChannel.Id,
 				Message:       "plugin delayed",
 				PendingPostId: pendingPostId,
-			}, "", true)
+			}, session.Id, true)
 			require.Nil(t, appErr)
 			require.Equal(t, post.Message, "plugin delayed")
 		}()
@@ -156,12 +180,12 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		time.Sleep(2 * time.Second)
 
 		// Try creating a duplicate post
-		duplicatePost, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+		duplicatePost, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "plugin delayed",
 			PendingPostId: pendingPostId,
-		}, "", true)
+		}, session.Id, true)
 		require.NotNil(t, err)
 		require.Equal(t, "api.post.deduplicate_create_post.pending", err.Id)
 		require.Nil(t, duplicatePost)
@@ -171,27 +195,83 @@ func TestCreatePostDeduplicate(t *testing.T) {
 	})
 
 	t.Run("duplicate create post after cache expires is not idempotent", func(t *testing.T) {
-		pendingPostId := model.NewId()
-		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+		session := &model.Session{
+			UserId: th.BasicUser.Id,
+		}
+		session, err := th.App.CreateSession(th.Context, session)
+		require.Nil(t, err)
+
+		pendingPostId := makePendingPostId(th.BasicUser)
+
+		post, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
 			PendingPostId: pendingPostId,
-		}, "", true)
+		}, session.Id, true)
 		require.Nil(t, err)
 		require.Equal(t, "message", post.Message)
 
 		time.Sleep(PendingPostIDsCacheTTL)
 
-		duplicatePost, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+		duplicatePost, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
 			PendingPostId: pendingPostId,
-		}, "", true)
+		}, session.Id, true)
 		require.Nil(t, err)
 		require.NotEqual(t, post.Id, duplicatePost.Id, "should have created new post id")
 		require.Equal(t, "message", duplicatePost.Message)
+	})
+
+	t.Run("Permissison to post required to resolve from pending post cache", func(t *testing.T) {
+		sessionBasicUser := &model.Session{
+			UserId: th.BasicUser.Id,
+		}
+		sessionBasicUser, err := th.App.CreateSession(th.Context, sessionBasicUser)
+		require.Nil(t, err)
+
+		sessionBasicUser2 := &model.Session{
+			UserId: th.BasicUser2.Id,
+		}
+		sessionBasicUser2, err = th.App.CreateSession(th.Context, sessionBasicUser2)
+		require.Nil(t, err)
+
+		pendingPostId := makePendingPostId(th.BasicUser)
+
+		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, privateChannel)
+
+		post, err := th.App.CreatePostAsUser(th.Context.WithSession(sessionBasicUser), &model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     privateChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, sessionBasicUser.Id, true)
+		require.Nil(t, err)
+		require.Equal(t, "message", post.Message)
+
+		postAsDifferentUser, err := th.App.CreatePostAsUser(th.Context.WithSession(sessionBasicUser2), &model.Post{
+			UserId:        th.BasicUser2.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message2",
+			PendingPostId: pendingPostId,
+		}, sessionBasicUser2.Id, true)
+		require.Nil(t, err)
+		require.NotEqual(t, post.Id, postAsDifferentUser.Id, "should have created new post id")
+		require.Equal(t, "message2", postAsDifferentUser.Message)
+
+		// Both posts should exist unchanged
+		actualPost, err := th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, err)
+		assert.Equal(t, "message", actualPost.Message)
+		assert.Equal(t, privateChannel.Id, actualPost.ChannelId)
+
+		actualPostAsDifferentUser, err := th.App.GetSinglePost(th.Context, postAsDifferentUser.Id, false)
+		require.Nil(t, err)
+		assert.Equal(t, "message2", actualPostAsDifferentUser.Message)
+		assert.Equal(t, th.BasicChannel.Id, actualPostAsDifferentUser.ChannelId)
 	})
 }
 
@@ -463,7 +543,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 			"testrejectfirstpost", "testupdatepost",
 		}, true, th.App, th.Context)
 
-		pendingPostId := model.NewId()
+		pendingPostId := makePendingPostId(th.BasicUser)
 		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
@@ -530,7 +610,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 			"testaddone", "testaddtwo",
 		}, true, th.App, th.Context)
 
-		pendingPostId := model.NewId()
+		pendingPostId := makePendingPostId(th.BasicUser)
 		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
