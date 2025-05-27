@@ -81,6 +81,7 @@ export type Props = {
     id?: string;
     onInput?: (e?: React.FormEvent<HTMLInputElement>) => void;
     tabIndex?: number;
+    size?: 'md' | 'lg';
 }
 
 // A component that can be used to make controlled inputs that function properly in certain
@@ -160,6 +161,7 @@ export class QuickInput extends React.PureComponent<Props> {
             clearable,
             clearClassName,
             clearableWithoutValue,
+            size = 'md',
             ...props
         } = this.props;
 
@@ -182,6 +184,9 @@ export class QuickInput extends React.PureComponent<Props> {
                 ...props,
                 ref: this.setInputRef,
                 defaultValue: value, // Only set the defaultValue since the real one will be updated using componentDidUpdate
+                className: classNames(props.className, {
+                    'form-control--lg': size === 'lg',
+                }),
             },
         );
 

@@ -44,12 +44,13 @@ const AttributeModal: React.FC<AttributeModalProps> = ({initialValue, onExited, 
             isConfirmDisabled={isConfirmDisabled()}
         >
             <QuickInput
+                size='lg'
                 inputComponent={MaxLengthInput}
                 autoFocus={true}
                 className='form-control filter-textbox'
+                placeholder={'department'}
                 type='text'
                 value={value}
-                placeholder={''}
                 clearable={true}
                 onClear={handleClear}
                 onChange={handleChange}
