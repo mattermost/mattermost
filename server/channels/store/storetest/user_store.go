@@ -610,6 +610,32 @@ func testUserStoreGetAllProfiles(t *testing.T, rctx request.CTX, ss store.Store)
 		}, actual)
 	})
 
+	t.Run("filter by UpdatedAfter", func(t *testing.T) {
+		// Update a user to ensure we have a recent update time
+		updateTime := model.GetMillis()
+		u2.FirstName = "Updated"
+		_, updateErr := ss.User().Update(rctx, u2, false)
+		require.NoError(t, updateErr)
+
+		// Query with the UpdatedAfter filter
+		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:         0,
+			PerPage:      10,
+			UpdatedAfter: updateTime - 1, // Subtract 1 to ensure we capture the update
+		})
+		require.NoError(t, userErr)
+		require.Contains(t, actual, sanitized(u2), "User updated after the specified time should be in the results")
+
+		// Query with a future time, should return no results
+		actual, userErr = ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:         0,
+			PerPage:      10,
+			UpdatedAfter: updateTime + 10000, // Future time
+		})
+		require.NoError(t, userErr)
+		require.NotContains(t, actual, sanitized(u2), "Users updated before the specified future time should not be in the results")
+	})
+
 	u8, err := ss.User().Save(rctx, &model.User{
 		Email:    MakeEmail(),
 		Username: "u8" + model.NewId(),

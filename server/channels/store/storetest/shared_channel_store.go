@@ -32,6 +32,7 @@ func TestSharedChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("HasRemote", func(t *testing.T) { testHasRemote(t, rctx, ss) })
 	t.Run("GetRemoteForUser", func(t *testing.T) { testGetRemoteForUser(t, rctx, ss) })
 	t.Run("UpdateSharedChannelRemoteNextSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteCursor(t, rctx, ss) })
+	t.Run("UpdateGlobalUserSyncCursor", func(t *testing.T) { testUpdateGlobalUserSyncCursor(t, rctx, ss) })
 	t.Run("DeleteSharedChannelRemote", func(t *testing.T) { testDeleteSharedChannelRemote(t, rctx, ss) })
 
 	t.Run("SaveSharedChannelUser", func(t *testing.T) { testSaveSharedChannelUser(t, rctx, ss) })
@@ -929,6 +930,38 @@ func testUpdateSharedChannelRemoteCursor(t *testing.T, rctx request.CTX, ss stor
 		emptyCursor := model.GetPostsSinceForSyncCursor{}
 		err := ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, emptyCursor)
 		require.Error(t, err, "update with empty cursor should error", err)
+	})
+}
+
+func testUpdateGlobalUserSyncCursor(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Create a remote cluster first
+	rc := &model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		SiteURL:   "http://example.com",
+		CreatorId: model.NewId(),
+		Name:      "test",
+	}
+	rcSaved, err := ss.RemoteCluster().Save(rc)
+	require.NoError(t, err, "couldn't save remote cluster", err)
+
+	futureTimestamp := model.GetMillis() + 3600000 // 1 hour in the future
+
+	t.Run("Update global user sync cursor for remote", func(t *testing.T) {
+		err := ss.RemoteCluster().UpdateLastGlobalUserSyncAt(rcSaved.RemoteId, futureTimestamp)
+		require.NoError(t, err, "update global user sync cursor should not error", err)
+
+		// Verify that the LastGlobalUserSyncAt field was updated in the RemoteCluster table
+		// Small sleep to ensure the transaction is committed
+		time.Sleep(10 * time.Millisecond)
+		updatedRC, err := ss.RemoteCluster().Get(rcSaved.RemoteId, false)
+		require.NoError(t, err)
+		require.NotZero(t, updatedRC.LastGlobalUserSyncAt, "LastGlobalUserSyncAt should not be zero")
+		require.Equal(t, futureTimestamp, updatedRC.LastGlobalUserSyncAt)
+	})
+
+	t.Run("Update global user sync cursor for non-existent remote", func(t *testing.T) {
+		err := ss.RemoteCluster().UpdateLastGlobalUserSyncAt(model.NewId(), futureTimestamp)
+		require.Error(t, err, "update non-existent remote should error", err)
 	})
 }
 

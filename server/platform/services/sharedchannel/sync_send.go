@@ -571,14 +571,14 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 		if _, err = scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error adding user to shared channel users",
 				mlog.String("user_id", user.Id),
-				mlog.String("channel_id", user.Id),
+				mlog.String("channel_id", channelID),
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.Err(err),
 			)
 		} else {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Added user to shared channel users",
 				mlog.String("user_id", user.Id),
-				mlog.String("channel_id", user.Id),
+				mlog.String("channel_id", channelID),
 				mlog.String("remote_id", rc.RemoteId),
 			)
 		}

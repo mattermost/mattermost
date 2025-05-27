@@ -25,8 +25,8 @@ var (
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	if msg.Topic != TopicSync {
-		return fmt.Errorf("wrong topic, expected `%s`, got `%s`", TopicSync, msg.Topic)
+	if msg.Topic != TopicSync && msg.Topic != TopicGlobalUserSync {
+		return fmt.Errorf("wrong topic, expected `%s` or `%s`, got `%s`", TopicSync, TopicGlobalUserSync, msg.Topic)
 	}
 
 	if len(msg.Payload) == 0 {
@@ -46,6 +46,52 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 		return fmt.Errorf("invalid sync message: %w", err)
 	}
 	return scs.processSyncMessage(request.EmptyContext(scs.server.Log()), &sm, rc, response)
+}
+
+// OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing
+func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	return scs.onReceiveSyncMessage(msg, rc, response)
+}
+
+func (scs *Service) processGlobalUserSync(c request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	syncResp := model.SyncResponse{
+		UserErrors: make([]string, 0),
+		UsersSyncd: make([]string, 0),
+	}
+
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing global user sync",
+		mlog.String("remote", rc.Name),
+		mlog.Int("user_count", len(syncMsg.Users)),
+	)
+
+	// Process all users in the sync message
+	for _, user := range syncMsg.Users {
+		if userSaved, err := scs.upsertSyncUser(c, user, nil, rc); err != nil {
+			syncResp.UserErrors = append(syncResp.UserErrors, user.Id)
+		} else {
+			syncResp.UsersSyncd = append(syncResp.UsersSyncd, userSaved.Id)
+			if syncResp.UsersLastUpdateAt < user.UpdateAt {
+				syncResp.UsersLastUpdateAt = user.UpdateAt
+			}
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Global user upserted via sync",
+				mlog.String("remote", rc.Name),
+				mlog.String("user_id", user.Id),
+			)
+		}
+	}
+
+	// Update remote cluster's global user sync cursor
+	if syncResp.UsersLastUpdateAt > 0 {
+		if updateErr := scs.server.GetStore().RemoteCluster().UpdateLastGlobalUserSyncAt(rc.RemoteId, syncResp.UsersLastUpdateAt); updateErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Cannot update RemoteCluster LastGlobalUserSyncAt",
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Int("last_global_user_sync_at", syncResp.UsersLastUpdateAt),
+				mlog.Err(updateErr),
+			)
+		}
+	}
+
+	return response.SetPayload(syncResp)
 }
 
 func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
@@ -69,19 +115,32 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		mlog.Int("status_count", len(syncMsg.Statuses)),
 	)
 
-	if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
-		// if the channel doesn't exist then none of these sync items are going to work.
-		return fmt.Errorf("channel not found processing sync message: %w", err)
+	// Check if this is a global user sync message (no channel ID and only users)
+	if syncMsg.ChannelId == "" && len(syncMsg.Users) > 0 &&
+		len(syncMsg.Posts) == 0 && len(syncMsg.Reactions) == 0 &&
+		len(syncMsg.Statuses) == 0 && len(syncMsg.MembershipChanges) == 0 {
+		// Check if feature flag is enabled
+		if !scs.server.Config().FeatureFlags.EnableSyncAllUsersForRemoteCluster {
+			return nil
+		}
+		return scs.processGlobalUserSync(c, syncMsg, rc, response)
 	}
 
-	// make sure target channel is shared with the remote
-	exists, err := scs.server.GetStore().SharedChannel().HasRemote(targetChannel.Id, rc.RemoteId)
-	if err != nil {
-		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
-	}
-	if !exists {
-		return fmt.Errorf("cannot process sync message; %w: %s",
-			ErrChannelNotShared, syncMsg.ChannelId)
+	// For regular sync messages, we need a specific channel
+	if syncMsg.ChannelId != "" {
+		if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
+			// if the channel doesn't exist then none of these sync items are going to work.
+			return fmt.Errorf("channel not found processing sync message: %w", err)
+		}
+
+		// make sure target channel is shared with the remote
+		exists, err := scs.server.GetStore().SharedChannel().HasRemote(targetChannel.Id, rc.RemoteId)
+		if err != nil {
+			return fmt.Errorf("cannot check channel share state for sync message: %w", err)
+		}
+		if !exists {
+			return fmt.Errorf("cannot process sync message; channel not shared with remote: %w", ErrRemoteIDMismatch)
+		}
 	}
 
 	// add/update users before posts
