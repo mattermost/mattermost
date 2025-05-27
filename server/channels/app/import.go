@@ -14,6 +14,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -45,20 +46,36 @@ func processAttachmentPaths(c request.CTX, files *[]imports.AttachmentImportData
 	if files == nil {
 		return nil
 	}
+
 	var ok bool
+	var multiErr *multierror.Error
 	for i, f := range *files {
 		if f.Path != nil {
-			path := filepath.Join(basePath, *f.Path)
+			originalPath := *f.Path
+
+			path, valid := imports.ValidateAttachmentPathForImport(originalPath, basePath)
+
 			*f.Path = path
+
+			if !valid {
+				multiErr = multierror.Append(multiErr, fmt.Errorf("invalid attachment path %q", originalPath))
+				continue
+			}
+
 			if len(filesMap) > 0 {
-				if (*files)[i].Data, ok = filesMap[path]; !ok {
-					return fmt.Errorf("attachment %q not found in map", path)
+				if (*files)[i].Data, ok = filesMap[*f.Path]; !ok {
+					multiErr = multierror.Append(multiErr, fmt.Errorf("attachment %q not found in map", originalPath))
+					continue
 				}
 			}
 		}
 	}
 
-	return nil
+	if multiErr == nil {
+		return nil
+	}
+
+	return multiErr
 }
 
 func processAttachments(c request.CTX, line *imports.LineImportData, basePath string, filesMap map[string]*zip.File) error {

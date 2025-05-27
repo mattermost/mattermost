@@ -623,8 +623,8 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.MentionKeys = model.NewPointer("valid")
 	checkNoError(t, ValidateUserImportData(&data))
 
-	//Test the email batching interval validators
-	//Happy paths
+	// Test the email batching interval validators
+	// Happy paths
 	data.EmailInterval = model.NewPointer("immediately")
 	checkNoError(t, ValidateUserImportData(&data))
 
@@ -634,7 +634,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.EmailInterval = model.NewPointer("hour")
 	checkNoError(t, ValidateUserImportData(&data))
 
-	//Invalid values
+	// Invalid values
 	data.EmailInterval = model.NewPointer("invalid")
 	checkError(t, ValidateUserImportData(&data))
 
@@ -943,6 +943,21 @@ func TestImportValidateReplyImportData(t *testing.T) {
 	}
 	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to 0 create-at value.")
+
+	// Test with invalid attachment path.
+	data = ReplyImportData{
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
+		Attachments: &[]AttachmentImportData{
+			{
+				Path: model.NewPointer("invalid/../../../path/to/file.txt"),
+			},
+		},
+	}
+	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to invalid attachment path.")
+	require.Equal(t, err.Id, "app.import.validate_reply_import_data.attachment.error")
 }
 
 func TestImportValidatePostImportData(t *testing.T) {
@@ -1084,6 +1099,24 @@ func TestImportValidatePostImportData(t *testing.T) {
 		err := ValidatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to long props.")
 		assert.Equal(t, err.Id, "app.import.validate_post_import_data.props_too_large.error")
+	})
+
+	t.Run("Test with invalid attachment path", func(t *testing.T) {
+		data := PostImportData{
+			Team:     model.NewPointer("teamname"),
+			Channel:  model.NewPointer("channelname"),
+			User:     model.NewPointer("username"),
+			Message:  model.NewPointer("message"),
+			CreateAt: model.NewPointer(model.GetMillis()),
+			Attachments: &[]AttachmentImportData{
+				{
+					Path: model.NewPointer("invalid/../../../path/to/file.txt"),
+				},
+			},
+		}
+		err := ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err)
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.attachment.error")
 	})
 }
 
@@ -1438,10 +1471,29 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.Nil(t, err, "Validation should succeed with valid optional parameters")
+
+	// Test with invalid attachment path.
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
+		Attachments: &[]AttachmentImportData{
+			{
+				Path: model.NewPointer("invalid/../../../path/to/file.txt"),
+			},
+		},
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to invalid attachment path.")
+	require.Equal(t, err.Id, "app.import.validate_direct_post_import_data.attachment.error")
 }
 
 func TestImportValidateEmojiImportData(t *testing.T) {
-	var testCases = []struct {
+	testCases := []struct {
 		testName          string
 		name              *string
 		image             *string
@@ -1485,7 +1537,7 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func TestIsValidGuestRoles(t *testing.T) {
-	var testCases = []struct {
+	testCases := []struct {
 		name     string
 		input    UserImportData
 		expected bool
@@ -1593,6 +1645,75 @@ func TestIsValidGuestRoles(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := isValidGuestRoles(tc.input)
 			assert.Equal(t, tc.expected, result, tc.name)
+		})
+	}
+}
+
+func TestValidateAttachmentImportData(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		data *AttachmentImportData
+		err  string
+	}{
+		{
+			name: "nil data",
+		},
+		{
+			name: "empty path",
+			data: &AttachmentImportData{},
+		},
+		{
+			name: "valid absolute path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("/valid/path/to/attachment"),
+			},
+		},
+		{
+			name: "invalid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("../attachment"),
+			},
+			err: "BulkImport: app.import.validate_attachment_import_data.invalid_path.error",
+		},
+		{
+			name: "invalid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("path/to/../../../attachment"),
+			},
+			err: "BulkImport: app.import.validate_attachment_import_data.invalid_path.error",
+		},
+		{
+			name: "valid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("./path/to/attachment"),
+			},
+		},
+		{
+			name: "valid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("path/../to/attachment"),
+			},
+		},
+		{
+			name: "valid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("path/to/attachment"),
+			},
+		},
+		{
+			name: "valid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("path/to/attachment/attachment..ext"),
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidateAttachmentImportData(tc.data)
+			if tc.err != "" {
+				require.EqualError(t, err, tc.err, "Expected error did not match")
+			} else {
+				require.Nil(t, err, "Expected no error but got one")
+			}
 		})
 	}
 }

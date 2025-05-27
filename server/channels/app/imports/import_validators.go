@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"unicode/utf8"
 
@@ -487,6 +488,14 @@ func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 		}
 	}
 
+	if data.Attachments != nil {
+		for _, attachment := range *data.Attachments {
+			if err := ValidateAttachmentImportData(&attachment); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.attachment.error", nil, "", http.StatusNotFound).Wrap(err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -535,6 +544,14 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 
 	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJSON(*data.Props)) > model.PostPropsMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.props_too_large.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Attachments != nil {
+		for _, attachment := range *data.Attachments {
+			if err := ValidateAttachmentImportData(&attachment); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_post_import_data.attachment.error", nil, "", http.StatusNotFound).Wrap(err)
+			}
+		}
 	}
 
 	return nil
@@ -653,6 +670,14 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 		}
 	}
 
+	if data.Attachments != nil {
+		for _, attachment := range *data.Attachments {
+			if err := ValidateAttachmentImportData(&attachment); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.attachment.error", nil, "", http.StatusNotFound).Wrap(err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -748,4 +773,36 @@ func isValidGuestRoles(data UserImportData) bool {
 	}
 
 	return true
+}
+
+// ValidateAttachmentPathForImport checks if the provided path is valid for import.
+// It ensures that the path is cleaned and resolved against a base path.
+// It returns the resolved path and a boolean indicating if the path is valid.
+func ValidateAttachmentPathForImport(path, basePath string) (string, bool) {
+	cleanedPath := filepath.Clean(path)
+	resolvedPath := filepath.Join(basePath, cleanedPath)
+
+	// Check if the resolved path is within the expected base path.
+	if !strings.HasPrefix(resolvedPath, basePath) {
+		return "", false
+	}
+
+	return resolvedPath, true
+}
+
+func ValidateAttachmentImportData(data *AttachmentImportData) *model.AppError {
+	if data == nil {
+		return nil
+	}
+
+	if data.Path == nil || *data.Path == "" {
+		return nil
+	}
+
+	// Check if the resolved path is within the expected base path.
+	if _, valid := ValidateAttachmentPathForImport(*data.Path, model.ExportDataDir); !valid {
+		return model.NewAppError("BulkImport", "app.import.validate_attachment_import_data.invalid_path.error", map[string]any{"Path": *data.Path}, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
