@@ -9,7 +9,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import BackButton from 'components/common/back_button';
-import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
+import Input from 'components/widgets/inputs/input/input';
 
 export interface Props {
     intl: IntlShape;
@@ -134,14 +134,17 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
                                 />
                             </p>
                             <div className={formClass}>
-                                <LocalizedPlaceholderInput
+                                <Input
                                     id='passwordResetEmailInput'
                                     type='email'
-                                    className='form-control'
                                     name='email'
-                                    placeholder={defineMessage({
+                                    label={defineMessage({
                                         id: 'password_send.email',
                                         defaultMessage: 'Email',
+                                    })}
+                                    placeholder={defineMessage({
+                                        id: 'password_send.email.placeholder',
+                                        defaultMessage: 'Enter the email address you used to sign up',
                                     })}
                                     ref={this.emailInput}
                                     spellCheck='false'
