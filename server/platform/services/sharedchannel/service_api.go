@@ -183,8 +183,6 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 			mlog.String("remote_id", remoteID),
 			mlog.Err(err),
 		)
-		// We don't return an error here as the invite has already been sent successfully
-		// The channel membership will be synchronized during regular sync operations
 	}
 
 	return nil
