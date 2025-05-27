@@ -308,8 +308,8 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	model.AddEventParameter(auditRec, "page", c.Params.Page)
-	model.AddEventParameter(auditRec, "audits_per_page", c.Params.LogsPerPage)
+	model.AddEventParameterToAuditRec(auditRec, "page", c.Params.Page)
+	model.AddEventParameterToAuditRec(auditRec, "audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -410,8 +410,8 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model.AddEventParameter(auditRec, "page", c.Params.Page)
-	model.AddEventParameter(auditRec, "logs_per_page", c.Params.LogsPerPage)
+	model.AddEventParameterToAuditRec(auditRec, "page", c.Params.Page)
+	model.AddEventParameterToAuditRec(auditRec, "logs_per_page", c.Params.LogsPerPage)
 
 	if _, err := w.Write([]byte(model.ArrayToJSON(lines))); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -788,7 +788,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("setServerBusy", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "seconds", i)
+	model.AddEventParameterToAuditRec(auditRec, "seconds", i)
 
 	c.App.Srv().Platform().Busy.Set(time.Second * time.Duration(i))
 	c.Logger.Warn("server busy state activated - non-critical services disabled", mlog.Int("seconds", i))
@@ -1020,8 +1020,8 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	model.AddEventParameter(auditRec, "install_plugin", onboardingRequest.InstallPlugins)
-	model.AddEventParameterAuditable(auditRec, "onboarding_request", onboardingRequest)
+	model.AddEventParameterToAuditRec(auditRec, "install_plugin", onboardingRequest.InstallPlugins)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "onboarding_request", onboardingRequest)
 
 	appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
 	if appErr != nil {

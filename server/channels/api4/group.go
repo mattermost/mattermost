@@ -192,7 +192,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createGroup", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "group", group)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "group", group)
 
 	newGroup, appErr := c.App.CreateGroupWithUserIds(group)
 	if appErr != nil {
@@ -262,7 +262,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchGroup", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "group", group)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "group", group)
 
 	if groupPatch.AllowReference != nil && *groupPatch.AllowReference {
 		if groupPatch.Name == nil {
@@ -352,9 +352,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("linkGroupSyncable", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
-	model.AddEventParameter(auditRec, "syncable_id", syncableID)
-	model.AddEventParameter(auditRec, "syncable_type", string(syncableType))
+	model.AddEventParameterToAuditRec(auditRec, "group_id", c.Params.GroupId)
+	model.AddEventParameterToAuditRec(auditRec, "syncable_id", syncableID)
+	model.AddEventParameterToAuditRec(auditRec, "syncable_type", string(syncableType))
 
 	var patch *model.GroupSyncablePatch
 	err = json.Unmarshal(body, &patch)
@@ -363,7 +363,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model.AddEventParameterAuditable(auditRec, "patch", patch)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", patch)
 
 	if !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
@@ -534,9 +534,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchGroupSyncable", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
-	model.AddEventParameter(auditRec, "old_syncable_id", syncableID)
-	model.AddEventParameter(auditRec, "old_syncable_type", string(syncableType))
+	model.AddEventParameterToAuditRec(auditRec, "group_id", c.Params.GroupId)
+	model.AddEventParameterToAuditRec(auditRec, "old_syncable_id", syncableID)
+	model.AddEventParameterToAuditRec(auditRec, "old_syncable_type", string(syncableType))
 
 	var patch *model.GroupSyncablePatch
 	err = json.Unmarshal(body, &patch)
@@ -545,7 +545,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model.AddEventParameterAuditable(auditRec, "patch", patch)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", patch)
 
 	if !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.ldap_groups.license_error", nil, "",
@@ -617,9 +617,9 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("unlinkGroupSyncable", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
-	model.AddEventParameter(auditRec, "syncable_id", syncableID)
-	model.AddEventParameter(auditRec, "syncable_type", string(syncableType))
+	model.AddEventParameterToAuditRec(auditRec, "group_id", c.Params.GroupId)
+	model.AddEventParameterToAuditRec(auditRec, "syncable_id", syncableID)
+	model.AddEventParameterToAuditRec(auditRec, "syncable_type", string(syncableType))
 
 	if !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
@@ -1229,7 +1229,7 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deleteGroup", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
+	model.AddEventParameterToAuditRec(auditRec, "group_id", c.Params.GroupId)
 
 	group, err = c.App.DeleteGroup(c.Params.GroupId)
 	if err != nil {
@@ -1284,7 +1284,7 @@ func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("restoreGroup", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
+	model.AddEventParameterToAuditRec(auditRec, "group_id", c.Params.GroupId)
 
 	restoredGroup, err := c.App.RestoreGroup(c.Params.GroupId)
 	if err != nil {
@@ -1353,7 +1353,7 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("addGroupMembers", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "addGroupMembers_userids", newMembers.UserIds)
+	model.AddEventParameterToAuditRec(auditRec, "addGroupMembers_userids", newMembers.UserIds)
 
 	members, appErr := c.App.UpsertGroupMembers(c.Params.GroupId, newMembers.UserIds)
 	if appErr != nil {
@@ -1428,7 +1428,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deleteGroupMembers", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "deleteGroupMembers_userids", deleteBody.UserIds)
+	model.AddEventParameterToAuditRec(auditRec, "deleteGroupMembers_userids", deleteBody.UserIds)
 
 	members, appErr := c.App.DeleteGroupMembers(c.Params.GroupId, deleteBody.UserIds)
 	if appErr != nil {

@@ -46,7 +46,7 @@ func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deleteExport", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "export_name", c.Params.ExportName)
+	model.AddEventParameterToAuditRec(auditRec, "export_name", c.Params.ExportName)
 
 	if !c.IsSystemAdmin() {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -92,7 +92,7 @@ func generatePresignURLExport(c *Context, w http.ResponseWriter, r *http.Request
 	auditRec := c.MakeAuditRecord("generatePresignURLExport", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	model.AddEventParameter(auditRec, "export_name", c.Params.ExportName)
+	model.AddEventParameterToAuditRec(auditRec, "export_name", c.Params.ExportName)
 
 	if !c.IsSystemAdmin() {
 		c.SetPermissionError(model.PermissionManageSystem)

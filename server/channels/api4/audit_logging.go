@@ -51,7 +51,7 @@ func addAuditLogCertificate(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	auditRec := c.MakeAuditRecord("addAuditLogCertificate", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "filename", fileData.Filename)
+	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
 	if err := c.App.AddAuditLogCertificate(c.AppContext, fileData); err != nil {
 		c.Err = err

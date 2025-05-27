@@ -50,8 +50,8 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 
 	auditRec := c.MakeAuditRecord("localCreateIncomingHook", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "hook", &hook)
-	model.AddEventParameterAuditable(auditRec, "channel", channel)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "hook", &hook)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", channel)
 	c.LogAudit("attempt")
 
 	incomingHook, err := c.App.CreateIncomingWebhookForChannel(hook.UserId, channel, &hook)
@@ -80,7 +80,7 @@ func localCreateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request)
 
 	auditRec := c.MakeAuditRecord("createOutgoingHook", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "hook", &hook)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "hook", &hook)
 	c.LogAudit("attempt")
 
 	if hook.CreatorId == "" {

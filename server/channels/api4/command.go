@@ -36,7 +36,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createCommand", model.AuditStatusFail)
-	model.AddEventParameterAuditable(auditRec, "command", &cmd)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -77,13 +77,13 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateCommand", model.AuditStatusFail)
-	model.AddEventParameterAuditable(auditRec, "command", &cmd)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		model.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
+		model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 		c.SetCommandNotFoundError()
 		return
 	}
@@ -137,7 +137,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("moveCommand", model.AuditStatusFail)
-	model.AddEventParameter(auditRec, "command_move_request", cmr.TeamId)
+	model.AddEventParameterToAuditRec(auditRec, "command_move_request", cmr.TeamId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -146,7 +146,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	model.AddEventParameterAuditable(auditRec, "team", newTeam)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "team", newTeam)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), newTeam.Id, model.PermissionManageSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
@@ -189,7 +189,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("deleteCommand", model.AuditStatusFail)
-	model.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
+	model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -320,7 +320,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("executeCommand", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "command_args", &commandArgs)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "command_args", &commandArgs)
 
 	// Checks that user is a member of the specified channel, and that they have permission to create a post in it.
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), commandArgs.ChannelId, model.PermissionCreatePost) {
@@ -453,12 +453,12 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		model.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
+		model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 		c.SetCommandNotFoundError()
 		return
 	}
 	auditRec.AddEventPriorState(cmd)
-	model.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
+	model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")

@@ -85,7 +85,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createTeam", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "team", &team)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "team", &team)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateTeam) {
 		c.Err = model.NewAppError("createTeam", "api.team.is_team_creation_allowed.disabled.app_error", nil, "", http.StatusForbidden)
@@ -215,7 +215,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateTeam", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "team", &team)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "team", &team)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
 		c.SetPermissionError(model.PermissionManageTeam)
@@ -251,7 +251,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchTeam", model.AuditStatusFail)
-	model.AddEventParameterAuditable(auditRec, "team_patch", &team)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "team_patch", &team)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
@@ -305,7 +305,7 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("restoreTeam", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
 		c.SetPermissionError(model.PermissionManageTeam)
@@ -381,11 +381,11 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateTeamPrivacy", model.AuditStatusFail)
-	model.AddEventParameter(auditRec, "privacy", privacy)
+	model.AddEventParameterToAuditRec(auditRec, "privacy", privacy)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
-		model.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+		model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 		c.SetPermissionError(model.PermissionManageTeam)
 		return
 	}
@@ -432,7 +432,7 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	auditRec := c.MakeAuditRecord("regenerateTeamInviteId", model.AuditStatusFail)
-	model.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 	defer c.LogAuditRec(auditRec)
 
 	patchedTeam, err := c.App.RegenerateTeamInviteId(c.Params.TeamId)
@@ -468,7 +468,7 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	if team, err := c.App.GetTeam(c.Params.TeamId); err == nil {
-		model.AddEventParameterAuditable(auditRec, "team", team)
+		model.AddEventParameterAuditableToAuditRec(auditRec, "team", team)
 	}
 
 	var err *model.AppError
@@ -733,7 +733,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("addTeamMember", model.AuditStatusFail)
-	model.AddEventParameterAuditable(auditRec, "member", &member)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "member", &member)
 	defer c.LogAuditRec(auditRec)
 
 	if member.UserId == c.AppContext.Session().UserId {
@@ -777,7 +777,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	model.AddEventParameterAuditable(auditRec, "team", team)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "team", team)
 
 	if team.IsGroupConstrained() {
 		nonMembers, err := c.App.FilterNonGroupTeamMembers([]string{member.UserId}, team)
@@ -821,7 +821,7 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 
 	auditRec := c.MakeAuditRecord("addUserToTeamFromInvite", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "invite_id", inviteId)
+	model.AddEventParameterToAuditRec(auditRec, "invite_id", inviteId)
 
 	if tokenId != "" {
 		member, err = c.App.AddTeamMemberByToken(c.AppContext, c.AppContext.Session().UserId, tokenId)
@@ -878,7 +878,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("addTeamMembers", model.AuditStatusFail)
-	model.AddEventParameterAuditableArray(auditRec, "members", members)
+	model.AddEventParameterAuditableArrayToAuditRec(auditRec, "members", members)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("count", len(members))
 
@@ -893,7 +893,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	model.AddEventParameterAuditable(auditRec, "team", team)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "team", team)
 
 	if team.IsGroupConstrained() {
 		nonMembers, err := c.App.FilterNonGroupTeamMembers(memberIDs, team)
@@ -999,22 +999,22 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	model.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
-	model.AddEventParameter(auditRec, "user_id", c.Params.UserId)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 
 	team, err := c.App.GetTeam(c.Params.TeamId)
 	if err != nil {
 		c.Err = err
 		return
 	}
-	model.AddEventParameterAuditable(auditRec, "team", team)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "team", team)
 
 	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
-	model.AddEventParameterAuditable(auditRec, "user", user)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
 
 	if team.IsGroupConstrained() && (c.Params.UserId != c.AppContext.Session().UserId) && !user.IsBot {
 		c.Err = model.NewAppError("removeTeamMember", "api.team.remove_member.group_constrained.app_error", nil, "", http.StatusBadRequest)
@@ -1101,7 +1101,7 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateTeamMemberRoles", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "roles", newRoles)
+	model.AddEventParameterToAuditRec(auditRec, "roles", newRoles)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
 		c.SetPermissionError(model.PermissionManageTeamRoles)
@@ -1135,7 +1135,7 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 
 	auditRec := c.MakeAuditRecord("updateTeamMemberSchemeRoles", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "scheme_roles", &schemeRoles)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "scheme_roles", &schemeRoles)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
 		c.SetPermissionError(model.PermissionManageTeamRoles)
@@ -1373,7 +1373,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("importTeam", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
 	fileInfo := fileInfoArray[0]
 
@@ -1383,9 +1383,9 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer fileData.Close()
-	model.AddEventParameter(auditRec, "filename", fileInfo.Filename)
-	model.AddEventParameter(auditRec, "filesize", fileSize)
-	model.AddEventParameter(auditRec, "from", importFrom)
+	model.AddEventParameterToAuditRec(auditRec, "filename", fileInfo.Filename)
+	model.AddEventParameterToAuditRec(auditRec, "filesize", fileSize)
+	model.AddEventParameterToAuditRec(auditRec, "from", importFrom)
 
 	var log *bytes.Buffer
 	data := map[string]string{}
@@ -1449,8 +1449,8 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("inviteUsersToTeam", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "member_invite", memberInvite)
-	model.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "member_invite", memberInvite)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
 
@@ -1543,7 +1543,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	auditRec := c.MakeAuditRecord("inviteGuestsToChannels", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest) {
 		c.SetPermissionError(model.PermissionInviteGuest)
@@ -1562,7 +1562,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = model.NewAppError("Api4.inviteGuestsToChannels", "api.team.invite_guests_to_channels.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	model.AddEventParameterAuditable(auditRec, "guests_invite", &guestsInvite)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "guests_invite", &guestsInvite)
 
 	for i, email := range guestsInvite.Emails {
 		guestsInvite.Emails[i] = strings.ToLower(email)
@@ -1722,7 +1722,7 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("setTeamIcon", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
 		c.SetPermissionError(model.PermissionManageTeam)
@@ -1773,7 +1773,7 @@ func removeTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("removeTeamIcon", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
 		c.SetPermissionError(model.PermissionManageTeam)
@@ -1810,7 +1810,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateTeamScheme", model.AuditStatusFail)
-	model.AddEventParameterAuditable(auditRec, "scheme_id_patch", &p)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "scheme_id_patch", &p)
 	defer c.LogAuditRec(auditRec)
 
 	if c.App.Channels().License() == nil {
@@ -1829,7 +1829,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-		model.AddEventParameterAuditable(auditRec, "scheme", scheme)
+		model.AddEventParameterAuditableToAuditRec(auditRec, "scheme", scheme)
 
 		if scheme.Scope != model.SchemeScopeTeam {
 			c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.scheme_scope.error", nil, "", http.StatusBadRequest)
@@ -1842,7 +1842,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	model.AddEventParameterAuditable(auditRec, "team", team)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "team", team)
 
 	team.SchemeId = schemeID
 

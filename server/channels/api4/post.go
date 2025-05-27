@@ -82,7 +82,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createPost", model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	model.AddEventParameterAuditable(auditRec, "post", &post)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "post", &post)
 
 	if post.CreateAt != 0 && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		post.CreateAt = 0
@@ -584,8 +584,8 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deletePost", model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	model.AddEventParameter(auditRec, "post_id", c.Params.PostId)
-	model.AddEventParameter(auditRec, "permanent", permanent)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
+	model.AddEventParameterToAuditRec(auditRec, "permanent", permanent)
 
 	includeDeleted := permanent
 
@@ -820,7 +820,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 
 	auditRec := c.MakeAuditRecord("searchPosts", model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelAPI)
-	model.AddEventParameterAuditable(auditRec, "search_params", params)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "search_params", params)
 
 	startTime := time.Now()
 
@@ -846,7 +846,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 	}
 
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
-	model.AddEventParameterAuditable(auditRec, "search_results", results)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "search_results", results)
 	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -868,7 +868,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updatePost", model.AuditStatusFail)
-	model.AddEventParameterAuditable(auditRec, "post", &post)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "post", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// The post being updated in the payload must be the same one as indicated in the URL.
@@ -943,8 +943,8 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchPost", model.AuditStatusFail)
-	model.AddEventParameter(auditRec, "id", c.Params.PostId)
-	model.AddEventParameterAuditable(auditRec, "patch", &post)
+	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	if post.Props != nil {
@@ -1066,7 +1066,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	}
 
 	auditRec := c.MakeAuditRecord("saveIsPinnedPost", model.AuditStatusFail)
-	model.AddEventParameter(auditRec, "post_id", c.Params.PostId)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
@@ -1204,8 +1204,8 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("moveThread", model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	model.AddEventParameter(auditRec, "original_post_id", c.Params.PostId)
-	model.AddEventParameter(auditRec, "to_channel_id", moveThreadParams.ChannelId)
+	model.AddEventParameterToAuditRec(auditRec, "original_post_id", c.Params.PostId)
+	model.AddEventParameterToAuditRec(auditRec, "to_channel_id", moveThreadParams.ChannelId)
 
 	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
@@ -1344,8 +1344,8 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("restorePostVersion", model.AuditStatusFail)
-	model.AddEventParameter(auditRec, "id", c.Params.PostId)
-	model.AddEventParameter(auditRec, "restore_version_id", restoreVersionId)
+	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
+	model.AddEventParameterToAuditRec(auditRec, "restore_version_id", restoreVersionId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	toRestorePost, err := c.App.GetSinglePost(c.AppContext, restoreVersionId, true)

@@ -150,7 +150,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createJob", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "job", &job)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "job", &job)
 
 	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), &job)
 	if permissionRequired == nil {
@@ -292,7 +292,7 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("cancelJob", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "job_id", c.Params.JobId)
+	model.AddEventParameterToAuditRec(auditRec, "job_id", c.Params.JobId)
 
 	job, err := c.App.GetJob(c.AppContext, c.Params.JobId)
 	if err != nil {
@@ -333,7 +333,7 @@ func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateJobStatus", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "job_id", c.Params.JobId)
+	model.AddEventParameterToAuditRec(auditRec, "job_id", c.Params.JobId)
 
 	props := model.StringInterfaceFromJSON(r.Body)
 	status, ok := props["status"].(string)

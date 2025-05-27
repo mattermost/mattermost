@@ -72,7 +72,7 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model.AddEventParameterAuditable(auditRec, "IPFilter", allowedRanges)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "IPFilter", allowedRanges)
 
 	updatedAllowedRanges, err := ipFiltering.ApplyIPFilters(allowedRanges)
 

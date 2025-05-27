@@ -81,8 +81,8 @@ func (rec *AuditRecord) Fail() {
 	rec.Status = AuditStatusFail
 }
 
-// AddEventParameter adds a parameter, e.g. query or post body, to the event
-func AddEventParameter[T string | bool | int | int64 | []string | map[string]string](rec *AuditRecord, key string, val T) {
+// AddEventParameterToAuditRec adds a parameter, e.g. query or post body, to the event
+func AddEventParameterToAuditRec[T string | bool | int | int64 | []string | map[string]string](rec *AuditRecord, key string, val T) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]any)
 	}
@@ -90,8 +90,8 @@ func AddEventParameter[T string | bool | int | int64 | []string | map[string]str
 	rec.EventData.Parameters[key] = val
 }
 
-// AddEventParameterAuditable adds an object that is of type Auditable to the event
-func AddEventParameterAuditable(rec *AuditRecord, key string, val Auditable) {
+// AddEventParameterAuditableToAuditRec adds an object that is of type Auditable to the event
+func AddEventParameterAuditableToAuditRec(rec *AuditRecord, key string, val Auditable) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]any)
 	}
@@ -99,8 +99,8 @@ func AddEventParameterAuditable(rec *AuditRecord, key string, val Auditable) {
 	rec.EventData.Parameters[key] = makeGobSafe(val)
 }
 
-// AddEventParameterAuditableArray adds an array of objects of type Auditable to the event
-func AddEventParameterAuditableArray[T Auditable](rec *AuditRecord, key string, val []T) {
+// AddEventParameterAuditableArrayToAuditRec adds an array of objects of type Auditable to the event
+func AddEventParameterAuditableArrayToAuditRec[T Auditable](rec *AuditRecord, key string, val []T) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]any)
 	}

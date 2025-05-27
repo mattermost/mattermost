@@ -72,7 +72,7 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createSchedulePost", model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	model.AddEventParameterAuditable(auditRec, "scheduledPost", &scheduledPost)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduledPost", &scheduledPost)
 
 	scheduledPostChecks("Api4.createSchedulePost", c, &scheduledPost)
 	if c.Err != nil {
@@ -167,7 +167,7 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateScheduledPost", model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	model.AddEventParameterAuditable(auditRec, "scheduledPost", &scheduledPost)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduledPost", &scheduledPost)
 
 	scheduledPostChecks("Api4.updateScheduledPost", c, &scheduledPost)
 	if c.Err != nil {
@@ -206,7 +206,7 @@ func deleteScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deleteScheduledPost", model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	model.AddEventParameter(auditRec, "scheduledPostId", scheduledPostId)
+	model.AddEventParameterToAuditRec(auditRec, "scheduledPostId", scheduledPostId)
 
 	userId := c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)

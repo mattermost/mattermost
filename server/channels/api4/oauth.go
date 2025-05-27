@@ -31,7 +31,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createOAuthApp", model.AuditStatusFail)
-	model.AddEventParameterAuditable(auditRec, "oauth_app", &oauthApp)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "oauth_app", &oauthApp)
 
 	defer c.LogAuditRec(auditRec)
 
@@ -71,7 +71,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateOAuthApp", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "oauth_app_id", c.Params.AppId)
+	model.AddEventParameterToAuditRec(auditRec, "oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
@@ -84,7 +84,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("oauth_app", jsonErr)
 		return
 	}
-	model.AddEventParameterAuditable(auditRec, "oauth_app", &oauthApp)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "oauth_app", &oauthApp)
 
 	// The app being updated in the payload must be the same one as indicated in the URL.
 	if oauthApp.Id != c.Params.AppId {
@@ -210,7 +210,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deleteOAuthApp", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "oauth_app_id", c.Params.AppId)
+	model.AddEventParameterToAuditRec(auditRec, "oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
@@ -251,7 +251,7 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 
 	auditRec := c.MakeAuditRecord("regenerateOAuthAppSecret", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "oauth_app_id", c.Params.AppId)
+	model.AddEventParameterToAuditRec(auditRec, "oauth_app_id", c.Params.AppId)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
 		c.SetPermissionError(model.PermissionManageOAuth)

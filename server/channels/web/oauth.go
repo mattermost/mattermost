@@ -276,7 +276,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("completeOAuth", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "service", service)
+	model.AddEventParameterToAuditRec(auditRec, "service", service)
 
 	oauthError := r.URL.Query().Get("error")
 	if oauthError == "access_denied" {

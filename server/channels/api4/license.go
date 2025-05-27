@@ -82,7 +82,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileData := fileArray[0]
-	model.AddEventParameter(auditRec, "filename", fileData.Filename)
+	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
 	file, err := fileData.Open()
 	if err != nil {

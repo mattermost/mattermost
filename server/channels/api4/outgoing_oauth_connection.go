@@ -223,7 +223,7 @@ func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	model.AddEventParameterAuditable(auditRec, "outgoing_oauth_connection", &inputConnection)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "outgoing_oauth_connection", &inputConnection)
 
 	inputConnection.CreatorId = c.AppContext.Session().UserId
 
@@ -250,7 +250,7 @@ func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateOutgoingOAuthConnection", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
+	model.AddEventParameterToAuditRec(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
 	c.LogAudit("attempt")
 
 	if !checkOutgoingOAuthConnectionWritePermissions(c) {
@@ -316,7 +316,7 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 func deleteOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deleteOutgoingOAuthConnection", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
+	model.AddEventParameterToAuditRec(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
 	c.LogAudit("attempt")
 
 	if !checkOutgoingOAuthConnectionWritePermissions(c) {
@@ -391,7 +391,7 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 		inputConnection.ClientSecret = storedConnection.ClientSecret
 	}
 
-	model.AddEventParameterAuditable(auditRec, "outgoing_oauth_connection", inputConnection)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "outgoing_oauth_connection", inputConnection)
 
 	resultStatusCode := http.StatusOK
 

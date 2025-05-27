@@ -42,7 +42,7 @@ func localDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("localDeleteTeam", model.AuditStatusFail)
-	model.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 	defer c.LogAuditRec(auditRec)
 
 	if team, err := c.App.GetTeam(c.Params.TeamId); err == nil {
@@ -100,9 +100,9 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	auditRec := c.MakeAuditRecord("localInviteUsersToTeam", model.AuditStatusFail)
-	model.AddEventParameterAuditable(auditRec, "member_invite", memberInvite)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "member_invite", memberInvite)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
 
@@ -249,7 +249,7 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("localCreateTeam", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "team", &team)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "team", &team)
 
 	rteam, err := c.App.CreateTeam(c.AppContext, &team)
 	if err != nil {

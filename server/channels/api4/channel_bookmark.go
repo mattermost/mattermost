@@ -55,7 +55,7 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createChannelBookmark", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "channelBookmark", channelBookmark)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "channelBookmark", channelBookmark)
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
@@ -137,7 +137,7 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	patchedBookmark := originalChannelBookmark.Clone()
 	auditRec := c.MakeAuditRecord("updateChannelBookmark", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "channelBookmark", patch)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "channelBookmark", patch)
 
 	// The channel bookmark should belong to the same channel specified in the URL
 	if patchedBookmark.ChannelId != c.Params.ChannelId {
@@ -237,7 +237,7 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 
 	auditRec := c.MakeAuditRecord("updateChannelBookmarkSortOrder", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "id", c.Params.ChannelBookmarkId)
+	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.ChannelBookmarkId)
 
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
@@ -322,7 +322,7 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deleteChannelBookmark", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "id", c.Params.ChannelBookmarkId)
+	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.ChannelBookmarkId)
 
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {

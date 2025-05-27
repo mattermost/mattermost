@@ -121,7 +121,7 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec := c.MakeAuditRecord("createPolicy", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "policy", &policy)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "policy", &policy)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
@@ -157,7 +157,7 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchPolicy", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "patch", &patch)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &patch)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
@@ -188,7 +188,7 @@ func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deletePolicy", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "policy_id", policyId)
+	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
 		return
@@ -270,8 +270,8 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec := c.MakeAuditRecord("addTeamsToPolicy", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "policy_id", policyId)
-	model.AddEventParameter(auditRec, "team_ids", teamIDs)
+	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
+	model.AddEventParameterToAuditRec(auditRec, "team_ids", teamIDs)
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
 		return
@@ -297,8 +297,8 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec := c.MakeAuditRecord("removeTeamsFromPolicy", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "policy_id", policyId)
-	model.AddEventParameter(auditRec, "team_ids", teamIDs)
+	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
+	model.AddEventParameterToAuditRec(auditRec, "team_ids", teamIDs)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
@@ -389,8 +389,8 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec := c.MakeAuditRecord("addChannelsToPolicy", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "policy_id", policyId)
-	model.AddEventParameter(auditRec, "channel_ids", channelIDs)
+	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
+	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
@@ -417,8 +417,8 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 	}
 	auditRec := c.MakeAuditRecord("removeChannelsFromPolicy", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "policy_id", policyId)
-	model.AddEventParameter(auditRec, "channel_ids", channelIDs)
+	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
+	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)

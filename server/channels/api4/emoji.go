@@ -141,7 +141,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	emoji, err := c.App.GetEmoji(c.AppContext, c.Params.EmojiId)
 	if err != nil {
-		model.AddEventParameter(auditRec, "emoji_id", c.Params.EmojiId)
+		model.AddEventParameterToAuditRec(auditRec, "emoji_id", c.Params.EmojiId)
 		c.Err = err
 		return
 	}

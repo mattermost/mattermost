@@ -30,7 +30,7 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createScheme", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterAuditable(auditRec, "scheme", &scheme)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "scheme", &scheme)
 
 	if c.App.Channels().License() == nil || (!*c.App.Channels().License().Features.CustomPermissionsSchemes && c.App.Channels().License().SkuShortName != model.LicenseShortSkuProfessional) {
 		c.Err = model.NewAppError("Api4.CreateScheme", "api.scheme.create_scheme.license.error", nil, "", http.StatusNotImplemented)
@@ -194,7 +194,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchScheme", model.AuditStatusFail)
-	model.AddEventParameterAuditable(auditRec, "scheme_patch", &patch)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "scheme_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
 	if c.App.Channels().License() == nil || (!*c.App.Channels().License().Features.CustomPermissionsSchemes && c.App.Channels().License().SkuShortName != model.LicenseShortSkuProfessional) {
@@ -202,7 +202,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model.AddEventParameter(auditRec, "scheme_id", c.Params.SchemeId)
+	model.AddEventParameterToAuditRec(auditRec, "scheme_id", c.Params.SchemeId)
 
 	scheme, err := c.App.GetScheme(c.Params.SchemeId)
 	if err != nil {
@@ -239,7 +239,7 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("deleteScheme", model.AuditStatusFail)
-	model.AddEventParameter(auditRec, "scheme_id", c.Params.SchemeId)
+	model.AddEventParameterToAuditRec(auditRec, "scheme_id", c.Params.SchemeId)
 	defer c.LogAuditRec(auditRec)
 
 	if c.App.Channels().License() == nil || (!*c.App.Channels().License().Features.CustomPermissionsSchemes && c.App.Channels().License().SkuShortName != model.LicenseShortSkuProfessional) {

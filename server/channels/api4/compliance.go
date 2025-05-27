@@ -29,7 +29,7 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	auditRec := c.MakeAuditRecord("createComplianceReport", model.AuditStatusFail)
-	model.AddEventParameterAuditable(auditRec, "compliance", &job)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "compliance", &job)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateComplianceExportJob) {
@@ -93,7 +93,7 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model.AddEventParameter(auditRec, "report_id", c.Params.ReportId)
+	model.AddEventParameterToAuditRec(auditRec, "report_id", c.Params.ReportId)
 	job, err := c.App.GetComplianceReport(c.Params.ReportId)
 	if err != nil {
 		c.Err = err
@@ -117,7 +117,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 
 	auditRec := c.MakeAuditRecord("downloadComplianceReport", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "compliance_id", c.Params.ReportId)
+	model.AddEventParameterToAuditRec(auditRec, "compliance_id", c.Params.ReportId)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDownloadComplianceExportResult) {
 		c.SetPermissionError(model.PermissionDownloadComplianceExportResult)

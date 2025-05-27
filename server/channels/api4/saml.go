@@ -84,7 +84,7 @@ func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 
 	auditRec := c.MakeAuditRecord("addSamlPublicCertificate", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "filename", fileData.Filename)
+	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
 	if err := c.App.AddSamlPublicCertificate(fileData); err != nil {
 		c.Err = err
@@ -108,7 +108,7 @@ func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 
 	auditRec := c.MakeAuditRecord("addSamlPrivateCertificate", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameter(auditRec, "filename", fileData.Filename)
+	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
 	if err := c.App.AddSamlPrivateCertificate(fileData); err != nil {
 		c.Err = err
@@ -156,7 +156,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-		model.AddEventParameter(auditRec, "filename", fileData.Filename)
+		model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
 		if err := c.App.AddSamlIdpCertificate(fileData); err != nil {
 			c.Err = err
