@@ -625,6 +625,35 @@ func (a *App) GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmi
 }
 
 func (a *App) GetUsersNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	ctx := request.EmptyContext(a.Log())
+
+	fmt.Printf("\n\n\n\n GetUsersNotInChannel 1:  channelID=%s\n\n\n\n", channelID)
+	if channel, err := a.GetChannel(ctx, channelID); err != nil {
+		fmt.Printf("\n\n\n\n GetUsersNotInChannel 2:  channelID=%s\n\n\n\n", channelID)
+		return nil, err
+	} else if channel.PolicyEnforced {
+		fmt.Printf("\n\n\n\n GetUsersNotInChannel 3:  channelID=%s\n\n\n\n", channelID)
+		acs := a.Srv().Channels().AccessControl
+		if acs != nil {
+			fmt.Printf("\n\n\n\n GetUsersNotInChannel 4:  channelID=%s\n\n\n\n", channelID)
+			users, _, appErr := acs.QueryUsersForResource(ctx, channelID, "*", model.SubjectSearchOptions{
+				TeamID: teamID,
+				Limit:  limit,
+				Cursor: model.SubjectCursor{
+					TargetID: "", // Pagination for QueryUsersForResource uses Limit and Cursor
+				},
+				// Skip offset users
+				Query: fmt.Sprintf("OFFSET %d", offset),
+			})
+			if appErr != nil {
+				fmt.Printf("\n\n\n\n GetUsersNotInChannel 5:  channelID=%s\n\n\n\n", channelID)
+				return nil, appErr
+			}
+
+			return users, nil
+		}
+	}
+	fmt.Printf("\n\n\n\n GetUsersNotInChannel 6:  channelID=%s\n\n\n\n", channelID)
 	users, err := a.Srv().Store().User().GetProfilesNotInChannel(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersNotInChannel", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

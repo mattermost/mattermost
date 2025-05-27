@@ -868,6 +868,127 @@ func TestGetUsersByStatus(t *testing.T) {
 	})
 }
 
+func TestGetUsersNotInChannelWithABAC(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Set license to EnterpriseAdvanced
+	th.App.Srv().SetLicense(model.NewTestLicense("enterprise.advanced"))
+
+	// Enable ABAC in config
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// Create two private channels in the same team
+	abacChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	regularChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+	// Create three test users and add them to the team
+	user1 := th.CreateUser() // Will have matching attributes for ABAC
+	user2 := th.CreateUser() // Won't have matching attributes
+	user3 := th.CreateUser() // Won't have matching attributes
+	th.LinkUserToTeam(user1, th.BasicTeam)
+	th.LinkUserToTeam(user2, th.BasicTeam)
+	th.LinkUserToTeam(user3, th.BasicTeam)
+
+	// Set user1 attributes to match the policy
+	user1.Props = map[string]string{
+		"program": "test-program",
+	}
+	user1, err := th.App.UpdateUser(th.Context, user1, false)
+	require.Nil(t, err)
+
+	// Create a policy with the same ID as the ABAC channel
+	channelPolicy := &model.AccessControlPolicy{
+		Type:     model.AccessControlPolicyTypeChannel,
+		ID:       abacChannel.Id,
+		Name:     "Test Channel Policy",
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_1,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"view", "join_channel"},
+				Expression: "user.attributes.program == \"test-program\"",
+			},
+		},
+	}
+
+	// Save the channel policy
+	var storeErr error
+	channelPolicy, storeErr = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, channelPolicy)
+	require.NoError(t, storeErr)
+	require.NotNil(t, channelPolicy)
+	t.Cleanup(func() {
+		dErr := th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channelPolicy.ID)
+		require.NoError(t, dErr)
+	})
+
+	// Mock the AccessControl service
+	mockAccessControl := &mocks.AccessControlServiceInterface{}
+	originalAccessControl := th.App.Srv().ch.AccessControl
+	th.App.Srv().ch.AccessControl = mockAccessControl
+	defer func() {
+		th.App.Srv().ch.AccessControl = originalAccessControl
+	}()
+
+	t.Run("ABAC Channel - Only returns users with matching attributes", func(t *testing.T) {
+		// Set up the mock to return user1 when querying for users
+		mockAccessControl.On("QueryUsersForResource",
+			mock.Anything,
+			abacChannel.Id,
+			"*",
+			mock.Anything).Return([]*model.User{user1}, int64(1), nil).Once()
+
+		// Call the function we're testing
+		users, appErr := th.App.GetUsersNotInChannel(th.BasicTeam.Id, abacChannel.Id, false, 0, 100, nil)
+		require.Nil(t, appErr)
+
+		// Create a map of user IDs for easier lookup
+		userMap := make(map[string]bool)
+		for _, u := range users {
+			userMap[u.Id] = true
+		}
+
+		// Verify only user1 is returned for the ABAC channel
+		assert.True(t, userMap[user1.Id], "User1 should be returned for ABAC channel")
+		assert.False(t, userMap[user2.Id], "User2 should not be returned for ABAC channel")
+		assert.False(t, userMap[user3.Id], "User3 should not be returned for ABAC channel")
+	})
+
+	t.Run("Regular Channel - Returns all users", func(t *testing.T) {
+		// For the regular channel, we need to make sure the users are in the team but not in the channel
+		// First, make sure the basic user is in the channel
+		_, appErr := th.App.AddChannelMember(th.Context, th.BasicUser.Id, regularChannel, ChannelMemberOpts{})
+		require.Nil(t, appErr)
+
+		// Make sure our test users are in the team but not in the channel
+		_, appErr = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user1.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user2.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user3.Id)
+		require.Nil(t, appErr)
+
+		// Call the function we're testing
+		users, appErr := th.App.GetUsersNotInChannel(th.BasicTeam.Id, regularChannel.Id, false, 0, 100, nil)
+		require.Nil(t, appErr)
+
+		// Create a map of user IDs for easier lookup
+		userMap := make(map[string]bool)
+		for _, u := range users {
+			userMap[u.Id] = true
+		}
+
+		// Verify all users are returned for the regular channel
+		assert.True(t, userMap[user1.Id], "User1 should be returned for regular channel")
+		assert.True(t, userMap[user2.Id], "User2 should be returned for regular channel")
+		assert.True(t, userMap[user3.Id], "User3 should be returned for regular channel")
+	})
+}
+
 func TestCreateUserWithInviteId(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

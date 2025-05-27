@@ -173,15 +173,29 @@ const ChannelInviteModalComponent = (props: Props) => {
     const getOptions = useCallback(() => {
         const excludedAndNotInTeamUserIds = excludedUsers;
 
-        const filteredDmUsers = filterProfilesStartingWithTerm(props.profilesFromRecentDMs, term);
-        const dmUsers = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredDmUsers, excludedAndNotInTeamUserIds).slice(0, USERS_FROM_DMS) as UserProfileValue[];
+        // Only include DM users if ABAC is not enabled
+        let dmUsers: UserProfileValue[] = [];
+        if (!props.channel.policy_enforced) {
+            const filteredDmUsers = filterProfilesStartingWithTerm(props.profilesFromRecentDMs, term);
+            dmUsers = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredDmUsers, excludedAndNotInTeamUserIds).slice(0, USERS_FROM_DMS) as UserProfileValue[];
+        }
 
         let users: UserProfileValue[];
-        const filteredUsers: UserProfile[] = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel.concat(props.profilesInCurrentChannel), term);
-        users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
-        if (props.includeUsers) {
+        if (props.channel.policy_enforced) {
+        // When ABAC is enabled, only use the ABAC-filtered profilesNotInCurrentChannel
+            const filteredUsers = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel, term);
+            users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
+        } else {
+        // When ABAC is not enabled, use the current logic
+            const filteredUsers = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel.concat(props.profilesInCurrentChannel), term);
+            users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
+        }
+
+        // Only include explicitly added users if ABAC is not enabled
+        if (props.includeUsers && !props.channel.policy_enforced) {
             users = [...users, ...Object.values(props.includeUsers)];
         }
+
         const groupsAndUsers = [
             ...filterGroupsMatchingTerm(props.groups, term) as GroupValue[],
             ...users,
@@ -200,6 +214,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.profilesInCurrentChannel,
         props.includeUsers,
         props.groups,
+        props.channel.policy_enforced,
         excludedUsers,
         filterOutDeletedAndExcludedAndNotInTeamUsers,
     ]);
@@ -282,8 +297,20 @@ const ChannelInviteModalComponent = (props: Props) => {
         setTerm(term);
 
         if (!term) {
-            // If the search term is empty, don't make any API calls
-            setUsersLoadingState(false);
+            if (props.channel.policy_enforced) {
+            // For ABAC-enabled channels, reload the initial data to ensure proper filtering
+                props.actions.getProfilesNotInChannel(
+                    props.channel.team_id,
+                    props.channel.id,
+                    props.channel.group_constrained,
+                    0,
+                ).then(() => {
+                    setUsersLoadingState(false);
+                });
+            } else {
+            // For non-ABAC channels, just set loading state to false without making API calls
+                setUsersLoadingState(false);
+            }
             return;
         }
 
