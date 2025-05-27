@@ -1272,6 +1272,58 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
             />
           </AdminSidebarCategory>
           <AdminSidebarCategory
+            definitionKey="billing"
+            icon={
+              <CreditCardOutlineIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="billing"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Billing & Account"
+                id="admin.sidebar.billing"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="billing.subscription"
+              key="billing.subscription"
+              name="billing/subscription"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Subscription"
+                  id="admin.sidebar.subscription"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="billing.billing_history"
+              key="billing.billing_history"
+              name="billing/billing_history"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Billing History"
+                  id="admin.sidebar.billing_history"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="billing.company_info"
+              key="billing.company_info"
+              name="billing/company_info"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Company Information"
+                  id="admin.sidebar.company_info"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
             definitionKey="reporting"
             icon={
               <ChartBarIcon
@@ -1444,6 +1496,30 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control_feature_discovery"
+              key="user_management.attribute_based_access_control_feature_discovery"
+              name="user_management/attribute_based_access_control"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="advanced"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="environment"
@@ -1475,17 +1551,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
               }
             />
             <AdminSidebarSection
-              definitionKey="environment.database"
-              key="environment.database"
-              name="environment/database"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Database"
-                  id="admin.sidebar.database"
-                />
-              }
-            />
-            <AdminSidebarSection
               definitionKey="environment.storage"
               key="environment.storage"
               name="environment/file_storage"
@@ -1493,6 +1558,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="File Storage"
                   id="admin.sidebar.fileStorage"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.export_storage"
+              key="environment.export_storage"
+              name="environment/export_storage"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Export Storage"
+                  id="admin.sidebar.exportStorage"
                 />
               }
             />
@@ -1626,6 +1702,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
               }
             />
             <AdminSidebarSection
+              definitionKey="site.system_properties"
+              key="site.system_properties"
+              name="site_config/system_properties"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Properties"
+                  id="admin.sidebar.system_properties"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="site.localization"
               key="site.localization"
               name="site_config/localization"
@@ -1734,6 +1821,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Notices"
                   id="admin.sidebar.notices"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.ip_filtering"
+              key="site.ip_filtering"
+              name="site_config/ip_filtering"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="IP Filtering"
+                  id="admin.sidebar.ip_filtering"
                 />
               }
             />
@@ -1860,22 +1958,9 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
               }
             />
             <AdminSidebarSection
-              definitionKey="authentication.openid_feature_discovery"
-              key="authentication.openid_feature_discovery"
+              definitionKey="authentication.openid"
+              key="authentication.openid"
               name="authentication/openid"
-              restrictedIndicator={
-                <RestrictedIndicator
-                  blocked={true}
-                  minimumPlanRequiredForFeature="professional"
-                  tooltipMessageBlocked={
-                    Object {
-                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
-                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
-                    }
-                  }
-                  useModal={false}
-                />
-              }
               title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="OpenID Connect"
@@ -2156,6 +2241,1075 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Bleve"
                   id="admin.sidebar.blevesearch"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="experimental.audit_logging"
+              key="experimental.audit_logging"
+              name="experimental/audit_logging"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Audit Logging"
+                  id="admin.sidebar.audit_logging_experimental"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+        </ul>
+      </SearchKeywordMarking>
+    </div>
+  </Scrollbars>
+</div>
+`;
+
+exports[`components/AdminSidebar should match snapshot with license with enterprise advanced SKU 1`] = `
+<div
+  className="admin-sidebar"
+>
+  <Connect(Component) />
+  <div
+    className="filter-container"
+  >
+    <SearchIcon
+      aria-hidden="true"
+      className="search__icon"
+    />
+    <QuickInput
+      className="filter "
+      clearable={true}
+      id="adminSidebarFilter"
+      onChange={[Function]}
+      onClear={[Function]}
+      placeholder="Find settings"
+      type="text"
+      value=""
+    />
+  </div>
+  <Scrollbars
+    autoHeight={false}
+    autoHeightMax={200}
+    autoHeightMin={0}
+    autoHide={true}
+    autoHideDuration={500}
+    autoHideTimeout={500}
+    hideTracksWhenNotNeeded={false}
+    renderThumbHorizontal={[Function]}
+    renderThumbVertical={[Function]}
+    renderTrackHorizontal={[Function]}
+    renderTrackVertical={[Function]}
+    renderView={[Function]}
+    tagName="div"
+    thumbMinSize={30}
+    universal={false}
+  >
+    <div
+      className="nav-pills__container"
+    >
+      <SearchKeywordMarking
+        keyword=""
+      >
+        <ul
+          className="nav nav-pills nav-stacked"
+        >
+          <AdminSidebarCategory
+            definitionKey="about"
+            icon={
+              <InformationOutlineIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="about"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="About"
+                id="admin.sidebar.about"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="about.license"
+              key="about.license"
+              name="about/license"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edition and License"
+                  id="admin.sidebar.license"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="billing"
+            icon={
+              <CreditCardOutlineIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="billing"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Billing & Account"
+                id="admin.sidebar.billing"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="billing.subscription"
+              key="billing.subscription"
+              name="billing/subscription"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Subscription"
+                  id="admin.sidebar.subscription"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="billing.billing_history"
+              key="billing.billing_history"
+              name="billing/billing_history"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Billing History"
+                  id="admin.sidebar.billing_history"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="billing.company_info"
+              key="billing.company_info"
+              name="billing/company_info"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Company Information"
+                  id="admin.sidebar.company_info"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="reporting"
+            icon={
+              <ChartBarIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="reporting"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Reporting"
+                id="admin.sidebar.reporting"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="reporting.workspace_optimization"
+              key="reporting.workspace_optimization"
+              name="reporting/workspace_optimization"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Workspace Optimization"
+                  id="admin.sidebar.workspaceOptimization"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="reporting.system_analytics"
+              key="reporting.system_analytics"
+              name="reporting/system_analytics"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Site Statistics"
+                  id="admin.sidebar.siteStatistics"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="reporting.team_statistics"
+              key="reporting.team_statistics"
+              name="reporting/team_statistics"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Team Statistics"
+                  id="admin.sidebar.teamStatistics"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="reporting.server_logs"
+              key="reporting.server_logs"
+              name="reporting/server_logs"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Server Logs"
+                  id="admin.sidebar.logs"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="user_management"
+            icon={
+              <AccountMultipleOutlineIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="user_management"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="User Management"
+                id="admin.sidebar.userManagement"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="user_management.system_users"
+              key="user_management.system_users"
+              name="user_management/users"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Users"
+                  id="admin.sidebar.users"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.groups_feature_discovery"
+              key="user_management.groups_feature_discovery"
+              name="user_management/groups"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Groups"
+                  id="admin.sidebar.groups"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.teams"
+              key="user_management.teams"
+              name="user_management/teams"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Teams"
+                  id="admin.sidebar.teams"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.channel"
+              key="user_management.channel"
+              name="user_management/channels"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Channels"
+                  id="admin.sidebar.channels"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.permissions"
+              key="user_management.permissions"
+              name="user_management/permissions/"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Permissions"
+                  id="admin.sidebar.permissions"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.system_roles_feature_discovery"
+              key="user_management.system_roles_feature_discovery"
+              name="user_management/system_roles"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Delegated Granular Administration"
+                  id="admin.sidebar.systemRoles"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control"
+              key="user_management.attribute_based_access_control"
+              name="user_management/attribute_based_access_control"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="environment"
+            icon={
+              <ServerVariantIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="environment"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Environment"
+                id="admin.sidebar.environment"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="environment.web_server"
+              key="environment.web_server"
+              name="environment/web_server"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Web Server"
+                  id="admin.sidebar.webServer"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.storage"
+              key="environment.storage"
+              name="environment/file_storage"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="File Storage"
+                  id="admin.sidebar.fileStorage"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.export_storage"
+              key="environment.export_storage"
+              name="environment/export_storage"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Export Storage"
+                  id="admin.sidebar.exportStorage"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.image_proxy"
+              key="environment.image_proxy"
+              name="environment/image_proxy"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Image Proxy"
+                  id="admin.sidebar.imageProxy"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.smtp"
+              key="environment.smtp"
+              name="environment/smtp"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="SMTP"
+                  id="admin.sidebar.smtp"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.push_notification_server"
+              key="environment.push_notification_server"
+              name="environment/push_notification_server"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Push Notification Server"
+                  id="admin.sidebar.pushNotificationServer"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.rate_limiting"
+              key="environment.rate_limiting"
+              name="environment/rate_limiting"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Rate Limiting"
+                  id="admin.sidebar.rateLimiting"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.logging"
+              key="environment.logging"
+              name="environment/logging"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Logging"
+                  id="admin.sidebar.logging"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.session_lengths"
+              key="environment.session_lengths"
+              name="environment/session_lengths"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Session Lengths"
+                  id="admin.sidebar.sessionLengths"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.metrics"
+              key="environment.metrics"
+              name="environment/performance_monitoring"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Performance Monitoring"
+                  id="admin.sidebar.metrics"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.developer"
+              key="environment.developer"
+              name="environment/developer"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Developer"
+                  id="admin.sidebar.developer"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.mobile_security"
+              key="environment.mobile_security"
+              name="environment/mobile_security"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Mobile Security"
+                  id="admin.sidebar.mobileSecurity"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="site"
+            icon={
+              <CogOutlineIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="site"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Site Configuration"
+                id="admin.sidebar.site"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="site.customization"
+              key="site.customization"
+              name="site_config/customization"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Customization"
+                  id="admin.sidebar.customization"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.system_properties"
+              key="site.system_properties"
+              name="site_config/system_properties"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Properties"
+                  id="admin.sidebar.system_properties"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.localization"
+              key="site.localization"
+              name="site_config/localization"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Localization"
+                  id="admin.sidebar.localization"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.users_and_teams"
+              key="site.users_and_teams"
+              name="site_config/users_and_teams"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Users and Teams"
+                  id="admin.sidebar.usersAndTeams"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.notifications"
+              key="site.notifications"
+              name="environment/notifications"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Notifications"
+                  id="admin.sidebar.notifications"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.announcement_banner_feature_discovery"
+              key="site.announcement_banner_feature_discovery"
+              name="site_config/announcement_banner"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System-wide Notifications"
+                  id="admin.sidebar.announcement"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.emoji"
+              key="site.emoji"
+              name="site_config/emoji"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Emoji"
+                  id="admin.sidebar.emoji"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.posts"
+              key="site.posts"
+              name="site_config/posts"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Posts"
+                  id="admin.sidebar.posts"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.file_sharing_downloads"
+              key="site.file_sharing_downloads"
+              name="site_config/file_sharing_downloads"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="File Sharing and Downloads"
+                  id="admin.sidebar.fileSharingDownloads"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.public_links"
+              key="site.public_links"
+              name="site_config/public_links"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Public Links"
+                  id="admin.sidebar.publicLinks"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.notices"
+              key="site.notices"
+              name="site_config/notices"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Notices"
+                  id="admin.sidebar.notices"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.ip_filtering"
+              key="site.ip_filtering"
+              name="site_config/ip_filtering"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="IP Filtering"
+                  id="admin.sidebar.ip_filtering"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="authentication"
+            icon={
+              <ShieldOutlineIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="authentication"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Authentication"
+                id="admin.sidebar.authentication"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="authentication.signup"
+              key="authentication.signup"
+              name="authentication/signup"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Signup"
+                  id="admin.sidebar.signup"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.email"
+              key="authentication.email"
+              name="authentication/email"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Email"
+                  id="admin.sidebar.email"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.password"
+              key="authentication.password"
+              name="authentication/password"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Password"
+                  id="admin.sidebar.password"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.mfa"
+              key="authentication.mfa"
+              name="authentication/mfa"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="MFA"
+                  id="admin.sidebar.mfa"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.ldap_feature_discovery"
+              key="authentication.ldap_feature_discovery"
+              name="authentication/ldap"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="AD/LDAP"
+                  id="admin.sidebar.ldap"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.saml_feature_discovery"
+              key="authentication.saml_feature_discovery"
+              name="authentication/saml"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="SAML 2.0"
+                  id="admin.sidebar.saml"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.oauth"
+              key="authentication.oauth"
+              name="authentication/oauth"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="OAuth 2.0"
+                  id="admin.sidebar.oauth"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.openid"
+              key="authentication.openid"
+              name="authentication/openid"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="OpenID Connect"
+                  id="admin.sidebar.openid"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.guest_access_feature_discovery"
+              key="authentication.guest_access_feature_discovery"
+              name="authentication/guest_access"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Guest Access"
+                  id="admin.sidebar.guest_access"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="plugins"
+            icon={
+              <PowerPlugOutlineIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="plugins"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Plugins"
+                id="admin.sidebar.plugins"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="plugins.plugin_management"
+              key="plugins.plugin_management"
+              name="plugins/plugin_management"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Plugin Management"
+                  id="admin.plugins.pluginManagement"
+                />
+              }
+            />
+            <AdminSidebarSection
+              key="custompluginplugin_0"
+              name="plugins/plugin_plugin_0"
+              title="Plugin 0"
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="integrations"
+            icon={
+              <SitemapIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="integrations"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Integrations"
+                id="admin.sidebar.integrations"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="integrations.integration_management"
+              key="integrations.integration_management"
+              name="integrations/integration_management"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Integration Management"
+                  id="admin.integrations.integrationManagement"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="integrations.bot_accounts"
+              key="integrations.bot_accounts"
+              name="integrations/bot_accounts"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Bot Accounts"
+                  id="admin.integrations.botAccounts"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="integrations.gif"
+              key="integrations.gif"
+              name="integrations/gif"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="GIF"
+                  id="admin.sidebar.gif"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="integrations.cors"
+              key="integrations.cors"
+              name="integrations/cors"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="CORS"
+                  id="admin.sidebar.cors"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="integrations.embedding"
+              key="integrations.embedding"
+              name="integrations/embedding"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Embedding"
+                  id="admin.sidebar.embedding"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="compliance"
+            icon={
+              <FormatListBulletedIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="compliance"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Compliance"
+                id="admin.sidebar.compliance"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="compliance.data_retention_feature_discovery"
+              key="compliance.data_retention_feature_discovery"
+              name="compliance/data_retention"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Data Retention Policy"
+                  id="admin.sidebar.dataRetentionPolicy"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="compliance.compliance_export_feature_discovery"
+              key="compliance.compliance_export_feature_discovery"
+              name="compliance/export"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Compliance Export"
+                  id="admin.sidebar.complianceExport"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="compliance.custom_terms_of_service_feature_discovery"
+              key="compliance.custom_terms_of_service_feature_discovery"
+              name="compliance/custom_terms_of_service"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Custom Terms of Service"
+                  id="admin.sidebar.customTermsOfService"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="experimental"
+            icon={
+              <FlaskOutlineIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="experimental"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Experimental"
+                id="admin.sidebar.experimental"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="experimental.experimental_features"
+              key="experimental.experimental_features"
+              name="experimental/features"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Features"
+                  id="admin.sidebar.experimentalFeatures"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="experimental.feature_flags"
+              key="experimental.feature_flags"
+              name="experimental/feature_flags"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Features Flags"
+                  id="admin.feature_flags.title"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="experimental.bleve"
+              key="experimental.bleve"
+              name="experimental/blevesearch"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Bleve"
+                  id="admin.sidebar.blevesearch"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="experimental.audit_logging"
+              key="experimental.audit_logging"
+              name="experimental/audit_logging"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Audit Logging"
+                  id="admin.sidebar.audit_logging_experimental"
                 />
               }
             />
