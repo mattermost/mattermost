@@ -108,7 +108,7 @@ func initStores(logger mlog.LoggerIFace) {
 		eg.Go(func() error {
 			var err error
 
-			st.SqlStore, err = sqlstore.New(*st.SqlSettings, logger, nil)
+			st.SqlStore, err = sqlstore.New(*st.SqlSettings, logger, nil, sqlstore.DisableMorphLogging())
 			if err != nil {
 				return err
 			}

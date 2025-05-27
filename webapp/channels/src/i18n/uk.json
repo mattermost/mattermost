@@ -3382,7 +3382,6 @@
   "channel_loader.postedImage": " опублікував зображення",
   "channel_loader.socketError": "Будь ласка, перевірте з’єднання, Mattermost недоступний. Якщо проблема не зникає, попросіть адміністратора [перевірити порт WebSocket](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Хтось",
-  "channel_loader.something": " зробив щось нове",
   "channel_loader.unknown_error": "Ми отримали неочікуваний код статусу від сервера.",
   "channel_loader.uploadedFile": " завантажив(ла) файл",
   "channel_loader.uploadedImage": " завантажив(ла) зображення",

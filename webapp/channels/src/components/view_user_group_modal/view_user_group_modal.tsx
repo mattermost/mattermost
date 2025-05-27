@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {createRef} from 'react';
-import type {RefObject} from 'react';
+import React, {useRef, useState, useEffect, useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {useFocusTrap} from '@mattermost/components/src/hooks/useFocusTrap';
 import type {Group} from '@mattermost/types/groups';
 import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -43,133 +43,119 @@ export type Props = {
     };
 }
 
-type State = {
-    page: number;
-    loading: boolean;
-    show: boolean;
-    selectedFilter: string;
-    memberCount: number;
-}
+const ViewUserGroupModal: React.FC<Props> = ({
+    onExited,
+    searchTerm,
+    groupId,
+    group,
+    users,
+    backButtonCallback,
+    backButtonAction,
+    actions,
+}) => {
+    const divScrollRef = useRef<HTMLDivElement>(null);
+    const searchTimeoutIdRef = useRef<number>(0);
+    const [page, setPage] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [show, setShow] = useState(true);
+    const [memberCount, setMemberCount] = useState(group?.member_count || 0);
 
-export default class ViewUserGroupModal extends React.PureComponent<Props, State> {
-    private divScrollRef: RefObject<HTMLDivElement>;
-    private searchTimeoutId: number;
+    const modalRef = useRef<HTMLDivElement>(null);
+    useFocusTrap(show, modalRef);
 
-    constructor(props: Props) {
-        super(props);
+    const incrementMemberCount = useCallback(() => {
+        setMemberCount((prev) => prev + 1);
+    }, []);
 
-        this.divScrollRef = createRef();
-        this.searchTimeoutId = 0;
-        this.state = {
-            page: 0,
-            loading: true,
-            show: true,
-            selectedFilter: 'all',
-            memberCount: props.group?.member_count || 0,
-        };
-    }
+    const decrementMemberCount = useCallback(() => {
+        setMemberCount((prev) => prev - 1);
+    }, []);
 
-    incrementMemberCount = () => {
-        this.setState({memberCount: this.state.memberCount + 1});
-    };
+    const doHide = useCallback(() => {
+        setShow(false);
+    }, []);
 
-    decrementMemberCount = () => {
-        this.setState({memberCount: this.state.memberCount - 1});
-    };
+    const startLoad = useCallback(() => {
+        setLoading(true);
+    }, []);
 
-    doHide = () => {
-        this.setState({show: false});
-    };
+    const loadComplete = useCallback(() => {
+        setLoading(false);
+    }, []);
 
-    async componentDidMount() {
-        const {
-            groupId,
-            actions,
-        } = this.props;
-
-        await Promise.all([
-            actions.getGroup(groupId, true),
-            actions.getUsersInGroup(groupId, 0, USERS_PER_PAGE),
-        ]);
-        this.loadComplete();
-    }
-
-    componentWillUnmount() {
-        this.props.actions.setModalSearchTerm('');
-    }
-
-    componentDidUpdate(prevProps: Props) {
-        if (prevProps.searchTerm !== this.props.searchTerm) {
-            clearTimeout(this.searchTimeoutId);
-            const searchTerm = this.props.searchTerm;
-
-            if (searchTerm === '') {
-                this.loadComplete();
-                this.searchTimeoutId = 0;
-                return;
-            }
-
-            const searchTimeoutId = window.setTimeout(
-                async () => {
-                    await prevProps.actions.searchProfiles(searchTerm, {in_group_id: this.props.groupId});
-                },
-                Constants.SEARCH_TIMEOUT_MILLISECONDS,
-            );
-
-            this.searchTimeoutId = searchTimeoutId;
-        }
-        if (prevProps.group?.member_count !== this.props.group?.member_count) {
-            this.setMemberCount(this.props.group?.member_count || 0);
-        }
-    }
-
-    setMemberCount = (count: number) => {
-        this.setState({memberCount: count});
-    };
-
-    startLoad = () => {
-        this.setState({loading: true});
-    };
-
-    loadComplete = () => {
-        this.setState({loading: false});
-    };
-
-    handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const term = e.target.value;
-        this.props.actions.setModalSearchTerm(term);
-    };
+        actions.setModalSearchTerm(term);
+    }, [actions]);
 
-    getGroupMembers = debounce(
-        async () => {
-            const {actions, groupId} = this.props;
-            const {page} = this.state;
-            const newPage = page + 1;
-
-            this.setState({page: newPage});
-
-            this.startLoad();
-            await actions.getUsersInGroup(groupId, newPage, USERS_PER_PAGE);
-            this.loadComplete();
-        },
-        200,
-        false,
-        (): void => {},
+    const getGroupMembers = useCallback(
+        debounce(
+            async () => {
+                const newPage = page + 1;
+                setPage(newPage);
+                startLoad();
+                await actions.getUsersInGroup(groupId, newPage, USERS_PER_PAGE);
+                loadComplete();
+            },
+            200,
+            false,
+            () => {},
+        ),
+        [page, groupId, actions, startLoad, loadComplete],
     );
 
-    onScroll = () => {
-        const scrollHeight = this.divScrollRef.current?.scrollHeight || 0;
-        const scrollTop = this.divScrollRef.current?.scrollTop || 0;
-        const clientHeight = this.divScrollRef.current?.clientHeight || 0;
+    const onScroll = useCallback(() => {
+        const scrollHeight = divScrollRef.current?.scrollHeight || 0;
+        const scrollTop = divScrollRef.current?.scrollTop || 0;
+        const clientHeight = divScrollRef.current?.clientHeight || 0;
 
-        if (((scrollTop + clientHeight + 30) >= scrollHeight && this.props.group) && (this.props.users.length !== this.props.group.member_count && this.state.loading === false)) {
-            this.getGroupMembers();
+        if (((scrollTop + clientHeight + 30) >= scrollHeight && group) && (users.length !== group.member_count && !loading)) {
+            getGroupMembers();
         }
-    };
+    }, [group, users.length, loading, getGroupMembers]);
 
-    mentionName = () => {
-        const {group} = this.props;
+    useEffect(() => {
+        const fetchData = async () => {
+            await Promise.all([
+                actions.getGroup(groupId, true),
+                actions.getUsersInGroup(groupId, 0, USERS_PER_PAGE),
+            ]);
+            loadComplete();
+        };
+        fetchData();
 
+        return () => {
+            actions.setModalSearchTerm('');
+        };
+    }, [groupId, actions, loadComplete]);
+
+    useEffect(() => {
+        if (group?.member_count !== undefined && group.member_count !== memberCount) {
+            setMemberCount(group.member_count);
+        }
+    }, [group?.member_count]);
+
+    useEffect(() => {
+        if (searchTerm === '') {
+            loadComplete();
+            searchTimeoutIdRef.current = 0;
+            return () => {};
+        }
+
+        clearTimeout(searchTimeoutIdRef.current);
+        searchTimeoutIdRef.current = window.setTimeout(
+            async () => {
+                await actions.searchProfiles(searchTerm, {in_group_id: groupId});
+            },
+            Constants.SEARCH_TIMEOUT_MILLISECONDS,
+        );
+
+        return () => {
+            clearTimeout(searchTimeoutIdRef.current);
+        };
+    }, [searchTerm, groupId, actions, loadComplete]);
+
+    const mentionName = () => {
         if (group) {
             return (
                 <div className='group-mention-name'>
@@ -198,29 +184,28 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
         return (<></>);
     };
 
-    render() {
-        const {groupId, group, users, onExited} = this.props;
-
-        return (
-            <Modal
-                dialogClassName='a11y__modal view-user-groups-modal'
-                show={this.state.show}
-                onHide={this.doHide}
-                onExited={onExited}
-                role='none'
-                aria-labelledby='viewUserGroupModalLabel'
-            >
+    return (
+        <Modal
+            dialogClassName='a11y__modal view-user-groups-modal'
+            show={show}
+            onHide={doHide}
+            onExited={onExited}
+            role='none'
+            aria-labelledby='viewUserGroupModalLabel'
+            enforceFocus={false}
+        >
+            <div ref={modalRef}>
                 <ViewUserGroupModalHeader
                     onExited={onExited}
                     groupId={groupId}
-                    backButtonCallback={this.props.backButtonCallback}
-                    backButtonAction={this.props.backButtonAction}
-                    incrementMemberCount={this.incrementMemberCount}
-                    decrementMemberCount={this.decrementMemberCount}
+                    backButtonCallback={backButtonCallback}
+                    backButtonAction={backButtonAction}
+                    incrementMemberCount={incrementMemberCount}
+                    decrementMemberCount={decrementMemberCount}
                 />
                 <Modal.Body>
-                    {this.mentionName()}
-                    {((users.length === 0 && !this.props.searchTerm && !this.state.loading) || !group) ? (
+                    {mentionName()}
+                    {((users.length === 0 && !searchTerm && !loading) || !group) ? (
                         <NoResultsIndicator
                             variant={NoResultsVariant.UserGroupMembers}
                         />
@@ -230,8 +215,8 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                                 <Input
                                     type='text'
                                     placeholder={defineMessage({id: 'search_bar.searchGroupMembers', defaultMessage: 'Search group members'})}
-                                    onChange={this.handleSearch}
-                                    value={this.props.searchTerm}
+                                    onChange={handleSearch}
+                                    value={searchTerm}
                                     data-testid='searchInput'
                                     className={'user-group-search-input'}
                                     inputPrefix={<i className={'icon icon-magnify'}/>}
@@ -239,8 +224,8 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                             </div>
                             <div
                                 className='user-groups-modal__content group-member-list'
-                                onScroll={this.onScroll}
-                                ref={this.divScrollRef}
+                                onScroll={onScroll}
+                                ref={divScrollRef}
                             >
                                 {(users.length !== 0) &&
                                 <h2 className='group-member-count'>
@@ -248,36 +233,36 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                                         id='view_user_group_modal.memberCount'
                                         defaultMessage='{member_count} {member_count, plural, one {Member} other {Members}}'
                                         values={{
-                                            member_count: this.state.memberCount,
+                                            member_count: memberCount,
                                         }}
                                     />
                                 </h2>
                                 }
-                                {(users.length === 0 && this.props.searchTerm) &&
+                                {(users.length === 0 && searchTerm) &&
                                 <NoResultsIndicator
                                     variant={NoResultsVariant.Search}
-                                    titleValues={{channelName: `${this.props.searchTerm}`}}
+                                    titleValues={{channelName: `${searchTerm}`}}
                                 />
                                 }
-                                {users.map((user) => {
-                                    return (
-                                        <ViewUserGroupListItem
-                                            groupId={groupId}
-                                            user={user}
-                                            decrementMemberCount={this.decrementMemberCount}
-                                            key={user.id}
-                                        />
-                                    );
-                                })}
+                                {users.map((user) => (
+                                    <ViewUserGroupListItem
+                                        groupId={groupId}
+                                        user={user}
+                                        decrementMemberCount={decrementMemberCount}
+                                        key={user.id}
+                                    />
+                                ))}
                                 {
-                                    this.state.loading &&
+                                    loading &&
                                     <LoadingScreen/>
                                 }
                             </div>
                         </>
                     )}
                 </Modal.Body>
-            </Modal>
-        );
-    }
-}
+            </div>
+        </Modal>
+    );
+};
+
+export default ViewUserGroupModal;

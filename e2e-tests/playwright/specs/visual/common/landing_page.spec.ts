@@ -3,11 +3,18 @@
 
 import {test} from '@mattermost/playwright-lib';
 
-test('/landing#/login', async ({pw, page, browserName, viewport}, testInfo) => {
-    // Go to landing login page
-    await pw.landingLoginPage.goto();
-    await pw.landingLoginPage.toBeVisible();
+/**
+ * @objective Capture visual snapshot of the landing page
+ */
+test(
+    'landing page visual check',
+    {tag: ['@visual', '@landing_page']},
+    async ({pw, page, browserName, viewport}, testInfo) => {
+        // # Go to landing login page
+        await pw.landingLoginPage.goto();
+        await pw.landingLoginPage.toBeVisible();
 
-    // Match snapshot of landing page
-    await pw.matchSnapshot(testInfo, {page, browserName, viewport});
-});
+        // * Verify landing page appears as expected
+        await pw.matchSnapshot(testInfo, {page, browserName, viewport});
+    },
+);

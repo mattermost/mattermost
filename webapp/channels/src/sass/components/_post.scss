@@ -53,7 +53,6 @@
         }
 
         p {
-            margin: 0;
             white-space: pre-wrap;
         }
 
@@ -758,6 +757,11 @@
             }
         }
 
+        .post__link {
+            padding-top: 3px;
+            margin: 0;
+        }
+
         .attachment {
             padding-top: 1px;
             clear: both;
@@ -776,6 +780,10 @@
         }
 
         &.post--comment {
+            .post__body {
+                padding-left: 8px;
+            }
+
             .attachment {
                 .attachment__body__wrap {
                     .btn-close {
@@ -823,7 +831,7 @@
         blockquote {
             display: flex;
             flex-direction: column;
-            padding: 3px 0 3px 20px;
+            padding: 0 0 0 8px;
 
             &::before {
                 top: 0;
@@ -854,7 +862,7 @@
         }
 
         .post__body {
-            padding: 2px 0 0;
+            padding: 2px 0;
             background: transparent !important;
             line-height: 1.5;
 
@@ -1011,8 +1019,8 @@
 
     &.post--comment {
         .post__body {
-            padding-left: 7px;
-            border-left: 4px solid rgba(var(--center-channel-color-rgb), 0.2);
+            padding-left: 12px;
+            border-left: 4px solid rgba(var(--button-bg-rgb), 0.24);
         }
 
         &.mention-comment {
@@ -1376,7 +1384,7 @@
 
     .post__body {
         width: 100%;
-        padding: 0 0 0.2em;
+        padding: 0.2em 0;
         word-wrap: break-word;
 
         &-reactions-acks {

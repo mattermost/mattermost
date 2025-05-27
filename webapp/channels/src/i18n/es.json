@@ -2750,7 +2750,6 @@
   "channel_loader.postedImage": " publicó una imagen",
   "channel_loader.socketError": "Por favor, revisa tu conexión, Mattermost inalcanzable. Si el problema persiste, solicite al administrador [revisar el puerto del WebSocket](https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Alguien",
-  "channel_loader.something": " hizo algo nuevo",
   "channel_loader.unknown_error": "Hemos recibido un código de estado inesperado del servidor.",
   "channel_loader.uploadedFile": " cargó un archivo",
   "channel_loader.uploadedImage": " cargó una imagen",

@@ -72,16 +72,6 @@
                     min-height: 100%;
                 }
 
-                .nav-pills {
-                    > &__tab {
-                        &:hover {
-                            a {
-                                background: transparent !important;
-                            }
-                        }
-                    }
-                }
-
                 &.display--content {
                     .modal-header {
                         display: none;

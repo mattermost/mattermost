@@ -810,6 +810,10 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Should be able to configure channel banner on a channel", func(t *testing.T) {
+		if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+			t.Skip("Channel banner tests are not supported on MySQL")
+		}
+
 		client.Logout(context.Background())
 		th.LoginBasic()
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -866,6 +870,10 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Should be able to configure channel banner as a team admin", func(t *testing.T) {
+		if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+			t.Skip("Channel banner tests are not supported on MySQL")
+		}
+
 		client.Logout(context.Background())
 		th.LoginTeamAdmin()
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -891,6 +899,10 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Cannot enable channel banner without configuring it", func(t *testing.T) {
+		if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+			t.Skip("Channel banner tests are not supported on MySQL")
+		}
+
 		client.Logout(context.Background())
 		th.LoginBasic()
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -1009,6 +1021,10 @@ func TestPatchChannel(t *testing.T) {
 func TestCanEditChannelBanner(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+		t.Skip("Channel banner tests are not supported on MySQL")
+	}
 
 	t.Run("when license is nil", func(t *testing.T) {
 		channel := &model.Channel{

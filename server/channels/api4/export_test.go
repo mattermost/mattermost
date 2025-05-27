@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 
 	"github.com/stretchr/testify/require"
 )
@@ -34,8 +33,7 @@ func TestListExports(t *testing.T) {
 		require.Empty(t, exports)
 	}, "no exports")
 
-	dataDir, found := fileutils.FindDir("data")
-	require.True(t, found)
+	dataDir := *th.App.Config().FileSettings.Directory
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		exportDir := filepath.Join(dataDir, *th.App.Config().ExportSettings.Directory)
@@ -58,11 +56,13 @@ func TestListExports(t *testing.T) {
 	}, "expected exports")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		value := *th.App.Config().ExportSettings.Directory
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExportSettings.Directory = value + "new" })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExportSettings.Directory = value })
+		originalExportDir := *th.App.Config().ExportSettings.Directory
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExportSettings.Directory = "new" })
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExportSettings.Directory = originalExportDir
+		})
 
-		exportDir := filepath.Join(dataDir, value+"new")
+		exportDir := filepath.Join(dataDir, *th.App.Config().ExportSettings.Directory)
 		err := os.Mkdir(exportDir, 0700)
 		require.NoError(t, err)
 		defer func() {
@@ -96,8 +96,7 @@ func TestDeleteExport(t *testing.T) {
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
 
-	dataDir, found := fileutils.FindDir("data")
-	require.True(t, found)
+	dataDir := *th.App.Config().FileSettings.Directory
 	exportDir := filepath.Join(dataDir, *th.App.Config().ExportSettings.Directory)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
@@ -143,8 +142,7 @@ func TestDownloadExport(t *testing.T) {
 		require.Zero(t, n)
 	})
 
-	dataDir, found := fileutils.FindDir("data")
-	require.True(t, found)
+	dataDir := *th.App.Config().FileSettings.Directory
 	exportDir := filepath.Join(dataDir, *th.App.Config().ExportSettings.Directory)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
@@ -201,8 +199,7 @@ func BenchmarkDownloadExport(b *testing.B) {
 	th := Setup(b)
 	defer th.TearDown()
 
-	dataDir, found := fileutils.FindDir("data")
-	require.True(b, found)
+	dataDir := *th.App.Config().FileSettings.Directory
 	exportDir := filepath.Join(dataDir, *th.App.Config().ExportSettings.Directory)
 
 	err := os.Mkdir(exportDir, 0700)

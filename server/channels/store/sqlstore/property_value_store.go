@@ -327,11 +327,15 @@ func (s *SqlPropertyValueStore) Delete(groupID string, id string) error {
 	return nil
 }
 
-func (s *SqlPropertyValueStore) DeleteForField(fieldID string) error {
+func (s *SqlPropertyValueStore) DeleteForField(groupID, fieldID string) error {
 	builder := s.getQueryBuilder().
 		Update("PropertyValues").
 		Set("DeleteAt", model.GetMillis()).
 		Where(sq.Eq{"FieldID": fieldID})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return errors.Wrap(err, "property_value_delete_for_field_exec")

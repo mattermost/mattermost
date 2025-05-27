@@ -58,7 +58,9 @@ exports[`components/integrations/InstalledIncomingWebhook should match snapshot 
           id="installed_integrations.url"
           values={
             Object {
-              "url": "http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r",
+              "url": <code>
+                http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r
+              </code>,
             }
           }
         />

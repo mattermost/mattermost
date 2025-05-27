@@ -74,4 +74,5 @@ export default keyMirror({
     RECEIVED_FILTERED_USER_STATS: null,
     PROFILE_NO_LONGER_VISIBLE: null,
     LOGIN: null,
+    CLEAR_CPA_VALUES: null,
 });

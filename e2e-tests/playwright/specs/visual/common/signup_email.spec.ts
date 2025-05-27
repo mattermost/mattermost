@@ -4,11 +4,11 @@
 import {test} from '@mattermost/playwright-lib';
 
 /**
- * @objective Verify the appearance of the signup email page in normal and error states
+ * @objective Capture visual snapshots of the signup email page in normal and error states
  */
 test(
-    'signup_email visual verification',
-    {tag: '@visual_signup'},
+    'signup page visual check',
+    {tag: ['@visual', '@signup_email_page']},
     async ({pw, page, browserName, viewport}, testInfo) => {
         // # Set up the page not to redirect to the landing page
         await pw.hasSeenLandingPage();

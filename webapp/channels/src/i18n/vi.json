@@ -2664,7 +2664,6 @@
   "channel_loader.postedImage": " đã đăng một hình ảnh",
   "channel_loader.socketError": "Vui lòng kiểm tra kết nối, Mattermost không thể kết nối được. Nếu sự cố vẫn tiếp diễn, hãy yêu cầu quản trị viên [kiểm tra cổng WebSocket] (! https://about.mattermost.com/default-websocket-port-help).",
   "channel_loader.someone": "Ai đó",
-  "channel_loader.something": " đã làm điều gì đó mới",
   "channel_loader.unknown_error": "Chúng tôi đã nhận được mã trạng thái không mong muốn từ máy chủ.",
   "channel_loader.uploadedFile": " đã tải lên một tệp",
   "channel_loader.uploadedImage": " đã tải lên một hình ảnh",

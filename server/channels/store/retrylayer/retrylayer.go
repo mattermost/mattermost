@@ -9452,11 +9452,11 @@ func (s *RetryLayerPropertyValueStore) Delete(groupID string, id string) error {
 
 }
 
-func (s *RetryLayerPropertyValueStore) DeleteForField(id string) error {
+func (s *RetryLayerPropertyValueStore) DeleteForField(groupID string, fieldID string) error {
 
 	tries := 0
 	for {
-		err := s.PropertyValueStore.DeleteForField(id)
+		err := s.PropertyValueStore.DeleteForField(groupID, fieldID)
 		if err == nil {
 			return nil
 		}

@@ -31,7 +31,7 @@ func TestUpAndDownMigrations(t *testing.T) {
 			require.NoError(t, err)
 			defer store.Close()
 
-			err = store.migrate(migrationsDirectionDown, false)
+			err = store.migrate(migrationsDirectionDown, false, true)
 			assert.NoError(t, err, "downing migrations should not error")
 		})
 	}

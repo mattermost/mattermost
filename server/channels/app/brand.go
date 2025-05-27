@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -45,7 +46,27 @@ func (a *App) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) 
 	}
 
 	t := time.Now()
-	a.MoveFile(BrandFilePath+BrandFileName, BrandFilePath+t.Format("2006-01-02T15:04:05")+".png")
+	// Try to backup the old brand image if it exists
+	oldPath := BrandFilePath + BrandFileName
+	newPath := BrandFilePath + t.Format("2006-01-02T15:04:05") + ".png"
+
+	fileExists, appErr := a.FileExists(oldPath)
+	if appErr != nil {
+		rctx.Logger().Warn("Failed to check if brand image exists before backup", mlog.String("path", oldPath), mlog.Err(appErr))
+	}
+
+	if fileExists {
+		if err := a.MoveFile(oldPath, newPath); err != nil {
+			// Log the error but continue since this is a non-critical operation - we're just trying to
+			// backup the old brand image, but it's not a problem if we can't
+			rctx.Logger().Warn(
+				"Failed to backup old brand image",
+				mlog.Err(err),
+				mlog.String("oldPath", oldPath),
+				mlog.String("newPath", newPath),
+			)
+		}
+	}
 
 	if _, err := a.WriteFile(buf, BrandFilePath+BrandFileName); err != nil {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.save_image.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

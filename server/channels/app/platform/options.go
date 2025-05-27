@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/localcachelayer"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -59,6 +60,16 @@ func StoreOverrideWithCache(override store.Store) Option {
 			return lcl, nil
 		}
 
+		return nil
+	}
+}
+
+// StoreOption allows passing options when constructing the store.
+//
+// This option has no effect if StoreOverride or StoreOverrideWithCache is also set.
+func StoreOption(option sqlstore.Option) Option {
+	return func(ps *PlatformService) error {
+		ps.storeOptions = append(ps.storeOptions, option)
 		return nil
 	}
 }
