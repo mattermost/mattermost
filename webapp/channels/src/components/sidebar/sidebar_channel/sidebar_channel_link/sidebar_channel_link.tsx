@@ -28,7 +28,7 @@ import ChannelPencilIcon from '../channel_pencil_icon';
 import SidebarChannelIcon from '../sidebar_channel_icon';
 import SidebarChannelMenu from '../sidebar_channel_menu';
 
-type Props = WrappedComponentProps & {
+type OwnProps = WrappedComponentProps & {
     channel: Channel;
     link: string;
     label: string;
@@ -63,6 +63,7 @@ type Props = WrappedComponentProps & {
     rhsState?: RhsState;
     rhsOpen?: boolean;
     isSharedChannel?: boolean;
+    remoteNames: string[];
 
     actions: {
         markMostRecentPostInChannelAsUnread: (channelId: string) => void;
@@ -71,6 +72,7 @@ type Props = WrappedComponentProps & {
         multiSelectChannelAdd: (channelId: string) => void;
         unsetEditingPost: () => void;
         closeRightHandSide: () => void;
+        fetchChannelRemotes: (channelId: string) => void;
     };
 };
 
@@ -79,10 +81,10 @@ type State = {
     showTooltip: boolean;
 };
 
-export class SidebarChannelLink extends React.PureComponent<Props, State> {
+export class SidebarChannelLink extends React.PureComponent<OwnProps, State> {
     labelRef: React.RefObject<HTMLDivElement>;
 
-    constructor(props: Props) {
+    constructor(props: OwnProps) {
         super(props);
 
         this.labelRef = React.createRef();
@@ -95,11 +97,22 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
 
     componentDidMount(): void {
         this.enableToolTipIfNeeded();
+
+        if (this.props.isSharedChannel && this.props.channel?.id && this.props.remoteNames.length === 0) {
+            this.props.actions.fetchChannelRemotes(this.props.channel.id);
+        }
     }
 
-    componentDidUpdate(prevProps: Props): void {
+    componentDidUpdate(prevProps: OwnProps): void {
         if (prevProps.label !== this.props.label) {
             this.enableToolTipIfNeeded();
+        }
+
+        if (this.props.isSharedChannel &&
+            (prevProps.channel?.id !== this.props.channel?.id || prevProps.channel?.team_id !== this.props.channel?.team_id) &&
+            this.props.remoteNames.length === 0 &&
+            this.props.channel?.id) {
+            this.props.actions.fetchChannelRemotes(this.props.channel.id);
         }
     }
 
@@ -227,6 +240,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
             <SharedChannelIndicator
                 className='icon'
                 withTooltip={true}
+                remoteNames={this.props.remoteNames}
             />
         ) : null;
 
