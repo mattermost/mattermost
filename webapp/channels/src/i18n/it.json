@@ -2124,7 +2124,6 @@
   "channel_loader.postedImage": " ha caricato un'immagine",
   "channel_loader.socketError": "Controllare la connessione, Mattermost non è raggiungibile. Se il problema persiste, chiedere ad un amministratore di [controllare la porta WebSocket](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Qualcuno",
-  "channel_loader.something": " ha fatto qualcosa di nuovo",
   "channel_loader.unknown_error": "Abbiamo ricevuto un codice di stato inaspettato dal server.",
   "channel_loader.uploadedFile": " ha caricato un file",
   "channel_loader.uploadedImage": " ha caricato un'immagine",
