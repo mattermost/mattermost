@@ -4503,6 +4503,10 @@
     "translation": "Failed to parse request"
   },
   {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Failed to save the batch of acknowledgement objects"
+  },
+  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Unable to delete acknowledgement."
   },
@@ -6677,6 +6681,10 @@
   {
     "id": "app.post.save.thread_membership.app_error",
     "translation": "Unable to save thread membership for post."
+  },
+  {
+    "id": "app.post.save_priority.store_error",
+    "translation": "Unable to save priority data to the metadata priority store"
   },
   {
     "id": "app.post.search.app_error",

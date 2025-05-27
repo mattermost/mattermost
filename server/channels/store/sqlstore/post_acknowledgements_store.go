@@ -190,3 +190,115 @@ func updatePost(transaction *sqlxTxWrapper, postId string) error {
 
 	return err
 }
+
+func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error) {
+	if len(acknowledgements) == 0 {
+		return []*model.PostAcknowledgement{}, nil
+	}
+
+	// Validate all acknowledgements before saving
+	for _, ack := range acknowledgements {
+		if err := ack.IsValid(); err != nil {
+			return nil, err
+		}
+	}
+
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Keep track of which posts need to be updated
+	postsToUpdate := make(map[string]bool)
+
+	// Insert all acknowledgements
+	for _, ack := range acknowledgements {
+		if ack.AcknowledgedAt == 0 {
+			ack.AcknowledgedAt = model.GetMillis()
+		}
+
+		query := s.getQueryBuilder().
+			Insert("PostAcknowledgements").
+			Columns("PostId", "UserId", "AcknowledgedAt").
+			Values(ack.PostId, ack.UserId, ack.AcknowledgedAt)
+
+		if s.DriverName() == model.DatabaseDriverMysql {
+			query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE AcknowledgedAt = ?", ack.AcknowledgedAt))
+		} else {
+			query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?", ack.AcknowledgedAt))
+		}
+
+		_, err = transaction.ExecBuilder(query)
+		if err != nil {
+			return nil, err
+		}
+
+		// Add this post to the list of posts that need their UpdateAt field updated
+		postsToUpdate[ack.PostId] = true
+	}
+
+	// Update the UpdateAt timestamp for all affected posts
+	for postID := range postsToUpdate {
+		err = updatePost(transaction, postID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = transaction.Commit()
+	if err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return acknowledgements, nil
+}
+
+func (s *SqlPostAcknowledgementStore) BatchDelete(acknowledgements []*model.PostAcknowledgement) error {
+	if len(acknowledgements) == 0 {
+		return nil
+	}
+
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Keep track of which posts need to be updated
+	postsToUpdate := make(map[string]bool)
+
+	// Set AcknowledgedAt to 0 for all acknowledgements in a single transaction
+	for _, ack := range acknowledgements {
+		query := s.getQueryBuilder().
+			Update("PostAcknowledgements").
+			Set("AcknowledgedAt", 0).
+			Where(sq.And{
+				sq.Eq{"PostId": ack.PostId},
+				sq.Eq{"UserId": ack.UserId},
+			})
+
+		_, err = transaction.ExecBuilder(query)
+		if err != nil {
+			return err
+		}
+
+		// Add this post to the list of posts that need their UpdateAt field updated
+		postsToUpdate[ack.PostId] = true
+	}
+
+	// Update the UpdateAt timestamp for all affected posts
+	for postID := range postsToUpdate {
+		err = updatePost(transaction, postID)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = transaction.Commit()
+	if err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
+}
