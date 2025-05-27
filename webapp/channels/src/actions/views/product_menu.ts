@@ -3,6 +3,7 @@
 
 import {ActionTypes} from 'utils/constants';
 
+// REMOVE THIS
 export function setProductMenuSwitcherOpen(open: boolean) {
     return {
         type: ActionTypes.SET_PRODUCT_SWITCHER_OPEN,
