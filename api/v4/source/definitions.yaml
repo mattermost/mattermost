@@ -1280,6 +1280,81 @@ components:
           type: string
         session_id:
           type: string
+    LdapSettings:
+      type: object
+      properties:
+        Enable:
+          type: boolean
+        EnableSync:
+          type: boolean
+        LdapServer:
+          type: string
+        LdapPort:
+          type: integer
+        ConnectionSecurity:
+          type: string
+        BaseDN:
+          type: string
+        BindUsername:
+          type: string
+        BindPassword:
+          type: string
+        MaximumLoginAttempts:
+          type: integer
+        UserFilter:
+          type: string
+        GroupFilter:
+          type: string
+        GuestFilter:
+          type: string
+        EnableAdminFilter:
+          type: boolean
+        AdminFilter:
+          type: string
+        GroupDisplayNameAttribute:
+          type: string
+        GroupIdAttribute:
+          type: string
+        FirstNameAttribute:
+          type: string
+        LastNameAttribute:
+          type: string
+        EmailAttribute:
+          type: string
+        UsernameAttribute:
+          type: string
+        NicknameAttribute:
+          type: string
+        IdAttribute:
+          type: string
+        PositionAttribute:
+          type: string
+        LoginIdAttribute:
+          type: string
+        PictureAttribute:
+          type: string
+        SyncIntervalMinutes:
+          type: integer
+        ReAddRemovedMembers:
+          type: boolean
+        SkipCertificateVerification:
+          type: boolean
+        PublicCertificateFile:
+          type: string
+        PrivateKeyFile:
+          type: string
+        QueryTimeout:
+          type: integer
+        MaxPageSize:
+          type: integer
+        LoginFieldName:
+          type: string
+        LoginButtonColor:
+          type: string
+        LoginButtonBorderColor:
+          type: string
+        LoginButtonTextColor:
+          type: string
     Config:
       type: object
       properties:
