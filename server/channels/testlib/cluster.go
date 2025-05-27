@@ -35,7 +35,7 @@ func (c *FakeClusterInterface) IsLeader() bool { return false }
 
 func (c *FakeClusterInterface) GetMyClusterInfo() *model.ClusterInfo { return nil }
 
-func (c *FakeClusterInterface) GetClusterInfos() []*model.ClusterInfo { return nil }
+func (c *FakeClusterInterface) GetClusterInfos() ([]*model.ClusterInfo, error) { return nil, nil }
 
 func (c *FakeClusterInterface) SendClusterMessage(message *model.ClusterMessage) {
 	c.mut.Lock()

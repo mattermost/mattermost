@@ -502,7 +502,14 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
 
     togglePermission = (roleId: string, permissions: string[]) => {
         const roles = {...this.getStateRoles()} as RolesMap;
-        const role = {...roles[roleId]} as Role;
+        const rolesKey = Object.keys(roles).find((roleKey) => roles[roleKey].name === roleId);
+
+        if (!rolesKey) {
+            return;
+        }
+
+        const role = {...roles[rolesKey]} as Role;
+
         const newPermissions = [...role.permissions];
         for (const permission of permissions) {
             if (newPermissions.indexOf(permission) === -1) {
@@ -512,7 +519,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
             }
         }
         role.permissions = newPermissions;
-        roles[roleId] = role;
+        roles[rolesKey] = role;
 
         if (roleId === 'all_users') {
             const channelAdminRole = {...roles.channel_admin} as Role;

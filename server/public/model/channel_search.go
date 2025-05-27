@@ -6,19 +6,22 @@ package model
 const ChannelSearchDefaultLimit = 50
 
 type ChannelSearch struct {
-	Term                     string   `json:"term"`
-	ExcludeDefaultChannels   bool     `json:"exclude_default_channels"`
-	NotAssociatedToGroup     string   `json:"not_associated_to_group"`
-	TeamIds                  []string `json:"team_ids"`
-	GroupConstrained         bool     `json:"group_constrained"`
-	ExcludeGroupConstrained  bool     `json:"exclude_group_constrained"`
-	ExcludePolicyConstrained bool     `json:"exclude_policy_constrained"`
-	Public                   bool     `json:"public"`
-	Private                  bool     `json:"private"`
-	IncludeDeleted           bool     `json:"include_deleted"`
-	IncludeSearchById        bool     `json:"include_search_by_id"`
-	ExcludeRemote            bool     `json:"exclude_remote"`
-	Deleted                  bool     `json:"deleted"`
-	Page                     *int     `json:"page,omitempty"`
-	PerPage                  *int     `json:"per_page,omitempty"`
+	Term                               string   `json:"term"`
+	ExcludeDefaultChannels             bool     `json:"exclude_default_channels"`
+	NotAssociatedToGroup               string   `json:"not_associated_to_group"`
+	TeamIds                            []string `json:"team_ids"`
+	GroupConstrained                   bool     `json:"group_constrained"`
+	ExcludeGroupConstrained            bool     `json:"exclude_group_constrained"`
+	ExcludePolicyConstrained           bool     `json:"exclude_policy_constrained"`
+	Public                             bool     `json:"public"`
+	Private                            bool     `json:"private"`
+	IncludeDeleted                     bool     `json:"include_deleted"`
+	IncludeSearchById                  bool     `json:"include_search_by_id"`
+	ExcludeRemote                      bool     `json:"exclude_remote"`
+	Deleted                            bool     `json:"deleted"`
+	Page                               *int     `json:"page,omitempty"`
+	PerPage                            *int     `json:"per_page,omitempty"`
+	AccessControlPolicyEnforced        bool     `json:"access_control_policy_enforced"`
+	ExcludeAccessControlPolicyEnforced bool     `json:"exclude_access_control_policy_enforced"`
+	ParentAccessControlPolicyId        string   `json:"parent_access_control_policy_id"`
 }

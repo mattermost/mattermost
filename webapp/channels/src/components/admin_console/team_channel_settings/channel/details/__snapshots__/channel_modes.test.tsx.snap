@@ -28,6 +28,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelModes should match s
         isPublic={true}
         isSynced={false}
         onToggle={[MockFunction]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={false}
       />
     </div>
   </div>
@@ -62,6 +64,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelModes should match s
         isPublic={true}
         isSynced={false}
         onToggle={[MockFunction]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={false}
       />
       <AllowAllToggle
         isDefault={false}
@@ -69,6 +73,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelModes should match s
         isPublic={true}
         isSynced={false}
         onToggle={[MockFunction]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={false}
       />
     </div>
   </div>

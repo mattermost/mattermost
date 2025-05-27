@@ -67,10 +67,6 @@ test('/login accessibility tab support', async ({pw}) => {
 
     // * Should move focus to login body after shift+tab
     await pw.loginPage.loginInput.press('Shift+Tab');
-    expect(await pw.loginPage.bodyCard).toBeFocused();
-
-    // * Should move focus to create account link after shift+tab
-    await pw.loginPage.bodyCard.press('Shift+Tab');
     expect(await pw.loginPage.createAccountLink).toBeFocused();
 
     // * Should move focus to login body after tab

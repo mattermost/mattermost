@@ -91,6 +91,7 @@ type TrialLicenseRequest struct {
 	CompanyName           string `json:"company_name"`
 	CompanyCountry        string `json:"company_country"`
 	CompanySize           string `json:"company_size"`
+	ServerVersion         string `json:"server_version"`
 }
 
 // If any of the below fields are set, this is not a legacy request, and all fields should be validated

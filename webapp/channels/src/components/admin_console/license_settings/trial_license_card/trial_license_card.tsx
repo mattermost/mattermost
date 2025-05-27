@@ -11,6 +11,7 @@ import AlertBanner from 'components/alert_banner';
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
 
 import {daysToLicenseExpire} from 'utils/license_utils';
+import {getSkuDisplayName} from 'utils/subscription';
 import {getBrowserTimezone} from 'utils/timezone';
 
 import './trial_license_card.scss';
@@ -29,7 +30,7 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
             return (
                 <FormattedMessage
                     id='admin.license.trialLicenseCard.expiringToday'
-                    defaultMessage='Your free trial expires <b>Today at {time}</b>. Visit our customer portal to purchase a license now to continue using Mattermost Professional and Enterprise features after trial ends'
+                    defaultMessage='Your free trial expires <b>Today at {time}</b>. Contact sales to purchase a license and continue using advanced features after the trial ends.'
                     values={{
                         b: (chunks: string) => <b>{chunks}</b>,
                         time: moment(endDate).endOf('day').format('h:mm a ') + moment().tz(getBrowserTimezone()).format('z'),
@@ -41,7 +42,7 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
         return (
             <FormattedMessage
                 id='admin.license.trialLicenseCard.expiringAfterFewDays'
-                defaultMessage='Your free trial will expire in <b>{daysCount} {daysCount, plural, one {day} other {days}}</b>. Visit our customer portal to purchase a license now to continue using Mattermost Professional and Enterprise features after trial ends.'
+                defaultMessage='Your free trial will expire in <b>{daysCount} {daysCount, plural, one {day} other {days}}</b>. Contact sales to purchase a license and continue using advanced features.'
                 values={{
                     b: (chunks: string) => <b>{chunks}</b>,
                     daysCount: daysToEndLicense,
@@ -68,7 +69,10 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
     const cardTitle = (
         <FormattedMessage
             id='admin.license.trialCard.licenseExpiring'
-            defaultMessage='You’re currently on a free trial of our Mattermost Enterprise license.'
+            defaultMessage='You’re currently on a free trial of our Mattermost {licenseType}.'
+            values={{
+                licenseType: getSkuDisplayName(license.SkuShortName, license.IsGovSku === 'true'),
+            }}
         />
     );
     return (

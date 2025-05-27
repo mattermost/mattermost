@@ -81,6 +81,7 @@ const AlertBanner = ({
 
     return (
         <div
+            id={id}
             data-testid={id}
             className={classNames(
                 'AlertBanner',

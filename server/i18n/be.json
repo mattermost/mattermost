@@ -7352,10 +7352,6 @@
     "translation": "%v пакінуў канал."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вы адзіны ўдзельнік, паспрабуйце выдаліць прыватны канал замест таго, каб пакінуць."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Немагчыма пакінуць канал асабістых паведамленняў."
   },

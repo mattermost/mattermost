@@ -169,4 +169,19 @@ describe('/components/create_team/components/display_name', () => {
             />,
         );
     });
+
+    test('should focus input when validation error occurs', () => {
+        const wrapper = mountWithIntl(<DisplayName {...defaultProps}/>);
+        const input = wrapper.find('.form-control').getDOMNode() as HTMLInputElement;
+        const focusSpy = jest.spyOn(input, 'focus');
+
+        // Trigger validation error
+        input.value = '';
+        wrapper.find('.form-control').simulate('change');
+        wrapper.find('button').simulate('click', {
+            preventDefault: () => jest.fn(),
+        });
+
+        expect(focusSpy).toHaveBeenCalled();
+    });
 });

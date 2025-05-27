@@ -6959,10 +6959,6 @@
     "translation": "%v kilépett a csatornából."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Ön az egyetlen megmaradt tag, kilépés helyett próbálkozzon a privát csatorna eltávolításával."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Közvetlen üzenet csatornából nem lehet kilépni."
   },

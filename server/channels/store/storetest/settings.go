@@ -5,7 +5,6 @@ package storetest
 
 import (
 	"database/sql"
-	"flag"
 	"fmt"
 	"net/url"
 	"os"
@@ -35,20 +34,6 @@ func getEnv(name, defaultValue string) string {
 	return defaultValue
 }
 
-func log(message string) {
-	verbose := false
-	if verboseFlag := flag.Lookup("test.v"); verboseFlag != nil {
-		verbose = verboseFlag.Value.String() != ""
-	}
-	if verboseFlag := flag.Lookup("v"); verboseFlag != nil {
-		verbose = verboseFlag.Value.String() != ""
-	}
-
-	if verbose {
-		fmt.Println(message)
-	}
-}
-
 func getDefaultMysqlDSN() string {
 	if os.Getenv("IS_CI") == "true" {
 		return strings.ReplaceAll(defaultMysqlDSN, "localhost", "mysql")
@@ -69,7 +54,6 @@ func MySQLSettings(withReplica bool) *model.SqlSettings {
 	dsn := os.Getenv("TEST_DATABASE_MYSQL_DSN")
 	if dsn == "" {
 		dsn = getDefaultMysqlDSN()
-		mlog.Info("No TEST_DATABASE_MYSQL_DSN override, using default", mlog.String("default_dsn", dsn))
 	} else {
 		mlog.Info("Using TEST_DATABASE_MYSQL_DSN override", mlog.String("dsn", dsn))
 	}
@@ -96,7 +80,6 @@ func PostgreSQLSettings() *model.SqlSettings {
 	dsn := os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
 	if dsn == "" {
 		dsn = getDefaultPostgresqlDSN()
-		mlog.Info("No TEST_DATABASE_POSTGRESQL_DSN override, using default", mlog.String("default_dsn", dsn))
 	} else {
 		mlog.Info("Using TEST_DATABASE_POSTGRESQL_DSN override", mlog.String("dsn", dsn))
 	}
@@ -190,7 +173,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 // execAsRoot executes the given sql as root against the testing database
 func execAsRoot(settings *model.SqlSettings, sqlCommand string) error {
 	var dsn string
-	var driver = *settings.DriverName
+	driver := *settings.DriverName
 
 	switch driver {
 	case model.DatabaseDriverMysql:
@@ -260,14 +243,13 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 		panic("unsupported driver " + driver)
 	}
 
-	log("Created temporary " + driver + " database " + dbName)
 	settings.ReplicaMonitorIntervalSeconds = model.NewPointer(5)
 
 	return settings
 }
 
 func CleanupSqlSettings(settings *model.SqlSettings) {
-	var driver = *settings.DriverName
+	driver := *settings.DriverName
 	var dbName string
 
 	switch driver {
@@ -282,6 +264,4 @@ func CleanupSqlSettings(settings *model.SqlSettings) {
 	if err := execAsRoot(settings, "DROP DATABASE "+dbName); err != nil {
 		panic("failed to drop temporary database " + dbName + ": " + err.Error())
 	}
-
-	log("Dropped temporary database " + dbName)
 }

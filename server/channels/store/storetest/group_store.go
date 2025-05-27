@@ -2087,7 +2087,7 @@ func testTeamMembersToAdd(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	require.Empty(t, teamMembers)
 
-	// If includeRemovedMembers is set to true, removed members should be added back in
+	// If reAddRemovedMembers is set to true, removed members should be added back in
 	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, true)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 1)
@@ -2352,7 +2352,7 @@ func testChannelMembersToAdd(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 1)
 
-	// If includeRemovedMembers is set to true, removed members should be added back in
+	// If reAddRemovedMembers is set to true, removed members should be added back in
 	nErr = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
 	require.NoError(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, true)

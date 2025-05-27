@@ -388,10 +388,6 @@
     "translation": "%v го напушти каналот."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вие сте единствениот останат член, пробајте да го отстраните Приватниот Канал наместо да го напуштите."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Неможе да се напушти канал за директни пораки."
   },

@@ -110,15 +110,34 @@ SuggestionProps<ExtensionItem>
         onClick(item.value, matchedPretext);
     }, [onClick, item.value, matchedPretext]);
 
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            optionClicked();
+        }
+    }, [optionClicked]);
+
     const labelName = messages[item.type] ?
         intl.formatMessage(messages[item.type]) :
         item.type;
+
+    const ariaLabel = intl.formatMessage({
+        id: 'search_file_extension_suggestion.aria_label',
+        defaultMessage: '{fileType} (.{extension})',
+    }, {
+        fileType: labelName,
+        extension: item.value,
+    });
 
     return (
         <SearchFileExtensionSuggestionContainer
             ref={ref}
             className={classNames({selected: isSelection})}
             onClick={optionClicked}
+            onKeyDown={handleKeyDown}
+            role='button'
+            tabIndex={0}
+            aria-label={ariaLabel}
         >
             <div className={classNames('file-icon', getCompassIconClassName(item.type))}/>
             {labelName}

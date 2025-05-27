@@ -31,87 +31,109 @@ exports[`component/add_users_to_group_modal should match snapshot 1`] = `
   role="none"
   show={true}
 >
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
-  >
-    <div
-      className="d-flex align-items-center"
+  <div>
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={false}
+      closeLabel="Close"
     >
-      <button
-        aria-label="Back"
-        className="modal-header-back-button btn btn-icon"
-        onClick={[Function]}
-        type="button"
+      <div
+        className="d-flex align-items-center"
       >
-        <i
-          className="icon icon-arrow-left"
-        />
-      </button>
-      <ModalTitle
-        bsClass="modal-title"
-        componentClass="h1"
-        id="addUsersToGroupsModalLabel"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Add people to {group}"
-          id="user_groups_modal.addPeopleTitle"
-          values={
-            Object {
-              "group": "Group Name",
-            }
-          }
-        />
-      </ModalTitle>
-    </div>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    className="overflow--visible"
-    componentClass="div"
-  >
-    <div
-      className="user-groups-modal__content"
-    >
-      <form
-        role="form"
-      >
-        <div
-          className="group-add-user"
+        <button
+          aria-label="Back"
+          className="modal-header-back-button btn btn-icon"
+          onClick={[Function]}
+          type="button"
         >
-          <Connect(injectIntl(AddUserToGroupMultiSelect))
-            addUserCallback={[Function]}
-            backButtonClass="multiselect-back"
-            backButtonClick={[Function]}
-            buttonSubmitLoadingText={
+          <i
+            className="icon icon-arrow-left"
+          />
+        </button>
+        <ModalTitle
+          bsClass="modal-title"
+          componentClass="h1"
+          id="addUsersToGroupsModalLabel"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Add people to {group}"
+            id="user_groups_modal.addPeopleTitle"
+            values={
               Object {
-                "defaultMessage": "Adding...",
-                "id": "multiselect.adding",
-              }
-            }
-            buttonSubmitText={
-              Object {
-                "defaultMessage": "Add People",
-                "id": "multiselect.addPeopleToGroup",
-              }
-            }
-            deleteUserCallback={[Function]}
-            focusOnLoad={false}
-            groupId="groupid123"
-            multilSelectKey="addUsersToGroupKey"
-            onSubmitCallback={[Function]}
-            saving={false}
-            savingEnabled={false}
-            searchOptions={
-              Object {
-                "not_in_group_id": "groupid123",
+                "group": "Group Name",
               }
             }
           />
-        </div>
-      </form>
-    </div>
-  </ModalBody>
+        </ModalTitle>
+      </div>
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[MockFunction]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic.close"
+          />
+        </span>
+      </button>
+    </ModalHeader>
+    <ModalBody
+      bsClass="modal-body"
+      className="overflow--visible"
+      componentClass="div"
+    >
+      <div
+        className="user-groups-modal__content"
+      >
+        <form
+          role="form"
+        >
+          <div
+            className="group-add-user"
+          >
+            <Connect(injectIntl(AddUserToGroupMultiSelect))
+              addUserCallback={[Function]}
+              backButtonClass="multiselect-back"
+              backButtonClick={[Function]}
+              buttonSubmitLoadingText={
+                Object {
+                  "defaultMessage": "Adding...",
+                  "id": "multiselect.adding",
+                }
+              }
+              buttonSubmitText={
+                Object {
+                  "defaultMessage": "Add People",
+                  "id": "multiselect.addPeopleToGroup",
+                }
+              }
+              deleteUserCallback={[Function]}
+              focusOnLoad={false}
+              groupId="groupid123"
+              multilSelectKey="addUsersToGroupKey"
+              onSubmitCallback={[Function]}
+              saving={false}
+              savingEnabled={false}
+              searchOptions={
+                Object {
+                  "not_in_group_id": "groupid123",
+                }
+              }
+            />
+          </div>
+        </form>
+      </div>
+    </ModalBody>
+  </div>
 </Modal>
 `;

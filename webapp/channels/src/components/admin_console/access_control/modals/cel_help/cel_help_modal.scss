@@ -1,0 +1,39 @@
+
+// Content layout and styling
+.cel-help-modal__content-container {
+    display: flex;
+    flex-direction: column;
+    .cel-help-modal__content {
+        padding: 32px;
+        padding-top: 0;
+    }
+
+    // Important notes section
+    .cel-help-additional-info-modal__content {
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+
+        // Header with icon
+        .cel-help-additional-info-modal__header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+    
+            i {
+                margin-right: 8px;
+                color: var(--button-bg);
+                font-size: 24px;
+            }
+    
+            .cel-help-additional-info-modal__title {
+                font-size: 16px;
+                font-weight: 600;
+            }
+        }
+    }
+}
+
+
+

@@ -67,6 +67,21 @@ func (s *SqlPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, e
 	return &field, nil
 }
 
+func (s *SqlPropertyFieldStore) GetFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
+	builder := s.tableSelectQuery.
+		Where(sq.Eq{"GroupID": groupID}).
+		Where(sq.Eq{"TargetID": targetID}).
+		Where(sq.Eq{"Name": name}).
+		Where(sq.Eq{"DeleteAt": 0})
+
+	var field model.PropertyField
+	if err := s.GetReplica().GetBuilder(&field, builder); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_by_name_select")
+	}
+
+	return &field, nil
+}
+
 func (s *SqlPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
 

@@ -12,13 +12,12 @@ import (
 )
 
 func TestPurposeProviderDoCommand(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	pp := PurposeProvider{}
 
 	// Try a public channel *with* permission.
-	th.addPermissionToRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.addPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 	args := &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },
@@ -35,7 +34,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	}
 
 	// Try a public channel *without* permission.
-	th.removePermissionFromRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.removePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },
@@ -46,9 +45,9 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "api.command_channel_purpose.permission.app_error", actual)
 
 	// Try a private channel *with* permission.
-	privateChannel := th.createPrivateChannel(th.BasicTeam)
+	privateChannel := th.createPrivateChannel(t, th.BasicTeam)
 
-	th.addPermissionToRole(model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+	th.addPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },
@@ -60,7 +59,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "", actual)
 
 	// Try a private channel *without* permission.
-	th.removePermissionFromRole(model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+	th.removePermissionFromRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },
@@ -71,10 +70,10 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "api.command_channel_purpose.permission.app_error", actual)
 
 	// Try a group channel *with* being a member.
-	user1 := th.createUser()
-	user2 := th.createUser()
+	user1 := th.createUser(t)
+	user2 := th.createUser(t)
 
-	groupChannel := th.createGroupChannel(user1, user2)
+	groupChannel := th.createGroupChannel(t, user1, user2)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },
@@ -85,7 +84,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "api.command_channel_purpose.direct_group.app_error", actual)
 
 	// Try a direct channel *with* being a member.
-	directChannel := th.createDmChannel(user1)
+	directChannel := th.createDmChannel(t, user1)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },

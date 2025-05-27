@@ -90,22 +90,24 @@ export default function ResultTable(props: Props) {
     return (
         <div className={wrapperClass}>
             {header}
-            <div className='InviteResultTable'>
-                <div className='table-header'>
-                    <div className='people-header'>
-                        <FormattedMessage
-                            id='invitation-modal.confirm.people-header'
-                            defaultMessage='People'
-                        />
-                    </div>
-                    <div className='details-header'>
-                        <FormattedMessage
-                            id='invitation-modal.confirm.details-header'
-                            defaultMessage='Details'
-                        />
-                    </div>
-                </div>
-                <div className='rows'>
+            <table className='InviteResultTable'>
+                <thead>
+                    <tr className='table-header'>
+                        <th className='people-header'>
+                            <FormattedMessage
+                                id='invitation-modal.confirm.people-header'
+                                defaultMessage='People'
+                            />
+                        </th>
+                        <th className='details-header'>
+                            <FormattedMessage
+                                id='invitation-modal.confirm.details-header'
+                                defaultMessage='Details'
+                            />
+                        </th>
+                    </tr>
+                </thead>
+                <tbody className='rows'>
                     {props.rows.map((invitation: InviteResult) => {
                         let icon;
                         let username;
@@ -163,27 +165,26 @@ export default function ResultTable(props: Props) {
                         }
 
                         return (
-                            <div
+                            <tr
                                 key={reactKey}
                                 className='InviteResultRow'
                             >
-                                <div className='username-or-icon'>
+                                <td className='username-or-icon'>
                                     {icon}
                                     <span className={className}>
                                         {username}
                                         {botBadge}
                                         {guestBadge}
                                     </span>
-                                </div>
-                                <div className='reason'>
+                                </td>
+                                <td className='reason'>
                                     {reason}
-                                </div>
-                            </div>
+                                </td>
+                            </tr>
                         );
                     })}
-
-                </div>
-            </div>
+                </tbody>
+            </table>
         </div>
     );
 }

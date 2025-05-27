@@ -217,4 +217,50 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
         getAnyInstance(wrapper).onMentionToggle(true);
         expect(getAnyState(wrapper).groupMentionName).toBe('any_name_at_all');
     });
+
+    test('handleRolesToUpdate should only update scheme_admin and not auto_add', async () => {
+        const patchGroupSyncable = jest.fn().mockReturnValue(Promise.resolve({data: true}));
+        const actions = {
+            ...defaultProps.actions,
+            patchGroupSyncable,
+        };
+
+        const wrapper = shallowWithIntl(
+            <GroupDetails
+                {...defaultProps}
+                actions={actions}
+            />,
+        );
+
+        const instance = getAnyInstance(wrapper);
+        instance.setState({
+            rolesToChange: {
+                'team1/public-team': true,
+                'channel1/public-channel': false,
+            },
+        });
+
+        await instance.handleRolesToUpdate();
+
+        expect(patchGroupSyncable).toHaveBeenCalledTimes(2);
+        expect(patchGroupSyncable).toHaveBeenCalledWith(
+            'xxxxxxxxxxxxxxxxxxxxxxxxxx',
+            'team1',
+            'team',
+            {scheme_admin: true},
+        );
+        expect(patchGroupSyncable).toHaveBeenCalledWith(
+            'xxxxxxxxxxxxxxxxxxxxxxxxxx',
+            'channel1',
+            'channel',
+            {scheme_admin: false},
+        );
+
+        // Verify auto_add was not included in any of the patch calls
+        patchGroupSyncable.mock.calls.forEach((call) => {
+            expect(call[3]).not.toHaveProperty('auto_add');
+            expect(Object.keys(call[3]).length).toBe(1);
+            expect(Object.keys(call[3])[0]).toBe('scheme_admin');
+        });
+    });
 });

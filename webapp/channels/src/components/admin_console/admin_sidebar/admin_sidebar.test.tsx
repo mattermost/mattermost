@@ -386,6 +386,7 @@ describe('components/AdminSidebar', () => {
                     Scope: 'scope',
                 } as Office365Settings,
                 FeatureFlags: {
+                    AttributeBasedAccessControl: true,
                     CustomProfileAttributes: true,
                     CloudDedicatedExportUI: true,
                     CloudIPFiltering: true,
@@ -521,6 +522,7 @@ describe('components/AdminSidebar', () => {
                     Scope: 'scope',
                 } as Office365Settings,
                 FeatureFlags: {
+                    AttributeBasedAccessControl: true,
                     CustomProfileAttributes: true,
                     CloudDedicatedExportUI: true,
                     CloudIPFiltering: true,

@@ -208,10 +208,6 @@
     "translation": "ダイレクトメッセージチャンネルから脱退することはできません。"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "あなたが最後のメンバーです。脱退する代わりに非公開チャンネルを削除しましょう。"
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v がチャンネルから脱退しました。"
   },
@@ -4595,15 +4591,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Version 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10608,5 +10604,37 @@
   {
     "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
     "translation": "LDAP設定の最大ログイン試行回数が不正です。正の数でなくてはなりません。"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "月間アクティブユーザーを計算できませんでした。"
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "SAML ユーザと一致するユーザが AD/LDAP サーバに登録されていません。"
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} 機能は現在のライセンスでは利用できません"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "不正な問題報告リンクです。http://もしくはhttps://で始まる有効なURLでなければなりません。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "問題報告リンクは必須です。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "不正な問題報告用メールアドレスです。有効な電子メールアドレスでなければなりません。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "問題報告用メールアドレスは必須です。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "同期されたカスタムプロフィール属性のフィールドの値を更新できません"
   }
 ]

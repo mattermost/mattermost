@@ -244,10 +244,6 @@
     "translation": "%v დატოვა არხი."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "თქვენ მარტო დარჩით, ცადეთ წაშალოთ პრივატული არხი მისი დატოვების ნაცვლად."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "ვერ დატოვეთ პირდაპირი შეტყობინების არხი."
   },

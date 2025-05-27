@@ -4848,10 +4848,6 @@
     "translation": "%v opustil kanál."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Zůstali jste jediným členem, zkuste soukromý kanál odebrat místo opuštění."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Nelze opustit kanál přímých zpráv."
   },
@@ -10650,5 +10646,9 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} by měl být předponou IndexPrefix {{.IndexPrefix}}."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Nelze aktualizovat hodnotu pro synchronizované pole vlastního atributu profilu"
   }
 ]

@@ -236,7 +236,7 @@ func validateSidebarCategory(c *Context, teamId, userId string, category *model.
 		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, "", http.StatusBadRequest).Wrap(appErr)
 	}
 
-	category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channels)
+	category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channelListToMap(channels))
 
 	return nil
 }
@@ -250,31 +250,37 @@ func validateSidebarCategories(c *Context, teamId, userId string, categories []*
 		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	channelMap := channelListToMap(channels)
+
 	for _, category := range categories {
-		category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channels)
+		category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channelMap)
 	}
 
 	return nil
 }
 
-func validateSidebarCategoryChannels(c *Context, userId string, channelIds []string, channels model.ChannelList) []string {
+func channelListToMap(channelList model.ChannelList) map[string]*model.Channel {
+	channelMap := make(map[string]*model.Channel, len(channelList))
+	for _, channel := range channelList {
+		channelMap[channel.Id] = channel
+	}
+	return channelMap
+}
+
+// validateSidebarCategoryChannels returns a normalized slice of channel IDs by removing duplicates from it and
+// ensuring that it only contains IDs of channels in the given map of Channels by IDs.
+func validateSidebarCategoryChannels(c *Context, userId string, channelIds []string, channelMap map[string]*model.Channel) []string {
 	var filtered []string
 
 	for _, channelId := range channelIds {
-		found := false
-		for _, channel := range channels {
-			if channel.Id == channelId {
-				found = true
-				break
-			}
-		}
-
-		if found {
+		if _, ok := channelMap[channelId]; ok {
 			filtered = append(filtered, channelId)
 		} else {
 			c.Logger.Info("Stopping user from adding channel to their sidebar when they are not a member", mlog.String("user_id", userId), mlog.String("channel_id", channelId))
 		}
 	}
+
+	filtered = model.RemoveDuplicateStringsNonSort(filtered)
 
 	return filtered
 }

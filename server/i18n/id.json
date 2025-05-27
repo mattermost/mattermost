@@ -2642,10 +2642,6 @@
     "translation": "%v telah keluar dari kanal."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Anda satu-satunya anggota yang tersisa, coba menghapus Kanal Pribadi daripada keluar."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Tidak dapat keluar dari kanal pesan langsung"
   },

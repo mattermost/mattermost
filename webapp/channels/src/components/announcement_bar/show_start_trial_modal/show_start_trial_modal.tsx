@@ -35,7 +35,9 @@ const ShowStartTrialModal = () => {
 
     const isBenefitsModalOpened = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.TRIAL_BENEFITS_MODAL));
 
-    const installationDate = useSelector((state: GlobalState) => getConfig(state).InstallationDate);
+    const config = useSelector((state: GlobalState) => getConfig(state));
+    const installationDate = config.InstallationDate;
+    const isMySql = config.SQLDriverName === 'mysql';
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
     const hadAdminDismissedModal = useSelector((state: GlobalState) => getBool(state, Preferences.START_TRIAL_MODAL, Constants.TRIAL_MODAL_AUTO_SHOWN));
 
@@ -74,7 +76,7 @@ const ShowStartTrialModal = () => {
         const now = new Date().getTime();
         const hasEnvMoreThan6Hours = now > installationDatePlus6Hours;
         const hasEnvMoreThan10Users = Number(totalUsers) > userThreshold;
-        if (isUserAdmin && !isBenefitsModalOpened && hasEnvMoreThan10Users && hasEnvMoreThan6Hours && !hadAdminDismissedModal && !isLicensedOrPreviousLicensed) {
+        if (isUserAdmin && !isMySql && !isBenefitsModalOpened && hasEnvMoreThan10Users && hasEnvMoreThan6Hours && !hadAdminDismissedModal && !isLicensedOrPreviousLicensed) {
             openStartTrialFormModal({trackingLocation: 'show_start_trial_modal'}, handleOnClose);
             trackEvent(
                 TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_AUTO_MODAL,

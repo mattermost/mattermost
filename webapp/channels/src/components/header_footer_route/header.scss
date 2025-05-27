@@ -35,6 +35,12 @@
                 text-decoration: none;
             }
 
+            &:focus {
+                padding: 8px;
+                border: 2px solid var(--sidebar-text-active-border);
+                margin-left: -10px;
+            }
+
             svg {
                 width: 170px;
                 fill: var(--center-channel-color);

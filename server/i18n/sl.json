@@ -4304,10 +4304,6 @@
     "translation": "%v je zapustil kanal."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Zadnji si, poskusi odstraniti kanal Privatni kanal namesto zapuščanja."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Ni mogoče zapustiti neposrednega kanala"
   },

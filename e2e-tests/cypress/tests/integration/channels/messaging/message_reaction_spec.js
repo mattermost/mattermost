@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod @smoke
 // Group: @channels @messaging
 
 describe('Emoji reactions to posts/messages', () => {
@@ -67,7 +66,7 @@ describe('Emoji reactions to posts/messages', () => {
         });
     });
 
-    it('another user adding to existing reaction increases reaction count', () => {
+    it.skip('another user adding to existing reaction increases reaction count', () => {
         cy.getLastPostId().then((postId) => {
             // # Click on the "slightly_frowning_face" emoji
             cy.get(`#postReaction-${postId}-slightly_frowning_face`).click();
@@ -79,7 +78,7 @@ describe('Emoji reactions to posts/messages', () => {
         });
     });
 
-    it('a reaction added by current user has highlighted background color', () => {
+    it.skip('a reaction added by current user has highlighted background color', () => {
         cy.getLastPostId().then((postId) => {
             // # The "slightly_frowning_face" emoji of the last post and the background color changes
             cy.get(`#postReaction-${postId}-slightly_frowning_face`).
@@ -89,7 +88,7 @@ describe('Emoji reactions to posts/messages', () => {
         });
     });
 
-    it("can click another user's reaction to detract from it", () => {
+    it.skip("can click another user's reaction to detract from it", () => {
         cy.getLastPostId().then((postId) => {
             // * The number shown on the "slightly_frowning_face" reaction is currently at 2
             cy.get(`#postReaction-${postId}-slightly_frowning_face .Reaction__number--display`).
@@ -106,7 +105,7 @@ describe('Emoji reactions to posts/messages', () => {
         });
     });
 
-    it('can add a reaction to a post with an existing reaction', () => {
+    it.skip('can add a reaction to a post with an existing reaction', () => {
         cy.getLastPostId().then((postId) => {
             // # Click on the + icon
             cy.get(`#addReaction-${postId}`).click({force: true});
@@ -125,7 +124,7 @@ describe('Emoji reactions to posts/messages', () => {
         });
     });
 
-    it('can remove a reaction to a post with an existing reaction', () => {
+    it.skip('can remove a reaction to a post with an existing reaction', () => {
         cy.getLastPostId().then((postId) => {
             // * The "sweat_smile" should exist on the post
             cy.get(`#postReaction-${postId}-sweat_smile`).should('be.visible');

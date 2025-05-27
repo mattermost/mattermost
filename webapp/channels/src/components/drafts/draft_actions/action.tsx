@@ -35,6 +35,7 @@ function Action({
                     )}
                     id={`draft_${icon}_${id}`}
                     onClick={onClick}
+                    aria-label={name}
                 >
                     <i
                         className={classNames(

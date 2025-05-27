@@ -120,9 +120,7 @@ const ThreadList = ({
             }
         }
         select(data[threadIdToSelect]);
-
-        // hacky way to ensure the thread item loses focus.
-        ref.current?.focus();
+        e.preventDefault();
     }, [selectedThreadId, data]);
 
     useEffect(() => {

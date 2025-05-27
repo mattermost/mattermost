@@ -208,10 +208,6 @@
     "translation": "Невозможно покинуть канал личных сообщений."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вы единственный оставшийся участник, попробуйте удалить частный канал вместо того, чтобы покинуть."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v покинул канал."
   },

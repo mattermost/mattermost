@@ -640,10 +640,6 @@
     "translation": "%v sluttede sig til kanalen som gæst."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Du er det eneste medlem tilbage, prøv at fjerne den private kanal i stedet for at forlade den."
-  },
-  {
     "id": "api.channel.patch_channel_moderations.license.error",
     "translation": "Din licens understøtter ikke kanalmoderation"
   },

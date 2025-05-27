@@ -28,24 +28,15 @@ func (a *App) GetJob(c request.CTX, id string) (*model.Job, *model.AppError) {
 }
 
 func (a *App) GetJobsByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	return a.GetJobsByType(c, jobType, page*perPage, perPage)
-}
-
-func (a *App) GetJobsByType(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypePage(c, jobType, offset, limit)
+	jobs, err := a.Srv().Store().Job().GetAllByTypePage(c, jobType, page, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
 	return jobs, nil
 }
 
 func (a *App) GetJobsByTypesPage(c request.CTX, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	return a.GetJobsByTypes(c, jobType, page*perPage, perPage)
-}
-
-func (a *App) GetJobsByTypes(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypesPage(c, jobTypes, offset, limit)
+	jobs, err := a.Srv().Store().Job().GetAllByTypesPage(c, jobType, page, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -53,7 +44,7 @@ func (a *App) GetJobsByTypes(c request.CTX, jobTypes []string, offset int, limit
 }
 
 func (a *App) GetJobsByTypeAndStatus(c request.CTX, jobTypes []string, status string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypeAndStatusPage(c, jobTypes, status, page*perPage, perPage)
+	jobs, err := a.Srv().Store().Job().GetAllByTypeAndStatusPage(c, jobTypes, status, page, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetAllByTypeAndStatusPage", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -108,6 +99,8 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeCloud,
 		model.JobTypeExtractContent:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
+	case model.JobTypeAccessControlSync:
+		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
 	}
 
 	return false, nil
@@ -142,6 +135,8 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 		model.JobTypeCloud,
 		model.JobTypeExtractContent:
 		permission = model.PermissionManageJobs
+	case model.JobTypeAccessControlSync:
+		permission = model.PermissionManageSystem
 	}
 
 	if permission == nil {
@@ -178,6 +173,8 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeMobileSessionMetadata,
 		model.JobTypeExtractContent:
 		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
+	case model.JobTypeAccessControlSync:
+		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
 	}
 
 	return false, nil

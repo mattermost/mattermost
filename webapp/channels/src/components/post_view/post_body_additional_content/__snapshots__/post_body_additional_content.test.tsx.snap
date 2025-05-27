@@ -110,7 +110,6 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "conn": null,
         "connectFailCount": 0,
         "connectionId": "",
-        "connectionUrl": null,
         "errorCallback": null,
         "errorListeners": Set {},
         "eventCallback": null,
@@ -119,6 +118,8 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "messageListeners": Set {},
         "missedEventCallback": null,
         "missedMessageListeners": Set {},
+        "offlineHandler": null,
+        "onlineHandler": null,
         "pingInterval": null,
         "postedAck": false,
         "reconnectCallback": null,
@@ -128,6 +129,7 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "responseSequence": 1,
         "serverHostname": "",
         "serverSequence": 0,
+        "waitingForPong": false,
       }
     }
   />
@@ -168,7 +170,6 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "conn": null,
         "connectFailCount": 0,
         "connectionId": "",
-        "connectionUrl": null,
         "errorCallback": null,
         "errorListeners": Set {},
         "eventCallback": null,
@@ -177,6 +178,8 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "messageListeners": Set {},
         "missedEventCallback": null,
         "missedMessageListeners": Set {},
+        "offlineHandler": null,
+        "onlineHandler": null,
         "pingInterval": null,
         "postedAck": false,
         "reconnectCallback": null,
@@ -186,6 +189,7 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "responseSequence": 1,
         "serverHostname": "",
         "serverSequence": 0,
+        "waitingForPong": false,
       }
     }
   />

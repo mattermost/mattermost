@@ -41,12 +41,12 @@ jest.mock('actions/telemetry_actions', () => ({
 
 const seatsPurchased = 40;
 
-const seatsMinimumFor5PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MIN)) + seatsPurchased;
+const seatsMinimumFor5PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MIN)) + seatsPurchased + 1;
 
-const seatsMinimumFor10PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MAX)) + seatsPurchased;
+const seatsMinimumFor10PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MAX)) + seatsPurchased + 1;
 
-const text5PercentageState = `Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor5PercentageState - seatsPurchased} seats`;
-const text10PercentageState = `Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor10PercentageState - seatsPurchased} seats`;
+const text5PercentageState = `Your workspace user count has exceeded your licensed seat count by ${seatsMinimumFor5PercentageState - seatsPurchased} seat`;
+const text10PercentageState = `Your workspace user count has exceeded your licensed seat count by ${seatsMinimumFor10PercentageState - seatsPurchased} seat`;
 const notifyText = 'Notify your Customer Success Manager on your next true-up check';
 
 const contactSalesTextLink = 'Contact Sales';
@@ -169,7 +169,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
                 {
                     category: Preferences.OVERAGE_USERS_BANNER,
                     value: 'Overage users banner watched',
-                    name: `warn_overage_seats_${licenseId.substring(0, 8)}`,
+                    name: `error_overage_seats_${licenseId.substring(0, 8)}`,
                 },
             ],
         );
@@ -234,7 +234,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
                 '?utm_source=mattermost&utm_medium=in-product&utm_content=overage_users_banner&uid=current_user&sid=',
         );
         expect(trackEvent).toBeCalledTimes(2);
-        expect(trackEvent).toBeCalledWith('insights', 'click_true_up_warning', {
+        expect(trackEvent).toBeCalledWith('insights', 'click_true_up_error', {
             cta: 'Contact Sales',
             banner: 'invite modal',
         });
@@ -248,7 +248,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
                 {
                     category: Preferences.OVERAGE_USERS_BANNER,
                     value: 'Overage users banner watched',
-                    name: `warn_overage_seats_${generateId().substring(0, 8)}`,
+                    name: `error_overage_seats_${generateId().substring(0, 8)}`,
                 },
             ],
         );
@@ -289,7 +289,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         expect(savePreferences).toBeCalledTimes(1);
         expect(savePreferences).toBeCalledWith(store.entities.users.profiles.current_user.id, [{
             category: Preferences.OVERAGE_USERS_BANNER,
-            name: `warn_overage_seats_${licenseId.substring(0, 8)}`,
+            name: `error_overage_seats_${licenseId.substring(0, 8)}`,
             user_id: store.entities.users.profiles.current_user.id,
             value: 'Overage users banner watched',
         }]);

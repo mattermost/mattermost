@@ -147,29 +147,29 @@ func TestSyncLdap(t *testing.T) {
 		"StartSynchronizeJob",
 		mock.AnythingOfType("*request.Context"),
 		mock.AnythingOfType("bool"),
-		mock.AnythingOfType("bool"),
+		mock.AnythingOfType("*bool"),
 	).Return(nil, nil)
 	ready := make(chan bool)
-	includeRemovedMembers := false
+	reAddRemovedMembers := false
 	mockCall.RunFn = func(args mock.Arguments) {
-		includeRemovedMembers = args[2].(bool)
+		reAddRemovedMembers = *args[2].(*bool)
 		ready <- true
 	}
 	th.App.Channels().Ldap = ldapMock
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, err := client.SyncLdap(context.Background(), false)
+		_, err := client.SyncLdap(context.Background(), model.NewPointer(false))
 		<-ready
 		require.NoError(t, err)
-		require.False(t, includeRemovedMembers)
+		require.False(t, reAddRemovedMembers)
 
-		_, err = client.SyncLdap(context.Background(), true)
+		_, err = client.SyncLdap(context.Background(), model.NewPointer(true))
 		<-ready
 		require.NoError(t, err)
-		require.True(t, includeRemovedMembers)
+		require.True(t, reAddRemovedMembers)
 	})
 
-	resp, err := th.Client.SyncLdap(context.Background(), false)
+	resp, err := th.Client.SyncLdap(context.Background(), model.NewPointer(false))
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }

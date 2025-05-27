@@ -75,18 +75,19 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
     }, []);
 
     const handleTextChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
-        setUpdatedChannelBanner({
-            ...updatedChannelBanner,
-            text: e.target.value,
-        });
+        const newValue = e.target.value;
+        setUpdatedChannelBanner((prev) => ({
+            ...prev,
+            text: newValue,
+        }));
 
-        if (e.target.value.trim().length > CHANNEL_BANNER_MAX_CHARACTER_LIMIT) {
+        if (newValue.trim().length > CHANNEL_BANNER_MAX_CHARACTER_LIMIT) {
             setFormError(formatMessage({
                 id: 'channel_settings.save_changes_panel.standard_error',
                 defaultMessage: 'There are errors in the form above',
             }));
             setCharacterLimitExceeded(true);
-        } else if (e.target.value.trim().length <= CHANNEL_BANNER_MIN_CHARACTER_LIMIT) {
+        } else if (newValue.trim().length <= CHANNEL_BANNER_MIN_CHARACTER_LIMIT) {
             setFormError(formatMessage({
                 id: 'channel_settings.save_changes_panel.banner_text.required_error',
                 defaultMessage: 'Channel banner text cannot be empty when enabled',
@@ -96,24 +97,24 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
             resetFormErrors();
             setCharacterLimitExceeded(false);
         }
-    }, [formatMessage, resetFormErrors, updatedChannelBanner]);
+    }, [formatMessage, resetFormErrors]);
 
     const handleColorChange = useCallback((color: string) => {
-        setUpdatedChannelBanner({
-            ...updatedChannelBanner,
+        setUpdatedChannelBanner((prev) => ({
+            ...prev,
             background_color: color,
-        });
+        }));
 
-        if (color) {
+        if (color.trim()) {
             resetFormErrors();
         }
-    }, [resetFormErrors, updatedChannelBanner]);
+    }, [resetFormErrors]);
 
     const toggleTextPreview = useCallback(() => setShowBannerTextPreview((show) => !show), []);
 
     const hasUnsavedChanges = useCallback(() => {
-        return updatedChannelBanner.text !== initialBannerInfo?.text ||
-            updatedChannelBanner.background_color !== initialBannerInfo?.background_color ||
+        return (updatedChannelBanner.text?.trim() || '') !== (initialBannerInfo?.text?.trim() || '') ||
+            (updatedChannelBanner.background_color?.trim() || '') !== (initialBannerInfo?.background_color?.trim() || '') ||
             updatedChannelBanner.enabled !== initialBannerInfo?.enabled;
     }, [initialBannerInfo, updatedChannelBanner]);
 
@@ -154,8 +155,8 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
         };
 
         updated.banner_info = {
-            text: updatedChannelBanner.text,
-            background_color: updatedChannelBanner.background_color,
+            text: updatedChannelBanner.text?.trim() || '',
+            background_color: updatedChannelBanner.background_color?.trim() || '',
             enabled: updatedChannelBanner.enabled,
         };
 
@@ -174,6 +175,13 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
             setSaveChangesPanelState('error');
             return;
         }
+
+        // Update local state with trimmed values after successful save
+        setUpdatedChannelBanner((prev) => ({
+            ...prev,
+            text: prev.text?.trim() || '',
+            background_color: prev.background_color?.trim() || '',
+        }));
 
         resetFormErrors();
         setSaveChangesPanelState('saved');

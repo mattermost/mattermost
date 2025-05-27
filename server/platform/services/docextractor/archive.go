@@ -27,17 +27,25 @@ func (ae *archiveExtractor) Match(filename string) bool {
 	return err == nil
 }
 
+// getExtAlsoTarGz returns the extension of the given file name, special casing .tar.gz.
+func getExtAlsoTarGz(name string) string {
+	if strings.HasSuffix(name, ".tar.gz") {
+		return ".tar.gz"
+	}
+
+	return filepath.Ext(name)
+}
+
 func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error) {
-	dir, err := os.MkdirTemp(os.TempDir(), "archiver")
+	ext := getExtAlsoTarGz(name)
+
+	// Create a temporary file, using `*` control the random component while preserving the extension.
+	f, err := os.CreateTemp("", "archiver-*"+ext)
 	if err != nil {
 		return "", fmt.Errorf("error creating temporary file: %v", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.Remove(f.Name())
 
-	f, err := os.Create(filepath.Join(dir, name))
-	if err != nil {
-		return "", fmt.Errorf("error copying data into temporary file: %v", err)
-	}
 	_, err = io.Copy(f, r)
 	f.Close()
 	if err != nil {

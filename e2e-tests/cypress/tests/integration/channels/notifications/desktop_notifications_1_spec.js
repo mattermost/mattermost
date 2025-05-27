@@ -144,7 +144,7 @@ describe('Desktop notifications', () => {
         spyNotificationAs('withNotification', 'granted');
 
         const actualMsg = '---';
-        const expected = '@' + otherUser.username + ' did something new';
+        const expected = '@' + otherUser.username + ' posted a message';
 
         // # Ensure notifications are set up to fire a desktop notification for all activity.
         changeDesktopNotificationAs('all');

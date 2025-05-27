@@ -266,7 +266,7 @@ describe('components/threading/global_threads/thread_item', () => {
 
     test('should allow marking as unread on alt + click', () => {
         const wrapper = shallow(<ThreadItem {...props}/>);
-        wrapper.simulate('click', {altKey: true});
+        wrapper.find('div.ThreadItem').simulate('click', {altKey: true});
         expect(updateThreadRead).not.toHaveBeenCalled();
         expect(markLastPostInThreadAsUnread).toHaveBeenCalledWith('user_id', 'tid', '1y8hpek81byspd4enyk9mp1ncw');
         expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw', 1611786714912);

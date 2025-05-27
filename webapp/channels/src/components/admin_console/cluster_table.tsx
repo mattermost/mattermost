@@ -74,7 +74,7 @@ export default class ClusterTable extends PureComponent<Props> {
                         <WarningIcon/>
                         <FormattedMessage
                             id='admin.cluster.version_mismatch_warning'
-                            defaultMessage='WARNING: Multiple versions of Mattermost has been detected in your HA cluster. Unless you are currently performing an upgrade please ensure all nodes in your cluster are running the same Mattermost version to avoid platform disruption.'
+                            defaultMessage='WARNING: Multiple Mattermost versions have been detected in your HA cluster, or the running versions cannot be properly identified. Unless upgrading, ensure all nodes are on the same version and can communicate via Gossip to prevent platform issues.'
                         />
                     </div>
                 );
@@ -94,10 +94,12 @@ export default class ClusterTable extends PureComponent<Props> {
         });
 
         const items = this.props.clusterInfos.map((clusterInfo) => {
+            let hasUnknownFields = false;
             let status = null;
 
             let hostname: React.ReactNode = clusterInfo.hostname;
             if (hostname === '') {
+                hasUnknownFields = true;
                 hostname = (
                     <FormattedMessage
                         id='admin.cluster.unknown'
@@ -108,6 +110,7 @@ export default class ClusterTable extends PureComponent<Props> {
 
             let version: React.ReactNode = clusterInfo.version;
             if (version === '') {
+                hasUnknownFields = true;
                 version = (
                     <FormattedMessage
                         id='admin.cluster.unknown'
@@ -118,6 +121,7 @@ export default class ClusterTable extends PureComponent<Props> {
 
             let configHash: React.ReactNode = clusterInfo.config_hash;
             if (configHash === '') {
+                hasUnknownFields = true;
                 configHash = (
                     <FormattedMessage
                         id='admin.cluster.unknown'
@@ -126,7 +130,7 @@ export default class ClusterTable extends PureComponent<Props> {
                 );
             }
 
-            if (singleItem) {
+            if (singleItem || hasUnknownFields) {
                 status = (
                     <img
                         alt='Cluster status'

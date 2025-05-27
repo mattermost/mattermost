@@ -50,18 +50,27 @@ describe('System console', () => {
         });
     });
 
-    it('MM-41397 - License page shows upgrade to Enterprise for E20 licenses', () => {
+    it('MM-41397 - License page shows upgrade to Enterprise Advanced for Enterprise licenses', () => {
         cy.visit('/admin_console/about/license');
         cy.get('.admin-console__header').
             should('be.visible').
             and('have.text', 'Edition and License');
 
-        // Validate prompt to increase headcount in Enterprise licenses
+        // Validate Enterprise to Enterprise Advanced upgrade content
         cy.get('.EnterpriseEditionRightPannel').
             should('be.visible').
             within(() => {
-                cy.findByText('Need to increase your headcount?');
-                cy.findByText('We’re here to work with you and your needs. Contact us today to get more seats on your plan.');
+                // Check the title
+                cy.get('.upgrade-title').should('have.text', 'Upgrade to Enterprise Advanced');
+
+                // Check the advantages list
+                cy.findByText('Attribute-based access control');
+                cy.findByText('Channel warning banners');
+                cy.findByText('AD/LDAP group sync');
+                cy.findByText('Advanced workflows with Playbooks');
+                cy.findByText('High availability');
+                cy.findByText('Advanced compliance');
+                cy.findByText('And more...');
                 cy.findByRole('button', {name: 'Contact sales'});
             });
 

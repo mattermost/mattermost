@@ -124,10 +124,6 @@
     "translation": "%v saíu da canle."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Vostede é o único membro que queda, tente eliminar a canle privada no canto de abandonar."
-  },
-  {
     "id": "api.channel.create_default_channels.town_square",
     "translation": "Praza pública"
   },

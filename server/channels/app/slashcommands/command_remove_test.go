@@ -13,8 +13,7 @@ import (
 )
 
 func TestRemoveProviderDoCommand(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	rp := RemoveProvider{}
 
@@ -34,7 +33,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 		CreatorId:   th.BasicUser.Id,
 	}, false)
 
-	targetUser := th.createUser()
+	targetUser := th.createUser(t)
 	_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, targetUser.Id, targetUser.Id)
 	require.Nil(t, err)
 	_, err = th.App.AddUserToChannel(th.Context, targetUser, publicChannel, false)
@@ -87,10 +86,10 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "", actual)
 
 	// Try a group channel
-	user1 := th.createUser()
-	user2 := th.createUser()
+	user1 := th.createUser(t)
+	user2 := th.createUser(t)
 
-	groupChannel := th.createGroupChannel(user1, user2)
+	groupChannel := th.createGroupChannel(t, user1, user2)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },
@@ -102,7 +101,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "api.command_remove.direct_group.app_error", actual)
 
 	// Try a direct channel *with* being a member.
-	directChannel := th.createDmChannel(user1)
+	directChannel := th.createDmChannel(t, user1)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },
@@ -114,7 +113,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "api.command_remove.direct_group.app_error", actual)
 
 	// Try a public channel with a deactivated user.
-	deactivatedUser := th.createUser()
+	deactivatedUser := th.createUser(t)
 	_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, deactivatedUser.Id, deactivatedUser.Id)
 	require.Nil(t, err)
 	_, err = th.App.AddUserToChannel(th.Context, deactivatedUser, publicChannel, false)
