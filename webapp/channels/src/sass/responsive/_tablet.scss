@@ -174,12 +174,11 @@
         &.post--compact {
             .post-message--overflow {
                 @include mixins.clearfix;
-
-                margin-top: 22px; //Any value change to this needs to reflect for MARGIN_CHANGE_FOR_COMPACT_POST variable in show_more component
+                margin-top: 12px; //Any value change to this needs to reflect for MARGIN_CHANGE_FOR_COMPACT_POST variable in show_more component
             }
 
             .attachment__body .post-message--overflow {
-                margin-top: 0; //The above margin was added for wrapping texg in compact view but it isnt needed for attachment text
+                margin-top: 0; //The above margin was added for wrapping text in compact view but it isnt needed for attachment text
             }
 
             &.same--root {
@@ -284,7 +283,6 @@
                 padding: 0 0.5em 0 77px; // .post-row__padding.bottom needs to be changed accordingly if this is changed
 
                 .post__link {
-                    margin: 3px 0 7px;
                     vertical-align: bottom;
                 }
 
