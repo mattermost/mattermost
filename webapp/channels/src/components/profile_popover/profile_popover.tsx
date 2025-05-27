@@ -4,7 +4,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -76,9 +75,7 @@ const ProfilePopover = ({
     const user = useSelector((state: GlobalState) => getUser(state, userId));
     const currentTeamId = useSelector((state: GlobalState) => getCurrentTeamId(state));
     const channelId = useSelector((state: GlobalState) => (channelIdProp || getDefaultChannelId(state)));
-    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
-    const isSharedChannel = channel?.shared || false;
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(isSharedChannel);
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channelId);
     const isMobileView = useSelector(getIsMobileView);
     const teamUrl = useSelector(getCurrentRelativeTeamUrl);
     const modals = useSelector((state: GlobalState) => state.views.modals);

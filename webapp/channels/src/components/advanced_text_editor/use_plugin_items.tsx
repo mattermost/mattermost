@@ -14,11 +14,10 @@ const usePluginItems = (
     draft: PostDraft,
     textboxRef: React.RefObject<TextboxClass>,
     handleDraftChange: (draft: PostDraft) => void,
-    channelIsShared?: boolean,
+    channelId?: string,
 ) => {
     const postEditorActions = useSelector((state: GlobalState) => state.plugins.components.PostEditorAction);
-    const isSharedChannel = channelIsShared || false;
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(isSharedChannel);
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channelId);
 
     const getSelectedText = useCallback(() => {
         const input = textboxRef.current?.getInputBox();

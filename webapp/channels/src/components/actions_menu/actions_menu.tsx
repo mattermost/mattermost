@@ -272,36 +272,39 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         }
 
         const pluginItemsVisible = !this.props.channelIsShared || this.props.sharedChannelsPluginsEnabled;
-        const pluginItems = pluginItemsVisible ? this.props.pluginMenuItems?.
-            filter((item) => {
-                return item.filter ? item.filter(this.props.post.id) : item;
-            }).
-            map((item) => {
-                if (item.subMenu) {
+        let pluginItems: JSX.Element[] = [];
+        if (pluginItemsVisible && this.props.pluginMenuItems) {
+            pluginItems = this.props.pluginMenuItems.
+                filter((item) => {
+                    return item.filter ? item.filter(this.props.post.id) : item;
+                }).
+                map((item) => {
+                    if (item.subMenu) {
+                        return (
+                            <Menu.ItemSubMenu
+                                key={item.id + '_pluginmenuitem'}
+                                id={item.id}
+                                postId={this.props.post.id}
+                                text={item.text}
+                                subMenu={item.subMenu}
+                                action={item.action}
+                                root={true}
+                            />
+                        );
+                    }
                     return (
-                        <Menu.ItemSubMenu
+                        <Menu.ItemAction
                             key={item.id + '_pluginmenuitem'}
-                            id={item.id}
-                            postId={this.props.post.id}
                             text={item.text}
-                            subMenu={item.subMenu}
-                            action={item.action}
-                            root={true}
+                            onClick={() => {
+                                if (item.action) {
+                                    item.action(this.props.post.id);
+                                }
+                            }}
                         />
                     );
-                }
-                return (
-                    <Menu.ItemAction
-                        key={item.id + '_pluginmenuitem'}
-                        text={item.text}
-                        onClick={() => {
-                            if (item.action) {
-                                item.action(this.props.post.id);
-                            }
-                        }}
-                    />
-                );
-            }) || [] : [];
+                });
+        }
 
         let appBindings = [] as JSX.Element[];
         if (this.props.appsEnabled && this.state.appBindings) {

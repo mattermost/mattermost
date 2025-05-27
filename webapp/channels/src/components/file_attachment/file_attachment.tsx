@@ -70,8 +70,7 @@ export default function FileAttachment(props: Props) {
 
     const buttonRef = useRef<HTMLButtonElement | null>(null);
 
-    const isSharedChannel = props.currentChannel?.shared || false;
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(isSharedChannel);
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(props.currentChannel?.id);
 
     const handleImageLoaded = () => {
         if (mounted.current) {

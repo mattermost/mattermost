@@ -202,8 +202,7 @@ const PostOptions = (props: Props): JSX.Element => {
     );
 
     let pluginItems: ReactNode = null;
-    const isSharedChannel = props.channelIsShared || false;
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(isSharedChannel);
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(post.channel_id);
 
     if ((!isEphemeral && !post.failed && !systemMessage) && hoverLocal && pluginItemsVisible) {
         pluginItems = props.pluginActions?.

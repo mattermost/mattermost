@@ -86,7 +86,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
         channelTitle = <ChannelHeaderTitleGroup gmMembers={gmMembers}/>;
     }
 
-    const isSharedChannel = channel?.shared || false;
+    const isSharedChannel = channel?.shared;
 
     const pluginItems = isSharedChannel ? [] : pluginMenuItems.map((item) => {
         const handlePluginItemClick = () => {

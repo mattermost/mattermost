@@ -16,10 +16,10 @@ type Props = {
     code: string;
     language: string;
     searchedContent?: string;
-    channelIsShared?: boolean;
+    channelId?: string;
 }
 
-const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelIsShared}: Props) => {
+const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}: Props) => {
     const getUsedLanguage = useCallback(() => {
         let usedLanguage = language || '';
         usedLanguage = usedLanguage.toLowerCase();
@@ -84,9 +84,7 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelIsS
     }
 
     const codeBlockActions = useSelector((state: GlobalState) => state.plugins.components.CodeBlockAction);
-
-    const isSharedChannel = channelIsShared || false;
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(isSharedChannel);
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channelId);
 
     const pluginItems = pluginItemsVisible ? codeBlockActions?.
         map((item) => {

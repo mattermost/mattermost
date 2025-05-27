@@ -268,7 +268,7 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                         code={node.attribs['data-codeblock-code']}
                         language={node.attribs['data-codeblock-language']}
                         searchedContent={node.attribs['data-codeblock-searchedcontent']}
-                        channelIsShared={options.channelIsShared}
+                        channelId={options.channelId}
                     />
                 );
             },
