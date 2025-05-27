@@ -2725,6 +2725,8 @@
   "admin.support.termsTitle": "Terms of Use Link:",
   "admin.system_properties.confirm.delete.button": "Delete",
   "admin.system_properties.confirm.delete.text": "Deleting this property will remove all user-defined values associated with it.",
+  "admin.system_properties.user_properties.dotmenu.ad_ldap.modal.helpText": "The attribute in the AD/LDAP server used to sync as a custom attribute in user's profile in Mattermost.",
+  "admin.system_properties.user_properties.dotmenu.saml.modal.helpText": "The attribute in the SAML server used to sync as a custom attribute in user's profile in Mattermost.",
   "admin.system_properties.confirm.delete.title": "Delete {name} property",
   "admin.system_properties.details.saving_changes": "Saving configuration…",
   "admin.system_properties.details.saving_changes_error": "There was an error while saving the configuration",

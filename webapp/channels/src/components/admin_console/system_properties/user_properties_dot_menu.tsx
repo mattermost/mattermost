@@ -3,14 +3,17 @@
 
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {localizeMessage} from 'utils/utils';
+
 import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
+
 import {Client4} from 'mattermost-redux/client';
 
 import * as Menu from 'components/menu';
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
-import {localizeMessage} from 'utils/utils';
+
 import './user_properties_dot_menu.scss';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 import {isCreatePending} from './user_properties_utils';
@@ -357,7 +360,7 @@ const DotMenu = ({
                     }}
                     error={errorSaml}
                     helpTextId='admin.system_properties.user_properties.dotmenu.saml.modal.helpText'
-                    helpTextDefault="The attribute in the SAML assertion used to sync as a custom attribute in user's profile in Mattermost."
+                    helpTextDefault="The attribute in the SAML server used to sync as a custom attribute in user's profile in Mattermost."
                     modalHeaderText={
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.saml.modal.title'
