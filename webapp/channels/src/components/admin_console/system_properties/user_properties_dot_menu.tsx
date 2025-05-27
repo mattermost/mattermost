@@ -269,8 +269,12 @@ const DotMenu = ({
                         }
                     }}
                     error={error}
-                    helpTextId='admin.system_properties.user_properties.dotmenu.ad_ldap.modal.helpText'
-                    helpTextDefault="The attribute in the AD/LDAP server used to sync as a custom attribute in user's profile in Mattermost."
+                    helpText={
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.ad_ldap.modal.helpText'
+                            defaultMessage="The attribute in the AD/LDAP server used to sync as a custom attribute in user's profile in Mattermost."
+                        />
+                    }
                     modalHeaderText={
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.ad_ldap.modal.title'
@@ -301,8 +305,12 @@ const DotMenu = ({
                         }
                     }}
                     error={errorSaml}
-                    helpTextId='admin.system_properties.user_properties.dotmenu.saml.modal.helpText'
-                    helpTextDefault="The attribute in the SAML server used to sync as a custom attribute in user's profile in Mattermost."
+                    helpText={
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.saml.modal.helpText'
+                            defaultMessage="The attribute in the SAML server used to sync as a custom attribute in user's profile in Mattermost."
+                        />
+                    }
                     modalHeaderText={
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.saml.modal.title'

@@ -3,7 +3,9 @@
 
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
+
 import {GenericModal} from '@mattermost/components';
+
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
 
 const MAX_LDAP_LENGTH = 64;
@@ -13,12 +15,11 @@ type AttributeModalProps = {
     onExited: () => void;
     onSave: (value: string) => Promise<void>;
     error: string | null;
-    helpTextId: string;
-    helpTextDefault: string;
+    helpText: React.ReactNode;
     modalHeaderText: JSX.Element;
 };
 
-const AttributeModal: React.FC<AttributeModalProps> = ({initialValue, onExited, onSave, error, helpTextId, helpTextDefault, modalHeaderText}) => {
+const AttributeModal: React.FC<AttributeModalProps> = ({initialValue, onExited, onSave, error, helpText, modalHeaderText}) => {
     const [value, setValue] = useState(initialValue);
     const handleClear = () => setValue('');
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value);
@@ -48,17 +49,14 @@ const AttributeModal: React.FC<AttributeModalProps> = ({initialValue, onExited, 
                 className='form-control filter-textbox'
                 type='text'
                 value={value}
-                placeholder={helpTextDefault}
+                placeholder={''}
                 clearable={true}
                 onClear={handleClear}
                 onChange={handleChange}
                 maxLength={MAX_LDAP_LENGTH}
             />
             <span className='help-text'>
-                <FormattedMessage
-                    id={helpTextId}
-                    defaultMessage={helpTextDefault}
-                />
+                {helpText}
             </span>
             {error && <div className='error-text'>{error}</div>}
         </GenericModal>

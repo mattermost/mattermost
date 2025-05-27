@@ -124,9 +124,9 @@ const UserPropertyValues = ({
 
     if (field.type !== 'multiselect' && field.type !== 'select') {
         return (
-            <>
+            <span className='user-property-field-values'>
                 {'-'}
-            </>
+            </span>
         );
     }
 
