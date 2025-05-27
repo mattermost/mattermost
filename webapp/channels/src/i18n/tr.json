@@ -3382,7 +3382,6 @@
   "channel_loader.postedImage": " bir görsel yükledi",
   "channel_loader.socketError": "Lütfen bağlantınızı denetleyin, Mattermost uygulamasına erişilemiyor. Sorun sürerse yöneticinizden [WebSocket bağlantı noktasını denetlemesini isteyin](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Biri",
-  "channel_loader.something": " yeni bir şey yaptı",
   "channel_loader.unknown_error": "Sunucudan beklenmedik bir durum kodu alındı.",
   "channel_loader.uploadedFile": " bir dosya yükledi",
   "channel_loader.uploadedImage": " bir görsel yükledi",
