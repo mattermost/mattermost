@@ -33,23 +33,7 @@ const AtMention = (props: Props) => {
     const [remoteClusters] = useRemoteClusters();
 
     const [user, group] = useMemo(
-        () => {
-            // Debug logging for remote mention issues
-            if (props.mentionName.includes(':')) {
-                // eslint-disable-next-line no-console
-                console.log('AtMention processing:', props.mentionName);
-                // eslint-disable-next-line no-console
-                console.log('RemoteClusters from hook:', remoteClusters);
-            }
-            return getUserOrGroupFromMentionName(
-                props.mentionName,
-                props.usersByUsername,
-                props.groupsByName,
-                props.disableGroupHighlight,
-                undefined,
-                remoteClusters,
-            );
-        },
+        () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight, undefined, remoteClusters),
         [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight, remoteClusters],
     );
 

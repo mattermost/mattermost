@@ -41,7 +41,7 @@ import Constants, {PostListRowListIds} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
-import {allAtMentions} from 'utils/text_formatting';
+import {allAtMentions, AT_MENTION_PATTERN} from 'utils/text_formatting';
 import {isMobile} from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
@@ -442,10 +442,23 @@ export function makeGetMentionsFromMessage(): (state: GlobalState, post: Post) =
         (state: GlobalState) => getUsersByUsername(state),
         (post, users) => {
             const mentions: Record<string, UserProfile> = {};
-            const mentionsArray = post.message.match(Constants.MENTIONS_REGEX) || [];
-            for (let i = 0; i < mentionsArray.length; i++) {
-                const mention = mentionsArray[i];
-                const user = getMentionDetails(users, mention.substring(1)) as UserProfile | '';
+
+            // Use AT_MENTION_PATTERN to get ALL mentions (including remote ones)
+            const allMentionsArray = post.message.match(AT_MENTION_PATTERN) || [];
+
+            for (let i = 0; i < allMentionsArray.length; i++) {
+                const mention = allMentionsArray[i];
+                const mentionName = mention.substring(1);
+
+                let user: UserProfile | undefined;
+
+                if (mentionName.includes(':')) {
+                    // Remote user - use enhanced lookup
+                    [user] = getUserOrGroupFromMentionName(mentionName, users, {});
+                } else {
+                    // Local user - use existing logic
+                    user = getMentionDetails(users, mentionName) as UserProfile | undefined;
+                }
 
                 if (user) {
                     mentions[mention] = user;
@@ -798,16 +811,6 @@ export function getUserOrGroupFromMentionName(
     getMention = getMentionDetails,
     remoteClusters?: Array<{remote_id: string; name: string; display_name: string}>,
 ): [UserProfile?, Group?] {
-    // Debug logging for remote mention issues
-    if (mentionName.includes(':')) {
-        // eslint-disable-next-line no-console
-        console.log('Processing remote mention:', mentionName);
-        // eslint-disable-next-line no-console
-        console.log('Users available:', Object.keys(users));
-        // eslint-disable-next-line no-console
-        console.log('Remote clusters:', remoteClusters);
-    }
-
     // Handle special case for remote user mentions in the format username:clustername
     if (mentionName.includes(':')) {
         const [username, clusterName] = mentionName.split(':');
