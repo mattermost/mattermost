@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -759,7 +760,8 @@ func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
 		return err
 	}
 
-	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync COMPLETED for remote %s - found %d users to sync out of %d total", rc.DisplayName, len(users), totalCount))
+	userNames := scs.extractUserNames(users)
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync COMPLETED for remote %s - found %d users to sync out of %d total. Users: [%s]", rc.DisplayName, len(users), totalCount, userNames))
 
 	// Exit early if no users to sync
 	if len(users) == 0 {
@@ -773,7 +775,7 @@ func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
 	sd.users = users
 
 	// Send the collected users to remote
-	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] sendUserSyncData STARTING for remote %s with %d users", rc.DisplayName, len(users)))
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] sendUserSyncData STARTING for remote %s with %d users: [%s]", rc.DisplayName, len(users), userNames))
 	if err := scs.sendUserSyncData(sd, latestTimestamp); err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error sending user batch during sync",
 			mlog.String("remote_id", rc.RemoteId),
@@ -783,7 +785,7 @@ func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
 		return fmt.Errorf("error sending user batch during sync: %w", err)
 	}
 
-	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] sendUserSyncData COMPLETED for remote %s", rc.DisplayName))
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] sendUserSyncData COMPLETED for remote %s - successfully sent users: [%s]", rc.DisplayName, userNames))
 
 	// Schedule next batch if needed
 	if hasMore {
@@ -977,6 +979,25 @@ func (scs *Service) sendSyncMsgToPlugin(msg *model.SyncMsg, rc *model.RemoteClus
 // HandleSyncAllUsersForTesting exposes handleGlobalUserSyncTask for testing
 func (scs *Service) HandleSyncAllUsersForTesting(rc *model.RemoteCluster) error {
 	return scs.syncAllUsers(rc)
+}
+
+// extractUserNames creates a comma-separated list of usernames from a map of users
+func (scs *Service) extractUserNames(users map[string]*model.User) string {
+	if len(users) == 0 {
+		return "none"
+	}
+
+	userNames := make([]string, 0, len(users))
+	for _, user := range users {
+		userNames = append(userNames, user.Username)
+	}
+
+	// Limit to first 10 usernames to avoid overly long debug messages
+	if len(userNames) > 10 {
+		return fmt.Sprintf("%s and %d more", strings.Join(userNames[:10], ", "), len(userNames)-10)
+	}
+
+	return strings.Join(userNames, ", ")
 }
 
 func sanitizeSyncData(sd *syncData) {
