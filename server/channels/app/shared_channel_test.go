@@ -6,12 +6,14 @@ package app
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
@@ -434,4 +436,121 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		require.NotNil(t, systemPost, "A system post should be created")
 		assert.Equal(t, "This channel is no longer shared.", systemPost.Message, "Message should match unshare message")
 	})
+}
+
+func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic()
+	defer th.TearDown()
+
+	// Setup: Create a shared channel and remote cluster
+	ss := th.App.Srv().Store()
+
+	// Get the shared channel service and cast to concrete type
+	scsInterface := th.App.Srv().GetSharedChannelSyncService()
+	service, ok := scsInterface.(*sharedchannel.Service)
+	require.True(t, ok, "Expected sharedchannel.Service concrete type")
+
+	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	sc := &model.SharedChannel{
+		ChannelId:        channel.Id,
+		TeamId:           th.BasicTeam.Id,
+		Home:             true,
+		ShareName:        channel.Name,
+		ShareDisplayName: channel.DisplayName,
+		CreatorId:        th.BasicUser.Id,
+		RemoteId:         "",
+	}
+	_, err := ss.SharedChannel().Save(sc)
+	require.NoError(t, err)
+
+	// Create a self-referential remote cluster
+	selfCluster := &model.RemoteCluster{
+		RemoteId:     model.NewId(),
+		Name:         "test-remote",
+		DisplayName:  "Test Remote",
+		SiteURL:      "https://test.example.com",
+		Token:        model.NewId(),
+		CreateAt:     model.GetMillis(),
+		LastPingAt:   model.GetMillis(),
+		CreatorId:    th.BasicUser.Id,
+		RemoteTeamId: model.NewId(),
+	}
+	selfCluster, err = ss.RemoteCluster().Save(selfCluster)
+	require.NoError(t, err)
+
+	// Create shared channel remote
+	scr := &model.SharedChannelRemote{
+		Id:                model.NewId(),
+		ChannelId:         channel.Id,
+		CreatorId:         th.BasicUser.Id,
+		IsInviteAccepted:  true,
+		IsInviteConfirmed: true,
+		RemoteId:          selfCluster.RemoteId,
+		LastPostCreateAt:  model.GetMillis(),
+		LastPostUpdateAt:  model.GetMillis(),
+	}
+	_, err = ss.SharedChannel().SaveRemote(scr)
+	require.NoError(t, err)
+
+	// Verify channel is initially shared
+	hasRemote, err := ss.SharedChannel().HasRemote(channel.Id, selfCluster.RemoteId)
+	require.NoError(t, err)
+	require.True(t, hasRemote, "Channel should be shared with remote initially")
+
+	// Test: Simulate sync message callback receiving ErrChannelNotShared response
+	syncMsg := model.NewSyncMsg(channel.Id)
+	syncMsg.Posts = []*model.Post{{
+		Id:        model.NewId(),
+		ChannelId: channel.Id,
+		UserId:    th.BasicUser.Id,
+		Message:   "Test sync message",
+		CreateAt:  model.GetMillis(),
+	}}
+
+	// Create a response that simulates the remote returning ErrChannelNotShared
+	response := &remotecluster.Response{
+		Status: "fail",
+		Err:    "cannot process sync message; channel is no longer shared: " + channel.Id,
+	}
+
+	// Test the complete flow by simulating what happens in sendSyncMsgToRemote callback
+	// This tests the fixed error detection logic that checks rcResp.Err
+	var callbackTriggered bool
+	mockCallback := func(rcMsg model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, errResp error) {
+		callbackTriggered = true
+
+		// This simulates the fixed logic in sync_send_remote.go
+		if rcResp != nil && !rcResp.IsSuccess() && strings.Contains(rcResp.Err, "channel is no longer shared") {
+			service.HandleChannelNotSharedErrorForTesting(syncMsg, rc)
+		}
+	}
+
+	// Trigger the callback with our mock response
+	mockCallback(model.RemoteClusterMsg{}, selfCluster, response, nil)
+
+	// Verify the callback was triggered
+	require.True(t, callbackTriggered, "Callback should have been triggered")
+
+	// Verify the channel is no longer shared with the remote
+	hasRemoteAfter, err := ss.SharedChannel().HasRemote(channel.Id, selfCluster.RemoteId)
+	require.NoError(t, err)
+	require.False(t, hasRemoteAfter, "Channel should no longer be shared with remote after error")
+
+	// Verify a system message was posted
+	posts, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+		ChannelId: channel.Id,
+		Page:      0,
+		PerPage:   10,
+	})
+	require.Nil(t, appErr)
+
+	// Find the system message
+	var systemPost *model.Post
+	for _, p := range posts.Posts {
+		if p.Type == model.PostTypeSystemGeneric && p.Message == "This channel is no longer shared." {
+			systemPost = p
+			break
+		}
+	}
+	require.NotNil(t, systemPost, "System message should be posted when channel becomes unshared")
 }

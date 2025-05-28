@@ -778,13 +778,15 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] No error from remote %s - sync successful", rc.Name))
 		}
 
-		// Check for ErrChannelNotShared in the response error
-		if errResp != nil && strings.Contains(errResp.Error(), ErrChannelNotShared.Error()) {
-			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] MATCH! Detected ErrChannelNotShared from remote %s - triggering unshare", rc.Name))
+		// Check for ErrChannelNotShared in the application response
+		if rcResp != nil && !rcResp.IsSuccess() && strings.Contains(rcResp.Err, ErrChannelNotShared.Error()) {
+			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] MATCH! Detected ErrChannelNotShared in rcResp.Err from remote %s - triggering unshare", rc.Name))
 			scs.handleChannelNotSharedError(msg, rc)
 			return
 		} else if errResp != nil {
-			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] NO MATCH! ErrChannelNotShared NOT detected in error from remote %s", rc.Name))
+			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] NO MATCH! ErrChannelNotShared NOT detected - transport error from remote %s", rc.Name))
+		} else if rcResp != nil && !rcResp.IsSuccess() {
+			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] NO MATCH! ErrChannelNotShared NOT detected in rcResp.Err from remote %s", rc.Name))
 		} else {
 			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] No error to check for ErrChannelNotShared from remote %s", rc.Name))
 		}
