@@ -1097,7 +1097,153 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		assert.Equal(t, 1, userCount[user3.Id], "User3 should be synced exactly once")
 	})
 
-	t.Run("Test 10: Database Error Handling", func(t *testing.T) {
+	t.Run("Test 10: Circular Sync Prevention After Connection Reset", func(t *testing.T) {
+		// This test verifies the exact scenario: A→B sync, connection reset, B→A sync prevention
+		// 1. User from Server A syncs to Server B (user appears on B with RemoteId=A)
+		// 2. Connection is closed and a new one is created
+		// 3. Server B attempts to sync back to Server A
+		// 4. Verify the synced user (user:A) does NOT get synced back to A
+		EnsureCleanState(t, th, ss)
+
+		var syncedToB []string
+		var syncedBackToA []string
+		var mu sync.Mutex
+
+		// Create test HTTP servers for both "servers"
+		serverAHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/api/v4/remotecluster/msg" {
+				// Parse message to track what gets synced back to A
+				bodyBytes, _ := io.ReadAll(r.Body)
+				var frame model.RemoteClusterFrame
+				if unmarshalErr := json.Unmarshal(bodyBytes, &frame); unmarshalErr == nil {
+					var syncMsg model.SyncMsg
+					if unmarshalErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); unmarshalErr == nil {
+						mu.Lock()
+						for userID := range syncMsg.Users {
+							syncedBackToA = append(syncedBackToA, userID)
+						}
+						mu.Unlock()
+					}
+				}
+			}
+			writeOKResponse(w)
+		})
+
+		serverBHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/api/v4/remotecluster/msg" {
+				// Parse message to track what gets synced to B
+				bodyBytes, _ := io.ReadAll(r.Body)
+				var frame model.RemoteClusterFrame
+				if unmarshalErr := json.Unmarshal(bodyBytes, &frame); unmarshalErr == nil {
+					var syncMsg model.SyncMsg
+					if unmarshalErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); unmarshalErr == nil {
+						mu.Lock()
+						for userID := range syncMsg.Users {
+							syncedToB = append(syncedToB, userID)
+						}
+						mu.Unlock()
+					}
+				}
+			}
+			writeOKResponse(w)
+		})
+
+		serverA := httptest.NewServer(serverAHandler)
+		serverB := httptest.NewServer(serverBHandler)
+		defer serverA.Close()
+		defer serverB.Close()
+
+		// Step 1: Create "Server A" user and sync to "Server B"
+		originalUser := th.CreateUser()
+		originalUser.UpdateAt = model.GetMillis()
+		_, err = ss.User().Update(th.Context, originalUser, true)
+		require.NoError(t, err)
+
+		// Create remote cluster B (from A's perspective)
+		clusterB := &model.RemoteCluster{
+			RemoteId:             model.NewId(),
+			Name:                 "server-b",
+			SiteURL:              serverB.URL,
+			CreateAt:             model.GetMillis(),
+			LastPingAt:           model.GetMillis(),
+			LastGlobalUserSyncAt: 0,
+			Token:                model.NewId(),
+			CreatorId:            th.BasicUser.Id,
+			RemoteToken:          model.NewId(),
+		}
+		clusterB, err = ss.RemoteCluster().Save(clusterB)
+		require.NoError(t, err)
+
+		// Sync A→B (original user syncs to B)
+		err = service.HandleSyncAllUsersForTesting(clusterB)
+		require.NoError(t, err)
+
+		// Wait for sync to complete
+		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			for _, userID := range syncedToB {
+				if userID == originalUser.Id {
+					return true
+				}
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond, "Original user should sync from A to B")
+
+		// Step 2: Simulate the synced user existing on Server B
+		// Create a user on "Server A" that represents what would exist on B after sync
+		// This user has RemoteId pointing to A, simulating user:A on Server B
+		syncedUserOnB := &model.User{
+			Email:    model.NewId() + "@example.com",
+			Username: originalUser.Username + "_" + clusterB.Name, // Munged username
+			Password: "password",
+			RemoteId: &clusterB.RemoteId, // This would be A's cluster ID on the actual B server
+			UpdateAt: model.GetMillis(),
+		}
+		syncedUserOnB, appErr := th.App.CreateUser(th.Context, syncedUserOnB)
+		require.Nil(t, appErr)
+
+		// Step 3: Simulate connection reset by creating a new cluster A (from B's perspective)
+		// This represents B trying to sync back to A after connection reset
+		clusterA := &model.RemoteCluster{
+			RemoteId:             clusterB.RemoteId, // Same ID as the one referenced in syncedUserOnB.RemoteId
+			Name:                 "server-a",
+			SiteURL:              serverA.URL,
+			CreateAt:             model.GetMillis(),
+			LastPingAt:           model.GetMillis(),
+			LastGlobalUserSyncAt: 0,
+			Token:                model.NewId(),
+			CreatorId:            th.BasicUser.Id,
+			RemoteToken:          model.NewId(),
+		}
+		clusterA, err = ss.RemoteCluster().Save(clusterA)
+		require.NoError(t, err)
+
+		// Step 4: Attempt B→A sync (should NOT sync the user back to A)
+		err = service.HandleSyncAllUsersForTesting(clusterA)
+		require.NoError(t, err)
+
+		// Step 5: Verify the synced user was NOT sent back to A
+		// Use Never to ensure the user is never synced back
+		require.Never(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			for _, userID := range syncedBackToA {
+				if userID == syncedUserOnB.Id {
+					return true
+				}
+			}
+			return false
+		}, 2*time.Second, 100*time.Millisecond, "Synced user should NEVER be synced back to its originating cluster")
+
+		// Verify that the synced user still exists locally but wasn't synced
+		user, appErr := th.App.GetUser(syncedUserOnB.Id)
+		require.Nil(t, appErr)
+		assert.NotNil(t, user.RemoteId, "Synced user should still have RemoteId")
+		assert.Equal(t, clusterB.RemoteId, *user.RemoteId, "RemoteId should point to origin cluster")
+	})
+
+	t.Run("Test 11: Database Error Handling", func(t *testing.T) {
 		// This test verifies proper error handling when database operations fail:
 		// - Sync should fail gracefully
 		// - Cursor should not be updated
