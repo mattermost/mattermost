@@ -38,7 +38,7 @@ const CloudPreviewAnnouncementBar: React.FC = () => {
         if (timeDiff <= 0) {
             return '00:00';
         }
-        
+
         const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
