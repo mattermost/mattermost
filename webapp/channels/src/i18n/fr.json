@@ -2869,7 +2869,6 @@
   "channel_loader.postedImage": " a publié une image",
   "channel_loader.socketError": "Mattermost est inaccessible, veuillez vérifier votre connexion. Si le problème persiste, demandez à un administrateur système de [vérifier le port du WebSocket](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Quelqu'un",
-  "channel_loader.something": " a fait quelque chose",
   "channel_loader.unknown_error": "Réponse de statut incorrecte reçue du serveur.",
   "channel_loader.uploadedFile": " téléchargé un fichier",
   "channel_loader.uploadedImage": " téléchargé une image",

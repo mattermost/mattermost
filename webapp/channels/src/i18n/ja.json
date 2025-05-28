@@ -3398,7 +3398,6 @@
   "channel_loader.postedImage": " が画像をアップロードしました",
   "channel_loader.socketError": "Mattermostに接続できません。接続を確認してください。この問題が続くようならば、システム管理者に[WebSocketのポートを確認するよう](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port)依頼してください。",
   "channel_loader.someone": "誰か",
-  "channel_loader.something": " が何か新しいことをした",
   "channel_loader.unknown_error": "サーバーから想定外のステータスコードを受信しました。",
   "channel_loader.uploadedFile": " がファイルをアップロードしました",
   "channel_loader.uploadedImage": " が画像をアップロードしました",

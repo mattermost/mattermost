@@ -22,7 +22,7 @@
             padding: 12px 8px;
             border-radius: 8px;
             margin: 0 12px;
-            background-color: var(--denim-sidebar-active-border);
+            background-color: var(--sidebar-active-border);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
             color: var(--button-color);
 
@@ -109,30 +109,26 @@
                     border: none;
                     border-radius: 4px;
                     background: rgba(28, 88, 217, 0.08);
-                    color: var(--denim-button-bg);
+                    color: var(--button-bg);
                     font-size: 12px;
                     font-weight: 600;
                     line-height: 10px;
                 }
 
                 .learn-more {
-                    background: rgba(var(--denim-button-bg-rgb), 0.08);
-                    color: var(--denim-button-bg);
+                    background: rgba(var(--button-bg-rgb), 0.08);
+                    color: var(--button-bg);
                 }
 
                 .continue {
-                    background: var(--denim-button-bg);
+                    background: var(--button-bg);
                     color: var(--button-color);
                 }
             }
         }
 
-        .modal-header {
-            h1#createGroupsModalTitleWithBack,
-            h1#updateGroupsModalTitle,
-            h1#addUsersToGroupsModalLabel {
-                margin-left: 16px;
-            }
+        .GenericModal__header {
+            display: flex;
         }
     }
 
@@ -155,7 +151,9 @@
                     line-height: 38px;
                 }
 
-                .Input {
+                .Input.form-control {
+                    height: 34px;
+                    border: none;
                     font-size: 14px;
                     line-height: 38px;
                 }
@@ -177,8 +175,11 @@
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
             #groupsFilterDropdown {
+                display: inline-flex;
                 padding: 6px;
+                border: none;
                 border-radius: 4px;
+                background: none;
                 line-height: 12px;
 
                 &:hover {
@@ -189,14 +190,11 @@
                     background: rgba(var(--button-bg-rgb), 0.08);
                 }
 
-                a {
+                span {
+                    color: var(--button-bg);
+                    font-size: 12px;
                     line-height: 12px;
-
-                    span {
-                        color: var(--button-bg);
-                        font-size: 12px;
-                        line-height: 12px;
-                    }
+                    white-space: nowrap;
                 }
             }
 
@@ -242,6 +240,9 @@
                     display: flex;
                     align-items: center;
                     padding: 14px 32px;
+                    border: none;
+                    background: none;
+                    line-height: 38px;
 
                     &:hover {
                         background: rgba(var(--center-channel-color-rgb), 0.08);

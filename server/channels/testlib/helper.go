@@ -143,7 +143,7 @@ func (h *MainHelper) setupStore(withReadReplica bool) {
 	h.ClusterInterface = &FakeClusterInterface{}
 
 	var err error
-	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		panic(err)
 	}
@@ -160,7 +160,7 @@ func (h *MainHelper) ToggleReplicasOff() {
 	lic := h.SQLStore.GetLicense()
 
 	var err error
-	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		panic(err)
 	}
@@ -175,7 +175,7 @@ func (h *MainHelper) ToggleReplicasOn() {
 	lic := h.SQLStore.GetLicense()
 
 	var err error
-	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		panic(err)
 	}

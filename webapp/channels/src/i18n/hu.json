@@ -2594,7 +2594,6 @@
   "channel_loader.postedImage": " közzétett egy képet",
   "channel_loader.socketError": "Kérjük, ellenőrizze a kapcsolatot, a Mattermost elérhetetlen. Ha a probléma továbbra is fennáll, kérje meg az adminisztrátort, hogy [ellenőrizze a WebSocket portot](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Valaki",
-  "channel_loader.something": " csinált valami újat",
   "channel_loader.unknown_error": "Váratlan állapotkódot kaptunk a szervertől.",
   "channel_loader.uploadedFile": " feltöltött egy fájlt",
   "channel_loader.uploadedImage": " feltöltött egy képet",
