@@ -5,7 +5,6 @@ package searchlayer
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -17,18 +16,11 @@ type SearchTeamStore struct {
 
 func (s SearchTeamStore) SaveMember(rctx request.CTX, teamMember *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 	member, err := s.TeamStore.SaveMember(rctx, teamMember, maxUsersPerTeam)
-	if err != nil {
-		mlog.Error("failed to save member", mlog.String("user_id", teamMember.UserId), mlog.String("team_id", teamMember.TeamId))
-		return member, err
-	}
-	mlog.Debug("saved member", mlog.String("user_id", member.UserId), mlog.String("team_id", member.TeamId))
 	if err == nil {
 		// Nothing to do if search engine is not active
 		if s.rootStore.searchEngine.ActiveEngine() != "database" && s.rootStore.searchEngine.ActiveEngine() != "none" {
-			mlog.Debug("indexing user from ID")
 			s.rootStore.indexUserFromID(rctx, member.UserId)
-			mlog.Debug("indexing channels for team")
-			s.rootStore.indexChannelsForTeam(rctx, member.TeamId, member.UserId)
+			s.rootStore.indexChannelsForTeam(rctx, member.TeamId)
 		}
 	}
 	return member, err
@@ -48,7 +40,7 @@ func (s SearchTeamStore) RemoveMember(rctx request.CTX, teamId string, userId st
 		// Nothing to do if search engine is not active
 		if s.rootStore.searchEngine.ActiveEngine() != "database" && s.rootStore.searchEngine.ActiveEngine() != "none" {
 			s.rootStore.indexUserFromID(rctx, userId)
-			s.rootStore.indexChannelsForTeam(rctx, teamId, userId)
+			s.rootStore.indexChannelsForTeam(rctx, teamId)
 		}
 	}
 	return err
@@ -61,7 +53,7 @@ func (s SearchTeamStore) RemoveAllMembersByUser(rctx request.CTX, userId string)
 	}
 	if s.rootStore.searchEngine.ActiveEngine() != "database" && s.rootStore.searchEngine.ActiveEngine() != "none" {
 		for _, membership := range memberships {
-			s.rootStore.indexChannelsForTeam(rctx, membership.TeamId, userId)
+			s.rootStore.indexChannelsForTeam(rctx, membership.TeamId)
 		}
 	}
 	err = s.TeamStore.RemoveAllMembersByUser(rctx, userId)

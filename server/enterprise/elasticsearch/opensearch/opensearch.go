@@ -783,7 +783,7 @@ func (os *OpensearchInterfaceImpl) deletePost(indexName, postID string) *model.A
 	return nil
 }
 
-func (os *OpensearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *model.Channel, userIDs, teamMemberIDs []string, userID string) *model.AppError {
+func (os *OpensearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError {
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
@@ -794,15 +794,6 @@ func (os *OpensearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *model
 	indexName := *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels
 
 	searchChannel := common.ESChannelFromChannel(channel, userIDs, teamMemberIDs)
-
-	isItInSearchChannel := false
-	for _, id := range searchChannel.TeamMemberIDs {
-		if id == userID {
-			isItInSearchChannel = true
-			break
-		}
-	}
-	rctx.Logger().Debug("is it in searchChannel?", mlog.Bool("isItInSearchChannel", isItInSearchChannel))
 
 	var err error
 	var buf []byte
