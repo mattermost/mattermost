@@ -995,8 +995,8 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 	err = rcs.SendMsg(ctx, rcMsg, rc, func(rcMsg model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, errResp error) {
 		defer wg.Done()
 
-		// Check for ErrChannelNotShared in the response error
-		if errResp != nil && strings.Contains(errResp.Error(), ErrChannelNotShared.Error()) {
+		// Check for ErrChannelNotShared in the application response
+		if rcResp != nil && !rcResp.IsSuccess() && strings.Contains(rcResp.Err, ErrChannelNotShared.Error()) {
 			scs.handleChannelNotSharedError(msg, rc)
 			return
 		}
