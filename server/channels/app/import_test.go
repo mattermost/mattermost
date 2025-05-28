@@ -515,35 +515,35 @@ func TestProcessAttachments(t *testing.T) {
 	t.Run("valid path", func(t *testing.T) {
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("/tmp/file.jpg"),
+				Path: model.NewPointer("tmp/file.jpg"),
 			},
 			{
-				Path: model.NewPointer("/tmp/somedir/file.jpg"),
+				Path: model.NewPointer("tmp/somedir/file.jpg"),
 			},
 		}
 
 		t.Run("post attachments", func(t *testing.T) {
-			err := processAttachments(c, &line, "/tmp", nil)
+			err := processAttachments(c, &line, "tmp", nil)
 			require.NoError(t, err)
 			require.Equal(t, expected, line.Post.Attachments)
 		})
 
 		t.Run("direct post attachments", func(t *testing.T) {
-			err := processAttachments(c, &line2, "/tmp", nil)
+			err := processAttachments(c, &line2, "tmp", nil)
 			require.NoError(t, err)
 			require.Equal(t, expected, line2.DirectPost.Attachments)
 		})
 
 		t.Run("profile image", func(t *testing.T) {
-			expected := "/tmp/profile.jpg"
-			err := processAttachments(c, &userLine, "/tmp", nil)
+			expected := "tmp/profile.jpg"
+			err := processAttachments(c, &userLine, "tmp", nil)
 			require.NoError(t, err)
 			require.Equal(t, expected, *userLine.User.ProfileImage)
 		})
 
 		t.Run("emoji", func(t *testing.T) {
-			expected := "/tmp/emoji.png"
-			err := processAttachments(c, &emojiLine, "/tmp", nil)
+			expected := "tmp/emoji.png"
+			err := processAttachments(c, &emojiLine, "tmp", nil)
 			require.NoError(t, err)
 			require.Equal(t, expected, *emojiLine.Emoji.Image)
 		})
@@ -581,7 +581,7 @@ func TestProcessAttachments(t *testing.T) {
 			err := processAttachments(c, &userLine, "", filesMap)
 			require.Error(t, err)
 
-			filesMap["/tmp/profile.jpg"] = nil
+			filesMap["tmp/profile.jpg"] = nil
 			err = processAttachments(c, &userLine, "", filesMap)
 			require.NoError(t, err)
 		})
@@ -593,7 +593,7 @@ func TestProcessAttachments(t *testing.T) {
 			err := processAttachments(c, &emojiLine, "", filesMap)
 			require.Error(t, err)
 
-			filesMap["/tmp/emoji.png"] = nil
+			filesMap["tmp/emoji.png"] = nil
 			err = processAttachments(c, &emojiLine, "", filesMap)
 			require.NoError(t, err)
 		})
