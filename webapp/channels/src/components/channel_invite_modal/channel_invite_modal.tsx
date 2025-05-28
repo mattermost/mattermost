@@ -506,7 +506,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.actions.closeModal(ModalIdentifiers.CHANNEL_INVITE);
     };
 
-    const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode; id?: string}) => {
+    const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode; id?: string; abacChannelPolicyEnforced?: boolean}) => {
         return (
             <ToggleModalButton
                 className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
@@ -517,6 +517,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     initialValue: term,
                     inviteAsGuest: props.inviteAsGuest,
                     focusOriginElement: 'customNoOptionsMessageLink',
+                    canInviteGuests: Boolean(!props.abacChannelPolicyEnforced),
                 }}
                 onClick={closeMembersInviteModal}
                 id={props.id}
@@ -535,7 +536,10 @@ const ChannelInviteModalComponent = (props: Props) => {
                 defaultMessage='No matches found - <InvitationModalLink>Invite them to the team</InvitationModalLink>'
                 values={{
                     InvitationModalLink: (chunks: string) => (
-                        <InviteModalLink id='customNoOptionsMessageLink'>
+                        <InviteModalLink
+                            id='customNoOptionsMessageLink'
+                            abacChannelPolicyEnforced={props.channel.policy_enforced}
+                        >
                             {chunks}
                         </InviteModalLink>
                     ),
