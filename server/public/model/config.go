@@ -4704,7 +4704,7 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		if opts.PartiallyRedactDataSources && driverName != "" {
 			sanitized, err := SanitizeDataSource(driverName, dataSource)
 			if err != nil {
-				mlog.Warn("Failed to sanitize "+fieldName+". Falling back to fully sanitizing the settings.", mlog.Err(err))
+				mlog.Warn("Failed to sanitize "+fieldName+". Falling back to fully sanitizing the setting.", mlog.Err(err))
 				return FakeSetting
 			}
 			return sanitized
