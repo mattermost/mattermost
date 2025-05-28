@@ -12,6 +12,7 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
         className="multi-select__container react-select"
       >
         <ForwardRef
+          aria-invalid={false}
           className=""
           classNamePrefix="react-select-auto react-select"
           components={
@@ -29,6 +30,7 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
           isClearable={false}
           isMulti={true}
           menuIsOpen={false}
+          onBlur={[Function]}
           onChange={[Function]}
           onInputChange={[Function]}
           onKeyDown={[Function]}
@@ -196,6 +198,7 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
         className="multi-select__container react-select"
       >
         <ForwardRef
+          aria-invalid={false}
           className=""
           classNamePrefix="react-select-auto react-select"
           components={
@@ -213,6 +216,7 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
           isClearable={false}
           isMulti={true}
           menuIsOpen={false}
+          onBlur={[Function]}
           onChange={[Function]}
           onInputChange={[Function]}
           onKeyDown={[Function]}
@@ -371,6 +375,7 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
         className="multi-select__container react-select"
       >
         <ForwardRef
+          aria-invalid={false}
           className=""
           classNamePrefix="react-select-auto react-select"
           components={
@@ -388,6 +393,7 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
           isClearable={false}
           isMulti={true}
           menuIsOpen={false}
+          onBlur={[Function]}
           onChange={[Function]}
           onInputChange={[Function]}
           onKeyDown={[Function]}

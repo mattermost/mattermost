@@ -106,6 +106,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
             "id": "multiselect.placeholder.peopleOrGroups",
           }
         }
+        required={false}
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}
@@ -233,6 +234,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
             "id": "multiselect.placeholder.peopleOrGroups",
           }
         }
+        required={false}
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}
@@ -360,6 +362,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
             "id": "multiselect.placeholder.peopleOrGroups",
           }
         }
+        required={false}
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}
@@ -487,6 +490,7 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
             "id": "multiselect.placeholder.peopleOrGroups",
           }
         }
+        required={false}
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}

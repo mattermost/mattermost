@@ -60,10 +60,10 @@
 .multi-select__error {
     display: flex;
     margin-top: 5px;
+    color: var(--error-text);
     font-size: 12px;
     line-height: 16px;
     text-align: left;
-    color: var(--error-text);
 
     i {
         height: 14px;
