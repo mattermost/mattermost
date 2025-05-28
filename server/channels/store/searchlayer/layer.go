@@ -112,7 +112,7 @@ func (s *SearchStore) indexUser(rctx request.CTX, user *model.User) {
 	}
 }
 
-func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
+func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string, userID string) {
 	var (
 		perPage  = 100
 		channels []*model.Channel
@@ -126,9 +126,13 @@ func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
 		return
 	}
 
+	rctx.Logger().Debug("got public channels for team", mlog.Int("num_channels", len(channels)), mlog.String("team_id", teamID))
+
 	if len(channels) == 0 {
 		return
 	}
+
+	rctx.Logger().Debug("first channel in retrieved channels", mlog.String("channel_id", channels[0].Id), mlog.String("team_id", channels[0].TeamId))
 
 	teamMemberIDs, err := s.channel.GetTeamMembersForChannel(channels[0].Id)
 	if err != nil {
@@ -136,8 +140,21 @@ func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
 		return
 	}
 
+	rctx.Logger().Debug("got teamMemberIDs", mlog.Int("num_teammemberids", len(teamMemberIDs)))
+	rctx.Logger().Debug("gonna look for user id in teammemberids", mlog.String("user_id", userID))
+
+	isItThere := false
+	for _, id := range teamMemberIDs {
+		if id == userID {
+			isItThere = true
+			break
+		}
+	}
+
+	rctx.Logger().Debug("is it there?", mlog.Bool("isItThere", isItThere))
+
 	for _, channel := range channels {
-		s.channel.indexChannelWithTeamMembers(rctx, channel, teamMemberIDs)
+		s.channel.indexChannelWithTeamMembers(rctx, channel, teamMemberIDs, userID)
 	}
 }
 

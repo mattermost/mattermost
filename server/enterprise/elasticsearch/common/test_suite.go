@@ -331,7 +331,7 @@ func (c *CommonTestSuite) TestDeleteUserPosts() {
 func (c *CommonTestSuite) TestIndexChannel() {
 	// Create and index a channel
 	channel := createChannel(c.TH.BasicTeam.Id, "channel", "Test Channel", model.ChannelTypeOpen)
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}))
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}, ""))
 
 	c.NoError(c.RefreshIndexFn())
 
@@ -344,7 +344,7 @@ func (c *CommonTestSuite) TestIndexChannel() {
 func (c *CommonTestSuite) TestDeleteChannel() {
 	// Create and index a channel.
 	channel := createChannel(c.TH.BasicTeam.Id, "channel", "Test Channel", model.ChannelTypeOpen)
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}))
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}, ""))
 
 	c.NoError(c.RefreshIndexFn())
 
@@ -384,10 +384,10 @@ func (c *CommonTestSuite) TestIndexUser() {
 func (c *CommonTestSuite) TestSearchUsersInChannel() {
 	// Create test channels
 	channel1 := createChannel(c.TH.BasicTeam.Id, "channel1", "Test Channel 1", model.ChannelTypeOpen)
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel1, []string{}, []string{}))
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel1, []string{}, []string{}, ""))
 
 	channel2 := createChannel(c.TH.BasicTeam.Id, "channel2", "Test Channel 2", model.ChannelTypeOpen)
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel2, []string{}, []string{}))
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel2, []string{}, []string{}, ""))
 
 	// Create and index users with different channel memberships
 	user1 := createUser("test.user1", "testuser1", "Test", "User1")
@@ -535,7 +535,7 @@ func (c *CommonTestSuite) TestSearchUsersInTeam() {
 		// Test 5: Search with restrictedToChannels
 		// Create channel in team1
 		channel1 := createChannel(team1.Id, "channel1", "Test Channel 1", model.ChannelTypeOpen)
-		c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel1, []string{}, []string{}))
+		c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel1, []string{}, []string{}, ""))
 
 		// Update user1 to be in channel1
 		c.Nil(c.ESImpl.IndexUser(c.TH.Context, user1, []string{team1.Id}, []string{channel1.Id}))
@@ -610,7 +610,7 @@ func (c *CommonTestSuite) TestTestConfig() {
 func (c *CommonTestSuite) TestIndexFile() {
 	// First, create and index a channel
 	channel := createChannel(c.TH.BasicTeam.Id, "channel", "Test Channel", model.ChannelTypeOpen)
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}))
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}, ""))
 
 	// Then, create and index a user
 	user := createUser("test.user", "testuser", "Test", "User")
@@ -631,7 +631,7 @@ func (c *CommonTestSuite) TestIndexFile() {
 func (c *CommonTestSuite) TestDeleteFile() {
 	// First, create and index a channel
 	channel := createChannel(c.TH.BasicTeam.Id, "channel", "Test Channel", model.ChannelTypeOpen)
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}))
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}, ""))
 
 	// Then, create and index a user
 	user := createUser("test.user", "testuser", "Test", "User")
@@ -666,7 +666,7 @@ func (c *CommonTestSuite) TestDeleteFile() {
 func (c *CommonTestSuite) TestDeleteUserFiles() {
 	// First, create and index a channel
 	channel := createChannel(c.TH.BasicTeam.Id, "channel", "Test Channel", model.ChannelTypeOpen)
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}))
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}, ""))
 
 	// Then, create and index a user
 	user := createUser("test.user", "testuser", "Test", "User")
@@ -701,7 +701,7 @@ func (c *CommonTestSuite) TestDeleteUserFiles() {
 func (c *CommonTestSuite) TestDeletePostFiles() {
 	// First, create and index a channel
 	channel := createChannel(c.TH.BasicTeam.Id, "channel", "Test Channel", model.ChannelTypeOpen)
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}))
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}, ""))
 
 	// Then, create and index a user
 	user := createUser("test.user", "testuser", "Test", "User")
@@ -740,7 +740,7 @@ func (c *CommonTestSuite) TestDeletePostFiles() {
 func (c *CommonTestSuite) TestSearchFiles() {
 	// First, create and index a channel
 	channel := createChannel(c.TH.BasicTeam.Id, "channel", "Test Channel", model.ChannelTypeOpen)
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}))
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}, ""))
 
 	// Then, create and index a user
 	user := createUser("test.user", "testuser", "Test", "User")
@@ -1144,7 +1144,7 @@ func (c *CommonTestSuite) TestPurgeIndexList() {
 	c.Run("Should purge allowed index", func() {
 		// Create and index a channel
 		channel := createChannel("test.channel", "testuser", "Test", model.ChannelTypeOpen)
-		c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}))
+		c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}, ""))
 
 		c.NoError(c.RefreshIndexFn())
 
@@ -1170,7 +1170,7 @@ func (c *CommonTestSuite) TestPurgeIndexList() {
 		c.TH.App.UpdateConfig(func(cfg *model.Config) { *cfg.ElasticsearchSettings.IndexPrefix = "" })
 
 		channel := createChannel("test.channel", "testuser", "Test", model.ChannelTypeOpen)
-		c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}))
+		c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}, ""))
 
 		c.NoError(c.RefreshIndexFn())
 
@@ -1206,9 +1206,9 @@ func (c *CommonTestSuite) TestPurgeIndexList() {
 func (c *CommonTestSuite) TestSearchChannels() {
 	// Create and index a channel
 	channel := createChannel(c.TH.BasicTeam.Id, "channel", "Channel Open", model.ChannelTypeOpen)
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{c.TH.BasicUser.Id, "otheruser"}))
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{c.TH.BasicUser.Id, "otheruser"}, ""))
 	channel2 := createChannel(c.TH.BasicTeam.Id, "channel", "Channel Private", model.ChannelTypePrivate)
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel2, []string{c.TH.BasicUser.Id}, []string{c.TH.BasicUser.Id, "otheruser"}))
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel2, []string{c.TH.BasicUser.Id}, []string{c.TH.BasicUser.Id, "otheruser"}, ""))
 
 	c.NoError(c.RefreshIndexFn())
 
@@ -1234,7 +1234,7 @@ func (c *CommonTestSuite) TestSearchChannels() {
 	// Adding a deleted channel
 	channelDel := createChannel(c.TH.BasicTeam.Id, "channelD", "Channel Open- Deleted", model.ChannelTypeOpen)
 	channelDel.DeleteAt = 123
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channelDel, []string{}, []string{c.TH.BasicUser.Id, "otheruser"}))
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channelDel, []string{}, []string{c.TH.BasicUser.Id, "otheruser"}, ""))
 	c.NoError(c.RefreshIndexFn())
 
 	ids, appErr := c.ESImpl.SearchChannels("", c.TH.BasicUser.Id, "Channel", false, false)
