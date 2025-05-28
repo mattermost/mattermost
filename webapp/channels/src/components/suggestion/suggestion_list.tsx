@@ -254,6 +254,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 >
                     {items}
                 </SuggestionListList>
+                <SuggestionListStatus items={this.props.items}/>
             </div>
         );
     }
@@ -270,3 +271,28 @@ const SuggestionListList = React.forwardRef<HTMLUListElement, React.HTMLAttribut
         />
     );
 });
+
+function SuggestionListStatus({items}: Pick<Props, 'items'>) {
+    const {formatMessage} = useIntl();
+
+    const statusText = formatMessage(
+        {
+            id: 'suggestionList.suggestionsAvailable',
+            defaultMessage: '{count, number} {count, plural, one {suggestion} other {suggestions}} available',
+        },
+        {
+            count: items.length,
+        },
+    );
+
+    return (
+        <div
+            className='sr-only'
+            aria-atomic={true}
+            aria-live='polite'
+            role='status'
+        >
+            {statusText}
+        </div>
+    );
+}

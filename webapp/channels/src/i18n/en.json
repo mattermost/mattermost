@@ -5557,6 +5557,7 @@
   "suggestion.user.isCurrent": "(you)",
   "suggestionList.label": "Suggestions",
   "suggestionList.noMatches": "No items match <b>{value}</b>",
+  "suggestionList.suggestionsAvailable": "{count, number} {count, plural, one {suggestion} other {suggestions}} available",
   "system_notice.adminVisible": "Only visible to System Admins",
   "system_notice.adminVisible.icon": "Only visible to System Admins Icon",
   "system_notice.body.api3": "If you’ve created or installed integrations in the last two years, find out how <link>recent changes</link> may have affected them.",
