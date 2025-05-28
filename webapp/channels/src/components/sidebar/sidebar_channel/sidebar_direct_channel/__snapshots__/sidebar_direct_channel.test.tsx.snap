@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot 1`] = `
-<Connect(SidebarChannelLink)
+<Connect(injectIntl(SidebarChannelLink))
   channel={
     Object {
       "create_at": 0,
@@ -31,6 +31,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       wrapperClass="DirectChannel__profile-picture"
     />
   }
+  isSharedChannel={false}
   label="channel_display_name"
   link="/team_name/messages/@some-user"
   teammateId="user_id"
@@ -38,7 +39,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with bot with custom icon 1`] = `
-<Connect(SidebarChannelLink)
+<Connect(injectIntl(SidebarChannelLink))
   channel={
     Object {
       "create_at": 0,
@@ -69,6 +70,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       wrapperClass="DirectChannel__profile-picture"
     />
   }
+  isSharedChannel={false}
   label="channel_display_name"
   link="/team_name/messages/@some-user"
   teammateId="user_id"
@@ -76,7 +78,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with current user 1`] = `
-<Connect(SidebarChannelLink)
+<Connect(injectIntl(SidebarChannelLink))
   channel={
     Object {
       "create_at": 0,
@@ -106,6 +108,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       wrapperClass="DirectChannel__profile-picture"
     />
   }
+  isSharedChannel={false}
   label="channel_display_name (you)"
   link="/team_name/messages/@some-user"
   teammateId="user_id"
@@ -113,7 +116,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with deleted user 1`] = `
-<Connect(SidebarChannelLink)
+<Connect(injectIntl(SidebarChannelLink))
   channel={
     Object {
       "create_at": 0,
@@ -139,6 +142,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       className="icon icon-archive-outline"
     />
   }
+  isSharedChannel={false}
   label="channel_display_name"
   link="/team_name/messages/@some-user"
   teammateId="user_id"

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {Tooltip} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -10,10 +9,10 @@ import {ViewGridPlusOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {openModal} from 'actions/views/modals';
 
-import OverlayTrigger from 'components/overlay_trigger';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
+import WithTooltip from 'components/with_tooltip';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 const AppBarMarketplace = () => {
     const {formatMessage} = useIntl();
@@ -32,15 +31,9 @@ const AppBarMarketplace = () => {
     const label = formatMessage({id: 'app_bar.marketplace', defaultMessage: 'App Marketplace'});
 
     return (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='left'
-            overlay={(
-                <Tooltip id='tooltip-app-bar-marketplace'>
-                    <span>{label}</span>
-                </Tooltip>
-            )}
+        <WithTooltip
+            title={label}
+            isVertical={false}
         >
             <button
                 key='app_bar_marketplace'
@@ -50,7 +43,7 @@ const AppBarMarketplace = () => {
             >
                 <ViewGridPlusOutlineIcon size={18}/>
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

@@ -37,7 +37,7 @@ func TestFirstUserPromoted(t *testing.T) {
 	defer th.TearDown()
 
 	user, err := th.service.CreateUser(th.Context, &model.User{
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Password: model.NewId(),
 		Email:    "user@example.com",
 	}, UserCreateOptions{})
@@ -47,7 +47,7 @@ func TestFirstUserPromoted(t *testing.T) {
 	require.Equal(t, model.SystemAdminRoleId+" "+model.SystemUserRoleId, user.Roles)
 
 	user2, err := th.service.CreateUser(th.Context, &model.User{
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Password: model.NewId(),
 		Email:    "user2@example.com",
 	}, UserCreateOptions{})
@@ -56,19 +56,20 @@ func TestFirstUserPromoted(t *testing.T) {
 
 	require.Equal(t, model.SystemUserRoleId, user2.Roles)
 
-	th.dbStore.User().PermanentDelete(th.Context, user.Id)
+	err = th.dbStore.User().PermanentDelete(th.Context, user.Id)
+	require.NoError(t, err)
 
 	b := &model.Bot{
 		UserId:   user2.Id,
 		OwnerId:  model.NewId(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 
 	_, err = th.dbStore.Bot().Save(b)
 	require.NoError(t, err)
 
 	user3, err := th.service.CreateUser(th.Context, &model.User{
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Password: model.NewId(),
 		Email:    "user3@example.com",
 	}, UserCreateOptions{})
@@ -78,7 +79,7 @@ func TestFirstUserPromoted(t *testing.T) {
 	require.Equal(t, model.SystemAdminRoleId+" "+model.SystemUserRoleId, user3.Roles)
 
 	user4, err := th.service.CreateUser(th.Context, &model.User{
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Password: model.NewId(),
 		Email:    "user4@example.com",
 	}, UserCreateOptions{})

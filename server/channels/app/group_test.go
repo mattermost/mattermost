@@ -71,9 +71,9 @@ func TestCreateGroup(t *testing.T) {
 	id := model.NewId()
 	group := &model.Group{
 		DisplayName: "dn_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	}
 
 	g, err := th.App.CreateGroup(group)
@@ -90,7 +90,7 @@ func TestCreateGroup(t *testing.T) {
 			DisplayName: "dn_" + model.NewId(),
 			Name:        &user.Username,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewString(model.NewId()),
+			RemoteId:    model.NewPointer(model.NewId()),
 		}
 		g, err = th.App.CreateGroup(usernameGroup)
 		require.NotNil(t, err)
@@ -213,7 +213,7 @@ func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
 	group2 := th.CreateGroup()
 
 	team := th.CreateTeam()
-	team.GroupConstrained = model.NewBool(true)
+	team.GroupConstrained = model.NewPointer(true)
 	team, err := th.App.UpdateTeam(team)
 	require.Nil(t, err)
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group1.Id, team.Id, false))
@@ -311,7 +311,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 	groups, _, err := th.App.GetGroupsByChannel(th.BasicChannel.Id, opts)
 	require.Nil(t, err)
-	require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(false)}}, groups)
+	require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewPointer(false)}}, groups)
 	require.NotNil(t, groups[0].SchemeAdmin)
 
 	groups, _, err = th.App.GetGroupsByChannel(model.NewId(), opts)
@@ -348,7 +348,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 
 	assert.Equal(t, map[string][]*model.GroupWithSchemeAdmin{
 		th.BasicChannel.Id: {
-			{Group: *group, SchemeAdmin: model.NewBool(false)},
+			{Group: *group, SchemeAdmin: model.NewPointer(false)},
 		},
 	}, groups)
 	require.NotNil(t, groups[th.BasicChannel.Id][0].SchemeAdmin)
@@ -377,7 +377,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 
 	groups, _, err := th.App.GetGroupsByTeam(th.BasicTeam.Id, model.GroupSearchOpts{})
 	require.Nil(t, err)
-	require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(false)}}, groups)
+	require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewPointer(false)}}, groups)
 	require.NotNil(t, groups[0].SchemeAdmin)
 
 	groups, _, err = th.App.GetGroupsByTeam(model.NewId(), model.GroupSearchOpts{})
@@ -441,7 +441,8 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	require.True(t, actual)
 
 	// delete the syncable, should be false again
-	th.App.DeleteGroupSyncable(group2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	_, appErr := th.App.DeleteGroupSyncable(group2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, appErr)
 	actual, err = th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	require.Nil(t, err)
 	require.False(t, actual)

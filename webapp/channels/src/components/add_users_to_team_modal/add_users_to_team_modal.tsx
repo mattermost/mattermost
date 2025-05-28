@@ -4,7 +4,7 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
-import {injectIntl, FormattedMessage} from 'react-intl';
+import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -19,7 +19,7 @@ import ProfilePicture from 'components/profile_picture';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {displayEntireNameForUser, localizeMessage} from 'utils/utils';
+import {displayEntireNameForUser} from 'utils/utils';
 
 const USERS_PER_PAGE = 50;
 const MAX_SELECTABLE_VALUES = 20;
@@ -135,11 +135,14 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
                     </div>
                 </div>
                 <div className='more-modal__actions'>
-                    <div className='more-modal__actions--round'>
+                    <button
+                        className='more-modal__actions--round'
+                        aria-label='Add users to team'
+                    >
                         <i
                             className='icon icon-plus'
                         />
-                    </div>
+                    </button>
                 </div>
             </div>
         );
@@ -192,8 +195,8 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
             </div>
         );
 
-        const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
-        const buttonSubmitLoadingText = localizeMessage('multiselect.adding', 'Adding...');
+        const buttonSubmitText = defineMessage({id: 'multiselect.add', defaultMessage: 'Add'});
+        const buttonSubmitLoadingText = defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'});
 
         let addError = null;
         if (this.state.addError) {
@@ -259,7 +262,7 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
                         buttonSubmitLoadingText={buttonSubmitLoadingText}
                         saving={this.state.saving}
                         loading={this.state.loading}
-                        placeholderText={localizeMessage('multiselect.placeholder', 'Search and add members')}
+                        placeholderText={defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search and add members'})}
                     />
                 </Modal.Body>
             </Modal>

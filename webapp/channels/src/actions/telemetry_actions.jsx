@@ -3,7 +3,6 @@
 
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
-import {getSortedTrackedSelectors} from 'mattermost-redux/selectors/create_selector';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
@@ -21,7 +20,7 @@ export function shouldTrackPerformance(state = store.getState()) {
     return isDevModeEnabled(state) || isTelemetryEnabled(state);
 }
 
-export function trackEvent(category, event, props) {
+export function trackEvent(category, event, props = {}) {
     const state = store.getState();
     if (
         isPerformanceDebuggingEnabled(state) &&
@@ -36,6 +35,10 @@ export function trackEvent(category, event, props) {
         // eslint-disable-next-line no-console
         console.log(event + ' - ' + Object.entries(props).map(([key, value]) => `${key}: ${value}`).join(', '));
     }
+}
+
+export function trackFeatureEvent(featureName, event, props = {}) {
+    Client4.trackFeatureEvent(featureName, event, props);
 }
 
 export function pageVisited(category, name) {
@@ -166,30 +169,6 @@ export function trackPluginInitialization(plugins) {
         totalDuration,
         totalSize,
     });
-}
-
-export function trackSelectorMetrics() {
-    setTimeout(() => {
-        if (!shouldTrackPerformance()) {
-            return;
-        }
-
-        const selectors = getSortedTrackedSelectors();
-        const filteredSelectors = selectors.filter((selector) => selector.calls > 5);
-
-        trackEvent('performance', 'least_effective_selectors', {
-            after: 'one_minute',
-            first: filteredSelectors[0]?.name || '',
-            first_effectiveness: filteredSelectors[0]?.effectiveness,
-            first_recomputations: filteredSelectors[0]?.recomputations,
-            second: filteredSelectors[1]?.name || '',
-            second_effectiveness: filteredSelectors[1]?.effectiveness,
-            second_recomputations: filteredSelectors[1]?.recomputations,
-            third: filteredSelectors[2]?.name || '',
-            third_effectiveness: filteredSelectors[2]?.effectiveness,
-            third_recomputations: filteredSelectors[2]?.recomputations,
-        });
-    }, 60000);
 }
 
 let requestCount = 0;

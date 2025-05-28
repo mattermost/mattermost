@@ -129,7 +129,6 @@ function SelfHostedContent(props: ContentProps) {
     const trialButton = () => {
         return (
             <StartTrialBtn
-                message={formatMessage({id: 'pricing_modal.btn.tryDays', defaultMessage: 'Try free for {days} days'}, {days: '30'})}
                 telemetryId='start_trial_from_self_hosted_pricing_modal'
                 renderAsButton={true}
                 disabled={isSelfHostedEnterpriseTrial}
@@ -175,7 +174,7 @@ function SelfHostedContent(props: ContentProps) {
                             isStarter ? (
                                 <PlanLabel
                                     text={formatMessage({id: 'pricing_modal.planLabel.currentPlan', defaultMessage: 'CURRENT PLAN'})}
-                                    color='var(--denim-status-online)'
+                                    color='var(--online-indicator)'
                                     bgColor='var(--center-channel-bg)'
                                     firstSvg={<CheckMarkSvg/>}
                                 />) : undefined}
@@ -192,7 +191,7 @@ function SelfHostedContent(props: ContentProps) {
                     />
                     <Card
                         id='professional'
-                        topColor='var(--denim-button-bg)'
+                        topColor='var(--button-bg)'
                         plan='Professional'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.professional', defaultMessage: 'Scalable solutions {br} for growing teams'}, {
                             br: <br/>,
@@ -211,7 +210,7 @@ function SelfHostedContent(props: ContentProps) {
                             isProfessional ? (
                                 <PlanLabel
                                     text={formatMessage({id: 'pricing_modal.planLabel.currentPlan', defaultMessage: 'CURRENT PLAN'})}
-                                    color='var(--denim-status-online)'
+                                    color='var(--online-indicator)'
                                     bgColor='var(--center-channel-bg)'
                                     firstSvg={<CheckMarkSvg/>}
                                 />) : undefined}
@@ -240,7 +239,7 @@ function SelfHostedContent(props: ContentProps) {
                             isEnterprise ? (
                                 <PlanLabel
                                     text={formatMessage({id: 'pricing_modal.planLabel.currentPlan', defaultMessage: 'CURRENT PLAN'})}
-                                    color='var(--denim-status-online)'
+                                    color='var(--online-indicator)'
                                     bgColor='var(--center-channel-bg)'
                                     firstSvg={<CheckMarkSvg/>}
                                     renderLastDaysOnTrial={true}

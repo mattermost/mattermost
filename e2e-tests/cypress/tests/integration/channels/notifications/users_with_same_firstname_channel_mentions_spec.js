@@ -78,7 +78,7 @@ describe('Notifications', () => {
             cy.uiOpenUserMenu().findByText(`@${firstUser.username}`);
 
             // # Close the user menu
-            cy.uiGetSetStatusButton().click();
+            cy.get('body').type('{esc}');
 
             // * Check that 'Town Square' is currently being selected
             cy.get('.active').within(() => {

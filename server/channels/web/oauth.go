@@ -78,7 +78,10 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(model.MapToJSON(map[string]string{"redirect": redirectURL})))
+	_, err = w.Write([]byte(model.MapToJSON(map[string]string{"redirect": redirectURL})))
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -192,7 +195,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-	w.Header().Set("Content-Security-Policy", fmt.Sprintf("frame-ancestors %s", frameAncestors))
+	w.Header().Set("Content-Security-Policy", fmt.Sprintf("frame-ancestors 'self' %s", *c.App.Config().ServiceSettings.FrameAncestors))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926")
 
@@ -201,7 +204,10 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.bad_request.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
 
 	code := r.FormValue("code")
 	refreshToken := r.FormValue("refresh_token")
@@ -339,7 +345,45 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if action == model.OAuthActionSSOToEmail {
 		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
-		session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, false)
+		desktopToken := ""
+		if val, ok := props["desktop_token"]; ok {
+			desktopToken = val
+		}
+
+		// If it's a desktop login we generate a token and redirect to another endpoint to handle session creation
+		if desktopToken != "" {
+			serverToken, serverTokenErr := c.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
+			if serverTokenErr != nil {
+				serverTokenErr.Translate(c.AppContext.T)
+				c.LogErrorByCode(serverTokenErr)
+				renderError(serverTokenErr)
+				return
+			}
+
+			queryString := map[string]string{
+				"client_token": desktopToken,
+				"server_token": *serverToken,
+			}
+			if val, ok := props["redirect_to"]; ok {
+				queryString["redirect_to"] = val
+			}
+			if strings.HasPrefix(desktopToken, "dev-") {
+				queryString["isDesktopDev"] = "true"
+			}
+
+			redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
+
+			auditRec.Success()
+			c.LogAudit("success")
+
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
+			return
+		}
+
+		isOAuthUser := user.IsOAuthUser()
+
+		session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, isOAuthUser, false)
 		if err != nil {
 			err.Translate(c.AppContext.T)
 			c.Logger.Error(err.Error())
@@ -372,34 +416,6 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		// For web
 		c.App.AttachSessionCookies(c.AppContext, w, r)
-
-		desktopToken := ""
-		if val, ok := props["desktop_token"]; ok {
-			desktopToken = val
-		}
-
-		if desktopToken != "" {
-			serverToken, serverTokenErr := c.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
-			if serverTokenErr != nil {
-				serverTokenErr.Translate(c.AppContext.T)
-				c.LogErrorByCode(serverTokenErr)
-				renderError(serverTokenErr)
-				return
-			}
-
-			queryString := map[string]string{
-				"client_token": desktopToken,
-				"server_token": *serverToken,
-			}
-			if val, ok := props["redirect_to"]; ok {
-				queryString["redirect_to"] = val
-			}
-			if strings.HasPrefix(desktopToken, "dev-") {
-				queryString["isDesktopDev"] = "true"
-			}
-
-			redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
-		}
 	}
 
 	auditRec.Success()

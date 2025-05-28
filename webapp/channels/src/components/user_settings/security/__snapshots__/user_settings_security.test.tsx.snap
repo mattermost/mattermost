@@ -1,7 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable gitlab 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -26,7 +30,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-dark first"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       max={null}
@@ -67,7 +71,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       describe={
@@ -103,6 +107,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Access History Icon"
       />
@@ -125,6 +130,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Active Sessions Icon"
       />
@@ -138,7 +144,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable google 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -163,7 +173,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-dark first"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       max={null}
@@ -204,7 +214,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       describe={
@@ -240,6 +250,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Access History Icon"
       />
@@ -262,6 +273,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Active Sessions Icon"
       />
@@ -275,7 +287,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable office365 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -300,7 +316,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-dark first"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       max={null}
@@ -341,7 +357,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       describe={
@@ -377,6 +393,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Access History Icon"
       />
@@ -399,6 +416,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Active Sessions Icon"
       />
@@ -412,7 +430,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable openID 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -437,7 +459,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-dark first"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       max={null}
@@ -478,7 +500,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       describe={
@@ -514,6 +536,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Access History Icon"
       />
@@ -536,6 +559,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Active Sessions Icon"
       />
@@ -549,7 +573,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, to email 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -574,7 +602,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-dark first"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       max={null}
@@ -616,7 +644,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       describe={
@@ -652,6 +680,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Access History Icon"
       />
@@ -674,6 +703,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Active Sessions Icon"
       />

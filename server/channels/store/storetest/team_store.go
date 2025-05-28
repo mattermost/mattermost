@@ -80,7 +80,7 @@ func TestTeamStore(t *testing.T, rctx request.CTX, ss store.Store) {
 func testTeamStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 
@@ -98,7 +98,7 @@ func testTeamStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 func testTeamStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&o1)
@@ -121,7 +121,7 @@ func testTeamStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 func testTeamStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&o1)
@@ -138,7 +138,7 @@ func testTeamStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 func testTeamStoreGetMany(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1, err := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	})
@@ -146,7 +146,7 @@ func testTeamStoreGetMany(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o2, err := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName2",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	})
@@ -169,7 +169,7 @@ func testTeamStoreGetMany(t *testing.T, rctx request.CTX, ss store.Store) {
 func testTeamStoreGetByNames(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 
@@ -178,7 +178,7 @@ func testTeamStoreGetByNames(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName2"
-	o2.Name = NewTestId()
+	o2.Name = NewTestID()
 	o2.Email = MakeEmail()
 	o2.Type = model.TeamOpen
 
@@ -222,7 +222,7 @@ func testTeamStoreGetByNames(t *testing.T, rctx request.CTX, ss store.Store) {
 func testTeamStoreGetByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 
@@ -251,8 +251,8 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	cleanupTeamStore(t, rctx, ss)
 
 	o := model.Team{}
-	o.DisplayName = "ADisplayName" + NewTestId()
-	o.Name = "searchterm-" + NewTestId()
+	o.DisplayName = "ADisplayName" + NewTestID()
+	o.Name = "searchterm-" + NewTestID()
 	o.Email = MakeEmail()
 	o.Type = model.TeamOpen
 	o.AllowOpenInvite = true
@@ -261,8 +261,8 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	p := model.Team{}
-	p.DisplayName = "BDisplayName" + NewTestId()
-	p.Name = "searchterm-" + NewTestId()
+	p.DisplayName = "BDisplayName" + NewTestID()
+	p.Name = "searchterm-" + NewTestID()
 	p.Email = MakeEmail()
 	p.Type = model.TeamOpen
 	p.AllowOpenInvite = false
@@ -271,12 +271,12 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	g := model.Team{}
-	g.DisplayName = "CDisplayName" + NewTestId()
-	g.Name = "searchterm-" + NewTestId()
+	g.DisplayName = "CDisplayName" + NewTestID()
+	g.Name = "searchterm-" + NewTestID()
 	g.Email = MakeEmail()
 	g.Type = model.TeamOpen
 	g.AllowOpenInvite = false
-	g.GroupConstrained = model.NewBool(true)
+	g.GroupConstrained = model.NewPointer(true)
 
 	_, err = ss.Team().Save(&g)
 	require.NoError(t, err)
@@ -294,7 +294,7 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
-			PostDurationDays: model.NewInt64(20),
+			PostDurationDays: model.NewPointer(int64(20)),
 		},
 		TeamIDs: []string{q.Id},
 	})
@@ -368,55 +368,55 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			"Search for all 3 teams filter by allow open invite",
-			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewBool(true)},
+			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewPointer(true)},
 			1,
 			[]string{o.Id},
 		},
 		{
 			"Search for all 3 teams filter by allow open invite = false",
-			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewBool(false)},
+			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewPointer(false)},
 			1,
 			[]string{p.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(true)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(true)},
 			1,
 			[]string{g.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained = false",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(false)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(false)},
 			2,
 			[]string{o.Id, p.Id},
 		},
 		{
 			"Search for all 3 teams filter by allow open invite and include group constrained",
-			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewBool(true), GroupConstrained: model.NewBool(true)},
+			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewPointer(true), GroupConstrained: model.NewPointer(true)},
 			2,
 			[]string{o.Id, g.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained and not open invite",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(true), AllowOpenInvite: model.NewBool(false)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(true), AllowOpenInvite: model.NewPointer(false)},
 			2,
 			[]string{g.Id, p.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained false and open invite",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(false), AllowOpenInvite: model.NewBool(true)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(false), AllowOpenInvite: model.NewPointer(true)},
 			2,
 			[]string{o.Id, p.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained false and open invite false",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(false), AllowOpenInvite: model.NewBool(false)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(false), AllowOpenInvite: model.NewPointer(false)},
 			2,
 			[]string{p.Id, o.Id},
 		},
 		{
 			"Search for teams which are not part of a data retention policy",
-			&model.TeamSearch{Term: "", ExcludePolicyConstrained: model.NewBool(true)},
+			&model.TeamSearch{Term: "", ExcludePolicyConstrained: model.NewPointer(true)},
 			3,
 			[]string{o.Id, p.Id, g.Id},
 		},
@@ -438,8 +438,8 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testTeamStoreSearchOpen(t *testing.T, rctx request.CTX, ss store.Store) {
 	o := model.Team{}
-	o.DisplayName = "ADisplayName" + NewTestId()
-	o.Name = NewTestId()
+	o.DisplayName = "ADisplayName" + NewTestID()
+	o.Name = NewTestID()
 	o.Email = MakeEmail()
 	o.Type = model.TeamOpen
 	o.AllowOpenInvite = true
@@ -448,8 +448,8 @@ func testTeamStoreSearchOpen(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	p := model.Team{}
-	p.DisplayName = "ADisplayName" + NewTestId()
-	p.Name = NewTestId()
+	p.DisplayName = "ADisplayName" + NewTestID()
+	p.Name = NewTestID()
 	p.Email = MakeEmail()
 	p.Type = model.TeamOpen
 	p.AllowOpenInvite = false
@@ -544,8 +544,8 @@ func testTeamStoreSearchOpen(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) {
 	o := model.Team{}
-	o.DisplayName = "ADisplayName" + NewTestId()
-	o.Name = NewTestId()
+	o.DisplayName = "ADisplayName" + NewTestID()
+	o.Name = NewTestID()
 	o.Email = MakeEmail()
 	o.Type = model.TeamOpen
 	o.AllowOpenInvite = true
@@ -554,8 +554,8 @@ func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) 
 	require.NoError(t, err)
 
 	p := model.Team{}
-	p.DisplayName = "ADisplayName" + NewTestId()
-	p.Name = NewTestId()
+	p.DisplayName = "ADisplayName" + NewTestID()
+	p.Name = NewTestID()
 	p.Email = MakeEmail()
 	p.Type = model.TeamOpen
 	p.AllowOpenInvite = false
@@ -651,7 +651,7 @@ func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) 
 func testTeamStoreGetByInviteId(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	o1.InviteId = model.NewId()
@@ -670,7 +670,7 @@ func testTeamStoreGetByInviteId(t *testing.T, rctx request.CTX, ss store.Store) 
 func testTeamStoreByUserId(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	o1.InviteId = model.NewId()
@@ -700,7 +700,7 @@ func testTeamStoreGetAllPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	policy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: model.NewPointer(int64(30)),
 		},
 		TeamIDs: []string{o.Id},
 	})
@@ -720,7 +720,7 @@ func testTeamStoreGetAllPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.True(t, found)
 
 	// With ExcludePolicyConstrained
-	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{ExcludePolicyConstrained: model.NewBool(true)})
+	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{ExcludePolicyConstrained: model.NewPointer(true)})
 	require.NoError(t, err)
 	found = false
 	for _, team := range teams {
@@ -732,7 +732,7 @@ func testTeamStoreGetAllPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.False(t, found)
 
 	// With policy ID
-	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{IncludePolicyID: model.NewBool(true)})
+	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{IncludePolicyID: model.NewPointer(true)})
 	require.NoError(t, err)
 	found = false
 	for _, team := range teams {
@@ -748,7 +748,7 @@ func testTeamStoreGetAllPage(t *testing.T, rctx request.CTX, ss store.Store) {
 func testGetAllTeamListing(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	o1.AllowOpenInvite = true
@@ -757,7 +757,7 @@ func testGetAllTeamListing(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = NewTestId()
+	o2.Name = NewTestID()
 	o2.Email = MakeEmail()
 	o2.Type = model.TeamOpen
 	_, err = ss.Team().Save(&o2)
@@ -765,7 +765,7 @@ func testGetAllTeamListing(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
-	o3.Name = NewTestId()
+	o3.Name = NewTestID()
 	o3.Email = MakeEmail()
 	o3.Type = model.TeamInvite
 	o3.AllowOpenInvite = true
@@ -774,7 +774,7 @@ func testGetAllTeamListing(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
-	o4.Name = NewTestId()
+	o4.Name = NewTestID()
 	o4.Email = MakeEmail()
 	o4.Type = model.TeamInvite
 	_, err = ss.Team().Save(&o4)
@@ -792,7 +792,7 @@ func testGetAllTeamListing(t *testing.T, rctx request.CTX, ss store.Store) {
 func testGetAllTeamPageListing(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	o1.AllowOpenInvite = true
@@ -801,7 +801,7 @@ func testGetAllTeamPageListing(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = NewTestId()
+	o2.Name = NewTestID()
 	o2.Email = MakeEmail()
 	o2.Type = model.TeamOpen
 	o2.AllowOpenInvite = false
@@ -810,7 +810,7 @@ func testGetAllTeamPageListing(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
-	o3.Name = NewTestId()
+	o3.Name = NewTestID()
 	o3.Email = MakeEmail()
 	o3.Type = model.TeamInvite
 	o3.AllowOpenInvite = true
@@ -819,14 +819,14 @@ func testGetAllTeamPageListing(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
-	o4.Name = NewTestId()
+	o4.Name = NewTestID()
 	o4.Email = MakeEmail()
 	o4.Type = model.TeamInvite
 	o4.AllowOpenInvite = false
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	opts := &model.TeamSearch{AllowOpenInvite: model.NewBool(true)}
+	opts := &model.TeamSearch{AllowOpenInvite: model.NewPointer(true)}
 
 	teams, err := ss.Team().GetAllPage(0, 10, opts)
 	require.NoError(t, err)
@@ -839,7 +839,7 @@ func testGetAllTeamPageListing(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o5 := model.Team{}
 	o5.DisplayName = "DisplayName"
-	o5.Name = NewTestId()
+	o5.Name = NewTestID()
 	o5.Email = MakeEmail()
 	o5.Type = model.TeamOpen
 	o5.AllowOpenInvite = true
@@ -868,7 +868,7 @@ func testGetAllTeamPageListing(t *testing.T, rctx request.CTX, ss store.Store) {
 func testGetAllPrivateTeamListing(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	o1.AllowOpenInvite = true
@@ -877,7 +877,7 @@ func testGetAllPrivateTeamListing(t *testing.T, rctx request.CTX, ss store.Store
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = NewTestId()
+	o2.Name = NewTestID()
 	o2.Email = MakeEmail()
 	o2.Type = model.TeamOpen
 	_, err = ss.Team().Save(&o2)
@@ -885,7 +885,7 @@ func testGetAllPrivateTeamListing(t *testing.T, rctx request.CTX, ss store.Store
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
-	o3.Name = NewTestId()
+	o3.Name = NewTestID()
 	o3.Email = MakeEmail()
 	o3.Type = model.TeamInvite
 	o3.AllowOpenInvite = true
@@ -894,7 +894,7 @@ func testGetAllPrivateTeamListing(t *testing.T, rctx request.CTX, ss store.Store
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
-	o4.Name = NewTestId()
+	o4.Name = NewTestID()
 	o4.Email = MakeEmail()
 	o4.Type = model.TeamInvite
 	_, err = ss.Team().Save(&o4)
@@ -912,7 +912,7 @@ func testGetAllPrivateTeamListing(t *testing.T, rctx request.CTX, ss store.Store
 func testGetAllPrivateTeamPageListing(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	o1.AllowOpenInvite = true
@@ -921,7 +921,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, rctx request.CTX, ss store.S
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = NewTestId()
+	o2.Name = NewTestID()
 	o2.Email = MakeEmail()
 	o2.Type = model.TeamOpen
 	o2.AllowOpenInvite = false
@@ -930,7 +930,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, rctx request.CTX, ss store.S
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
-	o3.Name = NewTestId()
+	o3.Name = NewTestID()
 	o3.Email = MakeEmail()
 	o3.Type = model.TeamInvite
 	o3.AllowOpenInvite = true
@@ -939,14 +939,14 @@ func testGetAllPrivateTeamPageListing(t *testing.T, rctx request.CTX, ss store.S
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
-	o4.Name = NewTestId()
+	o4.Name = NewTestID()
 	o4.Email = MakeEmail()
 	o4.Type = model.TeamInvite
 	o4.AllowOpenInvite = false
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	opts := &model.TeamSearch{AllowOpenInvite: model.NewBool(false)}
+	opts := &model.TeamSearch{AllowOpenInvite: model.NewPointer(false)}
 
 	teams, listErr := ss.Team().GetAllPage(0, 10, opts)
 	require.NoError(t, listErr)
@@ -958,7 +958,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, rctx request.CTX, ss store.S
 
 	o5 := model.Team{}
 	o5.DisplayName = "DisplayName"
-	o5.Name = NewTestId()
+	o5.Name = NewTestID()
 	o5.Email = MakeEmail()
 	o5.Type = model.TeamOpen
 	o5.AllowOpenInvite = true
@@ -987,7 +987,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, rctx request.CTX, ss store.St
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName1"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	o1.AllowOpenInvite = true
@@ -996,7 +996,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, rctx request.CTX, ss store.St
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName2"
-	o2.Name = NewTestId()
+	o2.Name = NewTestID()
 	o2.Email = MakeEmail()
 	o2.Type = model.TeamOpen
 	o2.AllowOpenInvite = false
@@ -1005,7 +1005,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, rctx request.CTX, ss store.St
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName3"
-	o3.Name = NewTestId()
+	o3.Name = NewTestID()
 	o3.Email = MakeEmail()
 	o3.Type = model.TeamInvite
 	o3.AllowOpenInvite = true
@@ -1014,14 +1014,14 @@ func testGetAllPublicTeamPageListing(t *testing.T, rctx request.CTX, ss store.St
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName4"
-	o4.Name = NewTestId()
+	o4.Name = NewTestID()
 	o4.Email = MakeEmail()
 	o4.Type = model.TeamInvite
 	o4.AllowOpenInvite = false
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	opts := &model.TeamSearch{AllowOpenInvite: model.NewBool(true)}
+	opts := &model.TeamSearch{AllowOpenInvite: model.NewPointer(true)}
 
 	teams, err := ss.Team().GetAllPage(0, 10, opts)
 	assert.NoError(t, err)
@@ -1029,7 +1029,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, rctx request.CTX, ss store.St
 
 	o5 := model.Team{}
 	o5.DisplayName = "DisplayName5"
-	o5.Name = NewTestId()
+	o5.Name = NewTestID()
 	o5.Email = MakeEmail()
 	o5.Type = model.TeamOpen
 	o5.AllowOpenInvite = true
@@ -1047,7 +1047,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, rctx request.CTX, ss store.St
 func testDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	o1.AllowOpenInvite = true
@@ -1056,7 +1056,7 @@ func testDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = NewTestId()
+	o2.Name = NewTestID()
 	o2.Email = MakeEmail()
 	o2.Type = model.TeamOpen
 	_, err = ss.Team().Save(&o2)
@@ -1071,7 +1071,7 @@ func testPublicTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	o1.AllowOpenInvite = true
@@ -1080,7 +1080,7 @@ func testPublicTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = NewTestId()
+	o2.Name = NewTestID()
 	o2.Email = MakeEmail()
 	o2.Type = model.TeamOpen
 	o2.AllowOpenInvite = false
@@ -1089,14 +1089,14 @@ func testPublicTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
-	o3.Name = NewTestId()
+	o3.Name = NewTestID()
 	o3.Email = MakeEmail()
 	o3.Type = model.TeamOpen
 	o3.AllowOpenInvite = true
 	_, err = ss.Team().Save(&o3)
 	require.NoError(t, err)
 
-	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: model.NewBool(true)})
+	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: model.NewPointer(true)})
 	require.NoError(t, err)
 	require.Equal(t, int64(2), teamCount, "should only be 1 team")
 }
@@ -1106,7 +1106,7 @@ func testPrivateTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	o1.AllowOpenInvite = false
@@ -1115,7 +1115,7 @@ func testPrivateTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = NewTestId()
+	o2.Name = NewTestID()
 	o2.Email = MakeEmail()
 	o2.Type = model.TeamOpen
 	o2.AllowOpenInvite = true
@@ -1124,14 +1124,14 @@ func testPrivateTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
-	o3.Name = NewTestId()
+	o3.Name = NewTestID()
 	o3.Email = MakeEmail()
 	o3.Type = model.TeamOpen
 	o3.AllowOpenInvite = false
 	_, err = ss.Team().Save(&o3)
 	require.NoError(t, err)
 
-	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: model.NewBool(false)})
+	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: model.NewPointer(false)})
 	require.NoError(t, err)
 	require.Equal(t, int64(2), teamCount, "should only be 1 team")
 }
@@ -1139,7 +1139,7 @@ func testPrivateTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 func testTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = NewTestId()
+	o1.Name = NewTestID()
 	o1.Email = MakeEmail()
 	o1.Type = model.TeamOpen
 	o1.AllowOpenInvite = true
@@ -1161,7 +1161,7 @@ func testTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	// get the count of teams including deleted
-	countIncludingDeleted, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: model.NewBool(true)})
+	countIncludingDeleted, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: model.NewPointer(true)})
 	require.NoError(t, err)
 
 	// count including deleted should be one greater than not including deleted
@@ -1377,9 +1377,9 @@ func testTeamMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTeamSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 
 	t.Run("not valid team member", func(t *testing.T) {
@@ -1422,7 +1422,7 @@ func testTeamSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("insert member correctly (in team without scheme)", func(t *testing.T) {
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        NewTestId(),
+			Name:        NewTestID(),
 			Email:       MakeEmail(),
 			Type:        model.TeamOpen,
 		}
@@ -1562,9 +1562,9 @@ func testTeamSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("insert member correctly (in team with scheme)", func(t *testing.T) {
 		ts := &model.Scheme{
-			Name:        NewTestId(),
-			DisplayName: NewTestId(),
-			Description: NewTestId(),
+			Name:        NewTestID(),
+			DisplayName: NewTestID(),
+			Description: NewTestID(),
 			Scope:       model.SchemeScopeTeam,
 		}
 		ts, nErr := ss.Scheme().Save(ts)
@@ -1572,7 +1572,7 @@ func testTeamSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        NewTestId(),
+			Name:        NewTestID(),
 			Email:       MakeEmail(),
 			Type:        model.TeamOpen,
 			SchemeId:    &ts.Id,
@@ -1713,13 +1713,13 @@ func testTeamSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTeamSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 
 	t.Run("any not valid team member", func(t *testing.T) {
@@ -1778,7 +1778,7 @@ func testTeamSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store)
 	t.Run("insert members correctly (in team without scheme)", func(t *testing.T) {
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        NewTestId(),
+			Name:        NewTestID(),
 			Email:       MakeEmail(),
 			Type:        model.TeamOpen,
 		}
@@ -1930,9 +1930,9 @@ func testTeamSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store)
 
 	t.Run("insert members correctly (in team with scheme)", func(t *testing.T) {
 		ts := &model.Scheme{
-			Name:        NewTestId(),
-			DisplayName: NewTestId(),
-			Description: NewTestId(),
+			Name:        NewTestID(),
+			DisplayName: NewTestID(),
+			Description: NewTestID(),
 			Scope:       model.SchemeScopeTeam,
 		}
 		ts, nErr := ss.Scheme().Save(ts)
@@ -1940,7 +1940,7 @@ func testTeamSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store)
 
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        NewTestId(),
+			Name:        NewTestID(),
 			Email:       MakeEmail(),
 			Type:        model.TeamOpen,
 			SchemeId:    &ts.Id,
@@ -2092,7 +2092,7 @@ func testTeamSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testTeamUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 
 	t.Run("not valid team member", func(t *testing.T) {
@@ -2107,7 +2107,7 @@ func testTeamUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("insert member correctly (in team without scheme)", func(t *testing.T) {
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        NewTestId(),
+			Name:        NewTestID(),
 			Email:       MakeEmail(),
 			Type:        model.TeamOpen,
 		}
@@ -2247,9 +2247,9 @@ func testTeamUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("insert member correctly (in team with scheme)", func(t *testing.T) {
 		ts := &model.Scheme{
-			Name:        NewTestId(),
-			DisplayName: NewTestId(),
-			Description: NewTestId(),
+			Name:        NewTestID(),
+			DisplayName: NewTestID(),
+			Description: NewTestID(),
 			Scope:       model.SchemeScopeTeam,
 		}
 		ts, nErr := ss.Scheme().Save(ts)
@@ -2257,7 +2257,7 @@ func testTeamUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        NewTestId(),
+			Name:        NewTestID(),
 			Email:       MakeEmail(),
 			Type:        model.TeamOpen,
 			SchemeId:    &ts.Id,
@@ -2398,9 +2398,9 @@ func testTeamUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTeamUpdateMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 
 	t.Run("any not valid team member", func(t *testing.T) {
@@ -2416,7 +2416,7 @@ func testTeamUpdateMultipleMembers(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Run("update members correctly (in team without scheme)", func(t *testing.T) {
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        NewTestId(),
+			Name:        NewTestID(),
 			Email:       MakeEmail(),
 			Type:        model.TeamOpen,
 		}
@@ -2564,9 +2564,9 @@ func testTeamUpdateMultipleMembers(t *testing.T, rctx request.CTX, ss store.Stor
 
 	t.Run("insert members correctly (in team with scheme)", func(t *testing.T) {
 		ts := &model.Scheme{
-			Name:        NewTestId(),
-			DisplayName: NewTestId(),
-			Description: NewTestId(),
+			Name:        NewTestID(),
+			DisplayName: NewTestID(),
+			Description: NewTestID(),
 			Scope:       model.SchemeScopeTeam,
 		}
 		ts, nErr := ss.Scheme().Save(ts)
@@ -2574,7 +2574,7 @@ func testTeamUpdateMultipleMembers(t *testing.T, rctx request.CTX, ss store.Stor
 
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        NewTestId(),
+			Name:        NewTestID(),
 			Email:       MakeEmail(),
 			Type:        model.TeamOpen,
 			SchemeId:    &ts.Id,
@@ -2721,13 +2721,13 @@ func testTeamUpdateMultipleMembers(t *testing.T, rctx request.CTX, ss store.Stor
 }
 
 func testTeamRemoveMember(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 	teamID := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
@@ -2767,13 +2767,13 @@ func testTeamRemoveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTeamRemoveMembers(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 	teamID := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
@@ -2876,7 +2876,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 
 	team, errSave := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Type:        model.TeamOpen,
 	})
 	require.NoError(t, errSave)
@@ -2888,7 +2888,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 
 	for i := 0; i < maxUsersPerTeam; i++ {
 		user, err := ss.User().Save(rctx, &model.User{
-			Username: NewTestId(),
+			Username: "a" + NewTestID(),
 			Email:    MakeEmail(),
 		})
 		require.NoError(t, err)
@@ -2914,7 +2914,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	require.Equal(t, int(totalMemberCount), maxUsersPerTeam, "should start with 5 team members, had %v instead", totalMemberCount)
 
 	user, nErr := ss.User().Save(rctx, &model.User{
-		Username: NewTestId(),
+		Username: "a" + NewTestID(),
 		Email:    MakeEmail(),
 	})
 	require.NoError(t, nErr)
@@ -2962,7 +2962,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	require.NoError(t, nErr)
 
 	user, nErr = ss.User().Save(rctx, &model.User{
-		Username: NewTestId(),
+		Username: "a" + NewTestID(),
 		Email:    MakeEmail(),
 	})
 	require.NoError(t, nErr)
@@ -2996,9 +2996,9 @@ func testGetTeamMember(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// Test with a custom team scheme.
 	s2 := &model.Scheme{
-		Name:        NewTestId(),
-		DisplayName: NewTestId(),
-		Description: NewTestId(),
+		Name:        NewTestID(),
+		DisplayName: NewTestID(),
+		Description: NewTestID(),
 		Scope:       model.SchemeScopeTeam,
 	}
 	s2, nErr = ss.Scheme().Save(s2)
@@ -3007,7 +3007,7 @@ func testGetTeamMember(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t2, nErr := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Type:        model.TeamOpen,
 		SchemeId:    &s2.Id,
 	})
@@ -3224,16 +3224,16 @@ func testUpdateLastTeamIconUpdate(t *testing.T, rctx request.CTX, ss store.Store
 func testGetTeamsByScheme(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Create some schemes.
 	s1 := &model.Scheme{
-		DisplayName: NewTestId(),
-		Name:        NewTestId(),
-		Description: NewTestId(),
+		DisplayName: NewTestID(),
+		Name:        NewTestID(),
+		Description: NewTestID(),
 		Scope:       model.SchemeScopeTeam,
 	}
 
 	s2 := &model.Scheme{
-		DisplayName: NewTestId(),
-		Name:        NewTestId(),
-		Description: NewTestId(),
+		DisplayName: NewTestID(),
+		Name:        NewTestID(),
+		Description: NewTestID(),
 		Scope:       model.SchemeScopeTeam,
 	}
 
@@ -3244,24 +3244,24 @@ func testGetTeamsByScheme(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// Create and save some teams.
 	t1 := &model.Team{
-		Name:        NewTestId(),
-		DisplayName: NewTestId(),
+		Name:        NewTestID(),
+		DisplayName: NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 		SchemeId:    &s1.Id,
 	}
 
 	t2 := &model.Team{
-		Name:        NewTestId(),
-		DisplayName: NewTestId(),
+		Name:        NewTestID(),
+		DisplayName: NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 		SchemeId:    &s1.Id,
 	}
 
 	t3 := &model.Team{
-		Name:        NewTestId(),
-		DisplayName: NewTestId(),
+		Name:        NewTestID(),
+		DisplayName: NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -3295,7 +3295,7 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, rctx request.CTX, ss store.St
 	s1 := model.NewId()
 	t1 := &model.Team{
 		DisplayName: "Name",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 		InviteId:    model.NewId(),
@@ -3306,17 +3306,17 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, rctx request.CTX, ss store.St
 
 	tm1 := &model.TeamMember{
 		TeamId:        t1.Id,
-		UserId:        NewTestId(),
+		UserId:        NewTestID(),
 		ExplicitRoles: "team_admin team_user",
 	}
 	tm2 := &model.TeamMember{
 		TeamId:        t1.Id,
-		UserId:        NewTestId(),
+		UserId:        NewTestID(),
 		ExplicitRoles: "team_user",
 	}
 	tm3 := &model.TeamMember{
 		TeamId:        t1.Id,
-		UserId:        NewTestId(),
+		UserId:        NewTestID(),
 		ExplicitRoles: "something_else",
 	}
 
@@ -3362,25 +3362,25 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, rctx request.CTX, ss store.St
 
 func testResetAllTeamSchemes(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Scheme{
-		Name:        NewTestId(),
-		DisplayName: NewTestId(),
-		Description: NewTestId(),
+		Name:        NewTestID(),
+		DisplayName: NewTestID(),
+		Description: NewTestID(),
 		Scope:       model.SchemeScopeTeam,
 	}
 	s1, err := ss.Scheme().Save(s1)
 	require.NoError(t, err)
 
 	t1 := &model.Team{
-		Name:        NewTestId(),
-		DisplayName: NewTestId(),
+		Name:        NewTestID(),
+		DisplayName: NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 		SchemeId:    &s1.Id,
 	}
 
 	t2 := &model.Team{
-		Name:        NewTestId(),
-		DisplayName: NewTestId(),
+		Name:        NewTestID(),
+		DisplayName: NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 		SchemeId:    &s1.Id,
@@ -3453,9 +3453,9 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, rctx request.CTX, 
 
 func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Scheme{
-		DisplayName: NewTestId(),
-		Name:        NewTestId(),
-		Description: NewTestId(),
+		DisplayName: NewTestID(),
+		Name:        NewTestID(),
+		Description: NewTestID(),
 		Scope:       model.SchemeScopeTeam,
 	}
 	s1, err := ss.Scheme().Save(s1)
@@ -3466,8 +3466,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, rctx request.CTX,
 	assert.Equal(t, int64(0), count1)
 
 	t1 := &model.Team{
-		Name:        NewTestId(),
-		DisplayName: NewTestId(),
+		Name:        NewTestID(),
+		DisplayName: NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 		SchemeId:    &s1.Id,
@@ -3480,8 +3480,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, rctx request.CTX,
 	assert.Equal(t, int64(1), count2)
 
 	t2 := &model.Team{
-		Name:        NewTestId(),
-		DisplayName: NewTestId(),
+		Name:        NewTestID(),
+		DisplayName: NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 		SchemeId:    &s1.Id,
@@ -3494,8 +3494,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, rctx request.CTX,
 	assert.Equal(t, int64(2), count3)
 
 	t3 := &model.Team{
-		Name:        NewTestId(),
-		DisplayName: NewTestId(),
+		Name:        NewTestID(),
+		DisplayName: NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -3507,8 +3507,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, rctx request.CTX,
 	assert.Equal(t, int64(2), count4)
 
 	t4 := &model.Team{
-		Name:        NewTestId(),
-		DisplayName: NewTestId(),
+		Name:        NewTestID(),
+		DisplayName: NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 		SchemeId:    &s1.Id,
@@ -3525,7 +3525,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, rctx request.CTX,
 func testTeamStoreGetAllForExportAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = NewTestId()
+	t1.Name = NewTestID()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&t1)
@@ -3549,7 +3549,7 @@ func testTeamStoreGetAllForExportAfter(t *testing.T, rctx request.CTX, ss store.
 func testTeamStoreGetTeamMembersForExport(t *testing.T, rctx request.CTX, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = NewTestId()
+	t1.Name = NewTestID()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&t1)
@@ -3557,13 +3557,13 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, rctx request.CTX, ss sto
 
 	u1 := model.User{}
 	u1.Email = MakeEmail()
-	u1.Nickname = NewTestId()
+	u1.Nickname = NewTestID()
 	_, err = ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
 
 	u2 := model.User{}
 	u2.Email = MakeEmail()
-	u2.Nickname = NewTestId()
+	u2.Nickname = NewTestID()
 	_, err = ss.User().Save(rctx, &u2)
 	require.NoError(t, err)
 
@@ -3585,18 +3585,18 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, rctx request.CTX, ss sto
 
 func testGroupSyncedTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	team1, err := ss.Team().Save(&model.Team{
-		DisplayName:      NewTestId(),
-		Name:             NewTestId(),
+		DisplayName:      NewTestID(),
+		Name:             NewTestID(),
 		Email:            MakeEmail(),
 		Type:             model.TeamInvite,
-		GroupConstrained: model.NewBool(true),
+		GroupConstrained: model.NewPointer(true),
 	})
 	require.NoError(t, err)
 	require.True(t, team1.IsGroupConstrained())
 	defer ss.Team().PermanentDelete(team1.Id)
 
 	team2, err := ss.Team().Save(&model.Team{
-		DisplayName: NewTestId(),
+		DisplayName: NewTestID(),
 		Name:        "zz" + model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TeamInvite,
@@ -3609,7 +3609,7 @@ func testGroupSyncedTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, count, int64(1))
 
-	team2.GroupConstrained = model.NewBool(true)
+	team2.GroupConstrained = model.NewPointer(true)
 	team2, err = ss.Team().Update(team2)
 	require.NoError(t, err)
 	require.True(t, team2.IsGroupConstrained())
@@ -3625,7 +3625,7 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, rctx request.CTX, ss sto
 	// Team 1
 	t1 := model.Team{}
 	t1.DisplayName = "Team 1"
-	t1.Name = NewTestId()
+	t1.Name = NewTestID()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&t1)
@@ -3634,7 +3634,7 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, rctx request.CTX, ss sto
 	// Team 2
 	t2 := model.Team{}
 	t2.DisplayName = "Team 2"
-	t2.Name = NewTestId()
+	t2.Name = NewTestID()
 	t2.Email = MakeEmail()
 	t2.Type = model.TeamOpen
 	_, err = ss.Team().Save(&t2)
@@ -3643,7 +3643,7 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, rctx request.CTX, ss sto
 	// Team 3
 	t3 := model.Team{}
 	t3.DisplayName = "Team 3"
-	t3.Name = NewTestId()
+	t3.Name = NewTestID()
 	t3.Email = MakeEmail()
 	t3.Type = model.TeamOpen
 	_, err = ss.Team().Save(&t3)
@@ -3654,14 +3654,14 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, rctx request.CTX, ss sto
 	// User 1
 	u1 := model.User{}
 	u1.Email = MakeEmail()
-	u1.Nickname = NewTestId()
+	u1.Nickname = NewTestID()
 	_, err = ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
 
 	// User 2
 	u2 := model.User{}
 	u2.Email = MakeEmail()
-	u2.Nickname = NewTestId()
+	u2.Nickname = NewTestID()
 	_, err = ss.User().Save(rctx, &u2)
 	require.NoError(t, err)
 
@@ -3771,14 +3771,14 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, rctx request.CTX, ss sto
 		// User 3
 		u3 := model.User{}
 		u3.Email = MakeEmail()
-		u3.Nickname = NewTestId()
+		u3.Nickname = NewTestID()
 		_, err = ss.User().Save(rctx, &u3)
 		require.NoError(t, err)
 
 		// User 4
 		u4 := model.User{}
 		u4.Email = MakeEmail()
-		u4.Nickname = NewTestId()
+		u4.Nickname = NewTestID()
 		_, err = ss.User().Save(rctx, &u4)
 		require.NoError(t, err)
 

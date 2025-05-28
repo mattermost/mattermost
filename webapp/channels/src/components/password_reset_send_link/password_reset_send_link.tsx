@@ -2,18 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import BackButton from 'components/common/back_button';
+import Input from 'components/widgets/inputs/input/input';
 
 export interface Props {
+    intl: IntlShape;
+    siteName?: string;
     actions: {
         sendPasswordResetEmail: (email: string) => Promise<ActionResult>;
     };
-    intl: IntlShape;
 }
 
 interface State {
@@ -28,6 +31,17 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
     };
     resetForm = React.createRef<HTMLFormElement>();
     emailInput = React.createRef<HTMLInputElement>();
+
+    componentDidMount() {
+        const {intl, siteName} = this.props;
+        document.title = intl.formatMessage(
+            {
+                id: 'password_form.pageTitle',
+                defaultMessage: 'Password Reset | {siteName}',
+            },
+            {siteName: siteName || 'Mattermost'},
+        );
+    }
 
     handleSendLink = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -120,14 +134,17 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
                                 />
                             </p>
                             <div className={formClass}>
-                                <input
+                                <Input
                                     id='passwordResetEmailInput'
                                     type='email'
-                                    className='form-control'
                                     name='email'
-                                    placeholder={this.props.intl.formatMessage({
+                                    label={defineMessage({
                                         id: 'password_send.email',
                                         defaultMessage: 'Email',
+                                    })}
+                                    placeholder={defineMessage({
+                                        id: 'password_send.email.placeholder',
+                                        defaultMessage: 'Enter the email address you used to sign up',
                                     })}
                                     ref={this.emailInput}
                                     spellCheck='false'

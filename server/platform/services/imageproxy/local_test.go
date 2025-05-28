@@ -22,12 +22,12 @@ func makeTestLocalProxy() *ImageProxy {
 	configService := &testutils.StaticConfigService{
 		Cfg: &model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL:                             model.NewString("https://mattermost.example.com"),
-				AllowedUntrustedInternalConnections: model.NewString("127.0.0.1"),
+				SiteURL:                             model.NewPointer("https://mattermost.example.com"),
+				AllowedUntrustedInternalConnections: model.NewPointer("127.0.0.1"),
 			},
 			ImageProxySettings: model.ImageProxySettings{
-				Enable:         model.NewBool(true),
-				ImageProxyType: model.NewString(model.ImageProxyTypeLocal),
+				Enable:         model.NewPointer(true),
+				ImageProxyType: model.NewPointer(model.ImageProxyTypeLocal),
 			},
 		},
 	}

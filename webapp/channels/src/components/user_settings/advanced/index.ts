@@ -24,8 +24,10 @@ import type {GlobalState} from 'types/store';
 import AdvancedSettingsDisplay from './user_settings_advanced';
 import type {OwnProps} from './user_settings_advanced';
 
-function makeMapStateToProps(state: GlobalState, props: OwnProps) {
-    const getAdvancedSettingsCategory = props.adminMode ? makeGetUserCategory(props.user.id) : makeGetCategory();
+const getAdvancedSettingsCategory = makeGetCategory('getAdvancedSettingsCategory', Preferences.CATEGORY_ADVANCED_SETTINGS);
+
+function makeMapStateToProps() {
+    const getUserAdvancedSettingsCategory = makeGetUserCategory('getAdvancedSettingsCategory', Preferences.CATEGORY_ADVANCED_SETTINGS);
 
     return (state: GlobalState, props: OwnProps) => {
         const config = getConfig(state);
@@ -34,9 +36,10 @@ function makeMapStateToProps(state: GlobalState, props: OwnProps) {
         const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
 
         const userPreferences = props.adminMode && props.userPreferences ? props.userPreferences : undefined;
+        const advancedSettingsCategory = userPreferences ? getUserAdvancedSettingsCategory(state, props.user.id) : getAdvancedSettingsCategory(state);
 
         return {
-            advancedSettingsCategory: getAdvancedSettingsCategory(state, Preferences.CATEGORY_ADVANCED_SETTINGS),
+            advancedSettingsCategory,
             sendOnCtrlEnter: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', 'false', userPreferences),
             codeBlockOnCtrlEnter: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', 'true', userPreferences),
             formatting: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true', userPreferences),

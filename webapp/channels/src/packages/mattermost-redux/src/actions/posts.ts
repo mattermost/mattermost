@@ -7,7 +7,9 @@ import {batchActions} from 'redux-batched-actions';
 import type {Channel, ChannelUnread} from '@mattermost/types/channels';
 import type {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
 import type {Group} from '@mattermost/types/groups';
+import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
+import type {Reaction} from '@mattermost/types/reactions';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -33,9 +35,10 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
-import {logError} from './errors';
+import {logError, LogErrorBarMode} from './errors';
 
 // receivedPost should be dispatched after a single post from the server. This typically happens when an existing post
 // is updated.
@@ -162,13 +165,22 @@ export function getPost(postId: string): ActionFuncAsync<Post> {
         }
 
         dispatch(receivedPost(post, crtEnabled));
-        dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
         return {data: post};
     };
 }
 
-export function createPost(post: Post, files: any[] = []): ActionFuncAsync {
+export type CreatePostReturnType = {
+    created?: boolean;
+    pending?: string;
+    error?: string;
+}
+
+export function createPost(
+    post: Post,
+    files: any[] = [],
+    afterSubmit?: (response: any) => void,
+): ActionFuncAsync<CreatePostReturnType> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;
@@ -178,7 +190,7 @@ export function createPost(post: Post, files: any[] = []): ActionFuncAsync {
         let actions: AnyAction[] = [];
 
         if (PostSelectors.isPostIdSending(state, pendingPostId)) {
-            return {data: true};
+            return {data: {pending: pendingPostId}};
         }
 
         let newPost = {
@@ -266,6 +278,8 @@ export function createPost(post: Post, files: any[] = []): ActionFuncAsync {
                 }
 
                 dispatch(batchActions(actions, 'BATCH_CREATE_POST'));
+                afterSubmit?.({created});
+                return {data: {created}};
             } catch (error) {
                 const data = {
                     ...newPost,
@@ -288,107 +302,11 @@ export function createPost(post: Post, files: any[] = []): ActionFuncAsync {
                 }
 
                 dispatch(batchActions(actions, 'BATCH_CREATE_POST_FAILED'));
+                return {error};
             }
         }());
 
-        return {data: true};
-    };
-}
-
-export function createPostImmediately(post: Post, files: any[] = []): ActionFuncAsync<Post> {
-    return async (dispatch, getState) => {
-        const state = getState();
-        const currentUserId = state.entities.users.currentUserId;
-        const timestamp = Date.now();
-        const pendingPostId = `${currentUserId}:${timestamp}`;
-
-        let newPost: Post = {
-            ...post,
-            pending_post_id: pendingPostId,
-            create_at: timestamp,
-            update_at: timestamp,
-            reply_count: 0,
-        };
-
-        if (post.root_id) {
-            newPost.reply_count = PostSelectors.getPostRepliesCount(state, post.root_id) + 1;
-        }
-
-        if (files.length) {
-            const fileIds = files.map((file) => file.id);
-
-            newPost = {
-                ...newPost,
-                file_ids: fileIds,
-            };
-
-            dispatch({
-                type: FileTypes.RECEIVED_FILES_FOR_POST,
-                postId: pendingPostId,
-                data: files,
-            });
-            dispatch({
-                type: ChannelTypes.INCREMENT_FILE_COUNT,
-                amount: files.length,
-                id: newPost.channel_id,
-            });
-        }
-
-        const crtEnabled = isCollapsedThreadsEnabled(state);
-        dispatch(receivedNewPost({
-            ...newPost,
-            id: pendingPostId,
-        }, crtEnabled));
-
-        try {
-            const created = await Client4.createPost({...newPost, create_at: 0});
-            newPost.id = created.id;
-            newPost.reply_count = created.reply_count;
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({type: PostTypes.CREATE_POST_FAILURE, data: newPost, error});
-            dispatch(removePost({
-                ...newPost,
-                id: pendingPostId,
-            }));
-            dispatch(logError(error));
-            return {error};
-        }
-
-        const actions: AnyAction[] = [
-            receivedPost(newPost, crtEnabled),
-            {
-                type: PostTypes.CREATE_POST_SUCCESS,
-            },
-            {
-                type: ChannelTypes.INCREMENT_TOTAL_MSG_COUNT,
-                data: {
-                    channelId: newPost.channel_id,
-                    amount: 1,
-                    amountRoot: newPost.root_id === '' ? 1 : 0,
-                },
-            },
-            {
-                type: ChannelTypes.DECREMENT_UNREAD_MSG_COUNT,
-                data: {
-                    channelId: newPost.channel_id,
-                    amount: 1,
-                    amountRoot: newPost.root_id === '' ? 1 : 0,
-                },
-            },
-        ];
-
-        if (files) {
-            actions.push({
-                type: FileTypes.RECEIVED_FILES_FOR_POST,
-                postId: newPost.id,
-                data: files,
-            });
-        }
-
-        dispatch(batchActions(actions));
-
-        return {data: newPost};
+        return {data: {created: true}};
     };
 }
 
@@ -589,7 +507,12 @@ export function unpinPost(postId: string): ActionFuncAsync {
     };
 }
 
-export function addReaction(postId: string, emojiName: string): ActionFuncAsync {
+export type SubmitReactionReturnType = {
+    reaction?: Reaction;
+    removedReaction?: boolean;
+}
+
+export function addReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType> {
     return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
@@ -607,11 +530,11 @@ export function addReaction(postId: string, emojiName: string): ActionFuncAsync 
             data: reaction,
         });
 
-        return {data: true};
+        return {data: {reaction}};
     };
 }
 
-export function removeReaction(postId: string, emojiName: string): ActionFuncAsync {
+export function removeReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType> {
     return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
@@ -628,7 +551,7 @@ export function removeReaction(postId: string, emojiName: string): ActionFuncAsy
             data: {user_id: currentUserId, post_id: postId, emoji_name: emojiName},
         });
 
-        return {data: true};
+        return {data: {removedReaction: true}};
     };
 }
 
@@ -691,11 +614,20 @@ async function getPaginatedPostThread(rootId: string, options: FetchPaginatedThr
     if (result.has_next) {
         const [nextPostId] = list.order!.slice(-1);
         const nextPostPointer = list.posts[nextPostId];
-        const newOptions = {
-            ...options,
-            fromCreateAt: nextPostPointer.create_at,
-            fromPost: nextPostId,
-        };
+        let newOptions;
+        if (options.updatesOnly) {
+            newOptions = {
+                ...options,
+                fromUpdateAt: nextPostPointer.update_at,
+                fromPost: nextPostId,
+            };
+        } else {
+            newOptions = {
+                ...options,
+                fromCreateAt: nextPostPointer.create_at,
+                fromPost: nextPostId,
+            };
+        }
 
         return getPaginatedPostThread(rootId, newOptions, list);
     }
@@ -703,15 +635,23 @@ async function getPaginatedPostThread(rootId: string, options: FetchPaginatedThr
     return list;
 }
 
-export function getPostThread(rootId: string, fetchThreads = true): ActionFuncAsync<PostList> {
+export function getPostThread(rootId: string, fetchThreads = true, lastUpdateAt = 0): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         const state = getState();
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
         let posts;
+        const options: FetchPaginatedThreadOptions = {
+            fetchThreads,
+            collapsedThreads: collapsedThreadsEnabled,
+        };
+        if (lastUpdateAt !== 0) {
+            options.updatesOnly = true;
+            options.fromUpdateAt = lastUpdateAt;
+        }
         try {
-            posts = await getPaginatedPostThread(rootId, {fetchThreads, collapsedThreads: collapsedThreadsEnabled});
+            posts = await getPaginatedPostThread(rootId, options);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -1112,6 +1052,25 @@ export function getPostsByIds(ids: string[]): ActionFuncAsync {
     };
 }
 
+export function getPostsByIdsBatched(postIds: string[]): ActionFuncAsync<true> {
+    const maxBatchSize = 100;
+    const wait = 100;
+
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.postsByIdsLoader) {
+            loaders.postsByIdsLoader = new DelayedDataLoader<Post['id']>({
+                fetchBatch: (postIds) => dispatch(getPostsByIds(postIds)),
+                maxBatchSize,
+                wait,
+            });
+        }
+
+        loaders.postsByIdsLoader.queue(postIds);
+
+        return {data: true};
+    };
+}
+
 export function getPostEditHistory(postId: string) {
     return bindClientFunc({
         clientFunc: Client4.getPostEditHistory,
@@ -1169,10 +1128,18 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
         // These correspond to the fields searched by getMentionsEnabledFields on the server
         findNeededUsernamesAndGroups(post.message);
 
-        if (post.props?.attachments) {
+        if (isMessageAttachmentArray(post.props?.attachments)) {
             for (const attachment of post.props.attachments) {
                 findNeededUsernamesAndGroups(attachment.pretext);
                 findNeededUsernamesAndGroups(attachment.text);
+
+                if (attachment.fields) {
+                    for (const field of attachment.fields) {
+                        if (typeof field.value === 'string') {
+                            findNeededUsernamesAndGroups(field.value);
+                        }
+                    }
+                }
             }
         }
     }
@@ -1234,6 +1201,7 @@ export function unflagPost(postId: string): ActionFuncAsync {
             user_id: currentUserId,
             category: Preferences.CATEGORY_FLAGGED_POST,
             name: postId,
+            value: 'true',
         };
 
         Client4.trackEvent('action', 'action_posts_unflag');
@@ -1383,5 +1351,25 @@ export function unacknowledgePost(postId: string): ActionFuncAsync {
         });
 
         return {data};
+    };
+}
+
+export function restorePostVersion(postId: string, restoreVersionId: string, connectionId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.restorePostVersion(postId, restoreVersionId, connectionId);
+        } catch (error) {
+            // Send to error bar if it's an edit post error about time limit.
+            if (error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {
+                dispatch(logError({type: 'announcement', message: error.message}, {errorBarMode: LogErrorBarMode.Always}));
+            } else {
+                dispatch(logError(error));
+            }
+
+            forceLogoutIfNecessary(error, dispatch, getState);
+            return {error};
+        }
+
+        return {data: true};
     };
 }

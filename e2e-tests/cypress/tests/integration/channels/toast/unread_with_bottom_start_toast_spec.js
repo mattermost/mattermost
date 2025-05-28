@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @toast
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
@@ -38,6 +37,7 @@ describe('unread_with_bottom_start_toast', () => {
         cy.apiCreateChannel(testTeam.id, 'channel-a', 'ChannelA').then(({channel}) => {
             cy.apiAddUserToChannel(channel.id, otherUser.id).then(() => {
                 cy.visit(`/${testTeam.name}/channels/${channel.name}`);
+                cy.get('#loadingSpinner').should('not.exist'); // The channel should fully load once, before it can mark messages as "new"
                 cy.uiClickSidebarItem('off-topic');
                 cy.postMessage('hi');
 
@@ -73,6 +73,7 @@ describe('unread_with_bottom_start_toast', () => {
         cy.apiCreateChannel(testTeam.id, 'channel-b', 'ChannelB').then(({channel}) => {
             cy.apiAddUserToChannel(channel.id, otherUser.id).then(() => {
                 cy.visit(`/${testTeam.name}/channels/${channel.name}`);
+                cy.get('#loadingSpinner').should('not.exist'); // The channel should fully load once, before it can mark messages as "new"
                 cy.uiClickSidebarItem('off-topic');
                 cy.postMessage('hi');
 
@@ -114,6 +115,10 @@ describe('unread_with_bottom_start_toast', () => {
                     cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id}).wait(50);
                 }
 
+                // # Switch channel and back
+                cy.uiClickSidebarItem('off-topic');
+                cy.uiClickSidebarItem(channel.name);
+
                 cy.wait(TIMEOUTS.ONE_SEC);
 
                 // # Scroll to the top to find the oldest message
@@ -123,6 +128,7 @@ describe('unread_with_bottom_start_toast', () => {
                     // # Mark post as unread
                     cy.uiClickPostDropdownMenu(postId, 'Mark as Unread');
                 });
+                cy.get('div.toast').should('be.visible').contains('30 new messages'); // The toast message should appear right away
 
                 // # Visit off-topic channel and switch back to test channel
                 cy.uiClickSidebarItem('off-topic');

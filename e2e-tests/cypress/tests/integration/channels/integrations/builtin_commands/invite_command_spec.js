@@ -84,7 +84,8 @@ describe('Integrations', () => {
         loginAndVisitChannel(testUser, testChannelUrl);
 
         // # In a GM use the /invite command to invite a user to a channel you have permission to add them to but place extra white space before the username
-        cy.postMessage(`/groupmsg @${member1.username} @${member2.username} `);
+        cy.postMessage(`/groupmsg @${member1.username},@${member2.username} `);
+        cy.uiGetChannelHeaderButton().contains(member1.username).contains(member2.username);
         cy.postMessage(`/invite        @${userToInviteGM.username} ~${testChannel.name} `);
 
         // * User added to channel as expected
@@ -133,7 +134,9 @@ describe('Integrations', () => {
         loginAndVisitChannel(testUser, testChannelUrl);
 
         // # In a GM Use the /invite command to invite a channel to another channel (e.g., /invite @[channel name])
-        cy.postMessage(`/groupmsg @${member1.username} @${member2.username} `);
+        cy.postMessage(`/groupmsg @${member1.username},@${member2.username} `);
+        cy.uiGetChannelHeaderButton().contains(member1.username).contains(member2.username);
+        cy.reload(); // Required for Cypress to write in the right channel
         cy.postMessage(`/invite @${testChannel.name} `);
 
         // * Error appears: "We couldn't find the user. They may have been deactivated by the System Administrator."
@@ -159,7 +162,9 @@ describe('Integrations', () => {
         loginAndVisitChannel(testUser, testChannelUrl);
 
         // # In a GM use the /invite command to invite someone to a channel they're already a member of
-        cy.postMessage(`/groupmsg @${member1.username} @${member2.username} `);
+        cy.postMessage(`/groupmsg @${member1.username},@${member2.username} `);
+        cy.uiGetChannelHeaderButton().contains(member1.username).contains(member2.username);
+        cy.reload(); // Required for Cypress to write in the right channel
         cy.postMessage(`/invite @${userToInvite.username} ~${testChannel.name} `);
 
         // * Error appears: "[username] is already in the channel"

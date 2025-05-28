@@ -3,24 +3,25 @@
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {addUserIdsForStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
+import {addUserIdsForStatusFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc} from 'types/store';
 
 /**
- * Adds all the visible users of the current channel i.e users who have recently posted in the current channel
- * and users who have DMs open with the current user to the status pool for fetching their statuses.
+ * Adds the following users to the status pool for fetching their statuses:
+ * - All users of current channel with recent posts.
+ * - All users who have DMs open with the current user.
+ * - The current user.
  */
-export function addVisibleUsersInCurrentChannelToStatusPoll(): ActionFunc<boolean, GlobalState> {
+export function addVisibleUsersInCurrentChannelAndSelfToStatusPoll(): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -49,10 +50,13 @@ export function addVisibleUsersInCurrentChannelToStatusPoll(): ActionFunc<boolea
             }
         }
 
+        // Add current user to the list to fetch status for
+        userIdsToFetchStatusFor.add(currentUserId);
+
         // Both the users in the DM list and recent posts constitute for all the visible users in the current channel
         const userIdsForStatus = Array.from(userIdsToFetchStatusFor);
         if (userIdsForStatus.length > 0) {
-            dispatch(addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus}));
+            dispatch(addUserIdsForStatusFetchingPoll(userIdsForStatus));
         }
 
         return {data: true};
@@ -84,7 +88,7 @@ export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | 
 
         const statusesToLoad = [];
         for (const userId in users) {
-            if ({}.hasOwnProperty.call(users, userId)) {
+            if (Object.hasOwn(users, userId)) {
                 statusesToLoad.push(userId);
             }
         }

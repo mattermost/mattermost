@@ -1,28 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
-<OverlayTrigger
-  className="hidden-xs"
-  defaultOverlayShown={false}
-  delayShow={400}
+<WithTooltip
   key="flagtooltipkey"
-  overlay={
-    <Tooltip
-      className="hidden-xs"
-      id="flagTooltip"
-    >
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Save Message"
-        id="flag_post.flag"
-      />
-    </Tooltip>
-  }
-  placement="top"
-  trigger={
-    Array [
-      "hover",
-      "focus",
-    ]
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Save Message"
+      id="flag_post.flag"
+    />
   }
 >
   <button
@@ -35,32 +20,17 @@ exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
       className="icon icon--small"
     />
   </button>
-</OverlayTrigger>
+</WithTooltip>
 `;
 
 exports[`components/post_view/PostFlagIcon should match snapshot 2`] = `
-<OverlayTrigger
-  className="hidden-xs"
-  defaultOverlayShown={false}
-  delayShow={400}
+<WithTooltip
   key="flagtooltipkeyflagged"
-  overlay={
-    <Tooltip
-      className="hidden-xs"
-      id="flagTooltip"
-    >
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Remove from Saved"
-        id="flag_post.unflag"
-      />
-    </Tooltip>
-  }
-  placement="top"
-  trigger={
-    Array [
-      "hover",
-      "focus",
-    ]
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Remove from Saved"
+      id="flag_post.unflag"
+    />
   }
 >
   <button
@@ -73,5 +43,5 @@ exports[`components/post_view/PostFlagIcon should match snapshot 2`] = `
       className="icon icon--small icon--small-filled post-menu__item--selected"
     />
   </button>
-</OverlayTrigger>
+</WithTooltip>
 `;

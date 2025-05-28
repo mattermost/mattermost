@@ -6,6 +6,9 @@ import React from 'react';
 import {Provider} from 'react-redux';
 import {BrowserRouter} from 'react-router-dom';
 
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {General} from 'mattermost-redux/constants';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
@@ -40,6 +43,10 @@ const actImmediate = (wrapper: ReactWrapper) =>
     );
 
 describe('component/user_group_popover/group_member_list', () => {
+    const profiles: Record<string, UserProfile> = {};
+    const profilesInGroup: Record<Group['id'], Set<UserProfile['id']>> = {};
+    const statuses: Record<UserProfile['id'], string> = {};
+
     const group = TestHelper.getGroupMock({
         member_count: 5,
     });
@@ -58,6 +65,39 @@ describe('component/user_group_popover/group_member_list', () => {
         members.push({user, displayName});
     }
 
+    const initialState = {
+        entities: {
+            teams: {
+                currentTeamId: 'team_id1',
+                teams: {
+                    team_id1: {
+                        id: 'team_id1',
+                        name: 'team1',
+                    },
+                },
+            },
+            general: {
+                config: {},
+            },
+            users: {
+                profiles,
+                profilesInGroup,
+                statuses,
+            },
+            preferences: {
+                myPreferences: {},
+            },
+        },
+        views: {
+            modals: {
+                modalState: {},
+            },
+            search: {
+                popoverSearch: '',
+            },
+        },
+    };
+
     const baseProps = {
         searchTerm: '',
         group,
@@ -75,7 +115,7 @@ describe('component/user_group_popover/group_member_list', () => {
     };
 
     test('should match snapshot', async () => {
-        const store = await mockStore({});
+        const store = await mockStore(initialState);
         const wrapper = mountWithIntl(
             <Provider store={store}>
                 <BrowserRouter>
@@ -91,7 +131,7 @@ describe('component/user_group_popover/group_member_list', () => {
     });
 
     test('should open dms', async () => {
-        const store = await mockStore({});
+        const store = await mockStore(initialState);
         const wrapper = mountWithIntl(
             <Provider store={store}>
                 <BrowserRouter>
@@ -108,7 +148,7 @@ describe('component/user_group_popover/group_member_list', () => {
     });
 
     test('should show user overlay and hide', async () => {
-        const store = await mockStore({});
+        const store = await mockStore(initialState);
         const wrapper = mountWithIntl(
             <Provider store={store}>
                 <BrowserRouter>

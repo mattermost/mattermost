@@ -113,7 +113,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 			UserId:    user.Id,
 			ChannelId: channel.Id,
 			Message:   "Hello folks",
-		}, channel, false, true)
+		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err, "Creating a post should not error")
 
 		reaction := &model.Reaction{
@@ -148,7 +148,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 			UserId:    user.Id,
 			ChannelId: channel.Id,
 			Message:   "Hello folks",
-		}, channel, false, true)
+		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err, "Creating a post should not error")
 
 		reaction := &model.Reaction{

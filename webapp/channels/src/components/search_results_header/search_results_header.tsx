@@ -5,10 +5,9 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {RHSStates} from 'utils/constants';
+import {RHSStates} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
 
@@ -19,31 +18,12 @@ export interface Props extends PropsFromRedux {
 function SearchResultsHeader(props: Props) {
     const {formatMessage} = useIntl();
 
-    const closeSidebarTooltip = (
-        <Tooltip id='closeSidebarTooltip'>
-            <FormattedMessage
-                id='rhs_header.closeSidebarTooltip'
-                defaultMessage='Close'
-            />
-        </Tooltip>
-    );
+    const showExpand = props.previousRhsState !== RHSStates.CHANNEL_INFO;
 
-    const expandSidebarTooltip = (
-        <Tooltip id='expandSidebarTooltip'>
-            <FormattedMessage
-                id='rhs_header.expandSidebarTooltip'
-                defaultMessage='Expand the right sidebar'
-            />
-            <KeyboardShortcutSequence
-                shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
-                hideDescription={true}
-                isInsideTooltip={true}
-            />
-        </Tooltip>
-    );
-
-    const shrinkSidebarTooltip = (
-        <Tooltip id='shrinkSidebarTooltip'>
+    // sidebarTooltipContent contains tooltips content for expand or shrink sidebarTooltip.
+    // if props.isExpanded is true, defaultMessage would feed from 'shrinkTooltip', else 'expandTooltip'
+    const sidebarTooltipContent = props.isExpanded ? (
+        <>
             <FormattedMessage
                 id='rhs_header.collapseSidebarTooltip'
                 defaultMessage='Collapse the right sidebar'
@@ -53,14 +33,29 @@ function SearchResultsHeader(props: Props) {
                 hideDescription={true}
                 isInsideTooltip={true}
             />
-        </Tooltip>
+        </>
+    ) : (
+        <>
+            <FormattedMessage
+                id='rhs_header.expandSidebarTooltip'
+                defaultMessage='Expand the right sidebar'
+            />
+            <KeyboardShortcutSequence
+                shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
+                hideDescription={true}
+                isInsideTooltip={true}
+            />
+        </>
     );
 
-    const showExpand = props.previousRhsState !== RHSStates.CHANNEL_INFO;
+    const expandOrCollapseSidebarButtonAriaLabel = props.isExpanded ? formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'}) : formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'});
 
     return (
         <div className='sidebar--right__header'>
-            <span className='sidebar--right__title'>
+            <span
+                className='sidebar--right__title'
+                id='rhsPanelTitle'
+            >
                 {props.canGoBack && (
                     <button
                         className='sidebar--right__back btn btn-icon btn-sm'
@@ -74,31 +69,33 @@ function SearchResultsHeader(props: Props) {
             </span>
             <div className='pull-right'>
                 {showExpand && (
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='bottom'
-                        overlay={props.isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
+                    <WithTooltip
+                        title={sidebarTooltipContent}
                     >
                         <button
                             type='button'
                             className='sidebar--right__expand btn btn-icon btn-sm'
                             onClick={props.actions.toggleRhsExpanded}
+                            aria-label={expandOrCollapseSidebarButtonAriaLabel}
                         >
                             <i
                                 className='icon icon-arrow-expand'
-                                aria-label={formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
+                                aria-hidden='true'
                             />
                             <i
                                 className='icon icon-arrow-collapse'
-                                aria-label={formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
+                                aria-hidden='true'
                             />
                         </button>
-                    </OverlayTrigger>
+                    </WithTooltip>
                 )}
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='top'
-                    overlay={closeSidebarTooltip}
+                <WithTooltip
+                    title={
+                        <FormattedMessage
+                            id='rhs_header.closeSidebarTooltip'
+                            defaultMessage='Close'
+                        />
+                    }
                 >
                     <button
                         id='searchResultsCloseButton'
@@ -112,7 +109,7 @@ function SearchResultsHeader(props: Props) {
                             aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                         />
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
             </div>
         </div>
     );

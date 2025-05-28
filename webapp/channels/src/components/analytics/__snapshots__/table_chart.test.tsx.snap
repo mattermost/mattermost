@@ -21,28 +21,13 @@ exports[`components/analytics/table_chart.tsx should match snapshot, loaded with
             key="table-entry-test1"
           >
             <td>
-              <OverlayTrigger
-                defaultOverlayShown={false}
-                delayShow={400}
-                overlay={
-                  <Tooltip
-                    id="tip-table-entry-test1"
-                  >
-                    test-tip1
-                  </Tooltip>
-                }
-                placement="top"
-                trigger={
-                  Array [
-                    "hover",
-                    "focus",
-                  ]
-                }
+              <WithTooltip
+                title="test-tip1"
               >
-                <time>
+                <span>
                   test1
-                </time>
-              </OverlayTrigger>
+                </span>
+              </WithTooltip>
             </td>
             <td>
               <p>
@@ -54,28 +39,13 @@ exports[`components/analytics/table_chart.tsx should match snapshot, loaded with
             key="table-entry-test2"
           >
             <td>
-              <OverlayTrigger
-                defaultOverlayShown={false}
-                delayShow={400}
-                overlay={
-                  <Tooltip
-                    id="tip-table-entry-test2"
-                  >
-                    test-tip2
-                  </Tooltip>
-                }
-                placement="top"
-                trigger={
-                  Array [
-                    "hover",
-                    "focus",
-                  ]
-                }
+              <WithTooltip
+                title="test-tip2"
               >
-                <time>
+                <span>
                   test2
-                </time>
-              </OverlayTrigger>
+                </span>
+              </WithTooltip>
             </td>
             <td>
               <p>

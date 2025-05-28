@@ -12,27 +12,28 @@ import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {ChannelHeaderButtonAction, RightHandSidebarComponent} from 'types/store/plugins';
 
 import AppBar from './app_bar';
 
 describe('components/app_bar/app_bar', () => {
-    const channelHeaderComponents: PluginComponent[] = [
+    const channelHeaderComponents: ChannelHeaderButtonAction[] = [
         {
             id: 'the_component_id',
             pluginId: 'playbooks',
             icon: 'fallback_component' as any,
             tooltipText: 'Playbooks Tooltip',
             action: jest.fn(),
+            dropdownText: 'Playbooks dropdown',
         },
     ];
 
-    const rhsComponents: PluginComponent[] = [
+    const rhsComponents: RightHandSidebarComponent[] = [
         {
             id: 'the_rhs_plugin_component_id',
             pluginId: 'playbooks',
-            icon: <div/>,
-            action: jest.fn(),
+            component: () => null,
+            title: 'some title',
         },
     ];
 
@@ -61,7 +62,7 @@ describe('components/app_bar/app_bar', () => {
                 AppBar: channelHeaderComponents,
                 RightHandSidebarComponent: rhsComponents,
                 Product: [],
-            } as {[componentName: string]: PluginComponent[]},
+            },
         },
         entities: {
             apps: {

@@ -13,7 +13,7 @@ import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import AlertBanner from 'components/alert_banner';
 import AtMention from 'components/at_mention';
 import type {Value} from 'components/multiselect/multiselect';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -62,9 +62,8 @@ const TeamWarningBanner = (props: Props) => {
                             />
                         ),
                         others: (
-                            <SimpleTooltip
-                                id={'usernames-overflow'}
-                                content={commaSeparatedUsernames.replace(`@${firstName}, `, '')}
+                            <WithTooltip
+                                title={commaSeparatedUsernames.replace(`@${firstName}, `, '')}
                             >
                                 <span
                                     className='add-others-link'
@@ -77,7 +76,7 @@ const TeamWarningBanner = (props: Props) => {
                                         }}
                                     />
                                 </span>
-                            </SimpleTooltip>
+                            </WithTooltip>
                         ),
                     },
                 )
@@ -132,9 +131,8 @@ const TeamWarningBanner = (props: Props) => {
                         />
                     ),
                     others: (
-                        <SimpleTooltip
-                            id={'usernames-overflow'}
-                            content={commaSeparatedUsernames.replace(`@${firstName}, `, '')}
+                        <WithTooltip
+                            title={commaSeparatedUsernames.replace(`@${firstName}, `, '')}
                         >
                             <span
                                 className='add-others-link'
@@ -147,7 +145,7 @@ const TeamWarningBanner = (props: Props) => {
                                     }}
                                 />
                             </span>
-                        </SimpleTooltip>
+                        </WithTooltip>
                     ),
                     team: (<strong>{team?.display_name}</strong>),
                 },

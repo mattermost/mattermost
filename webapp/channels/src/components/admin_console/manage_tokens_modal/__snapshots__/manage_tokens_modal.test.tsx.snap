@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx should match snapshot 1`] = `
+exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx initial call should match snapshot 1`] = `
 <Modal
   animation={true}
   aria-labelledby="manageTokensModalLabel"
@@ -27,7 +27,7 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -90,6 +90,274 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
         className="manage-teams__teams"
       >
         <LoadingScreen />
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx should display list of tokens 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="manageTokensModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal manage-teams"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="none"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="manageTokensModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Manage Personal Access Tokens"
+        id="admin.manage_tokens.manageTokensTitle"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div>
+      <div
+        className="manage-teams__user"
+      >
+        <Memo(Avatar)
+          size="lg"
+          url="/api/v4/users/defaultuser/image"
+          username="some-user"
+        />
+        <div
+          className="manage-teams__info"
+        >
+          <div
+            className="manage-teams__name"
+          >
+            @some-user
+          </div>
+          <div
+            className="manage-teams__email"
+          />
+        </div>
+      </div>
+      <div
+        className="pt-3"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Personal access tokens function similarly to session tokens and can be used by integrations to <linkAuthentication>interact with this Mattermost server</linkAuthentication>. Tokens are disabled if the user is deactivated. Learn more about <linkPersonalAccessTokens>personal access tokens</linkPersonalAccessTokens>."
+          id="admin.manage_tokens.userAccessTokensDescription"
+          values={
+            Object {
+              "linkAuthentication": [Function],
+              "linkPersonalAccessTokens": [Function],
+            }
+          }
+        />
+      </div>
+      <div
+        className="manage-teams__teams"
+      >
+        <div
+          className="manage-teams__team"
+          key="id1"
+        >
+          <div
+            className="manage-teams__team-name"
+          >
+            <div
+              className="whitespace--nowrap overflow--ellipsis"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="Token Description: "
+                id="admin.manage_tokens.userAccessTokensNameLabel"
+              />
+              description
+            </div>
+            <div
+              className="whitespace--nowrap overflow--ellipsis"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="Token ID: "
+                id="admin.manage_tokens.userAccessTokensIdLabel"
+              />
+              id1
+            </div>
+          </div>
+          <div
+            className="manage-teams__team-actions"
+          >
+            <Connect(Component)
+              onError={[Function]}
+              tokenId="id1"
+            />
+          </div>
+        </div>
+        <div
+          className="manage-teams__team"
+          key="id2"
+        >
+          <div
+            className="manage-teams__team-name"
+          >
+            <div
+              className="whitespace--nowrap overflow--ellipsis"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="Token Description: "
+                id="admin.manage_tokens.userAccessTokensNameLabel"
+              />
+              description
+            </div>
+            <div
+              className="whitespace--nowrap overflow--ellipsis"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="Token ID: "
+                id="admin.manage_tokens.userAccessTokensIdLabel"
+              />
+              id2
+            </div>
+          </div>
+          <div
+            className="manage-teams__team-actions"
+          >
+            <Connect(Component)
+              onError={[Function]}
+              tokenId="id2"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx should replace loading screen on update 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="manageTokensModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal manage-teams"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="none"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="manageTokensModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Manage Personal Access Tokens"
+        id="admin.manage_tokens.manageTokensTitle"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div>
+      <div
+        className="manage-teams__user"
+      >
+        <Memo(Avatar)
+          size="lg"
+          url="/api/v4/users/defaultuser/image"
+          username="some-user"
+        />
+        <div
+          className="manage-teams__info"
+        >
+          <div
+            className="manage-teams__name"
+          >
+            @some-user
+          </div>
+          <div
+            className="manage-teams__email"
+          />
+        </div>
+      </div>
+      <div
+        className="pt-3"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Personal access tokens function similarly to session tokens and can be used by integrations to <linkAuthentication>interact with this Mattermost server</linkAuthentication>. Tokens are disabled if the user is deactivated. Learn more about <linkPersonalAccessTokens>personal access tokens</linkPersonalAccessTokens>."
+          id="admin.manage_tokens.userAccessTokensDescription"
+          values={
+            Object {
+              "linkAuthentication": [Function],
+              "linkPersonalAccessTokens": [Function],
+            }
+          }
+        />
+      </div>
+      <div
+        className="manage-teams__teams"
+      >
+        <div
+          className="manage-row__empty"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="No personal access tokens."
+            id="admin.manage_tokens.userAccessTokensNone"
+          />
+        </div>
       </div>
     </div>
   </ModalBody>

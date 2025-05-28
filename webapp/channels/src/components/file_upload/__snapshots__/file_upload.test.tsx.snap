@@ -5,37 +5,24 @@ exports[`components/FileUpload should match snapshot 1`] = `
   className="style--none"
 >
   <div>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={400}
-      overlay={
-        <Tooltip
-          id="upload-tooltip"
-        >
-          <Memo(KeyboardShortcutSequence)
-            hoistDescription={true}
-            isInsideTooltip={true}
-            shortcut={
-              Object {
-                "default": Object {
-                  "defaultMessage": "Upload files:	Ctrl|U",
-                  "id": "shortcuts.files.upload",
-                },
-                "mac": Object {
-                  "defaultMessage": "Upload files:	⌘|U",
-                  "id": "shortcuts.files.upload.mac",
-                },
-              }
+    <WithTooltip
+      title={
+        <Memo(KeyboardShortcutSequence)
+          hoistDescription={true}
+          isInsideTooltip={true}
+          shortcut={
+            Object {
+              "default": Object {
+                "defaultMessage": "Upload files:	Ctrl|U",
+                "id": "shortcuts.files.upload",
+              },
+              "mac": Object {
+                "defaultMessage": "Upload files:	⌘|U",
+                "id": "shortcuts.files.upload.mac",
+              },
             }
-          />
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+          }
+        />
       }
     >
       <button
@@ -52,7 +39,7 @@ exports[`components/FileUpload should match snapshot 1`] = `
           size={18}
         />
       </button>
-    </OverlayTrigger>
+    </WithTooltip>
     <input
       accept=""
       aria-label="Upload files"

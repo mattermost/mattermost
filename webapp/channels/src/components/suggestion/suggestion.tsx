@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useCallback} from 'react';
 
-export interface SuggestionProps<Item> extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onClick' | 'onMouseMove'> {
+export interface SuggestionProps<Item> extends Omit<React.HTMLAttributes<HTMLLIElement>, 'onClick' | 'onMouseMove'> {
     // eslint-disable-next-line react/no-unused-prop-types
     item: Item;
 
@@ -17,7 +17,7 @@ export interface SuggestionProps<Item> extends Omit<React.HTMLAttributes<HTMLDiv
     onMouseMove: (term: string) => void;
 }
 
-const SuggestionContainer = React.forwardRef<HTMLDivElement, SuggestionProps<unknown>>((props, ref) => {
+const SuggestionContainer = React.forwardRef<HTMLLIElement, SuggestionProps<unknown>>((props, ref) => {
     const {
         children,
         term,
@@ -47,7 +47,7 @@ const SuggestionContainer = React.forwardRef<HTMLDivElement, SuggestionProps<unk
     }, [onMouseMove, term]);
 
     return (
-        <div
+        <li
             ref={ref}
             className={classNames('suggestion-list__item', {'suggestion--selected': isSelection})}
             onClick={handleClick}
@@ -57,7 +57,7 @@ const SuggestionContainer = React.forwardRef<HTMLDivElement, SuggestionProps<unk
             {...otherProps}
         >
             {children}
-        </div>
+        </li>
     );
 });
 

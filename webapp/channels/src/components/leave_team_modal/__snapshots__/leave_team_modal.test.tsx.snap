@@ -29,7 +29,7 @@ exports[`components/LeaveTeamModal should render the leave team model 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -52,13 +52,13 @@ exports[`components/LeaveTeamModal should render the leave team model 1`] = `
     bsClass="modal-body"
     componentClass="div"
   >
-    <FormattedMarkdownMessage
-      defaultMessage="**You will be removed from {num_of_private_channels} private {num_of_private_channels,one {channel} other {channels}} on this team.** If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?"
-      id="leave_team_modal_private.desc"
+    <MemoizedFormattedMessage
+      defaultMessage="<strong>You will be removed from {num_of_private_channels} private {num_of_private_channels,plural,one {channel} other {channels}} on this team.</strong> If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?"
+      id="leave_team_modal_private.description"
       values={
         Object {
           "num_of_private_channels": 0,
-          "num_of_public_channels": 0,
+          "strong": [Function],
         }
       }
     />

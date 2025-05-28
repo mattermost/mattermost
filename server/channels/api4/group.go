@@ -13,10 +13,12 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 func (api *API) InitGroup() {
@@ -127,7 +129,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if group.Source == model.GroupSourceLdap {
+	if !group.AllowReference {
 		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
 			c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 			return
@@ -146,7 +148,9 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -206,7 +210,9 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -268,13 +274,13 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.existing_reserved_name_error", nil, "", http.StatusBadRequest)
 				return
 			}
-			//check if a user already has this group name
+			// check if a user already has this group name
 			user, _ := c.App.GetUserByUsername(*groupPatch.Name)
 			if user != nil {
 				c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.existing_user_name_error", nil, "", http.StatusBadRequest)
 				return
 			}
-			//check if a mentionable group already has this name
+			// check if a mentionable group already has this name
 			searchOpts := model.GroupSearchOpts{
 				FilterAllowReference: true,
 			}
@@ -296,6 +302,14 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(group)
 	auditRec.AddEventObjectType("group")
 
+	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
+		telemetry.TrackGroupsFeature,
+		"modify_group__edit_details",
+		map[string]any{
+			telemetry.TrackPropertyUser:  c.AppContext.Session().UserId,
+			telemetry.TrackPropertyGroup: group.Id,
+		})
+
 	b, err := json.Marshal(group)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.patchGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -303,7 +317,9 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -378,7 +394,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("group_syncable")
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, c.Params.GroupId)
 	})
 
 	w.WriteHeader(http.StatusCreated)
@@ -389,7 +405,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -437,7 +455,9 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -479,7 +499,9 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -557,7 +579,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("group_syncable")
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, c.Params.GroupId)
 	})
 
 	b, err := json.Marshal(groupSyncable)
@@ -566,7 +588,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -617,7 +641,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
+		c.App.RemoveMembershipsFromUnlinkedSyncable(c.AppContext, syncableID, syncableType)
 	})
 
 	auditRec.Success()
@@ -631,7 +655,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 		return appErr
 	}
 
-	if group.Source != model.GroupSourceLdap {
+	if !group.IsSyncable() {
 		return model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusBadRequest)
 	}
 
@@ -726,7 +750,9 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -766,7 +792,9 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -790,7 +818,13 @@ func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groups, appErr := c.App.GetGroupsByUserId(c.Params.UserId)
+	filterAllowReference := !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
+
+	opts := model.GroupSearchOpts{
+		FilterAllowReference: filterAllowReference,
+	}
+
+	groups, appErr := c.App.GetGroupsByUserId(c.Params.UserId, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -802,7 +836,9 @@ func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -820,7 +856,9 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -839,7 +877,9 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appError
 		return
 	}
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError) {
@@ -851,10 +891,12 @@ func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError
 		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionListTeamChannels})
 	}
 
+	filterAllowReference := c.Params.FilterAllowReference || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
+
 	opts := model.GroupSearchOpts{
 		Q:                    c.Params.Q,
 		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: c.Params.FilterAllowReference,
+		FilterAllowReference: filterAllowReference,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
@@ -872,7 +914,6 @@ func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError
 		Groups: groups,
 		Count:  totalCount,
 	})
-
 	if err != nil {
 		return nil, model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -900,10 +941,12 @@ func getGroupsByChannelCommon(c *Context, r *http.Request) ([]byte, *model.AppEr
 		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 	}
 
+	filterAllowReference := c.Params.FilterAllowReference || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
+
 	opts := model.GroupSearchOpts{
 		Q:                    c.Params.Q,
 		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: c.Params.FilterAllowReference,
+		FilterAllowReference: filterAllowReference,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
@@ -948,10 +991,12 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
+	filterAllowReference := c.Params.FilterAllowReference || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
+
 	opts := model.GroupSearchOpts{
 		Q:                    c.Params.Q,
 		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: c.Params.FilterAllowReference,
+		FilterAllowReference: filterAllowReference,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
@@ -973,7 +1018,9 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -986,6 +1033,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	source := c.Params.GroupSource
+
+	onlySyncableSources := r.URL.Query().Get("only_syncable_sources") == "true"
 
 	if id := c.Params.NotAssociatedToTeam; model.IsValidId(id) {
 		teamID = id
@@ -1006,9 +1055,9 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If they don't specify a source and custom groups are disabled, ensure they only get ldap groups in the response
+	// If they don't specify a source and custom groups are disabled, ensure they only get the other sources
 	if !*c.App.Config().ServiceSettings.EnableCustomGroups {
-		source = model.GroupSourceLdap
+		onlySyncableSources = true
 	}
 
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
@@ -1016,10 +1065,12 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Include archived groups
 	includeArchived := r.URL.Query().Get("include_archived") == "true"
 
+	filterAllowReference := c.Params.FilterAllowReference || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
+
 	opts := model.GroupSearchOpts{
 		Q:                         c.Params.Q,
 		IncludeMemberCount:        c.Params.IncludeMemberCount,
-		FilterAllowReference:      c.Params.FilterAllowReference,
+		FilterAllowReference:      filterAllowReference,
 		FilterArchived:            c.Params.FilterArchived,
 		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 		Source:                    source,
@@ -1027,6 +1078,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeTimezones:          includeTimezones,
 		IncludeMemberIDs:          c.Params.IncludeMemberIDs,
 		IncludeArchived:           includeArchived,
+		OnlySyncableSources:       onlySyncableSources,
 	}
 
 	if teamID != "" {
@@ -1138,7 +1190,9 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1190,7 +1244,9 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1244,7 +1300,9 @@ func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1287,6 +1345,13 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, userID := range newMembers.UserIds {
+		if !model.IsValidId(userID) {
+			c.SetInvalidParamWithDetails("user_id", fmt.Sprintf("UserID %s is invalid", userID))
+			return
+		}
+	}
+
 	auditRec := c.MakeAuditRecord("addGroupMembers", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "addGroupMembers_userids", newMembers.UserIds)
@@ -1303,7 +1368,16 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
+		telemetry.TrackGroupsFeature,
+		"modify_group__add_members",
+		map[string]any{
+			telemetry.TrackPropertyUser:  c.AppContext.Session().UserId,
+			telemetry.TrackPropertyGroup: group.Id,
+		})
 }
 
 func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1346,6 +1420,13 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, userID := range deleteBody.UserIds {
+		if !model.IsValidId(userID) {
+			c.SetInvalidParamWithDetails("user_id", fmt.Sprintf("UserID %s is invalid", userID))
+			return
+		}
+	}
+
 	auditRec := c.MakeAuditRecord("deleteGroupMembers", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "deleteGroupMembers_userids", deleteBody.UserIds)
@@ -1362,7 +1443,16 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
+		telemetry.TrackGroupsFeature,
+		"modify_group__remove_members",
+		map[string]any{
+			telemetry.TrackPropertyUser:  c.AppContext.Session().UserId,
+			telemetry.TrackPropertyGroup: group.Id,
+		})
 }
 
 // hasPermissionToReadGroupMembers check if a user has the permission to read the list of members of a given team.
@@ -1376,7 +1466,7 @@ func hasPermissionToReadGroupMembers(c *web.Context, groupID string) *model.AppE
 		return lcErr
 	}
 
-	if group.Source == model.GroupSourceLdap && !group.AllowReference {
+	if group.IsSyncable() && !group.AllowReference {
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
 			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
 		}
@@ -1390,7 +1480,7 @@ func hasPermissionToReadGroupMembers(c *web.Context, groupID string) *model.AppE
 //
 //	err := licensedAndConfiguredForGroupBySource(c.App, group.Source)
 //	err.Where = "Api4.getGroup"
-func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupSource) *model.AppError {
+func licensedAndConfiguredForGroupBySource(app *app.App, source model.GroupSource) *model.AppError {
 	lic := app.Srv().License()
 
 	if lic == nil {
@@ -1401,7 +1491,11 @@ func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupS
 		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 	}
 
-	if source == model.GroupSourceCustom && lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
+	if strings.HasPrefix(string(source), string(model.GroupSourcePluginPrefix)) && !*lic.Features.LDAPGroups {
+		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
+	}
+
+	if source == model.GroupSourceCustom && !model.MinimumProfessionalLicense(lic) {
 		return model.NewAppError("", "api.custom_groups.license_error", nil, "", http.StatusBadRequest)
 	}
 

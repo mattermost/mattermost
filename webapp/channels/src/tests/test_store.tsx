@@ -16,7 +16,9 @@ import type {GlobalState} from 'types/store';
 import {defaultIntl} from './helpers/intl-test-helper';
 
 export default function testConfigureStore<State extends GlobalState>(initialState?: DeepPartial<State>) {
-    return configureStore<State, ThunkDispatch<State, Record<string, never>, AnyAction>>([thunk])(initialState as State);
+    return configureStore<State, ThunkDispatch<State, Record<string, never>, AnyAction>>([
+        thunk.withExtraArgument({loaders: {}}),
+    ])(initialState as State);
 }
 
 export function mockStore<State extends GlobalState>(initialState?: DeepPartial<State>, intl = defaultIntl) {

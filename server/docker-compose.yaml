@@ -1,4 +1,3 @@
-version: '2.4'
 services:
   mysql:
     container_name: mattermost-mysql
@@ -60,6 +59,13 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: opensearch
+  redis:
+    container_name: mattermost-redis
+    ports:
+      - "6379:6379"
+    extends:
+        file: build/docker-compose.common.yml
+        service: redis
   dejavu:
     container_name: mattermost-dejavu
     ports:
@@ -133,6 +139,8 @@ services:
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
+      - "MM_LOGSETTINGS_FILELOCATION=./logs/leader"
+      - "MM_NOTIFICATIONLOGSETTINGSS_FILELOCATION=./logs/leader"
     networks:
       - mm-test
     depends_on:
@@ -169,6 +177,8 @@ services:
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
+      - "MM_LOGSETTINGS_FILELOCATION=./logs/follower"
+      - "MM_NOTIFICATIONLOGSETTINGSS_FILELOCATION=./logs/follower"
     networks:
       - mm-test
     depends_on:
@@ -205,6 +215,8 @@ services:
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
+      - "MM_LOGSETTINGS_FILELOCATION=./logs/follower2"
+      - "MM_NOTIFICATIONLOGSETTINGSS_FILELOCATION=./logs/follower2"
     networks:
       - mm-test
     depends_on:

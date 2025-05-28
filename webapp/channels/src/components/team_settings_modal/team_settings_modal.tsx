@@ -8,13 +8,17 @@ import {useIntl} from 'react-intl';
 
 import TeamSettings from 'components/team_settings';
 
+import {focusElement} from 'utils/a11y_utils';
+
 const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
 
 type Props = {
     onExited: () => void;
+    canInviteUsers: boolean;
+    focusOriginElement?: string;
 }
 
-const TeamSettingsModal = ({onExited}: Props) => {
+const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props) => {
     const [activeTab, setActiveTab] = useState('info');
     const [show, setShow] = useState<boolean>(true);
     const [hasChanges, setHasChanges] = useState<boolean>(false);
@@ -35,11 +39,14 @@ const TeamSettingsModal = ({onExited}: Props) => {
     const handleHide = useCallback(() => setShow(false), []);
 
     const handleClose = useCallback(() => {
+        if (focusOriginElement) {
+            focusElement(focusOriginElement, true);
+        }
         setActiveTab('info');
         setHasChanges(false);
         setHasChangeTabError(false);
         onExited();
-    }, [onExited]);
+    }, [onExited, focusOriginElement]);
 
     const handleCollapse = useCallback(() => {
         const el = ReactDOM.findDOMNode(modalBodyRef.current) as HTMLDivElement;
@@ -49,8 +56,10 @@ const TeamSettingsModal = ({onExited}: Props) => {
 
     const tabs = [
         {name: 'info', uiName: formatMessage({id: 'team_settings_modal.infoTab', defaultMessage: 'Info'}), icon: 'icon icon-information-outline', iconTitle: formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'})},
-        {name: 'access', uiName: formatMessage({id: 'team_settings_modal.accessTab', defaultMessage: 'Access'}), icon: 'icon icon-account-multiple-outline', iconTitle: formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})},
     ];
+    if (canInviteUsers) {
+        tabs.push({name: 'access', uiName: formatMessage({id: 'team_settings_modal.accessTab', defaultMessage: 'Access'}), icon: 'icon icon-account-multiple-outline', iconTitle: formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})});
+    }
 
     return (
         <Modal
@@ -58,7 +67,7 @@ const TeamSettingsModal = ({onExited}: Props) => {
             show={show}
             onHide={handleHide}
             onExited={handleClose}
-            role='dialog'
+            role='none'
             aria-labelledby='teamSettingsModalLabel'
             id='teamSettingsModal'
         >
@@ -66,7 +75,10 @@ const TeamSettingsModal = ({onExited}: Props) => {
                 id='teamSettingsModalLabel'
                 closeButton={true}
             >
-                <Modal.Title componentClass='h1'>
+                <Modal.Title
+                    componentClass='h2'
+                    className='modal-header__title'
+                >
                     {formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'})}
                 </Modal.Title>
             </Modal.Header>

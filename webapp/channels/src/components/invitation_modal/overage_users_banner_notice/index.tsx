@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -10,7 +10,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
+import {getOverageBannerPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import AlertBanner from 'components/alert_banner';
@@ -42,9 +42,8 @@ const OverageUsersBannerNotice = () => {
     const isGovSku = getIsGovSku(license);
     const seatsPurchased = parseInt(license.Users, 10);
     const isCloud = useSelector(isCurrentLicenseCloud);
-    const getPreferencesCategory = useMemo(makeGetCategory, []);
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
-    const overagePreferences = useSelector((state: GlobalState) => getPreferencesCategory(state, Preferences.OVERAGE_USERS_BANNER));
+    const overagePreferences = useSelector(getOverageBannerPreferences);
     const activeUsers = ((stats || {})[StatTypes.TOTAL_USERS]) as number || 0;
 
     const {
@@ -59,7 +58,7 @@ const OverageUsersBannerNotice = () => {
     const preferenceName = `${prefixPreferences}_overage_seats_${prefixLicenseId}`;
 
     const overageByUsers = activeUsers - seatsPurchased;
-    const isOverageState = isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats;
+    const isOverageState = overageByUsers > 0 && (isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats);
     const hasPermission = isAdmin && isOverageState && !isCloud;
     const {
         cta,
@@ -121,7 +120,7 @@ const OverageUsersBannerNotice = () => {
             title={
                 <FormattedMessage
                     id='licensingPage.overageUsersBanner.noticeTitle'
-                    defaultMessage='Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}'
+                    defaultMessage='Your workspace user count has exceeded your licensed seat count by {seats, number} {seats, plural, one {seat} other {seats}}'
                     values={{
                         seats: overageByUsers,
                     }}

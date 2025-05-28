@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -74,7 +75,7 @@ type WebConnConfig struct {
 	XForwardedFor string
 
 	// These aren't necessary to be exported to api layer.
-	sequence         int
+	sequence         int64
 	activeQueue      chan model.WebSocketMessage
 	deadQueue        []*model.WebSocketEvent
 	deadQueuePointer int
@@ -163,9 +164,20 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 		return nil, fmt.Errorf("invalid connection id: %s", cfg.ConnectionID)
 	}
 
+	// Sequence_number must be sent with connection id.
+	// A client must be either non-compliant or fully compliant.
+	if seqVal == "" {
+		return nil, errors.New("sequence number not present in websocket request")
+	}
+
+	seqNum, err := strconv.ParseInt(seqVal, 10, 0)
+	if err != nil {
+		return nil, fmt.Errorf("invalid sequence number %s in query param: %w", seqVal, err)
+	}
+
 	// This does not handle reconnect requests across nodes in a cluster.
 	// It falls back to the non-reliable case in that scenario.
-	res := ps.CheckWebConn(s.UserId, cfg.ConnectionID)
+	res := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
 	if res == nil {
 		// If the connection is not present, then we assume either timeout,
 		// or server restart. In that case, we set a new one.
@@ -177,17 +189,7 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 		cfg.deadQueuePointer = res.DeadQueuePointer
 		cfg.Active = false
 		cfg.ReuseCount = res.ReuseCount
-		// Now we get the sequence number
-		if seqVal == "" {
-			// Sequence_number must be sent with connection id.
-			// A client must be either non-compliant or fully compliant.
-			return nil, errors.New("sequence number not present in websocket request")
-		}
-		var err error
-		cfg.sequence, err = strconv.Atoi(seqVal)
-		if err != nil || cfg.sequence < 0 {
-			return nil, fmt.Errorf("invalid sequence number %s in query param: %v", seqVal, err)
-		}
+		cfg.sequence = seqNum
 	}
 	return cfg, nil
 }
@@ -218,7 +220,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	if tcpConn != nil {
 		err := tcpConn.SetNoDelay(false)
 		if err != nil {
-			mlog.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
+			ps.logger.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
 		}
 	}
 
@@ -237,7 +239,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		send:               cfg.activeQueue,
 		deadQueue:          cfg.deadQueue,
 		deadQueuePointer:   cfg.deadQueuePointer,
-		Sequence:           int64(cfg.sequence),
+		Sequence:           cfg.sequence,
 		WebSocket:          cfg.WebSocket,
 		lastUserActivityAt: model.GetMillis(),
 		UserId:             cfg.Session.UserId,
@@ -268,7 +270,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	wc.SetActiveThreadViewThreadChannelID(UnsetPresenceIndicator)
 
 	ps.Go(func() {
-		runner.RunMultiHook(func(hooks plugin.Hooks) bool {
+		runner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.OnWebSocketConnect(wc.GetConnectionID(), userID)
 			return true
 		}, plugin.OnWebSocketConnectID)
@@ -281,7 +283,7 @@ func (wc *WebConn) pluginPostedConsumer(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for msg := range wc.pluginPosted {
-		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks) bool {
+		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.WebSocketMessageHasBeenPosted(msg.connectionID, msg.userID, msg.req)
 			return true
 		}, plugin.WebSocketMessageHasBeenPostedID)
@@ -321,6 +323,9 @@ func (wc *WebConn) SetConnectionID(id string) {
 
 // GetConnectionID returns the connection id of the connection.
 func (wc *WebConn) GetConnectionID() string {
+	if wc.connectionID.Load() == nil {
+		return ""
+	}
 	return wc.connectionID.Load().(string)
 }
 
@@ -417,7 +422,7 @@ func (wc *WebConn) Pump() {
 
 	userID := wc.UserId
 	wc.Platform.Go(func() {
-		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks) bool {
+		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
 			return true
 		}, plugin.OnWebSocketDisconnectID)
@@ -436,7 +441,11 @@ func (wc *WebConn) readPump() {
 	}
 
 	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
-	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+	err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+	if err != nil {
+		wc.logSocketErr("websocket.SetReadDeadline", err)
+		return
+	}
 	wc.WebSocket.SetPongHandler(func(string) error {
 		if err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime)); err != nil {
 			return err
@@ -550,7 +559,9 @@ func (wc *WebConn) writePump() {
 		select {
 		case msg, ok := <-wc.send:
 			if !ok {
-				wc.writeMessageBuf(websocket.CloseMessage, []byte{})
+				if err := wc.writeMessageBuf(websocket.CloseMessage, []byte{}); err != nil {
+					wc.logSocketErr("websocket.send", err)
+				}
 				return
 			}
 
@@ -566,7 +577,7 @@ func (wc *WebConn) writePump() {
 				err = enc.Encode(msg)
 			}
 			if err != nil {
-				mlog.Warn("Error in encoding websocket message", mlog.Err(err))
+				wc.Platform.logger.Warn("Error in encoding websocket message", mlog.Err(err))
 				continue
 			}
 
@@ -581,7 +592,7 @@ func (wc *WebConn) writePump() {
 					logData = append(logData, mlog.String("channel_id", evt.GetBroadcast().ChannelId))
 				}
 
-				mlog.Warn("websocket.full", logData...)
+				wc.Platform.logger.Warn("websocket.full", logData...)
 				wc.lastLogTimeFull = time.Now()
 			}
 
@@ -608,7 +619,7 @@ func (wc *WebConn) writePump() {
 
 		case <-authTicker.C:
 			if wc.GetSessionToken() == "" {
-				mlog.Debug("websocket.authTicker: did not authenticate", mlog.Stringer("ip_address", wc.WebSocket.RemoteAddr()))
+				wc.Platform.logger.Debug("websocket.authTicker: did not authenticate", mlog.Stringer("ip_address", wc.WebSocket.RemoteAddr()))
 				return
 			}
 			authTicker.Stop()
@@ -619,7 +630,9 @@ func (wc *WebConn) writePump() {
 // writeMessageBuf is a helper utility that wraps the write to the socket
 // along with setting the write deadline.
 func (wc *WebConn) writeMessageBuf(msgType int, data []byte) error {
-	wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
+	if err := wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime)); err != nil {
+		return err
+	}
 	return wc.WebSocket.WriteMessage(msgType, data)
 }
 
@@ -629,7 +642,7 @@ func (wc *WebConn) writeMessage(msg *model.WebSocketEvent) error {
 	var buf bytes.Buffer
 	err := msg.Encode(json.NewEncoder(&buf), &buf)
 	if err != nil {
-		mlog.Warn("Error in encoding websocket message", mlog.Err(err))
+		wc.Platform.logger.Warn("Error in encoding websocket message", mlog.Err(err))
 		return nil
 	}
 	wc.Sequence++
@@ -646,34 +659,48 @@ func (wc *WebConn) addToDeadQueue(msg *model.WebSocketEvent) {
 // hasMsgLoss indicates whether the next wanted sequence is right after
 // the latest element in the dead queue, which would mean there is no message loss.
 func (wc *WebConn) hasMsgLoss() bool {
+	return _hasMsgLoss(wc.deadQueue, wc.deadQueuePointer, wc.Sequence)
+}
+
+// isInDeadQueue checks whether a given sequence number is in the dead queue or not.
+// And if it is, it returns that index.
+func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
+	return _isInDeadQueue(wc.deadQueue, seq)
+}
+
+// _hasMsgLoss is called from 2 places: wc.hasMsgLoss and ps.GetWSQueues.
+// It is done this way because it is difficult to call wc.hasMsgLoss from inside
+// ps.GetWSQueues
+func _hasMsgLoss(deadQueue []*model.WebSocketEvent, deadQueuePtr int, seq int64) bool {
 	var index int
 	// deadQueuePointer = 0 means either no msg written or the pointer
 	// has rolled over to its starting position.
-	if wc.deadQueuePointer == 0 {
-		// If last entry is nil, it means no msg is written.
-		if wc.deadQueue[deadQueueSize-1] == nil {
+	if deadQueuePtr == 0 {
+		// If first entry is nil, it means no msg is written.
+		if deadQueue[0] == nil {
 			return false
 		}
 		// If it's not nil, that means it has rolled over to start, and we
 		// check the last position.
 		index = deadQueueSize - 1
 	} else { // deadQueuePointer != 0 means it's somewhere in the middle.
-		index = wc.deadQueuePointer - 1
+		index = deadQueuePtr - 1
 	}
 
-	if wc.deadQueue[index].GetSequence() == wc.Sequence-1 {
+	if deadQueue[index].GetSequence() == seq-1 {
 		return false
 	}
 	return true
 }
 
-// isInDeadQueue checks whether a given sequence number is in the dead queue or not.
-// And if it is, it returns that index.
-func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
+// _isInDeadQueue is called from 2 places: wc.isInDeadQueue and ps.GetWSQueues.
+// It is done this way because it is difficult to call wc.isInDeadQueue from inside
+// ps.GetWSQueues
+func _isInDeadQueue(deadQueue []*model.WebSocketEvent, seq int64) (bool, int) {
 	// Can be optimized to traverse backwards from deadQueuePointer
 	// Hopefully, traversing 128 elements is not too much overhead.
 	for i := 0; i < deadQueueSize; i++ {
-		elem := wc.deadQueue[i]
+		elem := deadQueue[i]
 		if elem == nil {
 			return false, 0
 		}
@@ -751,9 +778,9 @@ func (wc *WebConn) IsAuthenticated() bool {
 		session, err := wc.Suite.GetSession(wc.GetSessionToken())
 		if err != nil {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
-				mlog.Debug("Invalid session.", mlog.Err(err))
+				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				mlog.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
 			}
 
 			wc.SetSessionToken("")
@@ -778,6 +805,18 @@ func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 		wc.Platform.ClientConfigHash(),
 		ee))
 	msg.Add("connection_id", wc.connectionID.Load())
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		wc.Platform.logger.Warn("Could not get hostname",
+			mlog.String("user_id", wc.UserId),
+			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.Err(err))
+		// return without the hostname in the message
+		return msg
+	}
+
+	msg.Add("server_hostname", hostname)
 	return msg
 }
 
@@ -789,7 +828,7 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	case model.WebsocketEventUserUpdated:
 		user, ok := msg.GetData()["user"].(*model.User)
 		if !ok {
-			mlog.Debug("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
+			wc.Platform.logger.Debug("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
 			return false
 		}
 		userID = user.Id
@@ -828,7 +867,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 			model.WebsocketEventStatusChange,
 			model.WebsocketEventMultipleChannelsViewed:
 			if wc.Active.Load() && time.Since(wc.lastLogTimeSlow) > websocketSuppressWarnThreshold {
-				mlog.Warn(
+				wc.Platform.logger.Warn(
 					"websocket.slow: dropping message",
 					mlog.String("user_id", wc.UserId),
 					mlog.String("conn_id", wc.GetConnectionID()),
@@ -852,7 +891,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
 	if msg.GetBroadcast().ContainsSanitizedData {
-		hasReadPrivateDataPermission = model.NewBool(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+		hasReadPrivateDataPermission = model.NewPointer(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
 
 		if *hasReadPrivateDataPermission {
 			return false
@@ -862,7 +901,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// If the event contains sensitive data, only send to users with permission to see it
 	if msg.GetBroadcast().ContainsSensitiveData {
 		if hasReadPrivateDataPermission == nil {
-			hasReadPrivateDataPermission = model.NewBool(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+			hasReadPrivateDataPermission = model.NewPointer(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
 		}
 
 		if !*hasReadPrivateDataPermission {
@@ -893,8 +932,8 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 
 	// Only report events to users who are in the channel for the event
 	if chID := msg.GetBroadcast().ChannelId; chID != "" {
-		// For typing events, we don't send them to users who don't have
-		// that channel or thread opened.
+		// For typing/reaction_added/reaction_removed events, we don't send them to users
+		// who don't have that channel or thread opened.
 		if wc.Platform.Config().FeatureFlags.WebSocketEventScope &&
 			slices.Contains([]model.WebsocketEventType{
 				model.WebsocketEventTyping,
@@ -902,6 +941,12 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 				model.WebsocketEventReactionRemoved,
 			}, msg.EventType()) && wc.notInChannel(chID) && wc.notInThread(chID) {
 			return false
+		}
+
+		if *wc.Platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+			// We don't need to do any further checks because this is already scoped
+			// to channel members from web_hub.
+			return true
 		}
 
 		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
@@ -960,9 +1005,9 @@ func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 		session, err := wc.Suite.GetSession(wc.GetSessionToken())
 		if err != nil {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
-				mlog.Debug("Invalid session.", mlog.Err(err))
+				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				mlog.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
 			}
 			return false
 		}
@@ -976,12 +1021,12 @@ func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 func (wc *WebConn) logSocketErr(source string, err error) {
 	// browsers will appear as CloseNoStatusReceived
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-		mlog.Debug(source+": client side closed socket",
+		wc.Platform.logger.Debug(source+": client side closed socket",
 			mlog.String("user_id", wc.UserId),
 			mlog.String("conn_id", wc.GetConnectionID()),
 			mlog.String("origin_client", wc.originClient))
 	} else {
-		mlog.Debug(source+": closing websocket",
+		wc.Platform.logger.Debug(source+": closing websocket",
 			mlog.String("user_id", wc.UserId),
 			mlog.String("conn_id", wc.GetConnectionID()),
 			mlog.String("origin_client", wc.originClient),

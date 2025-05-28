@@ -35,7 +35,7 @@ func TestUserAuditable(t *testing.T) {
 			DeleteAt:       now,
 			Username:       "some user_name",
 			Password:       "some password",
-			AuthData:       NewString("some_auth_data"),
+			AuthData:       NewPointer("some_auth_data"),
 			AuthService:    UserAuthServiceLdap,
 			Email:          "test@example.org",
 			EmailVerified:  true,
@@ -51,7 +51,7 @@ func TestUserAuditable(t *testing.T) {
 			Locale:    DefaultLocale,
 			Timezone:  timezones.DefaultUserTimezone(),
 			MfaActive: true,
-			RemoteId:  NewString("some_remote"),
+			RemoteId:  NewPointer("some_remote"),
 		}
 		m := u.Auditable()
 
@@ -99,7 +99,7 @@ func TestUserLogClone(t *testing.T) {
 		l := u.LogClone()
 		require.NotNil(t, l)
 
-		m, ok := l.(map[string]interface{})
+		m, ok := l.(map[string]any)
 		require.True(t, ok)
 		assert.Equal(t, "", m["remote_id"])
 	})
@@ -115,7 +115,7 @@ func TestUserLogClone(t *testing.T) {
 			DeleteAt:       now,
 			Username:       "some user_name",
 			Password:       "some password",
-			AuthData:       NewString("some_auth_data"),
+			AuthData:       NewPointer("some_auth_data"),
 			AuthService:    UserAuthServiceLdap,
 			Email:          "test@example.org",
 			EmailVerified:  true,
@@ -131,11 +131,11 @@ func TestUserLogClone(t *testing.T) {
 			Locale:    DefaultLocale,
 			Timezone:  timezones.DefaultUserTimezone(),
 			MfaActive: true,
-			RemoteId:  NewString("some_remote"),
+			RemoteId:  NewPointer("some_remote"),
 		}
 
 		l := u.LogClone()
-		m, ok := l.(map[string]interface{})
+		m, ok := l.(map[string]any)
 		require.True(t, ok)
 
 		expected := map[string]any{
@@ -173,7 +173,7 @@ func TestUserDeepCopy(t *testing.T) {
 	mapKey := "key"
 	mapValue := "key"
 
-	user := &User{Id: id, AuthData: NewString(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
+	user := &User{Id: id, AuthData: NewPointer(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
 	user.Props[mapKey] = mapValue
 	user.NotifyProps[mapKey] = mapValue
 	user.Timezone[mapKey] = mapValue
@@ -204,6 +204,17 @@ func TestUserPreSave(t *testing.T) {
 	user.Etag(true, true)
 	assert.NotNil(t, user.Timezone, "Timezone is nil")
 	assert.Equal(t, user.Timezone["useAutomaticTimezone"], "true", "Timezone is not set to default")
+
+	// Set default user with notify props
+	userWithDefaultNotifyProps := User{}
+	userWithDefaultNotifyProps.SetDefaultNotifications()
+
+	for notifyPropKey, expectedNotifyPropValue := range userWithDefaultNotifyProps.NotifyProps {
+		actualNotifyPropValue, ok := user.NotifyProps[notifyPropKey]
+
+		assert.True(t, ok, "Notify prop %s is not set", notifyPropKey)
+		assert.Equal(t, expectedNotifyPropValue, actualNotifyPropValue, "Notify prop %s is not set to default", notifyPropKey)
+	}
 }
 
 func TestUserPreSavePwdTooLong(t *testing.T) {
@@ -215,6 +226,17 @@ func TestUserPreSavePwdTooLong(t *testing.T) {
 func TestUserPreUpdate(t *testing.T) {
 	user := User{Password: "test"}
 	user.PreUpdate()
+
+	// Set default user with notify props
+	userWithDefaultNotifyProps := User{}
+	userWithDefaultNotifyProps.SetDefaultNotifications()
+
+	for notifyPropKey, expectedNotifyPropValue := range userWithDefaultNotifyProps.NotifyProps {
+		actualNotifyPropValue, ok := user.NotifyProps[notifyPropKey]
+
+		assert.True(t, ok, "Notify prop %s is not set", notifyPropKey)
+		assert.Equal(t, expectedNotifyPropValue, actualNotifyPropValue, "Notify prop %s is not set to default", notifyPropKey)
+	}
 }
 
 func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
@@ -252,11 +274,11 @@ func TestUserIsValid(t *testing.T) {
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "username", user.Id, user.Username), "expected user is valid error: %s", appErr.Error())
 
-	user.Username = NewId() + "^hello#"
+	user.Username = NewUsername() + "^hello#"
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "username", user.Id, user.Username), "expected user is valid error: %s", appErr.Error())
 
-	user.Username = NewId()
+	user.Username = NewUsername()
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
 
@@ -281,7 +303,7 @@ func TestUserIsValid(t *testing.T) {
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
 
-	user.RemoteId = NewString(NewId())
+	user.RemoteId = NewPointer(NewId())
 	require.Nil(t, user.IsValid())
 
 	user.FirstName = strings.Repeat("a", 65)
@@ -324,22 +346,23 @@ func TestUserSanitizeInput(t *testing.T) {
 	user.Nickname = "nickname"
 	user.FirstName = "firstname"
 	user.LastName = "lastname"
-	user.RemoteId = NewString(NewId())
+	user.RemoteId = NewPointer(NewId())
 	user.Position = "position"
 	user.Roles = "system_admin"
-	user.AuthData = NewString("authdata")
+	user.AuthData = NewPointer("authdata")
 	user.AuthService = "saml"
 	user.EmailVerified = true
 	user.FailedAttempts = 10
 	user.LastActivityAt = GetMillis()
+	user.MfaUsedTimestamps = StringArray{"1234", "4566"}
 
 	user.SanitizeInput(false)
 
 	// these fields should be reset
-	require.Equal(t, NewString(""), user.AuthData)
+	require.Equal(t, NewPointer(""), user.AuthData)
 	require.Equal(t, "", user.AuthService)
 	require.False(t, user.EmailVerified)
-	require.Equal(t, NewString(""), user.RemoteId)
+	require.Equal(t, NewPointer(""), user.RemoteId)
 	require.Equal(t, int64(0), user.CreateAt)
 	require.Equal(t, int64(0), user.UpdateAt)
 	require.Equal(t, int64(0), user.DeleteAt)
@@ -347,6 +370,7 @@ func TestUserSanitizeInput(t *testing.T) {
 	require.Equal(t, int64(0), user.LastPictureUpdate)
 	require.Equal(t, int64(0), user.LastActivityAt)
 	require.Equal(t, 0, user.FailedAttempts)
+	require.Equal(t, StringArray{}, user.MfaUsedTimestamps)
 
 	// these fields should remain intact
 	require.Equal(t, "user@example.com", user.Email)

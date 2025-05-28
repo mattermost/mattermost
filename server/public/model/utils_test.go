@@ -373,6 +373,10 @@ func TestIsValidEmail(t *testing.T) {
 			Expected: false,
 		},
 		{
+			Input:    "<billy@example.com>",
+			Expected: false,
+		},
+		{
 			Input:    "email.domain.com",
 			Expected: false,
 		},
@@ -394,6 +398,50 @@ func TestIsValidEmail(t *testing.T) {
 		},
 		{
 			Input:    "email1@domain.com, email2@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "\"attacker@attacker.com,admin\"@spaceship.com",
+			Expected: false,
+		},
+		{
+			Input:    "(email)@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "<email>@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "[email]@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "{email}@domain.com",
+			Expected: true,
+		},
+		{
+			Input:    "first\"name@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "first:name@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "first;name@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "first,name@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "first@name@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "john..doe@example.com",
 			Expected: false,
 		},
 	} {
@@ -963,7 +1011,6 @@ func TestNowhereNil(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			defer func() {
 				if r := recover(); r != nil {
@@ -1196,7 +1243,6 @@ func TestIsValidHTTPURL(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			defer func() {
 				if r := recover(); r != nil {

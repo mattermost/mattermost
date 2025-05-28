@@ -46,16 +46,25 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, comma
     <p
       className="word-break--all"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**Token**: {token}"
+      <MemoizedFormattedMessage
+        defaultMessage="<b>Token</b>: {token}"
         id="add_command.token"
         values={
           Object {
-            "token": "jb6oyqh95irpbx8fo9zmndkp1r",
+            "b": [Function],
+            "token": <code>
+              jb6oyqh95irpbx8fo9zmndkp1r
+            </code>,
           }
         }
       />
       <Memo(CopyText)
+        label={
+          Object {
+            "defaultMessage": "Copy Token",
+            "id": "integrations.copy_token",
+          }
+        }
         value="jb6oyqh95irpbx8fo9zmndkp1r"
       />
     </p>
@@ -122,16 +131,25 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, incom
     <p
       className="word-break--all"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**URL**: {url}"
+      <MemoizedFormattedMessage
+        defaultMessage="<b>URL</b>: {url}"
         id="add_incoming_webhook.url"
         values={
           Object {
-            "url": "\`http://localhost:8065/hooks/r5tpgt4iepf45jt768jz84djic\`",
+            "b": [Function],
+            "url": <code>
+              http://localhost:8065/hooks/r5tpgt4iepf45jt768jz84djic
+            </code>,
           }
         }
       />
       <Memo(CopyText)
+        label={
+          Object {
+            "defaultMessage": "Copy Token",
+            "id": "integrations.copy_token",
+          }
+        }
         value="http://localhost:8065/hooks/r5tpgt4iepf45jt768jz84djic"
       />
     </p>
@@ -200,33 +218,47 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
     <p
       key="add_oauth_app.clientId"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**Client ID**: {id}"
+      <MemoizedFormattedMessage
+        defaultMessage="<b>Client ID</b>: {id}"
         id="add_oauth_app.clientId"
         values={
           Object {
-            "id": "r5tpgt4iepf45jt768jz84djic",
+            "b": [Function],
+            "id": <code>
+              r5tpgt4iepf45jt768jz84djic
+            </code>,
           }
         }
       />
       <Memo(CopyText)
-        defaultMessage="Copy Client Id"
-        idMessage="integrations.copy_client_id"
+        label={
+          Object {
+            "defaultMessage": "Copy Client Id",
+            "id": "integrations.copy_client_id",
+          }
+        }
         value="r5tpgt4iepf45jt768jz84djic"
       />
       <br />
-      <FormattedMarkdownMessage
-        defaultMessage="**Client Secret**: {secret}"
+      <MemoizedFormattedMessage
+        defaultMessage="<b>Client Secret</b>: {secret}"
         id="add_oauth_app.clientSecret"
         values={
           Object {
-            "secret": "<==secret==>",
+            "b": [Function],
+            "secret": <code>
+              &lt;==secret==&gt;
+            </code>,
           }
         }
       />
       <Memo(CopyText)
-        defaultMessage="Copy Client Secret"
-        idMessage="integrations.copy_client_secret"
+        label={
+          Object {
+            "defaultMessage": "Copy Client Secret",
+            "id": "integrations.copy_client_secret",
+          }
+        }
         value="<==secret==>"
       />
     </p>
@@ -241,11 +273,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
     <p
       className="word-break--all"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**URL(s)**: {url}"
+      <MemoizedFormattedMessage
+        defaultMessage="<b>URL(s)</b>: {url}"
         id="add_oauth_app.url"
         values={
           Object {
+            "b": [Function],
             "url": "https://someCallback, https://anotherCallback",
           }
         }
@@ -316,16 +349,25 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
     <p
       className="word-break--all"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**Token**: {token}"
+      <MemoizedFormattedMessage
+        defaultMessage="<b>Token</b>: {token}"
         id="add_outgoing_webhook.token"
         values={
           Object {
-            "token": "jb6oyqh95irpbx8fo9zmndkp1r",
+            "b": [Function],
+            "token": <code>
+              jb6oyqh95irpbx8fo9zmndkp1r
+            </code>,
           }
         }
       />
       <Memo(CopyText)
+        label={
+          Object {
+            "defaultMessage": "Copy Token",
+            "id": "integrations.copy_token",
+          }
+        }
         value="jb6oyqh95irpbx8fo9zmndkp1r"
       />
     </p>
@@ -394,21 +436,25 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
     <p
       key="add_outgoing_oauth_connection.clientId"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**Client ID**: {id}"
+      <MemoizedFormattedMessage
+        defaultMessage="<b>Client ID</b>: {id}"
         id="add_outgoing_oauth_connection.clientId"
         values={
           Object {
-            "id": "someid",
+            "b": [Function],
+            "id": <code>
+              someid
+            </code>,
           }
         }
       />
       <br />
-      <FormattedMarkdownMessage
-        defaultMessage="**Client Secret**: \\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*"
+      <MemoizedFormattedMessage
+        defaultMessage="<b>Client Secret</b>: \\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*"
         id="add_outgoing_oauth_connection.clientSecret"
         values={
           Object {
+            "b": [Function],
             "secret": "",
           }
         }
@@ -417,12 +463,15 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
     <p
       className="word-break--all"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**Token URL**: \`{url}\`"
+      <MemoizedFormattedMessage
+        defaultMessage="<b>Token URL</b>: {url}"
         id="add_outgoing_oauth_connection.token_url"
         values={
           Object {
-            "url": "https://tokenurl.com",
+            "b": [Function],
+            "url": <code>
+              https://tokenurl.com
+            </code>,
           }
         }
       />
@@ -430,12 +479,15 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
     <p
       className="word-break--all"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**Audience URL(s)**: \`{url}\`"
+      <MemoizedFormattedMessage
+        defaultMessage="<b>Audience URL(s)</b>: {url}"
         id="add_outgoing_oauth_connection.audience_urls"
         values={
           Object {
-            "url": "https://myaudience.com",
+            "b": [Function],
+            "url": <code>
+              https://myaudience.com
+            </code>,
           }
         }
       />

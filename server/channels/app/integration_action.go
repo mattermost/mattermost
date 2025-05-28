@@ -107,12 +107,13 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 
 		channel, err := a.Srv().Store().Channel().Get(cookie.ChannelId, true)
 		if err != nil {
+			errCtx := map[string]any{"channel_id": cookie.ChannelId}
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
 			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 
@@ -233,6 +234,15 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Log request, regardless of whether destination is internal or external
+	c.Logger().Info("DoPostActionWithCookie POST request, through DoActionRequest",
+		mlog.String("url", upstreamURL),
+		mlog.String("user_id", upstreamRequest.UserId),
+		mlog.String("post_id", upstreamRequest.PostId),
+		mlog.String("channel_id", upstreamRequest.ChannelId),
+		mlog.String("team_id", upstreamRequest.TeamId),
+	)
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(c.WithContext(ctx), upstreamURL, requestJSON)
@@ -270,7 +280,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		response.Update.IsPinned = originalIsPinned
 		response.Update.HasReactions = originalHasReactions
 
-		if _, appErr = a.UpdatePost(c, response.Update, false); appErr != nil {
+		if _, appErr = a.UpdatePost(c, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
 			return "", appErr
 		}
 	}
@@ -296,7 +306,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 	return clientTriggerId, nil
 }
 
-// Perform an HTTP POST request to an integration's action endpoint.
+// DoActionRequest performs an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
 // For internal requests, requests are routed directly to a plugin ServerHTTP hook
 func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
@@ -333,7 +343,7 @@ func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.
 
 	resp, httpErr := httpClient.Do(req)
 	if httpErr != nil {
-		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+httpErr.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(httpErr)
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -374,7 +384,7 @@ func (ch *Channels) doPluginRequest(c request.CTX, method, rawURL string, values
 	rawURL = strings.TrimPrefix(rawURL, "/")
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
-		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	result := strings.Split(inURL.Path, "/")
 	if len(result) < 2 {
@@ -389,7 +399,7 @@ func (ch *Channels) doPluginRequest(c request.CTX, method, rawURL string, values
 
 	base, err := url.Parse(path)
 	if err != nil {
-		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	// merge the rawQuery params (if any) with the function's provided values
@@ -411,7 +421,7 @@ func (ch *Channels) doPluginRequest(c request.CTX, method, rawURL string, values
 	w := &LocalResponseWriter{}
 	r, err := http.NewRequest(method, base.String(), bytes.NewReader(body))
 	if err != nil {
-		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	r.Header.Set("Mattermost-User-Id", c.Session().UserId)
 	r.Header.Set(model.HeaderAuth, "Bearer "+c.Session().Token)
@@ -488,6 +498,14 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	// Log request, regardless of whether destination is internal or external
+	c.Logger().Info("SubmitInteractiveDialog POST request, through DoActionRequest",
+		mlog.String("url", url),
+		mlog.String("user_id", request.UserId),
+		mlog.String("channel_id", request.ChannelId),
+		mlog.String("team_id", request.TeamId),
+	)
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(c.WithContext(ctx), url, b)
@@ -496,8 +514,21 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.read_body_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	var response model.SubmitDialogResponse
-	json.NewDecoder(resp.Body).Decode(&response) // Don't fail, an empty response is acceptable
+	if len(body) == 0 {
+		// Don't fail, an empty response is acceptable
+		return &response, nil
+	}
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.decode_json_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	return &response, nil
 }

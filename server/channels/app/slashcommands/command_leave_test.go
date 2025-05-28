@@ -13,8 +13,7 @@ import (
 )
 
 func TestLeaveProviderDoCommand(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	lp := LeaveProvider{}
 
@@ -37,14 +36,20 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 	defaultChannel, err := th.App.GetChannelByName(th.Context, model.DefaultChannelName, th.BasicTeam.Id, false)
 	require.Nil(t, err)
 
-	guest := th.createGuest()
+	guest := th.createGuest(t)
 
-	th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.BasicUser.Id)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, publicChannel, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
-	th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, guest.Id)
-	th.App.AddUserToChannel(th.Context, guest, publicChannel, false)
-	th.App.AddUserToChannel(th.Context, guest, defaultChannel, false)
+	_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, publicChannel, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
+	require.Nil(t, appErr)
+	_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, guest.Id)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, guest, publicChannel, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, guest, defaultChannel, false)
+	require.Nil(t, appErr)
 
 	t.Run("Should error when no Channel ID in args", func(t *testing.T) {
 		args := &model.CommandArgs{

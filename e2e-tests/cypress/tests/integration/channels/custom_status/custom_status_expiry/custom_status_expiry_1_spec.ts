@@ -25,28 +25,37 @@ describe('MM-T4063 Custom status expiry', () => {
     const defaultCustomStatuses = ['In a meeting', 'Out for lunch', 'Out sick', 'Working from home', 'On a vacation'];
     const customStatus = {
         emoji: 'hamburger',
+        emojiAriaLabel: ':hamburger:',
         text: 'Out for lunch',
         duration: '30 minutes',
     };
 
     const waitingTime = 30; //minutes
     let expiresAt = dayjs();
+    let expiresAtAcceptableValues = [''];
+    let expiresAtRegexp: RegExp;
     const expiryTimeFormat = 'h:mm A';
     it('MM-T4063_1 should open status dropdown', () => {
         // # Click on the sidebar header to open status dropdown
-        cy.get('.MenuWrapper .status-wrapper').click();
+        cy.uiGetSetStatusButton().click();
 
         // * Check if the status dropdown opens
-        cy.get('#statusDropdownMenu').should('exist');
+        cy.uiGetStatusMenu();
+
+        // # Close the status dropdown
+        cy.get('body').click();
     });
 
     it('MM-T4063_2 Custom status modal opens with 5 default statuses listed', () => {
         // # Open custom status modal
-        cy.get('#statusDropdownMenu li#status-menu-custom-status').click();
-        cy.get('#custom_status_modal').should('exist');
+        cy.uiOpenUserMenu('Set custom status');
 
-        // * Check if all the default suggestions exist
-        defaultCustomStatuses.map((statusText) => cy.get('#custom_status_modal .statusSuggestion__content').contains('span', statusText));
+        cy.findByRole('dialog', {name: 'Set a status'}).should('exist').within(() => {
+            // * Check if all the default suggestions exist
+            defaultCustomStatuses.forEach((statusText) => {
+                cy.findByText(statusText).should('exist');
+            });
+        });
     });
 
     it('MM-T4063_3 Correct custom status is selected with the correct emoji and correct duration', () => {
@@ -77,7 +86,12 @@ describe('MM-T4063 Custom status expiry', () => {
         cy.get('#custom_status_modal').should('not.exist');
 
         // # Setting the time at which the custom status should be expired
+        // # Note that we need to be flexible around accepted values, as this calculation and the server-side one may differ slightly
         expiresAt = dayjs().add(waitingTime, 'minute');
+        expiresAtAcceptableValues = [-1, 0, 1].map((el) =>
+            expiresAt.add(el, 'minute').format(expiryTimeFormat),
+        );
+        expiresAtRegexp = new RegExp(`(${expiresAtAcceptableValues.join('|')})`);
 
         // * Status should be set and the emoji should be visible in the sidebar header
         cy.uiGetProfileHeader().
@@ -87,17 +101,17 @@ describe('MM-T4063 Custom status expiry', () => {
 
     it('MM-T4063_5 should show the set custom status with expiry when status dropdown is opened', () => {
         // # Click on the sidebar header to open status dropdown
-        cy.get('.MenuWrapper .status-wrapper').click();
+        cy.uiGetSetStatusButton().click();
 
         // * Check if the status dropdown opens
-        cy.get('#statusDropdownMenu').should('exist');
+        cy.uiGetStatusMenu().within(() => {
+            // * Correct custom status text and emoji should be displayed in the status dropdown
+            cy.findByText(customStatus.text).should('exist');
+            cy.findByLabelText(customStatus.emojiAriaLabel).should('exist');
 
-        // * Correct custom status text and emoji should be displayed in the status dropdown
-        cy.get('.status-dropdown-menu .custom_status__container').should('have.text', customStatus.text);
-        cy.get('.status-dropdown-menu .custom_status__row span.emoticon').invoke('attr', 'data-emoticon').should('contain', customStatus.emoji);
-
-        // * Correct clear time should be displayed in the status dropdown
-        cy.get('.status-dropdown-menu .custom_status__expiry time').should('have.text', expiresAt.format(expiryTimeFormat));
+            // * Correct clear time should be displayed in the status dropdown
+            cy.findByText(expiresAtRegexp).should('exist');
+        });
     });
 
     it('MM-T4063_6 custom status should be cleared after duration of set custom status', () => {
@@ -111,12 +125,11 @@ describe('MM-T4063 Custom status expiry', () => {
 
     it('MM-T4063_7 current custom status should display expiry time in custom status modal', () => {
         // # Open custom status modal
-        cy.get('#statusDropdownMenu li#status-menu-custom-status').click();
-        cy.get('#custom_status_modal').should('exist');
+        cy.get('.userAccountMenu_customStatusMenuItem').should('be.visible').click();
 
         // * Should show expiry time of status when current status is selected
         cy.get('#custom_status_modal .statusSuggestion__content').contains('span', customStatus.text).click();
-        cy.get('#custom_status_modal .expiry-value').should('have.text', expiresAt.format(expiryTimeFormat));
+        cy.get('#custom_status_modal .expiry-value').invoke('text').should('match', expiresAtRegexp);
 
         // # Close custom status modal
         cy.get('#custom_status_modal .modal-header .close').click();
@@ -125,15 +138,12 @@ describe('MM-T4063 Custom status expiry', () => {
     it('MM-T4063_8 previous custom status duration should be reset if custom status is expired', () => {
         // # Forwarding the time by the duration of custom status
         cy.clock(Date.now());
-        cy.tick(waitingTime * 60 * 1000);
-
-        // # Open custom status modal
-        cy.get('.status-dropdown-menu').click();
-        cy.get('#statusDropdownMenu li#status-menu-custom-status').click();
-        cy.get('#custom_status_modal').should('exist');
-
-        // * Should show duration of previous status when previous status is selected
-        cy.get('#custom_status_modal .statusSuggestion__content').contains('span', customStatus.text).click();
-        cy.get('#custom_status_modal .expiry-value').should('have.text', customStatus.duration);
+        cy.tick(waitingTime * 60 * 1000).then(() => {
+            // # Open custom status modal
+            cy.uiOpenUserMenu().within(() => {
+                // * Verify that there is no custom status in the dropdown
+                cy.findByText('Set custom status').should('exist').and('be.visible');
+            });
+        });
     });
 });

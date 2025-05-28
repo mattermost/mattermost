@@ -5,7 +5,7 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
-import type {ValueType} from 'react-select';
+import type {OnChangeValue, StylesConfig} from 'react-select';
 
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 
@@ -15,8 +15,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
-
-import {localizeMessage} from 'utils/utils';
 
 type Limit = {
     value: number;
@@ -44,7 +42,6 @@ type State = {
 }
 
 const limits: Limit[] = [
-    {value: 10000, label: localizeMessage('user.settings.sidebar.limitVisibleGMsDMs.allDirectMessages', 'All Direct Messages')},
     {value: 10, label: '10'},
     {value: 15, label: '15'},
     {value: 20, label: '20'},
@@ -97,7 +94,7 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
         }
     }
 
-    handleChange = (selected: ValueType<Limit>) => {
+    handleChange = (selected: OnChangeValue<Limit, boolean>) => {
         if (selected && 'value' in selected) {
             this.setState({limit: selected});
         }
@@ -161,7 +158,7 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
                             classNamePrefix='react-select'
                             id='limitVisibleGMsDMs'
                             options={limits}
-                            clearable={false}
+                            isClearable={false}
                             onChange={this.handleChange}
                             value={this.state.limit}
                             isSearchable={false}
@@ -185,8 +182,8 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
 }
 
 const reactStyles = {
-    menuPortal: (provided: React.CSSProperties) => ({
+    menuPortal: (provided) => ({
         ...provided,
         zIndex: 9999,
     }),
-};
+} satisfies StylesConfig<Limit, boolean>;

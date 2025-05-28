@@ -10,12 +10,10 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
-import useTooltip from 'components/common/hooks/useTooltip';
 import GetPublicModal from 'components/get_public_link_modal';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
 import {Constants, FileTypes, ModalIdentifiers} from 'utils/constants';
 import {trimFilename} from 'utils/file_utils';
@@ -31,7 +29,7 @@ import FilenameOverlay from './filename_overlay';
 
 import type {PropsFromRedux} from './index';
 
-interface Props extends PropsFromRedux {
+type Props = PropsFromRedux & {
 
     /*
     * File detailed information
@@ -54,7 +52,9 @@ interface Props extends PropsFromRedux {
     compactDisplay?: boolean;
     disablePreview?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
-}
+    disableThumbnail?: boolean;
+    disableActions?: boolean;
+};
 
 export default function FileAttachment(props: Props) {
     const mounted = useRef(true);
@@ -65,16 +65,7 @@ export default function FileAttachment(props: Props) {
     const [loadFilesCalled, setLoadFilesCalled] = useState(false);
     const [keepOpen, setKeepOpen] = useState(false);
     const [openUp, setOpenUp] = useState(false);
-
-    const {
-        setReference,
-        getReferenceProps,
-        tooltip: archivedTooltip,
-    } = useTooltip({
-        message: <ArchivedTooltip/>,
-        placement: 'right',
-        allowedPlacements: ['right', 'top'],
-    });
+    const [showTooltip, setShowTooltip] = useState(true);
 
     const buttonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -93,12 +84,14 @@ export default function FileAttachment(props: Props) {
         }
         const fileType = getFileType(fileInfo.extension);
 
-        if (fileType === FileTypes.IMAGE) {
-            const thumbnailUrl = getFileThumbnailUrl(fileInfo.id);
+        if (!props.disableThumbnail) {
+            if (fileType === FileTypes.IMAGE) {
+                const thumbnailUrl = getFileThumbnailUrl(fileInfo.id);
 
-            loadImage(thumbnailUrl, handleImageLoaded);
-        } else if (fileInfo.extension === FileTypes.SVG && props.enableSVGs) {
-            loadImage(getFileUrl(fileInfo.id), handleImageLoaded);
+                loadImage(thumbnailUrl, handleImageLoaded);
+            } else if (fileInfo.extension === FileTypes.SVG && props.enableSVGs) {
+                loadImage(getFileUrl(fileInfo.id), handleImageLoaded);
+            }
         }
     };
 
@@ -128,10 +121,12 @@ export default function FileAttachment(props: Props) {
     }, [props.fileInfo.extension, props.fileInfo.id, props.enableSVGs]);
 
     const onAttachmentClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-        if (props.fileInfo.archived) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (props.fileInfo.archived || props.disablePreview) {
             return;
         }
-        e.preventDefault();
 
         if ('blur' in e.target) {
             (e.target as HTMLElement).blur();
@@ -145,6 +140,7 @@ export default function FileAttachment(props: Props) {
     const handleDropdownOpened = (open: boolean) => {
         props.handleFileDropdownOpened?.(open);
         setKeepOpen(open);
+        setShowTooltip(!open);
 
         if (open) {
             setMenuPosition();
@@ -226,36 +222,28 @@ export default function FileAttachment(props: Props) {
             );
         }
 
-        const tooltip = (
-            <Tooltip id='file-name__tooltip'>
-                {formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
-            </Tooltip>
-        );
-
         return (
             <MenuWrapper
                 onToggle={handleDropdownOpened}
                 stopPropagationOnToggle={true}
             >
-                <OverlayTrigger
-                    className='hidden-xs'
-                    delayShow={1000}
-                    placement='top'
-                    overlay={tooltip}
+                <WithTooltip
+                    title={formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
+                    disabled={!showTooltip}
                 >
                     <button
                         ref={buttonRef}
                         id={`file_action_button_${props.fileInfo.id}`}
                         aria-label={formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'}).toLowerCase()}
                         className={classNames(
-                            'file-dropdown-icon', 'dots-icon',
+                            'file-dropdown-icon', 'dots-icon', 'btn', 'btn-icon', 'btn-sm',
                             {'a11y--active': keepOpen},
                         )}
                         aria-expanded={keepOpen}
                     >
                         <i className='icon icon-dots-vertical'/>
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
                 <Menu
                     id={`file_dropdown_${props.fileInfo.id}`}
                     ariaLabel={'file menu'}
@@ -285,13 +273,16 @@ export default function FileAttachment(props: Props) {
                 href='#'
                 onClick={onAttachmentClick}
             >
-                {loaded ? (
+                {loaded && !props.disableThumbnail ? (
                     <FileThumbnail
                         fileInfo={fileInfo}
                         disablePreview={props.disablePreview}
                     />
                 ) : (
-                    <div className='post-image__load'/>
+                    <FileThumbnail
+                        fileInfo={props.fileInfo}
+                        disablePreview={true}
+                    />
                 )}
             </a>
         );
@@ -334,7 +325,7 @@ export default function FileAttachment(props: Props) {
             </div>
         );
 
-        if (!fileInfo.archived) {
+        if (!fileInfo.archived && !props.disableActions) {
             fileActions = renderFileMenuItems();
         }
     }
@@ -376,18 +367,17 @@ export default function FileAttachment(props: Props) {
             </span>);
     }
 
-    const content =
-        (
+    return (
+        <WithTooltip
+            title={<ArchivedTooltip/>}
+            disabled={!fileInfo.archived}
+        >
             <div
-                ref={fileInfo.archived ? setReference : undefined}
-                {...(fileInfo.archived ? getReferenceProps() : {})}
-                className={
-                    classNames([
-                        'post-image__column',
-                        {'keep-open': keepOpen},
-                        {'post-image__column--archived': fileInfo.archived},
-                    ])
-                }
+                className={classNames([
+                    'post-image__column',
+                    {'keep-open': keepOpen},
+                    {'post-image__column--archived': fileInfo.archived},
+                ])}
             >
                 {fileThumbnail}
                 <div className='post-image__details'>
@@ -396,15 +386,6 @@ export default function FileAttachment(props: Props) {
                     {filenameOverlay}
                 </div>
             </div>
-        );
-
-    if (fileInfo.archived) {
-        return (
-            <>
-                {content}
-                {archivedTooltip}
-            </>
-        );
-    }
-    return content;
+        </WithTooltip>
+    );
 }

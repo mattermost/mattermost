@@ -13,30 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func TestGetPerPageFromQuery(t *testing.T) {
-	t.Run("defaults should be set", func(t *testing.T) {
-		query := make(url.Values)
-		perPage := getPerPageFromQuery(query)
-		require.Equal(t, PerPageDefault, perPage)
-	})
-
-	t.Run("per_page should take priority", func(t *testing.T) {
-		query := make(url.Values)
-		query.Add("pageSize", "100")
-		query.Add("per_page", "50")
-		perPage := getPerPageFromQuery(query)
-		require.Equal(t, 50, perPage)
-	})
-
-	t.Run("pageSize should be used only if per_page is incorrectly set", func(t *testing.T) {
-		query := make(url.Values)
-		query.Add("pageSize", "100")
-		query.Add("per_page", "BAD VALUE")
-		perPage := getPerPageFromQuery(query)
-		require.Equal(t, 100, perPage)
-	})
-}
-
 func TestParamsFromRequest(t *testing.T) {
 	testCases := []struct {
 		Description string
@@ -116,8 +92,7 @@ func TestParamsFromRequest(t *testing.T) {
 			mustURL("?page=hello"),
 			nil,
 			&Params{
-				Page: PageDefault,
-
+				Page:        PageDefault,
 				PerPage:     PerPageDefault,
 				LogsPerPage: LogsPerPageDefault,
 				LimitAfter:  LimitDefault,
@@ -129,8 +104,7 @@ func TestParamsFromRequest(t *testing.T) {
 			mustURL("?page=-1"),
 			nil,
 			&Params{
-				Page: PageDefault,
-
+				Page:        PageDefault,
 				PerPage:     PerPageDefault,
 				LogsPerPage: LogsPerPageDefault,
 				LimitAfter:  LimitDefault,
@@ -504,7 +478,6 @@ func TestParamsFromRequest(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
 

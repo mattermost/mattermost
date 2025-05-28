@@ -1,14 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {Client4} from 'mattermost-redux/client';
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
+import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
-import {isCallsEnabled as getIsCallsEnabled, getSessionsInCalls} from 'selectors/calls';
+import {
+    isCallsEnabled as getIsCallsEnabled,
+    getSessionsInCalls,
+    getCallsConfig,
+    callsChannelExplicitlyDisabled,
+    callsChannelExplicitlyEnabled,
+} from 'selectors/calls';
 
 import ProfilePopoverCallButton from 'components/profile_popover/profile_popover_calls_button';
 import WithTooltip from 'components/with_tooltip';
@@ -23,11 +30,6 @@ type Props = {
     fullname: string;
     username: string;
 }
-
-type ChannelCallsState = {
-    enabled: boolean;
-    id: string;
-};
 
 export function isUserInCall(state: GlobalState, userId: string, channelId: string) {
     const sessionsInCall = getSessionsInCalls(state)[channelId] || {};
@@ -52,6 +54,36 @@ const CallButton = ({
     const isCallsEnabled = useSelector((state: GlobalState) => getIsCallsEnabled(state));
     const dmChannel = useSelector((state: GlobalState) => getChannelByName(state, getDirectChannelName(currentUserId, userId)));
 
+    const shouldRenderButton = useSelector((state: GlobalState) => {
+        // 1. No one should get the button if the plugin is disabled.
+        if (!isCallsEnabled) {
+            return false;
+        }
+
+        // 2. No one should get the button if calls in channel have been explicitly disabled in the DM channel.
+        if (callsChannelExplicitlyDisabled(state, dmChannel?.id ?? '')) {
+            return false;
+        }
+
+        // 3. Admins should get the button unless calls have been explicitly disabled in the DM channel. This
+        // should apply in test mode as well (DefaultEnabled = false).
+        if (isSystemAdmin(getUser(state, currentUserId)?.roles)) {
+            return true;
+        }
+
+        // 4. Users should only see the button if test mode is off (DefaultEnabled = true) and calls in the DM channel are not disabled.
+        if (getCallsConfig(state).DefaultEnabled) {
+            return true;
+        }
+
+        // 5. Everyone should see the button if calls have been explicitly enabled in the DM channel, regardless of test mode state.
+        if (callsChannelExplicitlyEnabled(state, dmChannel?.id ?? '')) {
+            return true;
+        }
+
+        return false;
+    });
+
     const hasDMCall = useSelector((state: GlobalState) => {
         if (isCallsEnabled && dmChannel) {
             return isUserInCall(state, currentUserId, dmChannel.id) || isUserInCall(state, userId, dmChannel.id);
@@ -59,28 +91,7 @@ const CallButton = ({
         return false;
     });
 
-    const [callsDMChannelState, setCallsDMChannelState] = useState<ChannelCallsState>();
-
-    const getCallsChannelState = useCallback((channelId: string): Promise<ChannelCallsState> => {
-        let data: Promise<ChannelCallsState>;
-        try {
-            data = Client4.getCallsChannelState(channelId);
-        } catch (error) {
-            return error;
-        }
-
-        return data;
-    }, []);
-
-    useEffect(() => {
-        if (isCallsEnabled && dmChannel) {
-            getCallsChannelState(dmChannel.id).then((data) => {
-                setCallsDMChannelState(data);
-            });
-        }
-    }, []);
-
-    if (!isCallsEnabled || callsDMChannelState?.enabled === false) {
+    if (!shouldRenderButton) {
         return null;
     }
 
@@ -96,9 +107,7 @@ const CallButton = ({
     });
     const callButton = (
         <WithTooltip
-            id='startCallTooltip'
             title={startCallMessage}
-            placement='top'
         >
             <button
                 id='startCallButton'

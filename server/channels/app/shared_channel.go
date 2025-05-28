@@ -19,7 +19,7 @@ import (
 func (a *App) getSharedChannelsService() (SharedChannelServiceIFace, error) {
 	scService := a.Srv().GetSharedChannelSyncService()
 	if scService == nil || !scService.Active() {
-		return nil, model.NewAppError("InviteRemoteToChannel", "api.command_share.service_disabled",
+		return nil, model.NewAppError("getSharedChannelsService", "api.command_share.service_disabled",
 			nil, "", http.StatusBadRequest)
 	}
 	return scService, nil
@@ -137,8 +137,8 @@ func (a *App) GetSharedChannelRemoteByIds(channelID string, remoteID string) (*m
 	return a.Srv().Store().SharedChannel().GetRemoteByIds(channelID, remoteID)
 }
 
-func (a *App) GetSharedChannelRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
-	return a.Srv().Store().SharedChannel().GetRemotes(opts)
+func (a *App) GetSharedChannelRemotes(page, perPage int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+	return a.Srv().Store().SharedChannel().GetRemotes(page*perPage, perPage, opts)
 }
 
 // HasRemote returns whether a given channelID is present in the channel remotes or not.
@@ -178,7 +178,7 @@ func (a *App) GetSharedChannelRemotesStatus(channelID string) ([]*model.SharedCh
 // SharedChannelUsers
 
 func (a *App) NotifySharedChannelUserUpdate(user *model.User) {
-	a.sendUpdatedUserEvent(*user)
+	a.sendUpdatedUserEvent(user)
 }
 
 // onUserProfileChange is called when a user's profile has changed

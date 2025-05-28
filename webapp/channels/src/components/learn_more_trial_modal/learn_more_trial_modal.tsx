@@ -48,8 +48,6 @@ const LearnMoreTrialModal = (
         setEmbargoed(true);
     }, []);
 
-    const startTrialBtnMsg = formatMessage({id: 'start_trial.modal_btn.start_free_trial', defaultMessage: 'Start free 30-day trial'});
-
     // close this modal once start trial btn is clicked and trial has started successfully
     const dismissAction = useCallback(() => {
         dispatch(closeModal(ModalIdentifiers.LEARN_MORE_TRIAL_MODAL));
@@ -57,7 +55,6 @@ const LearnMoreTrialModal = (
 
     const startTrialBtn = (
         <StartTrialBtn
-            message={startTrialBtnMsg}
             handleEmbargoError={handleEmbargoError}
             telemetryId={`start_trial__learn_more_modal__${launchedBy}`}
             onClick={dismissAction}
@@ -113,7 +110,7 @@ const LearnMoreTrialModal = (
         {
             id: 'systemConsole',
             title: formatMessage({id: 'learn_more_about_trial.modal.systemConsoleTitle', defaultMessage: 'Provide controlled access to the System Console'}),
-            description: formatMessage({id: 'learn_more_about_trial.modal.systemConsoleDescription', defaultMessage: 'Use System Roles to give designated users read and/or write access to select sections of System Console.'}),
+            description: formatMessage({id: 'learn_more_about_trial.modal.systemConsoleDescription', defaultMessage: 'Assign customizable admin roles to give designated users read and/or write access to select sections of System Console.'}),
             svgWrapperClassName: 'personBoxSvg',
             svgElement: (
                 <SystemRolesSVG

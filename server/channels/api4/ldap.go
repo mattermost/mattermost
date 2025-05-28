@@ -49,10 +49,14 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type LdapSyncOptions struct {
-		IncludeRemovedMembers bool `json:"include_removed_members"`
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateLdapSyncJob) {
+		c.SetPermissionError(model.PermissionCreateLdapSyncJob)
+		return
 	}
-	var opts LdapSyncOptions
+
+	var opts struct {
+		IncludeRemovedMembers *bool `json:"include_removed_members"`
+	}
 	err := json.NewDecoder(r.Body).Decode(&opts)
 	if err != nil {
 		c.Logger.LogM(mlog.MlvlLDAPInfo, "Error decoding LDAP sync options", mlog.Err(err))
@@ -60,11 +64,6 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateLdapSyncJob) {
-		c.SetPermissionError(model.PermissionCreateLdapSyncJob)
-		return
-	}
 
 	c.App.SyncLdap(c.AppContext, opts.IncludeRemovedMembers)
 
@@ -140,7 +139,9 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -240,7 +241,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.WriteHeader(status)
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {

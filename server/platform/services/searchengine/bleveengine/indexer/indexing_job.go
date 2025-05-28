@@ -150,12 +150,12 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 	logger := worker.logger.With(jobs.JobLoggerFields(job)...)
 	logger.Debug("Worker: Received a new candidate job.")
 
-	claimed, err := worker.jobServer.ClaimJob(job)
-	if err != nil {
-		logger.Warn("Worker: Error occurred while trying to claim job", mlog.Err(err))
+	var appErr *model.AppError
+	job, appErr = worker.jobServer.ClaimJob(job)
+	if appErr != nil {
+		logger.Warn("Worker: Error occurred while trying to claim job", mlog.Err(appErr))
 		return
-	}
-	if !claimed {
+	} else if job == nil {
 		return
 	}
 
@@ -472,7 +472,7 @@ func (worker *BleveIndexerWorker) BulkIndexFiles(files []*model.FileForIndexing,
 	batch := worker.engine.FileIndex.NewBatch()
 
 	for _, file := range files {
-		if file.DeleteAt == 0 {
+		if file.ShouldIndex() {
 			searchFile := bleveengine.BLVFileFromFileForIndexing(file)
 			batch.Index(searchFile.Id, searchFile)
 		} else {

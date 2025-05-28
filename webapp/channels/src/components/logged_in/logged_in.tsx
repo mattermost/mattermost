@@ -17,7 +17,8 @@ import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {isKeyPressed} from 'utils/keyboard';
 import {getBrowserTimezone} from 'utils/timezone';
-import * as UserAgent from 'utils/user_agent';
+import {isAndroid, isIos} from 'utils/user_agent';
+import {doesCookieContainsMMUserId} from 'utils/utils';
 
 declare global {
     interface Window {
@@ -70,9 +71,6 @@ export default class LoggedIn extends React.PureComponent<Props> {
         // Make sure the websockets close and reset version
         window.addEventListener('beforeunload', this.handleBeforeUnload);
 
-        // listen for the app visibility state
-        window.addEventListener('visibilitychange', this.handleVisibilityChange, false);
-
         // Listen for focused tab/window state
         window.addEventListener('focus', this.onFocusListener);
         window.addEventListener('blur', this.onBlurListener);
@@ -89,9 +87,9 @@ export default class LoggedIn extends React.PureComponent<Props> {
         };
 
         // Device tracking setup
-        if (UserAgent.isIos()) {
+        if (isIos()) {
             document.body.classList.add('ios');
-        } else if (UserAgent.isAndroid()) {
+        } else if (isAndroid()) {
             document.body.classList.add('android');
         }
 
@@ -116,7 +114,6 @@ export default class LoggedIn extends React.PureComponent<Props> {
         WebSocketActions.close();
 
         window.removeEventListener('keydown', this.handleBackSpace);
-
         window.removeEventListener('focus', this.onFocusListener);
         window.removeEventListener('blur', this.onBlurListener);
 
@@ -143,23 +140,18 @@ export default class LoggedIn extends React.PureComponent<Props> {
         return this.props.children;
     }
 
-    private handleVisibilityChange = (): void => {
-        if (!document.hidden) {
-            this.updateTimeZone();
-        }
-    };
-
     private updateTimeZone(): void {
         this.props.actions.autoUpdateTimezone(getBrowserTimezone());
     }
 
-    private onFocusListener(): void {
+    private onFocusListener = (): void => {
+        this.updateTimeZone();
         GlobalActions.emitBrowserFocus(true);
-    }
+    };
 
-    private onBlurListener(): void {
+    private onBlurListener = (): void => {
         GlobalActions.emitBrowserFocus(false);
-    }
+    };
 
     private updateActiveStatus = (userIsActive: boolean, idleTime: number, manual: boolean) => {
         if (!this.props.currentUser) {
@@ -202,7 +194,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
     private handleBeforeUnload = (): void => {
         // remove the event listener to prevent getting stuck in a loop
         window.removeEventListener('beforeunload', this.handleBeforeUnload);
-        if (document.cookie.indexOf('MMUSERID=') > -1 && this.props.currentChannelId && !this.props.isCurrentChannelManuallyUnread) {
+        if (doesCookieContainsMMUserId() && this.props.currentChannelId && !this.props.isCurrentChannelManuallyUnread) {
             this.props.actions.updateApproximateViewTime(this.props.currentChannelId);
         }
         WebSocketActions.close();

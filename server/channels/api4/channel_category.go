@@ -35,7 +35,9 @@ func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	w.Write(categoriesJSON)
+	if _, err := w.Write(categoriesJSON); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -78,7 +80,9 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 
 	auditRec.Success()
 
-	w.Write(categoryJSON)
+	if _, err := w.Write(categoryJSON); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -138,7 +142,10 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	}
 
 	auditRec.Success()
-	w.Write([]byte(model.ArrayToJSON(categoryOrder)))
+
+	if _, err := w.Write([]byte(model.ArrayToJSON(categoryOrder))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -164,7 +171,9 @@ func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.Write(categoriesJSON)
+	if _, err := w.Write(categoriesJSON); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -213,7 +222,9 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	auditRec.Success()
-	w.Write(categoriesJSON)
+	if _, err := w.Write(categoriesJSON); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func validateSidebarCategory(c *Context, teamId, userId string, category *model.SidebarCategoryWithChannels) *model.AppError {
@@ -225,7 +236,7 @@ func validateSidebarCategory(c *Context, teamId, userId string, category *model.
 		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, "", http.StatusBadRequest).Wrap(appErr)
 	}
 
-	category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channels)
+	category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channelListToMap(channels))
 
 	return nil
 }
@@ -239,31 +250,37 @@ func validateSidebarCategories(c *Context, teamId, userId string, categories []*
 		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	channelMap := channelListToMap(channels)
+
 	for _, category := range categories {
-		category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channels)
+		category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channelMap)
 	}
 
 	return nil
 }
 
-func validateSidebarCategoryChannels(c *Context, userId string, channelIds []string, channels model.ChannelList) []string {
+func channelListToMap(channelList model.ChannelList) map[string]*model.Channel {
+	channelMap := make(map[string]*model.Channel, len(channelList))
+	for _, channel := range channelList {
+		channelMap[channel.Id] = channel
+	}
+	return channelMap
+}
+
+// validateSidebarCategoryChannels returns a normalized slice of channel IDs by removing duplicates from it and
+// ensuring that it only contains IDs of channels in the given map of Channels by IDs.
+func validateSidebarCategoryChannels(c *Context, userId string, channelIds []string, channelMap map[string]*model.Channel) []string {
 	var filtered []string
 
 	for _, channelId := range channelIds {
-		found := false
-		for _, channel := range channels {
-			if channel.Id == channelId {
-				found = true
-				break
-			}
-		}
-
-		if found {
+		if _, ok := channelMap[channelId]; ok {
 			filtered = append(filtered, channelId)
 		} else {
 			c.Logger.Info("Stopping user from adding channel to their sidebar when they are not a member", mlog.String("user_id", userId), mlog.String("channel_id", channelId))
 		}
 	}
+
+	filtered = model.RemoveDuplicateStringsNonSort(filtered)
 
 	return filtered
 }
@@ -309,7 +326,9 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	auditRec.Success()
-	w.Write(categoryJSON)
+	if _, err := w.Write(categoryJSON); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {

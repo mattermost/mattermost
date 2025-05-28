@@ -161,6 +161,11 @@ export function completeDirectGroupInfo(usersState: UsersState, teammateNameDisp
     const gm = {...channel};
 
     if (profilesIds) {
+        // sometimes the current user is not part of the profilesInChannel
+        if (!omitCurrentUser) {
+            profilesIds.add(currentUserId);
+        }
+
         gm.display_name = getGroupDisplayNameFromUserIds(profilesIds, profiles, currentUserId, teammateNameDisplay, omitCurrentUser);
         return gm;
     }
@@ -365,7 +370,7 @@ export function channelListToMap(channelList: Channel[]): IDMappedObjects<Channe
 // or not that channel would be shown as unread in the sidebar.
 export function calculateUnreadCount(
     messageCount: ChannelMessageCount | undefined,
-    member: ChannelMembership | null | undefined,
+    member: ChannelMembership | undefined,
     crtEnabled: boolean,
 ): {showUnread: boolean; mentions: number; messages: number; hasUrgent: boolean} {
     if (!member || !messageCount) {

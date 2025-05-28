@@ -12,7 +12,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {Client4} from 'mattermost-redux/client';
 import {General, Permissions} from 'mattermost-redux/constants';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 import {getDirectChannelName} from 'utils/utils';
 
@@ -24,6 +24,7 @@ jest.mock('@mattermost/client', () => ({
     ...jest.requireActual('@mattermost/client'),
     Client4: class MockClient4 extends jest.requireActual('@mattermost/client').Client4 {
         getCallsChannelState = jest.fn();
+        getUserCustomProfileAttributesValues = jest.fn();
     },
 }));
 
@@ -148,6 +149,9 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
         // @ts-ignore
         'plugins-com.mattermost.calls': {
             sessions: {},
+            callsConfig: {
+                DefaultEnabled: true,
+            },
         },
     };
     const props: Props = {
@@ -184,7 +188,7 @@ describe('components/ProfilePopover', () => {
         const [props, initialState] = getBasePropsAndState();
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        expect(await screen.findByLabelText('Add to a Channel dialog')).toBeInTheDocument();
+        expect(await screen.findByLabelText('Add to a Channel')).toBeInTheDocument();
     });
 
     test('should hide add-to-channel option if not on team', async () => {
@@ -301,12 +305,14 @@ describe('components/ProfilePopover', () => {
         expect(await screen.findByLabelText('Start Call')).toBeInTheDocument();
     });
 
-    test('should not show start a call button when calls are disabled', async () => {
+    test('should not show start call button when plugin is disabled', async () => {
         const [props, initialState] = getBasePropsAndState();
         initialState.plugins!.plugins = {};
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        expect(screen.queryByLabelText('Start Call')).not.toBeInTheDocument();
+        await act(async () => {
+            expect(screen.queryByLabelText('Start Call')).not.toBeInTheDocument();
+        });
     });
 
     test('should disable start call button when call is ongoing in the DM', async () => {
@@ -318,11 +324,158 @@ describe('components/ProfilePopover', () => {
         expect(button).toBeDisabled();
     });
 
-    test('should not show the start call button when callsChannelState.enabled is false', async () => {
-        (Client4.getCallsChannelState as jest.Mock).mockImplementationOnce(async () => ({enabled: false}));
+    test('should not show start call button when calls in channel have been explicitly disabled', async () => {
         const [props, initialState] = getBasePropsAndState();
+        (initialState as any)['plugins-com.mattermost.calls'].channels = {dmChannelId: {enabled: false}};
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        expect(await screen.findByLabelText('Start Call')).not.toBeInTheDocument();
+        await act(async () => {
+            expect(await screen.queryByLabelText('Start Call')).not.toBeInTheDocument();
+            expect(await screen.queryByLabelText('Call with user is ongoing')).not.toBeInTheDocument();
+        });
+    });
+
+    test('should not show start call button for users when calls test mode is on', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        (initialState as any)['plugins-com.mattermost.calls'].callsConfig = {DefaultEnabled: false};
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await act(async () => {
+            expect(await screen.queryByLabelText('Start Call')).not.toBeInTheDocument();
+        });
+    });
+
+    test('should show start call button for users when calls test mode is on if calls in channel have been explicitly enabled', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        (initialState as any)['plugins-com.mattermost.calls'].callsConfig = {DefaultEnabled: false};
+        (initialState as any)['plugins-com.mattermost.calls'].channels = {dmChannelId: {enabled: true}};
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await act(async () => {
+            expect(await screen.queryByLabelText('Start Call')).toBeInTheDocument();
+        });
+    });
+
+    test('should show start call button for admin when calls test mode is on', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        (initialState as any)['plugins-com.mattermost.calls'].callsConfig = {DefaultEnabled: false};
+        initialState.entities = {
+            ...initialState.entities!,
+            users: {
+                ...initialState.entities!.users,
+                profiles: {
+                    ...initialState.entities!.users!.profiles,
+                    currentUser: TestHelper.getUserMock({id: 'currentUser', roles: General.SYSTEM_ADMIN_ROLE}),
+                },
+            },
+        };
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await act(async () => {
+            expect(await screen.findByLabelText('Start Call')).toBeInTheDocument();
+        });
+    });
+
+    test('should display attributes if attribute exists for user', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => {
+            return {
+                123: 'Private',
+                456: 'Seargent York',
+            };
+        });
+
+        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.customProfileAttributes = {
+            123: {id: '123', name: 'Rank', type: 'text'},
+            456: {id: '456', name: 'CO', type: 'text'},
+            789: {id: '789', name: 'Base', type: 'text'},
+        };
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await act(async () => {
+            expect(await screen.findByText('Private')).toBeInTheDocument();
+            expect(await screen.findByText('CO')).toBeInTheDocument();
+            expect(await screen.findByText('Seargent York')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Rank')).toBeInTheDocument();
+        expect(screen.queryByText('Base')).not.toBeInTheDocument();
+    });
+
+    test('should display select attribute values correctly', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => {
+            return {
+                123: 'opt1',
+            };
+        });
+
+        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.customProfileAttributes = {
+            123: {
+                id: '123',
+                name: 'Department',
+                type: 'select',
+                attrs: {
+                    options: [
+                        {id: 'opt1', name: 'Engineering', color: ''},
+                        {id: 'opt2', name: 'Sales', color: ''},
+                    ],
+                },
+            },
+        };
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await act(async () => {
+            expect(await screen.findByText('Engineering')).toBeInTheDocument();
+            expect(screen.queryByText('opt1')).not.toBeInTheDocument();
+        });
+    });
+
+    test('should display multiselect attribute values correctly', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => {
+            return {
+                123: ['opt1', 'opt2'],
+            };
+        });
+
+        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.customProfileAttributes = {
+            123: {
+                id: '123',
+                name: 'Skills',
+                type: 'multiselect',
+                attrs: {
+                    options: [
+                        {id: 'opt1', name: 'JavaScript', color: ''},
+                        {id: 'opt2', name: 'Python', color: ''},
+                    ],
+                },
+            },
+        };
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await act(async () => {
+            expect(await screen.findByText(/JavaScript/)).toBeInTheDocument();
+            expect(await screen.findByText(/Python/)).toBeInTheDocument();
+        });
+    });
+
+    test('should not display attributes if user attributes is null', async () => {
+        const [props, initialState] = getBasePropsAndState();
+
+        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.customProfileAttributes = {
+            123: {id: '123', name: 'Rank', type: 'text'},
+            456: {id: '456', name: 'CO', type: 'text'},
+        };
+        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => ({}));
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await act(async () => {
+            expect(await screen.queryByText('Rank')).not.toBeInTheDocument();
+            expect(await screen.queryByText('CO')).not.toBeInTheDocument();
+        });
     });
 });

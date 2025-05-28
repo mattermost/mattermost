@@ -14,7 +14,6 @@ import AlertBanner from 'components/alert_banner';
 import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
 import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {AboutLinks, LicenseLinks, Preferences, Unique} from 'utils/constants';
@@ -192,7 +191,7 @@ const TrialBanner = ({
             role='button'
             onClick={openEEModal}
         >
-            <FormattedMarkdownMessage
+            <FormattedMessage
                 id='admin.license.enterprise.upgrade.eeLicenseLink'
                 defaultMessage='Enterprise Edition License'
             />
@@ -239,7 +238,7 @@ const TrialBanner = ({
             <>
                 <FormattedMessage
                     id='admin.license.trial-request.title'
-                    defaultMessage='Experience Mattermost Enterprise Edition for free for the next 30 days. No obligation to buy or credit card required. '
+                    defaultMessage='Experience all that Mattermost Enterprise Advanced has to offer with a free trial for the next 30 days. No obligation to buy and no credit card required. '
                 />
                 <FormattedMessage
                     id='admin.license.trial-request.accept-terms'
@@ -301,7 +300,7 @@ const TrialBanner = ({
             <>
                 <FormattedMessage
                     id='admin.license.upgrade-and-trial-request.title'
-                    defaultMessage='Upgrade to Enterprise Edition and Experience Mattermost Enterprise Edition for free for the next 30 days. No obligation to buy or credit card required. '
+                    defaultMessage='Upgrade to the Enterprise Edition to unlock a free 30-day trial of Mattermost Enterprise Advanced—our most powerful plan. No credit card required, no obligation to buy. '
                 />
             </>
         );
@@ -341,22 +340,21 @@ const TrialBanner = ({
                 {upgradeError && (
                     <div className='upgrade-error'>
                         <div className='form-group has-error'>
-                            <label className='control-label'>
-                                <span
-                                    dangerouslySetInnerHTML={{
-                                        __html: format(upgradeError),
-                                    }}
-                                />
-                            </label>
+                            <div
+                                className='as-bs-label control-label'
+                                dangerouslySetInnerHTML={{
+                                    __html: format(upgradeError),
+                                }}
+                            />
                         </div>
                     </div>
                 )}
                 {restartError && (
-                    <div className='col-sm-12'>
+                    <div className='upgrade-error'>
                         <div className='form-group has-error'>
-                            <label className='control-label'>
+                            <div className='as-bs-label control-label'>
                                 {restartError}
-                            </label>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -369,7 +367,7 @@ const TrialBanner = ({
             title={
                 <FormattedMessage
                     id='licensingPage.infoBanner.startTrialTitle'
-                    defaultMessage='Free 30 day trial!'
+                    defaultMessage='Start a free 30-day trial of Mattermost Enterprise Advanced'
                 />
             }
             message={

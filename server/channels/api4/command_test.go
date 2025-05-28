@@ -1130,8 +1130,8 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 		[]*model.ChannelModerationPatch{{
 			Name: &model.PermissionCreatePost.Id,
 			Roles: &model.ChannelModeratedRolesPatch{
-				Guests:  model.NewBool(false),
-				Members: model.NewBool(false),
+				Guests:  model.NewPointer(false),
+				Members: model.NewPointer(false),
 			},
 		}})
 	require.Nil(t, appErr)
@@ -1140,4 +1140,21 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 	_, resp, err = client.ExecuteCommandWithTeam(context.Background(), th.BasicChannel.Id, th.BasicChannel.TeamId, "/postcommand")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+
+	// Confirm that the command works when the channel is not read only - use different channel
+	_, resp, err = client.ExecuteCommandWithTeam(context.Background(), th.BasicChannel2.Id, th.BasicChannel2.TeamId, "/postcommand")
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	appErr = th.App.DeleteChannel(
+		th.Context,
+		th.BasicChannel2,
+		th.SystemAdminUser.Id,
+	)
+	require.Nil(t, appErr, "failed to delete channel")
+
+	// Confirm that the command fails when the channel is archived
+	_, resp, err = client.ExecuteCommandWithTeam(context.Background(), th.BasicChannel2.Id, th.BasicChannel2.TeamId, "/postcommand")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 }

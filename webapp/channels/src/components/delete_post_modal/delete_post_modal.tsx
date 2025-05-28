@@ -3,12 +3,14 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {matchPath} from 'react-router-dom';
 
 import type {Post} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import SectionNotice from 'components/section_notice';
 
 import {getHistory} from 'utils/browser_history';
 import * as UserAgent from 'utils/user_agent';
@@ -101,34 +103,56 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
         }
     };
 
-    render() {
-        let commentWarning: React.ReactNode = '';
-
-        if (this.props.commentCount > 0 && this.props.post.root_id === '') {
-            commentWarning = (
-                <div className='mt-2'>
-                    <FormattedMessage
-                        id='delete_post.warning'
-                        defaultMessage='This post has {count, number} {count, plural, one {comment} other {comments}} on it.'
-                        values={{
-                            count: this.props.commentCount,
-                        }}
-                    />
-                </div>
-            );
-        }
-
-        const postTerm = this.props.post.root_id ? (
+    getTitle = () => {
+        return this.props.post.root_id ? (
             <FormattedMessage
-                id='delete_post.comment'
-                defaultMessage='Comment'
+                id='delete_post.confirm_comment'
+                defaultMessage='Confirm Comment Delete'
             />
         ) : (
             <FormattedMessage
-                id='delete_post.post'
-                defaultMessage='Post'
+                id='delete_post.confirm_post'
+                defaultMessage='Confirm Post Delete'
             />
         );
+    };
+
+    getPrompt = () => {
+        return this.props.post.root_id ? (
+            <FormattedMessage
+                id='delete_post.question_comment'
+                defaultMessage='Are you sure you want to delete this comment?'
+                tagName='p'
+            />
+        ) : (
+            <FormattedMessage
+                id='delete_post.question_post'
+                defaultMessage='Are you sure you want to delete this message?'
+                tagName='p'
+            />
+        );
+    };
+
+    render() {
+        let commentWarning: React.ReactNode = '';
+        let remoteWarning: React.ReactNode = '';
+
+        if (this.props.commentCount > 0 && this.props.post.root_id === '') {
+            commentWarning = (
+                <FormattedMessage
+                    id='delete_post.warning'
+                    defaultMessage='This message has {count, number} {count, plural, one {comment} other {comments}} on it.'
+                    values={{
+                        count: this.props.commentCount,
+                    }}
+                    tagName='p'
+                />
+            );
+        }
+
+        if (this.props.post.remote_id) {
+            remoteWarning = <SharedChannelPostDeleteWarning post={this.props.post}/>;
+        }
 
         return (
             <Modal
@@ -138,7 +162,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                 onHide={this.onHide}
                 onExited={this.props.onExited}
                 id='deletePostModal'
-                role='dialog'
+                role='none'
                 aria-labelledby='deletePostModalLabel'
             >
                 <Modal.Header closeButton={true}>
@@ -146,24 +170,13 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                         componentClass='h1'
                         id='deletePostModalLabel'
                     >
-                        <FormattedMessage
-                            id='delete_post.confirm'
-                            defaultMessage='Confirm {term} Delete'
-                            values={{
-                                term: (postTerm),
-                            }}
-                        />
+                        {this.getTitle()}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <FormattedMessage
-                        id='delete_post.question'
-                        defaultMessage='Are you sure you want to delete this {term}?'
-                        values={{
-                            term: (postTerm),
-                        }}
-                    />
+                    {this.getPrompt()}
                     {commentWarning}
+                    {remoteWarning}
                 </Modal.Body>
                 <Modal.Footer>
                     <button
@@ -194,3 +207,30 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
         );
     }
 }
+
+const SharedChannelPostDeleteWarning = ({post}: {post: Post}) => {
+    const {formatMessage} = useIntl();
+
+    const text = post.root_id ? (
+        formatMessage({
+            id: 'delete_post.shared_channel_warning.message_comment',
+            defaultMessage: 'This comment originated from a shared channel in another workspace. Deleting it here won\'t remove it from the channel in the other workspace.',
+        })
+    ) : (
+        formatMessage({
+            id: 'delete_post.shared_channel_warning.message_post',
+            defaultMessage: 'This message originated from a shared channel in another workspace. Deleting it here won\'t remove it from the channel in the other workspace.',
+        })
+    );
+
+    return (
+        <SectionNotice
+            type='warning'
+            title={formatMessage({
+                id: 'delete_post.shared_channel_warning.title',
+                defaultMessage: 'Shared Channel',
+            })}
+            text={text}
+        />
+    );
+};

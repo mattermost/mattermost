@@ -3,6 +3,7 @@
 exports[`components/admin_console/CustomPluginSettings should match snapshot with no settings and plugin 1`] = `
 <div
   className="wrapper--fixed "
+  data-testid="sysconsole_section_testplugin"
 >
   <AdminHeader>
     testplugin
@@ -47,14 +48,8 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             type="text"
             value="setting_default"
           />
-          <BooleanSetting
+          <Memo(BooleanSetting)
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="False"
-                id="admin.false"
-              />
-            }
             helpText={
               <SchemaText
                 text="This is some help text for the bool field."
@@ -65,12 +60,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             label="Setting Two"
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="True"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <Memo(DropdownSetting)
@@ -186,47 +175,28 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
     />
-    <div
-      className="error-message"
-      data-testid="errorMessage"
-      onMouseOut={[Function]}
-      onMouseOver={[Function]}
+    <WithTooltip
+      title=""
     >
-      <FormError
-        error=""
-        errors={Array []}
-        iconClassName="fa-exclamation-triangle"
-        textClassName="has-warning"
-      />
-      <FormError
-        error={null}
-        errors={Array []}
-      />
-    </div>
-    <Overlay
-      animation={[Function]}
-      placement="top"
-      rootClose={false}
-      show={false}
-      target={null}
-    >
-      <Tooltip
-        id="error-tooltip"
-      />
-    </Overlay>
+      <div
+        className="error-message"
+        data-testid="errorMessage"
+      >
+        <Memo(FormError)
+          error=""
+          iconClassName="fa-exclamation-triangle"
+          textClassName="has-warning"
+        />
+        <Memo(FormError)
+          error={null}
+        />
+      </div>
+    </WithTooltip>
   </div>
 </div>
 `;
@@ -234,6 +204,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 exports[`components/admin_console/CustomPluginSettings should match snapshot with settings and no plugin 1`] = `
 <div
   className="wrapper--fixed "
+  data-testid="sysconsole_section_testplugin"
 >
   <AdminHeader>
     testplugin
@@ -255,47 +226,28 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
     />
-    <div
-      className="error-message"
-      data-testid="errorMessage"
-      onMouseOut={[Function]}
-      onMouseOver={[Function]}
+    <WithTooltip
+      title=""
     >
-      <FormError
-        error=""
-        errors={Array []}
-        iconClassName="fa-exclamation-triangle"
-        textClassName="has-warning"
-      />
-      <FormError
-        error={null}
-        errors={Array []}
-      />
-    </div>
-    <Overlay
-      animation={[Function]}
-      placement="top"
-      rootClose={false}
-      show={false}
-      target={null}
-    >
-      <Tooltip
-        id="error-tooltip"
-      />
-    </Overlay>
+      <div
+        className="error-message"
+        data-testid="errorMessage"
+      >
+        <Memo(FormError)
+          error=""
+          iconClassName="fa-exclamation-triangle"
+          textClassName="has-warning"
+        />
+        <Memo(FormError)
+          error={null}
+        />
+      </div>
+    </WithTooltip>
   </div>
 </div>
 `;
@@ -303,6 +255,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 exports[`components/admin_console/CustomPluginSettings should match snapshot with settings and plugin 1`] = `
 <div
   className="wrapper--fixed "
+  data-testid="sysconsole_section_testplugin"
 >
   <AdminHeader>
     testplugin
@@ -347,14 +300,8 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             type="text"
             value="fsdsdg"
           />
-          <BooleanSetting
+          <Memo(BooleanSetting)
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="False"
-                id="admin.false"
-              />
-            }
             helpText={
               <SchemaText
                 text="This is some help text for the bool field."
@@ -365,12 +312,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             label="Setting Two"
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="True"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <Memo(DropdownSetting)
@@ -486,47 +427,28 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
     />
-    <div
-      className="error-message"
-      data-testid="errorMessage"
-      onMouseOut={[Function]}
-      onMouseOver={[Function]}
+    <WithTooltip
+      title=""
     >
-      <FormError
-        error=""
-        errors={Array []}
-        iconClassName="fa-exclamation-triangle"
-        textClassName="has-warning"
-      />
-      <FormError
-        error={null}
-        errors={Array []}
-      />
-    </div>
-    <Overlay
-      animation={[Function]}
-      placement="top"
-      rootClose={false}
-      show={false}
-      target={null}
-    >
-      <Tooltip
-        id="error-tooltip"
-      />
-    </Overlay>
+      <div
+        className="error-message"
+        data-testid="errorMessage"
+      >
+        <Memo(FormError)
+          error=""
+          iconClassName="fa-exclamation-triangle"
+          textClassName="has-warning"
+        />
+        <Memo(FormError)
+          error={null}
+        />
+      </div>
+    </WithTooltip>
   </div>
 </div>
 `;

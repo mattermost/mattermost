@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FileInfo} from '@mattermost/types/files';
+import type {FileInfo, FilesState} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
 import {ChannelTypes, SearchTypes} from 'mattermost-redux/action_types';
@@ -10,11 +10,14 @@ import {Posts} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/post_actions';
 
+import test_helper from 'packages/mattermost-redux/test/test_helper';
 import mockStore from 'tests/test_store';
 import {Constants, ActionTypes, RHSStates} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
+
+import {sendDesktopNotification} from './notification_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     removeReaction: (...args: any[]) => ({type: 'MOCK_REMOVE_REACTION', args}),
@@ -34,7 +37,7 @@ jest.mock('actions/emoji_actions', () => ({
 }));
 
 jest.mock('actions/notification_actions', () => ({
-    sendDesktopNotification: jest.fn().mockReturnValue({type: 'MOCK_SEND_DESKTOP_NOTIFICATION'}),
+    sendDesktopNotification: jest.fn().mockReturnValue(() => ({data: {}})),
 }));
 
 jest.mock('actions/storage', () => {
@@ -58,6 +61,8 @@ jest.mock('utils/post_utils', () => ({
 const mockMakeGetIsReactionAlreadyAddedToPost = PostUtils.makeGetIsReactionAlreadyAddedToPost as unknown as jest.Mock<() => boolean>;
 const mockMakeGetUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost as unknown as jest.Mock<() => string[]>;
 
+const mockedSendDesktopNotification = jest.mocked(sendDesktopNotification);
+
 const POST_CREATED_TIME = Date.now();
 
 // This mocks the Date.now() function so it returns a constant value
@@ -71,7 +76,7 @@ describe('Actions.Posts', () => {
         user_id: 'current_user_id',
         message: 'test msg',
         channel_id: 'current_channel_id',
-        type: 'normal,',
+        type: 'normal',
     };
     const initialState = {
         entities: {
@@ -192,8 +197,12 @@ describe('Actions.Posts', () => {
             },
             rhs: {
                 searchTerms: '',
+                searchType: '',
                 filesSearchExtFilter: [],
             },
+        },
+        storage: {
+            storage: {},
         },
     } as unknown as GlobalState;
 
@@ -212,10 +221,8 @@ describe('Actions.Posts', () => {
                 ],
                 type: 'BATCHING_REDUCER.BATCH',
             },
-            {
-                type: 'MOCK_SEND_DESKTOP_NOTIFICATION',
-            },
         ]);
+        expect(mockedSendDesktopNotification).toHaveBeenCalled();
     });
 
     test('handleNewPostOtherChannel', async () => {
@@ -262,21 +269,19 @@ describe('Actions.Posts', () => {
                 ],
                 type: 'BATCHING_REDUCER.BATCH',
             },
-            {
-                type: 'MOCK_SEND_DESKTOP_NOTIFICATION',
-            },
         ]);
+        expect(mockedSendDesktopNotification).toHaveBeenCalled();
     });
 
     test('unsetEditingPost', async () => {
         // should allow to edit and should fire an action
         const testStore = mockStore({...initialState});
-        const {data: dataSet} = await testStore.dispatch((Actions.setEditingPost as any)('latest_post_id', 'test', 'title'));
+        const {data: dataSet} = await testStore.dispatch((Actions.setEditingPost as any)('latest_post_id', 'test'));
         expect(dataSet).toEqual(true);
 
         // matches the action to set editingPost
-        expect(testStore.getActions()).toEqual(
-            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', title: 'title', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
+        expect(testStore.getActions()[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
         );
 
         // clear actions
@@ -284,11 +289,11 @@ describe('Actions.Posts', () => {
 
         // dispatch action to unset the editingPost
         const {data: dataUnset} = testStore.dispatch(Actions.unsetEditingPost());
-        expect(dataUnset).toEqual({show: false});
+        expect(dataUnset).toEqual(true);
 
         // matches the action to unset editingPost
-        expect(testStore.getActions()).toEqual(
-            [{data: {show: false}, type: ActionTypes.TOGGLE_EDITING_POST}],
+        expect(testStore.getActions()[0].payload[0]).toEqual(
+            {data: {show: false}, type: ActionTypes.TOGGLE_EDITING_POST},
         );
 
         // editingPost value is empty object, as it should
@@ -296,13 +301,59 @@ describe('Actions.Posts', () => {
     });
 
     test('setEditingPost', async () => {
+        const state = JSON.parse(JSON.stringify(initialState)) as GlobalState;
+
+        state.entities.posts.posts[latestPost.id] = {
+            ...latestPost,
+            file_ids: ['file_id_1', 'file_id_2'],
+        } as Post;
+
+        state.entities.files = {
+            files: {
+                file_id_1: test_helper.getFileInfoMock({id: 'file_id_1', post_id: 'latest_post_id'}),
+                file_id_2: test_helper.getFileInfoMock({id: 'file_id_2', post_id: 'latest_post_id'}),
+            },
+            fileIdsByPostId: {
+                [latestPost.id]: ['file_id_1', 'file_id_2'],
+            },
+        } as unknown as FilesState;
+
         // should allow to edit and should fire an action
-        let testStore = mockStore({...initialState});
-        const {data} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test', 'title'));
+        let testStore = mockStore({...state});
+        const {data} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(data).toEqual(true);
 
-        expect(testStore.getActions()).toEqual(
-            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', title: 'title', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
+        let actions = testStore.getActions();
+        expect(actions.length).toEqual(1);
+        expect(actions[0].payload.length).toEqual(2);
+
+        expect(actions[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
+        );
+        expect(actions[0].payload[1]).toEqual(
+            {
+                args: [
+                    'edit_draft_latest_post_id',
+                    {
+                        id: 'latest_post_id',
+                        user_id: 'current_user_id',
+                        message: 'test msg',
+                        channel_id: 'current_channel_id',
+                        type: 'normal',
+                        file_ids: [
+                            'file_id_1',
+                            'file_id_2',
+                        ],
+                        metadata: {
+                            files: [
+                                test_helper.getFileInfoMock({id: 'file_id_1', post_id: 'latest_post_id'}),
+                                test_helper.getFileInfoMock({id: 'file_id_2', post_id: 'latest_post_id'}),
+                            ],
+                        },
+                    },
+                ],
+                type: 'MOCK_SET_GLOBAL_ITEM',
+            },
         );
 
         const general = {
@@ -310,7 +361,7 @@ describe('Actions.Posts', () => {
             serverVersion: '5.4.0',
             config: {PostEditTimeLimit: -1},
         } as unknown as GlobalState['entities']['general'];
-        const withLicenseState = {...initialState};
+        const withLicenseState = {...state};
         withLicenseState.entities.general = {
             ...withLicenseState.entities.general,
             ...general,
@@ -318,22 +369,53 @@ describe('Actions.Posts', () => {
 
         testStore = mockStore(withLicenseState);
 
-        const {data: withLicenseData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test', 'title'));
+        const {data: withLicenseData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(withLicenseData).toEqual(true);
-        expect(testStore.getActions()).toEqual(
-            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', title: 'title', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
+
+        expect(testStore.getActions()[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
         );
 
         // should not allow edit for pending post
         const newLatestPost = {...latestPost, pending_post_id: latestPost.id} as Post;
-        const withPendingPostState = {...initialState};
+        const withPendingPostState = {...state};
         withPendingPostState.entities.posts.posts[latestPost.id] = newLatestPost;
 
         testStore = mockStore(withPendingPostState);
 
-        const {data: withPendingPostData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test', 'title'));
+        const {data: withPendingPostData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(withPendingPostData).toEqual(false);
         expect(testStore.getActions()).toEqual([]);
+
+        // should not save draft when it already exists
+        const stateWithDraft = {
+            ...state,
+            storage: {
+                ...state.storage,
+                storage: {
+                    ...state.storage.storage,
+                    edit_draft_latest_post_id: {
+                        timestamp: new Date(),
+                        value: {id: 'latest_post_id', user_id: 'current_user_id', message: 'test msg', channel_id: 'current_channel_id', type: 'normal'},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        stateWithDraft.entities.posts.posts[latestPost.id] = latestPost as Post;
+
+        testStore = mockStore(stateWithDraft);
+
+        const {data: dataExisting} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
+        expect(dataExisting).toEqual(true);
+
+        actions = testStore.getActions();
+        expect(actions.length).toEqual(1);
+        expect(actions[0].payload.length).toEqual(1);
+
+        expect(actions[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
+        );
     });
 
     test('searchForTerm', async () => {
@@ -344,6 +426,7 @@ describe('Actions.Posts', () => {
             {terms: 'hello', type: 'UPDATE_RHS_SEARCH_TERMS'},
             {state: 'search', type: 'UPDATE_RHS_STATE'},
             {terms: '', type: 'UPDATE_RHS_SEARCH_RESULTS_TERMS'},
+            {searchType: '', type: 'UPDATE_RHS_SEARCH_RESULTS_TYPE'},
             {isGettingMore: false, type: 'SEARCH_POSTS_REQUEST'},
             {isGettingMore: false, type: 'SEARCH_FILES_REQUEST'},
         ]);
@@ -358,7 +441,7 @@ describe('Actions.Posts', () => {
 
             const immediateExpectedState = [{
                 args: [newPost, files],
-                type: 'MOCK_CREATE_POST_IMMEDIATELY',
+                type: 'MOCK_CREATE_POST',
             }, {
                 args: ['draft_current_channel_id', null],
                 type: 'MOCK_SET_GLOBAL_ITEM',
@@ -453,8 +536,8 @@ describe('Actions.Posts', () => {
                 testStore.dispatch(Actions.submitReaction('post_id_1', '+', 'emoji_name_1'));
 
                 expect(testStore.getActions()).toEqual([
-                    {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
                     {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+                    {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
                 ]);
             });
 
@@ -503,8 +586,8 @@ describe('Actions.Posts', () => {
             testStore.dispatch(Actions.toggleReaction('post_id_1', 'emoji_name_1'));
 
             expect(testStore.getActions()).toEqual([
-                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
                 {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
             ]);
         });
 
@@ -529,8 +612,8 @@ describe('Actions.Posts', () => {
 
             await testStore.dispatch(Actions.addReaction('post_id_1', 'emoji_name_1'));
             expect(testStore.getActions()).toEqual([
-                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
                 {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
             ]);
         });
         test('should not add reaction if we are over the limit', async () => {

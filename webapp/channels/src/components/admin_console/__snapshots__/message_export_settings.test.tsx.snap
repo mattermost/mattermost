@@ -16,14 +16,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
       />
     </AdminHeader>
     <Memo(SettingsGroup)>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
@@ -44,12 +37,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting
@@ -80,17 +67,25 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
       <Memo(DropdownSetting)
         disabled={true}
         helpText={
-          <FormattedMarkdownMessage
-            defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address."
-            id="admin.complianceExport.exportFormat.description"
-            values={
-              Object {
-                "lineBreak": "
-",
-                "url": "http://localhost:8065/admin_console/environment/file_storage",
-              }
-            }
-          />
+          <React.Fragment>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into."
+                id="admin.complianceExport.exportFormatDetail.intro"
+              />
+            </p>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address."
+                id="admin.complianceExport.exportFormatDetail.details"
+                values={
+                  Object {
+                    "a": [Function],
+                  }
+                }
+              />
+            </p>
+          </React.Fragment>
         }
         id="exportFormat"
         label={
@@ -141,40 +136,27 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
+      <WithTooltip
+        title=""
       >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <Memo(FormError)
+            error={null}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -196,14 +178,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
       />
     </AdminHeader>
     <Memo(SettingsGroup)>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
@@ -224,12 +199,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting
@@ -260,17 +229,25 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
       <Memo(DropdownSetting)
         disabled={true}
         helpText={
-          <FormattedMarkdownMessage
-            defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address."
-            id="admin.complianceExport.exportFormat.description"
-            values={
-              Object {
-                "lineBreak": "
-",
-                "url": "http://localhost:8065/admin_console/environment/file_storage",
-              }
-            }
-          />
+          <React.Fragment>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into."
+                id="admin.complianceExport.exportFormatDetail.intro"
+              />
+            </p>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address."
+                id="admin.complianceExport.exportFormatDetail.details"
+                values={
+                  Object {
+                    "a": [Function],
+                  }
+                }
+              />
+            </p>
+          </React.Fragment>
         }
         id="exportFormat"
         label={
@@ -435,40 +412,27 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
+      <WithTooltip
+        title=""
       >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <Memo(FormError)
+            error={null}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -490,14 +454,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
       />
     </AdminHeader>
     <Memo(SettingsGroup)>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
@@ -518,12 +475,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
@@ -554,17 +505,25 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
       <Memo(DropdownSetting)
         disabled={false}
         helpText={
-          <FormattedMarkdownMessage
-            defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address."
-            id="admin.complianceExport.exportFormat.description"
-            values={
-              Object {
-                "lineBreak": "
-",
-                "url": "http://localhost:8065/admin_console/environment/file_storage",
-              }
-            }
-          />
+          <React.Fragment>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into."
+                id="admin.complianceExport.exportFormatDetail.intro"
+              />
+            </p>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address."
+                id="admin.complianceExport.exportFormatDetail.details"
+                values={
+                  Object {
+                    "a": [Function],
+                  }
+                }
+              />
+            </p>
+          </React.Fragment>
         }
         id="exportFormat"
         label={
@@ -615,40 +574,27 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
+      <WithTooltip
+        title=""
       >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <Memo(FormError)
+            error={null}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -670,14 +616,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
       />
     </AdminHeader>
     <Memo(SettingsGroup)>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
@@ -698,12 +637,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
@@ -734,17 +667,25 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
       <Memo(DropdownSetting)
         disabled={false}
         helpText={
-          <FormattedMarkdownMessage
-            defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address."
-            id="admin.complianceExport.exportFormat.description"
-            values={
-              Object {
-                "lineBreak": "
-",
-                "url": "http://localhost:8065/admin_console/environment/file_storage",
-              }
-            }
-          />
+          <React.Fragment>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into."
+                id="admin.complianceExport.exportFormatDetail.intro"
+              />
+            </p>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address."
+                id="admin.complianceExport.exportFormatDetail.details"
+                values={
+                  Object {
+                    "a": [Function],
+                  }
+                }
+              />
+            </p>
+          </React.Fragment>
         }
         id="exportFormat"
         label={
@@ -909,40 +850,27 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
+      <WithTooltip
+        title=""
       >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <Memo(FormError)
+            error={null}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>

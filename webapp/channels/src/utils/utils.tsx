@@ -55,7 +55,7 @@ import {focusPost} from 'components/permalink_view/actions';
 import type {TextboxElement} from 'components/textbox';
 
 import {getHistory} from 'utils/browser_history';
-import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes} from 'utils/constants';
+import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, AdvancedTextEditorTextboxIds} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
@@ -212,6 +212,43 @@ const removeQuerystringOrHash = (extin: string): string => {
 };
 
 export const getFileType = (extin: string): typeof FileTypes[keyof typeof FileTypes] => {
+    // Handle null or undefined input
+    if (!extin) {
+        return FileTypes.OTHER;
+    }
+
+    // Special handling for image proxy URLs
+    // Check for various forms of image proxy URLs
+    if (extin.includes('/api/v4/image') &&
+        (extin.includes('?url=') || extin.includes('&url='))) {
+        return FileTypes.IMAGE;
+    }
+
+    // Check for image file extensions in the URL path
+    try {
+        // Try to parse as a URL - this will validate if it's a proper URL
+        const url = new URL(extin);
+        const pathname = url.pathname;
+        const pathParts = pathname.split('/');
+        const lastPathPart = pathParts[pathParts.length - 1];
+
+        if (lastPathPart && lastPathPart.includes('.')) {
+            const urlExtension = lastPathPart.split('.').pop()?.toLowerCase();
+            if (urlExtension && Constants.IMAGE_TYPES.indexOf(urlExtension) > -1) {
+                return FileTypes.IMAGE;
+            }
+        }
+    } catch (e) {
+        // Not a valid URL, just check if the string itself has an extension
+        if (extin.includes('.')) {
+            const extension = extin.split('.').pop()?.toLowerCase();
+            if (extension && Constants.IMAGE_TYPES.indexOf(extension) > -1) {
+                return FileTypes.IMAGE;
+            }
+        }
+    }
+
+    // Standard extension-based detection
     const ext = removeQuerystringOrHash(extin.toLowerCase());
 
     if (Constants.TEXT_TYPES.indexOf(ext) > -1) {
@@ -323,7 +360,6 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .channel-header .pinned-posts-button svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.75));
         changeCss('.app__body .channel-header .channel-header_plugin-dropdown svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.75));
         changeCss('.app__body .file-preview, .app__body .post-image__details, .app__body .markdown__table th, .app__body .markdown__table td, .app__body .webhooks__container, .app__body .dropdown-menu', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.emoji-picker .emoji-picker__header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .btn.btn-transparent', 'color:' + changeOpacity(theme.centerChannelColor, 0.7));
         changeCss('.app__body .popover.right>.arrow', 'border-right-color:' + changeOpacity(theme.centerChannelColor, 0.25));
@@ -345,7 +381,7 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .modal .custom-textarea:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3));
         changeCss('.app__body .channel-intro, .app__body hr, .app__body .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__header, .app__body .user-settings .authorized-app:not(:last-child)', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .post.post--comment.other--root.current--user .post-comment, .app__body pre', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
-        changeCss('.app__body .post.post--comment.other--root.current--user .post-comment, .app__body .more-modal__list .more-modal__row, .app__body .member-div:first-child, .app__body .member-div, .app__body .access-history__table .access__report, .app__body .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
+        changeCss('.app__body .post.post--comment.other--root.current--user .post-comment, .app__body .more-modal__list .more-modal__row, .app__body .member-div:first-child, .app__body .member-div, .app__body .access-history__table .access__report, .app__body .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.4));
         changeCss('@media(max-width: 1800px){.app__body .inner-wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .post.post--hovered', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
         changeCss('.app__body .attachment__body__wrap.btn-close', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
@@ -361,12 +397,11 @@ export function applyTheme(theme: Theme) {
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor);
         changeCss('.app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .status svg, .app__body .edit-post__actions .icon svg', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5));
-        changeCss('@media(min-width: 768px){.app__body .post.post--compact.same--root.post--comment .post__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.buttonBg, 0.24));
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .emoji-picker', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker__search-icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.4));
-        changeCss('.app__body .emoji-picker__preview, .app__body .emoji-picker__items, .app__body .emoji-picker__search-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker__preview, .app__body .emoji-picker__items', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.emoji-picker__category .fa:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
         changeCss('.app__body .emoji-picker__item-wrapper:hover', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.8));
         changeCss('.app__body .icon__postcontent_picker:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
@@ -407,6 +442,10 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .emoji-picker .nav-tabs > li.active > a', 'border-bottom-color:' + theme.buttonBg + '!important;');
         changeCss('.app__body .btn-primary:hover', 'background:' + blendColors(theme.buttonBg, '#000000', 0.1));
         changeCss('.app__body .btn-primary:active', 'background:' + blendColors(theme.buttonBg, '#000000', 0.2));
+
+        changeCss('.app__body .SendMessageButton:not(.disabled):hover', 'background:' + blendColors(theme.buttonBg, '#000000', 0.1));
+        changeCss('.app__body #button_send_post_options:not(.disabled):hover', 'background:' + blendColors(theme.buttonBg, '#000000', 0.1));
+        changeCss('@media(min-width: 768px){.app__body .post.post--compact.same--root.post--comment .post__content', 'border-color:' + changeOpacity(theme.buttonBg, 0.24));
     }
 
     if (theme.buttonColor) {
@@ -1181,7 +1220,7 @@ export function clearFileInput(elm: HTMLInputElement) {
 /**
  * @deprecated Use react-intl instead, only place its usage can be justified is in the redux actions
  */
-export function localizeMessage(id: string, defaultMessage?: string) {
+export function localizeMessage({id, defaultMessage}: {id: string; defaultMessage?: string}) {
     const state = store.getState();
 
     const locale = getCurrentLocale(state);
@@ -1197,8 +1236,8 @@ export function localizeMessage(id: string, defaultMessage?: string) {
 /**
  * @deprecated If possible, use intl.formatMessage instead. If you have to use this, remember to mark the id using `t`
  */
-export function localizeAndFormatMessage(id: string, defaultMessage: string, template: { [name: string]: any } | undefined) {
-    const base = localizeMessage(id, defaultMessage);
+export function localizeAndFormatMessage(descriptor: {id: string; defaultMessage?: string}, template: { [name: string]: any } | undefined) {
+    const base = localizeMessage(descriptor);
 
     if (!template) {
         return base;
@@ -1283,7 +1322,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
                             let post = getPost(state, postId!);
                             if (!post) {
                                 const {data: postData} = await store.dispatch(getPostAction(match.postId!));
-                                post = postData;
+                                post = postData!;
                             }
                             if (post) {
                                 isReply = Boolean(post.root_id);
@@ -1300,12 +1339,12 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
                             if (!member) {
                                 const membership = await store.dispatch(getChannelMember(channel.id, getCurrentUserId(state)));
                                 if ('data' in membership) {
-                                    member = membership.data;
+                                    member = membership.data!;
                                 }
                             }
                             if (!member) {
                                 const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
-                                if (data.join) {
+                                if (data!.join) {
                                     let error = false;
                                     if (!getTeamMemberships(state)[team.id]) {
                                         const joinTeamResult = await store.dispatch(addUserToTeam(team.id, user.id));
@@ -1436,13 +1475,18 @@ function isSelection() {
     return selection!.type === 'Range';
 }
 
+/**
+ * Checks if text is selected in the a textbox in center or in RHS or in edit mode of post
+ */
 export function isTextSelectedInPostOrReply(e: React.KeyboardEvent | KeyboardEvent) {
     const {id} = e.target as HTMLElement;
 
-    const isTypingInPost = id === 'post_textbox';
-    const isTypingInReply = id === 'reply_textbox';
+    const isTypingInValidTextbox =
+    id === AdvancedTextEditorTextboxIds.InCenter ||
+    id === AdvancedTextEditorTextboxIds.InRHSComment ||
+    id === AdvancedTextEditorTextboxIds.InEditMode;
 
-    if (!isTypingInPost && !isTypingInReply) {
+    if (isTypingInValidTextbox === false) {
         return false;
     }
 
@@ -1493,6 +1537,7 @@ export function makeIsEligibleForClick(selector = '') {
             if (
                 CLICKABLE_ELEMENTS.includes(node.tagName.toLowerCase()) ||
                 node.getAttribute('role') === 'button' ||
+                node.getAttribute('role') === 'link' ||
                 (selector && node.matches(selector))
             ) {
                 return false;
@@ -1656,4 +1701,8 @@ export function sortUsersAndGroups(a: UserProfile | Group, b: UserProfile | Grou
     }
 
     return aSortString.localeCompare(bSortString);
+}
+
+export function doesCookieContainsMMUserId() {
+    return document.cookie.includes('MMUSERID=');
 }

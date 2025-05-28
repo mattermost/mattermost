@@ -24,10 +24,8 @@ import KeyboardShortcutSequence, {
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
 export const IconContainer = styled.button`
@@ -146,25 +144,19 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
 
     /* get the correct tooltip from the ShortcutsMap */
     const shortcut = MAP_MARKDOWN_MODE_TO_KEYBOARD_SHORTCUTS[mode];
-    const tooltip = (
-        <Tooltip id='upload-tooltip'>
-            <KeyboardShortcutSequence
-                shortcut={shortcut}
-                hoistDescription={true}
-                isInsideTooltip={true}
-            />
-        </Tooltip>
-    );
 
     return (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='top'
-            trigger={['hover', 'focus']}
-            overlay={tooltip}
+        <WithTooltip
+            title={
+                <KeyboardShortcutSequence
+                    shortcut={shortcut}
+                    hoistDescription={true}
+                    isInsideTooltip={true}
+                />
+            }
         >
             {bodyAction}
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

@@ -40,6 +40,7 @@ const actImmediate = (wrapper: ReactWrapper) =>
 describe('component/user_group_popover', () => {
     const profiles: Record<string, UserProfile> = {};
     const profilesInGroup: Record<Group['id'], Set<UserProfile['id']>> = {};
+    const statuses: Record<UserProfile['id'], string> = {};
 
     const group1 = TestHelper.getGroupMock({
         id: 'group1',
@@ -86,6 +87,7 @@ describe('component/user_group_popover', () => {
             users: {
                 profiles,
                 profilesInGroup,
+                statuses,
             },
             preferences: {
                 myPreferences: {},

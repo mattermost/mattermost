@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import "sass/utils/_mixins";
+@use 'utils/_mixins';
 
 .ThreadItem {
     position: relative;
@@ -28,7 +28,7 @@
     }
 
     &__author {
-        @include clearfix;
+        @include mixins.clearfix;
 
         overflow: hidden;
         max-width: 100%;
@@ -105,7 +105,7 @@
         place-content: center;
     }
 
-    h1 {
+    > header {
         position: relative;
         display: grid;
         margin: 0 0 6px;
@@ -117,6 +117,14 @@
         justify-items: start;
         line-height: 20px;
         white-space: nowrap;
+
+        > time {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 12px;
+            font-weight: normal;
+            grid-column: 3/4;
+            line-height: 20px;
+        }
     }
 
     div.preview {
@@ -124,15 +132,7 @@
         margin: 0 0 10px;
         color: rgba(var(--center-channel-color-rgb), 1);
 
-        @include text-clamp(2, 20);
-    }
-
-    time {
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        font-size: 12px;
-        font-weight: normal;
-        grid-column: 3/4;
-        line-height: 20px;
+        @include mixins.text-clamp(2, 20);
     }
 
     .menu-anchor {

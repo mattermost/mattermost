@@ -19,7 +19,7 @@ import (
 func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Activate user", func(c client.Client) {
@@ -48,7 +48,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
+		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user "+user.Id+": You do not have the appropriate permissions.")
 
 		ruser, err := s.th.App.GetUser(user.Id)
 		s.Require().Nil(err)
@@ -69,7 +69,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Deactivate user", func(c client.Client) {
@@ -98,7 +98,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
+		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user "+user.Id+": You do not have the appropriate permissions.")
 
 		ruser, err := s.th.App.GetUser(user.Id)
 		s.Require().Nil(err)
@@ -125,8 +125,30 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		err := searchUserCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
-		user := printer.GetLines()[0].(*model.User)
+		user := printer.GetLines()[0].(userOut)
 		s.Equal(s.th.BasicUser.Username, user.Username)
+		s.False(user.Deactivated)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForAllClients("Search for a disabled user", func(c client.Client) {
+		printer.Clean()
+
+		// Create a disabled user
+		disabledUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
+			Email:    s.th.GenerateTestEmail(),
+			Username: model.NewUsername(),
+			Password: model.NewId(),
+			DeleteAt: model.GetMillis(), // Set DeleteAt to disable the user
+		})
+		s.Require().Nil(appErr)
+
+		err := searchUserCmdF(c, &cobra.Command{}, []string{disabledUser.Email})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		user := printer.GetLines()[0].(userOut)
+		s.Equal(disabledUser.Username, user.Username)
+		s.True(user.Deactivated) // Verify user shows as deactivated
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
@@ -370,7 +392,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), MfaActive: true, MfaSecret: "secret"})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId(), MfaActive: true, MfaSecret: "secret"})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Reset user mfa", func(c client.Client) {
@@ -400,7 +422,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = *previousVal })
 		}()
 
-		userMfaInactive, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), MfaActive: false})
+		userMfaInactive, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId(), MfaActive: false})
 		s.Require().Nil(appErr)
 
 		err := resetUserMfaCmdF(c, &cobra.Command{}, []string{userMfaInactive.Email})
@@ -436,7 +458,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Verify user email without token", func(c client.Client) {
@@ -500,7 +522,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 
 	s.RunForAllClients("Should not create a user w/o email", func(c client.Client) {
 		printer.Clean()
-		username := model.NewId()
+		username := model.NewUsername()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("password", "somepass", "")
@@ -531,7 +553,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.Run("Should create a user but w/o system-admin privileges", func() {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		username := model.NewId()
+		username := model.NewUsername()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
@@ -550,7 +572,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.RunForSystemAdminAndLocal("Should create new system-admin user given required params", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		username := model.NewId()
+		username := model.NewUsername()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
@@ -569,7 +591,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.RunForAllClients("Should create new user given required params", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		username := model.NewId()
+		username := model.NewUsername()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
@@ -587,7 +609,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.RunForSystemAdminAndLocal("Should create new user with the email already verified only for admin or local mode", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		username := model.NewId()
+		username := model.NewUsername()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
@@ -854,7 +876,7 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 	s.RunForSystemAdminAndLocal("Valid user to bot convert", func(c client.Client) {
 		printer.Clean()
 
-		user, _ := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, _ := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 
 		email := user.Email
 		cmd := &cobra.Command{}
@@ -1002,7 +1024,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.th.App.UpdateConfig(func(c *model.Config) { *c.GuestAccountsSettings.Enable = true })
@@ -1034,7 +1056,7 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 func (s *MmctlE2ETestSuite) TestDemoteUserToGuestCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.th.App.UpdateConfig(func(c *model.Config) { *c.GuestAccountsSettings.Enable = true })
@@ -1070,7 +1092,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	ldapUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       s.th.GenerateTestEmail(),
 		Username:    model.NewId(),
-		AuthData:    model.NewString("test.user.1"),
+		AuthData:    model.NewPointer("test.user.1"),
 		AuthService: model.UserAuthServiceLdap,
 	})
 	s.Require().Nil(appErr)
@@ -1078,7 +1100,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	samlUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       "success+devone@simulator.amazonses.com",
 		Username:    "dev.one",
-		AuthData:    model.NewString("dev.one"),
+		AuthData:    model.NewPointer("dev.one"),
 		AuthService: model.UserAuthServiceSaml,
 	})
 	s.Require().Nil(appErr)
@@ -1107,7 +1129,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().NoError(err)
 		defer func() {
 			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, ldapUser.Id, &model.UserAuth{
-				AuthData:    model.NewString("test.user.1"),
+				AuthData:    model.NewPointer("test.user.1"),
 				AuthService: model.UserAuthServiceLdap,
 			})
 			s.Require().Nil(appErr)
@@ -1136,7 +1158,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().NoError(err)
 		defer func() {
 			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, samlUser.Id, &model.UserAuth{
-				AuthData:    model.NewString("dev.one"),
+				AuthData:    model.NewPointer("dev.one"),
 				AuthService: model.UserAuthServiceSaml,
 			})
 			s.Require().Nil(appErr)
@@ -1426,6 +1448,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for single user", func() {
+		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
@@ -1455,6 +1478,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for multiple users as admin", func() {
+		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
@@ -1602,5 +1626,38 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 
 		err := preferencesDeleteCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().Error(err)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestSendPasswordResetEmailCmd() {
+	s.SetupTestHelper().InitBasic()
+	s.RunForAllClients("all users can send password reset email", func(c client.Client) {
+		printer.Clean()
+		emailArg1 := "demo1@example.com"
+		emailArg2 := "demo2@example.com"
+
+		err := sendPasswordResetEmailCmdF(c, &cobra.Command{}, []string{emailArg1, emailArg2})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForAllClients("send valid and invalid email", func(c client.Client) {
+		printer.Clean()
+		emailArg1 := "demo@example.com"
+		emailArg2 := "invalid.Email@example.com"
+
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("invalid email '%s'", emailArg2))
+
+		err := sendPasswordResetEmailCmdF(c, &cobra.Command{}, []string{emailArg1, emailArg2})
+		s.Require().EqualError(err, expected.Error())
+		s.Require().Len(printer.GetErrorLines(), 1)
+	})
+
+	s.RunForAllClients("no arguments passed", func(c client.Client) {
+		printer.Clean()
+		err := sendPasswordResetEmailCmdF(c, &cobra.Command{}, []string{})
+		s.Require().EqualError(err, "expected at least one argument. See help text for details")
 	})
 }

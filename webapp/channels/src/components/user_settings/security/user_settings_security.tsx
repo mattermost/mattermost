@@ -258,7 +258,10 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         key='currentPasswordUpdateForm'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>
+                        <label
+                            className='col-sm-5 control-label'
+                            htmlFor='currentPassword'
+                        >
                             <FormattedMessage
                                 id='user.settings.security.currentPassword'
                                 defaultMessage='Current Password'
@@ -285,7 +288,10 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         key='newPasswordUpdateForm'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>
+                        <label
+                            className='col-sm-5 control-label'
+                            htmlFor='newPassword'
+                        >
                             <FormattedMessage
                                 id='user.settings.security.newPassword'
                                 defaultMessage='New Password'
@@ -311,7 +317,10 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         key='retypeNewPasswordUpdateForm'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>
+                        <label
+                            className='col-sm-5 control-label'
+                            htmlFor='confirmPassword'
+                        >
                             <FormattedMessage
                                 id='user.settings.security.retypePassword'
                                 defaultMessage='Retype New Password'
@@ -407,7 +416,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         <div className='pb-3'>
                             <FormattedMessage
                                 id='user.settings.security.passwordOffice365CantUpdate'
-                                defaultMessage='Login occurs through Office 365. Password cannot be updated.'
+                                defaultMessage='Login occurs through Entra ID. Password cannot be updated.'
                             />
                         </div>
                     </div>,
@@ -495,7 +504,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.loginOffice365'
-                    defaultMessage='Login done through Office 365'
+                    defaultMessage='Login done through Entra ID'
                 />
             );
         }
@@ -597,7 +606,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                             >
                                 <FormattedMessage
                                     id='user.settings.security.switchOffice365'
-                                    defaultMessage='Switch to Using Office 365 SSO'
+                                    defaultMessage='Switch to Using Entra ID SSO'
                                 />
                             </Link>
                             <br/>
@@ -764,7 +773,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.office365'
-                    defaultMessage='Office 365'
+                    defaultMessage='Entra ID'
                 />
             );
         } else if (
@@ -993,7 +1002,11 @@ export class SecurityTab extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div>
+            <div
+                id='securitySettings'
+                aria-labelledby='securityButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}
@@ -1041,6 +1054,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 id: 'user.settings.security.viewHistory.icon',
                                 defaultMessage: 'Access History Icon',
                             })}
+                            aria-hidden='true'
                         />
                         <FormattedMessage
                             id='user.settings.security.viewHistory'
@@ -1059,6 +1073,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 id: 'user.settings.security.logoutActiveSessions.icon',
                                 defaultMessage: 'Active Sessions Icon',
                             })}
+                            aria-hidden='true'
                         />
                         <FormattedMessage
                             id='user.settings.security.logoutActiveSessions'

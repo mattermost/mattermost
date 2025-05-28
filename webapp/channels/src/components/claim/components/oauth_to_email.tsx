@@ -13,7 +13,7 @@ import {oauthToEmail} from 'actions/admin_actions.jsx';
 
 import Constants from 'utils/constants';
 import {isValidPassword} from 'utils/password';
-import {localizeMessage, toTitleCase} from 'utils/utils';
+import {toTitleCase} from 'utils/utils';
 
 import ErrorLabel from './error_label';
 
@@ -36,7 +36,7 @@ const OAuthToEmail = (props: Props) => {
 
         const password = passwordInput.current?.value;
         if (!password) {
-            setError(localizeMessage('claim.oauth_to_email.enterPwd', 'Please enter a password.'));
+            setError(intl.formatMessage({id: 'claim.oauth_to_email.enterPwd', defaultMessage: 'Please enter a password.'}));
             return;
         }
 
@@ -50,7 +50,7 @@ const OAuthToEmail = (props: Props) => {
 
         const confirmPassword = passwordConfirmInput.current?.value;
         if (!confirmPassword || password !== confirmPassword) {
-            setError(localizeMessage('claim.oauth_to_email.pwdNotMatch', 'Passwords do not match.'));
+            setError(intl.formatMessage({id: 'claim.oauth_to_email.pwdNotMatch', defaultMessage: 'Passwords do not match.'}));
             return;
         }
 

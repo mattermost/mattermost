@@ -112,10 +112,8 @@ func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
 	printer.SetFormat(printer.FormatPlain)
 	s.T().Cleanup(func() { printer.SetFormat(printer.FormatJSON) })
 
-	s.Run("Download support packet with default filename", func() {
+	s.Run("Download Support Packet with default filename", func() {
 		printer.Clean()
-
-		s.T().Cleanup(cleanupSupportPacket(s.T()))
 
 		err := systemSupportPacketCmdF(s.th.SystemAdminClient, SystemSupportPacketCmd, []string{})
 		s.Require().NoError(err)
@@ -129,11 +127,16 @@ func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
 		entries, err := os.ReadDir(".")
 		s.Require().NoError(err)
 		for _, e := range entries {
-			if strings.HasPrefix(e.Name(), "mattermost_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
+			if strings.HasPrefix(e.Name(), "mm_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
 				b, err := os.ReadFile(e.Name())
 				s.NoError(err)
 
 				s.NotEmpty(b, b)
+
+				s.T().Cleanup(func() {
+					err = os.Remove(e.Name())
+					s.Require().NoError(err)
+				})
 
 				found = true
 			}
@@ -141,17 +144,19 @@ func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
 		s.True(found)
 	})
 
-	s.Run("Download support packet with custom filename", func() {
+	s.Run("Download Support Packet with custom filename", func() {
 		printer.Clean()
 
-		err := SystemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
+		systemSupportPacketCmd := &cobra.Command{}
+		systemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+		err := systemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
 		s.Require().NoError(err)
 
-		s.T().Cleanup(func() {
+		defer func() {
 			s.Require().NoError(os.Remove("foo.zip"))
-		})
+		}()
 
-		err = systemSupportPacketCmdF(s.th.SystemAdminClient, SystemSupportPacketCmd, []string{})
+		err = systemSupportPacketCmdF(s.th.SystemAdminClient, systemSupportPacketCmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)

@@ -5,8 +5,10 @@ package storetest
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -27,7 +29,9 @@ func makeBotWithUser(t *testing.T, rctx request.CTX, ss store.Store, bot *model.
 
 func TestBotStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Get", func(t *testing.T) { testBotStoreGet(t, rctx, ss, s) })
+	t.Run("GetByUsername", func(t *testing.T) { testBotStoreGetByUsername(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testBotStoreGetAll(t, rctx, ss, s) })
+	t.Run("GetAllAfter", func(t *testing.T) { testBotStoreGetAllAfter(t, rctx, ss) })
 	t.Run("Save", func(t *testing.T) { testBotStoreSave(t, rctx, ss) })
 	t.Run("Update", func(t *testing.T) { testBotStoreUpdate(t, rctx, ss) })
 	t.Run("PermanentDelete", func(t *testing.T) { testBotStorePermanentDelete(t, rctx, ss) })
@@ -75,7 +79,7 @@ func testBotStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, b2.UserId)) }()
 
 	// Artificially set b2.LastIconUpdate to NULL to verify handling of same.
-	_, sqlErr := s.GetMasterX().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
+	_, sqlErr := s.GetMaster().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
 	require.NoError(t, sqlErr)
 
 	t.Run("get non-existent bot", func(t *testing.T) {
@@ -119,13 +123,13 @@ func testBotStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore)
 }
 
 func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	OwnerId1 := model.NewId()
-	OwnerId2 := model.NewId()
+	OwnerID1 := model.NewId()
+	OwnerID2 := model.NewId()
 
 	deletedBot, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
 		Username:       "deleted_bot",
 		Description:    "A deleted bot",
-		OwnerId:        OwnerId1,
+		OwnerId:        OwnerID1,
 		LastIconUpdate: model.GetMillis(),
 	})
 	deletedBot.DeleteAt = 1
@@ -137,7 +141,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	permanentlyDeletedBot, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
 		Username:       "permanently_deleted_bot",
 		Description:    "A permanently deleted bot",
-		OwnerId:        OwnerId1,
+		OwnerId:        OwnerID1,
 		LastIconUpdate: model.GetMillis(),
 		DeleteAt:       0,
 	})
@@ -147,7 +151,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	b1, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
 		Username:       "b1",
 		Description:    "The first bot",
-		OwnerId:        OwnerId1,
+		OwnerId:        OwnerID1,
 		LastIconUpdate: model.GetMillis(),
 	})
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b1.UserId)) }()
@@ -156,14 +160,14 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	b2, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
 		Username:       "b2",
 		Description:    "The second bot",
-		OwnerId:        OwnerId1,
+		OwnerId:        OwnerID1,
 		LastIconUpdate: 0,
 	})
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b2.UserId)) }()
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, b2.UserId)) }()
 
 	// Artificially set b2.LastIconUpdate to NULL to verify handling of same.
-	_, sqlErr := s.GetMasterX().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
+	_, sqlErr := s.GetMaster().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
 	require.NoError(t, sqlErr)
 
 	t.Run("get original bots", func(t *testing.T) {
@@ -178,7 +182,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	b3, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
 		Username:    "b3",
 		Description: "The third bot",
-		OwnerId:     OwnerId1,
+		OwnerId:     OwnerID1,
 	})
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b3.UserId)) }()
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, b3.UserId)) }()
@@ -186,14 +190,14 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	b4, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
 		Username:    "b4",
 		Description: "The fourth bot",
-		OwnerId:     OwnerId2,
+		OwnerId:     OwnerID2,
 	})
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b4.UserId)) }()
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, b4.UserId)) }()
 
 	deletedUser := model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	_, err1 := ss.User().Save(rctx, &deletedUser)
 	require.NoError(t, err1, "couldn't save user")
@@ -208,8 +212,8 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 		Description: "Orphaned bot 5",
 		OwnerId:     deletedUser.Id,
 	})
-	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b4.UserId)) }()
-	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, b4.UserId)) }()
+	defer func() { require.NoError(t, ss.Bot().PermanentDelete(ob5.UserId)) }()
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, ob5.UserId)) }()
 
 	t.Run("get newly created bot stoo", func(t *testing.T) {
 		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10})
@@ -274,7 +278,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	})
 
 	t.Run("get offset=0, limit=10, creator id 1", func(t *testing.T) {
-		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, OwnerId: OwnerId1})
+		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, OwnerId: OwnerID1})
 		require.NoError(t, err)
 		require.Equal(t, []*model.Bot{
 			b1,
@@ -284,7 +288,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	})
 
 	t.Run("get offset=0, limit=10, creator id 2", func(t *testing.T) {
-		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, OwnerId: OwnerId2})
+		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, OwnerId: OwnerID2})
 		require.NoError(t, err)
 		require.Equal(t, []*model.Bot{
 			b4,
@@ -292,7 +296,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	})
 
 	t.Run("get offset=0, limit=10, include deleted, creator id 1", func(t *testing.T) {
-		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, IncludeDeleted: true, OwnerId: OwnerId1})
+		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, IncludeDeleted: true, OwnerId: OwnerID1})
 		require.NoError(t, err)
 		require.Equal(t, []*model.Bot{
 			deletedBot,
@@ -303,7 +307,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	})
 
 	t.Run("get offset=0, limit=10, include deleted, creator id 2", func(t *testing.T) {
-		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, IncludeDeleted: true, OwnerId: OwnerId2})
+		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, IncludeDeleted: true, OwnerId: OwnerID2})
 		require.NoError(t, err)
 		require.Equal(t, []*model.Bot{
 			b4,
@@ -466,6 +470,122 @@ func testBotStorePermanentDelete(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, err)
 
 		_, err = ss.Bot().Get(b1.UserId, false)
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
+}
+
+func testBotStoreGetAllAfter(t *testing.T, rctx request.CTX, ss store.Store) {
+	bot1 := &model.Bot{
+		Username:    "bot_1",
+		Description: "description",
+		OwnerId:     model.NewId(),
+	}
+
+	user1, err := ss.User().Save(rctx, model.UserFromBot(bot1))
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user1.Id)) }()
+	bot1.UserId = user1.Id
+
+	returnedNewBot1, nErr := ss.Bot().Save(bot1)
+	require.NoError(t, nErr)
+	defer func() { require.NoError(t, ss.Bot().PermanentDelete(bot1.UserId)) }()
+
+	bot2 := &model.Bot{
+		Username:    "bot_2",
+		Description: "description",
+		OwnerId:     model.NewId(),
+	}
+
+	user2, err := ss.User().Save(rctx, model.UserFromBot(bot2))
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user2.Id)) }()
+	bot2.UserId = user2.Id
+
+	returnedNewBot2, nErr := ss.Bot().Save(bot2)
+	require.NoError(t, nErr)
+	defer func() { require.NoError(t, ss.Bot().PermanentDelete(bot2.UserId)) }()
+
+	expected := []*model.Bot{returnedNewBot1, returnedNewBot2}
+	if strings.Compare(returnedNewBot2.UserId, returnedNewBot1.UserId) < 0 {
+		expected = []*model.Bot{returnedNewBot2, returnedNewBot1}
+	}
+
+	t.Run("get after lowest possible id", func(t *testing.T) {
+		actual, err := ss.Bot().GetAllAfter(10000, strings.Repeat("0", 26))
+		require.NoError(t, err)
+
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("get after first user", func(t *testing.T) {
+		actual, err := ss.Bot().GetAllAfter(10000, expected[0].UserId)
+		require.NoError(t, err)
+
+		assert.Equal(t, []*model.Bot{expected[1]}, actual)
+	})
+
+	t.Run("get after second user", func(t *testing.T) {
+		actual, err := ss.Bot().GetAllAfter(10000, expected[1].UserId)
+		require.NoError(t, err)
+
+		assert.Equal(t, []*model.Bot{}, actual)
+	})
+}
+
+func testBotStoreGetByUsername(t *testing.T, rctx request.CTX, ss store.Store) {
+	bot1 := &model.Bot{
+		Username:    "bot_1",
+		Description: "description",
+		OwnerId:     model.NewId(),
+	}
+
+	user1, err := ss.User().Save(rctx, model.UserFromBot(bot1))
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user1.Id)) }()
+	bot1.UserId = user1.Id
+
+	returnedNewBot1, nErr := ss.Bot().Save(bot1)
+	require.NoError(t, nErr)
+	defer func() { require.NoError(t, ss.Bot().PermanentDelete(bot1.UserId)) }()
+
+	bot2 := &model.Bot{
+		Username:    "bot_2",
+		Description: "description",
+		OwnerId:     model.NewId(),
+	}
+
+	user2, err := ss.User().Save(rctx, model.UserFromBot(bot2))
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user2.Id)) }()
+	bot2.UserId = user2.Id
+
+	returnedNewBot2, nErr := ss.Bot().Save(bot2)
+	require.NoError(t, nErr)
+	defer func() { require.NoError(t, ss.Bot().PermanentDelete(bot2.UserId)) }()
+
+	t.Run("get bot1 by username", func(t *testing.T) {
+		result, err := ss.Bot().GetByUsername(returnedNewBot1.Username)
+		require.NoError(t, err)
+		assert.Equal(t, returnedNewBot1, result)
+	})
+
+	t.Run("get bot2 by username", func(t *testing.T) {
+		result, err := ss.Bot().GetByUsername(returnedNewBot2.Username)
+		require.NoError(t, err)
+		assert.Equal(t, returnedNewBot2, result)
+	})
+
+	t.Run("get by empty username", func(t *testing.T) {
+		_, err := ss.Bot().GetByUsername("")
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
+
+	t.Run("get by unknown", func(t *testing.T) {
+		_, err := ss.Bot().GetByUsername("unknown")
 		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))

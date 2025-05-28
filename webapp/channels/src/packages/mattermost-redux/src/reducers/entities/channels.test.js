@@ -114,6 +114,94 @@ describe('channels', () => {
         });
     });
 
+    describe('RECEIVED_CHANNEL_STATS', () => {
+        test("should store a channel's stats", () => {
+            const state = deepFreeze(channelsReducer({}, {}));
+            const nextState = channelsReducer(state, {
+                type: ChannelTypes.RECEIVED_CHANNEL_STATS,
+                data: {
+                    channel_id: 'channel1',
+                    member_count: 2,
+                    guest_count: 3,
+                    pinnedpost_count: 4,
+                    files_count: 5,
+                },
+            });
+
+            expect(state).not.toBe(nextState);
+            expect(nextState.stats).toEqual({
+                channel1: {
+                    channel_id: 'channel1',
+                    member_count: 2,
+                    guest_count: 3,
+                    pinnedpost_count: 4,
+                    files_count: 5,
+                },
+            });
+        });
+
+        test("should update a channel's stats", () => {
+            const state = deepFreeze(channelsReducer({
+                stats: {
+                    channel1: {
+                        channel_id: 'channel1',
+                        member_count: 1,
+                        guest_count: 1,
+                        pinnedpost_count: 1,
+                        files_count: 1,
+                    },
+                },
+            }, {}));
+            const nextState = channelsReducer(state, {
+                type: ChannelTypes.RECEIVED_CHANNEL_STATS,
+                data: {
+                    channel_id: 'channel1',
+                    member_count: 2,
+                    guest_count: 3,
+                    pinnedpost_count: 4,
+                    files_count: 5,
+                },
+            });
+
+            expect(state).not.toBe(nextState);
+            expect(nextState.stats).toEqual({
+                channel1: {
+                    channel_id: 'channel1',
+                    member_count: 2,
+                    guest_count: 3,
+                    pinnedpost_count: 4,
+                    files_count: 5,
+                },
+            });
+        });
+
+        test("should return the same object when a channel's stats are unchanged", () => {
+            const state = deepFreeze(channelsReducer({
+                stats: {
+                    channel1: {
+                        channel_id: 'channel1',
+                        member_count: 2,
+                        guest_count: 3,
+                        pinnedpost_count: 4,
+                        files_count: 5,
+                    },
+                },
+            }, {}));
+            const nextState = channelsReducer(state, {
+                type: ChannelTypes.RECEIVED_CHANNEL_STATS,
+                data: {
+                    channel_id: 'channel1',
+                    member_count: 2,
+                    guest_count: 3,
+                    pinnedpost_count: 4,
+                    files_count: 5,
+                },
+            });
+
+            expect(state).toBe(nextState);
+        });
+    });
+
     describe('INCREMENT_FILE_COUNT', () => {
         test('should change channel file count stats', () => {
             const state = deepFreeze(channelsReducer({

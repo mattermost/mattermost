@@ -469,7 +469,7 @@ func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string,
 
 	a.ClearSessionCacheForUser(userID)
 
-	if appErr := a.sendUpdatedMemberRoleEvent(userID, member); appErr != nil {
+	if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
 		return nil, appErr
 	}
 
@@ -496,7 +496,7 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 
 	// If the migration is not completed, we also need to check the default team_admin/team_user roles are not present in the roles field.
 	if err = a.IsPhase2MigrationCompleted(); err != nil {
-		member.ExplicitRoles = RemoveRoles([]string{model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId}, member.ExplicitRoles)
+		member.ExplicitRoles = removeRoles([]string{model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId}, member.ExplicitRoles)
 	}
 
 	member, nErr := a.Srv().Store().Team().UpdateMember(c, member)
@@ -512,15 +512,15 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 
 	a.ClearSessionCacheForUser(userID)
 
-	if appErr := a.sendUpdatedMemberRoleEvent(userID, member); appErr != nil {
+	if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
 		return nil, appErr
 	}
 
 	return member, nil
 }
 
-func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) *model.AppError {
-	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil, "")
+func (a *App) sendUpdatedTeamMemberEvent(member *model.TeamMember) *model.AppError {
+	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", member.UserId, nil, "")
 	tmJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
 		return model.NewAppError("sendUpdatedMemberRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -606,7 +606,9 @@ func (a *App) AddUserToTeamByToken(c request.CTX, userID string, tokenID string)
 	}
 
 	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-		a.DeleteToken(token)
+		if err := a.DeleteToken(token); err != nil {
+			c.Logger().Warn("Error deleting expired team invitation token during team join", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
+		}
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -803,7 +805,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasJoinedTeam(pluginContext, teamMember, actor)
 			return true
 		}, plugin.UserHasJoinedTeamID)
@@ -1096,12 +1098,11 @@ func (a *App) AddTeamMemberByInviteId(c request.CTX, inviteId, userID string) (*
 
 func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.AppError) {
 	channelUnreads, err := a.Srv().Store().Team().GetChannelUnreadsForTeam(teamID, userID)
-
 	if err != nil {
 		return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var teamUnread = &model.TeamUnread{
+	teamUnread := &model.TeamUnread{
 		MsgCount:         0,
 		MentionCount:     0,
 		MentionCountRoot: 0,
@@ -1175,7 +1176,7 @@ func (a *App) postProcessTeamMemberLeave(c request.CTX, teamMember *model.TeamMe
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
 			return true
 		}, plugin.UserHasLeftTeamID)
@@ -1286,7 +1287,7 @@ func (a *App) postLeaveTeamMessage(c request.CTX, user *model.User, channel *mod
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
+	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1304,7 +1305,7 @@ func (a *App) postRemoveFromTeamMessage(c request.CTX, user *model.User, channel
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
+	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postRemoveFromTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1753,7 +1754,9 @@ func (a *App) PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppErr
 		}
 	} else {
 		for _, ch := range channels {
-			a.PermanentDeleteChannel(c, ch)
+			if err := a.PermanentDeleteChannel(c, ch); err != nil {
+				c.Logger().Warn("Error permanently deleting channel during team deletion", mlog.String("channel_id", ch.Id), mlog.String("team_id", team.Id), mlog.Err(err))
+			}
 		}
 	}
 
@@ -1875,7 +1878,7 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 	if tokenID != "" {
 		token, err := a.Srv().Store().Token().GetByToken(tokenID)
 		if err != nil {
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation {
@@ -1883,7 +1886,9 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 		}
 
 		if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-			a.DeleteToken(token)
+			if err := a.DeleteToken(token); err != nil {
+				rctx.Logger().Warn("Error deleting expired invitation token during team ID lookup", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
+			}
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -1945,16 +1950,16 @@ func (a *App) GetTeamIcon(team *model.Team) ([]byte, *model.AppError) {
 	return data, nil
 }
 
-func (a *App) SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError {
+func (a *App) SetTeamIcon(rctx request.CTX, teamID string, imageData *multipart.FileHeader) *model.AppError {
 	file, err := imageData.Open()
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	defer file.Close()
-	return a.SetTeamIconFromMultiPartFile(teamID, file)
+	return a.SetTeamIconFromMultiPartFile(rctx, teamID, file)
 }
 
-func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError {
+func (a *App) SetTeamIconFromMultiPartFile(rctx request.CTX, teamID string, file multipart.File) *model.AppError {
 	team, getTeamErr := a.GetTeam(teamID)
 
 	if getTeamErr != nil {
@@ -1970,17 +1975,21 @@ func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *
 			nil, "", http.StatusBadRequest).Wrap(limitErr)
 	}
 
-	return a.SetTeamIconFromFile(team, file)
+	return a.SetTeamIconFromFile(rctx, team, file)
 }
 
-func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
+func (a *App) SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.ReadSeeker) *model.AppError {
 	// Decode image into Image object
-	img, _, err := image.Decode(file)
+	img, format, err := image.Decode(file)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	orientation, _ := imaging.GetImageOrientation(file)
+	orientation, err := imaging.GetImageOrientation(file, format)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err))
+	}
+
 	img = imaging.MakeImageUpright(img, orientation)
 
 	// Scale team icon
@@ -2054,9 +2063,14 @@ func (a *App) InvalidateAllResendInviteEmailJobs(c request.CTX) *model.AppError 
 	}
 
 	for _, j := range jobs {
-		a.Srv().Jobs.SetJobCanceled(j)
+		if err := a.Srv().Jobs.SetJobCanceled(j); err != nil {
+			c.Logger().Warn("Error canceling resend invitation email job during team invitation invalidation", mlog.String("job_id", j.Id), mlog.Err(err))
+		}
 		// clean up any system values this job was using
-		a.Srv().Store().System().PermanentDeleteByName(j.Id)
+		_, err := a.Srv().Store().System().PermanentDeleteByName(j.Id)
+		if err != nil {
+			c.Logger().Warn("Error deleting system values for resend invitation email job during team invitation invalidation", mlog.String("job_id", j.Id), mlog.Err(err))
+		}
 	}
 
 	return nil

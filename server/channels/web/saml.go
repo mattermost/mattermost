@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -128,8 +128,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 		}
-
-		c.Logger.Error("Failed to complete SAML login", mlog.Err(err))
 	}
 
 	if len(encodedXML) > maxSAMLResponseSize {
@@ -138,7 +136,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := samlInterface.DoLogin(c.AppContext, encodedXML, relayProps)
+	user, assertion, err := samlInterface.DoLogin(c.AppContext, encodedXML, relayProps)
 	if err != nil {
 		c.LogAudit("fail")
 		handleError(err)
@@ -157,7 +155,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.LogErrorByCode(err)
 				break
 			}
-			c.App.AddDirectChannels(c.AppContext, teamId, user)
+			if err = c.App.AddDirectChannels(c.AppContext, teamId, user); err != nil {
+				c.LogErrorByCode(err)
+			}
 		}
 	case model.OAuthActionEmailToSSO:
 		if err = c.App.RevokeAllSessions(c.AppContext, user.Id); err != nil {
@@ -175,22 +175,30 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	pluginContext := &plugin.Context{
+		RequestId:      c.AppContext.RequestId(),
+		SessionId:      c.AppContext.Session().Id,
+		IPAddress:      c.AppContext.IPAddress(),
+		AcceptLanguage: c.AppContext.AcceptLanguage(),
+		UserAgent:      c.AppContext.UserAgent(),
+	}
+
+	var hookErr error
+	c.App.Channels().RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+		hookErr = hooks.OnSAMLLogin(pluginContext, user, assertion)
+		return hookErr == nil
+	}, plugin.OnSAMLLoginID)
+	if hookErr != nil {
+		handleError(model.NewAppError("completeSaml", "api.user.authorize_oauth_user.saml_hook_error.app_error", nil, "", http.StatusInternalServerError).Wrap(hookErr))
+		return
+	}
+
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
-	if err != nil {
-		handleError(err)
-		return
-	}
-	c.AppContext = c.AppContext.WithSession(session)
-
-	auditRec.Success()
-	c.LogAuditWithUserId(user.Id, "success")
-
-	c.App.AttachSessionCookies(c.AppContext, w, r)
-
 	desktopToken := relayProps["desktop_token"]
+
+	// If it's a desktop login we generate a token and redirect to another endpoint to handle session creation
 	if desktopToken != "" {
 		serverToken, serverTokenErr := c.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
 		if serverTokenErr != nil {
@@ -213,6 +221,18 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
+
+	// If it's not a desktop login we create a session for this SAML User that will be used in their browser or mobile app
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
+	if err != nil {
+		handleError(err)
+		return
+	}
+	c.AppContext = c.AppContext.WithSession(session)
+
+	auditRec.Success()
+	c.LogAuditWithUserId(user.Id, "success")
+	c.App.AttachSessionCookies(c.AppContext, w, r)
 
 	if hasRedirectURL {
 		if isMobile {

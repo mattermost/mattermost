@@ -7,20 +7,76 @@ import (
 	"encoding/json"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
 
 const (
+	// The primary key for the preference table is the combination of User.Id, Category, and Name.
+
+	// PreferenceCategoryDirectChannelShow and PreferenceCategoryGroupChannelShow
+	// are used to store the user's preferences for which channels to show in the sidebar.
+	// The Name field is the channel ID.
 	PreferenceCategoryDirectChannelShow = "direct_channel_show"
 	PreferenceCategoryGroupChannelShow  = "group_channel_show"
-	PreferenceCategoryTutorialSteps     = "tutorial_step"
-	PreferenceCategoryAdvancedSettings  = "advanced_settings"
-	PreferenceCategoryFlaggedPost       = "flagged_post"
-	PreferenceCategoryFavoriteChannel   = "favorite_channel"
-	PreferenceCategorySidebarSettings   = "sidebar_settings"
+	// PreferenceCategoryTutorialStep is used to store the user's progress in the tutorial.
+	// The Name field is the user ID again (for whatever reason).
+	PreferenceCategoryTutorialSteps = "tutorial_step"
+	// PreferenceCategoryAdvancedSettings has settings for the user's advanced settings.
+	// The Name field is the setting name. Possible values are:
+	// - "formatting"
+	// - "send_on_ctrl_enter"
+	// - "join_leave"
+	// - "unread_scroll_position"
+	// - "sync_drafts"
+	// - "feature_enabled_markdown_preview" <- deprecated in favor of "formatting"
+	PreferenceCategoryAdvancedSettings = "advanced_settings"
+	// PreferenceCategoryFlaggedPost is used to store the user's saved posts.
+	// The Name field is the post ID.
+	PreferenceCategoryFlaggedPost = "flagged_post"
+	// PreferenceCategoryFavoriteChannel is used to store the user's favorite channels to be
+	// shown in the sidebar. The Name field is the channel ID.
+	PreferenceCategoryFavoriteChannel = "favorite_channel"
+	// PreferenceCategorySidebarSettings is used to store the user's sidebar settings.
+	// The Name field is the setting name. (ie. PreferenceNameShowUnreadSection or PreferenceLimitVisibleDmsGms)
+	PreferenceCategorySidebarSettings = "sidebar_settings"
+	// PreferenceCategoryDisplaySettings is used to store the user's various display settings.
+	// The possible Name fields are:
+	// - PreferenceNameUseMilitaryTime
+	// - PreferenceNameCollapseSetting
+	// - PreferenceNameMessageDisplay
+	// - PreferenceNameCollapseConsecutive
+	// - PreferenceNameColorizeUsernames
+	// - PreferenceNameChannelDisplayMode
+	// - PreferenceNameNameFormat
+	PreferenceCategoryDisplaySettings = "display_settings"
+	// PreferenceCategorySystemNotice is used store system admin notices.
+	// Possible Name values are not defined here. It can be anything with the notice name.
+	PreferenceCategorySystemNotice = "system_notice"
+	// Deprecated: PreferenceCategoryLast is not used anymore.
+	PreferenceCategoryLast = "last"
+	// PreferenceCategoryCustomStatus is used to store the user's custom status preferences.
+	// Possible Name values are:
+	// - PreferenceNameRecentCustomStatuses
+	// - PreferenceNameCustomStatusTutorialState
+	// - PreferenceCustomStatusModalViewed
+	PreferenceCategoryCustomStatus = "custom_status"
+	// PreferenceCategoryNotifications is used to store the user's notification settings.
+	// Possible Name values are:
+	// - PreferenceNameEmailInterval
+	PreferenceCategoryNotifications = "notifications"
 
-	PreferenceCategoryDisplaySettings     = "display_settings"
+	// Deprecated: PreferenceRecommendedNextSteps is not used anymore.
+	// Use PreferenceCategoryRecommendedNextSteps instead.
+	// PreferenceRecommendedNextSteps is actually a Category. The only possible
+	// Name vaule is PreferenceRecommendedNextStepsHide for now.
+	PreferenceRecommendedNextSteps         = PreferenceCategoryRecommendedNextSteps
+	PreferenceCategoryRecommendedNextSteps = "recommended_next_steps"
+
+	// PreferenceCategoryTheme has the name for the team id where theme is set.
+	PreferenceCategoryTheme = "theme"
+
 	PreferenceNameCollapsedThreadsEnabled = "collapsed_reply_threads"
 	PreferenceNameChannelDisplayMode      = "channel_display_mode"
 	PreferenceNameCollapseSetting         = "collapse_previews"
@@ -29,28 +85,26 @@ const (
 	PreferenceNameColorizeUsernames       = "colorize_usernames"
 	PreferenceNameNameFormat              = "name_format"
 	PreferenceNameUseMilitaryTime         = "use_military_time"
-	PreferenceRecommendedNextSteps        = "recommended_next_steps"
 
-	PreferenceCategorySystemNotice = "system_notice"
+	PreferenceNameShowUnreadSection = "show_unread_section"
+	PreferenceLimitVisibleDmsGms    = "limit_visible_dms_gms"
 
-	PreferenceCategoryTheme = "theme"
-	// the name for theme props is the team id
+	PreferenceMaxLimitVisibleDmsGmsValue = 40
+	MaxPreferenceValueLength             = 20000
 
 	PreferenceCategoryAuthorizedOAuthApp = "oauth_app"
 	// the name for oauth_app is the client_id and value is the current scope
 
-	PreferenceCategoryLast    = "last"
+	// Deprecated: PreferenceCategoryLastChannel is not used anymore.
 	PreferenceNameLastChannel = "channel"
-	PreferenceNameLastTeam    = "team"
+	// Deprecated: PreferenceCategoryLastTeam is not used anymore.
+	PreferenceNameLastTeam = "team"
 
-	PreferenceCategoryCustomStatus          = "custom_status"
 	PreferenceNameRecentCustomStatuses      = "recent_custom_statuses"
 	PreferenceNameCustomStatusTutorialState = "custom_status_tutorial_state"
+	PreferenceCustomStatusModalViewed       = "custom_status_modal_viewed"
 
-	PreferenceCustomStatusModalViewed = "custom_status_modal_viewed"
-
-	PreferenceCategoryNotifications = "notifications"
-	PreferenceNameEmailInterval     = "email_interval"
+	PreferenceNameEmailInterval = "email_interval"
 
 	PreferenceEmailIntervalNoBatchingSeconds = "30"  // the "immediate" setting is actually 30s
 	PreferenceEmailIntervalBatchingSeconds   = "900" // fifteen minutes is 900 seconds
@@ -61,7 +115,7 @@ const (
 	PreferenceEmailIntervalHourAsSeconds     = "3600"
 	PreferenceCloudUserEphemeralInfo         = "cloud_user_ephemeral_info"
 
-	MaxPreferenceValueLength = 20000
+	PreferenceNameRecommendedNextStepsHide = "hide"
 )
 
 type Preference struct {
@@ -94,6 +148,13 @@ func (o *Preference) IsValid() *AppError {
 		var unused map[string]string
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&unused); err != nil {
 			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest).Wrap(err)
+		}
+	}
+
+	if o.Category == PreferenceCategorySidebarSettings && o.Name == PreferenceLimitVisibleDmsGms {
+		visibleDmsGmsValue, convErr := strconv.Atoi(o.Value)
+		if convErr != nil || visibleDmsGmsValue < 1 || visibleDmsGmsValue > PreferenceMaxLimitVisibleDmsGmsValue {
+			return NewAppError("Preference.IsValid", "model.preference.is_valid.limit_visible_dms_gms.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 		}
 	}
 

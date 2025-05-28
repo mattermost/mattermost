@@ -20,15 +20,15 @@ func TestGroupAuditable(t *testing.T) {
 		now := GetMillis()
 		g := Group{
 			Id:             id,
-			Name:           NewString("some name"),
+			Name:           NewPointer("some name"),
 			DisplayName:    "some display name",
 			Source:         GroupSourceLdap,
-			RemoteId:       NewString("some_remote"),
+			RemoteId:       NewPointer("some_remote"),
 			CreateAt:       now,
 			UpdateAt:       now,
 			DeleteAt:       now,
 			HasSyncables:   true,
-			MemberCount:    NewInt(10),
+			MemberCount:    NewPointer(10),
 			AllowReference: true,
 		}
 		m := g.Auditable()
@@ -55,7 +55,7 @@ func TestGroupLogClone(t *testing.T) {
 		l := g.LogClone()
 		require.NotNil(t, l)
 
-		m, ok := l.(map[string]interface{})
+		m, ok := l.(map[string]any)
 		require.True(t, ok)
 		assert.Equal(t, "", m["remote_id"])
 	})
@@ -65,19 +65,19 @@ func TestGroupLogClone(t *testing.T) {
 		now := GetMillis()
 		g := Group{
 			Id:             id,
-			Name:           NewString("some name"),
+			Name:           NewPointer("some name"),
 			DisplayName:    "some display name",
 			Source:         GroupSourceLdap,
-			RemoteId:       NewString("some_remote"),
+			RemoteId:       NewPointer("some_remote"),
 			CreateAt:       now,
 			UpdateAt:       now,
 			DeleteAt:       now,
 			HasSyncables:   true,
-			MemberCount:    NewInt(10),
+			MemberCount:    NewPointer(10),
 			AllowReference: true,
 		}
 		l := g.LogClone()
-		m, ok := l.(map[string]interface{})
+		m, ok := l.(map[string]any)
 		require.True(t, ok)
 
 		expected := map[string]any{

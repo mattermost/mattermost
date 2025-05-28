@@ -10,7 +10,7 @@ import type {MessageExportSettings as MessageExportSettingsClass} from 'componen
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
-import type {BaseProps} from './admin_settings';
+import type {BaseProps} from './old_admin_settings';
 
 describe('components/MessageExportSettings', () => {
     test('should match snapshot, disabled, actiance', () => {
@@ -183,12 +183,15 @@ describe('components/MessageExportSettings/getJobDetails', () => {
 
     const wrapper = shallowWithIntl(<MessageExportSettings {...baseProps}/>);
 
-    function runTest(testJob: Job, expectNull: boolean, expectedCount: number) {
+    function runTest(testJob: Job, expectNull: boolean, expectedCount: number, expectedMessage = '') {
         const jobDetails = (wrapper.instance() as MessageExportSettingsClass).getJobDetails(testJob);
         if (expectNull) {
             expect(jobDetails).toBe(null);
         } else {
             expect(jobDetails?.length).toBe(expectedCount);
+        }
+        if (expectedMessage) {
+            expect(jobDetails?.[0].props.children).toEqual(expectedMessage);
         }
     }
 
@@ -218,5 +221,14 @@ describe('components/MessageExportSettings/getJobDetails', () => {
             warning_count: 2,
         };
         runTest(job, false, 2);
+    });
+
+    test('test progress message', () => {
+        job.data = {
+            messages_exported: 0,
+            warning_count: 0,
+            progress_message: 'this is a custom progress message',
+        };
+        runTest(job, false, 1, 'this is a custom progress message');
     });
 });

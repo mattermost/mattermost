@@ -7,10 +7,10 @@ import {Grid} from '@giphy/react-components';
 import React, {memo, useCallback} from 'react';
 import {useSelector} from 'react-redux';
 
-import {getGiphyFetchInstance} from 'mattermost-redux/selectors/entities/general';
-
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
+
+import {getGiphyFetchInstance} from '../selectors';
 
 const GUTTER_BETWEEN_GIFS = 8;
 const NUM_OF_GIFS_COLUMNS = 2;

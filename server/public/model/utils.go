@@ -26,6 +26,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -41,8 +42,11 @@ const (
 
 var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
 
+//msgp:ignore StringInterface StringSet
 type StringInterface map[string]any
 type StringSet map[string]struct{}
+
+//msgp:tuple StringArray
 type StringArray []string
 
 func (ss StringSet) Has(val string) bool {
@@ -228,6 +232,7 @@ func AppErrorInit(t i18n.TranslateFunc) {
 	})
 }
 
+//msgp:ignore AppError
 type AppError struct {
 	Id              string `json:"id"`
 	Message         string `json:"message"`               // Message to be display to the end user without debugging information
@@ -381,6 +386,11 @@ var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPaddin
 // without the padding.
 func NewId() string {
 	return encoding.EncodeToString(uuid.NewRandom())
+}
+
+// NewUsername is a NewId prefixed with a letter to make valid username
+func NewUsername() string {
+	return "a" + NewId()
 }
 
 // NewRandomTeamName is a NewId that will be a valid team name.
@@ -610,18 +620,33 @@ func isLower(s string) bool {
 	return strings.ToLower(s) == s
 }
 
-func IsValidEmail(email string) bool {
-	if !isLower(email) {
+func IsValidEmail(input string) bool {
+	if !isLower(input) {
 		return false
 	}
 
-	if addr, err := mail.ParseAddress(email); err != nil {
+	if addr, err := mail.ParseAddress(input); err != nil {
 		return false
-	} else if addr.Name != "" {
-		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com>" which we don't allow
+	} else if addr.Address != input {
+		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com>" or "<billy@example.com>",
+		// which we don't allow. We compare the user input with the parsed addr.Address to ensure we only
+		// accept plain addresses like "billy@example.com"
+
+		// Log a warning for admins in case pre-existing users with emails like <billy@example.com>, which used
+		// to be valid before https://github.com/mattermost/mattermost/pull/29661, know how to deal with this
+		// error. We don't need to check for the case addr.Name != "", since that has always been rejected
+		if addr.Name == "" {
+			mlog.Warn("email seems to be enclosed in angle brackets, which is not valid; if this relates to an existing user, use the following mmctl command to modify their email: `mmctl user email \"<affecteduser@domain.com>\" affecteduser@domain.com`", mlog.String("email", input))
+		}
 		return false
 	}
 
+	// mail.ParseAddress accepts quoted strings for the address
+	// which can lead to sending to the wrong email address
+	// check for multiple '@' symbols and invalidate
+	if strings.Count(input, "@") > 1 {
+		return false
+	}
 	return true
 }
 
@@ -845,7 +870,7 @@ func IsCloud() bool {
 	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
 }
 
-func sliceToMapKey(s ...string) map[string]any {
+func SliceToMapKey(s ...string) map[string]any {
 	m := make(map[string]any)
 	for i := range s {
 		m[s[i]] = struct{}{}

@@ -2,26 +2,25 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {useIntl} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
 
 type Props = {
+    label: MessageDescriptor;
     value: string;
-    defaultMessage?: string;
-    idMessage?: string;
 };
 
 const CopyText = ({
+    label,
     value,
-    defaultMessage = 'Copy',
-    idMessage = 'integrations.copy',
 }: Props) => {
-    const copyText = useCallback((e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    const intl = useIntl();
+
+    const copyText = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
         copyToClipboard(value);
     }, [value]);
@@ -30,28 +29,15 @@ const CopyText = ({
         return null;
     }
 
-    const tooltip = (
-        <Tooltip id='copy'>
-            <FormattedMessage
-                id={idMessage}
-                defaultMessage={defaultMessage}
-            />
-        </Tooltip>
-    );
-
     return (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='top'
-            overlay={tooltip}
-        >
-            <a
-                href='#'
+        <WithTooltip title={label}>
+            <button
                 data-testid='copyText'
-                className='fa fa-copy ml-2'
+                className='btn btn-link fa fa-copy ml-2'
+                aria-label={intl.formatMessage(label)}
                 onClick={copyText}
             />
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

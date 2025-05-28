@@ -44,7 +44,7 @@ describe('User Management', () => {
         cy.visit('/admin_console/user_management/users');
         gotoUserConfigurationPage(testUser);
 
-        verifyManageUserSettingModal(testUser);
+        verifyManageUserSettingModal(testUser, true);
 
         cy.get('#replyNotificationsTitle').should('be.visible').should('have.text', 'Reply notifications').click();
         cy.get('#notificationCommentsNever').should('be.checked');
@@ -103,11 +103,11 @@ describe('User Management', () => {
     function verifyManageUserSettingModal(user, writeAccess) {
         if (writeAccess) {
             cy.get('.manageUserSettingsBtn').should('be.visible').should('have.text', 'Manage User Settings').click();
-            cy.get('#confirmModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
+            cy.get('#genericModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
 
             cy.get('#cancelModalButton').should('be.visible').should('have.text', 'Cancel');
             cy.get('#confirmModalButton').should('be.visible').should('have.text', 'Manage User Settings').click();
-            cy.get('h1#accountSettingsModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
+            cy.get('span#accountSettingsModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
             cy.get('.adminModeBadge').should('be.visible').should('have.text', 'Admin Mode');
         } else {
             cy.get('.manageUserSettingsBtn').should('not.exist');
@@ -122,7 +122,7 @@ describe('User Management', () => {
         cy.visit('/admin_console/user_management/system_roles');
 
         cy.get('.admin-console__header').within(() => {
-            cy.findByText('System Roles', {timeout: TIMEOUTS.ONE_MIN}).should('exist').and('be.visible');
+            cy.findByText('Delegated Granular Administration', {timeout: TIMEOUTS.ONE_MIN}).should('exist').and('be.visible');
         });
 
         // # Click on edit for the role
@@ -135,7 +135,7 @@ describe('User Management', () => {
         cy.findByRole('button', {name: 'Add People'}).click().wait(TIMEOUTS.HALF_SEC);
 
         // # Type in user name
-        cy.findByRole('textbox', {name: 'Search for people'}).typeWithForce(`${userEmail}`);
+        cy.findByRole('combobox', {name: 'Search for people'}).typeWithForce(`${userEmail}`);
 
         // # Find the user and click on him
         cy.get('#multiSelectList').should('be.visible').children().first().click({force: true});

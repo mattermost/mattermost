@@ -7,8 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 type ProfileWithGroups = Partial<UserProfile & {
     groups: Array<Partial<Group>>;
@@ -36,17 +35,14 @@ export default function UsersToRemoveGroups(props: UsersToRemoveGroupsProps): JS
     } else if (groups.length === 0) {
         column = message;
     } else {
-        const tooltip = <Tooltip id='groupsTooltip'>{groups.map((g) => g.display_name).join(', ')}</Tooltip>;
+        const tooltip = groups.map((g) => g.display_name).join(', ');
 
         column = (
-            <OverlayTrigger
-                placement='bottom'
-                overlay={tooltip}
+            <WithTooltip
+                title={tooltip}
             >
-                <a href='#'>
-                    {message}
-                </a>
-            </OverlayTrigger>
+                <a href='#'>{message}</a>
+            </WithTooltip>
         );
     }
 

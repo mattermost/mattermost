@@ -366,6 +366,8 @@ func testReactionGetForPostSince(t *testing.T, rctx request.CTX, ss store.Store,
 		_, err := ss.Reaction().Save(reaction)
 		require.NoError(t, err)
 
+		time.Sleep(5 * time.Millisecond)
+
 		if del > 0 {
 			_, err = ss.Reaction().Delete(reaction)
 			require.NoError(t, err)
@@ -383,6 +385,7 @@ func testReactionGetForPostSince(t *testing.T, rctx request.CTX, ss store.Store,
 		returned, err := ss.Reaction().GetForPostSince(postId, later-1, "", false)
 		require.NoError(t, err)
 		require.Len(t, returned, 2, "should've returned 2 non-deleted reactions")
+		assert.Less(t, returned[0].CreateAt, returned[1].CreateAt)
 		for _, r := range returned {
 			assert.Zero(t, r.DeleteAt, "should not have returned deleted reaction")
 		}
@@ -394,7 +397,10 @@ func testReactionGetForPostSince(t *testing.T, rctx request.CTX, ss store.Store,
 		require.NoError(t, err)
 		require.Len(t, returned, 3, "should've returned 3 reactions")
 		var count int
-		for _, r := range returned {
+		for i, r := range returned {
+			if i > 0 {
+				assert.Less(t, returned[i-1].CreateAt, returned[i].CreateAt)
+			}
 			if r.DeleteAt > 0 {
 				count++
 			}
@@ -435,7 +441,7 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 		"updateat":  updateAt,
 	}
 
-	sqlResult, err := s.GetMasterX().NamedExec(`
+	sqlResult, err := s.GetMaster().NamedExec(`
 		UPDATE
 			Reactions
 		SET
@@ -462,10 +468,10 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 }
 
 func forceNULL(reaction *model.Reaction, s SqlStore) error {
-	if _, err := s.GetMasterX().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
+	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
 		return err
 	}
-	if _, err := s.GetMasterX().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
+	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
 		return err
 	}
 	return nil
@@ -714,8 +720,10 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss st
 	require.Contains(t, rows[0].Ids, olderPost.Id)
 
 	for _, row := range rows {
-		err = ss.Reaction().DeleteOrphanedRowsByIds(row)
+		var deleted int64
+		deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(row)
 		require.NoError(t, err)
+		require.Equal(t, int64(2), deleted)
 	}
 
 	rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
@@ -982,7 +990,7 @@ func testReactionGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    testUserID,
 			PostId:    post.Id,
 			EmojiName: testEmojiName,
-			RemoteId:  model.NewString(testRemoteID),
+			RemoteId:  model.NewPointer(testRemoteID),
 		}
 
 		_, nErr := ss.Reaction().Save(reaction)
@@ -1007,7 +1015,7 @@ func testReactionGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    testUserID,
 			PostId:    post.Id,
 			EmojiName: testEmojiName,
-			RemoteId:  model.NewString(testRemoteID),
+			RemoteId:  model.NewPointer(testRemoteID),
 		}
 
 		_, nErr := ss.Reaction().Save(reaction)

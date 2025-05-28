@@ -15,8 +15,9 @@ interface Props {
 function EmojiPickerCategoryRow({categoryName, style}: Props) {
     return (
         <div
-            className='emoji-picker-items__container'
+            className='emoji-picker__row'
             style={style}
+            role='row'
         >
             <div
                 className='emoji-picker__category-header'

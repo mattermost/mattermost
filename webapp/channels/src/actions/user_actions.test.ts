@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Dispatch, AnyAction} from 'redux';
+
 import type {Channel, ChannelMembership, ChannelMessageCount} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -520,11 +522,8 @@ describe('Actions.User', () => {
         });
     });
 
-    test('Should call p-queue APIs on loadProfilesForGM', async () => {
+    test('Should call getProfilesInGroupChannels on loadProfilesForGM', async () => {
         const gmChannel = {id: 'gmChannel', type: General.GM_CHANNEL, team_id: '', delete_at: 0};
-        UserActions.queue.add = jest.fn().mockReturnValue(jest.fn());
-        UserActions.queue.onEmpty = jest.fn();
-
         const user = TestHelper.fakeUser();
 
         const profiles = {
@@ -555,7 +554,7 @@ describe('Actions.User', () => {
                     profiles,
                     statuses: {},
                     profilesInChannel: {
-                        [gmChannel.id]: new Set(['current_user_id']),
+                        [gmChannel.id]: new Set([]),
                     },
                 },
                 teams: {
@@ -604,10 +603,11 @@ describe('Actions.User', () => {
         } as unknown as GlobalState;
 
         const testStore = mockStore(state);
-        store.getState.mockImplementation(testStore.getState);
+        (store.getState as jest.MockedFunction<() => GlobalState>).mockImplementation(testStore.getState);
+        (store.dispatch as jest.MockedFunction<Dispatch<AnyAction>>).mockImplementation(testStore.dispatch);
+        const actions = testStore.getActions();
 
         await UserActions.loadProfilesForGM();
-        expect(UserActions.queue.onEmpty).toHaveBeenCalled();
-        expect(UserActions.queue.add).toHaveBeenCalled();
+        expect(actions).toEqual([{args: [['gmChannel']], type: 'MOCK_GET_PROFILES_IN_GROUP_CHANNELS'}]);
     });
 });

@@ -32,9 +32,14 @@
 
         .draggable-team-container {
             position: relative;
+            display: inline-block;
             margin-right: auto;
             margin-bottom: 12px;
             margin-left: auto;
+
+            &:hover, &:focus {
+                text-decoration: none;
+            }
         }
 
         .team-container {

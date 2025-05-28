@@ -1,46 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ClientConfig} from '@mattermost/types/config';
-
-import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
-import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 
 import en from 'i18n/en.json';
 import {ActionTypes} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 import type {Translations} from 'types/store/i18n';
 
 const pluginTranslationSources: Record<string, TranslationPluginFunction> = {};
 
 export type TranslationPluginFunction = (locale: string) => Translations
 
-export function loadConfigAndMe(): ThunkActionFunc<Promise<{config?: ClientConfig; isMeLoaded: boolean}>> {
-    return async (dispatch) => {
-        const results = await Promise.all([
-            dispatch(getClientConfig()),
-            dispatch(getLicenseConfig()),
-        ]);
-
-        let isMeLoaded = false;
-        if (document.cookie.includes('MMUSERID=')) {
-            const dataFromLoadMe = await dispatch(loadMe());
-            isMeLoaded = dataFromLoadMe?.data ?? false;
-        }
-
-        return {
-            config: results[0].data,
-            isMeLoaded,
-        };
-    };
-}
-
-export function registerPluginTranslationsSource(pluginId: string, sourceFunction: TranslationPluginFunction): ThunkActionFunc<void, GlobalState> {
+export function registerPluginTranslationsSource(pluginId: string, sourceFunction: TranslationPluginFunction): ThunkActionFunc<void> {
     pluginTranslationSources[pluginId] = sourceFunction;
     return (dispatch, getState) => {
         const state = getState();
@@ -86,22 +61,6 @@ export function loadTranslations(locale: string, url: string): ActionFuncAsync {
             data: {
                 locale,
                 translations,
-            },
-        });
-        return {data: true};
-    };
-}
-
-export function registerCustomPostRenderer(type: string, component: any, id: string): ActionFuncAsync {
-    return async (dispatch) => {
-        // piggyback on plugins state to register a custom post renderer
-        dispatch({
-            type: ActionTypes.RECEIVED_PLUGIN_POST_COMPONENT,
-            data: {
-                postTypeId: id,
-                pluginId: id,
-                type,
-                component,
             },
         });
         return {data: true};

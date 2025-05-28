@@ -6,11 +6,10 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import UserSettingsModal from 'components/user_settings/modal';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {ModalData} from 'types/actions';
 
@@ -23,34 +22,27 @@ type Props = {
 const SettingsButton = (props: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
 
-    const tooltip = (
-        <Tooltip id='productSettings'>
-            <FormattedMessage
-                id='global_header.productSettings'
-                defaultMessage='Settings'
-            />
-        </Tooltip>
-    );
-
     return (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='bottom'
-            overlay={tooltip}
+        <WithTooltip
+            title={
+                <FormattedMessage
+                    id='global_header.productSettings'
+                    defaultMessage='Settings'
+                />
+            }
         >
             <IconButton
                 size={'sm'}
                 icon={'settings-outline'}
                 onClick={(): void => {
-                    props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true}});
+                    props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true, focusOriginElement: 'settings_button'}});
                 }}
                 inverted={true}
                 compact={true}
                 aria-haspopup='dialog'
                 aria-label={formatMessage({id: 'global_header.productSettings', defaultMessage: 'Settings'})}
             />
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

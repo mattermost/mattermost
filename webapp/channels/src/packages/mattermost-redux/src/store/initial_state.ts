@@ -13,6 +13,7 @@ const state: GlobalState = {
             serverVersion: '',
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
+            customProfileAttributes: {},
         },
         users: {
             currentUserId: '',
@@ -118,6 +119,8 @@ const state: GlobalState = {
             dataRetentionCustomPolicies: {},
             dataRetentionCustomPoliciesCount: 0,
             prevTrialLicense: {},
+            accessControlPolicies: {},
+            channelsForAccessControlPolicy: {},
         },
         jobs: {
             jobs: {},
@@ -125,12 +128,14 @@ const state: GlobalState = {
         },
         integrations: {
             incomingHooks: {},
+            incomingHooksTotalCount: 0,
             outgoingHooks: {},
             oauthApps: {},
             systemCommands: {},
             commands: {},
             appsBotIDs: [],
             appsOAuthAppIDs: [],
+            dialogTriggerId: '',
             outgoingOAuthConnections: {},
         },
         files: {
@@ -210,6 +215,12 @@ const state: GlobalState = {
                 teamsLoaded: false,
             },
         },
+        scheduledPosts: {
+            byId: {},
+            byTeamId: {},
+            errorsByTeamId: {},
+            byChannelOrThreadId: {},
+        },
     },
     errors: [],
     requests: {
@@ -252,10 +263,6 @@ const state: GlobalState = {
             },
         },
         teams: {
-            getMyTeams: {
-                status: 'not_started',
-                error: null,
-            },
             getTeams: {
                 status: 'not_started',
                 error: null,
@@ -315,6 +322,7 @@ const state: GlobalState = {
         lastConnectAt: 0,
         lastDisconnectAt: 0,
         connectionId: '',
+        serverHostname: '',
     },
 };
 export default state;

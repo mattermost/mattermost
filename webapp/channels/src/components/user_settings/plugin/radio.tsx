@@ -10,13 +10,13 @@ import Markdown from 'components/markdown';
 
 import {getPluginPreferenceKey} from 'utils/plugins/preferences';
 
-import type {PluginConfigurationSetting} from 'types/plugins/user_settings';
+import type {PluginConfigurationRadioSetting} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
 
 import RadioOption from './radio_option';
 
 type Props = {
-    setting: PluginConfigurationSetting;
+    setting: PluginConfigurationRadioSetting;
     pluginId: string;
     informChange: (name: string, value: string) => void;
 }

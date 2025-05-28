@@ -28,22 +28,8 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemoveGroup
 <div
   className="UsersToRemoveGroups"
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    overlay={
-      <Tooltip
-        id="groupsTooltip"
-      >
-        group1, group2, group3
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+  <WithTooltip
+    title="group1, group2, group3"
   >
     <a
       href="#"
@@ -58,6 +44,6 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemoveGroup
         }
       />
     </a>
-  </OverlayTrigger>
+  </WithTooltip>
 </div>
 `;

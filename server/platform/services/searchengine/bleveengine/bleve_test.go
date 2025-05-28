@@ -55,18 +55,18 @@ func (s *BleveEngineTestSuite) setupStore() {
 	s.SQLSettings = storetest.MakeSqlSettings(driverName, false)
 
 	var err error
-	s.SQLStore, err = sqlstore.New(*s.SQLSettings, s.Context.Logger(), nil)
+	s.SQLStore, err = sqlstore.New(*s.SQLSettings, s.Context.Logger(), nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		s.Require().FailNow("Cannot initialize store: %s", err.Error())
 	}
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()
-	cfg.BleveSettings.EnableIndexing = model.NewBool(true)
-	cfg.BleveSettings.EnableSearching = model.NewBool(true)
-	cfg.BleveSettings.EnableAutocomplete = model.NewBool(true)
-	cfg.BleveSettings.IndexDir = model.NewString(s.IndexDir)
-	cfg.SqlSettings.DisableDatabaseSearch = model.NewBool(true)
+	cfg.BleveSettings.EnableIndexing = model.NewPointer(true)
+	cfg.BleveSettings.EnableSearching = model.NewPointer(true)
+	cfg.BleveSettings.EnableAutocomplete = model.NewPointer(true)
+	cfg.BleveSettings.IndexDir = model.NewPointer(s.IndexDir)
+	cfg.SqlSettings.DisableDatabaseSearch = model.NewPointer(true)
 
 	s.SearchEngine = searchengine.NewBroker(cfg)
 	s.Store = searchlayer.NewSearchLayer(&testlib.TestStore{Store: s.SQLStore}, s.SearchEngine, cfg)

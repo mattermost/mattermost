@@ -50,6 +50,10 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
+type PostOptions func(*model.Post)
+
+type PostPatchOptions func(patch *model.PostPatch)
+
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool,
 	updateConfig func(*model.Config), options []Option, tb testing.TB) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
@@ -145,7 +149,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 }
 
 func getLicense(enterprise bool, cfg *model.Config) *model.License {
-	if *cfg.ExperimentalSettings.EnableRemoteClusterService || *cfg.ExperimentalSettings.EnableSharedChannels {
+	if *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService || *cfg.ConnectedWorkspacesSettings.EnableSharedChannels {
 		return model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
 	}
 	if enterprise {
@@ -370,13 +374,13 @@ type ChannelOption func(*model.Channel)
 
 func WithShared(v bool) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.Shared = model.NewBool(v)
+		channel.Shared = model.NewPointer(v)
 	}
 }
 
 func WithCreateAt(v int64) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.CreateAt = *model.NewInt64(v)
+		channel.CreateAt = *model.NewPointer(v)
 	}
 }
 
@@ -445,7 +449,7 @@ func (th *TestHelper) CreateGroupChannel(c request.CTX, user1 *model.User, user2
 	return channel
 }
 
-func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
+func (th *TestHelper) CreatePost(channel *model.Channel, postOptions ...PostOptions) *model.Post {
 	id := model.NewId()
 
 	post := &model.Post{
@@ -455,8 +459,12 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 
+	for _, option := range postOptions {
+		option(post)
+	}
+
 	var err *model.AppError
-	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
+	if post, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		panic(err)
 	}
 	return post
@@ -471,7 +479,27 @@ func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 	}
 
 	var err *model.AppError
-	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
+	if post, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+		panic(err)
+	}
+	return post
+}
+
+func (th *TestHelper) CreatePostReply(root *model.Post) *model.Post {
+	id := model.NewId()
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: root.ChannelId,
+		RootId:    root.Id,
+		Message:   "message_" + id,
+		CreateAt:  model.GetMillis() - 10000,
+	}
+
+	ch, err := th.App.GetChannel(th.Context, root.ChannelId)
+	if err != nil {
+		panic(err)
+	}
+	if post, err = th.App.CreatePost(th.Context, post, ch, model.CreatePostFlags{SetOnline: true}); err != nil {
 		panic(err)
 	}
 	return post
@@ -497,6 +525,14 @@ func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 		panic(err)
 	}
 	return member
+}
+
+func (th *TestHelper) RemoveUserFromChannel(user *model.User, channel *model.Channel) *model.AppError {
+	appErr := th.App.RemoveUserFromChannel(th.Context, user.Id, user.Id, channel)
+	if appErr != nil {
+		panic(appErr)
+	}
+	return appErr
 }
 
 func (th *TestHelper) CreateRole(roleName string) *model.Role {
@@ -539,10 +575,10 @@ func (th *TestHelper) CreateGroup() *model.Group {
 	id := model.NewId()
 	group := &model.Group{
 		DisplayName: "dn_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	}
 
 	var err *model.AppError
@@ -623,34 +659,34 @@ func (th *TestHelper) ConfigureInbucketMail() {
 
 func (*TestHelper) ResetRoleMigration() {
 	sqlStore := mainHelper.GetSQLStore()
-	if _, err := sqlStore.GetMasterX().Exec("DELETE from Roles"); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlStore.GetMasterX().Exec("DELETE from Systems where Name = ?", model.AdvancedPermissionsMigrationKey); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = ?", model.AdvancedPermissionsMigrationKey); err != nil {
 		panic(err)
 	}
 }
 
 func (*TestHelper) ResetEmojisMigration() {
 	sqlStore := mainHelper.GetSQLStore()
-	if _, err := sqlStore.GetMasterX().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
-	if _, err := sqlStore.GetMasterX().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
-	if _, err := sqlStore.GetMasterX().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_others_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_others_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlStore.GetMasterX().Exec("DELETE from Systems where Name = ?", EmojisPermissionsMigrationKey); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = ?", EmojisPermissionsMigrationKey); err != nil {
 		panic(err)
 	}
 }
@@ -742,6 +778,41 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	if err2 != nil {
 		panic(err2)
 	}
+}
+
+func (th *TestHelper) CreateFileInfo(userId, postId, channelId string) *model.FileInfo {
+	fileInfo := &model.FileInfo{
+		Id:        model.NewId(),
+		CreatorId: userId,
+		PostId:    postId,
+		ChannelId: channelId,
+		CreateAt:  model.GetMillis(),
+		Name:      model.NewRandomString(10),
+		Path:      model.NewRandomString(50),
+	}
+
+	createdFileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo)
+	if err != nil {
+		panic(err)
+	}
+
+	return createdFileInfo
+}
+
+func (th *TestHelper) PostPatch(post *model.Post, message string, options ...PostPatchOptions) *model.Post {
+	postPatch := &model.PostPatch{
+		Message: model.NewPointer(message),
+	}
+	for _, optionFunc := range options {
+		optionFunc(postPatch)
+	}
+
+	updatedPost, appErr := th.App.PatchPost(th.Context, post.Id, postPatch, nil)
+	if appErr != nil {
+		panic(appErr)
+	}
+
+	return updatedPost
 }
 
 // This function is copy of storetest/NewTestId

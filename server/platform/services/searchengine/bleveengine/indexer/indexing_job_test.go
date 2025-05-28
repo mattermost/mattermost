@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -29,9 +30,13 @@ func TestBleveIndexer(t *testing.T) {
 			Status:   model.JobStatusPending,
 			Type:     model.JobTypeBlevePostIndexing,
 		}
+		retJob := *job
+		retJob.Status = model.JobStatusInProgress
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
-		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+		mockStore.JobStore.
+			On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).
+			Return(&retJob, nil)
+		mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil)
 		mockStore.PostStore.On("GetOldestEntityCreationTime").Return(int64(1), errors.New("")) // intentionally return error to return from function
 
 		tempDir, err := os.MkdirTemp("", "setupConfigFile")
@@ -43,8 +48,8 @@ func TestBleveIndexer(t *testing.T) {
 
 		cfg := &model.Config{
 			BleveSettings: model.BleveSettings{
-				EnableIndexing: model.NewBool(true),
-				IndexDir:       model.NewString(tempDir),
+				EnableIndexing: model.NewPointer(true),
+				IndexDir:       model.NewPointer(tempDir),
 			},
 		}
 

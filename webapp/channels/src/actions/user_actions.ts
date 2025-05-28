@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PQueue from 'p-queue';
-
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
@@ -24,7 +22,7 @@ import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entitie
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
@@ -35,9 +33,8 @@ import store from 'stores/redux_store';
 import {Constants, Preferences, UserStatuses} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, ThunkActionFunc, GlobalState} from 'types/store';
 
-export const queue = new PQueue({concurrency: 4});
 const dispatch = store.dispatch;
 const getState = store.getState;
 
@@ -312,9 +309,9 @@ export async function loadProfilesForGM() {
     const collapsedThreads = isCollapsedThreadsEnabled(state);
 
     const userIdsForLoadingCustomEmojis = new Set();
+    const channelUsersToLoad: string[] = [];
     for (const channel of getGMsForLoading(state)) {
         const userIds = userIdsInChannels[channel.id] || new Set();
-
         userIds.forEach((userId) => userIdsForLoadingCustomEmojis.add(userId));
 
         if (userIds.size >= Constants.MIN_USERS_IN_GM) {
@@ -340,12 +337,14 @@ export async function loadProfilesForGM() {
                 value: 'true',
             });
         }
-
-        const getProfilesAction = UserActions.getProfilesInChannel(channel.id, 0, Constants.MAX_USERS_IN_GM);
-        queue.add(() => dispatch(getProfilesAction));
+        if (userIds.size === 0) {
+            channelUsersToLoad.push(channel.id);
+        }
     }
 
-    await queue.onEmpty();
+    if (channelUsersToLoad.length > 0) {
+        await dispatch(UserActions.getProfilesInGroupChannels(channelUsersToLoad));
+    }
 
     if (userIdsForLoadingCustomEmojis.size > 0) {
         dispatch(loadCustomEmojisForCustomStatusesByUserIds(userIdsForLoadingCustomEmojis));
@@ -407,10 +406,17 @@ export async function loadProfilesForDM() {
     await dispatch(loadCustomEmojisForCustomStatusesByUserIds(profileIds));
 }
 
-export function autocompleteUsersInTeam(username: string): ThunkActionFunc<Promise<UserAutocomplete>> {
+export function autocompleteUsersInCurrentTeam(username: string): ThunkActionFunc<Promise<UserAutocomplete>> {
     return async (doDispatch, doGetState) => {
         const currentTeamId = getCurrentTeamId(doGetState());
         const {data} = await doDispatch(UserActions.autocompleteUsers(username, currentTeamId));
+        return data!;
+    };
+}
+
+export function autocompleteUsersInTeam(username: string, teamId: string): ThunkActionFunc<Promise<UserAutocomplete>> {
+    return async (doDispatch) => {
+        const {data} = await doDispatch(UserActions.autocompleteUsers(username, teamId));
         return data!;
     };
 }

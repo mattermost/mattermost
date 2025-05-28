@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -20,7 +21,9 @@ func (api *API) InitIPFiltering() {
 }
 
 func ensureIPFilteringInterface(c *Context, where string) (einterfaces.IPFilteringInterface, bool) {
-	if c.App.IPFiltering() == nil || !c.App.Config().FeatureFlags.CloudIPFiltering || c.App.License() == nil || c.App.License().SkuShortName != model.LicenseShortSkuEnterprise {
+	license := c.App.License()
+	ipFilteringFeatureFlag := c.App.Config().FeatureFlags.CloudIPFiltering
+	if c.App.IPFiltering() == nil || !ipFilteringFeatureFlag || license == nil || !license.IsCloud() || !model.MinimumEnterpriseLicense(license) {
 		c.Err = model.NewAppError(where, "api.context.ip_filtering.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, false
 	}
@@ -81,7 +84,11 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	go c.App.SendIPFiltersChangedEmail(c.AppContext, c.AppContext.Session().UserId)
+	go func() {
+		if err := c.App.SendIPFiltersChangedEmail(c.AppContext, c.AppContext.Session().UserId); err != nil {
+			c.Logger.Warn("Failed to send IP filters changed email", mlog.Err(err))
+		}
+	}()
 
 	if err := json.NewEncoder(w).Encode(updatedAllowedRanges); err != nil {
 		c.Err = model.NewAppError("getIPFilters", "api.context.ip_filtering.get_ip_filters.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -106,5 +113,7 @@ func myIP(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

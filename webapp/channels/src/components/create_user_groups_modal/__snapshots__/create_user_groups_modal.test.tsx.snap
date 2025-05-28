@@ -28,7 +28,7 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -82,7 +82,12 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
           data-testid="nameInput"
           maxLength={64}
           onChange={[Function]}
-          placeholder="Name"
+          placeholder={
+            Object {
+              "defaultMessage": "Name",
+              "id": "user_groups_modal.name",
+            }
+          }
           type="text"
           value=""
         />
@@ -100,7 +105,12 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
           data-testid="mentionInput"
           maxLength={64}
           onChange={[Function]}
-          placeholder="Mention"
+          placeholder={
+            Object {
+              "defaultMessage": "Mention",
+              "id": "user_groups_modal.mention",
+            }
+          }
           type="text"
           value=""
         />
@@ -118,7 +128,12 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
           addUserCallback={[Function]}
           backButtonClass="multiselect-back"
           backButtonClick={[Function]}
-          backButtonText="Cancel"
+          backButtonText={
+            Object {
+              "defaultMessage": "Cancel",
+              "id": "multiselect.cancelButton",
+            }
+          }
           deleteUserCallback={[Function]}
           focusOnLoad={false}
           multilSelectKey="addUsersToGroupKey"
@@ -160,7 +175,7 @@ exports[`component/create_user_groups_modal should match snapshot without back b
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -200,7 +215,12 @@ exports[`component/create_user_groups_modal should match snapshot without back b
           data-testid="nameInput"
           maxLength={64}
           onChange={[Function]}
-          placeholder="Name"
+          placeholder={
+            Object {
+              "defaultMessage": "Name",
+              "id": "user_groups_modal.name",
+            }
+          }
           type="text"
           value=""
         />
@@ -218,7 +238,12 @@ exports[`component/create_user_groups_modal should match snapshot without back b
           data-testid="mentionInput"
           maxLength={64}
           onChange={[Function]}
-          placeholder="Mention"
+          placeholder={
+            Object {
+              "defaultMessage": "Mention",
+              "id": "user_groups_modal.mention",
+            }
+          }
           type="text"
           value=""
         />
@@ -236,7 +261,12 @@ exports[`component/create_user_groups_modal should match snapshot without back b
           addUserCallback={[Function]}
           backButtonClass="multiselect-back"
           backButtonClick={[Function]}
-          backButtonText="Cancel"
+          backButtonText={
+            Object {
+              "defaultMessage": "Cancel",
+              "id": "multiselect.cancelButton",
+            }
+          }
           deleteUserCallback={[Function]}
           focusOnLoad={false}
           multilSelectKey="addUsersToGroupKey"

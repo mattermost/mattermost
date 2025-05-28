@@ -122,7 +122,7 @@ func GetLogSettingsFromNotificationsLogSettings(notificationLogSettings *model.N
 	settings.FileJson = notificationLogSettings.FileJson
 	settings.FileLevel = notificationLogSettings.FileLevel
 	settings.FileLocation = notificationLogSettings.FileLocation
-	settings.AdvancedLoggingConfig = notificationLogSettings.AdvancedLoggingConfig
+	settings.AdvancedLoggingJSON = notificationLogSettings.AdvancedLoggingJSON
 	settings.EnableColor = notificationLogSettings.EnableColor
 	return settings
 }

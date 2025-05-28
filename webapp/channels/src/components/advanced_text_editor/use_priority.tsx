@@ -15,7 +15,7 @@ import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {openModal} from 'actions/views/modals';
 
 import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
-import PostPriorityPickerOverlay from 'components/post_priority/post_priority_picker_overlay';
+import PostPriorityPicker from 'components/post_priority/post_priority_picker';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {hasRequestedPersistentNotifications, mentionsMinusSpecialMentionsInText, specialMentionsInText} from 'utils/post_utils';
@@ -27,16 +27,18 @@ import PriorityLabels from './priority_labels';
 
 const usePriority = (
     draft: PostDraft,
-    handleDraftChange: (draft: PostDraft, options: {instant?: boolean; show?: boolean}) => void,
+    handleDraftChange: ((draft: PostDraft, options: { instant?: boolean; show?: boolean }) => void),
     focusTextbox: (keepFocus?: boolean) => void,
     shouldShowPreview: boolean,
 ) => {
     const dispatch = useDispatch();
+    const rootId = draft.rootId;
+    const channelId = draft.channelId;
 
     const isPostPriorityEnabled = useSelector(isPostPriorityEnabledSelector);
-    const channelType = useSelector((state: GlobalState) => getChannel(state, draft.channelId)?.type || 'O');
+    const channelType = useSelector((state: GlobalState) => getChannel(state, channelId)?.type || 'O');
     const channelTeammateUsername = useSelector((state: GlobalState) => {
-        const channel = getChannel(state, draft.channelId);
+        const channel = getChannel(state, channelId);
         return getUser(state, channel?.teammate_id || '')?.username || '';
     });
 
@@ -133,7 +135,7 @@ const usePriority = (
     }, [isPostPriorityEnabled, showPersistNotificationModal, draft, channelType, specialMentions]);
 
     const labels = useMemo(() => (
-        (hasPrioritySet && !draft.rootId) ? (
+        (hasPrioritySet && !rootId) ? (
             <PriorityLabels
                 canRemove={!shouldShowPreview}
                 hasError={!isValidPersistentNotifications}
@@ -144,18 +146,18 @@ const usePriority = (
                 requestedAck={draft!.metadata!.priority?.requested_ack}
             />
         ) : undefined
-    ), [shouldShowPreview, draft, hasPrioritySet, isValidPersistentNotifications, specialMentions, handleRemovePriority]);
+    ), [hasPrioritySet, rootId, shouldShowPreview, isValidPersistentNotifications, specialMentions, handleRemovePriority, draft]);
 
     const additionalControl = useMemo(() =>
-        !draft.rootId && isPostPriorityEnabled && (
-            <PostPriorityPickerOverlay
+        !rootId && isPostPriorityEnabled && (
+            <PostPriorityPicker
                 key='post-priority-picker-key'
                 settings={draft.metadata?.priority}
                 onApply={handlePostPriorityApply}
                 onClose={handlePostPriorityHide}
                 disabled={shouldShowPreview}
             />
-        ), [draft.rootId, isPostPriorityEnabled, draft.metadata?.priority, handlePostPriorityApply, handlePostPriorityHide, shouldShowPreview]);
+        ), [rootId, isPostPriorityEnabled, draft.metadata?.priority, handlePostPriorityApply, handlePostPriorityHide, shouldShowPreview]);
 
     return {
         labels,

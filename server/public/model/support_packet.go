@@ -8,67 +8,119 @@ import (
 	"io"
 )
 
-type SupportPacket struct {
-	/* Build information */
+const (
+	CurrentSupportPacketVersion = 1
+	SupportPacketErrorFile      = "warning.txt"
+)
 
-	ServerOS           string `yaml:"server_os"`
-	ServerArchitecture string `yaml:"server_architecture"`
-	ServerVersion      string `yaml:"server_version"`
-	BuildHash          string `yaml:"build_hash"`
+type SupportPacketDiagnostics struct {
+	Version int `yaml:"version"`
 
-	/* DB */
+	License struct {
+		Company      string `yaml:"company"`
+		Users        int    `yaml:"users"`
+		SkuShortName string `yaml:"sku_short_name"`
+		IsTrial      bool   `yaml:"is_trial,omitempty"`
+		IsGovSKU     bool   `yaml:"is_gov_sku,omitempty"`
+	} `yaml:"license"`
 
-	DatabaseType          string `yaml:"database_type"`
-	DatabaseVersion       string `yaml:"database_version"`
-	DatabaseSchemaVersion string `yaml:"database_schema_version"`
-	WebsocketConnections  int    `yaml:"websocket_connections"`
-	MasterDbConnections   int    `yaml:"master_db_connections"`
-	ReplicaDbConnections  int    `yaml:"read_db_connections"`
+	Server struct {
+		OS               string `yaml:"os"`
+		Architecture     string `yaml:"architecture"`
+		Hostname         string `yaml:"hostname"`
+		Version          string `yaml:"version"`
+		BuildHash        string `yaml:"build_hash"`
+		InstallationType string `yaml:"installation_type"`
+	} `yaml:"server"`
 
-	/* Cluster */
+	Config struct {
+		Source string `yaml:"store_type"`
+	} `yaml:"config"`
 
-	ClusterID string `yaml:"cluster_id"`
+	Database struct {
+		Type              string `yaml:"type"`
+		Version           string `yaml:"version"`
+		SchemaVersion     string `yaml:"schema_version"`
+		MasterConnectios  int    `yaml:"master_connections"`
+		ReplicaConnectios int    `yaml:"replica_connections"`
+		SearchConnections int    `yaml:"search_connections"`
+	} `yaml:"database"`
 
-	/* File store */
+	FileStore struct {
+		Status string `yaml:"file_status"`
+		Error  string `yaml:"erorr,omitempty"`
+		Driver string `yaml:"file_driver"`
+	} `yaml:"file_store"`
 
-	FileDriver string `yaml:"file_driver"`
-	FileStatus string `yaml:"file_status"`
+	Websocket struct {
+		Connections int `yaml:"connections"`
+	} `yaml:"websocket"`
 
-	/* LDAP */
+	Cluster struct {
+		ID            string `yaml:"id"`
+		NumberOfNodes int    `yaml:"number_of_nodes"`
+	} `yaml:"cluster"`
 
-	LdapVendorName    string `yaml:"ldap_vendor_name,omitempty"`
-	LdapVendorVersion string `yaml:"ldap_vendor_version,omitempty"`
+	LDAP struct {
+		Status        string `yaml:"status,omitempty"`
+		Error         string `yaml:"erorr,omitempty"`
+		ServerName    string `yaml:"server_name,omitempty"`
+		ServerVersion string `yaml:"server_version,omitempty"`
+	} `yaml:"ldap"`
 
-	/* Elastic Search */
+	ElasticSearch struct {
+		ServerVersion string   `yaml:"server_version,omitempty"`
+		ServerPlugins []string `yaml:"server_plugins,omitempty"`
+	} `yaml:"elastic"`
+}
 
-	ElasticServerVersion string   `yaml:"elastic_server_version,omitempty"`
-	ElasticServerPlugins []string `yaml:"elastic_server_plugins,omitempty"`
+type SupportPacketStats struct {
+	RegisteredUsers    int64 `yaml:"registered_users"`
+	ActiveUsers        int64 `yaml:"active_users"`
+	DailyActiveUsers   int64 `yaml:"daily_active_users"`
+	MonthlyActiveUsers int64 `yaml:"monthly_active_users"`
+	DeactivatedUsers   int64 `yaml:"deactivated_users"`
+	Guests             int64 `yaml:"guests"`
+	BotAccounts        int64 `yaml:"bot_accounts"`
+	Posts              int64 `yaml:"posts"`
+	Channels           int64 `yaml:"channels"`
+	Teams              int64 `yaml:"teams"`
+	SlashCommands      int64 `yaml:"slash_commands"`
+	IncomingWebhooks   int64 `yaml:"incoming_webhooks"`
+	OutgoingWebhooks   int64 `yaml:"outgoing_webhooks"`
+}
 
-	/* License */
-
-	LicenseTo             string `yaml:"license_to"`
-	LicenseSupportedUsers int    `yaml:"license_supported_users"`
-	LicenseIsTrial        bool   `yaml:"license_is_trial,omitempty"`
-
-	/* Server stats */
-
-	ActiveUsers        int `yaml:"active_users"`
-	DailyActiveUsers   int `yaml:"daily_active_users"`
-	MonthlyActiveUsers int `yaml:"monthly_active_users"`
-	InactiveUserCount  int `yaml:"inactive_user_count"`
-	TotalPosts         int `yaml:"total_posts"`
-	TotalChannels      int `yaml:"total_channels"`
-	TotalTeams         int `yaml:"total_teams"`
-
-	/* Jobs */
-
+// SupportPacketJobList contains the list of latest run enterprise job runs.
+// It is included in the Support Packet.
+type SupportPacketJobList struct {
+	LDAPSyncJobs               []*Job `yaml:"ldap_sync_jobs"`
 	DataRetentionJobs          []*Job `yaml:"data_retention_jobs"`
 	MessageExportJobs          []*Job `yaml:"message_export_jobs"`
 	ElasticPostIndexingJobs    []*Job `yaml:"elastic_post_indexing_jobs"`
 	ElasticPostAggregationJobs []*Job `yaml:"elastic_post_aggregation_jobs"`
 	BlevePostIndexingJobs      []*Job `yaml:"bleve_post_indexin_jobs"`
-	LdapSyncJobs               []*Job `yaml:"ldap_sync_jobs"`
 	MigrationJobs              []*Job `yaml:"migration_jobs"`
+}
+
+// SupportPacketPermissionInfo contains the list of schemes and the list of roles.
+// It is included in the Support Packet.
+type SupportPacketPermissionInfo struct {
+	Roles   []*Role   `yaml:"roles"`
+	Schemes []*Scheme `yaml:"schemes"`
+}
+
+// SupportPacketConfig contains the Mattermost configuration. In contrast to [Config], it also contains the list of Feature Flags.
+// It is included in the Support Packet.
+type SupportPacketConfig struct {
+	*Config
+	FeatureFlags FeatureFlags `json:"FeatureFlags"`
+}
+
+// SupportPacketPluginList contains the list of enabled and disabled plugins.
+// It is included in the Support Packet.
+type SupportPacketPluginList struct {
+	Enabled  []Manifest `json:"enabled"`
+	Disabled []Manifest `json:"disabled"`
 }
 
 type FileData struct {

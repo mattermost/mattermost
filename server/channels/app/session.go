@@ -68,7 +68,7 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 }
 
 func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
-	rc, appErr := a.GetRemoteCluster(remoteId)
+	rc, appErr := a.GetRemoteCluster(remoteId, false)
 	if appErr == nil && subtle.ConstantTimeCompare([]byte(rc.Token), []byte(token)) == 1 {
 		// Need a bare-bones session object for later checks
 		session := &model.Session{
@@ -96,7 +96,9 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 
 		if !session.IsExpired() {
-			a.ch.srv.platform.AddSessionToCache(session)
+			if err := a.ch.srv.platform.AddSessionToCache(session); err != nil {
+				c.Logger().Error("Failed to add session to cache", mlog.Err(err))
+			}
 		}
 	}
 
@@ -205,7 +207,9 @@ func (a *App) RevokeAllSessions(c request.CTX, userID string) *model.AppError {
 }
 
 func (a *App) AddSessionToCache(session *model.Session) {
-	a.ch.srv.platform.AddSessionToCache(session)
+	if err := a.ch.srv.platform.AddSessionToCache(session); err != nil {
+		a.Srv().Platform().Log().Error("Failed to add session to cache", mlog.String("session_id", session.Id), mlog.String("user_id", session.UserId), mlog.Err(err))
+	}
 }
 
 // RevokeSessionsFromAllUsers will go through all the sessions active
@@ -223,16 +227,14 @@ func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
 	return nil
 }
 
-func (a *App) ReturnSessionToPool(session *model.Session) {
-	a.ch.srv.platform.ReturnSessionToPool(session)
-}
-
 func (a *App) ClearSessionCacheForUser(userID string) {
 	a.ch.srv.platform.ClearUserSessionCache(userID)
 }
 
 func (a *App) ClearSessionCacheForAllUsers() {
-	a.ch.srv.platform.ClearAllUsersSessionCache()
+	if err := a.ch.srv.platform.ClearAllUsersSessionCache(); err != nil {
+		a.Srv().Platform().Log().Error("Failed to clear session cache for all users", mlog.Err(err))
+	}
 }
 
 func (a *App) ClearSessionCacheForUserSkipClusterSend(userID string) {
@@ -286,6 +288,29 @@ func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64)
 	_, err := a.Srv().Store().Session().UpdateDeviceId(sessionID, deviceID, expiresAt)
 	if err != nil {
 		return model.NewAppError("AttachDeviceId", "app.session.update_device_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (a *App) SetExtraSessionProps(session *model.Session, newProps map[string]string) *model.AppError {
+	changed := false
+	for k, v := range newProps {
+		if session.Props[k] == v {
+			continue
+		}
+
+		session.AddProp(k, v)
+		changed = true
+	}
+
+	if !changed {
+		return nil
+	}
+
+	err := a.Srv().Store().Session().UpdateProps(session)
+	if err != nil {
+		return model.NewAppError("SetExtraSessionProps", "app.session.set_extra_session_prop.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -471,7 +496,9 @@ func (a *App) createSessionForUserAccessToken(c request.CTX, tokenString string)
 		}
 	}
 
-	a.ch.srv.platform.AddSessionToCache(session)
+	if err := a.ch.srv.platform.AddSessionToCache(session); err != nil {
+		a.ch.srv.Log().Error("Failed to add session to cache", mlog.String("session_id", session.Id), mlog.Err(err))
+	}
 
 	return session, nil
 }

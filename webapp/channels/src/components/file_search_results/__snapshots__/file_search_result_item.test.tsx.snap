@@ -13,6 +13,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       fileInfo={
         Object {
           "archived": false,
+          "channel_id": "channel_id",
           "clientId": "client_id",
           "create_at": 1,
           "delete_at": 1,
@@ -75,26 +76,16 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={1000}
-      overlay={
-        <Tooltip
-          id="file-name__tooltip"
-        >
-          Download
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+    <WithTooltip
+      title={
+        Object {
+          "defaultMessage": "Download",
+          "id": "file_search_result_item.download",
+        }
       }
     >
       <a
-        className="action-icon download-icon"
+        className="action-icon download-icon btn btn-icon btn-sm"
         href="/api/v4/files/file_info_id?download=1"
         onClick={[Function]}
       >
@@ -102,7 +93,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           className="icon icon-download-outline"
         />
       </a>
-    </OverlayTrigger>
+    </WithTooltip>
   </button>
 </div>
 `;
@@ -120,6 +111,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       fileInfo={
         Object {
           "archived": false,
+          "channel_id": "channel_id",
           "clientId": "client_id",
           "create_at": 1,
           "delete_at": 1,
@@ -191,26 +183,16 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={1000}
-      overlay={
-        <Tooltip
-          id="file-name__tooltip"
-        >
-          Download
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+    <WithTooltip
+      title={
+        Object {
+          "defaultMessage": "Download",
+          "id": "file_search_result_item.download",
+        }
       }
     >
       <a
-        className="action-icon download-icon"
+        className="action-icon download-icon btn btn-icon btn-sm"
         href="/api/v4/files/file_info_id?download=1"
         onClick={[Function]}
       >
@@ -218,7 +200,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           className="icon icon-download-outline"
         />
       </a>
-    </OverlayTrigger>
+    </WithTooltip>
   </button>
 </div>
 `;
@@ -236,6 +218,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       fileInfo={
         Object {
           "archived": false,
+          "channel_id": "channel_id",
           "clientId": "client_id",
           "create_at": 1,
           "delete_at": 1,
@@ -307,26 +290,16 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={1000}
-      overlay={
-        <Tooltip
-          id="file-name__tooltip"
-        >
-          Download
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+    <WithTooltip
+      title={
+        Object {
+          "defaultMessage": "Download",
+          "id": "file_search_result_item.download",
+        }
       }
     >
       <a
-        className="action-icon download-icon"
+        className="action-icon download-icon btn btn-icon btn-sm"
         href="/api/v4/files/file_info_id?download=1"
         onClick={[Function]}
       >
@@ -334,7 +307,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           className="icon icon-download-outline"
         />
       </a>
-    </OverlayTrigger>
+    </WithTooltip>
   </button>
 </div>
 `;
@@ -352,6 +325,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       fileInfo={
         Object {
           "archived": false,
+          "channel_id": "channel_id",
           "clientId": "client_id",
           "create_at": 1,
           "delete_at": 1,
@@ -418,26 +392,16 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={1000}
-      overlay={
-        <Tooltip
-          id="file-name__tooltip"
-        >
-          Download
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+    <WithTooltip
+      title={
+        Object {
+          "defaultMessage": "Download",
+          "id": "file_search_result_item.download",
+        }
       }
     >
       <a
-        className="action-icon download-icon"
+        className="action-icon download-icon btn btn-icon btn-sm"
         href="/api/v4/files/file_info_id?download=1"
         onClick={[Function]}
       >
@@ -445,7 +409,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           className="icon icon-download-outline"
         />
       </a>
-    </OverlayTrigger>
+    </WithTooltip>
   </button>
 </div>
 `;

@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useMemo} from 'react';
+import {useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
@@ -29,7 +27,6 @@ import type {GlobalState} from 'types/store';
 const ShowStartTrialModal = () => {
     const isUserAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));
     const openStartTrialFormModal = useOpenStartTrialFormModal();
-    const getCategory = useMemo(makeGetCategory, []);
 
     const dispatch = useDispatch();
 
@@ -38,9 +35,11 @@ const ShowStartTrialModal = () => {
 
     const isBenefitsModalOpened = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.TRIAL_BENEFITS_MODAL));
 
-    const installationDate = useSelector((state: GlobalState) => getConfig(state).InstallationDate);
+    const config = useSelector((state: GlobalState) => getConfig(state));
+    const installationDate = config.InstallationDate;
+    const isMySql = config.SQLDriverName === 'mysql';
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
-    const preferences = useSelector<GlobalState, PreferenceType[]>((state) => getCategory(state, Preferences.START_TRIAL_MODAL));
+    const hadAdminDismissedModal = useSelector((state: GlobalState) => getBool(state, Preferences.START_TRIAL_MODAL, Constants.TRIAL_MODAL_AUTO_SHOWN));
 
     const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);
     const currentLicense = useSelector(getLicense);
@@ -77,8 +76,7 @@ const ShowStartTrialModal = () => {
         const now = new Date().getTime();
         const hasEnvMoreThan6Hours = now > installationDatePlus6Hours;
         const hasEnvMoreThan10Users = Number(totalUsers) > userThreshold;
-        const hadAdminDismissedModal = preferences.some((pref: PreferenceType) => pref.name === Constants.TRIAL_MODAL_AUTO_SHOWN && pref.value === TRUE);
-        if (isUserAdmin && !isBenefitsModalOpened && hasEnvMoreThan10Users && hasEnvMoreThan6Hours && !hadAdminDismissedModal && !isLicensedOrPreviousLicensed) {
+        if (isUserAdmin && !isMySql && !isBenefitsModalOpened && hasEnvMoreThan10Users && hasEnvMoreThan6Hours && !hadAdminDismissedModal && !isLicensedOrPreviousLicensed) {
             openStartTrialFormModal({trackingLocation: 'show_start_trial_modal'}, handleOnClose);
             trackEvent(
                 TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_AUTO_MODAL,

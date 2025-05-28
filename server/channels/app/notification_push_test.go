@@ -425,7 +425,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			if tc.isMuted {
 				channelNotifyProps[model.MarkUnreadNotifyProp] = model.ChannelMarkUnreadMention
 			}
-			assert.Equal(t, tc.expected, DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, tc.wasMentioned, tc.isGM))
+			assert.Equal(t, tc.expected, doesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, tc.wasMentioned, tc.isGM))
 		})
 	}
 }
@@ -640,7 +640,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			userNotifyProps := make(map[string]string)
 			userNotifyProps["push_status"] = tc.userNotifySetting
-			assert.Equal(t, tc.expected, DoesStatusAllowPushNotification(userNotifyProps, tc.status, tc.channelID, tc.isCRT))
+			assert.Equal(t, tc.expected, doesStatusAllowPushNotification(userNotifyProps, tc.status, tc.channelID, tc.isCRT))
 		})
 	}
 }
@@ -1103,6 +1103,39 @@ func TestSendPushNotifications(t *testing.T) {
 	})
 }
 
+func TestShouldSendPushNotifications(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	t.Run("should return true if forced", func(t *testing.T) {
+		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
+		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyNone
+
+		post := &model.Post{UserId: user.Id, ChannelId: model.NewId()}
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyNone, model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention}
+
+		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: post.ChannelId}
+
+		result := th.App.ShouldSendPushNotification(user, channelNotifyProps, false, status, post, false)
+		assert.True(t, result)
+	})
+
+	t.Run("should return false if force undefined", func(t *testing.T) {
+		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
+		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyNone
+
+		post := &model.Post{UserId: user.Id, ChannelId: model.NewId()}
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyNone, model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention}
+
+		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: post.ChannelId}
+
+		result := th.App.ShouldSendPushNotification(user, channelNotifyProps, false, status, post, false)
+		assert.False(t, result)
+	})
+}
+
 // testPushNotificationHandler is an HTTP handler to record push notifications
 // being sent from the client.
 // It records the number of requests sent to it, and stores all the requests
@@ -1240,7 +1273,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
-	mockSessionStore.On("UpdateDeviceId", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("int64")).Return("testdeviceID", nil)
+	mockSessionStore.On("UpdateProps", mock.Anything).Return(nil)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
@@ -1316,7 +1349,7 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
-	mockSessionStore.On("UpdateDeviceId", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("int64")).Return("testdeviceID", nil)
+	mockSessionStore.On("UpdateProps", mock.Anything).Return(nil)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
@@ -1542,9 +1575,8 @@ func TestPushNotificationRace(t *testing.T) {
 	}
 	var err error
 	s.platform, err = platform.New(
-		platform.ServiceConfig{
-			ConfigStore: memoryStore,
-		},
+		platform.ServiceConfig{},
+		platform.ConfigStore(memoryStore),
 		platform.SetFileStore(&fmocks.FileBackend{}),
 		platform.SetExportFileStore(&fmocks.FileBackend{}),
 		platform.StoreOverride(mockStore))
@@ -1585,7 +1617,7 @@ func TestPushNotificationAttachment(t *testing.T) {
 	post := &model.Post{
 		Message: originalMessage,
 		Props: map[string]any{
-			"attachments": []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.SlackAttachment{
 				{
 					AuthorName: "testuser",
 					Text:       "test attachment",
@@ -1671,7 +1703,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 			ExpiresAt: model.GetMillis() + 100000,
 		}
 		mockSessionStore.On("GetSessionsWithActiveDeviceIds", u.Id).Return([]*model.Session{sess1, sess2}, nil)
-		mockSessionStore.On("UpdateDeviceId", sess1.Id, "deviceID"+u.Id, mock.AnythingOfType("int64")).Return("deviceID"+u.Id, nil)
+		mockSessionStore.On("UpdateProps", mock.Anything).Return(nil)
 
 		testData = append(testData, userSession{
 			user:    u,

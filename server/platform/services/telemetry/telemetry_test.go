@@ -35,17 +35,20 @@ type FakeConfigService struct {
 	cfg *model.Config
 }
 
+type testBatch struct {
+	MessageId  string
+	UserId     string
+	Event      string
+	Timestamp  time.Time
+	Properties map[string]any
+	Context    map[string]any
+}
+
 type testTelemetryPayload struct {
 	MessageId string
 	SentAt    time.Time
-	Batch     []struct {
-		MessageId  string
-		UserId     string
-		Event      string
-		Timestamp  time.Time
-		Properties map[string]any
-	}
-	Context struct {
+	Batch     []testBatch
+	Context   struct {
 		Library struct {
 			Name    string
 			Version string
@@ -53,15 +56,7 @@ type testTelemetryPayload struct {
 	}
 }
 
-type testBatch struct {
-	MessageId  string
-	UserId     string
-	Event      string
-	Timestamp  time.Time
-	Properties map[string]any
-}
-
-func assertPayload(t *testing.T, actual testTelemetryPayload, event string, properties map[string]any) {
+func assertPayload(t *testing.T, actual testTelemetryPayload, event string, properties map[string]any, featureContext map[string]any) {
 	t.Helper()
 	assert.NotEmpty(t, actual.MessageId)
 	assert.False(t, actual.SentAt.IsZero())
@@ -75,6 +70,11 @@ func assertPayload(t *testing.T, actual testTelemetryPayload, event string, prop
 		if properties != nil {
 			assert.Equal(t, properties, actual.Batch[0].Properties)
 		}
+		if featureContext != nil {
+			actualFeature := actual.Batch[0].Context["feature"].(map[string]any)
+			assert.Equal(t, featureContext["name"], actualFeature["name"], "feature name must match")
+			assert.Equal(t, featureContext["skus"], actualFeature["skus"], "SKUs must match")
+		}
 	}
 	assert.Equal(t, "analytics-go", actual.Context.Library.Name)
 	assert.Equal(t, "3.3.0", actual.Context.Library.Version)
@@ -85,7 +85,7 @@ func collectBatches(t *testing.T, info *[]testBatch, pchan chan testTelemetryPay
 	for {
 		select {
 		case result := <-pchan:
-			assertPayload(t, result, "", nil)
+			assertPayload(t, result, "", nil, nil)
 			*info = append(*info, result.Batch[0])
 		case <-time.After(2 * time.Second):
 			return
@@ -126,7 +126,7 @@ func makeTelemetryServiceAndReceiver(t *testing.T, cloudLicense bool) (*Telemetr
 	// initializing rudder send a client identify message
 	select {
 	case identifyMessage := <-pchan:
-		assertPayload(t, identifyMessage, "", nil)
+		assertPayload(t, identifyMessage, "", nil, nil)
 	case <-time.After(2 * time.Second):
 		require.Fail(t, "Did not receive ID message")
 	}
@@ -231,7 +231,7 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 	commandStore.On("AnalyticsCommandCount", "").Return(int64(15), nil)
 
 	webhookStore := storeMocks.WebhookStore{}
-	webhookStore.On("AnalyticsIncomingCount", "").Return(int64(16), nil)
+	webhookStore.On("AnalyticsIncomingCount", "", "").Return(int64(16), nil)
 	webhookStore.On("AnalyticsOutgoingCount", "").Return(int64(17), nil)
 
 	groupStore := storeMocks.GroupStore{}
@@ -435,7 +435,7 @@ func TestRudderTelemetry(t *testing.T) {
 		for {
 			select {
 			case result := <-pchan:
-				assertPayload(t, result, "", nil)
+				assertPayload(t, result, "", nil, nil)
 				*info = append(*info, result.Batch[0].Event)
 			case <-time.After(2 * time.Second):
 				return
@@ -452,7 +452,29 @@ func TestRudderTelemetry(t *testing.T) {
 		case result := <-pchan:
 			assertPayload(t, result, "Testing Telemetry", map[string]any{
 				"hey": testValue,
-			})
+			}, nil)
+		case <-time.After(2 * time.Second):
+			require.Fail(t, "Did not receive telemetry")
+		}
+	})
+
+	t.Run("Send Feature", func(t *testing.T) {
+		const testEvent = "test-send-value-4567"
+		const testProperty = "test-property-9876"
+
+		service.SendTelemetryForFeature(TrackGuestFeature, testEvent, map[string]any{
+			"prop": testProperty,
+		})
+
+		select {
+		case result := <-pchan:
+			assertPayload(
+				t,
+				result,
+				testEvent,
+				map[string]any{"prop": testProperty},
+				map[string]any{"skus": []any{"professional", "enterprise"}, "name": "guest_accounts"},
+			)
 		case <-time.After(2 * time.Second):
 			require.Fail(t, "Did not receive telemetry")
 		}
@@ -467,33 +489,10 @@ func TestRudderTelemetry(t *testing.T) {
 		collectInfo(&info)
 
 		for _, item := range []string{
-			TrackConfigService,
-			TrackConfigTeam,
-			TrackConfigSQL,
-			TrackConfigLog,
-			TrackConfigNotificationLog,
-			TrackConfigFile,
-			TrackConfigRate,
-			TrackConfigEmail,
-			TrackConfigPrivacy,
-			TrackConfigOAuth,
-			TrackConfigLDAP,
-			TrackConfigCompliance,
-			TrackConfigLocalization,
-			TrackConfigSAML,
-			TrackConfigPassword,
-			TrackConfigCluster,
-			TrackConfigMetrics,
-			TrackConfigSupport,
-			TrackConfigNativeApp,
-			TrackConfigExperimental,
-			TrackConfigAnalytics,
-			TrackConfigPlugin,
-			TrackFeatureFlags,
 			TrackActivity,
 			TrackServer,
-			TrackConfigMessageExport,
 			TrackPlugins,
+			TrackConfigs,
 		} {
 			require.Contains(t, info, item)
 		}
@@ -510,39 +509,16 @@ func TestRudderTelemetry(t *testing.T) {
 		collectInfo(&info)
 
 		for _, item := range []string{
-			TrackConfigService,
-			TrackConfigTeam,
-			TrackConfigSQL,
-			TrackConfigLog,
-			TrackConfigNotificationLog,
-			TrackConfigFile,
-			TrackConfigRate,
-			TrackConfigEmail,
-			TrackConfigPrivacy,
-			TrackConfigOAuth,
-			TrackConfigLDAP,
-			TrackConfigCompliance,
-			TrackConfigLocalization,
-			TrackConfigSAML,
-			TrackConfigPassword,
-			TrackConfigCluster,
-			TrackConfigMetrics,
-			TrackConfigSupport,
-			TrackConfigNativeApp,
-			TrackConfigExperimental,
-			TrackConfigAnalytics,
-			TrackConfigPlugin,
-			TrackFeatureFlags,
 			TrackActivity,
 			TrackServer,
-			TrackConfigMessageExport,
 			TrackPlugins,
+			TrackConfigs,
 		} {
 			require.Contains(t, info, item)
 		}
 	})
 	t.Run("Telemetry for Marketplace plugins is returned", func(t *testing.T) {
-		service.trackPluginConfig(service.srv.Config(), marketplaceServer.URL)
+		service.trackPluginConfig(map[string]any{}, service.srv.Config(), marketplaceServer.URL)
 
 		var batches []testBatch
 		collectBatches(t, &batches, pchan)
@@ -552,15 +528,18 @@ func TestRudderTelemetry(t *testing.T) {
 				assert.Contains(t, b.Properties, "enable_testplugin")
 				assert.Contains(t, b.Properties, "version_testplugin")
 
-				// Confirm known plugins are not present
-				assert.NotContains(t, b.Properties, "enable_jira")
-				assert.NotContains(t, b.Properties, "version_jira")
+				// Confirm known plugins are present
+				assert.Contains(t, b.Properties, "enable_jira")
+				assert.Contains(t, b.Properties, "version_jira")
+
+				// Confirm it doesn't contain unknown plugins
+				assert.NotContains(t, b.Properties, "enable_something")
 			}
 		}
 	})
 
 	t.Run("Telemetry for known plugins is returned, if request to Marketplace fails", func(t *testing.T) {
-		service.trackPluginConfig(service.srv.Config(), "http://some.random.invalid.url")
+		service.trackPluginConfig(map[string]any{}, service.srv.Config(), "http://some.random.invalid.url")
 
 		var batches []testBatch
 		collectBatches(t, &batches, pchan)

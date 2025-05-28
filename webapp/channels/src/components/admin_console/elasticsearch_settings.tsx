@@ -14,11 +14,12 @@ import ExternalLink from 'components/external_link';
 
 import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
 
-import AdminSettings from './admin_settings';
-import type {BaseProps, BaseState} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import JobsTable from './jobs';
+import OLDAdminSettings from './old_admin_settings';
+import type {BaseProps, BaseState} from './old_admin_settings';
 import RequestButton from './request_button/request_button';
+import SettingSet from './setting_set';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
@@ -51,7 +52,6 @@ export const messages = defineMessages({
     enableIndexingDescription: {id: 'admin.elasticsearch.enableIndexingDescription', defaultMessage: 'When true, indexing of new posts occurs automatically. Search queries will use database search until "Enable Elasticsearch for search queries" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>'},
     connectionUrlTitle: {id: 'admin.elasticsearch.connectionUrlTitle', defaultMessage: 'Server Connection Address:'},
     connectionUrlDescription: {id: 'admin.elasticsearch.connectionUrlDescription', defaultMessage: 'The address of the Elasticsearch server. <link>Please see documentation with server setup instructions.</link>'},
-    backendTitle: {id: 'admin.elasticsearch.backendTitle', defaultMessage: 'Backend type:'},
     skipTLSVerificationTitle: {id: 'admin.elasticsearch.skipTLSVerificationTitle', defaultMessage: 'Skip TLS Verification:'},
     skipTLSVerificationDescription: {id: 'admin.elasticsearch.skipTLSVerificationDescription', defaultMessage: 'When true, Mattermost will not require the Elasticsearch certificate to be signed by a trusted Certificate Authority.'},
     usernameTitle: {id: 'admin.elasticsearch.usernameTitle', defaultMessage: 'Server Username:'},
@@ -99,7 +99,7 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.enableSearchingDescription,
 ];
 
-export default class ElasticsearchSettings extends AdminSettings<Props, State> {
+export default class ElasticsearchSettings extends OLDAdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.ElasticsearchSettings.ConnectionURL = this.state.connectionUrl;
         config.ElasticsearchSettings.Backend = this.state.backend;
@@ -268,7 +268,10 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='backend'
                     label={
-                        <FormattedMessage {...messages.backendTitle}/>
+                        <FormattedMessage
+                            id='admin.elasticsearch.backendTitle'
+                            defaultMessage='Backend type:'
+                        />
                     }
                     placeholder={defineMessage({id: 'admin.elasticsearch.backendExample', defaultMessage: 'E.g.: "elasticsearch"'})}
                     helpText={
@@ -417,27 +420,24 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                     })}
                     disabled={!this.state.enableIndexing}
                 />
-                <div className='form-group'>
-                    <label className='control-label col-sm-4'>
-                        <FormattedMessage {...messages.bulkIndexingTitle}/>
-                    </label>
-                    <div className='col-sm-8'>
-                        <div className='job-table-setting'>
-                            <JobsTable
-                                jobType={JobTypes.ELASTICSEARCH_POST_INDEXING as JobType}
-                                disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
-                                createJobButtonText={
-                                    <FormattedMessage
-                                        id='admin.elasticsearch.createJob.title'
-                                        defaultMessage='Index Now'
-                                    />
-                                }
-                                createJobHelpText={<FormattedMessage {...messages.help}/>}
-                                getExtraInfoText={this.getExtraInfo}
-                            />
-                        </div>
+                <SettingSet
+                    label={<FormattedMessage {...messages.bulkIndexingTitle}/>}
+                >
+                    <div className='job-table-setting'>
+                        <JobsTable
+                            jobType={JobTypes.ELASTICSEARCH_POST_INDEXING as JobType}
+                            disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
+                            createJobButtonText={
+                                <FormattedMessage
+                                    id='admin.elasticsearch.createJob.title'
+                                    defaultMessage='Index Now'
+                                />
+                            }
+                            createJobHelpText={<FormattedMessage {...messages.help}/>}
+                            getExtraInfoText={this.getExtraInfo}
+                        />
                     </div>
-                </div>
+                </SettingSet>
                 <RequestButton
                     id='rebuildChannelsIndexButton'
                     requestAction={rebuildChannelsIndex}

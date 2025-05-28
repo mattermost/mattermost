@@ -18,6 +18,8 @@ import Pluggable from 'plugins/pluggable';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
+import type {PostPluginComponent} from 'types/store/plugins';
+
 type Props = {
     post: Post; /* The post to render the message for */
     enableFormatting?: boolean; /* Set to enable Markdown formatting */
@@ -27,7 +29,9 @@ type Props = {
     isRHSOpen?: boolean; /* Whether or not the RHS is visible */
     isRHSExpanded?: boolean; /* Whether or not the RHS is expanded */
     theme: Theme; /* Logged in user's theme */
-    pluginPostTypes?: any; /* Post type components from plugins */
+    pluginPostTypes?: {
+        [postType: string]: PostPluginComponent;
+    }; /* Post type components from plugins */
     currentRelativeTeamUrl: string;
     overflowType?: AttachmentTextOverflowType;
     maxHeight?: number; /* The max height used by the show more component */
@@ -115,9 +119,9 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
             return <span>{post.message}</span>;
         }
 
-        const postType = post.props && post.props.type ? post.props.type : post.type;
+        const postType = typeof post.props?.type === 'string' ? post.props.type : post.type;
 
-        if (pluginPostTypes && pluginPostTypes.hasOwnProperty(postType)) {
+        if (pluginPostTypes && Object.hasOwn(pluginPostTypes, postType)) {
             const PluginComponent = pluginPostTypes[postType].component;
             return (
                 <PluginComponent
@@ -132,7 +136,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         let message = post.message;
         const isEphemeral = isPostEphemeral(post);
         if (compactDisplay && isEphemeral) {
-            const visibleMessage = Utils.localizeMessage('post_info.message.visible.compact', ' (Only visible to you)');
+            const visibleMessage = Utils.localizeMessage({id: 'post_info.message.visible.compact', defaultMessage: ' (Only visible to you)'});
             message = message.concat(visibleMessage);
         }
 
@@ -146,7 +150,6 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                 maxHeight={maxHeight}
             >
                 <div
-                    tabIndex={0}
                     id={id}
                     className='post-message__text'
                     dir='auto'

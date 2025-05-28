@@ -28,7 +28,7 @@ exports[`components/unarchive_channel_modal should match snapshot for unarchive_
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -54,11 +54,12 @@ exports[`components/unarchive_channel_modal should match snapshot for unarchive_
     <div
       className="alert alert-danger"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="Are you sure you wish to unarchive the **{display_name}** channel?"
-        id="unarchive_channel.viewArchived.question"
+      <MemoizedFormattedMessage
+        defaultMessage="Are you sure you wish to unarchive the <b>{display_name}</b> channel?"
+        id="unarchiveChannelModal.viewArchived.question"
         values={
           Object {
+            "b": [Function],
             "display_name": "testing",
           }
         }

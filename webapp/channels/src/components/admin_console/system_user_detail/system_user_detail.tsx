@@ -133,7 +133,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     handleActivateUser = async () => {
-        if (!this.state.user) {
+        if (!this.state.user || this.state.user?.auth_service === Constants.LDAP_SERVICE) {
             return;
         }
 
@@ -261,6 +261,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
      */
 
     toggleOpenModalDeactivateMember = () => {
+        if (this.state.user?.auth_service === Constants.LDAP_SERVICE) {
+            return;
+        }
         this.setState({showDeactivateMemberModal: true});
     };
 
@@ -299,6 +302,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             dialogProps: {
                 user: this.state.user,
                 onConfirm: this.openUserSettingsModal,
+                focusOriginElement: 'manageUserSettingsBtn',
             },
         });
     };
@@ -315,8 +319,24 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 adminMode: true,
                 isContentProductSettings: true,
                 userID: this.state.user.id,
+                focusOriginElement: 'manageUserSettingsBtn',
             },
         });
+    };
+
+    getManagedByLdapText = () => {
+        if (this.state.user?.auth_service !== Constants.LDAP_SERVICE) {
+            return null;
+        }
+        return (
+            <>
+                {' '}
+                <FormattedMessage
+                    id='admin.user_item.managedByLdap'
+                    defaultMessage='(Managed By LDAP)'
+                />
+            </>
+        );
     };
 
     render() {
@@ -402,22 +422,26 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <button
                                             className='btn btn-secondary'
                                             onClick={this.handleActivateUser}
+                                            disabled={this.state.user?.auth_service === Constants.LDAP_SERVICE}
                                         >
                                             <FormattedMessage
                                                 id='admin.user_item.makeActive'
                                                 defaultMessage='Activate'
                                             />
+                                            {this.getManagedByLdapText()}
                                         </button>
                                     )}
                                     {this.state.user?.delete_at === 0 && (
                                         <button
                                             className='btn btn-secondary btn-danger'
                                             onClick={this.toggleOpenModalDeactivateMember}
+                                            disabled={this.state.user?.auth_service === Constants.LDAP_SERVICE}
                                         >
                                             <FormattedMessage
                                                 id='admin.user_item.deactivate'
                                                 defaultMessage='Deactivate'
                                             />
+                                            {this.getManagedByLdapText()}
                                         </button>
                                     )}
 
@@ -426,6 +450,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <button
                                             className='manageUserSettingsBtn btn btn-tertiary'
                                             onClick={this.openConfirmEditUserSettingsModal}
+                                            id='manageUserSettingsBtn'
                                         >
                                             <FormattedMessage
                                                 id='admin.user_item.manageSettings'
@@ -437,7 +462,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     {
                                         this.props.showLockedManageUserSettings &&
                                         <WithTooltip
-                                            id='adminUserSettingUpdateDisabled'
                                             title={defineMessage({
                                                 id: 'generic.enterprise_feature',
                                                 defaultMessage: 'Enterprise feature',
@@ -446,7 +470,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 id: 'admin.user_item.manageSettings.disabled_tooltip',
                                                 defaultMessage: 'Please upgrade to Enterprise to manage user settings',
                                             })}
-                                            placement='top'
                                         >
                                             <button
                                                 className='manageUserSettingsBtn btn disabled'
@@ -588,6 +611,12 @@ export function getUserAuthenticationTextField(intl: IntlShape, mfaEnabled: Prop
         let service;
         if (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) {
             service = user.auth_service.toUpperCase();
+        } else if (user.auth_service === Constants.OFFICE365_SERVICE) {
+            // override service name office365 to text Entra ID
+            service = intl.formatMessage({
+                id: 'admin.oauth.office365',
+                defaultMessage: 'Entra ID',
+            });
         } else {
             service = toTitleCase(user.auth_service);
         }

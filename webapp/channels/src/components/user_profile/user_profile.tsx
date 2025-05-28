@@ -31,7 +31,6 @@ export default function UserProfile({
     userId,
     channelId,
     overwriteIcon,
-    isShared,
 }: Props) {
     let name: ReactNode;
     if (user && displayUsername) {
@@ -62,8 +61,12 @@ export default function UserProfile({
     }
 
     let profileImg = '';
+    let userIsRemote = false;
     if (user) {
         profileImg = imageURLForUser(user.id, user.last_picture_update);
+        if (user.remote_id) {
+            userIsRemote = true;
+        }
     }
 
     return (
@@ -81,10 +84,10 @@ export default function UserProfile({
             >
                 {name}
             </ProfilePopover>
-            {(isShared) &&
+            {userIsRemote &&
             <SharedUserIndicator
-                id={`sharedUserIndicator-${userId}`}
                 className='shared-user-icon'
+                withTooltip={true}
             />
             }
             {(user && user.is_bot) && <BotTag/>}

@@ -5,12 +5,11 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import FlagIcon from 'components/widgets/icons/flag_icon';
 import FlagIconFilled from 'components/widgets/icons/flag_icon_filled';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {Locations, A11yCustomEventTypes} from 'utils/constants';
+import {Locations, A11yCustomEventTypes} from 'utils/constants';
 
 export type Actions = {
     flagPost: (postId: string) => void;
@@ -82,28 +81,20 @@ const PostFlagIcon = ({
     }
 
     return (
-        <OverlayTrigger
-            className='hidden-xs'
+        <WithTooltip
             key={`flagtooltipkey${isFlagged ? 'flagged' : ''}`}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='top'
-            overlay={
-                <Tooltip
-                    id='flagTooltip'
-                    className='hidden-xs'
-                >
-                    {isFlagged ? (
-                        <FormattedMessage
-                            id='flag_post.unflag'
-                            defaultMessage='Remove from Saved'
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='flag_post.flag'
-                            defaultMessage='Save Message'
-                        />
-                    )}
-                </Tooltip>
+            title={
+                isFlagged ? (
+                    <FormattedMessage
+                        id='flag_post.unflag'
+                        defaultMessage='Remove from Saved'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='flag_post.flag'
+                        defaultMessage='Save Message'
+                    />
+                )
             }
         >
             <button
@@ -115,7 +106,7 @@ const PostFlagIcon = ({
             >
                 {flagIcon}
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

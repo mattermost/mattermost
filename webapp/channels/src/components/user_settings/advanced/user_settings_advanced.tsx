@@ -108,7 +108,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 user_id: userId,
                 category: Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
                 name: setting,
-                value: this.state.settings[setting],
+                value: this.state.settings[setting]!,
             });
         });
 
@@ -738,7 +738,11 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         }
 
         return (
-            <div>
+            <div
+                id='advancedSettings'
+                aria-labelledby='advancedButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}

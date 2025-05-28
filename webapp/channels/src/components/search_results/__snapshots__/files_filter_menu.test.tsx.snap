@@ -8,28 +8,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on all
     animationComponent={[Function]}
     className=""
   >
-    <OverlayTrigger
-      className="hidden-xs"
-      defaultOverlayShown={false}
-      delayShow={500}
-      overlay={
-        <Tooltip
-          className="hidden-xs"
-          id="files-filter-tooltip"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Filter"
-            id="channel_info_rhs.menu.files.filter"
-          />
-        </Tooltip>
-      }
-      placement="top"
-      rootClose={true}
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+    <WithTooltip
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Filter"
+          id="channel_info_rhs.menu.files.filter"
+        />
       }
     >
       <IconContainer
@@ -42,7 +26,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on all
           size={18}
         />
       </IconContainer>
-    </OverlayTrigger>
+    </WithTooltip>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -120,28 +104,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
     animationComponent={[Function]}
     className=""
   >
-    <OverlayTrigger
-      className="hidden-xs"
-      defaultOverlayShown={false}
-      delayShow={500}
-      overlay={
-        <Tooltip
-          className="hidden-xs"
-          id="files-filter-tooltip"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Filter"
-            id="channel_info_rhs.menu.files.filter"
-          />
-        </Tooltip>
-      }
-      placement="top"
-      rootClose={true}
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+    <WithTooltip
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Filter"
+          id="channel_info_rhs.menu.files.filter"
+        />
       }
     >
       <IconContainer
@@ -157,7 +125,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
           size={18}
         />
       </IconContainer>
-    </OverlayTrigger>
+    </WithTooltip>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -235,28 +203,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
     animationComponent={[Function]}
     className=""
   >
-    <OverlayTrigger
-      className="hidden-xs"
-      defaultOverlayShown={false}
-      delayShow={500}
-      overlay={
-        <Tooltip
-          className="hidden-xs"
-          id="files-filter-tooltip"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Filter"
-            id="channel_info_rhs.menu.files.filter"
-          />
-        </Tooltip>
-      }
-      placement="top"
-      rootClose={true}
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+    <WithTooltip
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Filter"
+          id="channel_info_rhs.menu.files.filter"
+        />
       }
     >
       <IconContainer
@@ -272,7 +224,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
           size={18}
         />
       </IconContainer>
-    </OverlayTrigger>
+    </WithTooltip>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -350,28 +302,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
     animationComponent={[Function]}
     className=""
   >
-    <OverlayTrigger
-      className="hidden-xs"
-      defaultOverlayShown={false}
-      delayShow={500}
-      overlay={
-        <Tooltip
-          className="hidden-xs"
-          id="files-filter-tooltip"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Filter"
-            id="channel_info_rhs.menu.files.filter"
-          />
-        </Tooltip>
-      }
-      placement="top"
-      rootClose={true}
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+    <WithTooltip
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Filter"
+          id="channel_info_rhs.menu.files.filter"
+        />
       }
     >
       <IconContainer
@@ -387,7 +323,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
           size={18}
         />
       </IconContainer>
-    </OverlayTrigger>
+    </WithTooltip>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -465,28 +401,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
     animationComponent={[Function]}
     className=""
   >
-    <OverlayTrigger
-      className="hidden-xs"
-      defaultOverlayShown={false}
-      delayShow={500}
-      overlay={
-        <Tooltip
-          className="hidden-xs"
-          id="files-filter-tooltip"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Filter"
-            id="channel_info_rhs.menu.files.filter"
-          />
-        </Tooltip>
-      }
-      placement="top"
-      rootClose={true}
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+    <WithTooltip
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Filter"
+          id="channel_info_rhs.menu.files.filter"
+        />
       }
     >
       <IconContainer
@@ -502,7 +422,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
           size={18}
         />
       </IconContainer>
-    </OverlayTrigger>
+    </WithTooltip>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -580,28 +500,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
     animationComponent={[Function]}
     className=""
   >
-    <OverlayTrigger
-      className="hidden-xs"
-      defaultOverlayShown={false}
-      delayShow={500}
-      overlay={
-        <Tooltip
-          className="hidden-xs"
-          id="files-filter-tooltip"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Filter"
-            id="channel_info_rhs.menu.files.filter"
-          />
-        </Tooltip>
-      }
-      placement="top"
-      rootClose={true}
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+    <WithTooltip
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Filter"
+          id="channel_info_rhs.menu.files.filter"
+        />
       }
     >
       <IconContainer
@@ -617,7 +521,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
           size={18}
         />
       </IconContainer>
-    </OverlayTrigger>
+    </WithTooltip>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -695,28 +599,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
     animationComponent={[Function]}
     className=""
   >
-    <OverlayTrigger
-      className="hidden-xs"
-      defaultOverlayShown={false}
-      delayShow={500}
-      overlay={
-        <Tooltip
-          className="hidden-xs"
-          id="files-filter-tooltip"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Filter"
-            id="channel_info_rhs.menu.files.filter"
-          />
-        </Tooltip>
-      }
-      placement="top"
-      rootClose={true}
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+    <WithTooltip
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Filter"
+          id="channel_info_rhs.menu.files.filter"
+        />
       }
     >
       <IconContainer
@@ -732,7 +620,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
           size={18}
         />
       </IconContainer>
-    </OverlayTrigger>
+    </WithTooltip>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -810,28 +698,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
     animationComponent={[Function]}
     className=""
   >
-    <OverlayTrigger
-      className="hidden-xs"
-      defaultOverlayShown={false}
-      delayShow={500}
-      overlay={
-        <Tooltip
-          className="hidden-xs"
-          id="files-filter-tooltip"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Filter"
-            id="channel_info_rhs.menu.files.filter"
-          />
-        </Tooltip>
-      }
-      placement="top"
-      rootClose={true}
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+    <WithTooltip
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Filter"
+          id="channel_info_rhs.menu.files.filter"
+        />
       }
     >
       <IconContainer
@@ -847,7 +719,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
           size={18}
         />
       </IconContainer>
-    </OverlayTrigger>
+    </WithTooltip>
     <Menu
       ariaLabel="file menu"
       openLeft={true}

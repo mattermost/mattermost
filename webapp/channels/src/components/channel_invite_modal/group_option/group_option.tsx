@@ -10,10 +10,13 @@ import type {Group} from '@mattermost/types/groups';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {TrackGroupsFeature, TrackInviteGroupEvent} from 'mattermost-redux/constants/telemetry';
 import {getUser, makeDisplayNameGetter, makeGetProfilesByIdsAndUsernames} from 'mattermost-redux/selectors/entities/users';
 
+import {trackFeatureEvent} from 'actions/telemetry_actions';
+
 import type {Value} from 'components/multiselect/multiselect';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 
@@ -55,6 +58,7 @@ const GroupOption = (props: Props) => {
         for (const profile of profiles) {
             addUserProfile(profile);
         }
+        trackFeatureEvent(TrackGroupsFeature, TrackInviteGroupEvent);
     }, [addUserProfile, profiles]);
 
     const onKeyDown = useCallback((e: KeyboardEvent) => {
@@ -99,9 +103,8 @@ const GroupOption = (props: Props) => {
                     >
                         {'@'}{group.name}
                     </span>
-                    <SimpleTooltip
-                        id={'usernames-overflow'}
-                        content={overflowNames}
+                    <WithTooltip
+                        title={overflowNames}
                     >
                         <span
                             className='add-group-members'
@@ -118,7 +121,7 @@ const GroupOption = (props: Props) => {
                                 color={'var(--link-color)'}
                             />
                         </span>
-                    </SimpleTooltip>
+                    </WithTooltip>
                 </div>
             </div>
         </div>

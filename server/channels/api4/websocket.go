@@ -70,7 +70,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		cfg, err = c.App.Srv().Platform().PopulateWebConnConfig(c.AppContext.Session(), cfg, r.URL.Query().Get(sequenceNumberParam))
 		if err != nil {
-			c.Logger.Warn("Error while populating webconn config", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
+			c.Logger.Error("Error while populating webconn config", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
 			ws.Close()
 			return
 		}
@@ -78,7 +78,12 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	wc := c.App.Srv().Platform().NewWebConn(cfg, c.App, c.App.Srv().Channels())
 	if c.AppContext.Session().UserId != "" {
-		c.App.Srv().Platform().HubRegister(wc)
+		err = c.App.Srv().Platform().HubRegister(wc)
+		if err != nil {
+			c.Logger.Error("Error while registering to hub", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
+			ws.Close()
+			return
+		}
 	}
 
 	wc.Pump()

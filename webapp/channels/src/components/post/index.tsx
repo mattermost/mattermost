@@ -4,16 +4,15 @@
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {AnyAction, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
-import {setActionsMenuInitialisationState} from 'mattermost-redux/actions/preferences';
 import {General} from 'mattermost-redux/constants';
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled} from 'mattermost-redux/selectors/entities/posts';
+import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     get,
@@ -40,13 +39,13 @@ import type {GlobalState} from 'types/store';
 import {removePostCloseRHSDeleteDraft} from './actions';
 import PostComponent from './post_component';
 
-interface OwnProps {
+type OwnProps = {
     post?: Post | UserActivityPost;
     previousPostId?: string;
     postId?: string;
     shouldHighlight?: boolean;
     location: keyof typeof Locations;
-}
+};
 
 function isFirstReply(post: Post, previousPost?: Post | null): boolean {
     if (post.root_id) {
@@ -179,7 +178,7 @@ function makeMapStateToProps() {
             channelIsArchived: isArchivedChannel(channel),
             isConsecutivePost: isConsecutivePost(state, ownProps),
             previousPostIsComment,
-            isFlagged: get(state, Preferences.CATEGORY_FLAGGED_POST, post.id, null) !== null,
+            isFlagged: isPostFlagged(state, post.id),
             compactDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             colorizeUsernames: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT) === 'true',
             shouldShowActionsMenu: shouldShowActionsMenu(state, post),
@@ -220,12 +219,11 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             markPostAsUnread,
             emitShortcutReactToLastPostFrom,
-            setActionsMenuInitialisationState,
             selectPost,
             selectPostFromRightHandSideSearch,
             setRhsExpanded,

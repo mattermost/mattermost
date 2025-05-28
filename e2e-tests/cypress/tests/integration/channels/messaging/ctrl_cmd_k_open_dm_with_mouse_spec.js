@@ -41,7 +41,7 @@ describe('Messaging', () => {
         cy.uiGetPostTextBox().cmdOrCtrlShortcut('K');
 
         // # In the "Switch Channels" modal type the first 6 characters of the username
-        cy.findByRole('textbox', {name: 'quick switch input'}).should('be.focused').type(secondUser.username.substring(0, 6)).wait(TIMEOUTS.HALF_SEC);
+        cy.findByRole('combobox', {name: 'quick switch input'}).should('be.focused').type(secondUser.username.substring(0, 6)).wait(TIMEOUTS.HALF_SEC);
 
         // # Verify that the list of users and channels suggestions is present
         cy.get('#suggestionList').should('be.visible').within(() => {

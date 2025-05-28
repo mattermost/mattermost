@@ -7,12 +7,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"math"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
@@ -22,6 +24,7 @@ func (api *API) InitLicense() {
 	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(addLicense, handlerParamFileAPI)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(removeLicense)).Methods(http.MethodDelete)
 	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/license/load_metric", api.APISessionRequired(getLicenseLoadMetric)).Methods(http.MethodGet)
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -45,7 +48,9 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		clientLicense = c.App.Srv().GetSanitizedClientLicense()
 	}
 
-	w.Write([]byte(model.MapToJSON(clientLicense)))
+	if _, err := w.Write([]byte(model.MapToJSON(clientLicense))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -53,13 +58,8 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
 		c.SetPermissionError(model.PermissionManageLicenseInformation)
-		return
-	}
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("addLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -93,7 +93,10 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
+	if _, err := io.Copy(buf, file); err != nil {
+		c.Err = model.NewAppError("addLicense", "api.license.add_license.copy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 
 	licenseBytes := buf.Bytes()
 	license, appErr := utils.LicenseValidator.LicenseFromBytes(licenseBytes)
@@ -112,7 +115,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		canStartTrialLicense, err := lm.CanStartTrial()
 		if err != nil {
-			c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, "", http.StatusInternalServerError)
+			c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 
@@ -137,7 +140,11 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.App.Channels().License().IsCloud() {
 		// If cloud, invalidate the caches when a new license is loaded
-		defer c.App.Srv().Cloud.HandleLicenseChange()
+		defer func() {
+			if err := c.App.Srv().Cloud.HandleLicenseChange(); err != nil {
+				c.Logger.Warn("Error while handling license change", mlog.Err(err))
+			}
+		}()
 	}
 
 	auditRec.Success()
@@ -153,13 +160,8 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
 		c.SetPermissionError(model.PermissionManageLicenseInformation)
-		return
-	}
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("removeLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -179,13 +181,14 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
 		c.SetPermissionError(model.PermissionManageLicenseInformation)
 		return
 	}
 
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("requestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+	// MySQL is not supported for trial licenses
+	if c.App.Config().SqlSettings.DriverName != nil && *c.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.mysql.app_error", nil, "mysql is not supported for trial licenses", http.StatusBadRequest)
 		return
 	}
 
@@ -212,7 +215,12 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 		return
 	}
-	json.Unmarshal(b, &trialRequest)
+
+	err = json.Unmarshal(b, &trialRequest)
+	if err != nil {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
 
 	var appErr *model.AppError
 	// If any of the newly supported trial request fields are set (ie, not a legacy request), process this as a new trial request (requiring the new fields) otherwise fall back on the old method.
@@ -253,5 +261,39 @@ func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		clientLicense = utils.GetSanitizedClientLicense(utils.GetClientLicense(license))
 	}
 
-	w.Write([]byte(model.MapToJSON(clientLicense)))
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write([]byte(model.MapToJSON(clientLicense))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// getLicenseLoadMetric returns a load metric computed as (mau / licensed) * 1000.
+func getLicenseLoadMetric(c *Context, w http.ResponseWriter, r *http.Request) {
+	var loadMetric int
+	var licenseUsers int
+
+	license := c.App.Srv().License()
+	if license != nil && license.Features != nil {
+		licenseUsers = *license.Features.Users
+	}
+
+	if licenseUsers > 0 {
+		monthlyActiveUsers, err := c.App.Srv().Store().User().AnalyticsActiveCount(app.MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+		if err != nil {
+			c.Err = model.NewAppError("getLicenseLoad", "api.license.load_metric.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+
+		loadMetric = int(math.Round((float64(monthlyActiveUsers) / float64(licenseUsers) * float64(1000))))
+	}
+
+	// Create response object
+	data := map[string]int{
+		"load": loadMetric,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

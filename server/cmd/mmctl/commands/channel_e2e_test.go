@@ -21,7 +21,7 @@ import (
 func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	var assertChannelNames = func(want []string, lines []interface{}) {
+	var assertChannelNames = func(want []string, lines []any) {
 		var got []string
 		for i := 0; i < len(lines); i++ {
 			got = append(got, lines[i].(*model.Channel).Name)
@@ -324,7 +324,7 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = true })
 	defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = *previousConfig })
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
@@ -357,7 +357,7 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		_, err = s.th.App.GetChannel(s.th.Context, channel.Id)
 
 		s.Require().NotNil(err)
-		s.Require().Equal(fmt.Sprintf("GetChannel: Unable to find the existing channel., resource \"Channel\" not found, id: %s", channel.Id), err.Error())
+		s.CheckErrorID(err, "app.channel.get.existing.app_error")
 	})
 
 	s.Run("Delete channel without permissions", func() {
@@ -401,7 +401,7 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 
 		s.Require().Nil(channel)
 		s.Require().NotNil(err)
-		s.Require().Equal(fmt.Sprintf("GetChannel: Unable to find the existing channel., resource \"Channel\" not found, id: %s", notExistingChannelID), err.Error())
+		s.CheckErrorID(err, "app.channel.get.existing.app_error")
 	})
 }
 

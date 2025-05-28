@@ -1,4 +1,5 @@
-@charset 'UTF-8';
+@use "utils/functions";
+@use "utils/variables";
 
 @use 'sass:color';
 
@@ -14,6 +15,30 @@
         label {
             padding: 0;
         }
+    }
+}
+
+.form-group {
+    max-width: 100%;
+
+    .control-label {
+        overflow: hidden;
+        padding-right: 5px;
+        text-overflow: ellipsis;
+    }
+
+    .setting-list & {
+        .control-label {
+            white-space: nowrap;
+        }
+    }
+
+    &.form-group--small {
+        margin-bottom: 10px;
+    }
+
+    &.pos-rel {
+        position: relative;
     }
 }
 
@@ -47,7 +72,7 @@
     }
 
     &.error {
-        color: color.adjust($red, $lightness: -20%);
+        color: color.adjust(variables.$red, $lightness: -20%);
     }
 }
 
@@ -86,25 +111,18 @@
 
 .help-block {
     margin: 10px 0 0;
-    color: $dark-gray;
+    color: variables.$dark-gray;
     font-size: 0.95em;
 }
 
-.form-group {
-    max-width: 100%;
-
-    &.form-group--small {
-        margin-bottom: 10px;
-    }
-}
-
 .has-error {
+
     .help-block,
     .radio,
     .checkbox,
     .radio-inline,
     .checkbox-inline {
-        color: $red;
+        color: variables.$red;
     }
 
     .form__label {
@@ -118,7 +136,7 @@
     &.radio-inline,
     &.checkbox-inline {
         label {
-            color: $red;
+            color: variables.$red;
         }
     }
 }
@@ -148,7 +166,7 @@
         padding-right: 1px;
         margin-right: 6px;
 
-        & + span {
+        &+span {
             margin-right: 4px;
             font-weight: 600;
         }
@@ -165,9 +183,9 @@
     .form-control {
         border-color: rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
-        background: v(center-channel-bg);
+        background: functions.v(center-channel-bg);
         box-shadow: none;
-        color: v(center-channel-color);
+        color: functions.v(center-channel-color);
 
         &:focus {
             border-color: rgba(var(--button-bg-rgb), 1);
@@ -203,4 +221,20 @@ input[type="file"]:focus,
 input[type="radio"]:focus,
 input[type="checkbox"]:focus {
     outline: none;
+}
+
+.btn-file {
+    position: relative;
+    overflow: hidden;
+
+    .btn-file__input {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        filter: alpha(opacity=0);
+        opacity: 0;
+    }
 }

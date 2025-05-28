@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {Bot as BotType} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
@@ -13,10 +14,8 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import Constants from 'utils/constants';
-import {getSiteURL} from 'utils/url';
 import * as Utils from 'utils/utils';
 
 import Bot, {matchesFilter} from './bot';
@@ -152,7 +151,7 @@ export default class Bots extends React.PureComponent<Props, State> {
             return React.cloneElement(child, {filter: props.filter});
         });
         return (
-            <React.Fragment>
+            <>
                 <div className='bot-disabled'>
                     <FormattedMessage
                         id='bots.disabled'
@@ -162,7 +161,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                 <div className='bot-list__disabled'>
                     {botsToDisplay}
                 </div>
-            </React.Fragment>
+            </>
         );
     }
 
@@ -192,12 +191,12 @@ export default class Bots extends React.PureComponent<Props, State> {
         );
     };
 
-    bots = (filter?: string): Array<boolean | JSX.Element> => {
+    bots = (filter?: string): [JSX.Element[], boolean] => {
         const bots = Object.values(this.props.bots).sort((a, b) => a.username.localeCompare(b.username));
         const match = (bot: BotType) => matchesFilter(bot, filter, this.props.owners[bot.user_id]);
         const enabledBots = bots.filter((bot) => bot.delete_at === 0).filter(match).map(this.botToJSX);
         const disabledBots = bots.filter((bot) => bot.delete_at > 0).filter(match).map(this.botToJSX);
-        const sections = (
+        const sections = [(
             <div key='sections'>
                 <this.EnabledSection
                     enabledBots={enabledBots}
@@ -207,7 +206,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                     disabledBots={disabledBots}
                 />
             </div>
-        );
+        )];
 
         return [sections, enabledBots.length > 0 || disabledBots.length > 0];
     };
@@ -236,13 +235,16 @@ export default class Bots extends React.PureComponent<Props, State> {
                     />
                 }
                 emptyTextSearch={
-                    <FormattedMarkdownMessage
-                        id='bots.manage.emptySearch'
-                        defaultMessage='No bot accounts match **{searchTerm}**'
+                    <FormattedMessage
+                        id='bots.emptySearch'
+                        defaultMessage='No bot accounts match <b>{searchTerm}</b>'
+                        values={{
+                            b: (chunks: string) => <b>{chunks}</b>,
+                        }}
                     />
                 }
                 helpText={
-                    <React.Fragment>
+                    <>
                         <FormattedMessage
                             id='bots.manage.help1'
                             defaultMessage='Use {botAccounts} to integrate with Mattermost through plugins or the API. Bot accounts are available to everyone on your server. '
@@ -260,16 +262,16 @@ export default class Bots extends React.PureComponent<Props, State> {
                                 ),
                             }}
                         />
-                        <FormattedMarkdownMessage
-                            id='bots.manage.help2'
-                            defaultMessage={'Enable bot account creation in the [System Console]({siteURL}/admin_console/integrations/bot_accounts).'}
+                        <FormattedMessage
+                            id='bots.help2'
+                            defaultMessage={'Enable bot account creation in the <a>System Console</a>.'}
                             values={{
-                                siteURL: getSiteURL(),
+                                a: (chunks: string) => <Link to='/admin_console/integrations/bot_accounts'>{chunks}</Link>,
                             }}
                         />
-                    </React.Fragment>
+                    </>
                 }
-                searchPlaceholder={Utils.localizeMessage('bots.manage.search', 'Search Bot Accounts')}
+                searchPlaceholder={Utils.localizeMessage({id: 'bots.manage.search', defaultMessage: 'Search Bot Accounts'})}
                 loading={this.state.loading}
             >
                 {this.bots}

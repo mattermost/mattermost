@@ -9,7 +9,8 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+
+import type {ActionFuncAsync} from 'types/store';
 
 export function login(loginId: string, password: string, mfaToken = ''): ActionFuncAsync {
     return async (dispatch) => {

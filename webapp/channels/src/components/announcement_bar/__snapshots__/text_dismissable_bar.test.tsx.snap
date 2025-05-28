@@ -20,7 +20,6 @@ exports[`components/TextDismissableBar should match snapshot 1`] = `
       />
     </React.Fragment>
   }
-  onDismissal={[MockFunction]}
   showCloseButton={true}
 />
 `;
@@ -45,7 +44,6 @@ exports[`components/TextDismissableBar should match snapshot, with an internal a
       />
     </React.Fragment>
   }
-  onDismissal={[MockFunction]}
   showCloseButton={true}
   siteURL="http://testurl.com"
 />
@@ -71,7 +69,6 @@ exports[`components/TextDismissableBar should match snapshot, with an internal u
       />
     </React.Fragment>
   }
-  onDismissal={[MockFunction]}
   showCloseButton={true}
   siteURL="http://testurl.com"
 />
@@ -97,7 +94,6 @@ exports[`components/TextDismissableBar should match snapshot, with ean external 
       />
     </React.Fragment>
   }
-  onDismissal={[MockFunction]}
   showCloseButton={true}
   siteURL="http://testurl.com"
 />
@@ -123,7 +119,6 @@ exports[`components/TextDismissableBar should match snapshot, with link but with
       />
     </React.Fragment>
   }
-  onDismissal={[MockFunction]}
   showCloseButton={true}
 />
 `;

@@ -47,5 +47,12 @@ const (
 	MigrationKeyAddIPFilteringPermissions              = "add_ip_filtering_permissions"
 	MigrationKeyAddOutgoingOAuthConnectionsPermissions = "add_outgoing_oauth_connections_permissions"
 	MigrationKeyAddChannelBookmarksPermissions         = "add_channel_bookmarks_permissions"
+	MigrationKeyDeleteDmsPreferences                   = "delete_dms_preferences_migration"
 	MigrationKeyAddManageJobAncillaryPermissions       = "add_manage_jobs_ancillary_permissions"
+	MigrationKeyAddUploadFilePermission                = "add_upload_file_permission"
+	RestrictAccessToChannelConversionToPublic          = "restrict_access_to_channel_conversion_to_public_permissions"
+	MigrationKeyFixReadAuditsPermission                = "fix_read_audits_permission"
+	MigrationRemoveGetAnalyticsPermission              = "remove_get_analytics_permission"
+	MigrationAddSysconsoleMobileSecurityPermission     = "add_sysconsole_mobile_security_permission"
+	MigrationKeyAddChannelBannerPermissions            = "add_channel_banner_permissions"
 )

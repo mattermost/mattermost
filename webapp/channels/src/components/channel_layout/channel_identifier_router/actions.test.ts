@@ -73,6 +73,11 @@ describe('Actions', () => {
                         name: 'team2',
                     },
                 },
+                myMembers: {
+                    team_id1: {
+                        scheme_user: true,
+                    },
+                },
             },
             users: {
                 currentUserId: 'current_user_id',
@@ -150,8 +155,19 @@ describe('Actions', () => {
             const testStore = await mockStore(initialState);
 
             await testStore.dispatch((goToChannelByChannelName({params: {team: 'team1', identifier: 'achannel3', path: '/'}, url: ''}, {} as any) as any));
-            expect(joinChannel).toHaveBeenCalledWith('current_user_id', 'team_id1', '', 'achannel3');
+            expect(joinChannel).toHaveBeenCalledWith('current_user_id', 'team_id1', 'channel_id3', 'achannel3');
             expect(emitChannelClickEvent).toHaveBeenCalledWith(channel3);
+        });
+
+        test('switch to public channel we don\'t have locally and need to join', async () => {
+            const testStore = await mockStore(initialState);
+
+            const channel = {id: 'channel_id3a', name: 'achannel3a', team_id: 'team_id1', type: 'O'};
+            (joinChannel as jest.Mock).mockReturnValueOnce({type: '', data: {channel}});
+            (getChannelByNameAndTeamName as jest.Mock).mockReturnValueOnce({type: '', data: channel});
+            await testStore.dispatch((goToChannelByChannelName({params: {team: 'team1', identifier: channel.name, path: '/'}, url: ''}, {} as any) as any));
+            expect(joinChannel).toHaveBeenCalledWith('current_user_id', 'team_id1', 'channel_id3a', 'achannel3a');
+            expect(emitChannelClickEvent).toHaveBeenCalledWith(channel);
         });
 
         test('switch to private channel we don\'t have locally and get prompted if super user and then join', async () => {
@@ -177,7 +193,49 @@ describe('Actions', () => {
             expect(getChannelByNameAndTeamName).toHaveBeenCalledWith('team1', channel.name, true);
             expect(getChannelMember).toHaveBeenCalledWith(channel.id, 'current_user_id');
             expect(joinPrivateChannelPrompt).toHaveBeenCalled();
-            expect(joinChannel).toHaveBeenCalledWith('current_user_id', 'team_id1', '', channel.name);
+            expect(joinChannel).toHaveBeenCalledWith('current_user_id', 'team_id1', channel.id, channel.name);
+        });
+
+        test('switch to private channel we don\'t have locally and get prompted if team Admin user and then join', async () => {
+            const testStore = await mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    users: {
+                        ...initialState.entities.users,
+                        profiles: {
+                            ...initialState.entities.users.profiles,
+                            current_user_id: {
+                                roles: 'system_user',
+                            },
+                        },
+                    },
+                    channels: {
+                        ...initialState.entities.channels,
+                        myMembers: {
+                            privatechannelid: {channel_id: 'privatechannelid', user_id: 'current_user_id'},
+                        },
+                    },
+                    teams: {
+                        ...initialState.entities.teams,
+                        myMembers: {
+                            team_id1: {
+                                scheme_user: true,
+                                scheme_admin: true,
+                            },
+                        },
+                    },
+                },
+            });
+
+            const channel = {id: 'channel_id6', name: 'achannel6', team_id: 'team_id1', type: 'P'};
+            (joinChannel as jest.Mock).mockReturnValueOnce({type: '', data: {channel}});
+            (getChannelByNameAndTeamName as jest.Mock).mockReturnValueOnce({type: '', data: channel});
+            await testStore.dispatch((goToChannelByChannelName({params: {team: 'team1', identifier: channel.name, path: '/'}, url: ''}, {} as any) as any));
+            expect(getChannelByNameAndTeamName).toHaveBeenCalledWith('team1', channel.name, true);
+            expect(getChannelMember).toHaveBeenCalledWith(channel.id, 'current_user_id');
+            expect(joinPrivateChannelPrompt).toHaveBeenCalled();
+            expect(joinChannel).toHaveBeenCalledWith('current_user_id', 'team_id1', channel.id, channel.name);
         });
     });
 

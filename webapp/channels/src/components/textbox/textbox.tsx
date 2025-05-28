@@ -72,6 +72,8 @@ export type Props = {
     openWhenEmpty?: boolean;
     priorityProfiles?: UserProfile[];
     hasLabels?: boolean;
+    hasError?: boolean;
+    isInEditMode?: boolean;
 };
 
 const VISIBLE = {visibility: 'visible'};
@@ -104,6 +106,7 @@ export default class Textbox extends React.PureComponent<Props> {
 
         this.suggestionProviders.push(
             new AtMentionProvider({
+                textboxId: this.props.id,
                 currentUserId: this.props.currentUserId,
                 channelId: this.props.channelId,
                 autocompleteUsersInChannel: (prefix: string) => this.props.actions.autocompleteUsersInChannel(prefix, this.props.channelId),
@@ -145,6 +148,7 @@ export default class Textbox extends React.PureComponent<Props> {
             for (const provider of this.suggestionProviders) {
                 if (provider instanceof AtMentionProvider) {
                     provider.setProps({
+                        textboxId: this.props.id,
                         currentUserId: this.props.currentUserId,
                         channelId: this.props.channelId,
                         autocompleteUsersInChannel: (prefix: string) => this.props.actions.autocompleteUsersInChannel(prefix, this.props.channelId),
@@ -198,7 +202,6 @@ export default class Textbox extends React.PureComponent<Props> {
         if (!prevProps.preview && this.props.preview) {
             this.preview.current?.focus();
         }
-
         this.updateSuggestions(prevProps);
     }
 
@@ -275,13 +278,17 @@ export default class Textbox extends React.PureComponent<Props> {
             textboxClassName += ' textarea--has-labels';
         }
 
+        if (this.props.hasError) {
+            textboxClassName += ' textarea--has-errors';
+        }
+
         return (
             <div
                 ref={this.wrapper}
-                className={classNames('textarea-wrapper', {'textarea-wrapper-preview': this.props.preview})}
+                className={classNames('textarea-wrapper', {'textarea-wrapper-preview': this.props.preview, 'textarea-wrapper-preview--disabled': Boolean(this.props.preview && this.props.disabled)})}
             >
                 <div
-                    tabIndex={this.props.tabIndex || 0}
+                    tabIndex={this.props.tabIndex}
                     ref={this.preview}
                     className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': this.props.hasLabels})}
                     onKeyPress={this.props.onKeyPress}
