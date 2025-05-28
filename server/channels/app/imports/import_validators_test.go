@@ -1789,6 +1789,105 @@ func TestValidateAttachmentPathForImport(t *testing.T) {
 			expectedPath: "",
 			expectedRes:  false,
 		},
+		// Additional security test cases
+		{
+			name:         "valid path with double dots in filename",
+			path:         "....//file.txt",
+			basePath:     "data",
+			expectedPath: "data/..../file.txt",
+			expectedRes:  true, // Double dots in filename are valid, not traversal
+		},
+		{
+			name:         "valid path with quadruple dots in filename",
+			path:         "..../file.txt",
+			basePath:     "data",
+			expectedPath: "data/..../file.txt",
+			expectedRes:  true, // Quadruple dots in filename are valid, not traversal
+		},
+		{
+			name:         "valid path with backslashes (treated as literal on Unix)",
+			path:         "path\\..\\..\\file.txt",
+			basePath:     "data",
+			expectedPath: "data/path\\..\\..\\file.txt",
+			expectedRes:  true, // Backslashes are literal characters on Unix systems
+		},
+		{
+			name:         "valid path with mixed separators (backslash literal)",
+			path:         "path\\../file.txt",
+			basePath:     "data",
+			expectedPath: "data/path\\../file.txt",
+			expectedRes:  true, // Backslash is literal, only forward slash is normalized
+		},
+		{
+			name:         "valid URL encoded characters (treated as literals)",
+			path:         "%2e%2e%2ffile.txt",
+			basePath:     "data",
+			expectedPath: "data/%2e%2e%2ffile.txt",
+			expectedRes:  true, // URL encoding should be treated as literal characters
+		},
+		{
+			name:         "valid null byte in filename (treated as literal)",
+			path:         "file.txt\x00../etc/passwd",
+			basePath:     "data",
+			expectedPath: "data/file.txt\x00../etc/passwd",
+			expectedRes:  true, // Null bytes should be treated as literal characters
+		},
+		{
+			name:         "invalid complex traversal pattern",
+			path:         "./././../../../file.txt",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "valid path with multiple slashes (normalized)",
+			path:         "path///../file.txt",
+			basePath:     "data",
+			expectedPath: "data/file.txt",
+			expectedRes:  true, // Multiple slashes get normalized, no traversal occurs
+		},
+		{
+			name:         "invalid deep traversal attempt",
+			path:         "../../../../../../../../../etc/passwd",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "valid path with multiple internal dots",
+			path:         "path/to/file...with...dots.txt",
+			basePath:     "data",
+			expectedPath: "data/path/to/file...with...dots.txt",
+			expectedRes:  true,
+		},
+		{
+			name:         "invalid traversal with valid-looking suffix",
+			path:         "../trusted_NOT/secrets.txt",
+			basePath:     "/trusted",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "valid path with base path containing special chars",
+			path:         "file.txt",
+			basePath:     "data-dir_v1.0",
+			expectedPath: "data-dir_v1.0/file.txt",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid Windows-style paths (backslashes literal on Unix)",
+			path:         "..\\..\\windows\\system32\\config",
+			basePath:     "data",
+			expectedPath: "data/..\\..\\windows\\system32\\config",
+			expectedRes:  true, // Backslashes are literal on Unix, no traversal
+		},
+		{
+			name:         "valid path with Unicode characters",
+			path:         "path/to/файл.txt",
+			basePath:     "data",
+			expectedPath: "data/path/to/файл.txt",
+			expectedRes:  true,
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			path, ok := ValidateAttachmentPathForImport(tc.path, tc.basePath)
