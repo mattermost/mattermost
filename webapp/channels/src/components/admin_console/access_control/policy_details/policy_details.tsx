@@ -108,7 +108,7 @@ function PolicyDetails({
         });
     };
 
-    const loadPage = async () => {
+    const loadPage = async (): Promise<void> => {
         // Fetch autocomplete fields first, as they are general and needed for both new and existing policies.
         const fieldsPromise = actions.getAccessControlFields('', 100).then((result) => {
             if (result.data) {
@@ -140,11 +140,17 @@ function PolicyDetails({
 
     const preSaveCheck = () => {
         if (policyName.length === 0) {
-            setServerError('Please add a name to the policy');
+            setServerError(formatMessage({
+                id: 'admin.access_control.policy.edit_policy.error.name_required',
+                defaultMessage: 'Please add a name to the policy',
+            }));
             return false;
         }
         if (expression.length === 0) {
-            setServerError('Please add an expression to the policy');
+            setServerError(formatMessage({
+                id: 'admin.access_control.policy.edit_policy.error.expression_required',
+                defaultMessage: 'Please add an expression to the policy',
+            }));
             return false;
         }
 
@@ -182,7 +188,10 @@ function PolicyDetails({
         try {
             await actions.updateAccessControlPolicyActive(currentPolicyId, autoSyncMembership);
         } catch (error) {
-            setServerError(`Error updating policy active status: ${error.message}`);
+            setServerError(formatMessage({
+                id: 'admin.access_control.policy.edit_policy.error.update_active_status',
+                defaultMessage: 'Error updating policy active status: {error}',
+            }, {error: error.message}));
             success = false;
             return;
         }
@@ -199,7 +208,10 @@ function PolicyDetails({
 
                 setChannelChanges({removed: {}, added: {}, removedCount: 0});
             } catch (error) {
-                setServerError(`Error assigning channels: ${error.message}`);
+                setServerError(formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.assign_channels',
+                    defaultMessage: 'Error assigning channels: {error}',
+                }, {error: error.message}));
                 success = false;
                 return;
             }
@@ -214,7 +226,10 @@ function PolicyDetails({
                 };
                 await actions.createJob(job);
             } catch (error) {
-                setServerError(`Error creating job: ${error.message}`);
+                setServerError(formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.create_job',
+                    defaultMessage: 'Error creating job: {error}',
+                }, {error: error.message}));
                 success = false;
                 return;
             }
@@ -239,7 +254,10 @@ function PolicyDetails({
             try {
                 await actions.unassignChannelsFromAccessControlPolicy(policyId, Object.keys(channelChanges.removed));
             } catch (error) {
-                setServerError(`Error unassigning channels: ${error.message}`);
+                setServerError(formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.unassign_channels',
+                    defaultMessage: 'Error unassigning channels: {error}',
+                }, {error: error.message}));
                 success = false;
             }
         }
@@ -249,7 +267,10 @@ function PolicyDetails({
             try {
                 await actions.deletePolicy(policyId);
             } catch (error) {
-                setServerError(`Error deleting policy: ${error.message}`);
+                setServerError(formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.delete_policy',
+                    defaultMessage: 'Error deleting policy: {error}',
+                }, {error: error.message}));
             }
         }
 
@@ -416,7 +437,11 @@ function PolicyDetails({
                                 isDisabled={editorMode === 'cel' && !isSimpleExpression(expression)}
                                 tooltipText={
                                     editorMode === 'cel' && !isSimpleExpression(expression) ?
-                                        'Complex expression detected. Simple expressions editor is not available at the moment.' : undefined
+                                        formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.complex_expression_tooltip',
+                                            defaultMessage: 'Complex expression detected. Simple expressions editor is not available at the moment.',
+                                        }) :
+                                        undefined
                                 }
                             />
                         </Card.Header>

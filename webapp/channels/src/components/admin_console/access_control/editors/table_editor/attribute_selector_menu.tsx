@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useMemo, useState, useEffect, useCallback} from 'react';
+import React, {useMemo, useState, useEffect, useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
 
 import {
@@ -67,6 +67,7 @@ interface AttributeSelectorProps {
 const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled, onChange, menuId, buttonId, autoOpen = false, onMenuOpened}: AttributeSelectorProps) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
+    const prevAutoOpen = useRef(false);
 
     const onFilterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFilter(e.target.value);
@@ -88,13 +89,14 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
     }, [currentAttribute, availableAttributes]);
 
     useEffect(() => {
-        if (autoOpen) {
+        if (autoOpen && !prevAutoOpen.current) {
             const buttonElement = document.getElementById(buttonId);
             buttonElement?.click();
             if (onMenuOpened) {
                 onMenuOpened();
             }
         }
+        prevAutoOpen.current = autoOpen;
     }, [autoOpen, buttonId, onMenuOpened]);
 
     return (

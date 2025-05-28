@@ -175,10 +175,8 @@ const getOperatorDescriptor = (operatorValue: string): OperatorDescriptor => {
     return OPERATOR_DESCRIPTORS.is;
 };
 
-type OperatorID = OperatorLabel.IS | OperatorLabel.IS_NOT | OperatorLabel.IN | OperatorLabel.STARTS_WITH | OperatorLabel.ENDS_WITH | OperatorLabel.CONTAINS;
-
 type OperatorDescriptor = {
-    id: OperatorID;
+    id: OperatorLabel;
     icon: ComponentType<IconProps>;
     label: MessageDescriptor;
 };
