@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
-import type {ClientLicense} from '@mattermost/types/config';
+import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 
 import DropdownSetting from 'components/admin_console/dropdown_setting';
 
@@ -13,7 +14,8 @@ import {descriptorOrStringToString, renderDropdownOptionHelpText, renderLabel, r
 import type {AdminDefinitionSettingDropdownOption} from '../types';
 
 type Props = {
-    state: any;
+    config: Partial<AdminConfig>;
+    state: Record<string, unknown>;
     license: ClientLicense;
     enterpriseReady: boolean;
     onChange(id: string, value: any): void;
@@ -22,6 +24,8 @@ type Props = {
 } & GeneralSettingProps
 
 const LDAPDropdownSetting = (props: Props) => {
+    const intl = useIntl();
+
     if (!props.schema || !props.setting.key || props.setting.type !== 'dropdown') {
         return (<></>);
     }
@@ -34,8 +38,8 @@ const LDAPDropdownSetting = (props: Props) => {
         }
     });
 
-    const values = options.map((o) => ({value: o.value, text: descriptorOrStringToString(o.display_name, props.intl)!}));
-    const selectedValue = props.state[props.setting.key] ?? values[0].value;
+    const values = options.map((o) => ({value: o.value, text: descriptorOrStringToString(o.display_name, intl)!}));
+    const selectedValue = (props.state[props.setting.key] as string) ?? values[0].value;
 
     let selectedOptionForHelpText = null;
     for (const option of options) {
@@ -55,7 +59,7 @@ const LDAPDropdownSetting = (props: Props) => {
         }
     }
 
-    const label = renderLabel(props.setting, props.schema, props.intl);
+    const label = renderLabel(props.setting, props.schema, intl);
 
     let helpText: string | JSX.Element = '';
     if (!hideHelp) {

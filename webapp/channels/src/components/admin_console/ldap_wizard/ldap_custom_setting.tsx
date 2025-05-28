@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 
@@ -25,11 +26,13 @@ type Props = {
 } & GeneralSettingProps
 
 const LDAPCustomSetting = (props: Props) => {
+    const intl = useIntl();
+
     if (!props.schema || props.setting.type !== 'custom') {
         return (<></>);
     }
 
-    const label = renderLabel(props.setting, props.schema, props.intl);
+    const label = renderLabel(props.setting, props.schema, intl);
     const helpText = renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
 
     const CustomComponent = props.setting.component;

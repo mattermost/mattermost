@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import type {GeneralSettingProps} from './ldap_wizard';
 
@@ -17,6 +18,8 @@ type Props = {
 } & GeneralSettingProps
 
 const LDAPButtonSetting = (props: Props) => {
+    const intl = useIntl();
+
     if (!props.schema || props.setting.type !== 'button') {
         return (<></>);
     }
@@ -24,7 +27,7 @@ const LDAPButtonSetting = (props: Props) => {
     const handleRequestAction = (success: () => void, error: (error: { message: string }) => void) => {
         if (!props.setting.skipSaveNeeded && props.saveNeeded !== false) {
             error({
-                message: props.intl.formatMessage({id: 'admin_settings.save_unsaved_changes', defaultMessage: 'Please save unsaved changes first'}),
+                message: intl.formatMessage({id: 'admin_settings.save_unsaved_changes', defaultMessage: 'Please save unsaved changes first'}),
             });
             return;
         }
@@ -40,7 +43,7 @@ const LDAPButtonSetting = (props: Props) => {
     };
 
     const helpText = renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
-    const label = renderLabel(props.setting, props.schema, props.intl);
+    const label = renderLabel(props.setting, props.schema, intl);
 
     return (
         <RequestButton
@@ -48,7 +51,7 @@ const LDAPButtonSetting = (props: Props) => {
             key={props.schema.id + '_text_' + props.setting.key}
             requestAction={handleRequestAction}
             helpText={helpText}
-            loadingText={descriptorOrStringToString(props.setting.loading, props.intl)}
+            loadingText={descriptorOrStringToString(props.setting.loading, intl)}
             buttonText={<span>{label}</span>}
             showSuccessMessage={Boolean(props.setting.success_message)}
             includeDetailedError={true}

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import JobsTable from 'components/admin_console/jobs';
 
@@ -14,6 +15,8 @@ type Props = {
 } & GeneralSettingProps
 
 const LDAPJobsTableSetting = (props: Props) => {
+    const intl = useIntl();
+
     if (!props.schema || props.setting.type !== 'jobstable') {
         return (<></>);
     }
@@ -26,7 +29,7 @@ const LDAPJobsTableSetting = (props: Props) => {
             jobType={props.setting.job_type}
             getExtraInfoText={props.setting.render_job}
             disabled={props.disabled}
-            createJobButtonText={descriptorOrStringToString(props.setting.label, props.intl)}
+            createJobButtonText={descriptorOrStringToString(props.setting.label, intl)}
             createJobHelpText={helpText}
         />
     );
