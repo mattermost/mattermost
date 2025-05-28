@@ -499,6 +499,12 @@ func TestImportValidateUserImportData(t *testing.T) {
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to not existing profile image file.")
 
+	// Invalid image path
+	data.ProfileImage = model.NewPointer("../invalid/path/file.jpg")
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to invalid profile image file path.")
+	require.Equal(t, "app.import.validate_user_import_data.invalid_image_path.error", err.Id)
+
 	data.ProfileImage = nil
 
 	// Invalid Emails
@@ -731,6 +737,12 @@ func TestImportValidateBotImportData(t *testing.T) {
 	data.Owner = model.NewPointer(strings.Repeat("abcdefghij", 7))
 	err = ValidateBotImportData(&data)
 	require.NotNil(t, err, "Should have failed due to too long OwnerID.")
+
+	// Invalid profile image path
+	data.ProfileImage = model.NewPointer("../invalid/path/file.jpg")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid profile image file path.")
+	require.Equal(t, "app.import.validate_user_import_data.invalid_image_path.error", err.Id)
 }
 
 func TestImportValidateUserTeamsImportData(t *testing.T) {
@@ -1508,6 +1520,7 @@ func TestImportValidateEmojiImportData(t *testing.T) {
 		{"nil name", nil, model.NewPointer("/path/to/image"), true, false},
 		{"nil image", model.NewPointer("parrot2"), nil, true, false},
 		{"nil name and image", nil, nil, true, false},
+		{"invalid image path", model.NewPointer("parrot2"), model.NewPointer("../invalid/path/to/emoji.png"), true, false},
 	}
 
 	for _, tc := range testCases {

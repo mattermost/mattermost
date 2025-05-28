@@ -157,7 +157,7 @@ func TestImportBulkImport(t *testing.T) {
 	username3 := model.NewUsername()
 	emojiName := model.NewId()
 	testsDir, _ := fileutils.FindDir("tests")
-	testImage := filepath.Join(testsDir, "test.png")
+	testImage := "test.png"
 	teamTheme1 := `{\"awayIndicator\":\"#DBBD4E\",\"buttonBg\":\"#23A1FF\",\"buttonColor\":\"#FFFFFF\",\"centerChannelBg\":\"#ffffff\",\"centerChannelColor\":\"#333333\",\"codeTheme\":\"github\",\"image\":\"/static/files/a4a388b38b32678e83823ef1b3e17766.png\",\"linkColor\":\"#2389d7\",\"mentionBg\":\"#2389d7\",\"mentionColor\":\"#ffffff\",\"mentionHighlightBg\":\"#fff2bb\",\"mentionHighlightLink\":\"#2f81b7\",\"newMessageSeparator\":\"#FF8800\",\"onlineIndicator\":\"#7DBE00\",\"sidebarBg\":\"#fafafa\",\"sidebarHeaderBg\":\"#3481B9\",\"sidebarHeaderTextColor\":\"#ffffff\",\"sidebarText\":\"#333333\",\"sidebarTextActiveBorder\":\"#378FD2\",\"sidebarTextActiveColor\":\"#111111\",\"sidebarTextHoverBg\":\"#e6f2fa\",\"sidebarUnreadText\":\"#333333\",\"type\":\"Mattermost\"}`
 	teamTheme2 := `{\"awayIndicator\":\"#DBBD4E\",\"buttonBg\":\"#23A100\",\"buttonColor\":\"#EEEEEE\",\"centerChannelBg\":\"#ffffff\",\"centerChannelColor\":\"#333333\",\"codeTheme\":\"github\",\"image\":\"/static/files/a4a388b38b32678e83823ef1b3e17766.png\",\"linkColor\":\"#2389d7\",\"mentionBg\":\"#2389d7\",\"mentionColor\":\"#ffffff\",\"mentionHighlightBg\":\"#fff2bb\",\"mentionHighlightLink\":\"#2f81b7\",\"newMessageSeparator\":\"#FF8800\",\"onlineIndicator\":\"#7DBE00\",\"sidebarBg\":\"#fafafa\",\"sidebarHeaderBg\":\"#3481B9\",\"sidebarHeaderTextColor\":\"#ffffff\",\"sidebarText\":\"#333333\",\"sidebarTextActiveBorder\":\"#378FD2\",\"sidebarTextActiveColor\":\"#222222\",\"sidebarTextHoverBg\":\"#e6f2fa\",\"sidebarUnreadText\":\"#444444\",\"type\":\"Mattermost\"}`
 
@@ -178,13 +178,13 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `", "` + username3 + `"], "user": "` + username + `", "message": "Hello Group Channel", "create_at": 123456789015}}
 {"type": "emoji", "emoji": {"name": "` + emojiName + `", "image": "` + testImage + `"}}`
 
-	line, err := th.App.BulkImport(th.Context, strings.NewReader(data1), nil, false, 2)
+	line, err := th.App.BulkImportWithPath(th.Context, strings.NewReader(data1), nil, false, false, 2, testsDir)
 	require.Nil(t, err, "BulkImport should have succeeded")
 	require.Equal(t, 0, line, "BulkImport line should be 0")
 
 	// Run bulk import using a string that contains a line with invalid json.
 	data2 := `{"type": "version", "version": 1`
-	line, err = th.App.BulkImport(th.Context, strings.NewReader(data2), nil, false, 2)
+	line, err = th.App.BulkImportWithPath(th.Context, strings.NewReader(data2), nil, false, false, 2, testsDir)
 	require.NotNil(t, err, "Should have failed due to invalid JSON on line 1.")
 	require.Equal(t, 1, line, "Should have failed due to invalid JSON on line 1.")
 
@@ -193,7 +193,7 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
 {"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
 {"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
-	line, err = th.App.BulkImport(th.Context, strings.NewReader(data3), nil, false, 2)
+	line, err = th.App.BulkImportWithPath(th.Context, strings.NewReader(data3), nil, false, false, 2, testsDir)
 	require.NotNil(t, err, "Should have failed due to missing version line on line 1.")
 	require.Equal(t, 1, line, "Should have failed due to missing version line on line 1.")
 

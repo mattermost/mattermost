@@ -192,6 +192,10 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 
 func ValidateUserImportData(data *UserImportData) *model.AppError {
 	if data.ProfileImage != nil && data.ProfileImageData == nil {
+		// Check if the resolved path is within the expected base path.
+		if _, valid := ValidateAttachmentPathForImport(*data.ProfileImage, model.ExportDataDir); !valid {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.invalid_image_path.error", map[string]any{"Path": *data.ProfileImage}, "", http.StatusBadRequest)
+		}
 		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusNotFound).Wrap(err)
 		} else if err != nil {
@@ -321,6 +325,11 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 
 func ValidateBotImportData(data *BotImportData) *model.AppError {
 	if data.ProfileImage != nil && data.ProfileImageData == nil {
+		// Check if the resolved path is within the expected base path.
+		if _, valid := ValidateAttachmentPathForImport(*data.ProfileImage, model.ExportDataDir); !valid {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.invalid_image_path.error", map[string]any{"Path": *data.ProfileImage}, "", http.StatusBadRequest)
+		}
+
 		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusNotFound).Wrap(err)
 		} else if err != nil {
@@ -694,6 +703,11 @@ func ValidateEmojiImportData(data *EmojiImportData) *model.AppError {
 
 	if data.Image == nil || *data.Image == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.image_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	// Check if the resolved path is within the expected base path.
+	if _, valid := ValidateAttachmentPathForImport(*data.Image, model.ExportDataDir); !valid {
+		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.invalid_image_path.error", map[string]any{"Path": *data.Image}, "", http.StatusBadRequest)
 	}
 
 	if err := model.IsValidEmojiName(*data.Name); err != nil {

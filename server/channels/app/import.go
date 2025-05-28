@@ -101,7 +101,11 @@ func processAttachments(c request.CTX, line *imports.LineImportData, basePath st
 		}
 	case "user":
 		if line.User.ProfileImage != nil {
-			path := filepath.Join(basePath, *line.User.ProfileImage)
+			path, valid := imports.ValidateAttachmentPathForImport(*line.User.ProfileImage, basePath)
+			if !valid {
+				return fmt.Errorf("invalid profile image path %q", *line.User.ProfileImage)
+			}
+
 			*line.User.ProfileImage = path
 			if len(filesMap) > 0 {
 				if line.User.ProfileImageData, ok = filesMap[path]; !ok {
@@ -111,7 +115,11 @@ func processAttachments(c request.CTX, line *imports.LineImportData, basePath st
 		}
 	case "bot":
 		if line.Bot.ProfileImage != nil {
-			path := filepath.Join(basePath, *line.Bot.ProfileImage)
+			path, valid := imports.ValidateAttachmentPathForImport(*line.Bot.ProfileImage, basePath)
+			if !valid {
+				return fmt.Errorf("invalid bot profile image path %q", *line.Bot.ProfileImage)
+			}
+
 			*line.Bot.ProfileImage = path
 			if len(filesMap) > 0 {
 				if line.Bot.ProfileImageData, ok = filesMap[path]; !ok {
@@ -121,7 +129,11 @@ func processAttachments(c request.CTX, line *imports.LineImportData, basePath st
 		}
 	case "emoji":
 		if line.Emoji.Image != nil {
-			path := filepath.Join(basePath, *line.Emoji.Image)
+			path, valid := imports.ValidateAttachmentPathForImport(*line.Emoji.Image, basePath)
+			if !valid {
+				return fmt.Errorf("invalid emoji image path %q", *line.Emoji.Image)
+			}
+
 			*line.Emoji.Image = path
 			if len(filesMap) > 0 {
 				if line.Emoji.Data, ok = filesMap[path]; !ok {
