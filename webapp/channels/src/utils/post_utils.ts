@@ -800,11 +800,14 @@ export function getUserOrGroupFromMentionName(
 ): [UserProfile?, Group?] {
     // Debug logging for remote mention issues
     if (mentionName.includes(':')) {
+        // eslint-disable-next-line no-console
         console.log('Processing remote mention:', mentionName);
+        // eslint-disable-next-line no-console
         console.log('Users available:', Object.keys(users));
+        // eslint-disable-next-line no-console
         console.log('Remote clusters:', remoteClusters);
     }
-    
+
     // Handle special case for remote user mentions in the format username:clustername
     if (mentionName.includes(':')) {
         const [username, clusterName] = mentionName.split(':');

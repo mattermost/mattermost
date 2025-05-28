@@ -36,10 +36,11 @@ const AtMention = (props: Props) => {
         () => {
             // Debug logging for remote mention issues
             if (props.mentionName.includes(':')) {
+                // eslint-disable-next-line no-console
                 console.log('AtMention processing:', props.mentionName);
+                // eslint-disable-next-line no-console
                 console.log('RemoteClusters from hook:', remoteClusters);
             }
-            
             return getUserOrGroupFromMentionName(
                 props.mentionName,
                 props.usersByUsername,
