@@ -733,7 +733,7 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 // sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).
 func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
 	// DEBUG: Post instrumentation message about sending sync message
-	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Sending sync message to remote %s", rc.Name))
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] sendSyncMsgToRemote START - Sending sync message to remote %s", rc.Name))
 
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
@@ -741,12 +741,17 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 		return fmt.Errorf("cannot update remote cluster %s for channel id %s; Remote Cluster Service not enabled", rc.Name, msg.ChannelId)
 	}
 
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Remote Cluster Service is available, proceeding with sync to %s", rc.Name))
+
 	if rc.IsPlugin() {
+		scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Remote %s is a plugin, delegating to sendSyncMsgToPlugin", rc.Name))
 		return scs.sendSyncMsgToPlugin(msg, rc, f)
 	}
 
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Marshaling sync message for remote %s", rc.Name))
 	b, err := json.Marshal(msg)
 	if err != nil {
+		scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Failed to marshal sync message for remote %s: %v", rc.Name, err))
 		return err
 	}
 	rcMsg := model.NewRemoteClusterMsg(TopicSync, b)
@@ -757,19 +762,31 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 	var wg sync.WaitGroup
 	wg.Add(1)
 
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] About to call rcs.SendMsg to remote %s", rc.Name))
+
 	err = rcs.SendMsg(ctx, rcMsg, rc, func(rcMsg model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, errResp error) {
 		defer wg.Done()
+
+		scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] SendMsg callback triggered for remote %s", rc.Name))
 
 		// DEBUG: Post instrumentation message about sync response
 		if errResp != nil {
 			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Sync error from remote %s: %s", rc.Name, errResp.Error()))
+			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Looking for error string: '%s' in error: '%s'", ErrChannelNotShared.Error(), errResp.Error()))
+			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Contains check result: %t", strings.Contains(errResp.Error(), ErrChannelNotShared.Error())))
+		} else {
+			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] No error from remote %s - sync successful", rc.Name))
 		}
 
 		// Check for ErrChannelNotShared in the response error
 		if errResp != nil && strings.Contains(errResp.Error(), ErrChannelNotShared.Error()) {
-			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Detected ErrChannelNotShared from remote %s - triggering unshare", rc.Name))
+			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] MATCH! Detected ErrChannelNotShared from remote %s - triggering unshare", rc.Name))
 			scs.handleChannelNotSharedError(msg, rc)
 			return
+		} else if errResp != nil {
+			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] NO MATCH! ErrChannelNotShared NOT detected in error from remote %s", rc.Name))
+		} else {
+			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] No error to check for ErrChannelNotShared from remote %s", rc.Name))
 		}
 
 		var syncResp model.SyncResponse
@@ -797,7 +814,9 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 		}
 	})
 
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] rcs.SendMsg call completed, waiting for callback for remote %s", rc.Name))
 	wg.Wait()
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] sendSyncMsgToRemote COMPLETE for remote %s, returning error: %v", rc.Name, err))
 	return err
 }
 
