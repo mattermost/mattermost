@@ -552,24 +552,24 @@ func TestProcessAttachments(t *testing.T) {
 	t.Run("with filesMap", func(t *testing.T) {
 		t.Run("post attachments", func(t *testing.T) {
 			filesMap := map[string]*zip.File{
-				"/tmp/file.jpg": nil,
+				"tmp/file.jpg": nil,
 			}
 			err := processAttachments(c, &line, "", filesMap)
 			require.Error(t, err)
 
-			filesMap["/tmp/somedir/file.jpg"] = nil
+			filesMap["tmp/somedir/file.jpg"] = nil
 			err = processAttachments(c, &line, "", filesMap)
 			require.NoError(t, err)
 		})
 
 		t.Run("direct post attachments", func(t *testing.T) {
 			filesMap := map[string]*zip.File{
-				"/tmp/file.jpg": nil,
+				"tmp/file.jpg": nil,
 			}
 			err := processAttachments(c, &line2, "", filesMap)
 			require.Error(t, err)
 
-			filesMap["/tmp/somedir/file.jpg"] = nil
+			filesMap["tmp/somedir/file.jpg"] = nil
 			err = processAttachments(c, &line2, "", filesMap)
 			require.NoError(t, err)
 		})
