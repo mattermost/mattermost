@@ -831,14 +831,14 @@ export function getUserOrGroupFromMentionName(
 
         // Create a map of remote_id to name for case-insensitive lookup
         const remoteIdToName = new Map(
-            remoteClusters.map(cluster => [cluster.remote_id, cluster.name.toLowerCase()])
+            remoteClusters.map((cluster) => [cluster.remote_id, cluster.name.toLowerCase()]),
         );
 
         // Find remote user with matching base username and cluster
         const targetClusterName = clusterName.toLowerCase();
         for (const user of Object.values(users)) {
-            if (user.username.startsWith(`${username}:`) && 
-                user.remote_id && 
+            if (user.username.startsWith(`${username}:`) &&
+                user.remote_id &&
                 remoteIdToName.get(user.remote_id) === targetClusterName) {
                 return [user, undefined];
             }
