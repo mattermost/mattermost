@@ -10690,5 +10690,9 @@
   {
     "id": "app.pap.get_channel_members_to_remove.app_error",
     "translation": "Kunde inte hämta kanalmedlemmar som ska tas bort."
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "Den här licensen stödjer inte MySQL."
   }
 ]
