@@ -4,7 +4,6 @@
 package searchlayer
 
 import (
-	"context"
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -131,10 +130,7 @@ func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
 		return
 	}
 
-	// Use master context to avoid replica lag issues when reading team members
-	type contextValue string
-	masterRctx := rctx.WithContext(context.WithValue(rctx.Context(), contextValue("useMaster"), true))
-	teamMemberIDs, err := s.channel.GetTeamMembersForChannel(masterRctx, channels[0].Id)
+	teamMemberIDs, err := s.channel.GetTeamMembersForChannel(channels[0].Id)
 	if err != nil {
 		rctx.Logger().Warn("Encountered error while retrveiving team members for channel", mlog.String("channel_id", channels[0].Id), mlog.Err(err))
 		return

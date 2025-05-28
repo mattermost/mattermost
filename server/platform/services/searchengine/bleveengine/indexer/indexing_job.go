@@ -550,8 +550,7 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(logger mlog.LoggerIFace, cha
 			}
 
 			// Get teamMember ids from channelid
-			rctx := request.EmptyContext(logger)
-			teamMemberIDs, err := worker.jobServer.Store.Channel().GetTeamMembersForChannel(rctx, channel.Id)
+			teamMemberIDs, err := worker.jobServer.Store.Channel().GetTeamMembersForChannel(channel.Id)
 			if err != nil {
 				return nil, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
