@@ -88,6 +88,7 @@ jobs:
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
             --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
+            --env FIPS_TEST_ENABLED=true \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
             --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
             --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
