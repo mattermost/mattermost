@@ -35,10 +35,6 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 
 	// Parse the sync message to get channel ID for debugging
 	var sm model.SyncMsg
-	if err := json.Unmarshal(msg.Payload, &sm); err == nil {
-		scs.postDebugMessage(sm.ChannelId, fmt.Sprintf("[DEBUG] RECV: onReceiveSyncMessage START from remote %s", rc.Name))
-	}
-
 	if scs.server.Log().IsLevelEnabled(mlog.LvlSharedChannelServiceMessagesInbound) {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceMessagesInbound, "inbound message",
 			mlog.String("remote", rc.DisplayName),
@@ -79,19 +75,14 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 	}
 
 	// make sure target channel is shared with the remote
-	scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("[DEBUG] RECV: Checking if channel %s is shared with remote %s", syncMsg.ChannelId, rc.Name))
 	exists, err := scs.server.GetStore().SharedChannel().HasRemote(targetChannel.Id, rc.RemoteId)
 	if err != nil {
-		scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("[DEBUG] RECV: Error checking channel share state: %v", err))
 		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
 	}
-	scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("[DEBUG] RECV: Channel %s shared with remote %s? %t", syncMsg.ChannelId, rc.Name, exists))
 	if !exists {
-		scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("[DEBUG] RECV: Channel %s NOT shared with remote %s - returning ErrChannelNotShared", syncMsg.ChannelId, rc.Name))
 		return fmt.Errorf("cannot process sync message; %w: %s",
 			ErrChannelNotShared, syncMsg.ChannelId)
 	}
-	scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("[DEBUG] RECV: Channel %s IS shared with remote %s - proceeding with sync", syncMsg.ChannelId, rc.Name))
 
 	// add/update users before posts
 	for _, user := range syncMsg.Users {
