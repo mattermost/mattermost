@@ -16,7 +16,13 @@ ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
 # # Install needed packages and indirect dependencies
 USER 0:0
 RUN apk add \
-  curl
+  curl \
+  ca-certificates \
+  mailcap \
+  unrtf \
+  wv \
+  poppler-utils \
+  tzdata 
 
 # Set mattermost group/user and download Mattermost
 COPY $MM_PACKAGE /tmp/mattermost.tgz
