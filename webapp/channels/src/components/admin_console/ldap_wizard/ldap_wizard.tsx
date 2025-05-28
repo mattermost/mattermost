@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState} from 'react';
-import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
+import type {MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import type {CloudState} from '@mattermost/types/cloud';
@@ -36,8 +36,6 @@ import type {AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefiniti
 export type GeneralSettingProps = {
     setting: AdminDefinitionSetting;
     schema: AdminDefinitionSubSectionSchema | null;
-    config: Partial<AdminConfig>;
-    intl: IntlShape;
 }
 
 type Props = {
@@ -56,7 +54,7 @@ type Props = {
 } & WrappedComponentProps
 
 type State = {
-    [x: string]: any;
+    [x: string]: unknown;
     saveNeeded: false | 'both' | 'permissions' | 'config';
     saving: boolean;
     serverError: string | { message: string; id?: string } | null;
@@ -87,14 +85,14 @@ const LDAPWizard = (props: Props) => {
                 prevSchemaId: schema.id,
             }));
         }
-    }, []);
+    }, [props.config, props.roles, schema]);
 
     const [saveActions, setSaveActions] = useState<Array<() => Promise<{error?: {message?: string}}>>>([]);
 
     const buildTextSetting = (setting: AdminDefinitionSetting) => {
         return (
             <LDAPTextSetting
-                {...props}
+                config={props.config}
                 key={schema.id + '_text_' + setting.key}
                 state={state}
                 onChange={handleChange}
@@ -109,9 +107,8 @@ const LDAPWizard = (props: Props) => {
     const buildBoolSetting = (setting: AdminDefinitionSetting) => {
         return (
             <LDAPBooleanSetting
-                {...props}
                 key={schema.id + '_bool_' + setting.key}
-                value={state[setting.key!] || false}
+                value={state[setting.key!] as boolean || false}
                 onChange={handleChange}
                 schema={schema}
                 disabled={isDisabled(setting)}
@@ -124,7 +121,9 @@ const LDAPWizard = (props: Props) => {
     const buildDropdownSetting = (setting: AdminDefinitionSetting) => {
         return (
             <LDAPDropdownSetting
-                {...props}
+                config={props.config}
+                license={props.license}
+                enterpriseReady={props.enterpriseReady}
                 key={schema.id + '_dropdown_' + setting.key}
                 state={state}
                 onChange={handleChange}
@@ -139,7 +138,6 @@ const LDAPWizard = (props: Props) => {
     const buildButtonSetting = (setting: AdminDefinitionSetting) => {
         return (
             <LDAPButtonSetting
-                {...props}
                 key={schema.id + '_button_' + setting.key}
                 onChange={handleChange}
                 saveNeeded={false}
@@ -153,7 +151,6 @@ const LDAPWizard = (props: Props) => {
     const buildJobsTableSetting = (setting: AdminDefinitionSetting) => {
         return (
             <LDAPJobsTableSetting
-                {...props}
                 key={schema.id + '_jobstable_' + setting.key}
                 schema={schema}
                 disabled={isDisabled(setting)}
@@ -173,9 +170,8 @@ const LDAPWizard = (props: Props) => {
     const buildFileUploadSetting = (setting: AdminDefinitionSetting) => {
         return (
             <LDAPFileUploadSetting
-                {...props}
                 key={schema.id + '_fileupload_' + setting.key}
-                value={state[setting.key!]}
+                value={state[setting.key!] as string}
                 onChange={handleChange}
                 fileUploadSetstate={fileUploadSetstate}
                 schema={schema}
@@ -189,7 +185,8 @@ const LDAPWizard = (props: Props) => {
     const buildCustomSetting = (setting: AdminDefinitionSetting) => {
         return (
             <LDAPCustomSetting
-                {...props}
+                config={props.config}
+                license={props.license}
                 key={schema.id + '_custom_' + setting.key}
                 schema={schema}
                 setting={setting}
@@ -327,7 +324,7 @@ const LDAPWizard = (props: Props) => {
         }
     };
 
-    const handleChange = (id: string, value: any, confirm = false, shouldSubmit = false, warning = false) => {
+    const handleChange = (id: string, value: unknown, confirm = false, shouldSubmit = false, warning = false) => {
         let saveNeeded: State['saveNeeded'] = state.saveNeeded === 'permissions' ? 'both' : 'config';
 
         // Exception: Since OpenId-Custom is treated as feature discovery for Cloud Starter licenses, save button is disabled.

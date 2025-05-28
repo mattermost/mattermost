@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
 
@@ -17,11 +18,13 @@ type BoolSettingProps = {
 } & GeneralSettingProps
 
 const LDAPBooleanSetting = (props: BoolSettingProps) => {
+    const intl = useIntl();
+
     if (!props.schema || !props.setting.key || props.setting.type !== 'bool') {
         return (<></>);
     }
 
-    const label = renderLabel(props.setting, props.schema, props.intl);
+    const label = renderLabel(props.setting, props.schema, intl);
     const helpText = renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
 
     return (

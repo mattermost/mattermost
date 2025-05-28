@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import FileUploadSetting from 'components/admin_console/file_upload_setting';
 import RemoveFileSetting from 'components/admin_console/remove_file_setting';
@@ -22,6 +23,8 @@ type Props = {
 } & GeneralSettingProps
 
 const LDAPFileUploadSetting = (props: Props) => {
+    const intl = useIntl();
+
     if (!props.schema || props.setting.type !== 'fileupload' || !props.setting.key) {
         return (<></>);
     }
@@ -39,7 +42,7 @@ const LDAPFileUploadSetting = (props: Props) => {
             props.setting.remove_action(successCallback, errorCallback);
         };
 
-        const label = renderLabel(props.setting, props.schema, props.intl);
+        const label = renderLabel(props.setting, props.schema, intl);
         const helpText = renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
 
         return (
@@ -48,8 +51,8 @@ const LDAPFileUploadSetting = (props: Props) => {
                 key={props.schema.id + '_fileupload_' + props.setting.key}
                 label={label}
                 helpText={helpText}
-                removeButtonText={descriptorOrStringToString(props.setting.remove_button_text, props.intl)}
-                removingText={descriptorOrStringToString(props.setting.removing_text, props.intl)}
+                removeButtonText={descriptorOrStringToString(props.setting.remove_button_text, intl)}
+                removingText={descriptorOrStringToString(props.setting.removing_text, intl)}
                 fileName={props.value}
                 onSubmit={removeFile}
                 disabled={props.disabled}
@@ -73,7 +76,7 @@ const LDAPFileUploadSetting = (props: Props) => {
         props.setting.upload_action(file, successCallback, errorCallback);
     };
 
-    const label = renderLabel(props.setting, props.schema, props.intl);
+    const label = renderLabel(props.setting, props.schema, intl);
     const helpText = renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
 
     return (
@@ -82,7 +85,7 @@ const LDAPFileUploadSetting = (props: Props) => {
             key={props.schema.id + '_fileupload_' + props.setting.key}
             label={label}
             helpText={helpText}
-            uploadingText={descriptorOrStringToString(props.setting.uploading_text, props.intl)}
+            uploadingText={descriptorOrStringToString(props.setting.uploading_text, intl)}
             disabled={props.disabled}
             fileType={props.setting.fileType}
             onSubmit={uploadFile}
