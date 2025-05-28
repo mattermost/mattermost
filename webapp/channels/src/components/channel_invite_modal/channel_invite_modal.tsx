@@ -73,7 +73,7 @@ export type Props = {
     isGroupsEnabled: boolean;
     actions: {
         addUsersToChannel: (channelId: string, userIds: string[]) => Promise<ActionResult>;
-        getProfilesNotInChannel: (teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage?: number) => Promise<ActionResult>;
+        getProfilesNotInChannel: (teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage?: number, cursorId?: string) => Promise<ActionResult>;
         getProfilesInChannel: (channelId: string, page: number, perPage: number, sort: string, options: {active?: boolean}) => Promise<ActionResult>;
         getTeamStats: (teamId: string) => void;
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
@@ -99,6 +99,7 @@ const ChannelInviteModalComponent = (props: Props) => {
     const [loadingUsers, setLoadingUsers] = useState(true);
     const [groupAndUserOptions, setGroupAndUserOptions] = useState<Array<UserProfileValue | GroupValue>>([]);
     const [inviteError, setInviteError] = useState<string | undefined>(undefined);
+    const [pageCursors, setPageCursors] = useState<{[page: number]: string}>({});
 
     const searchTimeoutId = useRef<number>(0);
     const selectedItemRef = useRef<HTMLDivElement>(null);
@@ -246,19 +247,38 @@ const ChannelInviteModalComponent = (props: Props) => {
         setLoadingUsers(loadingState);
     }, []);
 
-    // Handle page change
+    // Handle page change with cursor-based pagination
     const handlePageChange = useCallback((page: number, prevPage: number) => {
         if (page > prevPage) {
             setUsersLoadingState(true);
+
+            // Get cursor for this page (if we're going forward)
+            const cursorId = page > 0 ? pageCursors[page - 1] : '';
+
             props.actions.getProfilesNotInChannel(
                 props.channel.team_id,
                 props.channel.id,
                 props.channel.group_constrained,
-                page + 1, USERS_PER_PAGE).then(() => setUsersLoadingState(false));
+                page + 1,
+                USERS_PER_PAGE,
+                cursorId,
+            ).then((result) => {
+                // Store the cursor for the next page (ID of the last user)
+                if (result.data && result.data.length > 0) {
+                    const lastUserId = result.data[result.data.length - 1].id;
+                    setPageCursors((prev) => ({
+                        ...prev,
+                        [page]: lastUserId,
+                    }));
+                }
+                setUsersLoadingState(false);
+            }).catch(() => {
+                setUsersLoadingState(false);
+            });
 
             props.actions.getProfilesInChannel(props.channel.id, page + 1, USERS_PER_PAGE, '', {active: true});
         }
-    }, [props.actions, props.channel, setUsersLoadingState]);
+    }, [props.actions, props.channel, setUsersLoadingState, pageCursors, setPageCursors]);
 
     // Handle form submission
     const handleSubmit = useCallback(() => {
@@ -297,20 +317,9 @@ const ChannelInviteModalComponent = (props: Props) => {
         setTerm(term);
 
         if (!term) {
-            if (props.channel.policy_enforced) {
-            // For ABAC-enabled channels, reload the initial data to ensure proper filtering
-                props.actions.getProfilesNotInChannel(
-                    props.channel.team_id,
-                    props.channel.id,
-                    props.channel.group_constrained,
-                    0,
-                ).then(() => {
-                    setUsersLoadingState(false);
-                });
-            } else {
-            // For non-ABAC channels, just set loading state to false without making API calls
-                setUsersLoadingState(false);
-            }
+            // Reset cursor state when clearing search
+            setPageCursors({});
+            setUsersLoadingState(false);
             return;
         }
 
@@ -430,7 +439,7 @@ const ChannelInviteModalComponent = (props: Props) => {
 
     // Initial data loading - only run when channel changes or component mounts
     useEffect(() => {
-        props.actions.getProfilesNotInChannel(props.channel.team_id, props.channel.id, props.channel.group_constrained, 0).then(() => {
+        props.actions.getProfilesNotInChannel(props.channel.team_id, props.channel.id, props.channel.group_constrained, 0, USERS_PER_PAGE).then(() => {
             setUsersLoadingState(false);
         });
         props.actions.getProfilesInChannel(props.channel.id, 0, USERS_PER_PAGE, '', {active: true});

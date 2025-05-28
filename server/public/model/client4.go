@@ -1392,7 +1392,15 @@ func (c *Client4) GetUsersInChannelByStatus(ctx context.Context, channelId strin
 
 // GetUsersNotInChannel returns a page of users not in a channel. Page counting starts at 0.
 func (c *Client4) GetUsersNotInChannel(ctx context.Context, teamId, channelId string, page int, perPage int, etag string) ([]*User, *Response, error) {
+	return c.GetUsersNotInChannelWithCursor(ctx, teamId, channelId, page, perPage, etag, "")
+}
+
+// GetUsersNotInChannelWithCursor returns a page of users not in a channel with cursor support.
+func (c *Client4) GetUsersNotInChannelWithCursor(ctx context.Context, teamId, channelId string, page int, perPage int, etag string, cursorId string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?in_team=%v&not_in_channel=%v&page=%v&per_page=%v", teamId, channelId, page, perPage)
+	if cursorId != "" {
+		query += fmt.Sprintf("&cursor_id=%v", cursorId)
+	}
 	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -1403,7 +1411,7 @@ func (c *Client4) GetUsersNotInChannel(ctx context.Context, teamId, channelId st
 		return list, BuildResponse(r), nil
 	}
 	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
-		return nil, nil, NewAppError("GetUsersNotInChannel", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("GetUsersNotInChannelWithCursor", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return list, BuildResponse(r), nil
 }
