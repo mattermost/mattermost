@@ -307,3 +307,8 @@ func (scs *Service) postUnshareNotification(channelID string, creatorID string, 
 func (scs *Service) HandleChannelNotSharedErrorForTesting(msg *model.SyncMsg, rc *model.RemoteCluster) {
 	scs.handleChannelNotSharedError(msg, rc)
 }
+
+// OnReceiveSyncMessageForTesting is a wrapper to expose onReceiveSyncMessage for testing purposes
+func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	return scs.onReceiveSyncMessage(msg, rc, response)
+}

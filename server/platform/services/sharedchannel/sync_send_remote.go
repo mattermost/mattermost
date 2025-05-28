@@ -685,6 +685,9 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.RemoteCluster) {
 	logger := scs.server.Log()
 
+	// DEBUG: Post instrumentation message about entering this method
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] handleChannelNotSharedError called for remote %s", rc.Name))
+
 	logger.Log(mlog.LvlSharedChannelServiceDebug, "Remote indicated channel is no longer shared; unsharing locally",
 		mlog.String("remote", rc.Name),
 		mlog.String("channel_id", msg.ChannelId),
@@ -693,6 +696,7 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 	// Get the SharedChannelRemote record for this channel and remote
 	scr, getErr := scs.server.GetStore().SharedChannel().GetRemoteByIds(msg.ChannelId, rc.RemoteId)
 	if getErr != nil {
+		scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Failed to get SharedChannelRemote for remote %s: %s", rc.Name, getErr.Error()))
 		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to get shared channel remote",
 			mlog.String("remote", rc.Name),
 			mlog.String("channel_id", msg.ChannelId),
@@ -700,6 +704,7 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 		)
 		return
 	}
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Found SharedChannelRemote record for remote %s", rc.Name))
 
 	// Get channel details for posting the system message
 	channel, channelErr := scs.server.GetStore().Channel().Get(msg.ChannelId, true)
@@ -713,18 +718,26 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 	}
 
 	// Post a system message to notify users that the channel is no longer shared with this remote
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] About to post unshare notification for remote %s", rc.Name))
 	scs.postUnshareNotification(msg.ChannelId, scr.CreatorId, channel, rc)
 
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] About to uninvite remote %s from channel", rc.Name))
 	if err := scs.UninviteRemoteFromChannel(msg.ChannelId, rc.RemoteId); err != nil {
+		scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Failed to uninvite remote %s: %s", rc.Name, err.Error()))
 		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to uninvite remote from shared channel", mlog.Err(err))
 		return
 	}
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Successfully completed unshare process for remote %s", rc.Name))
 }
 
 // sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).
 func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
+	// DEBUG: Post instrumentation message about sending sync message
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Sending sync message to remote %s", rc.Name))
+	
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
+		scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Remote Cluster Service not enabled for remote %s", rc.Name))
 		return fmt.Errorf("cannot update remote cluster %s for channel id %s; Remote Cluster Service not enabled", rc.Name, msg.ChannelId)
 	}
 
@@ -747,8 +760,14 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 	err = rcs.SendMsg(ctx, rcMsg, rc, func(rcMsg model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, errResp error) {
 		defer wg.Done()
 
+		// DEBUG: Post instrumentation message about sync response
+		if errResp != nil {
+			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Sync error from remote %s: %s", rc.Name, errResp.Error()))
+		}
+
 		// Check for ErrChannelNotShared in the response error
 		if errResp != nil && strings.Contains(errResp.Error(), ErrChannelNotShared.Error()) {
+			scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Detected ErrChannelNotShared from remote %s - triggering unshare", rc.Name))
 			scs.handleChannelNotSharedError(msg, rc)
 			return
 		}
@@ -799,5 +818,38 @@ func sanitizeSyncData(sd *syncData) {
 	}
 	for id, user := range sd.profileImages {
 		sd.profileImages[id] = sanitizeUserForSync(user)
+	}
+}
+
+// postDebugMessage posts a debug system message to the channel for instrumentation
+func (scs *Service) postDebugMessage(channelId, message string) {
+	if scs.app == nil {
+		return
+	}
+	
+	// Get channel details first
+	channel, err := scs.server.GetStore().Channel().Get(channelId, true)
+	if err != nil {
+		return
+	}
+	
+	// Get the shared channel to find a creator ID
+	sc, scErr := scs.server.GetStore().SharedChannel().Get(channelId)
+	if scErr != nil {
+		return
+	}
+	
+	post := &model.Post{
+		ChannelId: channelId,
+		UserId:    sc.CreatorId,
+		Message:   message,
+		Type:      model.PostTypeSystemGeneric,
+		CreateAt:  model.GetMillis(),
+	}
+	
+	ctx := request.EmptyContext(scs.server.Log())
+	_, appErr := scs.app.CreatePost(ctx, post, channel, model.CreatePostFlags{})
+	if appErr != nil {
+		scs.server.Log().Warn("Failed to post debug message", mlog.String("channel_id", channelId), mlog.Err(appErr))
 	}
 }

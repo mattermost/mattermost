@@ -225,7 +225,9 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 		return
 	}
 
+	// DEBUG: Post instrumentation message about force sync
 	for _, scr := range scrs {
+		scs.postDebugMessage(scr.ChannelId, fmt.Sprintf("[DEBUG] ForceSyncForRemote creating sync task for remote %s", rc.DisplayName))
 		task := newSyncTask(scr.ChannelId, "", rc.RemoteId, nil, nil)
 		task.schedule = time.Now().Add(NotifyMinimumDelay)
 		scs.addTask(task)
@@ -365,6 +367,9 @@ func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 
 // processTask updates one or more remote clusters with any new channel content.
 func (scs *Service) processTask(task syncTask) error {
+	// DEBUG: Post instrumentation message about processing task
+	scs.postDebugMessage(task.channelID, fmt.Sprintf("[DEBUG] Processing sync task for channel %s, remoteID: %s", task.channelID, task.remoteID))
+	
 	// map is used to ensure remotes don't get sync'd twice, such as when
 	// they have the autoinvited flag and have explicitly subscribed to a channel.
 	remotesMap := make(map[string]*model.RemoteCluster)
