@@ -3,6 +3,9 @@
 
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
+import {useIntl} from 'react-intl';
+
+import type {AdminConfig} from '@mattermost/types/config';
 
 import TextSetting from 'components/admin_console/text_setting';
 import FormError, {TYPE_BACKSTAGE} from 'components/form_error';
@@ -14,7 +17,8 @@ import type {GeneralSettingProps} from './ldap_wizard';
 import {renderLabel, renderSettingHelpText} from '../schema_admin_settings';
 
 type TextSettingProps = {
-    state: any;
+    config: Partial<AdminConfig>;
+    state: Record<string, unknown>;
     placeholder?: string | MessageDescriptor;
     onChange(id: string, value: any): void;
     disabled: boolean;
@@ -22,6 +26,8 @@ type TextSettingProps = {
 } & GeneralSettingProps
 
 const LDAPTextSetting = (props: TextSettingProps) => {
+    const intl = useIntl();
+
     if (!props.schema || !props.setting.key || (props.setting.type !== 'text' && props.setting.type !== 'longtext' && props.setting.type !== 'number')) {
         return (<></>);
     }
@@ -37,14 +43,14 @@ const LDAPTextSetting = (props: TextSettingProps) => {
     if (props.setting.dynamic_value) {
         value = props.setting.dynamic_value(value, props.config, props.state);
     } else if (props.setting.multiple) {
-        value = props.state[props.setting.key] ? props.state[props.setting.key].join(',') : '';
+        value = props.state[props.setting.key] ? (props.state[props.setting.key] as string[]).join(',') : '';
     } else {
-        value = props.state[props.setting.key] ?? (props.setting.default || '');
+        value = (props.state[props.setting.key] as string) ?? (props.setting.default as string || '');
     }
 
     let footer = null;
     if (props.setting.validate) {
-        const err = props.setting.validate(value).error(props.intl);
+        const err = props.setting.validate(value).error(intl);
         footer = err ? (
             <FormError
                 type={TYPE_BACKSTAGE}
@@ -53,7 +59,7 @@ const LDAPTextSetting = (props: TextSettingProps) => {
         ) : footer;
     }
 
-    const label = renderLabel(props.setting, props.schema, props.intl);
+    const label = renderLabel(props.setting, props.schema, intl);
     const helpText = renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
 
     return (
