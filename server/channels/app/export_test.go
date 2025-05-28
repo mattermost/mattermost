@@ -1735,3 +1735,148 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 	require.True(t, foundThreadedReplyInImport,
 		"Threaded reply from deactivated user should be imported")
 }
+
+func TestBulkExportUsersOnly(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Create some test data
+	team := th.CreateTeam()
+	channel := th.CreateChannel(th.Context, team)
+	
+	// Create additional users
+	user1, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:    "user1@example.com",
+		Username: "user1",
+		Password: "password123",
+	})
+	require.Nil(t, appErr)
+
+	user2, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:    "user2@example.com",
+		Username: "user2",
+		Password: "password123",
+	})
+	require.Nil(t, appErr)
+
+	// Add users to teams and channels
+	_, appErr = th.App.JoinUserToTeam(th.Context, team, user1, "")
+	require.Nil(t, appErr)
+	_, appErr = th.App.JoinUserToTeam(th.Context, team, user2, "")
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.AddUserToChannel(th.Context, user1, channel, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, user2, channel, false)
+	require.Nil(t, appErr)
+
+	// Create some posts (these should NOT be exported in users-only mode)
+	post1, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    user1.Id,
+		ChannelId: channel.Id,
+		Message:   "Test post 1",
+	}, channel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+	require.NotNil(t, post1)
+
+	// Create user preferences
+	preferences := model.Preferences{
+		{
+			UserId:   user1.Id,
+			Category: model.PreferenceCategoryTheme,
+			Name:     "",
+			Value:    `{"type":"custom"}`,
+		},
+	}
+	appErr = th.App.UpdatePreferences(th.Context, user1.Id, preferences)
+	require.Nil(t, appErr)
+
+	// Export with UsersOnly option
+	var b bytes.Buffer
+	opts := model.BulkExportOpts{
+		UsersOnly: true,
+	}
+	appErr = th.App.BulkExport(th.Context, &b, "", nil, opts)
+	require.Nil(t, appErr)
+
+	// Parse the export and verify contents
+	scanner := bufio.NewScanner(&b)
+	hasUsers := false
+	hasTeams := false
+	hasPosts := false
+	hasChannels := false
+	userCount := 0
+
+	for scanner.Scan() {
+		var line imports.LineImportData
+		err := json.Unmarshal(scanner.Bytes(), &line)
+		require.NoError(t, err)
+
+		switch line.Type {
+		case "user":
+			hasUsers = true
+			userCount++
+			// Verify user data is present
+			require.NotNil(t, line.User)
+			require.NotEmpty(t, line.User.Username)
+			require.NotEmpty(t, line.User.Email)
+		case "team":
+			hasTeams = true
+		case "channel":
+			hasChannels = true
+		case "post":
+			hasPosts = true
+		}
+	}
+
+	// Verify that only users were exported
+	require.True(t, hasUsers, "Export should contain users")
+	require.False(t, hasTeams, "Export should NOT contain teams in users-only mode")
+	require.False(t, hasChannels, "Export should NOT contain channels in users-only mode")
+	require.False(t, hasPosts, "Export should NOT contain posts in users-only mode")
+	
+	// Verify we have the correct number of users (including system users)
+	require.GreaterOrEqual(t, userCount, 3, "Should have at least 3 users exported")
+}
+
+func TestBulkExportUsersOnlyWithProfilePictures(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Create a user with a profile picture
+	user, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:    "userpp@example.com",
+		Username: "userpp",
+		Password: "password123",
+	})
+	require.Nil(t, appErr)
+
+	// Set up user to have a profile picture flag (simulate having one)
+	user.LastPictureUpdate = model.GetMillis()
+	_, appErr = th.App.UpdateUser(th.Context, user, false)
+	require.Nil(t, appErr)
+
+	// Create export directory
+	dir, err := os.MkdirTemp("", "export_test")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	// Export with UsersOnly and IncludeProfilePictures options
+	exportFile, err := os.Create(filepath.Join(dir, "users_export.zip"))
+	require.NoError(t, err)
+	defer exportFile.Close()
+
+	opts := model.BulkExportOpts{
+		UsersOnly:              true,
+		IncludeProfilePictures: true,
+		CreateArchive:          true,
+	}
+
+	appErr = th.App.BulkExport(th.Context, exportFile, dir, nil, opts)
+	require.Nil(t, appErr)
+
+	// Verify the export file was created
+	stat, err := exportFile.Stat()
+	require.NoError(t, err)
+	require.Greater(t, stat.Size(), int64(0), "Export file should not be empty")
+}
