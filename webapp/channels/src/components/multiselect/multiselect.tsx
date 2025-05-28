@@ -67,12 +67,14 @@ export type Props<T extends Value> = {
     savingEnabled?: boolean;
     handleCancel?: () => void;
     customNoOptionsMessage?: React.ReactNode;
+    required?: boolean;
 }
 
 export type State = {
     a11yActive: boolean;
     input: string;
     page: number;
+    hasError: boolean;
 }
 
 const KeyCodes = Constants.KeyCodes;
@@ -88,6 +90,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         valueWithImage: false,
         focusOnLoad: true,
         savingEnabled: true,
+        required: false,
     };
 
     public constructor(props: Props<T>) {
@@ -97,7 +100,14 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             a11yActive: false,
             page: 0,
             input: '',
+            hasError: false,
         };
+    }
+
+    public componentDidUpdate(prevProps: Props<T>) {
+        if (prevProps.values !== this.props.values) {
+            this.validateInput();
+        }
     }
 
     public componentDidMount() {
@@ -309,6 +319,10 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         </div>
     );
 
+    private validateInput = () => {
+        this.setState({hasError: Boolean(this.props.required && this.props.values.length === 0)});
+    };
+
     public render() {
         const options = Object.assign([...this.props.options]);
         const {totalCount, users, values} = this.props;
@@ -480,7 +494,11 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             <>
                 <div className='filtered-user-list'>
                     <div className='filter-row filter-row--full'>
-                        <div className='multi-select__container react-select'>
+                        <div
+                            className={classNames('multi-select__container react-select', {
+                                'has-error': this.state.hasError,
+                            })}
+                        >
                             <ReactSelect
                                 id='selectItems'
                                 ref={this.reactSelectRef as React.RefObject<any>} // type of ref on @types/react-select is outdated
@@ -508,6 +526,9 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                 aria-label={formatAsString(this.props.intl.formatMessage, this.props.placeholderText)}
                                 className={this.state.a11yActive ? 'multi-select__focused' : ''}
                                 classNamePrefix='react-select-auto react-select'
+                                aria-invalid={this.state.hasError}
+                                aria-describedby={this.state.hasError ? 'multiSelectMessageError' : undefined}
+                                onBlur={this.validateInput}
                             />
                             {this.props.saveButtonPosition === 'top' &&
                                 <SaveButton
@@ -535,6 +556,18 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     >
                         {noteTextContainer}
                     </div>
+                    {this.state.hasError && (
+                        <div
+                            className='multi-select__error'
+                            role='alert'
+                            id='multiSelectMessageError'
+                        >
+                            <i className='icon icon-alert-circle-outline'/>
+                            <span>
+                                {this.props.intl.formatMessage({id: 'multiselect.required', defaultMessage: 'This field is required'})}
+                            </span>
+                        </div>
+                    )}
                     {this.props.saveButtonPosition === 'top' &&
                         <div className='filter-controls'>
                             {previousButton}
