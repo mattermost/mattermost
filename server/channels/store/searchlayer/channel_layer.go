@@ -36,17 +36,17 @@ func (c *SearchChannelStore) deleteChannelIndex(rctx request.CTX, channel *model
 	}
 }
 
-func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Channel) {
-	teamMemberIDs, err := c.GetTeamMembersForChannel(rctx, channel.Id)
+func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Channel, userID string) {
+	teamMemberIDs, err := c.GetTeamMembersForChannel(channel.Id)
 	if err != nil {
 		rctx.Logger().Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 		return
 	}
 
-	c.indexChannelWithTeamMembers(rctx, channel, teamMemberIDs)
+	c.indexChannelWithTeamMembers(rctx, channel, teamMemberIDs, userID)
 }
 
-func (c *SearchChannelStore) indexChannelWithTeamMembers(rctx request.CTX, channel *model.Channel, teamMemberIDs []string) {
+func (c *SearchChannelStore) indexChannelWithTeamMembers(rctx request.CTX, channel *model.Channel, teamMemberIDs []string, userID string) {
 	var userIDs []string
 	var err error
 	if channel.Type == model.ChannelTypePrivate {
@@ -60,7 +60,7 @@ func (c *SearchChannelStore) indexChannelWithTeamMembers(rctx request.CTX, chann
 	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
-				if err := engineCopy.IndexChannel(rctx, channel, userIDs, teamMemberIDs); err != nil {
+				if err := engineCopy.IndexChannel(rctx, channel, userIDs, teamMemberIDs, userID); err != nil {
 					rctx.Logger().Warn("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
@@ -73,7 +73,7 @@ func (c *SearchChannelStore) indexChannelWithTeamMembers(rctx request.CTX, chann
 func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannels int64) (*model.Channel, error) {
 	newChannel, err := c.ChannelStore.Save(rctx, channel, maxChannels)
 	if err == nil {
-		c.indexChannel(rctx, newChannel)
+		c.indexChannel(rctx, newChannel, "")
 	}
 	return newChannel, err
 }
@@ -81,7 +81,7 @@ func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxC
 func (c *SearchChannelStore) Update(rctx request.CTX, channel *model.Channel) (*model.Channel, error) {
 	updatedChannel, err := c.ChannelStore.Update(rctx, channel)
 	if err == nil {
-		c.indexChannel(rctx, updatedChannel)
+		c.indexChannel(rctx, updatedChannel, "")
 	}
 	return updatedChannel, err
 }
@@ -94,7 +94,7 @@ func (c *SearchChannelStore) UpdateMember(rctx request.CTX, cm *model.ChannelMem
 		if channelErr != nil {
 			rctx.Logger().Warn("Encountered error indexing user in channel", mlog.String("channel_id", member.ChannelId), mlog.Err(channelErr))
 		} else {
-			c.indexChannel(rctx, channel)
+			c.indexChannel(rctx, channel, cm.UserId)
 			c.rootStore.indexUserFromID(rctx, channel.CreatorId)
 		}
 	}
@@ -109,7 +109,7 @@ func (c *SearchChannelStore) SaveMember(rctx request.CTX, cm *model.ChannelMembe
 		if channelErr != nil {
 			rctx.Logger().Warn("Encountered error indexing user in channel", mlog.String("channel_id", member.ChannelId), mlog.Err(channelErr))
 		} else {
-			c.indexChannel(rctx, channel)
+			c.indexChannel(rctx, channel, cm.UserId)
 			c.rootStore.indexUserFromID(rctx, channel.CreatorId)
 		}
 	}
@@ -124,7 +124,7 @@ func (c *SearchChannelStore) RemoveMember(rctx request.CTX, channelID, userIdToR
 
 	channel, err := c.ChannelStore.Get(channelID, true)
 	if err == nil {
-		c.indexChannel(rctx, channel)
+		c.indexChannel(rctx, channel, userIdToRemove)
 	}
 
 	return err
@@ -137,7 +137,7 @@ func (c *SearchChannelStore) RemoveMembers(rctx request.CTX, channelID string, u
 
 	channel, err := c.ChannelStore.Get(channelID, true)
 	if err == nil {
-		c.indexChannel(rctx, channel)
+		c.indexChannel(rctx, channel, "")
 	}
 
 	for _, uid := range userIds {
@@ -151,7 +151,7 @@ func (c *SearchChannelStore) CreateDirectChannel(rctx request.CTX, user *model.U
 	if err == nil {
 		c.rootStore.indexUserFromID(rctx, user.Id)
 		c.rootStore.indexUserFromID(rctx, otherUser.Id)
-		c.indexChannel(rctx, channel)
+		c.indexChannel(rctx, channel, "")
 	}
 	return channel, err
 }
@@ -161,7 +161,7 @@ func (c *SearchChannelStore) SaveDirectChannel(rctx request.CTX, directchannel *
 	if err == nil {
 		c.rootStore.indexUserFromID(rctx, member1.UserId)
 		c.rootStore.indexUserFromID(rctx, member2.UserId)
-		c.indexChannel(rctx, channel)
+		c.indexChannel(rctx, channel, "")
 	}
 	return channel, err
 }
@@ -279,7 +279,7 @@ func (c *SearchChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, user
 		c.rootStore.indexUserFromID(rctx, userId)
 		if errGetChannels == nil {
 			for _, ch := range channels {
-				c.indexChannel(rctx, ch)
+				c.indexChannel(rctx, ch, userId)
 			}
 		}
 	}
