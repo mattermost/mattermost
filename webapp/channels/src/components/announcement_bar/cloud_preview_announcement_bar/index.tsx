@@ -38,10 +38,16 @@ const CloudPreviewAnnouncementBar: React.FC = () => {
         if (timeDiff <= 0) {
             return '00:00';
         }
-
+        
         const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+        // If less than 1 minute, show seconds
+        if (days === 0 && hours === 0 && minutes === 0) {
+            return `${seconds}s`;
+        }
 
         // Build time string based on what units are needed
         const parts = [];
@@ -61,15 +67,32 @@ const CloudPreviewAnnouncementBar: React.FC = () => {
             return undefined;
         }
 
-        // Update immediately
-        setTimeLeft(calculateTimeLeft());
+        let interval: NodeJS.Timeout;
 
-        // Update every minute
-        const interval = setInterval(() => {
+        const updateTimeAndScheduleNext = () => {
             setTimeLeft(calculateTimeLeft());
-        }, 60000); // 60 seconds
 
-        return () => clearInterval(interval);
+            // Calculate time remaining to determine next interval
+            const now = Date.now();
+            const endTime = subscription.end_at || 0;
+            const timeDiff = endTime - now;
+            const minutesLeft = Math.floor(timeDiff / (1000 * 60));
+
+            // Use 1 second interval if less than 1 minute remains, otherwise 60 seconds
+            const intervalTime = minutesLeft < 1 ? 1000 : 60000;
+
+            // Schedule the next update
+            interval = setTimeout(updateTimeAndScheduleNext, intervalTime);
+        };
+
+        // Start the update cycle
+        updateTimeAndScheduleNext();
+
+        return () => {
+            if (interval) {
+                clearTimeout(interval);
+            }
+        };
     }, [subscription, isCloud, calculateTimeLeft]);
 
     const handleContactSalesClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {

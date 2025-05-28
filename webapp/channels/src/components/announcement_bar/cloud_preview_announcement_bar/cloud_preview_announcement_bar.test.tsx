@@ -192,6 +192,28 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         expect(wrapper.text()).toMatch(/Time left: \d{2}m/);
     });
 
+    it('should display seconds when less than a minute', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.cloud.subscription = {
+            ...baseSubscription,
+            end_at: Date.now() + (30 * 1000), // 30 seconds from now
+        };
+
+        const store = mockStore(state);
+
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        const wrapper = mountWithIntl(
+            <reactRedux.Provider store={store}>
+                <CloudPreviewAnnouncementBar/>
+            </reactRedux.Provider>,
+        );
+
+        // Should show format like "30s"
+        expect(wrapper.text()).toMatch(/Time left: \d+s/);
+    });
+
     it('should display 00:00 when time has expired', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = {
