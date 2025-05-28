@@ -110,7 +110,7 @@ describe('UserPropertyDotMenu', () => {
         });
     });
 
-    it('displays LDAP and SAML link menu options', async () => {
+    it('displays LDAP and SAML link menu options for existing fields', async () => {
         renderComponent();
 
         // Open the menu
@@ -120,8 +120,63 @@ describe('UserPropertyDotMenu', () => {
         // Verify both link options are shown
         expect(screen.getByText('Link property to AD/LDAP')).toBeInTheDocument();
         expect(screen.getByText('Link property to SAML')).toBeInTheDocument();
+    });
 
-        // TODO mock history and verify the link actions
+    it('hides LDAP and SAML link menu options for pending fields', async () => {
+        const pendingField = {
+            ...baseField,
+            create_at: 0, // Mark as pending creation
+        };
+
+        renderComponent(pendingField);
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${pendingField.id}`);
+        fireEvent.click(menuButton);
+
+        // Verify both link options are not shown
+        expect(screen.queryByText('Link property to AD/LDAP')).not.toBeInTheDocument();
+        expect(screen.queryByText('Link property to SAML')).not.toBeInTheDocument();
+    });
+
+    it('shows "Edit link with" text when LDAP attribute is linked', async () => {
+        const linkedField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'employeeID',
+            },
+        };
+
+        renderComponent(linkedField);
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${linkedField.id}`);
+        fireEvent.click(menuButton);
+
+        // Verify the LDAP link text shows the linked property
+        expect(screen.getByText('Edit link with:')).toBeInTheDocument();
+        expect(screen.getByText('AD/LDAP: employeeID')).toBeInTheDocument();
+    });
+
+    it('shows "Edit link with" text when SAML attribute is linked', async () => {
+        const linkedField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                saml: 'position',
+            },
+        };
+
+        renderComponent(linkedField);
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${linkedField.id}`);
+        fireEvent.click(menuButton);
+
+        // Verify the SAML link text shows the linked property
+        expect(screen.getByText('Edit link with:')).toBeInTheDocument();
+        expect(screen.getByText('SAML: position')).toBeInTheDocument();
     });
 
     it('handles field duplication', async () => {

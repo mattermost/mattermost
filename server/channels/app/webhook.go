@@ -344,7 +344,7 @@ func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Cha
 			post.AddProp(model.PostPropsOverrideIconURL, overrideIconURL)
 		}
 		if overrideIconEmoji != "" {
-			post.AddProp(model.PostPropsOverrideIconURL, overrideIconEmoji)
+			post.AddProp(model.PostPropsOverrideIconEmoji, overrideIconEmoji)
 		}
 	}
 

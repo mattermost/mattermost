@@ -75,7 +75,9 @@ exports[`components/integrations/InstalledCommand should call onDelete function 
           id="installed_integrations.token"
           values={
             Object {
-              "token": "testToken",
+              "token": <code>
+                testToken
+              </code>,
             }
           }
         />
@@ -187,7 +189,9 @@ exports[`components/integrations/InstalledCommand should call onRegenToken funct
           id="installed_integrations.token"
           values={
             Object {
-              "token": "testToken",
+              "token": <code>
+                testToken
+              </code>,
             }
           }
         />
@@ -269,7 +273,9 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
           id="installed_integrations.token"
           values={
             Object {
-              "token": "testToken",
+              "token": <code>
+                testToken
+              </code>,
             }
           }
         />
@@ -349,7 +355,9 @@ exports[`components/integrations/InstalledCommand should match snapshot, not aut
           id="installed_integrations.token"
           values={
             Object {
-              "token": "testToken",
+              "token": <code>
+                testToken
+              </code>,
             }
           }
         />

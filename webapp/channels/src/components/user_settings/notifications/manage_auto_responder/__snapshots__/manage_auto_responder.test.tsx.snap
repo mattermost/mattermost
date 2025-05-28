@@ -229,6 +229,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               rows={5}
               style={
                 Object {
+                  "height": "auto",
                   "resize": "none",
                 }
               }
@@ -327,6 +328,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                   rows={5}
                   style={
                     Object {
+                      "height": "auto",
                       "resize": "none",
                     }
                   }
@@ -341,6 +343,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                     rows={5}
                     style={
                       Object {
+                        "height": "auto",
                         "resize": "none",
                       }
                     }

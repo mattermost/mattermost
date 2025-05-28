@@ -73,7 +73,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                       className="overflow--ellipsis text-nowrap"
                     >
                       <span
-                        className="Title-gqsoLG eUZcLS overflow--ellipsis text-nowrap"
+                        className="Title-kjfqTJ hEcOkX overflow--ellipsis text-nowrap"
                       >
                         group_display_name
                       </span>

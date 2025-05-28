@@ -3329,7 +3329,6 @@
   "channel_loader.postedImage": " publikoval obrázek",
   "channel_loader.socketError": "Prosím, zkontrolujte své připojení, Mattermost není dostupný. Pokud problém přetrvává, požádejte správce o kontrolu portu WebSocket.",
   "channel_loader.someone": "Někdo",
-  "channel_loader.something": " udělal něco nového",
   "channel_loader.unknown_error": "Ze serveru jsme obdrželi neočekávaný stavový kód.",
   "channel_loader.uploadedFile": " nahrál soubor",
   "channel_loader.uploadedImage": " publikoval obrázek",

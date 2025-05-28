@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import type {Location} from 'history';
+import type {RefCallback} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
@@ -31,10 +33,6 @@ import type {PropsFromRedux} from './index';
 
 export type Props = PropsFromRedux & RouteComponentProps;
 
-type State = {
-    search: string;
-}
-
 // not every page in the system console will need the license and config, but the vast majority will
 type ExtraProps = {
     enterpriseReady: boolean;
@@ -49,39 +47,72 @@ type ExtraProps = {
     isCurrentUserSystemAdmin: boolean;
 }
 
-class AdminConsole extends React.PureComponent<Props, State> {
-    public constructor(props: Props) {
-        super(props);
-        this.state = {
-            search: '',
-        };
-    }
+/**
+ * Focus or scroll to a provided hash for the given {@link Location}.
+ * @returns a ref callback that should to be attached to an ancestor of the target hash element.
+ * @remarks emulates standard browser URL hash scroll-to behavior, but also works in custom or nested scroll containers.
+ */
+const useFocusScroller = (location: Location): RefCallback<HTMLElement> => {
+    const lastFocusedLocation = useRef<Location>();
 
-    public componentDidMount(): void {
-        this.props.actions.getConfig();
-        this.props.actions.getEnvironmentConfig();
-        this.props.actions.loadRolesIfNeeded(['channel_user', 'team_user', 'system_user', 'channel_admin', 'team_admin', 'system_admin', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin', 'system_manager']);
-        this.props.actions.selectLhsItem(LhsItemType.None);
-        this.props.actions.selectTeam('');
+    return useCallback((node) => {
+        if (!node || !location.hash || lastFocusedLocation.current === location) {
+            // if there is no node or hash, or if we've already focused the hash for this location
+            return;
+        }
+
+        const id = decodeURIComponent(location.hash.substring(1));
+
+        if (!id) {
+            return;
+        }
+
+        const element = document.getElementById(id);
+
+        if (!element) {
+            return;
+        }
+
+        // focus the element, or scroll it into view if it couldn't be focused as a fallback
+        element.focus();
+        if (document.activeElement !== element) {
+            element.scrollIntoView({behavior: 'auto'});
+        }
+
+        // only focus a hash for a given location once
+        lastFocusedLocation.current = location;
+    }, [location]);
+};
+
+const AdminConsole = (props: Props) => {
+    const [search, setSearch] = useState('');
+    const handleFocusScroller = useFocusScroller(props.location);
+
+    useEffect(() => {
+        props.actions.getConfig();
+        props.actions.getEnvironmentConfig();
+        props.actions.loadRolesIfNeeded(['channel_user', 'team_user', 'system_user', 'channel_admin', 'team_admin', 'system_admin', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin', 'system_manager']);
+        props.actions.selectLhsItem(LhsItemType.None);
+        props.actions.selectTeam('');
         document.body.classList.add('console__body');
         document.getElementById('root')?.classList.add('console__root');
         resetTheme();
-    }
 
-    public componentWillUnmount(): void {
-        document.body.classList.remove('console__body');
-        document.getElementById('root')?.classList.remove('console__root');
-        applyTheme(this.props.currentTheme);
+        return () => {
+            document.body.classList.remove('console__body');
+            document.getElementById('root')?.classList.remove('console__root');
+            applyTheme(props.currentTheme);
 
-        // Reset the admin console users management table properties
-        this.props.actions.setAdminConsoleUsersManagementTableProperties();
-    }
+            // Reset the admin console users management table properties
+            props.actions.setAdminConsoleUsersManagementTableProperties();
+        };
+    }, []);
 
-    private handleSearchChange = (search: string) => {
-        this.setState({search});
+    const handleSearchChange = (searchTerm: string) => {
+        setSearch(searchTerm);
     };
 
-    private mainRolesLoaded(roles: Record<string, Role>) {
+    const mainRolesLoaded = (roles: Record<string, Role>) => {
         return (
             roles &&
             roles.channel_admin &&
@@ -95,15 +126,15 @@ class AdminConsole extends React.PureComponent<Props, State> {
             roles.system_custom_group_admin &&
             roles.system_manager
         );
-    }
+    };
 
-    private renderRoutes = (extraProps: ExtraProps) => {
-        const {adminDefinition, config, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin} = this.props;
+    const renderRoutes = (extraProps: ExtraProps) => {
+        const {adminDefinition, config, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin} = props;
 
         const schemas: AdminDefinitionSubSection[] = Object.values(adminDefinition).flatMap((section: AdminDefinitionSection) => {
             let isSectionHidden = false;
             if (typeof section.isHidden === 'function') {
-                isSectionHidden = section.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin);
+                isSectionHidden = section.isHidden(config, {search}, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin);
             } else {
                 isSectionHidden = Boolean(section.isHidden);
             }
@@ -117,7 +148,7 @@ class AdminConsole extends React.PureComponent<Props, State> {
 
         const schemaRoutes = schemas.map((item: AdminDefinitionSubSection, index: number) => {
             if (typeof item.isHidden !== 'undefined') {
-                const isHidden = (typeof item.isHidden === 'function') ? item.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin) : Boolean(item.isHidden);
+                const isHidden = (typeof item.isHidden === 'function') ? item.isHidden(config, {search}, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin) : Boolean(item.isHidden);
                 if (isHidden) {
                     return false;
                 }
@@ -126,7 +157,7 @@ class AdminConsole extends React.PureComponent<Props, State> {
             let isItemDisabled: boolean;
 
             if (typeof item.isDisabled === 'function') {
-                isItemDisabled = item.isDisabled(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin);
+                isItemDisabled = item.isDisabled(config, {search}, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin);
             } else {
                 isItemDisabled = Boolean(item.isDisabled);
             }
@@ -144,12 +175,12 @@ class AdminConsole extends React.PureComponent<Props, State> {
             return (
                 <Route
                     key={item.url}
-                    path={`${this.props.match.url}/${item.url}`}
-                    render={(props) => (
+                    path={`${props.match.url}/${item.url}`}
+                    render={(routeProps) => (
                         <SchemaAdminSettings
                             {...extraProps}
-                            {...props}
-                            consoleAccess={this.props.consoleAccess}
+                            {...routeProps}
+                            consoleAccess={props.consoleAccess}
                             schema={item.schema}
                             isDisabled={isItemDisabled}
                         />
@@ -161,80 +192,79 @@ class AdminConsole extends React.PureComponent<Props, State> {
         return (
             <Switch>
                 {schemaRoutes}
-                {<Redirect to={`${this.props.match.url}/${defaultUrl}`}/>}
+                {<Redirect to={`${props.match.url}/${defaultUrl}`}/>}
             </Switch>
         );
     };
 
-    public render(): JSX.Element | null {
-        const {
-            license,
-            config,
-            environmentConfig,
-            showNavigationPrompt,
-            roles,
-        } = this.props;
-        const {setNavigationBlocked, cancelNavigation, confirmNavigation, editRole, patchConfig} = this.props.actions;
+    const {
+        license,
+        config,
+        environmentConfig,
+        showNavigationPrompt,
+        roles,
+    } = props;
+    const {setNavigationBlocked, cancelNavigation, confirmNavigation, editRole, patchConfig} = props.actions;
 
-        if (!this.props.currentUserHasAnAdminRole) {
-            return (
-                <Redirect to={this.props.unauthorizedRoute}/>
-            );
-        }
-
-        if (!this.mainRolesLoaded(this.props.roles)) {
-            return null;
-        }
-
-        if (Object.keys(config).length === 0) {
-            return <div/>;
-        }
-
-        if (config && Object.keys(config).length === 0 && config.constructor === Object) {
-            return (
-                <div className='admin-console__wrapper admin-console'/>
-            );
-        }
-
-        const extraProps: ExtraProps = {
-            enterpriseReady: this.props.buildEnterpriseReady,
-            license,
-            config,
-            environmentConfig,
-            setNavigationBlocked,
-            roles,
-            editRole,
-            patchConfig,
-            cloud: this.props.cloud,
-            isCurrentUserSystemAdmin: this.props.isCurrentUserSystemAdmin,
-        };
-
+    if (!props.currentUserHasAnAdminRole) {
         return (
-            <>
-                <AnnouncementBarController/>
-                <SystemNotice/>
-                <BackstageNavbar team={this.props.team}/>
-                <AdminSidebar onSearchChange={this.handleSearchChange}/>
-                <div
-                    className='admin-console__wrapper admin-console'
-                    id='adminConsoleWrapper'
-                >
-                    <SearchKeywordMarking
-                        keyword={this.state.search}
-                        pathname={this.props.location.pathname}
-                    >
-                        {this.renderRoutes(extraProps)}
-                    </SearchKeywordMarking>
-                </div>
-                <DiscardChangesModal
-                    show={showNavigationPrompt}
-                    onConfirm={confirmNavigation}
-                    onCancel={cancelNavigation}
-                />
-                <ModalController/>
-            </>
+            <Redirect to={props.unauthorizedRoute}/>
         );
     }
-}
+
+    if (!mainRolesLoaded(props.roles)) {
+        return null;
+    }
+
+    if (Object.keys(config).length === 0) {
+        return <div/>;
+    }
+
+    if (config && Object.keys(config).length === 0 && config.constructor === Object) {
+        return (
+            <div className='admin-console__wrapper admin-console'/>
+        );
+    }
+
+    const extraProps: ExtraProps = {
+        enterpriseReady: props.buildEnterpriseReady,
+        license,
+        config,
+        environmentConfig,
+        setNavigationBlocked,
+        roles,
+        editRole,
+        patchConfig,
+        cloud: props.cloud,
+        isCurrentUserSystemAdmin: props.isCurrentUserSystemAdmin,
+    };
+
+    return (
+        <>
+            <AnnouncementBarController/>
+            <SystemNotice/>
+            <BackstageNavbar team={props.team}/>
+            <AdminSidebar onSearchChange={handleSearchChange}/>
+            <div
+                className='admin-console__wrapper admin-console'
+                id='adminConsoleWrapper'
+                ref={handleFocusScroller}
+            >
+                <SearchKeywordMarking
+                    keyword={search}
+                    pathname={props.location.pathname}
+                >
+                    {renderRoutes(extraProps)}
+                </SearchKeywordMarking>
+            </div>
+            <DiscardChangesModal
+                show={showNavigationPrompt}
+                onConfirm={confirmNavigation}
+                onCancel={cancelNavigation}
+            />
+            <ModalController/>
+        </>
+    );
+};
 
 export default AdminConsole;

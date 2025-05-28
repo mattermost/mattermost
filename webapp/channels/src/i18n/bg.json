@@ -3088,7 +3088,6 @@
   "channel_loader.postedImage": " публикувано изображение",
   "channel_loader.socketError": "Моля, проверете връзката, най-важното недостъпно. Ако проблемът продължава, помолете администратора да [провери WebSocket порта](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Някой",
-  "channel_loader.something": " направи нещо ново",
   "channel_loader.unknown_error": "Получихме неочакван код на състоянието от сървъра.",
   "channel_loader.uploadedFile": " качен е файл",
   "channel_loader.uploadedImage": " качено е изображение",

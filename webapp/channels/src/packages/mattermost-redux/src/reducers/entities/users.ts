@@ -236,6 +236,26 @@ function profiles(state: UsersState['profiles'] = {}, action: MMReduxAction) {
         const profileAttributes = {...existingProfile.custom_profile_attributes, ...customAttributeValues};
         return receiveUserProfile(state, {...existingProfile, custom_profile_attributes: profileAttributes});
     }
+    case UserTypes.CLEAR_CPA_VALUES: {
+        const {fieldId} = action.data;
+
+        return Object.values(state).reduce<Record<string, UserProfile>>((nextState, profile) => {
+            // Only modify profiles that have this field value
+            if (profile.custom_profile_attributes && profile.custom_profile_attributes[fieldId] !== undefined) {
+                const newAttributes = {...profile.custom_profile_attributes};
+                delete newAttributes[fieldId];
+
+                nextState[profile.id] = {
+                    ...profile,
+                    custom_profile_attributes: newAttributes,
+                };
+            } else {
+                nextState[profile.id] = profile;
+            }
+
+            return nextState;
+        }, {});
+    }
     case UserTypes.RECEIVED_PROFILES_LIST: {
         const users: UserProfile[] = action.data;
 

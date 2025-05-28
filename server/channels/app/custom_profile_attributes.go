@@ -10,6 +10,7 @@ import (
 	"sort"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/pkg/errors"
 )
@@ -123,6 +124,11 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 		return nil, appErr
 	}
 
+	shouldDeleteValues := false
+	if patch.Type != nil && *patch.Type != existingField.Type {
+		shouldDeleteValues = true
+	}
+
 	// custom profile attributes doesn't use targets
 	patch.TargetID = nil
 	patch.TargetType = nil
@@ -130,28 +136,41 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 
 	cpaField, err := model.NewCPAFieldFromPropertyField(existingField)
 	if err != nil {
-		return nil, model.NewAppError("UpdateCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if appErr := cpaField.SanitizeAndValidate(); appErr != nil {
 		return nil, appErr
 	}
 
-	// we've already ensured that the field exists for the CPA group,
-	// we don't need to specify the groupID for the update
-	patchedField, err := a.Srv().propertyService.UpdatePropertyField("", cpaField.ToPropertyField())
+	groupID, err := a.CpaGroupID()
+	if err != nil {
+		return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	patchedField, err := a.Srv().propertyService.UpdatePropertyField(groupID, cpaField.ToPropertyField())
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("UpdateCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+			return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("UpdateCPAField", "app.custom_profile_attributes.property_field_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.property_field_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	if shouldDeleteValues {
+		if dErr := a.Srv().propertyService.DeletePropertyValuesForField(groupID, patchedField.ID); dErr != nil {
+			a.Log().Error("Error deleting property values when updating field",
+				mlog.String("fieldID", patchedField.ID),
+				mlog.Err(dErr),
+			)
 		}
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldUpdated, "", "", "", nil, "")
 	message.Add("field", patchedField)
+	message.Add("delete_values", shouldDeleteValues)
 	a.Publish(message)
 
 	return patchedField, nil

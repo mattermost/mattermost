@@ -2540,7 +2540,6 @@
   "channel_loader.postedImage": " загрузіў малюнак",
   "channel_loader.socketError": "Калі ласка, праверце злучэнне, Mattermost недаступны. Калі праблема не ўхілена, папытаеце адміністратара [праверыць порт WebSocket](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator- to-check-websocket-port).",
   "channel_loader.someone": "Хтосьці",
-  "channel_loader.something": " зрабіў нешта новае",
   "channel_loader.unknown_error": "Мы атрымалі нечаканы код стану ад сэрвера.",
   "channel_loader.uploadedFile": " загрузіў файл",
   "channel_loader.uploadedImage": " загрузіў малюнак",

@@ -7493,10 +7493,10 @@ func (s *TimerLayerPropertyValueStore) Delete(groupID string, id string) error {
 	return err
 }
 
-func (s *TimerLayerPropertyValueStore) DeleteForField(id string) error {
+func (s *TimerLayerPropertyValueStore) DeleteForField(groupID string, fieldID string) error {
 	start := time.Now()
 
-	err := s.PropertyValueStore.DeleteForField(id)
+	err := s.PropertyValueStore.DeleteForField(groupID, fieldID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

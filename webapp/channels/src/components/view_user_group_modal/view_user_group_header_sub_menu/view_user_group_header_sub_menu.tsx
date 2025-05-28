@@ -2,18 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {useIntl} from 'react-intl';
+import {useIntl, FormattedMessage} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import * as Menu from 'components/menu';
 import UpdateUserGroupModal from 'components/update_user_group_modal';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {ModalIdentifiers} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -86,50 +84,70 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
 
     return (
         <div className='details-action'>
-            <MenuWrapper
-                isDisabled={false}
-                stopPropagationOnToggle={false}
-                id={`detailsCustomWrapper-${group.id}`}
+            <Menu.Container
+                menuButton={{
+                    id: `detailsCustomWrapper-${group.id}`,
+                    class: 'btn btn-icon',
+                    children: (<i className='icon icon-dots-vertical'/>),
+                    'aria-label': formatMessage({id: 'view_user_group_header_sub_menu.menuAriaLabel', defaultMessage: 'User group actions'}),
+                }}
+                menu={{
+                    id: 'details-group-actions-menu',
+                    'aria-labelledby': `detailsCustomWrapper-${group.id}`,
+                    className: 'group-actions-menu',
+                }}
             >
-                <button className='btn btn-icon'>
-                    <i
-                        className='icon icon-dots-vertical'
-                        aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                    />
-                </button>
-                <Menu
-                    openLeft={false}
-                    openUp={false}
-                    ariaLabel={Utils.localizeMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'})}
-                >
-                    <Menu.ItemAction
-                        show={props.permissionToEditGroup}
+                {props.permissionToEditGroup && (
+                    <Menu.Item
+                        id='edit-details'
                         onClick={goToEditGroupModal}
-                        text={Utils.localizeMessage({id: 'user_groups_modal.editDetails', defaultMessage: 'Edit Details'})}
-                        disabled={false}
+                        labels={
+                            <FormattedMessage
+                                id='user_groups_modal.editDetails'
+                                defaultMessage='Edit Details'
+                            />
+                        }
                     />
-                    <Menu.ItemAction
-                        show={props.permissionToJoinGroup && !isGroupMember}
+                )}
+                {props.permissionToJoinGroup && !isGroupMember && (
+                    <Menu.Item
+                        id='join-group'
                         onClick={joinGroup}
-                        text={Utils.localizeMessage({id: 'user_groups_modal.joinGroup', defaultMessage: 'Join Group'})}
-                        disabled={false}
+                        labels={
+                            <FormattedMessage
+                                id='user_groups_modal.joinGroup'
+                                defaultMessage='Join Group'
+                            />
+                        }
                     />
-                    <Menu.ItemAction
-                        show={props.permissionToLeaveGroup && isGroupMember}
+                )}
+                {props.permissionToLeaveGroup && isGroupMember && (
+                    <Menu.Item
+                        id='leave-group'
                         onClick={leaveGroup}
-                        text={Utils.localizeMessage({id: 'user_groups_modal.leaveGroup', defaultMessage: 'Leave Group'})}
-                        disabled={false}
-                        isDangerous={true}
+                        labels={
+                            <FormattedMessage
+                                id='user_groups_modal.leaveGroup'
+                                defaultMessage='Leave Group'
+                            />
+                        }
+                        isDestructive={true}
                     />
-                    <Menu.ItemAction
-                        show={props.permissionToArchiveGroup}
+                )}
+                {props.permissionToArchiveGroup && (
+                    <Menu.Item
+                        id='archive-group'
                         onClick={archiveGroup}
-                        text={Utils.localizeMessage({id: 'user_groups_modal.archiveGroup', defaultMessage: 'Archive Group'})}
-                        disabled={false}
-                        isDangerous={true}
+                        labels={
+                            <FormattedMessage
+                                id='user_groups_modal.archiveGroup'
+                                defaultMessage='Archive Group'
+                            />
+                        }
+                        isDestructive={true}
                     />
-                </Menu>
-            </MenuWrapper>
+                )}
+            </Menu.Container>
         </div>
     );
 };
