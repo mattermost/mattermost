@@ -17,7 +17,7 @@ BEGIN
                     WHERE options.id = pv.Value #>> ''{}''
                     LIMIT 1
                 )
-                WHEN pf.Type = ''multiselect'' THEN (
+                WHEN pf.Type = ''multiselect'' AND jsonb_typeof(pv.Value) = ''array'' THEN (
                     SELECT jsonb_agg(option_names.name)
                     FROM jsonb_array_elements_text(pv.Value) AS option_id
                     JOIN jsonb_to_recordset(pf.Attrs->''options'') AS option_names(id text, name text)
@@ -27,7 +27,7 @@ BEGIN
             END
         ) AS Attributes    FROM PropertyValues pv
     LEFT JOIN PropertyFields pf ON pf.ID = pv.FieldID
-    WHERE pv.DeleteAt = 0 OR pv.DeleteAt IS NULL
+    WHERE (pv.DeleteAt = 0 OR pv.DeleteAt IS NULL) AND (pf.DeleteAt = 0 OR pf.DeleteAt IS NULL)
     GROUP BY pv.GroupID, pv.TargetID, pv.TargetType
         ';
 END;
