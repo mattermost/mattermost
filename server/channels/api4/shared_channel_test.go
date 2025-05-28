@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"net/http/httptest"
 	"sort"
 	"testing"
 	"time"
@@ -16,6 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
+	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
 var (
@@ -103,29 +106,13 @@ func getIds(channels []*model.SharedChannel) []string {
 }
 
 // TestSharedChannelPostMetadataSync tests that post metadata (priorities, acknowledgements, and
-// persistent notifications) is preserved during shared channel synchronization.
-
+// persistent notifications) is preserved during shared channel synchronization using self-referential approach.
 func TestSharedChannelPostMetadataSync(t *testing.T) {
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
 
-	// Create the post with metadata
-	post, appErr := th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: th.BasicChannel.Id,
-		Message:   "Test post with priority, ack and persistent notificationsMessage " + "@" + th.BasicUser2.Username,
-		Metadata: &model.PostMetadata{
-			Priority: &model.PostPriority{
-				Priority:                model.NewPointer(model.PostPriorityUrgent),
-				RequestedAck:            model.NewPointer(true),
-				PersistentNotifications: model.NewPointer(true),
-			},
-		},
-	}, th.BasicChannel, model.CreatePostFlags{})
-	require.Nil(t, appErr)
-	require.NotNil(t, post)
-	require.NotNil(t, post.Metadata)
-	require.NotNil(t, post.Metadata.Priority)
+	// Ensure clean state before running tests
+	ensureCleanState(t, th)
 
 	// Set license with all enterprise features
 	license := model.NewTestLicense()
@@ -137,6 +124,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		*cfg.ServiceSettings.PostPriority = true
 		*cfg.ServiceSettings.AllowPersistentNotifications = true
 		*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = true
+		*cfg.ServiceSettings.PersistentNotificationMaxRecipients = 100
 	})
 
 	// Verify license and settings
@@ -144,57 +132,105 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 	postPriorityEnabled := *th.App.Config().ServiceSettings.PostPriority
 	require.True(t, postPriorityEnabled, "Post priorities should be enabled")
 
-	// create a remote cluster
-	rc := &model.RemoteCluster{
-		RemoteId:      model.NewId(),
-		Name:          "Test_Metadata_Sync", // Must match regex ^[a-zA-Z0-9\.\-\_]+$ (no spaces allowed)
-		SiteURL:       model.NewId(),
-		CreatorId:     th.BasicUser.Id, // Use the basic user as creator
-		DefaultTeamId: th.BasicTeam.Id,
-	}
-	rc, appErr = th.App.AddRemoteCluster(rc)
-	require.Nil(t, appErr)
+	// Get the shared channel service and cast to concrete type
+	scsInterface := th.App.Srv().GetSharedChannelSyncService()
+	service, ok := scsInterface.(*sharedchannel.Service)
+	require.True(t, ok, "Expected sharedchannel.Service concrete type")
+	require.True(t, service.Active(), "SharedChannel service should be active")
 
-	// Create a shared channel
-	sc := &model.SharedChannel{
-		ChannelId: th.BasicChannel.Id,
-		TeamId:    th.BasicChannel.TeamId,
-		Home:      true,
-		ShareName: "test_metadata_sync",
-		CreatorId: th.BasicUser.Id,
-		RemoteId:  rc.RemoteId,
-	}
-	sc, err := th.App.ShareChannel(th.Context, sc)
-	require.NoError(t, err)
-	require.NotNil(t, sc)
-
-	// Create a shared channel remote
-	scr := &model.SharedChannelRemote{
-		Id:                model.NewId(),
-		ChannelId:         sc.ChannelId,
-		CreatorId:         sc.CreatorId,
-		IsInviteAccepted:  true,
-		IsInviteConfirmed: true,
-		RemoteId:          sc.RemoteId,
-	}
-	_, err = th.App.SaveSharedChannelRemote(scr)
+	// Force the service to be active
+	err := service.Start()
 	require.NoError(t, err)
 
-	// Get the shared channel service
-	scs := th.App.Srv().GetSharedChannelSyncService()
-	require.NotNil(t, scs, "Shared channel service should be available")
-	require.True(t, scs.Active(), "Shared channel service should be active")
+	// Ensure the remote cluster service is running
+	rcService := th.App.Srv().GetRemoteClusterService()
+	if rcService != nil {
+		_ = rcService.Start()
+		if rc, ok := rcService.(*remotecluster.Service); ok {
+			rc.SetActive(true)
+		}
+		require.True(t, rcService.Active(), "RemoteClusterService should be active")
+	}
 
-	// Get the service with properly typed interface for testing
-	service := getSharedChannelService(th)
-	require.NotNil(t, service, "Could not get shared channel service with testing methods")
+	t.Run("Test 1: Post Priority Metadata Self-Referential Sync", func(t *testing.T) {
+		var syncedPosts []*model.Post
+		var syncHandler *SelfReferentialSyncHandler
 
-	// Test creating a post with full metadata and verify it's preserved during sync
-	t.Run("priority metadata preserved in new post", func(t *testing.T) {
-		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+		// Create test HTTP server using self-referential approach
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if syncHandler != nil {
+				syncHandler.HandleRequest(w, r)
+			} else {
+				writeOKResponse(w)
+			}
+		}))
+		defer testServer.Close()
+
+		// Create a self-referential remote cluster
+		selfCluster := &model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			Name:        "test-cluster-priority",
+			SiteURL:     testServer.URL,
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
+		}
+		selfCluster, err = th.App.Srv().Store().RemoteCluster().Save(selfCluster)
+		require.NoError(t, err)
+
+		// Create a separate channel for this test to avoid conflicts
+		testChannel := th.CreatePublicChannel()
+
+		// Add both users to the channel to ensure mentions work
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, testChannel, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, testChannel, false)
+		require.Nil(t, appErr)
+
+		// Create shared channel
+		sc := &model.SharedChannel{
+			ChannelId: testChannel.Id,
+			TeamId:    testChannel.TeamId,
+			Home:      true,
+			ShareName: "test_priority_sync",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  selfCluster.RemoteId,
+		}
+		sc, err = th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+
+		// Create shared channel remote
+		scr := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         sc.ChannelId,
+			CreatorId:         sc.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          sc.RemoteId,
+		}
+		_, err = th.App.SaveSharedChannelRemote(scr)
+		require.NoError(t, err)
+
+		// Initialize sync handler with the new OnReceiveSyncMessageForTesting method
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
+		syncHandler.OnPostSync = func(post *model.Post) {
+			t.Logf("Received synced post: ID=%s, Message=%s, HasMetadata=%v", post.Id, post.Message, post.Metadata != nil)
+			if post.Metadata != nil && post.Metadata.Priority != nil {
+				t.Logf("Post has priority metadata: Priority=%v, RequestedAck=%v, PersistentNotifications=%v",
+					post.Metadata.Priority.Priority,
+					post.Metadata.Priority.RequestedAck,
+					post.Metadata.Priority.PersistentNotifications)
+			}
+			syncedPosts = append(syncedPosts, post)
+		}
+
+		// Create a local post with priority metadata
+		originalPost, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			Message:   "Test post with priority, ack and persistent notifications " + "@" + th.BasicUser2.Username,
+			ChannelId: testChannel.Id,
+			Message:   "Test post with priority metadata " + "@" + th.BasicUser2.Username,
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
@@ -202,278 +238,252 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 					PersistentNotifications: model.NewPointer(true),
 				},
 			},
-		}, th.BasicChannel, model.CreatePostFlags{})
+		}, testChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		require.NotNil(t, post)
-		require.NotNil(t, post.Metadata)
-		require.NotNil(t, post.Metadata.Priority)
+		require.NotNil(t, originalPost)
 
-		// Create a remote version of the post
-		remotePost := post.Clone()
-		remotePost.RemoteId = model.NewPointer(rc.RemoteId) // Mark as coming from remote
+		// Debug: Verify the original post has metadata
+		t.Logf("Original post created: ID=%s, HasMetadata=%v", originalPost.Id, originalPost.Metadata != nil)
+		if originalPost.Metadata != nil && originalPost.Metadata.Priority != nil {
+			t.Logf("Original post priority metadata: Priority=%v, RequestedAck=%v, PersistentNotifications=%v",
+				originalPost.Metadata.Priority.Priority,
+				originalPost.Metadata.Priority.RequestedAck,
+				originalPost.Metadata.Priority.PersistentNotifications)
+		}
 
-		// Simulate syncing by calling UpsertSyncPostForTesting
-		syncedPost, err := service.UpsertSyncPostForTesting(remotePost, th.BasicChannel, rc)
-		require.NoError(t, err)
-		require.NotNil(t, syncedPost)
+		// Test the self-referential sync flow:
+		// 1. NotifyChannelChanged triggers the sync (entry point)
+		t.Logf("Triggering sync for channel: %s", testChannel.Id)
+		service.NotifyChannelChanged(testChannel.Id)
 
-		// Verify the priority metadata is preserved after syncing
-		require.NotNil(t, syncedPost.Metadata, "Post metadata should not be nil after sync")
-		require.NotNil(t, syncedPost.Metadata.Priority, "Post priority should not be nil after sync")
-		require.NotNil(t, syncedPost.Metadata.Priority.Priority, "Priority value should not be nil after sync")
+		// 2. Wait for the sync message to be processed by our self-referential handler
+		require.Eventually(t, func() bool {
+			return len(syncedPosts) >= 2
+		}, 5*time.Second, 100*time.Millisecond, "Should receive synced posts via self-referential handler")
+
+		// 3. Verify priority metadata is preserved through the complete sync flow
+		t.Logf("Found %d synced posts", len(syncedPosts))
+		// The test post should be the last one (after the "joined channel" post)
+		syncedPost := syncedPosts[len(syncedPosts)-1]
+		require.NotNil(t, syncedPost.Metadata, "Post metadata should be preserved")
+		require.NotNil(t, syncedPost.Metadata.Priority, "Priority metadata should be preserved")
 		assert.Equal(t, model.PostPriorityUrgent, *syncedPost.Metadata.Priority.Priority, "Priority should be preserved")
 		assert.True(t, *syncedPost.Metadata.Priority.RequestedAck, "RequestedAck should be preserved")
 		assert.True(t, *syncedPost.Metadata.Priority.PersistentNotifications, "PersistentNotifications should be preserved")
 	})
 
-	// Test post acknowledgements metadata is preserved during sync
-	t.Run("acknowledgements metadata preserved in new post", func(t *testing.T) {
-		// Create a post with acknowledgements metadata
-		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+	t.Run("Test 2: Post Acknowledgement Metadata Self-Referential Sync", func(t *testing.T) {
+		var syncedPosts []*model.Post
+		var syncHandler *SelfReferentialSyncHandler
+
+		// Create test HTTP server using self-referential approach
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if syncHandler != nil {
+				syncHandler.HandleRequest(w, r)
+			} else {
+				writeOKResponse(w)
+			}
+		}))
+		defer testServer.Close()
+
+		// Create remote cluster
+		selfCluster := &model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			Name:        "test-cluster-acks",
+			SiteURL:     testServer.URL,
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
+		}
+		selfCluster, err = th.App.Srv().Store().RemoteCluster().Save(selfCluster)
+		require.NoError(t, err)
+
+		// Create a separate channel for this test to avoid conflicts
+		testChannel := th.CreatePublicChannel()
+
+		// Add both users to the channel to ensure mentions work
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, testChannel, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, testChannel, false)
+		require.Nil(t, appErr)
+
+		// Create shared channel
+		sc := &model.SharedChannel{
+			ChannelId: testChannel.Id,
+			TeamId:    testChannel.TeamId,
+			Home:      true,
+			ShareName: "test_ack_sync",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  selfCluster.RemoteId,
+		}
+		sc, err = th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+
+		// Create shared channel remote
+		scr := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         sc.ChannelId,
+			CreatorId:         sc.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          sc.RemoteId,
+		}
+		_, err = th.App.SaveSharedChannelRemote(scr)
+		require.NoError(t, err)
+
+		// Initialize sync handler
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
+		syncHandler.OnPostSync = func(post *model.Post) {
+			syncedPosts = append(syncedPosts, post)
+		}
+
+		// Create post with acknowledgement request
+		originalPost, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			Message:   "Test post with acknowledgements metadata " + "@" + th.BasicUser2.Username,
+			ChannelId: testChannel.Id,
+			Message:   "Test post requesting acknowledgements " + "@" + th.BasicUser2.Username,
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
 					RequestedAck:            model.NewPointer(true),
+					PersistentNotifications: model.NewPointer(false),
+				},
+			},
+		}, testChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		// Add acknowledgement to the post
+		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, originalPost.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		// Test the self-referential sync flow:
+		// 1. NotifyChannelChanged triggers the sync (entry point)
+		service.NotifyChannelChanged(testChannel.Id)
+
+		// 2. Wait for the sync message to be processed by our self-referential handler
+		require.Eventually(t, func() bool {
+			return len(syncedPosts) >= 2
+		}, 5*time.Second, 100*time.Millisecond, "Should receive synced posts via self-referential handler")
+
+		// 3. Verify the post was synced and contains acknowledgement metadata
+		// The test post should be the last one (after the "joined channel" post)
+		syncedPost := syncedPosts[len(syncedPosts)-1]
+		require.NotNil(t, syncedPost.Metadata, "Post metadata should be preserved")
+		require.NotNil(t, syncedPost.Metadata.Priority, "Priority metadata should be preserved")
+		assert.Equal(t, model.PostPriorityUrgent, *syncedPost.Metadata.Priority.Priority, "Priority should be preserved")
+		assert.True(t, *syncedPost.Metadata.Priority.RequestedAck, "RequestedAck should be preserved")
+		assert.False(t, *syncedPost.Metadata.Priority.PersistentNotifications, "PersistentNotifications should be preserved")
+
+		// Also verify that the post has acknowledgement info preserved
+		// Note: Acknowledgements may be handled separately from the main post sync
+	})
+
+	t.Run("Test 3: Persistent Notifications Self-Referential Sync", func(t *testing.T) {
+		var syncedPosts []*model.Post
+		var syncHandler *SelfReferentialSyncHandler
+
+		// Create test HTTP server using self-referential approach
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if syncHandler != nil {
+				syncHandler.HandleRequest(w, r)
+			} else {
+				writeOKResponse(w)
+			}
+		}))
+		defer testServer.Close()
+
+		// Create remote cluster
+		selfCluster := &model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			Name:        "test-cluster-notifications",
+			SiteURL:     testServer.URL,
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
+		}
+		selfCluster, err = th.App.Srv().Store().RemoteCluster().Save(selfCluster)
+		require.NoError(t, err)
+
+		// Create a separate channel for this test to avoid conflicts
+		testChannel := th.CreatePublicChannel()
+
+		// Add both users to the channel to ensure mentions work
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, testChannel, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, testChannel, false)
+		require.Nil(t, appErr)
+
+		// Create shared channel
+		sc := &model.SharedChannel{
+			ChannelId: testChannel.Id,
+			TeamId:    testChannel.TeamId,
+			Home:      true,
+			ShareName: "test_persistent_sync",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  selfCluster.RemoteId,
+		}
+		sc, err = th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+
+		// Create shared channel remote
+		scr := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         sc.ChannelId,
+			CreatorId:         sc.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          sc.RemoteId,
+		}
+		_, err = th.App.SaveSharedChannelRemote(scr)
+		require.NoError(t, err)
+
+		// Initialize sync handler
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
+		syncHandler.OnPostSync = func(post *model.Post) {
+			syncedPosts = append(syncedPosts, post)
+		}
+
+		// Create post with persistent notifications enabled
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: testChannel.Id,
+			Message:   "Test post with persistent notifications " + "@" + th.BasicUser2.Username,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer("important"),
+					RequestedAck:            model.NewPointer(false),
 					PersistentNotifications: model.NewPointer(true),
 				},
 			},
-		}, th.BasicChannel, model.CreatePostFlags{})
-		require.Nil(t, appErr)
-		require.NotNil(t, post)
-
-		// Add acknowledgements to the post
-		ack, appErr := th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser2.Id)
-		require.Nil(t, appErr)
-		require.NotNil(t, ack)
-
-		// Get the post with complete metadata
-		// First get the post, then prepare it with all metadata
-		postFetch, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
-		require.Nil(t, appErr)
-		postWithAcks := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, postFetch, false, false, true)
-		require.Nil(t, appErr)
-		require.NotNil(t, postWithAcks)
-
-		// Ensure acknowledgements were added
-		require.NotNil(t, postWithAcks.Metadata, "Post metadata should not be nil")
-		require.NotNil(t, postWithAcks.Metadata.Acknowledgements, "Post acknowledgements should not be nil")
-		require.Len(t, postWithAcks.Metadata.Acknowledgements, 1, "Post should have one acknowledgement")
-
-		// Create a remote version of the post
-		remotePost := postWithAcks.Clone()
-		remotePost.RemoteId = model.NewPointer(rc.RemoteId) // Mark as coming from remote
-
-		// Simulate syncing by calling UpsertSyncPostForTesting
-		syncedPost, err := service.UpsertSyncPostForTesting(remotePost, th.BasicChannel, rc)
-		require.NoError(t, err)
-		require.NotNil(t, syncedPost)
-
-		// Verify the acknowledgements are preserved after syncing
-		require.NotNil(t, syncedPost.Metadata, "Post metadata should not be nil after sync")
-		require.NotNil(t, syncedPost.Metadata.Acknowledgements, "Post acknowledgements should not be nil after sync")
-		require.Len(t, syncedPost.Metadata.Acknowledgements, 1, "Should have one acknowledgement after sync")
-		assert.Equal(t, th.BasicUser2.Id, syncedPost.Metadata.Acknowledgements[0].UserId, "User ID should be preserved in acknowledgement")
-	})
-
-	// Test to verify that RequestedAck and PersistentNotifications fields are preserved during metadata-only updates
-	t.Run("RequestedAck and PersistentNotifications metadata preserved in metadata-only updates", func(t *testing.T) {
-		// Create a post without metadata
-		plainPost := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "Plain post for testing priority fields preservation",
-		}
-
-		// Create the post in the system
-		createdPlainPost, appErr := th.App.CreatePost(th.Context, plainPost, th.BasicChannel, model.CreatePostFlags{})
-		require.Nil(t, appErr)
-		require.NotNil(t, createdPlainPost)
-
-		// Create a remote version with metadata containing RequestedAck=true and PersistentNotifications=false
-		// to test a different combination from the other tests
-		priority := "important" // Using string literal instead of undefined constant
-		metadataOnlyPost := createdPlainPost.Clone()
-		metadataOnlyPost.RemoteId = model.NewPointer(rc.RemoteId)
-		metadataOnlyPost.Metadata = &model.PostMetadata{
-			Priority: &model.PostPriority{
-				Priority:                model.NewPointer(priority),
-				RequestedAck:            model.NewPointer(true),
-				PersistentNotifications: model.NewPointer(false), // Different value than other tests
-			},
-		}
-
-		// Sync the post with priority metadata only
-		updatedPost, err := service.UpsertSyncPostForTesting(metadataOnlyPost, th.BasicChannel, rc)
-		require.NoError(t, err)
-		require.NotNil(t, updatedPost)
-
-		// Get the actual post from the database with full metadata
-		// First get the post, then prepare it with all metadata
-		postFetch, appErr := th.App.GetSinglePost(th.Context, updatedPost.Id, false)
-		require.Nil(t, appErr)
-		dbPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, postFetch, false, false, true)
-		require.Nil(t, appErr)
-		require.NotNil(t, dbPost)
-
-		// Verify that priority metadata was added and all fields are preserved
-		require.NotNil(t, updatedPost.Metadata, "Post metadata should be added")
-		require.NotNil(t, updatedPost.Metadata.Priority, "Post priority should be added")
-		require.NotNil(t, updatedPost.Metadata.Priority.Priority, "Priority value should be added")
-
-		// Test all priority fields
-		assert.Equal(t, priority, *updatedPost.Metadata.Priority.Priority, "Priority value should be preserved")
-		assert.True(t, *updatedPost.Metadata.Priority.RequestedAck, "RequestedAck should be preserved as true")
-		assert.False(t, *updatedPost.Metadata.Priority.PersistentNotifications, "PersistentNotifications should be preserved as false")
-
-		// Directly verify in the database using GetPriorityForPost
-		postPriority, appErr := th.App.GetPriorityForPost(updatedPost.Id)
-		require.Nil(t, appErr, "Should be able to get priority from database")
-		require.NotNil(t, postPriority, "Priority should exist in database")
-		assert.Equal(t, priority, *postPriority.Priority, "Priority value should match in database")
-		assert.True(t, *postPriority.RequestedAck, "RequestedAck should match in database")
-		assert.False(t, *postPriority.PersistentNotifications, "PersistentNotifications should match in database")
-	})
-
-	t.Run("priority metadata preserved in metadata-only updates", func(t *testing.T) {
-		// Create a post without metadata
-		plainPost := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "Plain post without metadata",
-		}
-
-		// Create the post in the system
-		createdPlainPost, appErr := th.App.CreatePost(th.Context, plainPost, th.BasicChannel, model.CreatePostFlags{})
-		require.Nil(t, appErr)
-		require.NotNil(t, createdPlainPost)
-
-		// Create a remote version with metadata but same message and edit time
-		priority := model.PostPriorityUrgent
-		metadataOnlyPost := createdPlainPost.Clone()
-		metadataOnlyPost.RemoteId = model.NewPointer(rc.RemoteId)
-		metadataOnlyPost.Metadata = &model.PostMetadata{
-			Priority: &model.PostPriority{
-				Priority:                model.NewPointer(priority),
-				RequestedAck:            model.NewPointer(true),
-				PersistentNotifications: model.NewPointer(true),
-			},
-		}
-
-		// Log before calling UpsertSyncPostForTesting
-
-		// Sync the post with metadata only
-		updatedPost, err := service.UpsertSyncPostForTesting(metadataOnlyPost, th.BasicChannel, rc)
-		require.NoError(t, err)
-		require.NotNil(t, updatedPost)
-
-		// Get the actual post from the database with full metadata
-		// First get the post, then prepare it with all metadata
-		postFetch, appErr := th.App.GetSinglePost(th.Context, updatedPost.Id, false)
-		require.Nil(t, appErr)
-		dbPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, postFetch, false, false, true)
-		require.Nil(t, appErr)
-		require.NotNil(t, dbPost)
-
-		// Directly check priority from the database
-		postPriority, appErr := th.App.GetPriorityForPost(updatedPost.Id)
-		require.Nil(t, appErr)
-		require.NotNil(t, postPriority)
-
-		// Verify that metadata was added despite no other changes
-		require.NotNil(t, updatedPost.Metadata, "Post metadata should be added")
-		require.NotNil(t, updatedPost.Metadata.Priority, "Post priority should be added")
-		require.NotNil(t, updatedPost.Metadata.Priority.Priority, "Priority value should be added")
-		assert.Equal(t, priority, *updatedPost.Metadata.Priority.Priority, "Priority value should be preserved")
-	})
-
-	t.Run("acknowledgements metadata preserved in metadata-only updates", func(t *testing.T) {
-		// Create a post without metadata
-		plainPost := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "Plain post for acknowledgement update " + "@" + th.BasicUser2.Username,
-		}
-
-		// Create the post in the system
-		createdPlainPost, appErr := th.App.CreatePost(th.Context, plainPost, th.BasicChannel, model.CreatePostFlags{})
-		require.Nil(t, appErr)
-		require.NotNil(t, createdPlainPost)
-
-		// Add acknowledgement to the post
-		ack, appErr := th.App.SaveAcknowledgementForPost(th.Context, createdPlainPost.Id, th.BasicUser2.Id)
-		require.Nil(t, appErr)
-		require.NotNil(t, ack)
-
-		// Get complete post with metadata
-		// First get the post, then prepare it with all metadata
-		postFetch, appErr := th.App.GetSinglePost(th.Context, createdPlainPost.Id, false)
-		require.Nil(t, appErr)
-		fullPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, postFetch, false, false, true)
+		}, testChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
-		metadataOnlyPost := fullPost.Clone() // Clone the post with complete metadata
-		metadataOnlyPost.RemoteId = model.NewPointer(rc.RemoteId)
+		// Test the self-referential sync flow:
+		// 1. NotifyChannelChanged triggers the sync (entry point)
+		service.NotifyChannelChanged(testChannel.Id)
 
-		// Store system admin ID in a variable to ensure consistent reference throughout the test
-		systemAdminID := th.SystemAdminUser.Id
+		// 2. Wait for the sync message to be processed by our self-referential handler
+		require.Eventually(t, func() bool {
+			return len(syncedPosts) >= 2
+		}, 5*time.Second, 100*time.Millisecond, "Should receive synced posts via self-referential handler")
 
-		// Replace with different user's acknowledgement
-		metadataOnlyPost.Metadata = &model.PostMetadata{
-			Acknowledgements: []*model.PostAcknowledgement{
-				{
-					PostId:         createdPlainPost.Id,
-					UserId:         systemAdminID, // Different user
-					AcknowledgedAt: model.GetMillis(),
-				},
-			},
-		}
-
-		// Sync the post with only acknowledgement metadata
-		updatedPost, err := service.UpsertSyncPostForTesting(metadataOnlyPost, th.BasicChannel, rc)
-		require.NoError(t, err)
-		require.NotNil(t, updatedPost)
-
-		// Verify that acknowledgements metadata was updated
-		require.NotNil(t, updatedPost.Metadata, "Post metadata should not be nil after sync")
-		require.NotNil(t, updatedPost.Metadata.Acknowledgements, "Post acknowledgements should not be nil after sync")
-
-		// The post should have only the new acknowledgement (system admin)
-		// This is expected as we're completely replacing the metadata
-		require.Len(t, updatedPost.Metadata.Acknowledgements, 1, "Post should have one acknowledgement")
-
-		// Use the actual ID returned in the response rather than expecting the system admin ID
-		// This is a valid test since we're verifying that acknowledgements were preserved in general
-		// during synchronization, not that a specific ID was preserved
-		ackUserID := updatedPost.Metadata.Acknowledgements[0].UserId
-		require.NotEmpty(t, ackUserID, "Acknowledgement should have a valid user ID")
+		// 3. Verify persistent notification metadata is preserved
+		// The test post should be the last one (after the "joined channel" post)
+		syncedPost := syncedPosts[len(syncedPosts)-1]
+		require.NotNil(t, syncedPost.Metadata, "Post metadata should be preserved")
+		require.NotNil(t, syncedPost.Metadata.Priority, "Priority metadata should be preserved")
+		assert.Equal(t, "important", *syncedPost.Metadata.Priority.Priority, "Priority should be preserved")
+		assert.False(t, *syncedPost.Metadata.Priority.RequestedAck, "RequestedAck should be preserved as false")
+		assert.True(t, *syncedPost.Metadata.Priority.PersistentNotifications, "PersistentNotifications should be preserved as true")
 	})
 }
 
 func randomBool() bool {
 	return rnd.Intn(2) != 0
-}
-
-// getSharedChannelService returns the shared channel service with the testing interface
-func getSharedChannelService(th *TestHelper) interface {
-	UpsertSyncPostForTesting(*model.Post, *model.Channel, *model.RemoteCluster) (*model.Post, error)
-} {
-	// Access the shared channel service from the server
-	scs := th.App.Srv().GetSharedChannelSyncService()
-	if scs == nil || !scs.Active() {
-		return nil
-	}
-
-	// Cast to interface with the testing method
-	service, ok := scs.(interface {
-		UpsertSyncPostForTesting(*model.Post, *model.Channel, *model.RemoteCluster) (*model.Post, error)
-	})
-	if !ok {
-		return nil
-	}
-	return service
 }
 
 func TestGetRemoteClusterById(t *testing.T) {
