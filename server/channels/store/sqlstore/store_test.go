@@ -781,7 +781,7 @@ func TestReplicaLagQuery(t *testing.T) {
 
 			require.NoError(t, store.initConnection())
 			store.stores.post = newSqlPostStore(store, mockMetrics)
-			err = store.migrate(migrationsDirectionUp, false)
+			err = store.migrate(migrationsDirectionUp, false, true)
 			require.NoError(t, err)
 
 			defer store.Close()
@@ -839,8 +839,10 @@ func TestInvalidReplicaLagDataSource(t *testing.T) {
 	}
 }
 
-var errDriverMismatch = errors.New("database drivers mismatch")
-var errDriverUnsupported = errors.New("database driver not supported")
+var (
+	errDriverMismatch    = errors.New("database drivers mismatch")
+	errDriverUnsupported = errors.New("database driver not supported")
+)
 
 func makeSqlSettings(driver string) (*model.SqlSettings, error) {
 	// When running under CI, only one database engine container is launched
