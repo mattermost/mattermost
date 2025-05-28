@@ -3108,7 +3108,7 @@ func (s SqlChannelStore) GetMembersForUserWithCursorPagination(userId string, pe
 
 func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
 	teamMemberIDs := []string{}
-	if err := s.GetReplica().Select(&teamMemberIDs, `SELECT tm.UserId
+	if err := s.GetMaster().Select(&teamMemberIDs, `SELECT tm.UserId
 		FROM Channels c, Teams t, TeamMembers tm
 		WHERE
 			c.TeamId=t.Id
