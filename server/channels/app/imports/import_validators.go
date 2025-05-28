@@ -784,10 +784,9 @@ func ValidateAttachmentPathForImport(path, basePath string) (string, bool) {
 	}
 
 	joined := filepath.Join(basePath, path)
-	cleanJoined := filepath.Clean(joined)
 
-	// Check if cleanJoined is within basePath
-	rel, err := filepath.Rel(basePath, cleanJoined)
+	// Check if the resolved joined path is within basePath
+	rel, err := filepath.Rel(basePath, joined)
 	if err != nil {
 		return "", false
 	}
@@ -795,7 +794,7 @@ func ValidateAttachmentPathForImport(path, basePath string) (string, bool) {
 		return "", false
 	}
 
-	return cleanJoined, true
+	return joined, true
 }
 
 func ValidateAttachmentImportData(data *AttachmentImportData) *model.AppError {
