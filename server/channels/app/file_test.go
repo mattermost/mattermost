@@ -385,7 +385,7 @@ func TestGenerateThumbnailImage(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 		img := createDummyImage()
-		dataPath, _ := fileutils.FindDir("data")
+		dataPath := *th.App.Config().FileSettings.Directory
 		thumbnailName := "thumb.jpg"
 		thumbnailPath := filepath.Join(dataPath, thumbnailName)
 
