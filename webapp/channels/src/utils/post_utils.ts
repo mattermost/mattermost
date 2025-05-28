@@ -798,6 +798,13 @@ export function getUserOrGroupFromMentionName(
     getMention = getMentionDetails,
     remoteClusters?: Array<{remote_id: string; name: string; display_name: string}>,
 ): [UserProfile?, Group?] {
+    // Debug logging for remote mention issues
+    if (mentionName.includes(':')) {
+        console.log('Processing remote mention:', mentionName);
+        console.log('Users available:', Object.keys(users));
+        console.log('Remote clusters:', remoteClusters);
+    }
+    
     // Handle special case for remote user mentions in the format username:clustername
     if (mentionName.includes(':')) {
         const [username, clusterName] = mentionName.split(':');

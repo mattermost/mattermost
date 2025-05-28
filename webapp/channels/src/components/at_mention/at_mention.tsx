@@ -33,14 +33,22 @@ const AtMention = (props: Props) => {
     const [remoteClusters] = useRemoteClusters();
 
     const [user, group] = useMemo(
-        () => getUserOrGroupFromMentionName(
-            props.mentionName,
-            props.usersByUsername,
-            props.groupsByName,
-            props.disableGroupHighlight,
-            undefined,
-            remoteClusters,
-        ),
+        () => {
+            // Debug logging for remote mention issues
+            if (props.mentionName.includes(':')) {
+                console.log('AtMention processing:', props.mentionName);
+                console.log('RemoteClusters from hook:', remoteClusters);
+            }
+            
+            return getUserOrGroupFromMentionName(
+                props.mentionName,
+                props.usersByUsername,
+                props.groupsByName,
+                props.disableGroupHighlight,
+                undefined,
+                remoteClusters,
+            );
+        },
         [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight, remoteClusters],
     );
 
