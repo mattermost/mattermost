@@ -8,9 +8,9 @@
         padding-top: 20px;
 
         .config-section {
+            border-color: rgba(var(--center-channel-color-rgb), 0.12);
             border-radius: 8px;
             margin-top: 32px;
-            color: rgba(var(--center-channel-color-rgb), 0.12);
 
             .section-body {
                 padding: 32px 48px 48px;
