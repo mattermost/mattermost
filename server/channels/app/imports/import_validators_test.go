@@ -1649,6 +1649,142 @@ func TestIsValidGuestRoles(t *testing.T) {
 	}
 }
 
+func TestValidateAttachmentPathForImport(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		path         string
+		basePath     string
+		expectedPath string
+		expectedRes  bool
+	}{
+		{
+			name:         "valid relative path",
+			path:         "valid/path/to/attachment",
+			basePath:     "data",
+			expectedPath: "data/valid/path/to/attachment",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid absolute path",
+			path:         "/valid/path/to/attachment",
+			basePath:     "data",
+			expectedPath: "data/valid/path/to/attachment",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid relative path with empty base",
+			path:         "data/file.jpg",
+			basePath:     "",
+			expectedPath: "data/file.jpg",
+			expectedRes:  true,
+		},
+		{
+			name:         "absolute path with empty base is converted to relative",
+			path:         "/data/file.jpg",
+			basePath:     "",
+			expectedPath: "data/file.jpg",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with dot segments",
+			path:         "path/./to/attachment",
+			basePath:     "data",
+			expectedPath: "data/path/to/attachment",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with internal parent reference",
+			path:         "path/to/../to/attachment",
+			basePath:     "data",
+			expectedPath: "data/path/to/attachment",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with filename containing dots",
+			path:         "path/to/file..txt",
+			basePath:     "data",
+			expectedPath: "data/path/to/file..txt",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with default base path",
+			path:         "file.txt",
+			basePath:     "",
+			expectedPath: "file.txt",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with spaces",
+			path:         "path/to/file with spaces.jpg",
+			basePath:     "data",
+			expectedPath: "data/path/to/file with spaces.jpg",
+			expectedRes:  true,
+		},
+		{
+			name:         "invalid path with parent directory traversal",
+			path:         "../file.txt",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "invalid path with multiple parent directory traversal",
+			path:         "../../file.txt",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "invalid path with parent directory traversal in middle",
+			path:         "path/../../file.txt",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "invalid absolute path with traversal",
+			path:         "/path/../../../not/valid",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "invalid relative path with substring in path",
+			path:         "../data_dir/attachment",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "empty path",
+			path:         "",
+			basePath:     "data",
+			expectedPath: "data",
+			expectedRes:  true,
+		},
+		{
+			name:         "path is just a dot",
+			path:         ".",
+			basePath:     "data",
+			expectedPath: "data",
+			expectedRes:  true,
+		},
+		{
+			name:         "path with only parent reference",
+			path:         "..",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			path, ok := ValidateAttachmentPathForImport(tc.path, tc.basePath)
+			require.Equal(t, tc.expectedPath, path)
+			require.Equal(t, tc.expectedRes, ok)
+		})
+	}
+}
+
 func TestValidateAttachmentImportData(t *testing.T) {
 	for _, tc := range []struct {
 		name string
@@ -1682,6 +1818,15 @@ func TestValidateAttachmentImportData(t *testing.T) {
 			},
 			err: "BulkImport: app.import.validate_attachment_import_data.invalid_path.error",
 		},
+
+		{
+			name: "invalid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("../data_dir/attachment"),
+			},
+			err: "BulkImport: app.import.validate_attachment_import_data.invalid_path.error",
+		},
+
 		{
 			name: "valid relative path",
 			data: &AttachmentImportData{
@@ -1710,6 +1855,7 @@ func TestValidateAttachmentImportData(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := ValidateAttachmentImportData(tc.data)
 			if tc.err != "" {
+				require.NotNil(t, err, "Expected error but got none")
 				require.EqualError(t, err, tc.err, "Expected error did not match")
 			} else {
 				require.Nil(t, err, "Expected no error but got one")

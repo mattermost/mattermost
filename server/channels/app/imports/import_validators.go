@@ -775,19 +775,27 @@ func isValidGuestRoles(data UserImportData) bool {
 	return true
 }
 
-// ValidateAttachmentPathForImport checks if the provided path is valid for import.
-// It ensures that the path is cleaned and resolved against a base path.
-// It returns the resolved path and a boolean indicating if the path is valid.
+// ValidateAttachmentPathForImport joins 'path' to 'basePath' (defaulting to "." if empty) and ensures
+// the result does not escape the base directory. Returns the cleaned joined path (and true),
+// or an empty string (and false) if the result escapes the base.
 func ValidateAttachmentPathForImport(path, basePath string) (string, bool) {
-	cleanedPath := filepath.Clean(path)
-	resolvedPath := filepath.Join(basePath, cleanedPath)
+	if basePath == "" {
+		basePath = "."
+	}
 
-	// Check if the resolved path is within the expected base path.
-	if !strings.HasPrefix(resolvedPath, basePath) {
+	joined := filepath.Join(basePath, path)
+	cleanJoined := filepath.Clean(joined)
+
+	// Check if cleanJoined is within basePath
+	rel, err := filepath.Rel(basePath, cleanJoined)
+	if err != nil {
+		return "", false
+	}
+	if strings.HasPrefix(rel, ".."+string(filepath.Separator)) || rel == ".." {
 		return "", false
 	}
 
-	return resolvedPath, true
+	return cleanJoined, true
 }
 
 func ValidateAttachmentImportData(data *AttachmentImportData) *model.AppError {
