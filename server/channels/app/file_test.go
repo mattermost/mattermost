@@ -110,7 +110,7 @@ func TestDoUploadFile(t *testing.T) {
 	defer func() {
 		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info5.Id)
 		require.NoError(t, err)
-		appErr := th.App.RemoveFile(info3.Path)
+		appErr := th.App.RemoveFile(info5.Path)
 		require.Nil(t, appErr)
 	}()
 
