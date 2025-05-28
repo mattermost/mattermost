@@ -311,6 +311,13 @@ else
 	$(MAKE) mmctl-build
 endif
 
+golang-versions: ## Install Golang versions used for compatibility testing (e.g. plugins)
+	@for version in $(GO_COMPATIBILITY_TEST_VERSIONS); do \
+		$(GO) install golang.org/dl/go$$version@latest && \
+		$(GOBIN)/go$$version download; \
+	done
+	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
+
 GOLANGCI_VERSION ?= v1.64.7
 
 $(GOLANGCI_BIN):
@@ -447,6 +454,10 @@ modules-tidy: ## Tidy Go modules
 	mv enterprise/external_imports.go.orig enterprise/external_imports.go
 
 test-server-pre: check-prereqs-enterprise start-docker gotestsum golang-versions ## Runs tests.
+ifeq ($(FIPS_ENABLED),true)
+	@echo Running FIPS tests
+	apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata
+endif
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
