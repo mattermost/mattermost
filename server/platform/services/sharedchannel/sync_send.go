@@ -369,7 +369,7 @@ func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 func (scs *Service) processTask(task syncTask) error {
 	// DEBUG: Post instrumentation message about processing task
 	scs.postDebugMessage(task.channelID, fmt.Sprintf("[DEBUG] Processing sync task for channel %s, remoteID: %s", task.channelID, task.remoteID))
-	
+
 	// map is used to ensure remotes don't get sync'd twice, such as when
 	// they have the autoinvited flag and have explicitly subscribed to a channel.
 	remotesMap := make(map[string]*model.RemoteCluster)

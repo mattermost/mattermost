@@ -734,7 +734,7 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
 	// DEBUG: Post instrumentation message about sending sync message
 	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Sending sync message to remote %s", rc.Name))
-	
+
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
 		scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("[DEBUG] Remote Cluster Service not enabled for remote %s", rc.Name))
@@ -826,19 +826,19 @@ func (scs *Service) postDebugMessage(channelId, message string) {
 	if scs.app == nil {
 		return
 	}
-	
+
 	// Get channel details first
 	channel, err := scs.server.GetStore().Channel().Get(channelId, true)
 	if err != nil {
 		return
 	}
-	
+
 	// Get the shared channel to find a creator ID
 	sc, scErr := scs.server.GetStore().SharedChannel().Get(channelId)
 	if scErr != nil {
 		return
 	}
-	
+
 	post := &model.Post{
 		ChannelId: channelId,
 		UserId:    sc.CreatorId,
@@ -846,7 +846,7 @@ func (scs *Service) postDebugMessage(channelId, message string) {
 		Type:      model.PostTypeSystemGeneric,
 		CreateAt:  model.GetMillis(),
 	}
-	
+
 	ctx := request.EmptyContext(scs.server.Log())
 	_, appErr := scs.app.CreatePost(ctx, post, channel, model.CreatePostFlags{})
 	if appErr != nil {

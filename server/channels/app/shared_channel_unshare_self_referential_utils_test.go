@@ -36,9 +36,9 @@ func writeOKResponse(w http.ResponseWriter) {
 
 // SelfReferentialUnshareHandler handles incoming sync messages for unshare self-referential tests.
 type SelfReferentialUnshareHandler struct {
-	t             *testing.T
-	service       *sharedchannel.Service
-	selfCluster   *model.RemoteCluster
+	t                *testing.T
+	service          *sharedchannel.Service
+	selfCluster      *model.RemoteCluster
 	SimulateUnshared bool // When true, always return ErrChannelIsNotShared for sync messages
 }
 
@@ -66,7 +66,7 @@ func (h *SelfReferentialUnshareHandler) HandleRequest(w http.ResponseWriter, r *
 			h.t.Logf("Unmarshaled frame, topic: %s", frame.Msg.Topic)
 			if frame.Msg.Topic == "sharedchannel_sync" {
 				var syncMsg model.SyncMsg
-				if err := json.Unmarshal(frame.Msg.Payload, &syncMsg); err == nil {
+				if unmarshalErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); unmarshalErr == nil {
 					h.t.Logf("Processing sync message for channel: %s", syncMsg.ChannelId)
 				}
 			}
@@ -74,7 +74,7 @@ func (h *SelfReferentialUnshareHandler) HandleRequest(w http.ResponseWriter, r *
 			// Simulate the remote having unshared if configured to do so
 			if h.SimulateUnshared && frame.Msg.Topic == "sharedchannel_sync" {
 				var syncMsg model.SyncMsg
-				if err := json.Unmarshal(frame.Msg.Payload, &syncMsg); err == nil {
+				if parseErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); parseErr == nil {
 					h.t.Logf("Simulating ErrChannelIsNotShared HTTP error for channel: %s", syncMsg.ChannelId)
 				} else {
 					h.t.Logf("Simulating ErrChannelIsNotShared HTTP error (couldn't parse channel ID)")
@@ -105,9 +105,8 @@ func (h *SelfReferentialUnshareHandler) HandleRequest(w http.ResponseWriter, r *
 			respBytes, _ := json.Marshal(response)
 			_, _ = w.Write(respBytes)
 			return
-		} else {
-			h.t.Logf("Failed to unmarshal frame: %v", err)
 		}
+		h.t.Logf("Failed to unmarshal frame: %v", err)
 		writeOKResponse(w)
 
 	case "/api/v4/remotecluster/ping":
