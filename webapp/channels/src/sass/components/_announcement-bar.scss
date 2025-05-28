@@ -92,11 +92,11 @@
     }
 
     .btn.btn-tertiary.btn-xs.btn-inverted {
-        background-color: rgba(variables.$white, 0.08);
+        background-color: rgba(variables.$white, 0.16);
         color: variables.$white;
 
         &:hover {
-            background-color: rgba(variables.$white, 0.16);
+            background-color: rgba(variables.$white, 0.24);
         }
     }
 }
