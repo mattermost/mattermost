@@ -644,9 +644,8 @@ func (a *App) GetUsersNotInChannel(teamID string, channelID string, groupConstra
 				TeamID: teamID,
 				Limit:  limit,
 				Cursor: model.SubjectCursor{
-					TargetID: targetID, // Use the cursor ID for pagination
+					TargetID: targetID,
 				},
-				// Remove the Query field entirely - it's not needed for cursor pagination
 			})
 			if appErr != nil {
 				return nil, appErr
@@ -689,7 +688,7 @@ func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupCon
 	if len(cursorID) > 0 && cursorID[0] != "" {
 		users, err = a.GetUsersNotInChannel(teamID, channelID, groupConstrained, 0, perPage, viewRestrictions, cursorID[0])
 	} else {
-		// Otherwise, use offset-based pagination (for backward compatibility)
+		// Otherwise, use offset-based pagination
 		users, err = a.GetUsersNotInChannel(teamID, channelID, groupConstrained, page*perPage, perPage, viewRestrictions)
 	}
 
