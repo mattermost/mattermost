@@ -458,6 +458,10 @@ modules-tidy: ## Tidy Go modules
 	mv enterprise/external_imports.go.orig enterprise/external_imports.go
 
 test-server-pre: check-prereqs-enterprise start-docker gotestsum ## Runs tests.
+ifeq ($(FIPS_ENABLED),true)
+	@echo Running FIPS tests
+	apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata
+endif
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
