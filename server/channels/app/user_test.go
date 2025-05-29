@@ -2220,7 +2220,7 @@ func TestAutocompleteUsersInChannelWithABAC(t *testing.T) {
 		assert.GreaterOrEqual(t, totalUsers, 0, "Fallback should work without error")
 	})
 
-	t.Run("ABAC Service Returns Empty Results wehn term gets no match", func(t *testing.T) {
+	t.Run("ABAC Service Returns Empty Results when term gets no match", func(t *testing.T) {
 		// Set up the mock to return empty results
 		mockAccessControl.On("QueryUsersForResource",
 			mock.Anything,
