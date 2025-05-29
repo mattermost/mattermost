@@ -554,9 +554,9 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 			Query:     query,
 			Highlight: highlight,
 		}).
-		Sort(types.SortOptions{SortOptions: map[string]types.FieldSort{
+		Sort(NewSortOptions().SortOptions(map[string]types.FieldSort{
 			"create_at": {Order: &sortorder.Desc},
-		}}).
+		})).
 		From(page * perPage).
 		Size(perPage)
 
@@ -1677,9 +1677,9 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 		Request(&search.Request{
 			Query: query,
 		}).
-		Sort(types.SortOptions{SortOptions: map[string]types.FieldSort{
+		Sort(NewSortOptions().SortOptions(map[string]types.FieldSort{
 			"create_at": {Order: &sortorder.Desc},
-		}}).
+		})).
 		From(page * perPage).
 		Size(perPage)
 
