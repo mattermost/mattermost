@@ -162,4 +162,6 @@ type Client interface {
 	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 	PermanentDeletePost(ctx context.Context, postID string) (*model.Response, error)
 	DeletePost(ctx context.Context, postId string) (*model.Response, error)
+	CreateDirectChannel(ctx context.Context, userId1, userId2 string) (*model.Channel, *model.Response, error)
+	GetMe(ctx context.Context, etag string) (*model.User, *model.Response, error)
 }
