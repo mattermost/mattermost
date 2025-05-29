@@ -109,6 +109,42 @@ exports[`components/AtMention should match snapshot when mentioning current user
 </Fragment>
 `;
 
+exports[`components/AtMention should match snapshot when mentioning remote user with RemoteUsername 1`] = `
+<Fragment>
+  <ProfilePopoverController
+    returnFocus={[Function]}
+    src="/api/v4/users/abc4/image"
+    triggerComponentAs="button"
+    triggerComponentClass="style--none"
+    userId="abc4"
+  >
+    <span
+      className="mention-link"
+    >
+      @remoteuser
+    </span>
+  </ProfilePopoverController>
+</Fragment>
+`;
+
+exports[`components/AtMention should match snapshot when mentioning remote user without RemoteUsername 1`] = `
+<Fragment>
+  <ProfilePopoverController
+    returnFocus={[Function]}
+    src="/api/v4/users/abc5/image"
+    triggerComponentAs="button"
+    triggerComponentClass="style--none"
+    userId="abc5"
+  >
+    <span
+      className="mention-link"
+    >
+      @Remote2 User2
+    </span>
+  </ProfilePopoverController>
+</Fragment>
+`;
+
 exports[`components/AtMention should match snapshot when mentioning user 1`] = `
 <Fragment>
   <ProfilePopoverController

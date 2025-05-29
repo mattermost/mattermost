@@ -23,6 +23,21 @@ describe('components/AtMention', () => {
             ),
             user1: TestHelper.getUserMock({id: 'abc2', username: 'user1', first_name: 'Other', last_name: 'User', nickname: 'Nick'}),
             'userdot.': TestHelper.getUserMock({id: 'abc3', username: 'userdot.', first_name: 'Dot', last_name: 'Matrix'}),
+            'remoteuser:remote': TestHelper.getUserMock({
+                id: 'abc4',
+                username: 'remoteuser:remote',
+                first_name: 'Remote',
+                last_name: 'User',
+                remote_id: 'remote123',
+                props: {RemoteUsername: 'remoteuser'},
+            }),
+            'remoteuser2:remote': TestHelper.getUserMock({
+                id: 'abc5',
+                username: 'remoteuser2:remote',
+                first_name: 'Remote2',
+                last_name: 'User2',
+                remote_id: 'remote456',
+            }),
         },
         groupsByName: {
             developers: TestHelper.getGroupMock({id: 'qwerty1', name: 'developers', allow_reference: true}),
@@ -223,6 +238,32 @@ describe('components/AtMention', () => {
                 mentionName='developers.'
             >
                 {'(at)-developers.'}
+            </AtMention>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot when mentioning remote user with RemoteUsername', () => {
+        const wrapper = shallow(
+            <AtMention
+                {...baseProps}
+                mentionName='remoteuser:remote'
+            >
+                {'(at)-remoteuser:remote'}
+            </AtMention>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot when mentioning remote user without RemoteUsername', () => {
+        const wrapper = shallow(
+            <AtMention
+                {...baseProps}
+                mentionName='remoteuser2:remote'
+            >
+                {'(at)-remoteuser2:remote'}
             </AtMention>,
         );
 
