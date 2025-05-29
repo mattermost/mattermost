@@ -221,7 +221,7 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 		return nil, -1, errors.Wrap(err, "post_tosql")
 	}
 
-	transaction, err := s.GetMaster().BeginXWithIsolation(&sql.TxOptions{Isolation: sql.LevelSerializable})
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return posts, -1, errors.Wrap(err, "begin_transaction")
 	}
@@ -1076,8 +1076,17 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userID string, data []pos
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	_, err = transaction.Exec("DELETE FROM Posts WHERE UserId = ? AND RootId != ''", userID)
-	if err != nil {
+	// Extract the post IDs from the data
+	postIds := make([]string, len(data))
+	for i, ids := range data {
+		postIds[i] = ids.Id
+	}
+
+	// Delete only the specific posts for this user
+	query := s.getQueryBuilder().
+		Delete("Posts").
+		Where(sq.Eq{"Id": postIds})
+	if _, err := transaction.ExecBuilder(query); err != nil {
 		return errors.Wrapf(err, "failed to delete Posts with userID=%s", userID)
 	}
 
@@ -3311,18 +3320,30 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				// store teamId for channel for efficiency
 				teamIdByChannelId[channelId] = teamId
 			}
-			// no metadata entry, create one
-			if _, err := transaction.NamedExec(`INSERT INTO Threads
-				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
-				VALUES
-				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants, :TeamId)`, &model.Thread{
+			// no metadata entry, create one using upsert
+			thread := &model.Thread{
 				PostId:       rootId,
 				ChannelId:    channelId,
 				ReplyCount:   count,
 				LastReplyAt:  lastReplyAt,
 				Participants: participants,
 				TeamId:       teamId,
-			}); err != nil {
+			}
+
+			query := s.getQueryBuilder().
+				Insert("Threads").
+				Columns("PostId", "ChannelId", "ReplyCount", "LastReplyAt", "Participants", "ThreadTeamId").
+				Values(thread.PostId, thread.ChannelId, thread.ReplyCount, thread.LastReplyAt, thread.Participants, thread.TeamId)
+
+			if s.DriverName() == model.DatabaseDriverMysql {
+				query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE ReplyCount = ?, LastReplyAt = ?, Participants = ?",
+					thread.ReplyCount, thread.LastReplyAt, thread.Participants))
+			} else {
+				query = query.SuffixExpr(sq.Expr("ON CONFLICT (PostId) DO UPDATE SET ReplyCount = ?, LastReplyAt = ?, Participants = ?",
+					thread.ReplyCount, thread.LastReplyAt, thread.Participants))
+			}
+
+			if _, err := transaction.ExecBuilder(query); err != nil {
 				return err
 			}
 		} else {
