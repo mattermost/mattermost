@@ -19,6 +19,7 @@ import {
     getCategoryInTeamByType,
     getCategoryInTeamWithChannel,
 } from 'mattermost-redux/selectors/entities/channel_categories';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {
     ActionFuncAsync,
@@ -188,6 +189,10 @@ export function addChannelToInitialCategory(channel: Channel, setOnServer = fals
                     channel_ids: insertWithoutDuplicates(category.channel_ids, channel.id, 0),
                 })),
             });
+        }
+
+        if (channel.default_category_name && getConfig(state).ExperimentalChannelCategorySorting === 'true' && setOnServer) {
+            return dispatch(addChannelToDefaultCategory(channel));
         }
 
         // Add the new channel to the Channels category on the channel's team
@@ -361,6 +366,38 @@ export function moveChannelsToCategory(categoryId: string, channelIds: string[],
         }
 
         return result;
+    };
+}
+
+export function addChannelToDefaultCategory(channel: Channel): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const categories = getCategoryIdsForTeam(state, channel.team_id).map((id) => getCategory(state, id));
+
+        // Find or create the category
+        let targetCategory = categories.find((category) =>
+            category.type === CategoryTypes.CUSTOM &&
+            category.display_name.toLowerCase() === channel.default_category_name!.toLowerCase(),
+        );
+
+        if (!targetCategory) {
+            // Create new category if it doesn't exist
+            const result = await dispatch(createCategory(channel.team_id, channel.default_category_name!));
+            if (result.error) {
+                return {error: result.error};
+            }
+            targetCategory = result.data;
+            await dispatch({
+                type: ChannelCategoryTypes.RECEIVED_CATEGORY,
+                data: result.data,
+            });
+        }
+
+        if (targetCategory) {
+            await dispatch(addChannelToCategory(targetCategory.id, channel.id));
+        }
+
+        return {data: true};
     };
 }
 
