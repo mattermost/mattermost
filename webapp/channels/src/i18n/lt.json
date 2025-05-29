@@ -2689,7 +2689,6 @@
   "channel_loader.postedImage": " paskelbė paveikslėlį",
   "channel_loader.socketError": "Patikrinkite ryšį, Mattermost nepasiekiamas. Jei problema išlieka, paprašykite administratoriaus [patikrinti WebSocket prievadą](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator- Norėdami patikrinti žiniatinklio lizdą).",
   "channel_loader.someone": "Kažkas",
-  "channel_loader.something": " padarė kažką naujo",
   "channel_loader.unknown_error": "Iš serverio gavome netikėtą būsenos kodą.",
   "channel_loader.uploadedFile": " įkėlė failą",
   "channel_loader.uploadedImage": " įkėlė paveikslėlį",
