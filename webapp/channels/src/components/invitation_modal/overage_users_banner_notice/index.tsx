@@ -58,7 +58,7 @@ const OverageUsersBannerNotice = () => {
     const preferenceName = `${prefixPreferences}_overage_seats_${prefixLicenseId}`;
 
     const overageByUsers = activeUsers - seatsPurchased;
-    const isOverageState = isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats;
+    const isOverageState = overageByUsers > 0 && (isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats);
     const hasPermission = isAdmin && isOverageState && !isCloud;
     const {
         cta,
@@ -120,7 +120,7 @@ const OverageUsersBannerNotice = () => {
             title={
                 <FormattedMessage
                     id='licensingPage.overageUsersBanner.noticeTitle'
-                    defaultMessage='Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}'
+                    defaultMessage='Your workspace user count has exceeded your licensed seat count by {seats, number} {seats, plural, one {seat} other {seats}}'
                     values={{
                         seats: overageByUsers,
                     }}

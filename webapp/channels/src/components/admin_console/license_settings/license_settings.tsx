@@ -34,6 +34,7 @@ import TeamEditionLeftPanel from './team_edition/team_edition_left_panel';
 import TeamEditionRightPanel from './team_edition/team_edition_right_panel';
 import TrialBanner from './trial_banner/trial_banner';
 import TrialLicenseCard from './trial_license_card/trial_license_card';
+import UserSeatAlertBanner from './user_seat_alert_banner';
 
 import './license_settings.scss';
 
@@ -44,6 +45,7 @@ type Props = {
     totalUsers: number;
     isDisabled: boolean;
     prevTrialLicense: ClientLicense;
+    isMySql: boolean;
     actions: {
         getLicenseConfig: () => void;
         uploadLicense: (file: File) => Promise<ActionResult>;
@@ -279,7 +281,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
     );
 
     render() {
-        const {license, upgradedFromTE, isDisabled} = this.props;
+        const {license, upgradedFromTE, isDisabled, isMySql} = this.props;
 
         let leftPanel = null;
         let rightPanel = null;
@@ -354,8 +356,14 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <div className='admin-console__banner_section'>
+                            <UserSeatAlertBanner
+                                license={license}
+                                totalUsers={this.props.totalUsers}
+                                location='license_settings'
+                            />
                             {!this.state.clickNormalUpgradeBtn && license.IsLicensed !== 'true' &&
                                 this.props.prevTrialLicense?.IsLicensed !== 'true' &&
+                                !isMySql &&
                                 <TrialBanner
                                     isDisabled={isDisabled}
                                     gettingTrialResponseCode={this.state.gettingTrialResponseCode}

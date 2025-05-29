@@ -128,7 +128,9 @@ exports[`components/integrations/InstalledOutgoingWebhook should match snapshot 
           id="installed_integrations.token"
           values={
             Object {
-              "token": "xoxz1z7c3tgi9xhrfudn638q9r",
+              "token": <code>
+                xoxz1z7c3tgi9xhrfudn638q9r
+              </code>,
             }
           }
         />

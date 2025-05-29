@@ -166,7 +166,7 @@ export default class InstalledCommand extends React.PureComponent<Props> {
                                 id='installed_integrations.token'
                                 defaultMessage='Token: {token}'
                                 values={{
-                                    token: commandToken,
+                                    token: <code>{commandToken}</code>,
                                 }}
                             />
                             <CopyText

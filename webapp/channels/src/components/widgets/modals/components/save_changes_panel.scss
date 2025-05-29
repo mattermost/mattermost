@@ -90,8 +90,8 @@
         padding: 10px 16px;
         border: none;
         border-radius: 4px;
-        background: rgba(var(--denim-button-bg-rgb), 0.08);
-        color: var(--denim-button-bg);
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
         font-family: inherit;
         font-size: 12px;
         font-weight: 600;
@@ -113,7 +113,7 @@
         padding: 10px 16px;
         border: none;
         border-radius: 4px;
-        background: var(--denim-button-bg);
+        background: var(--button-bg);
         color: var(--button-color);
         font-family: inherit;
         font-size: 12px;
@@ -123,7 +123,7 @@
 
         &.error {
             background-color: var(--button-color);
-            color: var(--denim-button-bg);
+            color: var(--button-bg);
         }
 
         &:disabled {
