@@ -22,7 +22,7 @@ width: 100%;
 `;
 
 const StyledA = styled.a`
-color: var(--denim-button-bg) !important;
+color: var(--button-bg) !important;
 `;
 
 const InnerDiv = styled.div`

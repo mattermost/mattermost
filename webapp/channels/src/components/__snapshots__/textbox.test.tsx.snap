@@ -2,7 +2,7 @@
 
 exports[`components/TextBox should match snapshot with additional, optional props 1`] = `
 <div
-  className="textarea-wrapper textarea-wrapper-preview"
+  className="textarea-wrapper textarea-wrapper-preview textarea-wrapper-preview--disabled"
 >
   <div
     className="form-control custom-textarea textbox-preview-area"
