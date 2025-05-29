@@ -823,7 +823,7 @@ export type ExperimentalSettings = {
     DisableWakeUpReconnectHandler: boolean;
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: number;
     YoutubeReferrerPolicy: boolean;
-    ChannelCategorySortingDelimiter: string;
+    ExperimentalChannelCategorySorting: boolean;
 };
 
 export type AnalyticsSettings = {
