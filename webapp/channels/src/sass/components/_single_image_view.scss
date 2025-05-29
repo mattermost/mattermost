@@ -13,6 +13,9 @@
             // number of selectors to override the specificity in _files.scss
             .image-name,
             button.single-image-view__toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 color: rgba(var(--center-channel-color-rgb), 0.75);
             }
 

@@ -1577,14 +1577,8 @@
 
         &--small-image {
             position: absolute;
-            top: -8px;
-            left: 24px;
-            width: 68px;
-        }
-
-        &--small-image-no-copy-button {
-            left: 32px;
-            width: 38px;
+            top: 4px;
+            right: 4px;
         }
 
         // Gallery-specific overrides for small images

@@ -131,10 +131,13 @@ const ImageGallery = (props: Props) => {
                     // Calculate the width based on the image's aspect ratio
                     const aspectRatio = fileInfo.width && fileInfo.height ? fileInfo.width / fileInfo.height : 1;
 
-                    // For small images (height < 216px), use their natural width but gallery height for container
+                    // Clamp aspect ratio to avoid extremely wide or tall images
+                    const clampedAspectRatio = Math.max(1 / 3, Math.min(aspectRatio, 3)); // Clamp between 0.33 and 3
+
+                    // For small images, use their natural width but gallery height for container
                     // For larger images, calculate width based on dynamic gallery height
-                    const isSmallImage = (fileInfo.height || 0) < 216;
-                    const itemWidth = isSmallImage ? (fileInfo.width || 0) + 16 : galleryHeight * aspectRatio; // Add 16px for left/right padding
+                    const isSmallImage = (fileInfo.width || 0) < 216 || (fileInfo.height || 0) < 216;
+                    const itemWidth = isSmallImage ? undefined : Math.min(galleryHeight * clampedAspectRatio, 500); // No width for small images
 
                     // For height: if small image and it's the tallest, use natural height + padding
                     // Otherwise, use gallery height to match other taller images
@@ -146,8 +149,10 @@ const ImageGallery = (props: Props) => {
                             key={fileInfo.id}
                             className={`image-gallery__item ${isSmallImage ? 'image-gallery__item--small' : ''}`}
                             style={{
-                                width: `${itemWidth}px`,
+                                width: isSmallImage ? undefined : `${itemWidth}px`,
                                 height: `${itemHeight}px`,
+                                maxWidth: '500px', // Enforce max width
+                                maxHeight: '216px', // Enforce max height
                             }}
                         >
                             <SingleImageView

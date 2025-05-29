@@ -207,7 +207,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             fileURL,
             enablePublicLink,
             intl,
-            smallImageThreshold,
             ...props
         } = this.props;
         Reflect.deleteProperty(props, 'showLoader');
@@ -220,7 +219,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
         Reflect.deleteProperty(props, 'intl');
-        Reflect.deleteProperty(props, 'smallImageThreshold');
 
         let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
@@ -324,36 +322,13 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         );
 
         if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
-            let className = 'small-image__container cursor--pointer a11y--active';
-            if (this.state.imageWidth < MIN_IMAGE_SIZE) {
-                className += ' small-image__container--min-width';
-            }
+            const className = 'small-image__container cursor--pointer a11y--active';
 
-            // 24 is the offset on a 48px wide image, for every pixel added to the width of the image, it's added to the left offset to buttons
-            const wideImageButtonsOffset = (24 + this.state.imageWidth) - MIN_IMAGE_SIZE;
+            // Only add min-width/min-height if the image is smaller than MIN_IMAGE_SIZE
+            const wideSmallImageStyle = (this.state.imageWidth < MIN_IMAGE_SIZE || (fileInfo && fileInfo.height && fileInfo.height < MIN_IMAGE_SIZE)) ? {minWidth: MIN_IMAGE_SIZE, minHeight: MIN_IMAGE_SIZE} : undefined;
 
-            /**
-             * creation of left offset for 2 nested cases
-             *  - if a small image with larger width
-             *  - if copy link button is enabled
-             */
-            const modifierCopyButton = enablePublicLink ? 0 : 8;
-
-            // decrease modifier if imageWidth > 100
-            const modifierLargerWidth = this.state.imageWidth > MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS ? 40 : 0;
-
-            // since there is a max-width constraint on images, a max-left clause follows.
-            const leftStyle = this.state.imageWidth > MIN_IMAGE_SIZE ? {
-                left: `min(${wideImageButtonsOffset + (modifierCopyButton - modifierLargerWidth)}px, calc(100% - ${31 - (modifierCopyButton - modifierLargerWidth)}px)`,
-            } : {};
-
-            const wideSmallImageStyle = this.state.imageWidth > MIN_IMAGE_SIZE ? {
-                width: this.state.imageWidth + 2, // 2px to account for the border
-            } : {};
             return (
-                <div
-                    className='small-image-utility-buttons-wrapper'
-                >
+                <figure className={classNames('image-loaded-container')}>
                     <div
                         onClick={this.handleImageClick}
                         className={classNames(className)}
@@ -365,12 +340,11 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                         className={classNames('image-preview-utility-buttons-container', 'image-preview-utility-buttons-container--small-image', {
                             'image-preview-utility-buttons-container--small-image-no-copy-button': !enablePublicLink,
                         })}
-                        style={leftStyle}
                     >
                         {enablePublicLink && copyLink}
                         {download}
                     </span>
-                </div>
+                </figure>
             );
         }
 
