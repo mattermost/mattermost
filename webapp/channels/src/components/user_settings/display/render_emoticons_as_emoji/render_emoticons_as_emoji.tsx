@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
@@ -31,11 +31,11 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
     const [value, setValue] = useState<string>(renderEmoticonsAsEmoji);
     const [isSaving, setIsSaving] = useState<boolean>(false);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setValue(e.currentTarget.value);
-    };
+    }, []);
 
-    const submitPreference = () => {
+    const submitPreference = useCallback(() => {
         setIsSaving(true);
         const pref: PreferenceType = {
             user_id: user.id,
@@ -46,16 +46,16 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
         actions.savePreferences(user.id, [pref]);
         setIsSaving(false);
         updateSection('');
-    };
+    }, [user.id, updateSection, actions, value]);
 
-    const changePreference = () => {
+    const changePreference = useCallback(() => {
         if (value === renderEmoticonsAsEmoji) {
             updateSection('');
             return;
         }
 
         submitPreference();
-    };
+    }, [renderEmoticonsAsEmoji, updateSection, value, submitPreference]);
 
     const options = [
         {
