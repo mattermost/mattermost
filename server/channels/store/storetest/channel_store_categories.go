@@ -2382,8 +2382,7 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 
 	// Create the initial categories
 	opts := &store.SidebarCategorySearchOpts{
-		TeamID:      team.Id,
-		ExcludeTeam: false,
+		TeamID: team.Id,
 	}
 	res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
 	require.NoError(t, nErr)
