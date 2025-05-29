@@ -10,8 +10,8 @@ import {Link} from 'react-router-dom';
 import {mark, trackEvent} from 'actions/telemetry_actions.jsx';
 
 import TeamIcon from 'components/widgets/team_icon/team_icon';
-import {ShortcutKeys} from 'components/with_tooltip/shortcut';
-import WithTooltip from 'components/with_tooltip/with_tooltip_new';
+import WithTooltip from 'components/with_tooltip';
+import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
 
 import {Mark} from 'utils/performance_telemetry';
 
@@ -164,7 +164,7 @@ export default function TeamButton({
     const teamButton = (
         <Link
             id={`${url.slice(1)}TeamButton`}
-            aria-label={ariaLabel}
+            aria-label={isNotCreateTeamButton ? ariaLabel : displayName}
             to={url}
             onClick={handleSwitch}
         >
@@ -179,20 +179,23 @@ export default function TeamButton({
         >
             {(provided, snapshot) => {
                 return (
-                    <div
-                        className='draggable-team-container'
+                    <Link
+                        to={url}
+                        id={`${url.slice(1)}TeamButton`}
+                        aria-label={ariaLabel}
+                        onClick={handleSwitch}
+                        className='draggable-team-container inline-block'
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        tabIndex={-1}
                     >
                         <div
                             className={classNames([`team-container ${teamClass}`, {isDragging: snapshot.isDragging}])}
                         >
-                            {teamButton}
+                            {btn}
                             {orderIndicator}
                         </div>
-                    </div>
+                    </Link>
                 );
             }}
         </Draggable>
@@ -224,6 +227,10 @@ function WithTeamTooltip({
             mac: [ShortcutKeys.cmd, ShortcutKeys.option, order.toString()],
         };
     }, [order]);
+
+    if (!React.isValidElement(children)) {
+        return null;
+    }
 
     return (
         <WithTooltip

@@ -75,7 +75,10 @@ describe('components/SingleImageView', () => {
         );
 
         const instance = wrapper.instance() as SingleImageView;
-        instance.toggleEmbedVisibility();
+        const event = {
+            stopPropagation: jest.fn(),
+        } as unknown as React.MouseEvent<HTMLButtonElement>;
+        instance.toggleEmbedVisibility(event);
         expect(props.actions.toggleEmbedVisibility).toHaveBeenCalledTimes(1);
         expect(props.actions.toggleEmbedVisibility).toBeCalledWith('original_post_id');
     });

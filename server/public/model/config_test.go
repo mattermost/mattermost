@@ -61,6 +61,52 @@ func TestConfigDefaults(t *testing.T) {
 		c.SetDefaults()
 		recursivelyUninitialize(&c, "config", reflect.ValueOf(&c).Elem())
 	})
+	t.Run("report a problem defaults", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.Equal(t, SupportSettingsDefaultReportAProblemType, *c.SupportSettings.ReportAProblemType)
+		require.Equal(t, SupportSettingsDefaultReportAProblemLink, *c.SupportSettings.ReportAProblemLink)
+		require.Equal(t, "", *c.SupportSettings.ReportAProblemMail)
+		require.Equal(t, true, *c.SupportSettings.AllowDownloadLogs)
+	})
+}
+
+func TestConfigIsValid(t *testing.T) {
+	t.Run("report a problem values", func(t *testing.T) {
+		t.Run("email", func(t *testing.T) {
+			c := Config{}
+			c.SetDefaults()
+			c.SupportSettings.ReportAProblemType = NewPointer(string(SupportSettingsReportAProblemTypeMail))
+			c.SupportSettings.ReportAProblemMail = nil
+			require.NotNil(t, c.IsValid())
+
+			c.SupportSettings.ReportAProblemMail = NewPointer("")
+			require.NotNil(t, c.IsValid())
+
+			c.SupportSettings.ReportAProblemMail = NewPointer("invalid")
+			require.NotNil(t, c.IsValid())
+
+			c.SupportSettings.ReportAProblemMail = NewPointer("valid@email.com")
+			require.Nil(t, c.IsValid())
+		})
+
+		t.Run("link", func(t *testing.T) {
+			c := Config{}
+			c.SetDefaults()
+			c.SupportSettings.ReportAProblemType = NewPointer(string(SupportSettingsReportAProblemTypeLink))
+			c.SupportSettings.ReportAProblemLink = nil
+			require.NotNil(t, c.IsValid())
+
+			c.SupportSettings.ReportAProblemLink = NewPointer("")
+			require.NotNil(t, c.IsValid())
+
+			c.SupportSettings.ReportAProblemLink = NewPointer("invalid")
+			require.NotNil(t, c.IsValid())
+
+			c.SupportSettings.ReportAProblemLink = NewPointer("http://valid.com")
+			require.Nil(t, c.IsValid())
+		})
+	})
 }
 
 func TestConfigEmptySiteName(t *testing.T) {
@@ -159,6 +205,94 @@ func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
 	c1.SetDefaults()
 
 	require.False(t, *c1.FileSettings.AmazonS3SSE)
+}
+
+func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
+	// Define Unicode whitespace characters to test
+	unicodeWhitespaces := []struct {
+		name string
+		char string
+	}{
+		{"Regular Space", " "},
+		{"Standard Space (U+0020)", "\u0020"},
+		{"No-Break Space (U+00A0)", "\u00A0"},
+		{"En Space (U+2002)", "\u2002"},
+	}
+
+	// Define all FileSettings path fields to test
+	pathSettings := []struct {
+		name         string
+		validValue   string
+		configSetter func(*Config, *string)
+	}{
+		{
+			"Directory",
+			"/path/to/directory",
+			func(cfg *Config, value *string) { cfg.FileSettings.Directory = value },
+		},
+		{
+			"AmazonS3PathPrefix",
+			"files/",
+			func(cfg *Config, value *string) { cfg.FileSettings.AmazonS3PathPrefix = value },
+		},
+		{
+			"ExportAmazonS3PathPrefix",
+			"exports/",
+			func(cfg *Config, value *string) { cfg.FileSettings.ExportAmazonS3PathPrefix = value },
+		},
+		{
+			"ExportDirectory",
+			"/path/to/exports",
+			func(cfg *Config, value *string) { cfg.FileSettings.ExportDirectory = value },
+		},
+	}
+
+	// Test valid paths first
+	for _, setting := range pathSettings {
+		t.Run(fmt.Sprintf("Valid %s", setting.name), func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			setting.configSetter(cfg, NewPointer(setting.validValue))
+
+			err := cfg.FileSettings.isValid()
+			require.Nil(t, err, "Expected no error but got: %v", err)
+		})
+	}
+
+	// Test path with space in the middle (should be valid)
+	t.Run("Directory with space in the middle (valid)", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.Directory = NewPointer("/path/to/my directory")
+
+		err := cfg.FileSettings.isValid()
+		require.Nil(t, err, "Expected no error but got: %v", err)
+	})
+
+	// Test all combinations of settings, whitespace characters, and positions
+	for _, setting := range pathSettings {
+		for _, ws := range unicodeWhitespaces {
+			for _, position := range []string{"leading", "trailing"} {
+				t.Run(fmt.Sprintf("%s with %s %s whitespace", setting.name, position, ws.name), func(t *testing.T) {
+					cfg := &Config{}
+					cfg.SetDefaults()
+
+					var testValue string
+					if position == "leading" {
+						testValue = ws.char + setting.validValue
+					} else {
+						testValue = setting.validValue + ws.char
+					}
+
+					setting.configSetter(cfg, NewPointer(testValue))
+
+					err := cfg.FileSettings.isValid()
+					require.NotNil(t, err, "Expected an error but got none")
+					assert.Equal(t, "model.config.is_valid.directory_whitespace.app_error", err.Id)
+				})
+			}
+		}
+	}
 }
 
 func TestConfigDefaultSignatureAlgorithm(t *testing.T) {
@@ -1559,7 +1693,7 @@ func TestConfigFilteredByTag(t *testing.T) {
 	c := Config{}
 	c.SetDefaults()
 
-	cfgMap := structToMapFilteredByTag(c, ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+	cfgMap := configToMapFilteredByTag(c, ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
 
 	// Remove entire sections but the map is still there
 	clusterSettings, ok := cfgMap["SqlSettings"].(map[string]any)
@@ -2087,5 +2221,64 @@ func TestFilterConfig(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Equal(t, 1.0, m["PluginSettings"].(map[string]any)["Plugins"].(map[string]any)["com.mattermost.plugin-a"].(map[string]any)["setting"])
+	})
+
+	t.Run("should be able to filter specific tag", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{},
+			TagFilters: []FilterTag{
+				{
+					TagType: ConfigAccessTagType,
+					TagName: ConfigAccessTagCloudRestrictable,
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+
+		fileSettings, ok := m["FileSettings"]
+		require.True(t, ok)
+
+		enableFileAttachments, ok := fileSettings.(map[string]any)["EnableFileAttachments"]
+		require.True(t, ok)
+		require.Equal(t, true, enableFileAttachments)
+
+		// All fields of SqlSettings are ConfigAccessTagCloudRestrictable
+		_, ok = m["SqlSettings"]
+		require.False(t, ok)
+	})
+
+	t.Run("should be able to filter multiple tags", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{},
+			TagFilters: []FilterTag{
+				{
+					TagType: ConfigAccessTagType,
+					TagName: "site_file_sharing_and_downloads",
+				},
+				{
+					TagType: ConfigAccessTagType,
+					TagName: ConfigAccessTagCloudRestrictable,
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+
+		fileSettings, ok := m["FileSettings"]
+		require.True(t, ok)
+		// EnableFileAttachments has "site_file_sharing_and_downloads" tag
+		_, ok = fileSettings.(map[string]any)["EnableFileAttachments"]
+		require.False(t, ok)
+
+		// All fields of SqlSettings are ConfigAccessTagCloudRestrictable
+		_, ok = m["SqlSettings"]
+		require.False(t, ok)
 	})
 }

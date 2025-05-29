@@ -15,6 +15,7 @@ describe('components/MenuItem', () => {
   <li
     className="MenuGroup menu-divider"
     onClick={[Function]}
+    role="separator"
   />
   text
 </Fragment>

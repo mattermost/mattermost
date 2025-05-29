@@ -1,34 +1,38 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/InfoToast should match snapshot 1`] = `
-<CSSTransition
-  appear={true}
-  classNames="toast"
-  in={true}
-  mountOnEnter={true}
-  timeout={300}
-  unmountOnExit={true}
->
+<div>
   <div
-    className="info-toast className"
+    class="info-toast className toast-appear toast-appear-active"
   >
-    <CheckIcon />
+    <svg
+      fill="currentColor"
+      height="1em"
+      version="1.1"
+      viewBox="0 0 24 24"
+      width="1em"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+      />
+    </svg>
     <span>
       test
     </span>
     <button
-      className="info-toast__undo"
-      onClick={[Function]}
+      class="info-toast__undo"
     >
       Undo
     </button>
-    <ForwardRef
-      className="info-toast__icon_button"
-      icon="close"
-      inverted={true}
-      onClick={[Function]}
-      size="sm"
-    />
+    <button
+      aria-label="Close"
+      class="info-toast__icon_button"
+    >
+      <i
+        class="icon icon-close"
+      />
+    </button>
   </div>
-</CSSTransition>
+</div>
 `;

@@ -28,8 +28,8 @@ describe('Managing bot accounts', () => {
         cy.apiLogout();
         cy.visit('/login');
 
-        // # Remove autofocus from login input
-        cy.get('.login-body-card-content').should('be.visible').focus();
+        // # Click on card titile to remove auto focus from the email field
+        cy.get('.login-body-card-title').click();
 
         // # Enter bot name in the email field
         cy.findByPlaceholderText('Email, Username or AD/LDAP Username', {timeout: TIMEOUTS.ONE_MIN}).clear().type(botName);

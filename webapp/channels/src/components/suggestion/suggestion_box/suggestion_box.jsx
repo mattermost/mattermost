@@ -493,6 +493,7 @@ export default class SuggestionBox extends React.PureComponent {
                 });
                 if (e) {
                     e.preventDefault();
+                    e.stopPropagation();
                 }
             }
             this.props.onKeyPress(ke);
@@ -506,6 +507,11 @@ export default class SuggestionBox extends React.PureComponent {
                 }
             }
         }
+
+        if (e) {
+            e.stopPropagation();
+        }
+
         return false;
     };
 
@@ -578,6 +584,7 @@ export default class SuggestionBox extends React.PureComponent {
                 this.selectNext();
                 e.preventDefault();
             } else if ((Keyboard.isKeyPressed(e, KeyCodes.ENTER) && !ctrlOrMetaKeyPressed) || (this.props.completeOnTab && Keyboard.isKeyPressed(e, KeyCodes.TAB))) {
+                e.stopPropagation();
                 let matchedPretext = '';
                 for (let i = 0; i < this.state.terms.length; i++) {
                     if (this.state.terms[i] === this.state.selection) {
@@ -820,6 +827,12 @@ export default class SuggestionBox extends React.PureComponent {
                     ref={this.inputRef}
                     autoComplete='off'
                     {...props}
+                    aria-controls='suggestionList'
+                    role='combobox'
+                    {...(this.state.selection && {'aria-activedescendant': `${props.id}_${this.state.selection}`}
+                    )}
+                    aria-autocomplete='list'
+                    aria-expanded={this.state.focused || this.props.forceSuggestionsWhenBlur}
                     onInput={this.handleChange}
                     onCompositionStart={this.handleCompositionStart}
                     onCompositionUpdate={this.handleCompositionUpdate}

@@ -47,7 +47,7 @@ type mockSuite struct {
 }
 
 func (ms *mockSuite) SetStatusLastActivityAt(userID string, activityAt int64) {}
-func (ms *mockSuite) SetStatusOffline(userID string, manual bool)             {}
+func (ms *mockSuite) SetStatusOffline(userID string, manual bool, force bool) {}
 func (ms *mockSuite) IsUserAway(lastActivityAt int64) bool                    { return false }
 func (ms *mockSuite) SetStatusOnline(userID string, manual bool)              {}
 func (ms *mockSuite) UpdateLastActivityAtIfNeeded(session model.Session)      {}
@@ -138,7 +138,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		ServiceConfig{
 			Store: dbStore,
 		}, options...)
-	require.NoError(tb, err)
+	if err != nil {
+		require.NoError(tb, err)
+	}
 
 	th := &TestHelper{
 		Context: request.TestContext(tb),

@@ -31,6 +31,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Delete", func(t *testing.T) { testPostStoreDelete(t, rctx, ss) })
 	t.Run("PermDelete1Level", func(t *testing.T) { testPostStorePermDelete1Level(t, rctx, ss) })
 	t.Run("PermDelete1Level2", func(t *testing.T) { testPostStorePermDelete1Level2(t, rctx, ss) })
+	t.Run("PermDeleteLimitExceeded", func(t *testing.T) { testPostStorePermDeleteLimitExceeded(t, rctx, ss) })
 	t.Run("GetWithChildren", func(t *testing.T) { testPostStoreGetWithChildren(t, rctx, ss) })
 	t.Run("GetPostsWithDetails", func(t *testing.T) { testPostStoreGetPostsWithDetails(t, rctx, ss) })
 	t.Run("GetPostsBeforeAfter", func(t *testing.T) { testPostStoreGetPostsBeforeAfter(t, rctx, ss) })
@@ -60,6 +61,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("HasAutoResponsePostByUserSince", func(t *testing.T) { testHasAutoResponsePostByUserSince(t, rctx, ss) })
 	t.Run("GetPostsSinceUpdateForSync", func(t *testing.T) { testGetPostsSinceUpdateForSync(t, rctx, ss, s) })
 	t.Run("GetPostsSinceCreateForSync", func(t *testing.T) { testGetPostsSinceCreateForSync(t, rctx, ss, s) })
+	t.Run("GetPostsSinceForSyncExcludeMetadata", func(t *testing.T) { testGetPostsSinceForSyncExcludeMetadata(t, rctx, ss, s) })
 	t.Run("SetPostReminder", func(t *testing.T) { testSetPostReminder(t, rctx, ss, s) })
 	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, rctx, ss, s) })
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, rctx, ss, s) })
@@ -289,7 +291,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	p4.Message = NewTestID()
 
 	t.Run("Save correctly a new set of posts", func(t *testing.T) {
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p1, &p2, &p3})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 		for _, post := range newPosts {
@@ -357,7 +359,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		o4.UserId = model.NewId()
 		o4.Message = NewTestID()
 
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&o1, &o2, &o3, &o4})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&o1, &o2, &o3, &o4})
 		require.NoError(t, err, "couldn't save item")
 		require.Equal(t, -1, errIdx)
 		assert.Len(t, newPosts, 4)
@@ -368,7 +370,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Try to save mixed, already saved and not saved posts", func(t *testing.T) {
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p4, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p4, &p3})
 		require.Error(t, err)
 		require.Equal(t, 1, errIdx)
 		require.Nil(t, newPosts)
@@ -404,7 +406,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		replyPost.Message = NewTestID()
 		replyPost.RootId = rootPost.Id
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&rootPost, &replyPost})
 		require.NoError(t, err)
 
 		rrootPost, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
@@ -426,7 +428,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		// Ensure update does not occur in the same timestamp as creation
 		time.Sleep(time.Millisecond)
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
 		rrootPost2, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
@@ -459,7 +461,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		post3.UserId = model.NewId()
 		post3.Message = NewTestID()
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&post1, &post2, &post3})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&post1, &post2, &post3})
 		require.NoError(t, err)
 
 		rchannel, err := ss.Channel().Get(channel.Id, false)
@@ -837,7 +839,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2)
 		require.Len(t, r1.Posts, 2)
 		assert.True(t, *r1.HasNext)
 
@@ -875,7 +877,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2)
 		require.Len(t, r1.Posts, 2)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
 		assert.False(t, *r1.HasNext)
@@ -894,6 +896,126 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Posts, 2)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, m1.CreateAt)
 		assert.True(t, *r1.HasNext)
+	})
+
+	t.Run("Pagination with UpdateAt", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		now := model.GetMillis()
+		o1 := &model.Post{CreateAt: now, ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestID()}
+		o1, err = ss.Post().Save(rctx, o1)
+		require.NoError(t, err)
+
+		// Create replies with explicit UpdateAt timestamps
+		o2 := &model.Post{CreateAt: now + 1, UpdateAt: now + 1, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestID(), RootId: o1.Id}
+		_, err = ss.Post().Save(rctx, o2)
+		require.NoError(t, err)
+
+		m1 := &model.Post{CreateAt: now + 2, UpdateAt: now + 2, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestID(), RootId: o1.Id}
+		m1, err = ss.Post().Save(rctx, m1)
+		require.NoError(t, err)
+
+		o3 := &model.Post{CreateAt: now + 3, UpdateAt: now + 3, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestID(), RootId: o1.Id}
+		_, err = ss.Post().Save(rctx, o3)
+		require.NoError(t, err)
+
+		o4 := &model.Post{CreateAt: now + 4, UpdateAt: now + 4, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestID(), RootId: o1.Id}
+		o4, err = ss.Post().Save(rctx, o4)
+		require.NoError(t, err)
+
+		// Test pagination with UpdateAt in "down" direction
+		opts := model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: true,
+			PerPage:          2,
+			Direction:        "down",
+		}
+		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		require.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Posts, 3)
+		assert.Equal(t, r1.Posts[r1.Order[0]].UpdateAt, o4.CreateAt) // The root post always get updated with the createAt of the latest post in the thread.
+		assert.True(t, *r1.HasNext)
+
+		lastPostID := r1.Order[len(r1.Order)-1]
+		lastPostUpdateAt := r1.Posts[lastPostID].UpdateAt
+
+		// Continue pagination using UpdateAt
+		opts = model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: true,
+			PerPage:          2,
+			Direction:        "down",
+			FromPost:         lastPostID,
+			FromUpdateAt:     lastPostUpdateAt,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		require.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Posts, 3)
+		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].UpdateAt, lastPostUpdateAt)
+		assert.Equal(t, r1.Posts[r1.Order[0]].UpdateAt, o4.CreateAt) // The root post always get updated with the createAt of the latest post in the thread.
+		assert.False(t, *r1.HasNext)
+
+		// Non-CRT mode with UpdateAt pagination
+		opts = model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: false,
+			PerPage:          2,
+			Direction:        "down",
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		// Ordering by updateAt will move the root post down, so we will get more posts in the thread.
+		require.Len(t, r1.Order, 3)
+		require.Len(t, r1.Posts, 3)
+		require.True(t, *r1.HasNext)
+
+		lastPostID = r1.Order[len(r1.Order)-1]
+		lastPostUpdateAt = r1.Posts[lastPostID].UpdateAt
+
+		opts = model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: false,
+			PerPage:          3,
+			Direction:        "down",
+			FromPost:         lastPostID,
+			FromUpdateAt:     lastPostUpdateAt,
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		require.Len(t, r1.Order, 3)
+		require.Len(t, r1.Posts, 3)
+		require.Equal(t, r1.Posts[r1.Order[0]].ReplyCount, int64(4))
+		require.Equal(t, r1.Posts[r1.Order[1]].ReplyCount, int64(4))
+		require.Equal(t, r1.Posts[r1.Order[2]].ReplyCount, int64(4))
+		require.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].UpdateAt, lastPostUpdateAt)
+		assert.False(t, *r1.HasNext)
+
+		// Only with UpdateAt - direction down
+		opts = model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: false,
+			PerPage:          1,
+			Direction:        "down",
+			FromUpdateAt:     m1.UpdateAt,
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		require.Len(t, r1.Order, 2)
+		require.Len(t, r1.Posts, 2)
+		require.GreaterOrEqual(t, r1.Posts[r1.Order[1]].UpdateAt, m1.UpdateAt)
+		require.True(t, *r1.HasNext)
 	})
 }
 
@@ -1684,6 +1806,33 @@ func testPostStorePermDelete1Level2(t *testing.T, rctx request.CTX, ss store.Sto
 
 	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err, "Deleted id should have failed")
+}
+
+func testPostStorePermDeleteLimitExceeded(t *testing.T, rctx request.CTX, ss store.Store) {
+	const maxPosts = 10000
+	teamID := model.NewId()
+	userID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "10KPosts",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	for i := 0; i < maxPosts+100; i++ {
+		post := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Message:   NewTestID(),
+		}
+		_, err = ss.Post().Save(rctx, post)
+		require.NoError(t, err)
+	}
+
+	err = ss.Post().PermanentDeleteByUser(rctx, userID)
+	var errLimitExceeded *store.ErrLimitExceeded
+	require.ErrorAs(t, err, &errLimitExceeded)
 }
 
 func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -2867,6 +3016,8 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Post().Save(rctx, b1a)
 	require.NoError(t, nErr)
 
+	require.NoError(t, ss.Post().RefreshPostStats())
+
 	time.Sleep(1 * time.Second)
 
 	// summary of posts
@@ -2879,6 +3030,8 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	assert.Equal(t, float64(3), r1[0].Value)
 	assert.Equal(t, float64(3), r1[1].Value)
+	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
+	assert.Equal(t, utils.Yesterday().Add(-48*time.Hour).Format("2006-01-02"), r1[1].Name)
 
 	// last 31 days, bots only
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: false}
@@ -2886,18 +3039,22 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	assert.Equal(t, float64(1), r1[0].Value)
 	assert.Equal(t, float64(1), r1[1].Value)
+	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
+	assert.Equal(t, utils.Yesterday().Add(-48*time.Hour).Format("2006-01-02"), r1[1].Name)
 
 	// yesterday only, all users (including bots)
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: false, YesterdayOnly: true}
 	r1, err = ss.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	require.NoError(t, err)
 	assert.Equal(t, float64(3), r1[0].Value)
+	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
 
 	// yesterday only, bots only
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: true}
 	r1, err = ss.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	require.NoError(t, err)
 	assert.Equal(t, float64(1), r1[0].Value)
+	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
 }
 
 func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -3001,6 +3158,8 @@ func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Post().Save(rctx, p7)
 	require.NoError(t, nErr)
 
+	require.NoError(t, ss.Post().RefreshPostStats())
+
 	// total across all teams
 	c, err := ss.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, err)
@@ -3008,6 +3167,10 @@ func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// total for single team
 	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id})
+	require.NoError(t, err)
+	assert.Equal(t, int64(7), c)
+
+	c, err = ss.Post().AnalyticsPostCountByTeam(t1.Id)
 	require.NoError(t, err)
 	assert.Equal(t, int64(7), c)
 
@@ -3730,7 +3893,7 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 		o3a := ro3.Clone()
 		o3a.Message = ro3.Message + "WWWWWWW"
 
-		_, errIdx, err := ss.Post().OverwriteMultiple([]*model.Post{o1a, o2a, o3a})
+		_, errIdx, err := ss.Post().OverwriteMultiple(rctx, []*model.Post{o1a, o2a, o3a})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
@@ -3760,7 +3923,7 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 		o5a.Filenames = []string{}
 		o5a.FileIds = []string{}
 
-		_, errIdx, err := ss.Post().OverwriteMultiple([]*model.Post{o4a, o5a})
+		_, errIdx, err := ss.Post().OverwriteMultiple(rctx, []*model.Post{o4a, o5a})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
@@ -4314,8 +4477,7 @@ func testPostStoreGetOldest(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.EqualValues(t, o2.Id, r1.Id)
 }
 
-func testGetMaxPostSize(t *testing.T, rctx request.CTX, ss store.Store) {
-	assert.Equal(t, model.PostMessageMaxRunesV2, ss.Post().GetMaxPostSize())
+func testGetMaxPostSize(t *testing.T, _ request.CTX, ss store.Store) {
 	assert.Equal(t, model.PostMessageMaxRunesV2, ss.Post().GetMaxPostSize())
 }
 
@@ -5021,12 +5183,12 @@ func testGetPostReminders(t *testing.T, rctx request.CTX, ss store.Store, s SqlS
 		require.NoError(t, ss.Post().SetPostReminder(reminder))
 	}
 
-	reminders, err := ss.Post().GetPostReminders(102)
+	reminders, err := ss.Post().GetPostReminders(101)
 	require.NoError(t, err)
 	require.Len(t, reminders, 2)
 
 	// assert one reminder is left
-	reminders, err = ss.Post().GetPostReminders(103)
+	reminders, err = ss.Post().GetPostReminders(102)
 	require.NoError(t, err)
 	require.Len(t, reminders, 1)
 
@@ -5117,6 +5279,8 @@ func getPostIds(posts []*model.Post, morePosts ...*model.Post) []string {
 }
 
 func testGetNthRecentPostTime(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-64438")
+
 	_, err := ss.Post().GetNthRecentPostTime(0)
 	assert.Error(t, err)
 	_, err = ss.Post().GetNthRecentPostTime(-1)
@@ -5292,5 +5456,93 @@ func testGetEditHistoryForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		// get edit history
 		_, err = ss.Post().GetEditHistoryForPost(savedUpdatedPost.Id)
 		require.NoError(t, err)
+	})
+}
+
+// testGetPostsSinceForSyncExcludeMetadata tests the ExcludeChannelMetadataSystemPosts option
+// in the GetPostsSinceForSync function to verify that database-level filtering works correctly
+func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	// Create a channel
+	channelID := model.NewId()
+
+	// Create test posts - mix of regular posts and channel metadata system posts
+	first := model.GetMillis()
+
+	data := []*model.Post{
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "regular post 1", Type: model.PostTypeDefault},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "changed header", Type: model.PostTypeHeaderChange},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "regular post 2", Type: model.PostTypeDefault},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "changed display name", Type: model.PostTypeDisplaynameChange},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "regular post 3", Type: model.PostTypeDefault},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "changed purpose", Type: model.PostTypePurposeChange},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "regular post 4", Type: model.PostTypeDefault},
+	}
+
+	// Save posts
+	for i, p := range data {
+		p.UpdateAt = first + (int64(i) * 300000)
+		p.CreateAt = first + (int64(i) * 300000)
+		p.RemoteId = model.NewPointer(model.NewId())
+		_, err := ss.Post().Save(rctx, p)
+		require.NoError(t, err, "couldn't save post")
+	}
+
+	t.Run("ExcludeChannelMetadataSystemPosts=true should filter out metadata posts", func(t *testing.T) {
+		// Set options with ExcludeChannelMetadataSystemPosts = true
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:                         channelID,
+			ExcludeChannelMetadataSystemPosts: true,
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+
+		// Verify only regular posts are returned
+		require.Len(t, posts, 4, "should return only 4 regular posts")
+
+		// Check that only default post types are returned
+		for _, post := range posts {
+			require.Equal(t, model.PostTypeDefault, post.Type, "only default posts should be returned")
+		}
+
+		// Verify we have the expected post IDs (only regular posts)
+		expectedIDs := []string{
+			data[0].Id, // regular post 1
+			data[2].Id, // regular post 2
+			data[4].Id, // regular post 3
+			data[6].Id, // regular post 4
+		}
+
+		postIDs := make([]string, 0, len(posts))
+		for _, p := range posts {
+			postIDs = append(postIDs, p.Id)
+		}
+
+		require.ElementsMatch(t, expectedIDs, postIDs, "returned posts should only be regular posts")
+	})
+
+	t.Run("ExcludeChannelMetadataSystemPosts=false should include all posts", func(t *testing.T) {
+		// Set options with ExcludeChannelMetadataSystemPosts = false
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:                         channelID,
+			ExcludeChannelMetadataSystemPosts: false,
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+
+		// Verify all posts are returned
+		require.Len(t, posts, 7, "should return all 7 posts when not excluding metadata posts")
+
+		// Verify all post types are included by counting each type
+		postTypeCount := make(map[string]int)
+		for _, post := range posts {
+			postTypeCount[post.Type]++
+		}
+
+		require.Equal(t, 4, postTypeCount[model.PostTypeDefault], "should have 4 regular posts")
+		require.Equal(t, 1, postTypeCount[model.PostTypeHeaderChange], "should have 1 header change post")
+		require.Equal(t, 1, postTypeCount[model.PostTypeDisplaynameChange], "should have 1 display name change post")
+		require.Equal(t, 1, postTypeCount[model.PostTypePurposeChange], "should have 1 purpose change post")
 	})
 }

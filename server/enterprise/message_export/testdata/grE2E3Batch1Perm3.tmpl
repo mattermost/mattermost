@@ -1,0 +1,191 @@
+<h1>Mattermost Compliance Export</h1>
+
+<h2>Conversation Summary</h2>
+<div class=3D"summary-list">
+    <ul>
+        <li><span class=3D"bold">TeamId:</span>%[13]s</li>
+        <li><span class=3D"bold">TeamName:</span>%[14]s</li>
+        <li><span class=3D"bold">TeamDisplayName:</span>%[15]s</li>
+        <li><span class=3D"bold">ChannelId:</span>%[16]s</li>
+        <li><span class=3D"bold">ChannelName:</span>channel_two_name</li>
+        <li><span class=3D"bold">ChannelDisplayName:</span>the Channel Two</li>
+        <li><span class=3D"bold">Started:</span>%[1]s</li>
+        <li><span class=3D"bold">Ended:</span>%[2]s</li>
+        <li><span class=3D"bold">Duration:</span>0 seconds</li>
+    </ul>
+</div>
+<table class=3D"participants">
+    <tr>
+        <th class=3D"userid">UserId<br></th>
+        <th class=3D"username">Username<br></th>
+        <th class=3D"usertype">UserType<br></th>
+        <th class=3D"email">Email</th>
+        <th class=3D"joined">Joined</th>
+        <th class=3D"left">Left</th>
+        <th class=3D"duration">Duration</th>
+        <th class=3D"messages">Messages</th>
+    </tr>
+   =20
+<tr>
+    <td class=3D"userid">%[17]s</td>
+    <td class=3D"username">@user1</td>
+    <td class=3D"usertype">user</td>
+    <td class=3D"email">user1@email</td>
+    <td class=3D"joined">%[3]s</td>
+    <td class=3D"left">%[4]s</td>
+    <td class=3D"duration">0 seconds</td>
+    <td class=3D"messages">9</td>
+</tr>
+
+</table>
+
+<h2>Messages</h2>
+<div class=3D"message-list">
+    <ul>
+       =20
+<li class=3D"message">
+    <span class=3D"post_id">%[18]s</span>
+    <span class=3D"sent_time">%[5]s</span>
+    <span class=3D"username">@user1</span>
+    <span class=3D"userid">%[17]s</span>
+    <span class=3D"postusername">@user1</span>
+    <span class=3D"usertype">user</span>
+    <span class=3D"email">(user1@email)</span>
+    <span class=3D"message">message 0</span>
+</li>
+
+<li class=3D"message">
+    <span class=3D"post_id">%[19]s</span>
+    <span class=3D"sent_time">%[6]s</span>
+    <span class=3D"username">@user1</span>
+    <span class=3D"userid">%[17]s</span>
+    <span class=3D"postusername">@user1</span>
+    <span class=3D"usertype">user</span>
+    <span class=3D"email">(user1@email)</span>
+    <span class=3D"message">message 1</span>
+</li>
+
+<li class=3D"message">
+    <span class=3D"post_id">%[19]s</span>
+    <span class=3D"sent_time">%[6]s</span>
+    <span class=3D"username">@user1</span>
+    <span class=3D"userid">%[17]s</span>
+    <span class=3D"postusername">@user1</span>
+    <span class=3D"usertype">user</span>
+    <span class=3D"email">(user1@email)</span>
+    <span class=3D"message">delete message 1</span>
+    <span class=3D"update_type">Deleted</span>
+    <span class=3D"update_time">%[26]s</span>
+    <span class=3D"edited_new_msg_id"></span>
+</li>
+
+<li class=3D"message">
+    <span class=3D"post_id">%[20]s</span>
+    <span class=3D"sent_time">%[7]s</span>
+    <span class=3D"username">@user1</span>
+    <span class=3D"userid">%[17]s</span>
+    <span class=3D"postusername">@user1</span>
+    <span class=3D"usertype">user</span>
+    <span class=3D"email">(user1@email)</span>
+    <span class=3D"message">message 2</span>
+    <span class=3D"update_type">UpdatedNoMsgChange</span>
+    <span class=3D"update_time">%[27]s</span>
+    <span class=3D"edited_new_msg_id"></span>
+</li>
+
+<li class=3D"message">
+    <span class=3D"post_id">%[21]s</span>
+    <span class=3D"sent_time">%[8]s</span>
+    <span class=3D"username">@user1</span>
+    <span class=3D"userid">%[17]s</span>
+    <span class=3D"postusername">@user1</span>
+    <span class=3D"usertype">user</span>
+    <span class=3D"email">(user1@email)</span>
+    <span class=3D"message">message 3</span>
+</li>
+
+<li class=3D"message">
+    <span class=3D"post_id">%[21]s</span>
+    <span class=3D"sent_time">%[8]s</span>
+    <span class=3D"username">@user1</span>
+    <span class=3D"userid">%[17]s</span>
+    <span class=3D"postusername">@user1</span>
+    <span class=3D"usertype">user</span>
+    <span class=3D"email">(user1@email)</span>
+    <span class=3D"message">Uploaded file </span>
+</li>
+
+<li class=3D"message">
+    <span class=3D"post_id">%[21]s</span>
+    <span class=3D"sent_time">%[8]s</span>
+    <span class=3D"username">@user1</span>
+    <span class=3D"userid">%[17]s</span>
+    <span class=3D"postusername">@user1</span>
+    <span class=3D"usertype">user</span>
+    <span class=3D"email">(user1@email)</span>
+    <span class=3D"message">delete message 3</span>
+    <span class=3D"update_type">Deleted</span>
+    <span class=3D"update_time">%[9]s</span>
+    <span class=3D"edited_new_msg_id"></span>
+</li>
+
+<li class=3D"message">
+    <span class=3D"post_id">%[21]s</span>
+    <span class=3D"sent_time">%[8]s</span>
+    <span class=3D"username">@user1</span>
+    <span class=3D"userid">%[17]s</span>
+    <span class=3D"postusername">@user1</span>
+    <span class=3D"usertype">user</span>
+    <span class=3D"email">(user1@email)</span>
+    <span class=3D"message">Deleted file </span>
+    <span class=3D"update_type">FileDeleted</span>
+    <span class=3D"update_time">%[9]s</span>
+    <span class=3D"edited_new_msg_id"></span>
+</li>
+
+<li class=3D"message">
+    <span class=3D"post_id">%[22]s</span>
+    <span class=3D"sent_time">%[10]s</span>
+    <span class=3D"username">@user1</span>
+    <span class=3D"userid">%[17]s</span>
+    <span class=3D"postusername">@user1</span>
+    <span class=3D"usertype">user</span>
+    <span class=3D"email">(user1@email)</span>
+    <span class=3D"message">message 4</span>
+    <span class=3D"update_type">EditedOriginalMsg</span>
+    <span class=3D"update_time">%[28]s</span>
+    <span class=3D"edited_new_msg_id">%[23]s</span>
+</li>
+
+<li class=3D"message">
+    <span class=3D"post_id">%[23]s</span>
+    <span class=3D"sent_time">%[11]s</span>
+    <span class=3D"username">@user1</span>
+    <span class=3D"userid">%[17]s</span>
+    <span class=3D"postusername">@user1</span>
+    <span class=3D"usertype">user</span>
+    <span class=3D"email">(user1@email)</span>
+    <span class=3D"message">edited message 4</span>
+    <span class=3D"update_type">EditedNewMsg</span>
+    <span class=3D"update_time">%[28]s</span>
+    <span class=3D"edited_new_msg_id"></span>
+</li>
+
+<li class=3D"message">
+    <span class=3D"post_id">%[25]s</span>
+    <span class=3D"sent_time">%[12]s</span>
+    <span class=3D"username">@user1</span>
+    <span class=3D"userid">%[17]s</span>
+    <span class=3D"postusername">@user1</span>
+    <span class=3D"usertype">user</span>
+    <span class=3D"email">(user1@email)</span>
+    <span class=3D"message">edited message 6</span>
+    <span class=3D"update_type">EditedNewMsg</span>
+    <span class=3D"update_time">%[29]s</span>
+    <span class=3D"edited_new_msg_id"></span>
+</li>
+
+    </ul>
+</div>
+
+<p>Exported on %[1]s</p>

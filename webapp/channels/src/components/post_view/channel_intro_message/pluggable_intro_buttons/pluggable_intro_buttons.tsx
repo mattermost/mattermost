@@ -5,26 +5,30 @@ import React from 'react';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {ChannelIntroButtonAction} from 'types/store/plugins';
 
 type Props = {
     channel: Channel;
     channelMember?: ChannelMembership;
-    pluginButtons: PluginComponent[];
+    pluginButtons: ChannelIntroButtonAction[];
 }
 
-const PluggableIntroButtons = React.memo((props: Props) => {
-    const channelIsArchived = props.channel.delete_at !== 0;
-    if (channelIsArchived || props.pluginButtons.length === 0) {
+const PluggableIntroButtons = React.memo(({
+    channel,
+    pluginButtons,
+    channelMember,
+}: Props) => {
+    const channelIsArchived = channel.delete_at !== 0;
+    if (channelIsArchived || pluginButtons.length === 0 || !channelMember) {
         return null;
     }
 
-    const buttons = props.pluginButtons.map((buttonProps) => {
+    const buttons = pluginButtons.map((buttonProps) => {
         return (
             <button
                 key={buttonProps.id}
                 className={'action-button'}
-                onClick={() => buttonProps.action?.(props.channel, props.channelMember)}
+                onClick={() => buttonProps.action?.(channel, channelMember)}
             >
                 {buttonProps.icon}
                 {buttonProps.text}

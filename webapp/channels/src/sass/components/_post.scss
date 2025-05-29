@@ -26,6 +26,11 @@
             background: #ffffac !important;
             color: #d04444 !important;
         }
+
+        &::placeholder {
+            text-overflow: ellipsis;
+            white-space: pre;
+        }
     }
 }
 
@@ -48,7 +53,6 @@
         }
 
         p {
-            margin: 0;
             white-space: pre-wrap;
         }
 
@@ -125,76 +129,6 @@
         margin-left: 15px;
         cursor: pointer;
         font-size: 13px;
-    }
-}
-
-.file-overlay {
-    position: absolute;
-    z-index: 13;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    color: variables.$white;
-    font-size: functions.em(20px);
-    font-weight: 600;
-    pointer-events: none;
-    text-align: center;
-
-    .overlay__indent {
-        @include mixins.clearfix;
-        @include mixins.alpha-property(background-color, variables.$black, 0.75);
-
-        position: relative;
-        height: 100%;
-    }
-
-    &.right-file-overlay {
-        font-size: functions.em(18px);
-
-        .overlay__circle {
-            width: 300px;
-            height: 300px;
-            margin: -150px 0 0 -150px;
-        }
-
-        .overlay__files {
-            width: 150px;
-            margin: 60px auto 15px;
-        }
-    }
-
-    .overlay__circle {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 370px;
-        height: 370px;
-        border-radius: 500px;
-        margin: -185px 0 0 -185px;
-        pointer-events: none;
-
-        @include mixins.alpha-property(background, variables.$black, 0.7);
-    }
-
-    .overlay__files {
-        display: block;
-        margin: 75px auto 20px;
-    }
-
-    .overlay__logo {
-        position: absolute;
-        bottom: 30px;
-        left: 50%;
-        width: 100px;
-        margin-left: -50px;
-        opacity: 0.3;
-    }
-
-    .fa {
-        display: inline-block;
-        margin-right: 8px;
-        font-size: 1.1em;
     }
 }
 
@@ -406,12 +340,6 @@
         ::placeholder {
             color: inherit;
         }
-    }
-
-    .emoji-picker {
-        position: absolute;
-        top: -361px;
-        right: 0;
     }
 
     .scroll {
@@ -723,11 +651,9 @@
             visibility: visible;
         }
 
-        .post-add-reaction {
-            .Reaction {
-                opacity: 1;
-                visibility: visible;
-            }
+        .Reaction__add {
+            opacity: 1;
+            visibility: visible;
         }
     }
 
@@ -831,6 +757,11 @@
             }
         }
 
+        .post__link {
+            padding-top: 3px;
+            margin: 0;
+        }
+
         .attachment {
             padding-top: 1px;
             clear: both;
@@ -849,6 +780,10 @@
         }
 
         &.post--comment {
+            .post__body {
+                padding-left: 8px;
+            }
+
             .attachment {
                 .attachment__body__wrap {
                     .btn-close {
@@ -896,7 +831,7 @@
         blockquote {
             display: flex;
             flex-direction: column;
-            padding: 3px 0 3px 20px;
+            padding: 0 0 0 8px;
 
             &::before {
                 top: 0;
@@ -927,7 +862,7 @@
         }
 
         .post__body {
-            padding: 2px 0 0;
+            padding: 2px 0;
             background: transparent !important;
             line-height: 1.5;
 
@@ -1042,7 +977,7 @@
     }
 
     .post-edited__indicator {
-        display: inline-block;
+        align-items: center;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
         font-style: italic;
@@ -1084,8 +1019,8 @@
 
     &.post--comment {
         .post__body {
-            padding-left: 7px;
-            border-left: 4px solid rgba(var(--center-channel-color-rgb), 0.2);
+            padding-left: 12px;
+            border-left: 4px solid rgba(var(--button-bg-rgb), 0.24);
         }
 
         &.mention-comment {
@@ -1265,8 +1200,12 @@
         margin: 0 auto;
         table-layout: fixed;
 
-        > div {
+        .post__img,
+        .post__header-body {
             display: table-cell;
+        }
+
+        > div {
             vertical-align: top;
         }
     }
@@ -1437,18 +1376,15 @@
         }
     }
 
-    .post-add-reaction {
+    .Reaction__add {
         display: inline-block;
-
-        .Reaction {
-            opacity: 0;
-            visibility: hidden;
-        }
+        opacity: 0;
+        visibility: hidden;
     }
 
     .post__body {
         width: 100%;
-        padding: 0 0 0.2em;
+        padding: 0.2em 0;
         word-wrap: break-word;
 
         &-reactions-acks {
@@ -1481,39 +1417,6 @@
                     margin: 0;
                     font-size: 1em;
                 }
-            }
-
-            li.list-item--task-list ul,
-            li.list-item--task-list ol {
-                margin-left: 20px;
-            }
-
-            li.list-item--task-list ul {
-                padding-left: 0;
-            }
-
-            li:not(.list-item--task-list) li.list-item--task-list,
-            li:not(.list-item--task-list) li.list-item--task-list ~ li {
-                margin-left: -20px;
-            }
-
-            li input[type="checkbox"]:disabled {
-                cursor: default;
-                vertical-align: top;
-            }
-        }
-
-        ul li.list-item--task-list,
-        ul li.list-item--task-list ~ li {
-            list-style-type: none;
-        }
-
-        ul li.list-item--task-list ~ li:not(.list-item--task-list) {
-            text-indent: 3px;
-
-            &::before {
-                margin-right: 8px;
-                content: "\2022";
             }
         }
 
@@ -1552,21 +1455,8 @@
         align-items: center;
         padding: 4px 0 0;
 
-        .post-add-reaction-emoji-picker-open {
+        .Reaction__add {
             display: inline-block;
-
-            .Reaction {
-                opacity: 1;
-                visibility: visible;
-            }
-        }
-    }
-
-    .post-add-reaction-emoji-picker-open {
-        .Reaction {
-            background-color: rgba(var(--button-bg-rgb), 0.08);
-            color: functions.v(button-bg);
-            fill: functions.v(button-bg);
         }
     }
 

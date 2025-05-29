@@ -21,7 +21,7 @@ import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './acti
 import type {Props} from './root';
 import Root, {doesRouteBelongToTeamControllerRoutes} from './root';
 
-jest.mock('mattermost-redux/client/rudder', () => ({
+jest.mock('utils/rudder', () => ({
     rudderAnalytics: {
         identify: jest.fn(),
         load: jest.fn(),
@@ -88,6 +88,7 @@ describe('components/Root', () => {
         shouldShowAppBar: false,
         isCloud: false,
         enableDesktopLandingPage: true,
+        customProfileAttributesEnabled: false,
         actions: {
             loadConfigAndMe: jest.fn().mockImplementation(() => {
                 return Promise.resolve({
@@ -105,6 +106,7 @@ describe('components/Root', () => {
                 handleLoginLogoutSignal,
                 redirectToOnboardingOrDefaultTeam,
             }, store.dispatch),
+            getCustomProfileAttributeFields: jest.fn(),
         },
         permalinkRedirectTeamName: 'myTeam',
         ...{

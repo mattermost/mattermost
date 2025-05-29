@@ -28,7 +28,6 @@ describe('components/actions_menu/ActionsMenu returning empty ("")', () => {
     test('should match snapshot, return empty ("") on Center', () => {
         const baseProps: Omit<Props, 'intl'> = {
             post: TestHelper.getPostMock({id: 'post_id_1'}),
-            components: {},
             teamId: 'team_id_1',
             actions: {
                 openModal: jest.fn(),
@@ -42,6 +41,7 @@ describe('components/actions_menu/ActionsMenu returning empty ("")', () => {
             appsEnabled: false,
             isSysAdmin: true,
             canOpenMarketplace: false,
+            pluginMenuItemComponents: [],
         };
 
         const wrapper = shallow(

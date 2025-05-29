@@ -46,7 +46,7 @@ func NewFromAPI(api common.LogAPI, dmer poster.DMer, logLevel logger.LogLevel, i
 	return New(logger.New(api), dmer, logLevel, includeContext, userIDs...)
 }
 
-func (l *adminCCLogger) Debugf(format string, args ...interface{}) {
+func (l *adminCCLogger) Debugf(format string, args ...any) {
 	l.Logger.Debugf(format, args...)
 	message := fmt.Sprintf(format, args...)
 	if logger.Level(l.logLevel) >= 4 {
@@ -54,7 +54,7 @@ func (l *adminCCLogger) Debugf(format string, args ...interface{}) {
 	}
 }
 
-func (l *adminCCLogger) Errorf(format string, args ...interface{}) {
+func (l *adminCCLogger) Errorf(format string, args ...any) {
 	l.Logger.Errorf(format, args...)
 	message := fmt.Sprintf(format, args...)
 	if logger.Level(l.logLevel) >= 1 {
@@ -62,7 +62,7 @@ func (l *adminCCLogger) Errorf(format string, args ...interface{}) {
 	}
 }
 
-func (l *adminCCLogger) Infof(format string, args ...interface{}) {
+func (l *adminCCLogger) Infof(format string, args ...any) {
 	l.Logger.Infof(format, args...)
 	message := fmt.Sprintf(format, args...)
 	if logger.Level(l.logLevel) >= 3 {
@@ -70,7 +70,7 @@ func (l *adminCCLogger) Infof(format string, args ...interface{}) {
 	}
 }
 
-func (l *adminCCLogger) Warnf(format string, args ...interface{}) {
+func (l *adminCCLogger) Warnf(format string, args ...any) {
 	l.Logger.Warnf(format, args...)
 	message := fmt.Sprintf(format, args...)
 	if logger.Level(l.logLevel) >= 2 {
@@ -86,7 +86,7 @@ func (l *adminCCLogger) logToAdmins(level, message string) {
 	_ = l.dmAdmins("(log " + level + ") " + message)
 }
 
-func (l *adminCCLogger) dmAdmins(format string, args ...interface{}) error {
+func (l *adminCCLogger) dmAdmins(format string, args ...any) error {
 	for _, id := range l.userIDs {
 		_, err := l.dmer.DM(id, format, args)
 		if err != nil {

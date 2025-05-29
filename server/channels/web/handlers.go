@@ -16,23 +16,13 @@ import (
 	"time"
 
 	"github.com/klauspost/compress/gzhttp"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
-	spanlog "github.com/opentracing/opentracing-go/log"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	app_opentracing "github.com/mattermost/mattermost/server/v8/channels/app/opentracing"
-	"github.com/mattermost/mattermost/server/v8/channels/store/opentracinglayer"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
-	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
-)
-
-const (
-	frameAncestors = "'self' teams.microsoft.com"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -210,32 +200,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *c.App.Config().ServiceSettings.EnableOpenTracing {
-		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
-		carrier := opentracing.HTTPHeadersCarrier(r.Header)
-		_ = opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, carrier)
-		ext.HTTPMethod.Set(span, r.Method)
-		ext.HTTPUrl.Set(span, c.AppContext.Path())
-		ext.PeerAddress.Set(span, c.AppContext.IPAddress())
-		span.SetTag("request_id", c.AppContext.RequestId())
-		span.SetTag("user_agent", c.AppContext.UserAgent())
-
-		defer func() {
-			if c.Err != nil {
-				span.LogFields(spanlog.Error(c.Err))
-				ext.HTTPStatusCode.Set(span, uint16(c.Err.StatusCode))
-				ext.Error.Set(span, true)
-			}
-			span.Finish()
-		}()
-		c.AppContext = c.AppContext.WithContext(ctx)
-
-		tmpSrv := *c.App.Srv()
-		tmpSrv.SetStore(opentracinglayer.New(c.App.Srv().Store(), ctx))
-		c.App.SetServer(&tmpSrv)
-		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
-	}
-
 	var maxBytes int64
 	if h.FileAPI {
 		// We add a buffer of bytes.MinRead so that file sizes close to max file size
@@ -274,8 +238,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors %s; script-src 'self' cdn.rudderlabs.com%s%s",
-			frameAncestors,
+			"frame-ancestors 'self' %s; script-src 'self' cdn.rudderlabs.com%s%s",
+			*c.App.Config().ServiceSettings.FrameAncestors,
 			h.cspShaDirective,
 			devCSP,
 		))
@@ -450,7 +414,7 @@ func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.R
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(c.Err.StatusCode)
 		if _, err := w.Write([]byte(c.Err.ToJSON())); err != nil {
-			c.Logger.Error("Failed to write error response", mlog.Err(err))
+			c.Logger.Warn("Failed to write error response", mlog.Err(err))
 		}
 	} else {
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())

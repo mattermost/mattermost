@@ -73,12 +73,20 @@ func TestSanitizeDataSource(t *testing.T) {
 			Sanitized string
 		}{
 			{
+				"",
+				"//****:****@",
+			},
+			{
+				"postgres://mmuser:mostest@localhost",
+				"postgres://****:****@localhost",
+			},
+			{
 				"postgres://mmuser:mostest@localhost/dummy?sslmode=disable",
-				"postgres://%2A%2A%2A%2A:%2A%2A%2A%2A@localhost/dummy?sslmode=disable",
+				"postgres://****:****@localhost/dummy?sslmode=disable",
 			},
 			{
 				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest",
-				"postgres://%2A%2A%2A%2A:%2A%2A%2A%2A@localhost/dummy?sslmode=disable",
+				"postgres://****:****@localhost/dummy?sslmode=disable",
 			},
 		}
 		driver := model.DatabaseDriverPostgres
@@ -96,7 +104,7 @@ func TestSanitizeDataSource(t *testing.T) {
 		}{
 			{
 				"mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
-				"****:****@tcp(localhost:3306)/mattermost_test?readTimeout=30s&writeTimeout=30s&charset=utf8mb4%2Cutf8",
+				"****:****@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
 			},
 		}
 		driver := model.DatabaseDriverMysql

@@ -62,14 +62,20 @@
 <h2>Conversation Summary</h2>
 <div class="summary-list">
     <ul>
-        <li><span class="bold">Channel:&nbsp;</span>{{.Props.ChannelName}}</li>
-        <li><span class="bold">Started:&nbsp;</span>{{.Props.Started}}</li>
-        <li><span class="bold">Ended:&nbsp;</span>{{.Props.Ended}}</li>
-        <li><span class="bold">Duration:&nbsp;</span>{{.Props.Duration}}</li>
+        <li><span class="bold">TeamId:</span>{{.Props.TeamId}}</li>
+        <li><span class="bold">TeamName:</span>{{.Props.TeamName}}</li>
+        <li><span class="bold">TeamDisplayName:</span>{{.Props.TeamDisplayName}}</li>
+        <li><span class="bold">ChannelId:</span>{{.Props.ChannelId}}</li>
+        <li><span class="bold">ChannelName:</span>{{.Props.ChannelName}}</li>
+        <li><span class="bold">ChannelDisplayName:</span>{{.Props.ChannelDisplayName}}</li>
+        <li><span class="bold">Started:</span>{{.Props.Started}}</li>
+        <li><span class="bold">Ended:</span>{{.Props.Ended}}</li>
+        <li><span class="bold">Duration:</span>{{.Props.Duration}}</li>
     </ul>
 </div>
 <table class="participants">
     <tr>
+        <th class="userid">UserId<br></th>
         <th class="username">Username<br></th>
         <th class="usertype">UserType<br></th>
         <th class="email">Email</th>

@@ -11,6 +11,8 @@ type Props = {
     onSelectFilter: (filter: string) => void;
     searchType: string;
     searchTerms: string;
+    searchTeam: string;
+    showFilterHaveBeenReset: boolean;
     hasSelectedOption: boolean;
     isDate: boolean;
 }
@@ -22,6 +24,12 @@ const SearchHintsContainer = styled.div`
     i {
         margin-right: 8px;
         color: var(--center-channel-color-56);
+    }
+    h2 {
+        all: inherit;
+        display: inline;
+        margin: 0;
+        padding: 0;
     }
 `;
 
@@ -41,15 +49,32 @@ const SearchFilter = styled.button`
     }
 `;
 
-const SearchHints = ({onSelectFilter, searchType, searchTerms, hasSelectedOption, isDate}: Props): JSX.Element => {
+const SearchHints = ({onSelectFilter, searchType, searchTerms, searchTeam, hasSelectedOption, isDate, showFilterHaveBeenReset}: Props): JSX.Element => {
     const intl = useIntl();
     let filters = searchHintOptions.filter((filter) => filter.searchTerm !== '-' && filter.searchTerm !== '""');
     if (searchType === 'files') {
         filters = searchFilesHintOptions.filter((filter) => filter.searchTerm !== '-' && filter.searchTerm !== '""');
     }
 
+    // if search team is '' (all teams), remove "from" and "in" filters
+    if (!searchTeam) {
+        filters = filters.filter((filter) => filter.searchTerm !== 'From:' && filter.searchTerm !== 'In:');
+    }
+
     if (isDate) {
         return <></>;
+    }
+
+    if (showFilterHaveBeenReset) {
+        return (
+            <SearchHintsContainer id='searchHints'>
+                <i className='icon icon-refresh'/>
+                <FormattedMessage
+                    id='search_hint.reset_filters'
+                    defaultMessage='Your filters were reset because you chose a different team'
+                />
+            </SearchHintsContainer>
+        );
     }
 
     if (hasSelectedOption) {
@@ -79,10 +104,12 @@ const SearchHints = ({onSelectFilter, searchType, searchTerms, hasSelectedOption
     return (
         <SearchHintsContainer id='searchHints'>
             <i className='icon icon-lightbulb-outline'/>
-            <FormattedMessage
-                id='search_hint.filter'
-                defaultMessage='Filter your search with:'
-            />
+            <h2>
+                <FormattedMessage
+                    id='search_hint.filter'
+                    defaultMessage='Filter your search with:'
+                />
+            </h2>
             {filters.map((filter) => (
                 <SearchFilter
                     key={filter.searchTerm}
@@ -98,4 +125,3 @@ const SearchHints = ({onSelectFilter, searchType, searchTerms, hasSelectedOption
 };
 
 export default SearchHints;
-

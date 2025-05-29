@@ -9,18 +9,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path"
-	"sort"
+	"slices"
 	"strconv"
+	"strings"
 
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/common_export"
+	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
@@ -28,26 +28,87 @@ const (
 	EnterPostType            = "enter"
 	LeavePostType            = "leave"
 	PreviouslyJoinedPostType = "previously-joined"
-	CSVExportFilename        = "csv_export.zip"
 	CSVWarningFilename       = "warning.txt"
 )
 
-func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, exportDirectory string) (warningCount int64, appErr *model.AppError) {
-	dest, err := os.CreateTemp("", CSVExportFilename)
+type Row struct {
+	CreateAt           int64
+	UpdateAt           int64
+	UpdateType         shared.PostUpdatedType
+	TeamId             string
+	TeamName           string
+	TeamDisplayName    string
+	ChannelId          string
+	ChannelName        string
+	ChannelDisplayName string
+	ChannelType        string
+	UserId             string
+	UserEmail          string
+	Username           string
+	PostId             string
+	EditedByPostId     string
+	RepliedToPostId    string
+	PostMessage        string
+	PostType           string
+	UserType           string
+	PreviewsPostId     string
+}
+
+func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults, error) {
+	// Build the channel exports for the channels that had post or user join/leave activity this batch.
+	exportData, err := shared.GetGenericExportData(p)
+	results := exportData.Results
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.file.creation.appError", nil, "", 0).Wrap(err)
+		return results, err
 	}
-	defer os.Remove(dest.Name())
 
-	zipFile := zip.NewWriter(dest)
+	totalRows := results.CreatedPosts + results.EditedOrigMsgPosts + results.DeletedPosts + results.EditedNewMsgPosts +
+		results.UpdatedPosts + results.UploadedFiles + results.DeletedFiles + results.Joins
+	rows := make([]Row, 0, totalRows)
+	for _, channel := range exportData.Exports {
+		rows = append(rows, getJoinLeavePosts(channel)...)
+		for _, p := range channel.Posts {
+			rows = append(rows, postToRow(p, "message", p.PostCreateAt, p.Message))
+		}
 
+		for _, u := range channel.UploadStarts {
+			rows = append(rows, attachmentToRow(shared.UploadStartToExportEntry(u)))
+		}
+		for _, d := range channel.DeletedFiles {
+			rows = append(rows, attachmentToRow(d))
+		}
+	}
+
+	// We need to sort all the elements by (CreateAt, PostId) because they were added by type and by channel above.
+	slices.SortStableFunc(rows, func(a, b Row) int {
+		if a.CreateAt == b.CreateAt {
+			return strings.Compare(a.PostId, b.PostId)
+		}
+		return int(a.CreateAt - b.CreateAt)
+	})
+
+	// We've got the data, now its write time:
+
+	// Write this batch to a tmp zip, then copy the zip to the export directory.
+	// Using a 2M buffer because the file backend may be s3 and this optimizes speed and
+	// memory usage, see: https://github.com/mattermost/mattermost/pull/26629
+	buf := make([]byte, 1024*1024*2)
+	temp, err := os.CreateTemp("", "compliance-export-batch-*.zip")
+	if err != nil {
+		return results, fmt.Errorf("unable to create temporary CSV export file: %w", err)
+	}
+	defer file.DeleteTemp(rctx.Logger(), temp)
+
+	zipFile := zip.NewWriter(temp)
 	csvFile, err := zipFile.Create("posts.csv")
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.zip.creation.appError", nil, "", 0).Wrap(err)
+		return results, fmt.Errorf("unable to create the zip export file: %w", err)
 	}
 	csvWriter := csv.NewWriter(csvFile)
 	err = csvWriter.Write([]string{
 		"Post Creation Time",
+		"Post Update Time",
+		"Post Update Type",
 		"Team Id",
 		"Team Name",
 		"Team Display Name",
@@ -68,343 +129,242 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, e
 	})
 
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExportPost", "ent.compliance.csv.header.export.appError", nil, "", 0).Wrap(err)
+		return results, fmt.Errorf("unable to add header to the CSV export: %w", err)
 	}
 
-	metadata := common_export.Metadata{
-		Channels:         map[string]common_export.MetadataChannel{},
-		MessagesCount:    0,
-		AttachmentsCount: 0,
-		StartTime:        0,
-		EndTime:          0,
-	}
-
-	membersByChannel := make(common_export.MembersByChannel)
-
-	for _, post := range posts {
-		attachments, err := getPostAttachments(db, post)
-		if err != nil {
-			return warningCount, err
-		}
-
-		if _, ok := membersByChannel[*post.ChannelId]; !ok {
-			membersByChannel[*post.ChannelId] = common_export.ChannelMembers{}
-		}
-
-		membersByChannel[*post.ChannelId][*post.UserId] = common_export.ChannelMember{
-			UserId:   *post.UserId,
-			Username: *post.Username,
-			IsBot:    post.IsBot,
-			Email:    *post.UserEmail,
-		}
-
-		metadata.Update(post, len(attachments))
-	}
-
-	joinLeavePosts, appErr2 := getJoinLeavePosts(metadata.Channels, membersByChannel, db)
-	if appErr2 != nil {
-		return warningCount, appErr2
-	}
-
-	postsGenerator := mergePosts(joinLeavePosts, posts)
-
-	for post := postsGenerator(); post != nil; post = postsGenerator() {
-		if err = csvWriter.Write(postToRow(post, post.PostCreateAt, *post.PostMessage)); err != nil {
-			return warningCount, model.NewAppError("CsvExportPost", "ent.compliance.csv.post.export.appError", nil, "", 0).Wrap(err)
-		}
-
-		if post.PostDeleteAt != nil && *post.PostDeleteAt > 0 && post.PostProps != nil {
-			props := map[string]any{}
-			if json.Unmarshal([]byte(*post.PostProps), &props) == nil {
-				if _, ok := props[model.PostPropsDeleteBy]; ok {
-					if err = csvWriter.Write(postToRow(post, post.PostDeleteAt, "delete "+*post.PostMessage)); err != nil {
-						return warningCount, model.NewAppError("CsvExportPost", "ent.compliance.csv.post.export.appError", nil, "", 0).Wrap(err)
-					}
-				}
-			}
-		}
-
-		var attachments []*model.FileInfo
-		attachments, appErr = getPostAttachments(db, post)
-		if appErr != nil {
-			return warningCount, appErr
-		}
-
-		for _, attachment := range attachments {
-			if err = csvWriter.Write(attachmentToRow(post, attachment)); err != nil {
-				return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.attachment.export.appError", nil, "", 0).Wrap(err)
-			}
+	for _, row := range rows {
+		if err = csvWriter.Write(rowToStringSlice(row)); err != nil {
+			return results, fmt.Errorf("unable to export a row: %w", err)
 		}
 	}
 
 	csvWriter.Flush()
 
 	var missingFiles []string
-	for _, post := range posts {
-		attachments, err := getPostAttachments(db, post)
+	for _, post := range p.Posts {
+		var attachments []*model.FileInfo
+		attachments, err = shared.GetPostAttachments(p.Db, post)
 		if err != nil {
-			return warningCount, err
+			return results, err
 		}
 
 		for _, attachment := range attachments {
-			var attachmentSrc io.ReadCloser
-			attachmentSrc, nErr := fileAttachmentBackend.Reader(attachment.Path)
-			if nErr != nil {
-				missingFiles = append(missingFiles, "Warning:"+common_export.MissingFileMessage+" - Post: "+*post.PostId+" - "+attachment.Path)
-				rctx.Logger().Warn(common_export.MissingFileMessage, mlog.String("PostId", *post.PostId), mlog.String("FileName", attachment.Path))
+			var r io.ReadCloser
+			r, err = p.FileAttachmentBackend.Reader(attachment.Path)
+			if err != nil {
+				missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringBackendRead+" - Post: "+*post.PostId+" - "+attachment.Path)
+				rctx.Logger().Warn(shared.MissingFileMessageDuringBackendRead,
+					mlog.String("post_id", *post.PostId),
+					mlog.String("filename", attachment.Path),
+					mlog.Err(err),
+				)
 				continue
 			}
-			defer attachmentSrc.Close()
 
-			attachmentDst, err := zipFile.Create(path.Join("files", *post.PostId, fmt.Sprintf("%s-%s", attachment.Id, path.Base(attachment.Path))))
-			if err != nil {
-				return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.attachment.copy.appError", nil, "", 0).Wrap(err)
-			}
+			// Probably don't need to be this careful (see actiance_export.go), but may as well be consistent.
+			if err = func() error {
+				defer r.Close()
+				var attachmentDst io.Writer
+				attachmentDst, err = zipFile.Create(path.Join("files", *post.PostId, fmt.Sprintf("%s-%s", attachment.Id, path.Base(attachment.Path))))
+				if err != nil {
+					return err
+				}
 
-			_, err = io.Copy(attachmentDst, attachmentSrc)
-			if err != nil {
-				return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.attachment.copy.appError", nil, "", 0).Wrap(err)
+				_, err = io.CopyBuffer(attachmentDst, r, buf)
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}(); err != nil {
+				// s3 only errors _here_ if the object key wasn't found. So to handle that: if there is a read
+				// error (even for local), let's add a warning instead of failing the export.
+				// Failing the export would fail the entire export run, and every future run would also fail on
+				// this non-existent file -- not good.
+				missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringCopy+" - Post: "+*post.PostId+" - "+attachment.Path)
+				rctx.Logger().Warn(shared.MissingFileMessageDuringCopy,
+					mlog.String("post_id", *post.PostId),
+					mlog.String("filename", attachment.Path),
+					mlog.Err(err),
+				)
 			}
 		}
 	}
 
-	warningCount = int64(len(missingFiles))
-	if warningCount > 0 {
+	results.NumWarnings = len(missingFiles)
+	if results.NumWarnings > 0 {
 		metadataFile, _ := zipFile.Create(CSVWarningFilename)
 		for _, value := range missingFiles {
 			_, err = metadataFile.Write([]byte(value + "\n"))
 			if err != nil {
-				appErr = model.NewAppError("CsvExport", "ent.compliance.csv.warning.appError", nil, "", 0).Wrap(err)
-				return warningCount, appErr
+				return results, fmt.Errorf("unable to create the warning file: %w", err)
 			}
 		}
 	}
 
 	metadataFile, err := zipFile.Create("metadata.json")
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.metadata.json.zipfile.appError", nil, "", 0).Wrap(err)
+		return results, fmt.Errorf("unable to create the zip file: %w", err)
 	}
-	data, err := json.MarshalIndent(metadata, "", "  ")
+	data, err := json.MarshalIndent(exportData.Metadata, "", "  ")
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.metadata.json.marshalling.appError", nil, "", 0).Wrap(err)
+		return results, fmt.Errorf("unable to convert metadata to json: %w", err)
 	}
 	_, err = metadataFile.Write(data)
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.metadata.export.appError", nil, "", 0).Wrap(err)
+		return results, fmt.Errorf("unable to add metadata file to the zip file: %w", err)
 	}
 	err = zipFile.Close()
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.metadata.close.appError", nil, "", 0).Wrap(err)
+		return results, fmt.Errorf("unable to close the zip file: %w", err)
 	}
 
-	_, err = dest.Seek(0, 0)
+	_, err = temp.Seek(0, 0)
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.seek.appError", nil, "", 0).Wrap(err)
+		return results, fmt.Errorf("unable to seek to start of export file: %w", err)
 	}
+
 	// Try to write the file without a timeout due to the potential size of the file.
-	_, err = filestore.TryWriteFileContext(rctx.Context(), exportBackend, dest, path.Join(exportDirectory, CSVExportFilename))
+	_, err = filestore.TryWriteFileContext(rctx.Context(), p.ExportBackend, temp, p.BatchPath)
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.write_file.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+		return results, fmt.Errorf("unable to write the csv file: %w", err)
 	}
-	return warningCount, appErr
+	return results, nil
 }
 
-func mergePosts(left []*model.MessageExport, right []*model.MessageExport) func() *model.MessageExport {
-	leftCursor := 0
-	rightCursor := 0
-	return func() *model.MessageExport {
-		if leftCursor >= len(left) && rightCursor >= len(right) {
-			return nil
+func getJoinLeavePosts(channel shared.ChannelExport) []Row {
+	var joinLeavePosts []Row
+
+	for _, join := range channel.JoinEvents {
+		enterMessage := fmt.Sprintf("User %s (%s) joined the channel", join.Username, join.UserEmail)
+		enterPostType := EnterPostType
+		if join.JoinTime <= channel.StartTime {
+			enterPostType = PreviouslyJoinedPostType
+			enterMessage = fmt.Sprintf("User %s (%s) was already in the channel", join.Username, join.UserEmail)
 		}
-
-		if leftCursor >= len(left) {
-			rightCursor += 1
-			return right[rightCursor-1]
-		}
-
-		if rightCursor >= len(right) {
-			leftCursor += 1
-			return left[leftCursor-1]
-		}
-
-		if *left[leftCursor].PostCreateAt <= *right[rightCursor].PostCreateAt {
-			leftCursor += 1
-			return left[leftCursor-1]
-		}
-
-		rightCursor += 1
-		return right[rightCursor-1]
-	}
-}
-
-func getJoinLeavePosts(channels map[string]common_export.MetadataChannel, membersByChannel common_export.MembersByChannel, db store.Store) ([]*model.MessageExport, *model.AppError) {
-	joinLeavePosts := []*model.MessageExport{}
-	for _, channel := range channels {
-		channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channel.StartTime, channel.EndTime, channel.ChannelId)
-		if err != nil {
-			return nil, model.NewAppError("getJoinLeavePosts", "ent.get_users_in_channel_during", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-
-		joins, leaves := common_export.GetJoinsAndLeavesForChannel(channel.StartTime, channel.EndTime, channelMembersHistory, membersByChannel[channel.ChannelId])
-
-		for _, join := range joins {
-			enterMessage := fmt.Sprintf("User %s (%s) joined the channel", join.Username, join.Email)
-			enterPostType := EnterPostType
-			createAt := model.NewPointer(join.Datetime)
-			channelCopy := channel
-			if join.Datetime <= channel.StartTime {
-				enterPostType = PreviouslyJoinedPostType
-				enterMessage = fmt.Sprintf("User %s (%s) was already in the channel", join.Username, join.Email)
-				createAt = model.NewPointer(channel.StartTime)
-			}
-			joinLeavePosts = append(
-				joinLeavePosts,
-				&model.MessageExport{
-					TeamId:          channel.TeamId,
-					TeamName:        channel.TeamName,
-					TeamDisplayName: channel.TeamDisplayName,
-
-					ChannelId:          &channelCopy.ChannelId,
-					ChannelName:        &channelCopy.ChannelName,
-					ChannelDisplayName: &channelCopy.ChannelDisplayName,
-					ChannelType:        &channelCopy.ChannelType,
-
-					UserId:    model.NewPointer(join.UserId),
-					UserEmail: model.NewPointer(join.Email),
-					Username:  model.NewPointer(join.Username),
-					IsBot:     join.IsBot,
-
-					PostId:         model.NewPointer(""),
-					PostCreateAt:   createAt,
-					PostMessage:    &enterMessage,
-					PostType:       &enterPostType,
-					PostOriginalId: model.NewPointer(""),
-					PostFileIds:    []string{},
+		joinLeavePosts = append(
+			joinLeavePosts,
+			postToRow(shared.PostExport{
+				MessageExport: model.MessageExport{
+					TeamId:             &channel.TeamId,
+					TeamName:           &channel.TeamName,
+					TeamDisplayName:    &channel.TeamDisplayName,
+					ChannelId:          &channel.ChannelId,
+					ChannelName:        &channel.ChannelName,
+					ChannelDisplayName: &channel.DisplayName,
+					ChannelType:        &channel.ChannelType,
+					UserId:             &join.UserId,
+					UserEmail:          &join.UserEmail,
+					Username:           &join.Username,
+					IsBot:              join.UserType == shared.Bot,
+					PostId:             model.NewPointer(""),
+					PostCreateAt:       &join.JoinTime,
+					PostMessage:        &enterMessage,
+					PostType:           &enterPostType,
+					PostOriginalId:     model.NewPointer(""),
+					PostFileIds:        []string{},
 				},
-			)
+			}, enterPostType, &join.JoinTime, enterMessage),
+		)
+	}
+	for _, leave := range channel.LeaveEvents {
+		if leave.ClosedOut {
+			// csv does not record closed-out leaves; see export_data.go for further explanation.
+			continue
 		}
-		for _, leave := range leaves {
-			leaveMessage := fmt.Sprintf("User %s (%s) leaved the channel", leave.Username, leave.Email)
-			leavePostType := LeavePostType
-			channelCopy := channel
+		leaveMessage := fmt.Sprintf("User %s (%s) left the channel", leave.Username, leave.UserEmail)
+		leavePostType := LeavePostType
 
-			joinLeavePosts = append(
-				joinLeavePosts,
-				&model.MessageExport{
-					TeamId:          channel.TeamId,
-					TeamName:        channel.TeamName,
-					TeamDisplayName: channel.TeamDisplayName,
-
-					ChannelId:          &channelCopy.ChannelId,
-					ChannelName:        &channelCopy.ChannelName,
-					ChannelDisplayName: &channelCopy.ChannelDisplayName,
-					ChannelType:        &channelCopy.ChannelType,
-
-					UserId:    model.NewPointer(leave.UserId),
-					UserEmail: model.NewPointer(leave.Email),
-					Username:  model.NewPointer(leave.Username),
-					IsBot:     leave.IsBot,
-
-					PostId:         model.NewPointer(""),
-					PostCreateAt:   model.NewPointer(leave.Datetime),
-					PostMessage:    &leaveMessage,
-					PostType:       &leavePostType,
-					PostOriginalId: model.NewPointer(""),
-					PostFileIds:    []string{},
+		joinLeavePosts = append(
+			joinLeavePosts,
+			postToRow(shared.PostExport{
+				MessageExport: model.MessageExport{
+					TeamId:             &channel.TeamId,
+					TeamName:           &channel.TeamName,
+					TeamDisplayName:    &channel.TeamDisplayName,
+					ChannelId:          &channel.ChannelId,
+					ChannelName:        &channel.ChannelName,
+					ChannelDisplayName: &channel.DisplayName,
+					ChannelType:        &channel.ChannelType,
+					UserId:             &leave.UserId,
+					UserEmail:          &leave.UserEmail,
+					Username:           &leave.Username,
+					IsBot:              leave.UserType == shared.Bot,
+					PostId:             model.NewPointer(""),
+					PostCreateAt:       &leave.LeaveTime,
+					PostMessage:        &leaveMessage,
+					PostType:           &leavePostType,
+					PostOriginalId:     model.NewPointer(""),
+					PostFileIds:        []string{},
 				},
-			)
-		}
+			}, leavePostType, &leave.LeaveTime, leaveMessage),
+		)
 	}
 
-	sort.Slice(joinLeavePosts, func(i, j int) bool {
-		return *joinLeavePosts[i].PostCreateAt < *joinLeavePosts[j].PostCreateAt
-	})
-	return joinLeavePosts, nil
+	return joinLeavePosts
 }
 
-func getPostAttachments(db store.Store, post *model.MessageExport) ([]*model.FileInfo, *model.AppError) {
-	// if the post included any files, we need to add special elements to the export.
-	if len(post.PostFileIds) == 0 {
-		return []*model.FileInfo{}, nil
-	}
-
-	attachments, err := db.FileInfo().GetForPost(*post.PostId, true, true, false)
-	if err != nil {
-		return nil, model.NewAppError("getPostAttachments", "ent.message_export.csv_export.get_attachment_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return attachments, nil
-}
-
-func postToRow(post *model.MessageExport, createTime *int64, message string) []string {
-	teamId := ""
-	teamName := ""
-	teamDisplayName := ""
-	if post.TeamId != nil {
-		teamId = *post.TeamId
-	}
-	if post.TeamName != nil {
-		teamName = *post.TeamName
-	}
-	if post.TeamDisplayName != nil {
-		teamDisplayName = *post.TeamDisplayName
-	}
-	postType := "message"
-	if post.PostType != nil && *post.PostType != "" {
-		postType = *post.PostType
-	}
-	postRootId := ""
-	if post.PostRootId != nil {
-		postRootId = *post.PostRootId
-	}
+func postToRow(p shared.PostExport, postType string, createTime *int64, message string) Row {
 	userType := "user"
-	if post.IsBot {
+	if p.IsBot {
 		userType = "bot"
 	}
-
-	return []string{
-		strconv.FormatInt(*createTime, 10),
-		teamId,
-		teamName,
-		teamDisplayName,
-		*post.ChannelId,
-		*post.ChannelName,
-		*post.ChannelDisplayName,
-		common_export.ChannelTypeDisplayName(*post.ChannelType),
-		*post.UserId,
-		*post.UserEmail,
-		*post.Username,
-		*post.PostId,
-		*post.PostOriginalId,
-		postRootId,
-		message,
-		postType,
-		userType,
-		post.PreviewID(),
+	return Row{
+		CreateAt:           model.SafeDereference(createTime),
+		UpdateAt:           model.SafeDereference(p.PostUpdateAt),
+		UpdateType:         p.UpdatedType,
+		TeamId:             model.SafeDereference(p.TeamId),
+		TeamName:           model.SafeDereference(p.TeamName),
+		TeamDisplayName:    model.SafeDereference(p.TeamDisplayName),
+		ChannelId:          model.SafeDereference(p.ChannelId),
+		ChannelName:        model.SafeDereference(p.ChannelName),
+		ChannelDisplayName: model.SafeDereference(p.ChannelDisplayName),
+		ChannelType:        shared.ChannelTypeDisplayName(model.SafeDereference(p.ChannelType)),
+		UserId:             model.SafeDereference(p.UserId),
+		UserEmail:          model.SafeDereference(p.UserEmail),
+		Username:           model.SafeDereference(p.Username),
+		PostId:             model.SafeDereference(p.PostId),
+		EditedByPostId:     p.EditedNewMsgId,
+		RepliedToPostId:    model.SafeDereference(p.PostRootId),
+		PostMessage:        message,
+		PostType:           postType,
+		UserType:           userType,
+		PreviewsPostId:     p.PreviewID(),
 	}
 }
 
-func attachmentToRow(post *model.MessageExport, attachment *model.FileInfo) []string {
-	row := postToRow(post, post.PostCreateAt, *post.PostMessage)
-
-	attachmentEntry := fmt.Sprintf("%s (files/%s/%s-%s)", attachment.Name, *post.PostId, attachment.Id, path.Base(attachment.Path))
-	attachmentMessage := "attachment"
-	userType := row[len(row)-2]
-
-	if attachment.DeleteAt > 0 && post.PostDeleteAt != nil {
-		deleteRow := postToRow(post, post.PostDeleteAt, *post.PostMessage)
-		row = append(
-			deleteRow[:len(deleteRow)-4],
-			attachmentEntry,
-			"deleted "+attachmentMessage,
-			userType,
-		)
-	} else {
-		row = append(
-			row[:len(row)-4],
-			attachmentEntry,
-			attachmentMessage,
-			userType,
-		)
+func rowToStringSlice(r Row) []string {
+	return []string{
+		strconv.FormatInt(r.CreateAt, 10),
+		strconv.FormatInt(r.UpdateAt, 10),
+		string(r.UpdateType),
+		r.TeamId,
+		r.TeamName,
+		r.TeamDisplayName,
+		r.ChannelId,
+		r.ChannelName,
+		r.ChannelDisplayName,
+		r.ChannelType,
+		r.UserId,
+		r.UserEmail,
+		r.Username,
+		r.PostId,
+		r.EditedByPostId,
+		r.RepliedToPostId,
+		r.PostMessage,
+		r.PostType,
+		r.UserType,
+		r.PreviewsPostId,
 	}
-	return row
+}
+
+func attachmentToRow(post shared.PostExport) Row {
+	message := strings.TrimSpace(fmt.Sprintf("%s (files/%s/%s-%s)", post.FileInfo.Name, *post.PostId, post.FileInfo.Id, path.Base(post.FileInfo.Path)))
+	postType := "attachment"
+	if post.UpdatedType == shared.FileDeleted {
+		postType = "deleted attachment"
+		post.PostUpdateAt = model.NewPointer(post.FileInfo.DeleteAt)
+	}
+
+	return postToRow(post, postType, post.PostCreateAt, message)
 }

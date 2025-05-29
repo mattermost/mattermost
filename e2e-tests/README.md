@@ -61,3 +61,14 @@ Notes:
 
 ##### For code changes:
 * `make fmt-ci` to format and check yaml files and shell scripts.
+
+##### For test stressing an E2E testcase
+
+For Cypress:
+1. Enter the `cypress/` subdirectory
+2. Identify which test files you want to run, and how many times each. For instance: suppose you want to run `create_a_team_spec.js` and `demoted_user_spec.js` (which you can locate with the `find` command, under `cypress/tests/`), each run 3 times
+3. Run the chosen testcases the desired amount of times: `node run_tests.js --include-file=create_a_team_spec.js,demoted_user_spec.js --invert --stress-test-count=3`
+  * Your system needs to be setup for Cypress usage, to be able to run this command. Refer to the [E2E testing developer documentation](https://developers.mattermost.com/contribute/more-info/webapp/e2e-testing/) for this.
+4. The `cypress/results/testPasses.json` file will count, for each of the testfiles, how many times it was run, and how many times each of the testcases contained in it passed. If the attempts and passes numbers do not match, that specific testcase may be flaky.
+
+For Playwright: WIP

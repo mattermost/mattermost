@@ -5,10 +5,10 @@ import React from 'react';
 import {components} from 'react-select';
 import type {OptionProps} from 'react-select';
 
-import type {AppSelectOption} from '@mattermost/types/apps';
+import type {Channel} from '@mattermost/types/channels';
 
 const {Option} = components;
-export const SelectChannelOption = (props: OptionProps<AppSelectOption>) => {
+export const SelectChannelOption = (props: OptionProps<Channel>) => {
     const item = props.data;
 
     const channelName = item.display_name;

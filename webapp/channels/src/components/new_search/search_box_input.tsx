@@ -75,7 +75,7 @@ type Props = {
     focus: (newPosition: number) => void;
 }
 
-const SearchInput = ({searchTerms, searchType, setSearchTerms, onKeyDown, focus}: Props, inputRef: React.Ref<HTMLInputElement>) => {
+const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchType, setSearchTerms, onKeyDown, focus}, inputRef) => {
     const intl = useIntl();
     let searchPlaceholder = intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'});
 
@@ -95,7 +95,7 @@ const SearchInput = ({searchTerms, searchType, setSearchTerms, onKeyDown, focus}
     const clearSearch = useCallback(() => {
         setSearchTerms('');
         dispatch(updateSearchTerms(''));
-        dispatch(updateSearchType('messages'));
+        dispatch(updateSearchType(''));
         focus(0);
     }, [focus, setSearchTerms]);
 
@@ -131,6 +131,6 @@ const SearchInput = ({searchTerms, searchType, setSearchTerms, onKeyDown, focus}
             )}
         </SearchInputContainer>
     );
-};
+});
 
-export default forwardRef<HTMLInputElement, Props>(SearchInput);
+export default SearchInput;
