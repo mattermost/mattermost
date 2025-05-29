@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState, useMemo, useRef, useEffect} from 'react';
+import React, {useCallback, useState, useMemo} from 'react';
 import type {MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
@@ -13,6 +13,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SettingsGroup from 'components/admin_console/settings_group';
+import {useSectionNavigation} from 'components/common/hooks/useSectionNavigation';
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -101,75 +102,17 @@ const LDAPWizard = (props: Props) => {
     const memoizedSections = useMemo(() => {
         return (schema && 'sections' in schema && schema.sections) ? schema.sections : [];
     }, [schema]);
+    const memoizedSectionKeys = useMemo(() => {
+        return memoizedSections.map((section) => section.key);
+    }, [memoizedSections]);
 
-    const [activeSectionKey, setActiveSectionKey] = useState<string | null>(
-        memoizedSections.length > 0 ? memoizedSections[0].key : null,
-    );
-    const [intersectingSectionKeys, setIntersectingSectionKeys] = useState<Set<string>>(new Set());
-    const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-    // IntersectionObserver setup
-    useEffect(() => {
-        if (memoizedSections.length === 0) {
-            return undefined;
-        }
-
-        const observerCallback = (entries: IntersectionObserverEntry[]) => {
-            setIntersectingSectionKeys((prevKeys) => {
-                const newKeys = new Set(prevKeys);
-                entries.forEach((entry) => {
-                    const key = (entry.target as HTMLElement).dataset.sectionKey;
-                    if (key) {
-                        if (entry.isIntersecting) {
-                            newKeys.add(key);
-                        } else {
-                            newKeys.delete(key);
-                        }
-                    }
-                });
-                return newKeys;
-            });
-        };
-
-        const observerOptions: IntersectionObserverInit = {
+    const {activeSectionKey, sectionRefs} = useSectionNavigation(memoizedSectionKeys,
+        {
             root: null, // Use viewport as root
             rootMargin: '-40% 0px -40% 0px', // Active when in the middle 20% of the viewport
             threshold: 0.01, // At least 1% of element in this zone
-        };
-
-        const observer = new IntersectionObserver(observerCallback, observerOptions);
-
-        memoizedSections.forEach((section) => {
-            const el = sectionRefs.current[section.key];
-            if (el) {
-                observer.observe(el);
-            }
-        });
-
-        return () => {
-            observer.disconnect();
-        };
-    }, [memoizedSections]);
-
-    // Determine active section based on intersections
-    useEffect(() => {
-        let newActiveKey: string | null = null;
-
-        if (intersectingSectionKeys.size > 0) {
-            for (const section of memoizedSections) {
-                if (intersectingSectionKeys.has(section.key)) {
-                    newActiveKey = section.key; // First section in DOM order that's intersecting
-                    break;
-                }
-            }
-        }
-
-        if (newActiveKey && newActiveKey !== activeSectionKey) {
-            setActiveSectionKey(newActiveKey);
-        } else if (!activeSectionKey && newActiveKey && memoizedSections.length > 0) {
-            setActiveSectionKey(newActiveKey);
-        }
-    }, [intersectingSectionKeys, memoizedSections, activeSectionKey]);
+        },
+    );
 
     const buildTextSetting = (setting: AdminDefinitionSetting) => {
         return (
@@ -552,9 +495,7 @@ const LDAPWizard = (props: Props) => {
     };
 
     const renderSettings = () => {
-        const renderedSections: React.ReactNode[] = [];
-
-        memoizedSections.forEach((section) => {
+        const renderedSections = memoizedSections.map((section) => {
             const settingsList: React.ReactNode[] = [];
             if (section.settings) {
                 section.settings.forEach((setting) => {
@@ -566,13 +507,12 @@ const LDAPWizard = (props: Props) => {
 
             if (section.component) {
                 const CustomComponent = section.component;
-                renderedSections.push((
+                return (
                     <CustomComponent
                         settingsList={settingsList}
                         key={section.key}
                     />
-                ));
-                return;
+                );
             }
 
             let header;
@@ -599,7 +539,7 @@ const LDAPWizard = (props: Props) => {
                 );
             }
 
-            renderedSections.push(
+            return (
                 <div
                     className={'config-section'}
                     key={section.key}
@@ -621,7 +561,7 @@ const LDAPWizard = (props: Props) => {
                             {footer}
                         </div>
                     </SettingsGroup>
-                </div>,
+                </div>
             );
         });
 
@@ -648,7 +588,7 @@ const LDAPWizard = (props: Props) => {
                         />
                     </div>
                     {memoizedSections.map((section) => (
-                        <div
+                        <button
                             key={section.key + '-sidebar-item'}
                             className={`ldap-wizard-sidebar-item ${section.key === activeSectionKey ? 'ldap-wizard-sidebar-item--active' : ''}`}
                             onClick={() => {
@@ -657,16 +597,9 @@ const LDAPWizard = (props: Props) => {
                                     sectionElement.scrollIntoView({behavior: 'smooth', block: 'start'});
                                 }
                             }}
-                            role='button'
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.currentTarget.click();
-                                }
-                            }}
                         >
                             {section.sectionTitle || section.title}
-                        </div>
+                        </button>
                     ))}
                 </div>
                 <div className='admin-console__wrapper'>
