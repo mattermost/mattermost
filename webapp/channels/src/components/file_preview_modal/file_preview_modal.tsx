@@ -323,6 +323,12 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         this.props.handleImageClick?.(index);
     };
 
+    handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            this.handleModalClose();
+        }
+    };
+
     render() {
         if (this.props.fileInfos.length < 1 || this.props.fileInfos.length - 1 < this.state.imageIndex) {
             return null;
@@ -468,7 +474,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 dialogClassName={dialogClassName}
                 animation={true}
                 backdrop={false}
-                role='none'
+                role='dialog'
                 style={{paddingLeft: 0}}
                 aria-labelledby='viewImageModalLabel'
             >
@@ -478,6 +484,10 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                             'initial-load': this.state.isInitialLoad,
                         })}
                         onClick={this.handleModalClose}
+                        onKeyDown={this.handleKeyDown}
+                        role='button'
+                        tabIndex={0}
+                        aria-label='Close preview'
                     >
                         <div
                             className='file-preview-modal__main-ctr'
@@ -518,6 +528,10 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     },
                                 )}
                                 onClick={this.handleBgClose}
+                                onKeyDown={this.handleKeyDown}
+                                role='button'
+                                tabIndex={0}
+                                aria-label='Close preview'
                             >
                                 {content}
                             </div>
