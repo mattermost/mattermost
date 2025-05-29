@@ -6,7 +6,6 @@ package platform
 import (
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -36,12 +35,12 @@ type TestHelper struct {
 	T               testing.TB
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
-}
+// var initBasicOnce sync.Once
+// var userCache struct {
+// 	SystemAdminUser *model.User
+// 	BasicUser       *model.User
+// 	BasicUser2      *model.User
+// }
 
 type mockSuite struct {
 }
