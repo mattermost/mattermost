@@ -12,6 +12,7 @@ import CompassThemeProvider from 'components/compass_theme_provider/compass_them
 import LoggedIn from 'components/logged_in';
 
 const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', lazy(() => import('components/onboarding_tasklist')));
+const CloudPreviewModal = makeAsyncComponent('CloudPreviewModal', lazy(() => import('components/cloud_preview_modal')));
 
 type Props = {
     component: React.ComponentType<RouteComponentProps<any>>;
@@ -30,6 +31,7 @@ export default function LoggedInRoute(props: Props) {
                     {theme && (
                         <CompassThemeProvider theme={theme}>
                             <OnBoardingTaskList/>
+                            <CloudPreviewModal/>
                         </CompassThemeProvider>
                     )}
                     <Component {...(routeProps)}/>
