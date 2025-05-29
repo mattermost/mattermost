@@ -27,7 +27,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
 
       - name: buildenv/build-and-push
-        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+        uses: docker/build-push-action@1dc73863535b631f98b2378be8619f83b136f4a0 # v6.17.0
         with:
           provenance: false
           file: server/build/Dockerfile.buildenv
