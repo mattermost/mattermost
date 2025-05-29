@@ -102,16 +102,11 @@ const LDAPWizard = (props: Props) => {
         return (schema && 'sections' in schema && schema.sections) ? schema.sections : [];
     }, [schema]);
 
-    const [activeSectionKey, setActiveSectionKey] = useState<string | null>(null);
+    const [activeSectionKey, setActiveSectionKey] = useState<string | null>(
+        memoizedSections.length > 0 ? memoizedSections[0].key : null,
+    );
     const [intersectingSectionKeys, setIntersectingSectionKeys] = useState<Set<string>>(new Set());
     const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-    // Set initial active section
-    useEffect(() => {
-        if (memoizedSections.length > 0 && !activeSectionKey) {
-            setActiveSectionKey(memoizedSections[0].key);
-        }
-    }, [memoizedSections, activeSectionKey]);
 
     // IntersectionObserver setup
     useEffect(() => {
