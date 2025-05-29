@@ -3656,7 +3656,6 @@
   "cloud_archived.error.access": "Permalink belongs to a message that has been archived because of {planName} limits. Upgrade to access message again.",
   "cloud_archived.error.title": "Message Archived",
   "cloud_billing_history_modal.title": "Invoice(s)",
-  "cloud_billing.nudge_to_paid.view_plans": "View plans",
   "cloud_preview_modal.done": "Finish",
   "cloud_preview_modal.next": "Next",
   "cloud_preview_modal.previous": "Previous",
