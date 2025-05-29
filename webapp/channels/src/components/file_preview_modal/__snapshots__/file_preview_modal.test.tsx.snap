@@ -42,7 +42,7 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
     >
       <div
@@ -183,7 +183,7 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
     >
       <div
@@ -324,7 +324,7 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
     >
       <div
@@ -465,7 +465,7 @@ exports[`components/FilePreviewModal should match snapshot when plugin overrides
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
     >
       <div
@@ -645,7 +645,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
     >
       <div
@@ -798,7 +798,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
     >
       <div
@@ -951,7 +951,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
     >
       <div
@@ -1106,7 +1106,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .m4a fil
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
     >
       <div
@@ -1259,7 +1259,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .mov fil
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
     >
       <div
@@ -1412,7 +1412,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
     >
       <div
@@ -1565,7 +1565,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
     >
       <div
@@ -1718,7 +1718,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
     >
       <div
