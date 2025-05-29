@@ -7,6 +7,7 @@ import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/ty
 
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 
+import CloudPreviewAnnouncementBar from './cloud_preview_announcement_bar';
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
 import ConfigurationAnnouncementBar from './configuration_bar';
@@ -66,6 +67,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         let paymentAnnouncementBar = null;
         let cloudTrialAnnouncementBar = null;
         let cloudTrialEndAnnouncementBar = null;
+        let cloudPreviewAnnouncementBar = null;
         const notifyAdminDowngradeDelinquencyBar = null;
         const toYearlyNudgeBannerDismissable = null;
         if (this.props.license?.Cloud === 'true') {
@@ -77,6 +79,9 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             );
             cloudTrialEndAnnouncementBar = (
                 <CloudTrialEndAnnouncementBar/>
+            );
+            cloudPreviewAnnouncementBar = (
+                <CloudPreviewAnnouncementBar/>
             );
         }
 
@@ -109,6 +114,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                 {paymentAnnouncementBar}
                 {cloudTrialAnnouncementBar}
                 {cloudTrialEndAnnouncementBar}
+                {cloudPreviewAnnouncementBar}
                 {notifyAdminDowngradeDelinquencyBar}
                 {toYearlyNudgeBannerDismissable}
                 {this.props.license?.Cloud !== 'true' && <OverageUsersBanner/>}

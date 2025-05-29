@@ -3126,6 +3126,8 @@
   "analytics.team.totalUsers": "Total Activated Users",
   "analytics.team.totalUsers.title.tooltip.hint": "Also called Registered Users",
   "analytics.team.totalUsers.title.tooltip.title": "Activated users on this server",
+  "announcement_bar.cloud_preview.contact_sales": "Contact sales",
+  "announcement_bar.cloud_preview.message": "This is your Mattermost preview environment. Time left: {timeLeft}",
   "announcement_bar.error.email_verification_required": "Check your email inbox to verify the address.",
   "announcement_bar.error.license_expired": "{licenseSku} license is expired and some features may be disabled.",
   "announcement_bar.error.license_expiring": "{licenseSku} license expires on {date, date, long}.",
