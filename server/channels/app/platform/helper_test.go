@@ -6,7 +6,6 @@ package platform
 import (
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -33,14 +32,15 @@ type TestHelper struct {
 	// BasicPost    *model.Post
 
 	SystemAdminUser *model.User
+	T               testing.TB
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
-}
+// var initBasicOnce sync.Once
+// var userCache struct {
+// 	SystemAdminUser *model.User
+// 	BasicUser       *model.User
+// 	BasicUser2      *model.User
+// }
 
 type mockSuite struct {
 }
@@ -76,24 +76,10 @@ func Setup(tb testing.TB, options ...Option) *TestHelper {
 
 func (th *TestHelper) InitBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		th.SystemAdminUser = th.CreateAdmin()
-		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
+	th.SystemAdminUser = th.CreateAdmin()
 
-		th.BasicUser = th.CreateUserOrGuest(false)
-		userCache.BasicUser = th.BasicUser.DeepCopy()
-
-		th.BasicUser2 = th.CreateUserOrGuest(false)
-		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
-	})
-	// restore cached users
-	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
-	th.BasicUser = userCache.BasicUser.DeepCopy()
-	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-
-	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	mainHelper.GetSQLStore().User().InsertUsers(users)
-
+	th.BasicUser = th.CreateUserOrGuest(false)
+	th.BasicUser2 = th.CreateUserOrGuest(false)
 	th.BasicTeam = th.CreateTeam()
 
 	// th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
@@ -127,9 +113,7 @@ func SetupWithCluster(tb testing.TB, cluster einterfaces.ClusterInterface) *Test
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, options ...Option) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	configStore := config.NewTestMemoryStore()
 
@@ -160,6 +144,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	th := &TestHelper{
 		Context: request.TestContext(tb),
 		Service: ps,
+		T:       tb,
 		Suite:   &mockSuite{},
 	}
 
@@ -198,17 +183,18 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	err = th.Service.Start(nil)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	return th
 }
 
 func (th *TestHelper) TearDown() {
-	th.Service.ShutdownMetrics()
-	th.Service.Shutdown()
-	th.Service.ShutdownConfig()
+	err := th.Service.ShutdownMetrics()
+	require.NoError(th.T, err)
+	err = th.Service.Shutdown()
+	require.NoError(th.T, err)
+	err = th.Service.ShutdownConfig()
+	require.NoError(th.T, err)
 }
 
 func (th *TestHelper) CreateTeam() *model.Team {
@@ -222,9 +208,9 @@ func (th *TestHelper) CreateTeam() *model.Team {
 	}
 
 	var err error
-	if team, err = th.Service.Store.Team().Save(team); err != nil {
-		panic(err)
-	}
+	team, err = th.Service.Store.Team().Save(team)
+	require.NoError(th.T, err)
+
 	return team
 }
 
@@ -242,9 +228,7 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 
 	var err error
 	user, err = th.Service.Store.User().Save(th.Context, user)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(th.T, err)
 
 	return user
 }
@@ -263,9 +247,7 @@ func (th *TestHelper) CreateAdmin() *model.User {
 
 	var err error
 	user, err = th.Service.Store.User().Save(th.Context, user)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(th.T, err)
 
 	return user
 }
@@ -294,9 +276,12 @@ func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) 
 
 	var err error
 	channel, err = th.Service.Store.Channel().Save(th.Context, channel, 999)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(th.T, err)
 
 	return channel
 }
+
+// func (th *TestHelper) LinkUserToTeam(tb testing.TB, user *model.User, team *model.Team) {
+// 	_, appErr := th.App.JoinUserToTeam(th.Context, team, user, "")
+// 	require.Nil(tb, appErr)
+// }
