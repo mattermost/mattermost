@@ -22,14 +22,12 @@ func (s SearchTeamStore) SaveMember(rctx request.CTX, teamMember *model.TeamMemb
 		return member, err
 	}
 	mlog.Debug("saved member", mlog.String("user_id", member.UserId), mlog.String("team_id", member.TeamId))
-	if err == nil {
-		// Nothing to do if search engine is not active
-		if s.rootStore.searchEngine.ActiveEngine() != "database" && s.rootStore.searchEngine.ActiveEngine() != "none" {
-			mlog.Debug("indexing user from ID")
-			s.rootStore.indexUserFromID(rctx, member.UserId)
-			mlog.Debug("indexing channels for team")
-			s.rootStore.indexChannelsForTeam(rctx, member.TeamId, member.UserId)
-		}
+	// Nothing to do if search engine is not active
+	if s.rootStore.searchEngine.ActiveEngine() != "database" && s.rootStore.searchEngine.ActiveEngine() != "none" {
+		mlog.Debug("indexing user from ID")
+		s.rootStore.indexUserFromID(rctx, member.UserId)
+		mlog.Debug("indexing channels for team")
+		s.rootStore.indexChannelsForTeam(rctx, member.TeamId, member.UserId)
 	}
 	return member, err
 }

@@ -719,8 +719,6 @@ func (es *ElasticsearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *mo
 
 	searchChannel := common.ESChannelFromChannel(channel, userIDs, teamMemberIDs)
 
-
-
 	isItInSearchChannel := false
 	for _, id := range searchChannel.TeamMemberIDs {
 		if id == userID {
