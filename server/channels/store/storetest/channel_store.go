@@ -3928,7 +3928,7 @@ func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.
 	_, nErr = ss.Team().Update(team)
 	require.NoError(t, nErr)
 
-	// Should return 0 since team is archived
+	// Should return an error since team is archived and there are no results
 	_, nErr = ss.Channel().GetChannelsByUser(m1.UserId, false, 0, -1, "")
 	require.Error(t, nErr)
 }
