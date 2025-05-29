@@ -3820,10 +3820,24 @@ func testChannelStoreGetChannels(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.Store) {
-	team := model.NewId()
-	team2 := model.NewId()
+	team := &model.Team{
+		DisplayName: "Team1",
+		Name:        NewTestID(),
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+
+	team2 := &model.Team{
+		DisplayName: "Team2",
+		Name:        NewTestID(),
+		Type:        model.TeamOpen,
+	}
+	team2, err = ss.Team().Save(team2)
+	require.NoError(t, err)
+
 	o1 := model.Channel{}
-	o1.TeamId = team
+	o1.TeamId = team.Id
 	o1.DisplayName = "Channel1"
 	o1.Name = NewTestID()
 	o1.Type = model.ChannelTypeOpen
@@ -3831,7 +3845,7 @@ func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.
 	require.NoError(t, nErr)
 
 	o2 := model.Channel{}
-	o2.TeamId = team
+	o2.TeamId = team.Id
 	o2.DisplayName = "Channel2"
 	o2.Name = NewTestID()
 	o2.Type = model.ChannelTypeOpen
@@ -3839,7 +3853,7 @@ func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.
 	require.NoError(t, nErr)
 
 	o3 := model.Channel{}
-	o3.TeamId = team2
+	o3.TeamId = team2.Id
 	o3.DisplayName = "Channel3"
 	o3.Name = NewTestID()
 	o3.Type = model.ChannelTypeOpen
@@ -3850,7 +3864,7 @@ func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err := ss.Channel().SaveMember(rctx, &m1)
+	_, err = ss.Channel().SaveMember(rctx, &m1)
 	require.NoError(t, err)
 
 	m2 := model.ChannelMember{}
@@ -3908,6 +3922,15 @@ func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.
 	require.NoError(t, nErr)
 	require.Len(t, list, 2)
 	require.ElementsMatch(t, []string{o1.Id, o3.Id}, []string{list[0].Id, list[1].Id}, "channels did not match")
+
+	// Archive team and verify channels don't show up
+	team.DeleteAt = model.GetMillis()
+	_, nErr = ss.Team().Update(team)
+	require.NoError(t, nErr)
+
+	// Should return an error since team is archived and there are no results
+	_, nErr = ss.Channel().GetChannelsByUser(m1.UserId, false, 0, -1, "")
+	require.Error(t, nErr)
 }
 
 func testChannelStoreGetAllChannels(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
