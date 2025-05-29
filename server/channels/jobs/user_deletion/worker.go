@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
@@ -17,7 +16,7 @@ const jobName = "UserDeletion"
 
 type AppIface interface {
 	GetUser(userID string) (*model.User, *model.AppError)
-	PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError
+	PermanentDeleteUser(rctx request.CTX, user *model.User, job *model.Job) *model.AppError
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
@@ -25,7 +24,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		return true // Enabled for all configurations
 	}
 
-	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+	execute := func(rctx request.CTX, job *model.Job) error {
+		logger := rctx.Logger()
 		defer jobServer.HandleJobPanic(logger, job)
 
 		// Extract user ID from job data
@@ -40,16 +40,14 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			return fmt.Errorf("failed to get user %s: %v", userId, appErr)
 		}
 
-		rctx := request.EmptyContext(logger)
-
-		// Perform the actual user deletion
-		appErr = app.PermanentDeleteUser(rctx, user)
+		// Perform the actual user deletion with the cancellable context
+		appErr = app.PermanentDeleteUser(rctx, user, job)
 		if appErr != nil {
 			return fmt.Errorf("failed to permanently delete user %s: %v", userId, appErr)
 		}
 		return nil
 	}
 
-	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	worker := jobs.NewResumableSimpleWorker(jobName, jobServer, execute, isEnabled)
 	return worker
 }

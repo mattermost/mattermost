@@ -36,11 +36,11 @@ type AppIface interface {
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	const workerName = "ImportProcess"
 
-	appContext := request.EmptyContext(jobServer.Logger())
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
-	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+	execute := func(rctx request.CTX, job *model.Job) error {
+		logger := rctx.Logger()
 		defer jobServer.HandleJobPanic(logger, job)
 
 		importFileName, ok := job.Data["import_file"]
@@ -89,7 +89,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			type TimeoutCanceler interface{ CancelTimeout() bool }
 			if tc, ok := importFile.(TimeoutCanceler); ok {
 				if !tc.CancelTimeout() {
-					appContext.Logger().Warn("Could not cancel the timeout for the file reader. The import may fail due to a timeout.")
+					rctx.Logger().Warn("Could not cancel the timeout for the file reader. The import may fail due to a timeout.")
 				}
 			}
 		}
@@ -125,7 +125,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 
 		extractContent := job.Data["extract_content"] == "true"
 		// do the actual import.
-		lineNumber, appErr := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, extractContent, runtime.NumCPU(), model.ExportDataDir)
+		lineNumber, appErr := app.BulkImportWithPath(rctx, jsonFile, importZipReader, false, extractContent, runtime.NumCPU(), model.ExportDataDir)
 		if appErr != nil {
 			job.Data["line_number"] = strconv.Itoa(lineNumber)
 			return appErr

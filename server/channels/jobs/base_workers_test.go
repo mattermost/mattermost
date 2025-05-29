@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -21,7 +21,7 @@ func TestSimpleWorkerPanic(t *testing.T) {
 		Type: "job_type",
 	}
 
-	exec := func(_ mlog.LoggerIFace, _ *model.Job) error {
+	exec := func(_ request.CTX, _ *model.Job) error {
 		return nil
 	}
 

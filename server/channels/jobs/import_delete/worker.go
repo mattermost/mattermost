@@ -31,10 +31,9 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) *jobs.Si
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ImportSettings.Directory != "" && *cfg.ImportSettings.RetentionDays > 0
 	}
-	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+	execute := func(rctx request.CTX, job *model.Job) error {
+		logger := rctx.Logger()
 		defer jobServer.HandleJobPanic(logger, job)
-
-		rctx := request.EmptyContext(logger)
 
 		importPath := *app.Config().ImportSettings.Directory
 		retentionTime := time.Duration(*app.Config().ImportSettings.RetentionDays) * 24 * time.Hour

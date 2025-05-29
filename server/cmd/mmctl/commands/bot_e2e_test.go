@@ -52,7 +52,7 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId(), DeleteAt: 1})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteUser(s.th.Context, user)
+			err := s.th.App.PermanentDeleteUser(s.th.Context, user, nil)
 			s.Require().Nil(err)
 		}()
 
@@ -99,7 +99,7 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId(), DeleteAt: 1})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteUser(s.th.Context, user)
+			err := s.th.App.PermanentDeleteUser(s.th.Context, user, nil)
 			s.Require().Nil(err)
 		}()
 
@@ -336,14 +336,14 @@ func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
 		botOwner, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteUser(s.th.Context, botOwner)
+			err := s.th.App.PermanentDeleteUser(s.th.Context, botOwner, nil)
 			s.Require().Nil(err)
 		}()
 
 		newBotOwner, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteUser(s.th.Context, newBotOwner)
+			err := s.th.App.PermanentDeleteUser(s.th.Context, newBotOwner, nil)
 			s.Require().Nil(err)
 		}()
 
@@ -369,14 +369,14 @@ func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
 		botOwner, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteUser(s.th.Context, botOwner)
+			err := s.th.App.PermanentDeleteUser(s.th.Context, botOwner, nil)
 			s.Require().Nil(err)
 		}()
 
 		newBotOwner, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteUser(s.th.Context, newBotOwner)
+			err := s.th.App.PermanentDeleteUser(s.th.Context, newBotOwner, nil)
 			s.Require().Nil(err)
 		}()
 

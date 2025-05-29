@@ -47,7 +47,7 @@ func TestCreateOAuthUser(t *testing.T) {
 
 		require.Equal(t, glUser.Username, user.Username, "usernames didn't match")
 
-		appErr := th.App.PermanentDeleteUser(th.Context, user)
+		appErr := th.App.PermanentDeleteUser(th.Context, user, nil)
 		require.Nil(t, appErr)
 	})
 
@@ -139,7 +139,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 
 	user := th.CreateUser()
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user)
+		appErr := th.App.PermanentDeleteUser(th.Context, user, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -157,7 +157,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	t.Run("Restricted Domains must be ignored for guest users", func(t *testing.T) {
 		guest := th.CreateGuest()
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, guest)
+			appErr := th.App.PermanentDeleteUser(th.Context, guest, nil)
 			require.Nil(t, appErr)
 		}()
 
@@ -174,7 +174,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	t.Run("Guest users should be affected by guest restricted domains", func(t *testing.T) {
 		guest := th.CreateGuest()
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, guest)
+			appErr := th.App.PermanentDeleteUser(th.Context, guest, nil)
 			require.Nil(t, appErr)
 		}()
 
@@ -242,7 +242,7 @@ func TestUpdateUserMissingFields(t *testing.T) {
 
 	user := th.CreateUser()
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user)
+		appErr := th.App.PermanentDeleteUser(th.Context, user, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -1125,7 +1125,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	retUser1, err := th.App.GetUser(bot.UserId)
 	assert.Nil(t, err)
 
-	err = th.App.PermanentDeleteUser(th.Context, retUser1)
+	err = th.App.PermanentDeleteUser(th.Context, retUser1, nil)
 	assert.Nil(t, err)
 
 	err1 = sqlStore.GetMaster().Select(&bots2, "SELECT * FROM Bots")
@@ -1156,7 +1156,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2, "")
 	require.Nil(t, appErr)
 
-	err = th.App.PermanentDeleteUser(th.Context, th.BasicUser)
+	err = th.App.PermanentDeleteUser(th.Context, th.BasicUser, nil)
 	require.Nil(t, err, "Unable to delete user. err=%v", err)
 
 	res, err := th.App.FileExists(finfo.Path)
@@ -1990,7 +1990,7 @@ func TestPatchUser(t *testing.T) {
 
 	testUser := th.CreateUser()
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, testUser)
+		appErr := th.App.PermanentDeleteUser(th.Context, testUser, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -2060,7 +2060,7 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 
 		testUser := th.CreateUser()
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, testUser)
+			appErr := th.App.PermanentDeleteUser(th.Context, testUser, nil)
 			require.Nil(t, appErr)
 		}()
 
@@ -2085,7 +2085,7 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		defer th.Server.platform.SetConfigReadOnlyFF(true)
 		testUser := th.CreateGuest()
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, testUser)
+			appErr := th.App.PermanentDeleteUser(th.Context, testUser, nil)
 			require.Nil(t, appErr)
 		}()
 

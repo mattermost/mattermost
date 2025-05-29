@@ -4704,13 +4704,13 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 	th.LoginBasicWithClient(th.Client)
 
 	u1 := th.CreateUserWithClient(th.SystemAdminClient)
-	defer th.App.PermanentDeleteUser(th.Context, u1)
+	defer th.App.PermanentDeleteUser(th.Context, u1, nil)
 	u2 := th.CreateUserWithClient(th.SystemAdminClient)
-	defer th.App.PermanentDeleteUser(th.Context, u2)
+	defer th.App.PermanentDeleteUser(th.Context, u2, nil)
 	u3 := th.CreateUserWithClient(th.SystemAdminClient)
-	defer th.App.PermanentDeleteUser(th.Context, u3)
+	defer th.App.PermanentDeleteUser(th.Context, u3, nil)
 	u4 := th.CreateUserWithClient(th.SystemAdminClient)
-	defer th.App.PermanentDeleteUser(th.Context, u4)
+	defer th.App.PermanentDeleteUser(th.Context, u4, nil)
 
 	// A private channel to make sure private channels are not used
 	ptown, _, _ := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
@@ -4814,7 +4814,7 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	defer th.TearDown()
 
 	u1 := th.CreateUserWithClient(th.SystemAdminClient)
-	defer th.App.PermanentDeleteUser(th.Context, u1)
+	defer th.App.PermanentDeleteUser(th.Context, u1, nil)
 
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {

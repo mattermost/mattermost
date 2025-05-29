@@ -39,7 +39,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(4), serverLimits.ActiveUserCount)
 
 		// now we'll delete the user
-		_ = th.App.PermanentDeleteUser(th.Context, newUser)
+		_ = th.App.PermanentDeleteUser(th.Context, newUser, nil)
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
@@ -61,7 +61,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(4), serverLimits.ActiveUserCount)
 
 		// now we'll delete the user
-		_ = th.App.PermanentDeleteUser(th.Context, newGuestUser)
+		_ = th.App.PermanentDeleteUser(th.Context, newGuestUser, nil)
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)

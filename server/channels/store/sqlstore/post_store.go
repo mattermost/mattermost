@@ -1086,8 +1086,8 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userID string, data []pos
 	query := s.getQueryBuilder().
 		Delete("Posts").
 		Where(sq.Eq{"Id": postIds})
-	if _, err := transaction.ExecBuilder(query); err != nil {
-		return errors.Wrapf(err, "failed to delete Posts with userID=%s", userID)
+	if _, execErr := transaction.ExecBuilder(query); execErr != nil {
+		return errors.Wrapf(execErr, "failed to delete Posts with userID=%s", userID)
 	}
 
 	for _, ids := range data {
@@ -3321,7 +3321,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				teamIdByChannelId[channelId] = teamId
 			}
 			// no metadata entry, create one using upsert
-			thread := &model.Thread{
+			newThread := &model.Thread{
 				PostId:       rootId,
 				ChannelId:    channelId,
 				ReplyCount:   count,
@@ -3333,14 +3333,14 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			query := s.getQueryBuilder().
 				Insert("Threads").
 				Columns("PostId", "ChannelId", "ReplyCount", "LastReplyAt", "Participants", "ThreadTeamId").
-				Values(thread.PostId, thread.ChannelId, thread.ReplyCount, thread.LastReplyAt, thread.Participants, thread.TeamId)
+				Values(newThread.PostId, newThread.ChannelId, newThread.ReplyCount, newThread.LastReplyAt, newThread.Participants, newThread.TeamId)
 
 			if s.DriverName() == model.DatabaseDriverMysql {
 				query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE ReplyCount = ?, LastReplyAt = ?, Participants = ?",
-					thread.ReplyCount, thread.LastReplyAt, thread.Participants))
+					newThread.ReplyCount, newThread.LastReplyAt, newThread.Participants))
 			} else {
 				query = query.SuffixExpr(sq.Expr("ON CONFLICT (PostId) DO UPDATE SET ReplyCount = ?, LastReplyAt = ?, Participants = ?",
-					thread.ReplyCount, thread.LastReplyAt, thread.Participants))
+					newThread.ReplyCount, newThread.LastReplyAt, newThread.Participants))
 			}
 
 			if _, err := transaction.ExecBuilder(query); err != nil {

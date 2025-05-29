@@ -13,7 +13,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -1307,11 +1306,4 @@ func (a *App) DeleteExport(name string) *model.AppError {
 	return a.RemoveExportFile(filePath)
 }
 
-func updateJobProgress(logger mlog.LoggerIFace, store store.Store, job *model.Job, key string, value int) {
-	if job != nil {
-		job.Data[key] = strconv.Itoa(value)
-		if _, err2 := store.Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
-			logger.Warn("Failed to update job status", mlog.Err(err2))
-		}
-	}
-}
+// Removed updateJobProgress - now using generic version from user.go

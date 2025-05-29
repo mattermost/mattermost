@@ -1426,9 +1426,9 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, appErr := c.App.GetUser(userId)
-	if appErr != nil {
-		c.Err = appErr
+	user, err := c.App.GetUser(userId)
+	if err != nil {
+		c.Err = err
 		return
 	}
 	auditRec.AddEventPriorState(user)
@@ -1440,36 +1440,21 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var job *model.Job
 	if permanent {
 		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
-			job, appErr = c.App.CreateJob(c.AppContext, &model.Job{
-				Type: model.JobTypeUserDeletion,
-				Data: model.StringMap{
-					"user_id": user.Id,
-				},
-			})
+			err = c.App.PermanentDeleteUser(c.AppContext, user, nil)
 		} else {
-			appErr = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+			err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		}
 	} else {
-		_, appErr = c.App.UpdateActive(c.AppContext, user, false)
+		_, err = c.App.UpdateActive(c.AppContext, user, false)
 	}
-	if appErr != nil {
-		c.Err = appErr
+	if err != nil {
+		c.Err = err
 		return
 	}
 
 	auditRec.Success()
-
-	if permanent {
-		w.WriteHeader(http.StatusCreated)
-		if err := json.NewEncoder(w).Encode(job); err != nil {
-			c.Logger.Warn("Error while writing response", mlog.Err(err))
-		}
-		return
-	}
-
 	ReturnStatusOK(w)
 }
 

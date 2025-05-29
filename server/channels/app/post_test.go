@@ -3084,7 +3084,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 		defer func() {
-			appErr = th.App.PermanentDeleteUser(th.Context, user3)
+			appErr = th.App.PermanentDeleteUser(th.Context, user3, nil)
 			require.Nil(t, appErr)
 		}()
 

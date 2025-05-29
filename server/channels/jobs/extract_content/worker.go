@@ -30,8 +30,9 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) *job
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
-	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
-		jobServer.HandleJobPanic(logger, job)
+	execute := func(rctx request.CTX, job *model.Job) error {
+		logger := rctx.Logger()
+		defer jobServer.HandleJobPanic(logger, job)
 
 		var err error
 		var fromTS int64
@@ -68,7 +69,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) *job
 				if !ignoredFiles[fileInfo.Extension] {
 					logger.Debug("Extracting file", mlog.String("filename", fileInfo.Name), mlog.String("filepath", fileInfo.Path))
 
-					err = app.ExtractContentFromFileInfo(request.EmptyContext(logger), fileInfo)
+					err = app.ExtractContentFromFileInfo(rctx, fileInfo)
 					if err != nil {
 						logger.Warn("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", fileInfo.Id))
 						nErrs++

@@ -222,7 +222,7 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user1)
+		appErr := th.App.PermanentDeleteUser(th.Context, user1, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -255,7 +255,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user1)
+		appErr := th.App.PermanentDeleteUser(th.Context, user1, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -276,7 +276,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user2)
+		appErr := th.App.PermanentDeleteUser(th.Context, user2, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -316,7 +316,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user1)
+		appErr := th.App.PermanentDeleteUser(th.Context, user1, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -367,7 +367,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user1)
+		appErr := th.App.PermanentDeleteUser(th.Context, user1, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -378,7 +378,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user2)
+		appErr := th.App.PermanentDeleteUser(th.Context, user2, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -389,7 +389,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user3)
+		appErr := th.App.PermanentDeleteUser(th.Context, user3, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -400,7 +400,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user4)
+		appErr := th.App.PermanentDeleteUser(th.Context, user4, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -466,7 +466,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user1)
+		appErr := th.App.PermanentDeleteUser(th.Context, user1, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -477,7 +477,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user2)
+		appErr := th.App.PermanentDeleteUser(th.Context, user2, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -488,7 +488,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user3)
+		appErr := th.App.PermanentDeleteUser(th.Context, user3, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -533,7 +533,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user1)
+		appErr := th.App.PermanentDeleteUser(th.Context, user1, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -544,7 +544,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user2)
+		appErr := th.App.PermanentDeleteUser(th.Context, user2, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -555,7 +555,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user3)
+		appErr := th.App.PermanentDeleteUser(th.Context, user3, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -566,7 +566,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user4)
+		appErr := th.App.PermanentDeleteUser(th.Context, user4, nil)
 		require.Nil(t, appErr)
 	}()
 
@@ -658,7 +658,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	})
 	require.Nil(t, err)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, user1)
+		appErr := th.App.PermanentDeleteUser(th.Context, user1, nil)
 		require.Nil(t, appErr)
 	}()
 

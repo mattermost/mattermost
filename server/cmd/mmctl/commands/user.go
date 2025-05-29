@@ -745,18 +745,24 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if job, _, err := c.PermanentDeleteUser(context.TODO(), user.Id); err != nil {
-			printer.PrintError("Unable to delete user '" + user.Username + "' error: " + err.Error())
-		} else {
-			toPrint := struct {
-				Id       string
-				Username string
-			}{
-				Id:       job.Id,
-				Username: user.Username,
-			}
-			printer.PrintT("Started deletion job with id {{.Id}} for '{{.Username}}'. Check the job status to see progress", toPrint)
+		job, _, err := c.CreateJob(context.TODO(), &model.Job{
+			Type: model.JobTypePermanentDeleteUser,
+			Data: model.StringMap{
+				"user_id": user.Id,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create user deletion job: %w", err)
 		}
+
+		toPrint := struct {
+			Id       string
+			Username string
+		}{
+			Id:       job.Id,
+			Username: user.Username,
+		}
+		printer.PrintT("Started deletion job with id {{.Id}} for '{{.Username}}'. Check the job status to see progress", toPrint)
 	}
 	return nil
 }

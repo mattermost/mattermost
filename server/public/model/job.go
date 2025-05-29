@@ -45,7 +45,7 @@ const (
 	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
 	JobTypeMobileSessionMetadata         = "mobile_session_metadata"
 	JobTypeAccessControlSync             = "access_control_sync"
-	JobTypeUserDeletion                  = "permanent_delete_user"
+	JobTypePermanentDeleteUser           = "permanent_delete_user"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -79,7 +79,7 @@ var AllJobTypes = [...]string{
 	JobTypeCleanupDesktopTokens,
 	JobTypeRefreshMaterializedViews,
 	JobTypeMobileSessionMetadata,
-	JobTypeUserDeletion,
+	JobTypePermanentDeleteUser,
 }
 
 type Job struct {

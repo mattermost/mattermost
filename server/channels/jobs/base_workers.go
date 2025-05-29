@@ -4,33 +4,50 @@
 package jobs
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type SimpleWorker struct {
-	name      string
-	stop      chan bool
-	stopped   chan bool
-	jobs      chan model.Job
-	jobServer *JobServer
-	logger    mlog.LoggerIFace
-	execute   func(logger mlog.LoggerIFace, job *model.Job) error
-	isEnabled func(cfg *model.Config) bool
+	name             string
+	stop             chan bool
+	stopped          chan bool
+	jobs             chan model.Job
+	jobServer        *JobServer
+	logger           mlog.LoggerIFace
+	execute          func(rctx request.CTX, job *model.Job) error
+	isEnabled        func(cfg *model.Config) bool
+	setPendingOnStop bool
+	ctx              context.Context
+	cancel           context.CancelFunc
 }
 
-func NewSimpleWorker(name string, jobServer *JobServer, execute func(logger mlog.LoggerIFace, job *model.Job) error, isEnabled func(cfg *model.Config) bool) *SimpleWorker {
+func NewSimpleWorker(name string, jobServer *JobServer, execute func(rctx request.CTX, job *model.Job) error, isEnabled func(cfg *model.Config) bool) *SimpleWorker {
+	return _newSimpleWorker(name, jobServer, execute, isEnabled, false)
+}
+
+func NewResumableSimpleWorker(name string, jobServer *JobServer, execute func(rctx request.CTX, job *model.Job) error, isEnabled func(cfg *model.Config) bool) *SimpleWorker {
+	return _newSimpleWorker(name, jobServer, execute, isEnabled, true)
+}
+
+func _newSimpleWorker(name string, jobServer *JobServer, execute func(rctx request.CTX, job *model.Job) error, isEnabled func(cfg *model.Config) bool, setPendingOnStop bool) *SimpleWorker {
+	ctx, cancel := context.WithCancel(context.Background())
 	worker := SimpleWorker{
-		name:      name,
-		stop:      make(chan bool, 1),
-		stopped:   make(chan bool, 1),
-		jobs:      make(chan model.Job),
-		jobServer: jobServer,
-		logger:    jobServer.Logger().With(mlog.String("worker_name", name)),
-		execute:   execute,
-		isEnabled: isEnabled,
+		name:             name,
+		stop:             make(chan bool, 1),
+		stopped:          make(chan bool, 1),
+		jobs:             make(chan model.Job),
+		jobServer:        jobServer,
+		logger:           jobServer.Logger().With(mlog.String("worker_name", name)),
+		execute:          execute,
+		isEnabled:        isEnabled,
+		setPendingOnStop: setPendingOnStop,
+		ctx:              ctx,
+		cancel:           cancel,
 	}
 	return &worker
 }
@@ -56,6 +73,8 @@ func (worker *SimpleWorker) Run() {
 
 func (worker *SimpleWorker) Stop() {
 	worker.logger.Debug("Worker stopping")
+	// Cancel the context to signal any running job to stop
+	worker.cancel()
 	worker.stop <- true
 	<-worker.stopped
 }
@@ -81,8 +100,19 @@ func (worker *SimpleWorker) DoJob(job *model.Job) {
 		return
 	}
 
-	err := worker.execute(logger, job)
+	// Create a new context for this job execution
+	rctx := request.EmptyContext(logger).WithContext(worker.ctx)
+
+	err := worker.execute(rctx, job)
 	if err != nil {
+		// Check if the error was due to context cancellation
+		if worker.ctx.Err() != nil && worker.setPendingOnStop {
+			logger.Info("SimpleWorker: job execution cancelled ")
+			if appErr := worker.jobServer.SetJobPending(job); appErr != nil {
+				worker.logger.Error("Worker: Failed to set job to pending", mlog.Err(appErr))
+			}
+			return
+		}
 		logger.Error("SimpleWorker: job execution error", mlog.Err(err))
 		worker.setJobError(logger, job, model.NewAppError("DoJob", "app.job.error", nil, "", http.StatusInternalServerError).Wrap(err))
 		return

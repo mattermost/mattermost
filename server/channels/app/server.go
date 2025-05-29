@@ -1663,7 +1663,7 @@ func (s *Server) initJobs() {
 		delete_dms_preferences_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil)
 
-	s.Jobs.RegisterJobType(model.JobTypeUserDeletion,
+	s.Jobs.RegisterJobType(model.JobTypePermanentDeleteUser,
 		user_deletion.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		nil)
 
