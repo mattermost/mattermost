@@ -59,7 +59,7 @@
     }
 
     &__page-counter {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgb(var(--center-channel-color-rgb));
         font-size: 12px;
         font-weight: 400;
     }
@@ -126,6 +126,19 @@
 
             &:hover:not(:disabled) {
                 background: linear-gradient(0deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.08) 100%), var(--button-bg, #1C58D9);;
+            }
+        }
+    }
+
+    .modal-content {
+        border-radius: 8px !important;
+    }
+
+    .modal-body {
+        .GenericModal__body {
+            &.padding {
+                padding: 8px 48px !important;
+
             }
         }
     }
