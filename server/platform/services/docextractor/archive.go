@@ -57,7 +57,7 @@ func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error
 	var text strings.Builder
 	fsys, err := archives.FileSystem(context.Background(), f.Name(), nil)
 	if err != nil {
-		return "", fmt.Errorf("error creating file system: %v", err)
+		return "", fmt.Errorf("error creating file system: %w", err)
 	}
 
 	err = fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
