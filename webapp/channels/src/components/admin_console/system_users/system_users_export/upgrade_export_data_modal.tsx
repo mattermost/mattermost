@@ -21,12 +21,6 @@ export function UpgradeExportDataModal({onExited}: Props) {
         openPricingModal();
     };
 
-    // Don't show the modal if air-gapped
-    if (isAirGapped) {
-        onExited();
-        return null;
-    }
-
     const title = (
         <FormattedMessage
             id='upgrade_export_data_modal.title'
@@ -63,6 +57,7 @@ export function UpgradeExportDataModal({onExited}: Props) {
             confirmButtonText={viewPlansButton}
             onConfirm={confirm}
             onExited={onExited}
+            hideConfirm={isAirGapped}
         />
     );
 }

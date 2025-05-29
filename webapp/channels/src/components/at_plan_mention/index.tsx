@@ -18,7 +18,7 @@ function AtPlanMention(props: Props) {
     };
 
     if (isAirGapped) {
-        return <span>{props.plan}</span>;
+        return <span id='at_plan_mention'>{props.plan}</span>;
     }
 
     return (
