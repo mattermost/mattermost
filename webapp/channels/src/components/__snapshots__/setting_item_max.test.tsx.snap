@@ -26,6 +26,10 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
         className="setting-list-item"
       >
         <hr />
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+        />
         <SaveButton
           disabled={false}
           onClick={[Function]}
@@ -74,14 +78,31 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
       >
         <hr />
         <div
-          className="form-group"
+          aria-atomic="true"
+          aria-live="polite"
         >
-          <label
-            className="col-sm-12 has-error"
-            id="clientError"
+          <div
+            className="form-group"
           >
-            clientError
-          </label>
+            <label
+              className="col-sm-12 has-error"
+              id="clientError"
+            >
+              <i
+                className="icon icon-alert-circle-outline"
+                role="img"
+              />
+              <span
+                className="sr-only"
+              >
+                <MemoizedFormattedMessage
+                  defaultMessage="Error"
+                  id="setting_item_max.clientError"
+                />
+              </span>
+              clientError
+            </label>
+          </div>
         </div>
         <SaveButton
           disabled={false}
@@ -131,14 +152,31 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
       >
         <hr />
         <div
-          className="form-group"
+          aria-atomic="true"
+          aria-live="polite"
         >
-          <label
-            className="col-sm-12 has-error"
-            id="serverError"
+          <div
+            className="form-group"
           >
-            serverError
-          </label>
+            <label
+              className="col-sm-12 has-error"
+              id="serverError"
+            >
+              <i
+                className="icon icon-alert-circle-outline"
+                role="img"
+              />
+              <span
+                className="sr-only"
+              >
+                <MemoizedFormattedMessage
+                  defaultMessage="Error"
+                  id="setting_item_max.serverError"
+                />
+              </span>
+              serverError
+            </label>
+          </div>
         </div>
         <SaveButton
           disabled={false}
@@ -187,6 +225,10 @@ exports[`components/SettingItemMax should match snapshot, with new saveTextButto
         className="setting-list-item"
       >
         <hr />
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+        />
         <SaveButton
           defaultMessage="CustomText"
           disabled={false}
@@ -235,6 +277,10 @@ exports[`components/SettingItemMax should match snapshot, without submit 1`] = `
         className="setting-list-item"
       >
         <hr />
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+        />
         <button
           className="btn btn-tertiary"
           id="cancelSetting"

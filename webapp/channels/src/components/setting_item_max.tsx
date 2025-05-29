@@ -128,6 +128,16 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                         id='clientError'
                         className='col-sm-12 has-error'
                     >
+                        <i
+                            className='icon icon-alert-circle-outline'
+                            role='img'
+                        />
+                        <span className='sr-only'>
+                            <FormattedMessage
+                                id='setting_item_max.clientError'
+                                defaultMessage='Error'
+                            />
+                        </span>
                         {this.props.clientError}
                     </label>
                 </div>
@@ -142,6 +152,16 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                         id='serverError'
                         className='col-sm-12 has-error'
                     >
+                        <i
+                            className='icon icon-alert-circle-outline'
+                            role='img'
+                        />
+                        <span className='sr-only'>
+                            <FormattedMessage
+                                id='setting_item_max.serverError'
+                                defaultMessage='Error'
+                            />
+                        </span>
                         {this.props.serverError}
                     </label>
                 </div>
@@ -241,8 +261,13 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                         <div className='setting-list-item'>
                             <hr/>
                             {this.props.submitExtra}
-                            {serverError}
-                            {clientError}
+                            <div
+                                aria-live='polite'
+                                aria-atomic='true'
+                            >
+                                {serverError}
+                                {clientError}
+                            </div>
                             {submit}
                             <button
                                 id={'cancelSetting'}
