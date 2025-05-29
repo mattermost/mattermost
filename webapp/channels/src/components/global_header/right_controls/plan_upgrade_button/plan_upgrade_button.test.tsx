@@ -70,7 +70,7 @@ describe('components/global/PlanUpgradeButton', () => {
 
         expect(cloudSubscriptionSpy).toHaveBeenCalledTimes(1);
         expect(cloudProductsSpy).toHaveBeenCalledTimes(1);
-        expect(wrapper.find('UpgradeButton').exists()).toEqual(true);
+        expect(wrapper.find('#UpgradeButton').exists()).toEqual(true);
     });
 
     it('should show Upgrade button in global header for admin users, cloud and enterprise trial subscription', () => {
@@ -100,7 +100,7 @@ describe('components/global/PlanUpgradeButton', () => {
             </reactRedux.Provider>,
         );
 
-        expect(wrapper.find('UpgradeButton').exists()).toEqual(true);
+        expect(wrapper.find('#UpgradeButton').exists()).toEqual(true);
     });
 
     it('should not show for cloud enterprise non-trial', () => {
@@ -130,7 +130,7 @@ describe('components/global/PlanUpgradeButton', () => {
             </reactRedux.Provider>,
         );
 
-        expect(wrapper.find('UpgradeButton').exists()).toEqual(false);
+        expect(wrapper.find('#UpgradeButton').exists()).toEqual(false);
     });
 
     it('should not show for cloud professional product', () => {
@@ -160,7 +160,7 @@ describe('components/global/PlanUpgradeButton', () => {
             </reactRedux.Provider>,
         );
 
-        expect(wrapper.find('UpgradeButton').exists()).toEqual(false);
+        expect(wrapper.find('#UpgradeButton').exists()).toEqual(false);
     });
 
     it('should not show Upgrade button in global header for non admin cloud users', () => {
@@ -183,7 +183,7 @@ describe('components/global/PlanUpgradeButton', () => {
             </reactRedux.Provider>,
         );
 
-        expect(wrapper.find('UpgradeButton').exists()).toEqual(false);
+        expect(wrapper.find('#UpgradeButton').exists()).toEqual(false);
     });
 
     it('should not show Upgrade button in global header for non admin self hosted users', () => {
@@ -210,7 +210,7 @@ describe('components/global/PlanUpgradeButton', () => {
             </reactRedux.Provider>,
         );
 
-        expect(wrapper.find('UpgradeButton').exists()).toEqual(false);
+        expect(wrapper.find('#UpgradeButton').exists()).toEqual(false);
     });
 
     it('should not show Upgrade button in global header for non enterprise edition self hosted users', () => {
@@ -242,7 +242,7 @@ describe('components/global/PlanUpgradeButton', () => {
             </reactRedux.Provider>,
         );
 
-        expect(wrapper.find('UpgradeButton').exists()).toEqual(false);
+        expect(wrapper.find('#UpgradeButton').exists()).toEqual(false);
     });
 
     it('should NOT show Upgrade button in global header for self hosted non trial and licensed', () => {
@@ -269,6 +269,6 @@ describe('components/global/PlanUpgradeButton', () => {
 
         expect(cloudSubscriptionSpy).toHaveBeenCalledTimes(0); // no calls to cloud endpoints for non cloud
         expect(cloudProductsSpy).toHaveBeenCalledTimes(0);
-        expect(wrapper.find('UpgradeButton').exists()).toEqual(false);
+        expect(wrapper.find('#UpgradeButton').exists()).toEqual(false);
     });
 });

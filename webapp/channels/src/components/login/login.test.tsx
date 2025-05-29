@@ -16,6 +16,7 @@ import Constants, {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+jest.unmock('react-intl');
 jest.unmock('react-router-dom');
 
 describe('components/login/Login', () => {
@@ -275,6 +276,35 @@ describe('components/login/Login', () => {
             color: 'rgb(0, 255, 0)',
             borderColor: '#00ff00',
         });
+    });
+
+    it('should focus username field when there is an error', async () => {
+        const state = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableSignInWithEmail: 'true',
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <Login/>,
+            state,
+            {
+                intlMessages: {
+                    'login.noEmail': 'Please enter your email',
+                },
+            },
+        );
+
+        // Try to submit without entering username
+        screen.getByRole('button', {name: 'Log in'}).click();
+
+        // Verify username field is focused
+        const usernameInput = screen.getByLabelText('Email');
+        expect(usernameInput).toHaveFocus();
     });
 
     it('should handle openid text and color props', () => {

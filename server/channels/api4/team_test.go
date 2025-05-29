@@ -1068,7 +1068,7 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 		name                string
 		team                *model.Team
 		privacy             string
-		errChecker          func(t testing.TB, resp *model.Response)
+		errChecker          func(tb testing.TB, resp *model.Response)
 		wantType            string
 		wantOpenInvite      bool
 		wantInviteIdChanged bool

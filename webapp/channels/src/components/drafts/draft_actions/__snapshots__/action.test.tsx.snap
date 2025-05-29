@@ -8,6 +8,7 @@ exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
     title=""
   >
     <button
+      aria-label=""
       className="DraftAction__button"
       id="draft__"
       onClick={[MockFunction]}

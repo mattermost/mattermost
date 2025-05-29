@@ -21,6 +21,10 @@ func (ps *PropertyService) GetPropertyFields(groupID string, ids []string) ([]*m
 	return ps.fieldStore.GetMany(groupID, ids)
 }
 
+func (ps *PropertyService) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
+	return ps.fieldStore.GetFieldByName(groupID, targetID, name)
+}
+
 func (ps *PropertyService) CountActivePropertyFieldsForGroup(groupID string) (int64, error) {
 	return ps.fieldStore.CountForGroup(groupID, false)
 }
@@ -55,7 +59,7 @@ func (ps *PropertyService) DeletePropertyField(groupID, id string) error {
 		}
 	}
 
-	if err := ps.valueStore.DeleteForField(id); err != nil {
+	if err := ps.valueStore.DeleteForField(groupID, id); err != nil {
 		return err
 	}
 

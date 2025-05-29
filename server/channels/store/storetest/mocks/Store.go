@@ -44,6 +44,26 @@ func (_m *Store) AccessControlPolicy() store.AccessControlPolicyStore {
 	return r0
 }
 
+// Attributes provides a mock function with given fields:
+func (_m *Store) Attributes() store.AttributesStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Attributes")
+	}
+
+	var r0 store.AttributesStore
+	if rf, ok := ret.Get(0).(func() store.AttributesStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.AttributesStore)
+		}
+	}
+
+	return r0
+}
+
 // Audit provides a mock function with given fields:
 func (_m *Store) Audit() store.AuditStore {
 	ret := _m.Called()
