@@ -264,7 +264,7 @@ jobs:
       datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4&multiStatements=true&maxAllowedPacket=4194304
       drivername: mysql
       logsartifact: mysql-server-test-logs
-  gen-test-coverage:
+  test-coverage:
     name: Generate Test Coverage
     needs: check-mattermost-vet
     uses: ./.github/workflows/server-test-template.yml
@@ -273,7 +273,7 @@ jobs:
       name: Generate Test Coverage
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
-      logsartifact: get-test-coverage-logs
+      logsartifact: coverage-server-test-logs
       fullyparallel: true
       enablecoverage: true
   test-mmctl:
