@@ -499,6 +499,12 @@ func TestImportValidateUserImportData(t *testing.T) {
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to not existing profile image file.")
 
+	// Invalid image path
+	data.ProfileImage = model.NewPointer("../invalid/path/file.jpg")
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to invalid profile image file path.")
+	require.Equal(t, "app.import.validate_user_import_data.invalid_image_path.error", err.Id)
+
 	data.ProfileImage = nil
 
 	// Invalid Emails
@@ -623,8 +629,8 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.MentionKeys = model.NewPointer("valid")
 	checkNoError(t, ValidateUserImportData(&data))
 
-	//Test the email batching interval validators
-	//Happy paths
+	// Test the email batching interval validators
+	// Happy paths
 	data.EmailInterval = model.NewPointer("immediately")
 	checkNoError(t, ValidateUserImportData(&data))
 
@@ -634,7 +640,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.EmailInterval = model.NewPointer("hour")
 	checkNoError(t, ValidateUserImportData(&data))
 
-	//Invalid values
+	// Invalid values
 	data.EmailInterval = model.NewPointer("invalid")
 	checkError(t, ValidateUserImportData(&data))
 
@@ -731,6 +737,12 @@ func TestImportValidateBotImportData(t *testing.T) {
 	data.Owner = model.NewPointer(strings.Repeat("abcdefghij", 7))
 	err = ValidateBotImportData(&data)
 	require.NotNil(t, err, "Should have failed due to too long OwnerID.")
+
+	// Invalid profile image path
+	data.ProfileImage = model.NewPointer("../invalid/path/file.jpg")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid profile image file path.")
+	require.Equal(t, "app.import.validate_user_import_data.invalid_image_path.error", err.Id)
 }
 
 func TestImportValidateUserTeamsImportData(t *testing.T) {
@@ -943,6 +955,21 @@ func TestImportValidateReplyImportData(t *testing.T) {
 	}
 	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to 0 create-at value.")
+
+	// Test with invalid attachment path.
+	data = ReplyImportData{
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
+		Attachments: &[]AttachmentImportData{
+			{
+				Path: model.NewPointer("invalid/../../../path/to/file.txt"),
+			},
+		},
+	}
+	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to invalid attachment path.")
+	require.Equal(t, err.Id, "app.import.validate_reply_import_data.attachment.error")
 }
 
 func TestImportValidatePostImportData(t *testing.T) {
@@ -1084,6 +1111,24 @@ func TestImportValidatePostImportData(t *testing.T) {
 		err := ValidatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to long props.")
 		assert.Equal(t, err.Id, "app.import.validate_post_import_data.props_too_large.error")
+	})
+
+	t.Run("Test with invalid attachment path", func(t *testing.T) {
+		data := PostImportData{
+			Team:     model.NewPointer("teamname"),
+			Channel:  model.NewPointer("channelname"),
+			User:     model.NewPointer("username"),
+			Message:  model.NewPointer("message"),
+			CreateAt: model.NewPointer(model.GetMillis()),
+			Attachments: &[]AttachmentImportData{
+				{
+					Path: model.NewPointer("invalid/../../../path/to/file.txt"),
+				},
+			},
+		}
+		err := ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err)
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.attachment.error")
 	})
 }
 
@@ -1438,10 +1483,29 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.Nil(t, err, "Validation should succeed with valid optional parameters")
+
+	// Test with invalid attachment path.
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
+		Attachments: &[]AttachmentImportData{
+			{
+				Path: model.NewPointer("invalid/../../../path/to/file.txt"),
+			},
+		},
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to invalid attachment path.")
+	require.Equal(t, err.Id, "app.import.validate_direct_post_import_data.attachment.error")
 }
 
 func TestImportValidateEmojiImportData(t *testing.T) {
-	var testCases = []struct {
+	testCases := []struct {
 		testName          string
 		name              *string
 		image             *string
@@ -1456,6 +1520,7 @@ func TestImportValidateEmojiImportData(t *testing.T) {
 		{"nil name", nil, model.NewPointer("/path/to/image"), true, false},
 		{"nil image", model.NewPointer("parrot2"), nil, true, false},
 		{"nil name and image", nil, nil, true, false},
+		{"invalid image path", model.NewPointer("parrot2"), model.NewPointer("../invalid/path/to/emoji.png"), true, false},
 	}
 
 	for _, tc := range testCases {
@@ -1485,7 +1550,7 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func TestIsValidGuestRoles(t *testing.T) {
-	var testCases = []struct {
+	testCases := []struct {
 		name     string
 		input    UserImportData
 		expected bool
@@ -1593,6 +1658,320 @@ func TestIsValidGuestRoles(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := isValidGuestRoles(tc.input)
 			assert.Equal(t, tc.expected, result, tc.name)
+		})
+	}
+}
+
+func TestValidateAttachmentPathForImport(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		path         string
+		basePath     string
+		expectedPath string
+		expectedRes  bool
+	}{
+		{
+			name:         "valid relative path",
+			path:         "valid/path/to/attachment",
+			basePath:     "data",
+			expectedPath: "data/valid/path/to/attachment",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid absolute path",
+			path:         "/valid/path/to/attachment",
+			basePath:     "data",
+			expectedPath: "data/valid/path/to/attachment",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid relative path with empty base",
+			path:         "data/file.jpg",
+			basePath:     "",
+			expectedPath: "data/file.jpg",
+			expectedRes:  true,
+		},
+		{
+			name:         "absolute path with empty base is converted to relative",
+			path:         "/data/file.jpg",
+			basePath:     "",
+			expectedPath: "data/file.jpg",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with dot segments",
+			path:         "path/./to/attachment",
+			basePath:     "data",
+			expectedPath: "data/path/to/attachment",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with internal parent reference",
+			path:         "path/to/../to/attachment",
+			basePath:     "data",
+			expectedPath: "data/path/to/attachment",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with filename containing dots",
+			path:         "path/to/file..txt",
+			basePath:     "data",
+			expectedPath: "data/path/to/file..txt",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with default base path",
+			path:         "file.txt",
+			basePath:     "",
+			expectedPath: "file.txt",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with spaces",
+			path:         "path/to/file with spaces.jpg",
+			basePath:     "data",
+			expectedPath: "data/path/to/file with spaces.jpg",
+			expectedRes:  true,
+		},
+		{
+			name:         "invalid path with parent directory traversal",
+			path:         "../file.txt",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "invalid path with multiple parent directory traversal",
+			path:         "../../file.txt",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "invalid path with parent directory traversal in middle",
+			path:         "path/../../file.txt",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "invalid absolute path with traversal",
+			path:         "/path/../../../not/valid",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "invalid relative path with substring in path",
+			path:         "../data_dir/attachment",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "empty path",
+			path:         "",
+			basePath:     "data",
+			expectedPath: "data",
+			expectedRes:  true,
+		},
+		{
+			name:         "path is just a dot",
+			path:         ".",
+			basePath:     "data",
+			expectedPath: "data",
+			expectedRes:  true,
+		},
+		{
+			name:         "path with only parent reference",
+			path:         "..",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		// Additional security test cases
+		{
+			name:         "valid path with double dots in filename",
+			path:         "....//file.txt",
+			basePath:     "data",
+			expectedPath: "data/..../file.txt",
+			expectedRes:  true, // Double dots in filename are valid, not traversal
+		},
+		{
+			name:         "valid path with quadruple dots in filename",
+			path:         "..../file.txt",
+			basePath:     "data",
+			expectedPath: "data/..../file.txt",
+			expectedRes:  true, // Quadruple dots in filename are valid, not traversal
+		},
+		{
+			name:         "valid path with backslashes (treated as literal on Unix)",
+			path:         "path\\..\\..\\file.txt",
+			basePath:     "data",
+			expectedPath: "data/path\\..\\..\\file.txt",
+			expectedRes:  true, // Backslashes are literal characters on Unix systems
+		},
+		{
+			name:         "valid path with mixed separators (backslash literal)",
+			path:         "path\\../file.txt",
+			basePath:     "data",
+			expectedPath: "data/path\\../file.txt",
+			expectedRes:  true, // Backslash is literal, only forward slash is normalized
+		},
+		{
+			name:         "valid URL encoded characters (treated as literals)",
+			path:         "%2e%2e%2ffile.txt",
+			basePath:     "data",
+			expectedPath: "data/%2e%2e%2ffile.txt",
+			expectedRes:  true, // URL encoding should be treated as literal characters
+		},
+		{
+			name:         "valid null byte in filename (treated as literal)",
+			path:         "file.txt\x00../etc/passwd",
+			basePath:     "data",
+			expectedPath: "data/file.txt\x00../etc/passwd",
+			expectedRes:  true, // Null bytes should be treated as literal characters
+		},
+		{
+			name:         "invalid complex traversal pattern",
+			path:         "./././../../../file.txt",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "valid path with multiple slashes (normalized)",
+			path:         "path///../file.txt",
+			basePath:     "data",
+			expectedPath: "data/file.txt",
+			expectedRes:  true, // Multiple slashes get normalized, no traversal occurs
+		},
+		{
+			name:         "invalid deep traversal attempt",
+			path:         "../../../../../../../../../etc/passwd",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "valid path with multiple internal dots",
+			path:         "path/to/file...with...dots.txt",
+			basePath:     "data",
+			expectedPath: "data/path/to/file...with...dots.txt",
+			expectedRes:  true,
+		},
+		{
+			name:         "invalid traversal with valid-looking suffix",
+			path:         "../trusted_NOT/secrets.txt",
+			basePath:     "/trusted",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "valid path with base path containing special chars",
+			path:         "file.txt",
+			basePath:     "data-dir_v1.0",
+			expectedPath: "data-dir_v1.0/file.txt",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid Windows-style paths (backslashes literal on Unix)",
+			path:         "..\\..\\windows\\system32\\config",
+			basePath:     "data",
+			expectedPath: "data/..\\..\\windows\\system32\\config",
+			expectedRes:  true, // Backslashes are literal on Unix, no traversal
+		},
+		{
+			name:         "valid path with Unicode characters",
+			path:         "path/to/файл.txt",
+			basePath:     "data",
+			expectedPath: "data/path/to/файл.txt",
+			expectedRes:  true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			path, ok := ValidateAttachmentPathForImport(tc.path, tc.basePath)
+			require.Equal(t, tc.expectedPath, path)
+			require.Equal(t, tc.expectedRes, ok)
+		})
+	}
+}
+
+func TestValidateAttachmentImportData(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		data *AttachmentImportData
+		err  string
+	}{
+		{
+			name: "nil data",
+		},
+		{
+			name: "empty path",
+			data: &AttachmentImportData{},
+		},
+		{
+			name: "valid absolute path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("/valid/path/to/attachment"),
+			},
+		},
+		{
+			name: "invalid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("../attachment"),
+			},
+			err: "BulkImport: app.import.validate_attachment_import_data.invalid_path.error",
+		},
+		{
+			name: "invalid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("path/to/../../../attachment"),
+			},
+			err: "BulkImport: app.import.validate_attachment_import_data.invalid_path.error",
+		},
+
+		{
+			name: "invalid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("../data_dir/attachment"),
+			},
+			err: "BulkImport: app.import.validate_attachment_import_data.invalid_path.error",
+		},
+
+		{
+			name: "valid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("./path/to/attachment"),
+			},
+		},
+		{
+			name: "valid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("path/../to/attachment"),
+			},
+		},
+		{
+			name: "valid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("path/to/attachment"),
+			},
+		},
+		{
+			name: "valid relative path",
+			data: &AttachmentImportData{
+				Path: model.NewPointer("path/to/attachment/attachment..ext"),
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidateAttachmentImportData(tc.data)
+			if tc.err != "" {
+				require.NotNil(t, err, "Expected error but got none")
+				require.EqualError(t, err, tc.err, "Expected error did not match")
+			} else {
+				require.Nil(t, err, "Expected no error but got one")
+			}
 		})
 	}
 }

@@ -352,13 +352,13 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 	}
 }
 
-func (ps *PlatformService) SetStatusOffline(userID string, manual bool) {
+func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bool) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
 	status, err := ps.GetStatus(userID)
-	if err == nil && status.Manual && !manual {
+	if !force && err == nil && status.Manual && !manual {
 		return // manually set status always overrides non-manual one
 	}
 

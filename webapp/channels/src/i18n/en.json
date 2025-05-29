@@ -531,6 +531,7 @@
   "admin.cacheSettings.redisPasswordDesc": "The password of the Redis server.",
   "admin.cacheSettings.title": "Cache Settings",
   "admin.channel_details.policy_public_error": "You cannot assign a policy to a public channel.",
+  "admin.channel_details.policy_required_error": "You must select an access policy when attribute-based channel access is enabled.",
   "admin.channel_details.policy_synced_error": "You cannot assign a policy to a synced channel.",
   "admin.channel_list.archived": "Archived",
   "admin.channel_list.attributed_based": "Attribute Based",
