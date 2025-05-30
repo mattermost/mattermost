@@ -84,10 +84,9 @@ var (
 )
 
 type MetricSample struct {
-	Metric    MetricType        `json:"metric"`
-	Value     float64           `json:"value"`
-	Timestamp float64           `json:"timestamp,omitempty"`
-	Labels    map[string]string `json:"labels,omitempty"`
+	Metric MetricType        `json:"metric"`
+	Value  float64           `json:"value"`
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 func (s *MetricSample) GetLabelValue(name string, acceptedValues map[string]any, defaultValue string) string {
@@ -155,16 +154,4 @@ func processLabel(labels map[string]string, name string, acceptedValues map[stri
 	}
 
 	return value
-}
-
-// IsValidPlatform checks if the given platform is valid
-func IsValidPlatform(platform string) bool {
-	_, ok := acceptedPlatforms[platform]
-	return ok
-}
-
-// IsValidAgent checks if the given agent is valid
-func IsValidAgent(agent string) bool {
-	_, ok := acceptedAgents[agent]
-	return ok
 }
