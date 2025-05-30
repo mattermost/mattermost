@@ -25,8 +25,8 @@ func (ae *archiveExtractor) Name() string {
 }
 
 func (ae *archiveExtractor) Match(filename string) bool {
-	format, _, err := archives.Identify(context.Background(), filename, nil)
-	return err == nil && format != nil
+	_, _, err := archives.Identify(context.Background(), filename, nil)
+	return err == nil
 }
 
 // getExtAlsoTarGz returns the extension of the given file name, special casing .tar.gz.
