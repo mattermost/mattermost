@@ -30,7 +30,7 @@ export default function useShowAdminLimitReached() {
         Preferences.CATEGORY_CLOUD_LIMITS,
         Preferences.SHOWN_LIMITS_REACHED_ON_LOGIN,
     );
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     if (!limitsLoaded || !usage.messages.historyLoaded || messageLimit === undefined || !needsLoggedInLimitReachedCheck || shownLimitsReachedOnLogin === 'true') {
         return;
@@ -38,48 +38,55 @@ export default function useShowAdminLimitReached() {
 
     if (usage.messages.history > messageLimit) {
         setShownLimitsReachedOnLogin('true');
+
+        const modalProps: any = {
+            title: defineMessage({
+                id: 'workspace_limits.modals.limits_reached.title',
+                defaultMessage: '{limitName} limit reached',
+                values: {
+                    limitName: intl.formatMessage({
+                        id: 'workspace_limits.modals.limits_reached.title.message_history',
+                        defaultMessage: 'Message history',
+                    }),
+                },
+            }),
+            description: defineMessage({
+                id: 'workspace_limits.modals.limits_reached.description.message_history',
+                defaultMessage: 'Your sent message history is no longer available but you can still send messages. Upgrade to a paid plan and get unlimited access to your message history.',
+            }),
+            secondaryAction: {
+                message: defineMessage({
+                    id: 'workspace_limits.modals.close',
+                    defaultMessage: 'Close',
+                }),
+                onClick: () => {
+                    dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
+                },
+            },
+            onClose: () => {
+                dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
+            },
+            needsTheme: true,
+        };
+
+        // Only show primary action if not air-gapped
+        if (!isAirGapped) {
+            modalProps.primaryAction = {
+                message: defineMessage({
+                    id: 'workspace_limits.modals.view_plan_options',
+                    defaultMessage: 'View plan options',
+                }),
+                onClick: () => {
+                    dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
+                    openPricingModal({trackingLocation: 'admin_login_limit_reached_dashboard'});
+                },
+            };
+        }
+
         dispatch(openModal({
             modalId: ModalIdentifiers.CLOUD_LIMITS,
             dialogType: CloudUsageModal,
-            dialogProps: {
-                title: defineMessage({
-                    id: 'workspace_limits.modals.limits_reached.title',
-                    defaultMessage: '{limitName} limit reached',
-                    values: {
-                        limitName: intl.formatMessage({
-                            id: 'workspace_limits.modals.limits_reached.title.message_history',
-                            defaultMessage: 'Message history',
-                        }),
-                    },
-                }),
-                description: defineMessage({
-                    id: 'workspace_limits.modals.limits_reached.description.message_history',
-                    defaultMessage: 'Your sent message history is no longer available but you can still send messages. Upgrade to a paid plan and get unlimited access to your message history.',
-                }),
-                secondaryAction: {
-                    message: defineMessage({
-                        id: 'workspace_limits.modals.close',
-                        defaultMessage: 'Close',
-                    }),
-                    onClick: () => {
-                        dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
-                    },
-                },
-                primaryAction: {
-                    message: defineMessage({
-                        id: 'workspace_limits.modals.view_plan_options',
-                        defaultMessage: 'View plan options',
-                    }),
-                    onClick: () => {
-                        dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
-                        openPricingModal({trackingLocation: 'admin_login_limit_reached_dashboard'});
-                    },
-                },
-                onClose: () => {
-                    dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
-                },
-                needsTheme: true,
-            },
+            dialogProps: modalProps,
         }));
     }
     dispatch(setNeedsLoggedInLimitReachedCheck(false));
