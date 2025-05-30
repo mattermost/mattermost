@@ -3232,7 +3232,7 @@
   },
   {
     "id": "api.team.invite_guests.policy_enforced_channel.app_error",
-    "translation": ""
+    "translation": "Cannot invite guests users to this channel because it has access restrictions based on user attributes."
   },
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
