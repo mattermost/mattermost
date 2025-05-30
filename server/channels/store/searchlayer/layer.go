@@ -139,7 +139,7 @@ func RequestContextWithMaster(c request.CTX) request.CTX {
 	return c
 }
 
-func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string, userID string) {
+func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
 	var (
 		perPage  = 100
 		channels []*model.Channel
@@ -153,13 +153,10 @@ func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string, user
 		return
 	}
 
-	rctx.Logger().Debug("got public channels for team", mlog.Int("num_channels", len(channels)), mlog.String("team_id", teamID))
-
 	if len(channels) == 0 {
 		return
 	}
 
-	rctx.Logger().Debug("first channel in retrieved channels", mlog.String("channel_id", channels[0].Id), mlog.String("team_id", channels[0].TeamId))
 	// Use master context to avoid replica lag issues when reading team members
 	masterRctx := RequestContextWithMaster(rctx)
 	teamMemberIDs, err := s.channel.GetTeamMembersForChannel(masterRctx, channels[0].Id)
@@ -168,21 +165,8 @@ func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string, user
 		return
 	}
 
-	rctx.Logger().Debug("got teamMemberIDs", mlog.Int("num_teammemberids", len(teamMemberIDs)))
-	rctx.Logger().Debug("gonna look for user id in teammemberids", mlog.String("user_id", userID))
-
-	isItThere := false
-	for _, id := range teamMemberIDs {
-		if id == userID {
-			isItThere = true
-			break
-		}
-	}
-
-	rctx.Logger().Debug("is it there?", mlog.Bool("isItThere", isItThere))
-
 	for _, channel := range channels {
-		s.channel.indexChannelWithTeamMembers(rctx, channel, teamMemberIDs, userID)
+		s.channel.indexChannelWithTeamMembers(rctx, channel, teamMemberIDs)
 	}
 }
 
