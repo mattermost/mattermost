@@ -2457,7 +2457,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return true", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.SetStatusOffline(user.Id, true)
+		th.App.SetStatusOffline(user.Id, true, false)
 
 		channelMemberNotificationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,
@@ -2483,7 +2483,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in case the EMAIL_NOTIFY_PROP is false", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.SetStatusOffline(user.Id, true)
+		th.App.SetStatusOffline(user.Id, true, false)
 
 		channelMemberNotificationProps := model.StringMap{
 			model.EmailNotifyProp:      "false",
@@ -2496,7 +2496,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in case the MARK_UNREAD_NOTIFY_PROP is CHANNEL_MARK_UNREAD_MENTION", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.SetStatusOffline(user.Id, true)
+		th.App.SetStatusOffline(user.Id, true, false)
 
 		channelMemberNotificationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,
@@ -2509,7 +2509,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in case the Post type is POST_AUTO_RESPONDER", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.SetStatusOffline(user.Id, true)
+		th.App.SetStatusOffline(user.Id, true, false)
 
 		channelMemberNotificationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,
