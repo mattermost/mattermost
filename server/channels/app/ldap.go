@@ -55,10 +55,10 @@ func (a *App) TestLdap(rctx request.CTX) *model.AppError {
 func (a *App) TestLdapConnection(rctx request.CTX, settings *model.LdapSettings) *model.AppError {
 	license := a.Srv().License()
 	ldapI := a.LdapDiagnostic()
-	if ldapI != nil &&
-		license != nil &&
-		*license.Features.LDAP &&
-		(*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
+
+	// NOTE: normally we would test (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync),
+	// but we want to allow sysadmins to test the connection without enabling and saving the config first.
+	if ldapI != nil && license != nil && *license.Features.LDAP {
 		if err := ldapI.RunTestConnection(rctx, settings); err != nil {
 			err.StatusCode = 500
 			return err
