@@ -1661,7 +1661,6 @@ func (s *Server) initJobs() {
 		model.JobTypeDeleteDmsPreferencesMigration,
 		delete_dms_preferences_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil)
-
 	s.platform.Jobs = s.Jobs
 }
 
@@ -1874,4 +1873,12 @@ func (s *Server) Log() *mlog.Logger {
 
 func (s *Server) NotificationsLog() *mlog.Logger {
 	return s.platform.NotificationsLogger()
+}
+
+// GetClusterId returns the cluster ID from the platform
+func (s *Server) GetClusterId() string {
+	if s.platform != nil && s.platform.Cluster() != nil {
+		return s.platform.Cluster().GetClusterId()
+	}
+	return ""
 }

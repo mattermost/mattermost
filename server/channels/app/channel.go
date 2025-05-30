@@ -1638,6 +1638,13 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
+	// Synchronize membership change for shared channels
+	if _, pErr := a.GetSharedChannel(channel.Id); pErr == nil {
+		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+			scs.HandleMembershipChange(channel.Id, user.Id, true, "")
+		}
+	}
+
 	return newMember, nil
 }
 
@@ -2161,7 +2168,12 @@ func (s *Server) getChannelMemberLastViewedAt(c request.CTX, channelID string, u
 }
 
 func (a *App) GetChannelMembersPage(c request.CTX, channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
-	channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, page*perPage, perPage)
+	opts := model.ChannelMembersGetOptions{
+		ChannelID: channelID,
+		Offset:    page * perPage,
+		Limit:     perPage,
+	}
+	channelMembers, err := a.Srv().Store().Channel().GetMembers(opts)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelMembersPage", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2664,6 +2676,14 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	userMsg.Add("channel_id", channel.Id)
 	userMsg.Add("remover_id", removerUserId)
 	a.Publish(userMsg)
+
+	// Synchronize membership change for shared channels
+	if _, pErr := a.GetSharedChannel(channel.Id); pErr == nil {
+		// isAdd=false, empty remoteId means locally initiated
+		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+			scs.HandleMembershipChange(channel.Id, userIDToRemove, false, "")
+		}
+	}
 
 	return nil
 }
@@ -3564,7 +3584,12 @@ func (a *App) forEachChannelMember(c request.CTX, channelID string, f func(model
 	page := 0
 
 	for {
-		channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, page*perPage, perPage)
+		opts := model.ChannelMembersGetOptions{
+			ChannelID: channelID,
+			Offset:    page * perPage,
+			Limit:     perPage,
+		}
+		channelMembers, err := a.Srv().Store().Channel().GetMembers(opts)
 		if err != nil {
 			return err
 		}
