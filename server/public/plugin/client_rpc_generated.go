@@ -7168,3 +7168,146 @@ func (s *apiRPCServer) DeleteGroupConstrainedMemberships(args *Z_DeleteGroupCons
 	}
 	return nil
 }
+
+type Z_RegisterFunctionArgs struct {
+	A *model.Function
+}
+
+type Z_RegisterFunctionReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RegisterFunction(function *model.Function) *model.AppError {
+	_args := &Z_RegisterFunctionArgs{function}
+	_returns := &Z_RegisterFunctionReturns{}
+	if err := g.client.Call("Plugin.RegisterFunction", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterFunction API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterFunction(args *Z_RegisterFunctionArgs, returns *Z_RegisterFunctionReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterFunction(function *model.Function) *model.AppError
+	}); ok {
+		returns.A = hook.RegisterFunction(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterFunction called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UnregisterFunctionArgs struct {
+	A string
+}
+
+type Z_UnregisterFunctionReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) UnregisterFunction(functionName string) *model.AppError {
+	_args := &Z_UnregisterFunctionArgs{functionName}
+	_returns := &Z_UnregisterFunctionReturns{}
+	if err := g.client.Call("Plugin.UnregisterFunction", _args, _returns); err != nil {
+		log.Printf("RPC call to UnregisterFunction API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) UnregisterFunction(args *Z_UnregisterFunctionArgs, returns *Z_UnregisterFunctionReturns) error {
+	if hook, ok := s.impl.(interface {
+		UnregisterFunction(functionName string) *model.AppError
+	}); ok {
+		returns.A = hook.UnregisterFunction(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API UnregisterFunction called but not implemented."))
+	}
+	return nil
+}
+
+type Z_ListFunctionsArgs struct {
+	A *model.FunctionUserContext
+}
+
+type Z_ListFunctionsReturns struct {
+	A []*model.Function
+	B *model.AppError
+}
+
+func (g *apiRPCClient) ListFunctions(userContext *model.FunctionUserContext) ([]*model.Function, *model.AppError) {
+	_args := &Z_ListFunctionsArgs{userContext}
+	_returns := &Z_ListFunctionsReturns{}
+	if err := g.client.Call("Plugin.ListFunctions", _args, _returns); err != nil {
+		log.Printf("RPC call to ListFunctions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) ListFunctions(args *Z_ListFunctionsArgs, returns *Z_ListFunctionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		ListFunctions(userContext *model.FunctionUserContext) ([]*model.Function, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.ListFunctions(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API ListFunctions called but not implemented."))
+	}
+	return nil
+}
+
+type Z_ExecuteFunctionArgs struct {
+	A string
+	B map[string]any
+	C *model.FunctionUserContext
+}
+
+type Z_ExecuteFunctionReturns struct {
+	A *model.FunctionResult
+	B *model.AppError
+}
+
+func (g *apiRPCClient) ExecuteFunction(functionName string, arguments map[string]any, userContext *model.FunctionUserContext) (*model.FunctionResult, *model.AppError) {
+	_args := &Z_ExecuteFunctionArgs{functionName, arguments, userContext}
+	_returns := &Z_ExecuteFunctionReturns{}
+	if err := g.client.Call("Plugin.ExecuteFunction", _args, _returns); err != nil {
+		log.Printf("RPC call to ExecuteFunction API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) ExecuteFunction(args *Z_ExecuteFunctionArgs, returns *Z_ExecuteFunctionReturns) error {
+	if hook, ok := s.impl.(interface {
+		ExecuteFunction(functionName string, arguments map[string]any, userContext *model.FunctionUserContext) (*model.FunctionResult, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.ExecuteFunction(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API ExecuteFunction called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetFunctionStatsArgs struct {
+}
+
+type Z_GetFunctionStatsReturns struct {
+	A *model.FunctionStats
+}
+
+func (g *apiRPCClient) GetFunctionStats() *model.FunctionStats {
+	_args := &Z_GetFunctionStatsArgs{}
+	_returns := &Z_GetFunctionStatsReturns{}
+	if err := g.client.Call("Plugin.GetFunctionStats", _args, _returns); err != nil {
+		log.Printf("RPC call to GetFunctionStats API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetFunctionStats(args *Z_GetFunctionStatsArgs, returns *Z_GetFunctionStatsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetFunctionStats() *model.FunctionStats
+	}); ok {
+		returns.A = hook.GetFunctionStats()
+	} else {
+		return encodableError(fmt.Errorf("API GetFunctionStats called but not implemented."))
+	}
+	return nil
+}

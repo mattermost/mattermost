@@ -1497,3 +1497,38 @@ func (api *apiTimerLayer) DeleteGroupConstrainedMemberships() *model.AppError {
 	api.recordTime(startTime, "DeleteGroupConstrainedMemberships", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) RegisterFunction(function *model.Function) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterFunction(function)
+	api.recordTime(startTime, "RegisterFunction", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UnregisterFunction(functionName string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UnregisterFunction(functionName)
+	api.recordTime(startTime, "UnregisterFunction", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) ListFunctions(userContext *model.FunctionUserContext) ([]*model.Function, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ListFunctions(userContext)
+	api.recordTime(startTime, "ListFunctions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ExecuteFunction(functionName string, arguments map[string]any, userContext *model.FunctionUserContext) (*model.FunctionResult, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ExecuteFunction(functionName, arguments, userContext)
+	api.recordTime(startTime, "ExecuteFunction", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetFunctionStats() *model.FunctionStats {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.GetFunctionStats()
+	api.recordTime(startTime, "GetFunctionStats", true)
+	return _returnsA
+}

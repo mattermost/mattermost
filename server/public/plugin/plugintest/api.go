@@ -1009,6 +1009,38 @@ func (_m *API) EnsureBotUser(bot *model.Bot) (string, error) {
 	return r0, r1
 }
 
+// ExecuteFunction provides a mock function with given fields: functionName, arguments, userContext
+func (_m *API) ExecuteFunction(functionName string, arguments map[string]interface{}, userContext *model.FunctionUserContext) (*model.FunctionResult, *model.AppError) {
+	ret := _m.Called(functionName, arguments, userContext)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ExecuteFunction")
+	}
+
+	var r0 *model.FunctionResult
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, map[string]interface{}, *model.FunctionUserContext) (*model.FunctionResult, *model.AppError)); ok {
+		return rf(functionName, arguments, userContext)
+	}
+	if rf, ok := ret.Get(0).(func(string, map[string]interface{}, *model.FunctionUserContext) *model.FunctionResult); ok {
+		r0 = rf(functionName, arguments, userContext)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FunctionResult)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, map[string]interface{}, *model.FunctionUserContext) *model.AppError); ok {
+		r1 = rf(functionName, arguments, userContext)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // ExecuteSlashCommand provides a mock function with given fields: commandArgs
 func (_m *API) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
 	ret := _m.Called(commandArgs)
@@ -1860,6 +1892,26 @@ func (_m *API) GetFileLink(fileId string) (string, *model.AppError) {
 	}
 
 	return r0, r1
+}
+
+// GetFunctionStats provides a mock function with given fields:
+func (_m *API) GetFunctionStats() *model.FunctionStats {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetFunctionStats")
+	}
+
+	var r0 *model.FunctionStats
+	if rf, ok := ret.Get(0).(func() *model.FunctionStats); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FunctionStats)
+		}
+	}
+
+	return r0
 }
 
 // GetGroup provides a mock function with given fields: groupId
@@ -3952,6 +4004,38 @@ func (_m *API) ListCustomCommands(teamID string) ([]*model.Command, error) {
 	return r0, r1
 }
 
+// ListFunctions provides a mock function with given fields: userContext
+func (_m *API) ListFunctions(userContext *model.FunctionUserContext) ([]*model.Function, *model.AppError) {
+	ret := _m.Called(userContext)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListFunctions")
+	}
+
+	var r0 []*model.Function
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.FunctionUserContext) ([]*model.Function, *model.AppError)); ok {
+		return rf(userContext)
+	}
+	if rf, ok := ret.Get(0).(func(*model.FunctionUserContext) []*model.Function); ok {
+		r0 = rf(userContext)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Function)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.FunctionUserContext) *model.AppError); ok {
+		r1 = rf(userContext)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // ListPluginCommands provides a mock function with given fields: teamID
 func (_m *API) ListPluginCommands(teamID string) ([]*model.Command, error) {
 	ret := _m.Called(teamID)
@@ -4250,6 +4334,26 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 		r0 = rf(command)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RegisterFunction provides a mock function with given fields: function
+func (_m *API) RegisterFunction(function *model.Function) *model.AppError {
+	ret := _m.Called(function)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterFunction")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Function) *model.AppError); ok {
+		r0 = rf(function)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
 	}
 
 	return r0
@@ -4904,6 +5008,26 @@ func (_m *API) UnregisterCommand(teamID string, trigger string) error {
 		r0 = rf(teamID, trigger)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UnregisterFunction provides a mock function with given fields: functionName
+func (_m *API) UnregisterFunction(functionName string) *model.AppError {
+	ret := _m.Called(functionName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UnregisterFunction")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(functionName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
 	}
 
 	return r0
