@@ -8233,7 +8233,7 @@
     "translation": "ldap interface was nil."
   },
   {
-    "id": "ent.ldap.connection.test",
+    "id": "ent.ldap.connection.test_failed",
     "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKey: {{.PrivateKey}}, PublicCertificate: {{.PublicCert}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
   },
   {
