@@ -164,7 +164,7 @@ function Content(props: ContentProps) {
                     {isProfessional &&
                     <Card
                         id='professional'
-                        topColor='var(--denim-button-bg)'
+                        topColor='var(--button-bg)'
                         plan='Professional'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.professional', defaultMessage: 'Scalable solutions {br} for growing teams'}, {
                             br: <br/>,
@@ -182,7 +182,7 @@ function Content(props: ContentProps) {
                         planLabel={isProfessional ? (
                             <PlanLabel
                                 text={professionalPlanLabelText()}
-                                color='var(--denim-status-online)'
+                                color='var(--online-indicator)'
                                 bgColor='var(--center-channel-bg)'
                                 firstSvg={<CheckMarkSvg/>}
                             />) : undefined}
@@ -210,7 +210,7 @@ function Content(props: ContentProps) {
                             isEnterprise ? (
                                 <PlanLabel
                                     text={formatMessage({id: 'pricing_modal.planLabel.currentPlan', defaultMessage: 'CURRENT PLAN'})}
-                                    color='var(--denim-status-online)'
+                                    color='var(--online-indicator)'
                                     bgColor='var(--center-channel-bg)'
                                     firstSvg={<CheckMarkSvg/>}
                                     renderLastDaysOnTrial={true}
