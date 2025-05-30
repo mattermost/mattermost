@@ -14,7 +14,6 @@ import go
  */
 predicate isTargetedFile(File f) {
   // Add files as they are migrated to the new pattern
-  f.getBaseName() = "brand.go" or
   f.getBaseName() = "metrics.go"
   // Add more files as needed
 }
