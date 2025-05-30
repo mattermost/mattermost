@@ -207,31 +207,36 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
+// teamSliceColumns returns fields of the team as a string slice with Teams prefix.
+func teamSliceColumns() []string {
+	return []string{
+		"Teams.Id",
+		"Teams.CreateAt",
+		"Teams.UpdateAt",
+		"Teams.DeleteAt",
+		"Teams.DisplayName",
+		"Teams.Name",
+		"Teams.Description",
+		"Teams.Email",
+		"Teams.Type",
+		"Teams.CompanyName",
+		"Teams.AllowedDomains",
+		"Teams.InviteId",
+		"Teams.AllowOpenInvite",
+		"Teams.LastTeamIconUpdate",
+		"Teams.SchemeId",
+		"Teams.GroupConstrained",
+		"Teams.CloudLimitsArchived",
+	}
+}
+
 func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 	s := &SqlTeamStore{
 		SqlStore: sqlStore,
 	}
 
 	s.teamsQuery = s.getQueryBuilder().
-		Select(
-			"Teams.Id",
-			"Teams.CreateAt",
-			"Teams.UpdateAt",
-			"Teams.DeleteAt",
-			"Teams.DisplayName",
-			"Teams.Name",
-			"Teams.Description",
-			"Teams.Email",
-			"Teams.Type",
-			"Teams.CompanyName",
-			"Teams.AllowedDomains",
-			"Teams.InviteId",
-			"Teams.AllowOpenInvite",
-			"Teams.LastTeamIconUpdate",
-			"Teams.SchemeId",
-			"Teams.GroupConstrained",
-			"Teams.CloudLimitsArchived",
-		).
+		Select(teamSliceColumns()...).
 		From("Teams")
 
 	s.teamMembersQuery = s.getQueryBuilder().
