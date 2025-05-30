@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func (a *App) GetPriorityForPost(postId string) (*model.PostPriority, *model.AppError) {
@@ -31,6 +32,62 @@ func (a *App) GetPriorityForPostList(list *model.PostList) (map[string]*model.Po
 	}
 
 	return priorityMap, nil
+}
+
+func (a *App) SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post, *model.AppError) {
+	if post.Metadata == nil || post.Metadata.Priority == nil {
+		return post, nil
+	}
+
+	// If we have a complete post with CreateAt already set, use it directly
+	// Otherwise, retrieve the current post from the database
+	var currentPost *model.Post
+	var err *model.AppError
+
+	if post.CreateAt > 0 {
+		// We have a complete post, use it directly
+		currentPost = post
+	} else {
+		// Retrieve the current post to ensure we have the latest version
+		currentPost, err = a.GetSinglePost(c, post.Id, false)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Ensure the current post has metadata
+	if currentPost.Metadata == nil {
+		currentPost.Metadata = &model.PostMetadata{}
+	}
+
+	// Create a deep copy of the priority from the input post
+	currentPost.Metadata.Priority = post.Metadata.Priority.Copy()
+
+	// Create priority object for database save with just the IDs
+	postPriority := &model.PostPriority{
+		PostId:    currentPost.Id,
+		ChannelId: currentPost.ChannelId,
+	}
+	postPriority.Priority = currentPost.Metadata.Priority.Priority
+	postPriority.RequestedAck = currentPost.Metadata.Priority.RequestedAck
+	postPriority.PersistentNotifications = currentPost.Metadata.Priority.PersistentNotifications
+
+	// Save priority to the PostsPriority table
+	savedPriority, nErr := a.Srv().Store().PostPriority().Save(postPriority)
+	if nErr != nil {
+		return nil, model.NewAppError("SavePriorityForPost", "app.post.save_priority.store_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	// Update the post's metadata with the saved priority
+	currentPost.Metadata.Priority = savedPriority
+
+	// Invalidate the cache if needed
+	channel, channelErr := a.GetChannel(c, currentPost.ChannelId)
+	if channelErr == nil {
+		a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
+	}
+
+	return currentPost, nil
 }
 
 func (a *App) IsPostPriorityEnabled() bool {

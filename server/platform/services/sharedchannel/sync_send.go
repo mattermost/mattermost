@@ -449,6 +449,9 @@ func (scs *Service) handlePostError(postId string, task syncTask, rc *model.Remo
 		return
 	}
 
+	// Populate metadata for the retry post
+	post = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
+
 	syncMsg := model.NewSyncMsg(task.channelID)
 	syncMsg.Posts = []*model.Post{post}
 
@@ -571,14 +574,14 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 		if _, err = scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error adding user to shared channel users",
 				mlog.String("user_id", user.Id),
-				mlog.String("channel_id", user.Id),
+				mlog.String("channel_id", channelID),
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.Err(err),
 			)
 		} else {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Added user to shared channel users",
 				mlog.String("user_id", user.Id),
-				mlog.String("channel_id", user.Id),
+				mlog.String("channel_id", channelID),
 				mlog.String("remote_id", rc.RemoteId),
 			)
 		}

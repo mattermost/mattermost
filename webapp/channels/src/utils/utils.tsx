@@ -949,6 +949,20 @@ function changeColor(colourIn: string, amt: number): string {
     return rgb;
 }
 
+export function getUsername(user: UserProfile) {
+    if (user.remote_id && user.props?.RemoteUsername) {
+        return user.props.RemoteUsername;
+    }
+    return user.username;
+}
+
+export function getEmail(user: UserProfile) {
+    if (user.remote_id && user.props?.RemoteEmail) {
+        return user.props?.RemoteEmail;
+    }
+    return user.email;
+}
+
 export function getFullName(user: UserProfile) {
     if (user.first_name && user.last_name) {
         return user.first_name + ' ' + user.last_name;

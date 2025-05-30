@@ -27,6 +27,7 @@ import {
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getDirectShowPreferences, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
+import {isConfirmed, isConnected} from 'mattermost-redux/utils/remote_cluster_utils';
 import {
     displayUsername,
     filterProfilesStartingWithTerm,
@@ -858,5 +859,40 @@ export const getLastActiveTimestampUnits: (state: GlobalState, userId: string) =
             timestampUnits.push('day');
         }
         return timestampUnits;
+    },
+);
+
+export const getRemoteClusters = (state: GlobalState) => state.entities.remoteClusters || {};
+
+export const userCanSeeOtherUser: (state: GlobalState, userId: string) => boolean = createSelector(
+    'userCanSeeOtherUser',
+    (state: GlobalState, userId: string) => userId,
+    (state: GlobalState, userId: string) => getUser(state, userId),
+    (state: GlobalState) => state.entities.general.config,
+    getRemoteClusters,
+    (userId, user, config, remoteClusters) => {
+        if (!user) {
+            return false;
+        }
+
+        // Feature flag check
+        const featureFlags = config as any;
+        if (!featureFlags.FeatureFlags || featureFlags.FeatureFlags.EnableSharedChannelsDMs !== 'true') {
+            return true; // Always allow if feature is disabled
+        }
+
+        // Local users (without remote_id) can always be messaged
+        if (!user.remote_id) {
+            return true;
+        }
+
+        // Check if the user's remote cluster is directly connected
+        const remoteCluster = remoteClusters[user.remote_id];
+        if (!remoteCluster) {
+            return false;
+        }
+
+        // A remote is directly connected if it's both confirmed and connected
+        return isConfirmed(remoteCluster) && isConnected(remoteCluster);
     },
 );

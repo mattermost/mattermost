@@ -562,6 +562,7 @@ type RemoteClusterStore interface {
 	GetAll(offset, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
 	UpdateTopics(remoteClusterID string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterID string) error
+	UpdateLastGlobalUserSyncAt(remoteID string, syncAt int64) error
 }
 
 type ComplianceStore interface {
@@ -1031,6 +1032,8 @@ type SharedChannelStore interface {
 type PostPriorityStore interface {
 	GetForPost(postID string) (*model.PostPriority, error)
 	GetForPosts(ids []string) ([]*model.PostPriority, error)
+	Save(priority *model.PostPriority) (*model.PostPriority, error)
+	Delete(postID string) error
 }
 
 type DraftStore interface {
@@ -1050,7 +1053,9 @@ type PostAcknowledgementStore interface {
 	GetForPost(postID string) ([]*model.PostAcknowledgement, error)
 	GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error)
 	Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
+	BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
+	BatchDelete(acknowledgements []*model.PostAcknowledgement) error
 }
 
 type PostPersistentNotificationStore interface {

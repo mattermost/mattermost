@@ -18,6 +18,7 @@ import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
 import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
+import type {RemoteCluster} from './remote_clusters';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
     FilesRequestsStatuses, GeneralRequestsStatuses,
@@ -28,6 +29,7 @@ import type {Role} from './roles';
 import type {ScheduledPostsState} from './schedule_post';
 import type {SchemesState} from './schemes';
 import type {SearchState} from './search';
+import type {RemoteClusterInfo} from './shared_channels';
 import type {TeamsState} from './teams';
 import type {ThreadsState} from './threads';
 import type {Typing} from './typing';
@@ -77,6 +79,11 @@ export type GlobalState = {
         hostedCustomer: HostedCustomerState;
         usage: CloudUsage;
         scheduledPosts: ScheduledPostsState;
+        sharedChannels?: {
+            remotes?: Record<string, RemoteClusterInfo[]>;
+            remotesByRemoteId?: Record<string, RemoteClusterInfo>;
+        };
+        remoteClusters: Record<string, RemoteCluster>;
     };
     errors: any[];
     requests: {

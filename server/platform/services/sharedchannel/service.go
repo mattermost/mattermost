@@ -24,12 +24,14 @@ const (
 	TopicSync                    = "sharedchannel_sync"
 	TopicChannelInvite           = "sharedchannel_invite"
 	TopicUploadCreate            = "sharedchannel_upload"
+	TopicGlobalUserSync          = "sharedchannel_global_user_sync"
 	MaxRetries                   = 3
 	MaxUsersPerSync              = 25
 	NotifyRemoteOfflineThreshold = time.Second * 10
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
+	UnshareMessage               = "This channel is no longer shared."
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
@@ -73,6 +75,17 @@ type AppIface interface {
 	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
 	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 	Publish(message *model.WebSocketEvent)
+	SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError)
+	SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string) (*model.PostAcknowledgement, *model.AppError)
+	SaveAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError)
+	SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Post, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError)
+	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
+	DeleteAcknowledgementsForPost(c request.CTX, postID string) *model.AppError
+	DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError
+	SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post, *model.AppError)
+	GetPriorityForPost(postID string) (*model.PostPriority, *model.AppError)
+	IsPostPriorityEnabled() bool
+	PreparePostForClient(c request.CTX, post *model.Post, isNewPost, includeDeleted, includePriority bool) *model.Post
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -97,6 +110,7 @@ type Service struct {
 	syncTopicListenerId       string
 	inviteTopicListenerId     string
 	uploadTopicListenerId     string
+	globalSyncTopicListenedId string
 	siteURL                   *url.URL
 }
 
@@ -129,6 +143,7 @@ func (scs *Service) Start() error {
 	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
 	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
 	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
+	scs.globalSyncTopicListenedId = rcs.AddTopicListener(TopicGlobalUserSync, scs.onReceiveSyncMessage)
 	scs.connectionStateListenerId = rcs.AddConnectionStateListener(scs.onConnectionStateChange)
 	scs.mux.Unlock()
 
@@ -247,6 +262,9 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 		// when a previously offline remote comes back online force a sync.
 		scs.SendPendingInvitesForRemote(rc)
 		scs.ForceSyncForRemote(rc)
+
+		// Schedule global user sync if feature is enabled
+		scs.tryScheduleGlobalUserSync(rc)
 	}
 
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
@@ -276,4 +294,89 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
 	scs.app.Publish(messageWs)
+}
+
+// UpsertSyncPostForTesting exposes upsertSyncPost for testing purposes.
+// This allows direct testing of post metadata synchronization.
+func (scs *Service) UpsertSyncPostForTesting(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
+	return scs.upsertSyncPost(post, targetChannel, rc)
+}
+
+// OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing purposes.
+// This allows testing the complete sync message flow including post metadata preservation.
+func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	return scs.onReceiveSyncMessage(msg, rc, response)
+}
+
+// postUnshareNotification posts a system message to notify users that the channel is no longer shared.
+func (scs *Service) postUnshareNotification(channelID string, creatorID string, channel *model.Channel, rc *model.RemoteCluster) {
+	post := &model.Post{
+		UserId:    creatorID,
+		ChannelId: channelID,
+		Message:   UnshareMessage,
+		Type:      model.PostTypeSystemGeneric,
+	}
+
+	logger := scs.server.Log()
+	_, appErr := scs.app.CreatePost(request.EmptyContext(logger), post, channel, model.CreatePostFlags{})
+
+	if appErr != nil {
+		scs.server.Log().Log(
+			mlog.LvlSharedChannelServiceError,
+			"Error creating unshare notification post",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.String("remote_name", rc.Name),
+			mlog.Err(appErr),
+		)
+	}
+}
+
+// HandleChannelNotSharedErrorForTesting is a wrapper to expose handleChannelNotSharedError for testing purposes
+func (scs *Service) HandleChannelNotSharedErrorForTesting(msg *model.SyncMsg, rc *model.RemoteCluster) {
+	scs.handleChannelNotSharedError(msg, rc)
+}
+
+// IsRemoteClusterDirectlyConnected checks if a remote cluster has a direct connection to the current server
+func (scs *Service) IsRemoteClusterDirectlyConnected(remoteId string) bool {
+	if remoteId == "" {
+		return true // Local server is always "directly connected"
+	}
+
+	// Check if the remote cluster exists, is online, and confirmed
+	rc, err := scs.server.GetStore().RemoteCluster().Get(remoteId, false)
+	if err != nil {
+		return false
+	}
+
+	return rc.IsOnline() && rc.IsConfirmed()
+}
+
+// tryScheduleGlobalUserSync schedules a task to sync all users with a remote cluster
+func (scs *Service) tryScheduleGlobalUserSync(rc *model.RemoteCluster) {
+	cfg := scs.server.Config()
+
+	if !cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster {
+		return
+	}
+
+	// Skip if config explicitly disables the feature
+	if cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen != nil &&
+		!*cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen {
+		return
+	}
+
+	// Schedule the sync task
+	go func() {
+		// Create a special sync task with empty channelID
+		// This empty channelID is a deliberate marker for a global user sync task
+		task := newSyncTask("", "", rc.RemoteId, nil, nil)
+		task.schedule = time.Now().Add(NotifyMinimumDelay)
+		scs.addTask(task)
+
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Scheduled global user sync task for remote",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+		)
+	}()
 }

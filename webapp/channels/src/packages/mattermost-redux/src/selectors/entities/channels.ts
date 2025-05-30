@@ -32,7 +32,6 @@ import {
     getCurrentUser,
     getMyChannelMemberships as getMyChannelMembershipsInternal,
     getMyCurrentChannelMembership as getMyCurrentChannelMembershipInternal,
-    getUsers,
 } from 'mattermost-redux/selectors/entities/common';
 import {
     getTeammateNameDisplaySetting,
@@ -50,6 +49,7 @@ import {
     getUser,
     getUserIdsInChannels,
     isCurrentUserSystemAdmin,
+    getUsers,
 } from 'mattermost-redux/selectors/entities/users';
 import {
     calculateUnreadCount,
