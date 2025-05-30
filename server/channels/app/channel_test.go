@@ -2949,7 +2949,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	mockChannelStore.On("GetAllChannelMembersNotifyPropsForChannel", "channelidchannelidchanneli", true).Return(map[string]model.StringMap{}, nil)
 	mockChannelStore.On("IncrementMentionCount", "", []string{}, true, false).Return(nil)
 	mockChannelStore.On("DeleteAllSidebarChannelForChannel", "channelidchannelidchanneli").Return(nil)
-	mockChannelStore.On("GetSidebarCategories", "user_id_1", &store.SidebarCategorySearchOpts{TeamID: "team_id_1", ExcludeTeam: false, Type: "channels"}).Return(
+	mockChannelStore.On("GetSidebarCategories", "user_id_1", &store.SidebarCategorySearchOpts{TeamID: "team_id_1", Type: "channels"}).Return(
 		&model.OrderedSidebarCategories{
 			Categories: model.SidebarCategoriesWithChannels{
 				{
@@ -2959,7 +2959,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 				},
 			},
 		}, nil)
-	mockChannelStore.On("GetSidebarCategories", "user_id_2", &store.SidebarCategorySearchOpts{TeamID: "team_id_1", ExcludeTeam: false, Type: "channels"}).Return(
+	mockChannelStore.On("GetSidebarCategories", "user_id_2", &store.SidebarCategorySearchOpts{TeamID: "team_id_1", Type: "channels"}).Return(
 		&model.OrderedSidebarCategories{
 			Categories: model.SidebarCategoriesWithChannels{
 				{
