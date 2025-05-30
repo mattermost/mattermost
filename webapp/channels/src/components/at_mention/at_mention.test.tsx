@@ -45,6 +45,10 @@ describe('components/AtMention', () => {
             accounting: TestHelper.getGroupMock({id: 'qwerty3', name: 'accounting', allow_reference: true}),
         },
         getMissingMentionedUsers: jest.fn(),
+        config: {
+            ClusterId: 'current_cluster',
+            SiteName: 'Test Site',
+        },
     };
 
     test('should match snapshot when mentioning user', () => {

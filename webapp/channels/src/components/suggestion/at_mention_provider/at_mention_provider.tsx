@@ -15,6 +15,7 @@ import {getSuggestionsSplitBy, getSuggestionsSplitByMultiple} from 'mattermost-r
 import store from 'stores/redux_store';
 
 import {Constants} from 'utils/constants';
+import * as TextFormatting from 'utils/text_formatting';
 
 import type {GlobalState} from 'types/store';
 
@@ -24,6 +25,9 @@ import Provider from '../provider';
 
 const profilesInChannelOptions = {active: true};
 const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;
+
+// Global token index for remote mentions
+let tokenIndex = 0;
 
 type UserProfileWithLastViewAt = UserProfile & {last_viewed_at?: number};
 
@@ -371,7 +375,17 @@ export default class AtMentionProvider extends Provider {
         // Add the textboxId for each suggestions
         const modifiedItems = items.map((item) => {
             if (item.username) {
-                mentions.push('@' + item.username);
+                const mentionText = '@' + item.username;
+
+                // Check if this is a remote user mention (contains colon)
+                if (item.remote_id && item.username.includes(':')) {
+                    // Create a protected token for remote mentions to bypass markdown parsing
+                    const token = `$MM_ATMENTION_REMOTE${tokenIndex++}$`;
+                    TextFormatting.storeRemoteMentionToken(token, mentionText);
+                    mentions.push(token);
+                } else {
+                    mentions.push(mentionText);
+                }
             } else if (item.name) {
                 mentions.push('@' + item.name);
             } else {

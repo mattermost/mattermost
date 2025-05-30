@@ -56,12 +56,7 @@ const AtMention = (props: Props) => {
 
     if (user) {
         const userMentionNameSuffix = props.mentionName.substring(user.username.length);
-
-        // For remote users, display only the local part of the username (without the :remote suffix)
-        let userDisplayName = displayUsername(user, props.teammateNameDisplay);
-        if (user.remote_id && user.props?.RemoteUsername) {
-            userDisplayName = user.props.RemoteUsername;
-        }
+        const userDisplayName = displayUsername(user, props.teammateNameDisplay);
 
         const highlightMention = !props.disableHighlight && user.id === props.currentUserId;
 

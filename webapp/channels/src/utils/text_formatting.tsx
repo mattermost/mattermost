@@ -369,8 +369,29 @@ export function formatText(
 }
 
 // Performs most of the actual formatting work for formatText. Not intended to be called normally.
+// Global store for remote mention tokens
+const globalRemoteMentionTokens = new Map<string, string>();
+
+// Function to store a remote mention token
+export function storeRemoteMentionToken(token: string, mentionText: string): void {
+    globalRemoteMentionTokens.set(token, mentionText);
+}
+
+// Function to restore remote mention tokens back to actual mentions
+export function restoreRemoteMentionTokens(text: string): string {
+    let output = text;
+    globalRemoteMentionTokens.forEach((mentionText, token) => {
+        output = output.replace(new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), mentionText);
+    });
+
+    return output;
+}
+
 export function doFormatText(text: string, options: TextFormattingOptions, emojiMap: EmojiMap): string {
     let output = text;
+
+    // Restore remote mention tokens before processing
+    output = restoreRemoteMentionTokens(output);
 
     const tokens = new Tokens();
 
