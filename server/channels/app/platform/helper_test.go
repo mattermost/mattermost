@@ -6,7 +6,6 @@ package platform
 import (
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -33,13 +32,6 @@ type TestHelper struct {
 	// BasicPost    *model.Post
 
 	SystemAdminUser *model.User
-}
-
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
 }
 
 type mockSuite struct {
@@ -75,27 +67,14 @@ func Setup(tb testing.TB, options ...Option) *TestHelper {
 }
 
 func (th *TestHelper) InitBasic() *TestHelper {
-	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		th.SystemAdminUser = th.CreateAdmin()
-		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
-
-		th.BasicUser = th.CreateUserOrGuest(false)
-		userCache.BasicUser = th.BasicUser.DeepCopy()
-
-		th.BasicUser2 = th.CreateUserOrGuest(false)
-		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
-	})
-	// restore cached users
-	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
-	th.BasicUser = userCache.BasicUser.DeepCopy()
-	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
+	th.SystemAdminUser = th.CreateAdmin()
+	th.BasicUser = th.CreateUserOrGuest(false)
+	th.BasicUser2 = th.CreateUserOrGuest(false)
 
 	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
 	mainHelper.GetSQLStore().User().InsertUsers(users)
 
 	th.BasicTeam = th.CreateTeam()
-
 	// th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	// th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
 	th.BasicChannel = th.CreateChannel(th.BasicTeam)
