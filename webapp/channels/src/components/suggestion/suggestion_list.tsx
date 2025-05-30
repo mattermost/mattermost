@@ -211,9 +211,9 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 className='suggestion-list__divider'
                 role='separator'
             >
-                <span>
+                <h2>
                     <FormattedMessage id={id}/>
-                </span>
+                </h2>
             </li>
         );
     }

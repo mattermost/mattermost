@@ -933,54 +933,213 @@ func testCreatePropertyValueWithArray(t *testing.T, _ request.CTX, ss store.Stor
 }
 
 func testDeleteForField(t *testing.T, _ request.CTX, ss store.Store) {
-	fieldID := model.NewId()
-	groupID := model.NewId()
+	t.Run("should delete values with matching fieldID and groupID", func(t *testing.T) {
+		fieldID := model.NewId()
+		groupID := model.NewId()
 
-	// Create test values
-	value1 := &model.PropertyValue{
-		TargetID:   model.NewId(),
-		TargetType: "test_type",
-		GroupID:    groupID,
-		FieldID:    fieldID,
-		Value:      json.RawMessage(`"value 1"`),
-	}
+		// Create test values
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"value 1"`),
+		}
 
-	value2 := &model.PropertyValue{
-		TargetID:   model.NewId(),
-		TargetType: "test_type",
-		GroupID:    groupID,
-		FieldID:    fieldID,
-		Value:      json.RawMessage(`"value 2"`),
-	}
+		value2 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"value 2"`),
+		}
 
-	value3 := &model.PropertyValue{
-		TargetID:   model.NewId(),
-		TargetType: "test_type",
-		GroupID:    groupID,
-		FieldID:    model.NewId(), // Different field ID
-		Value:      json.RawMessage(`"value 3"`),
-	}
+		value3 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    model.NewId(), // Different field ID
+			Value:      json.RawMessage(`"value 3"`),
+		}
 
-	for _, value := range []*model.PropertyValue{value1, value2, value3} {
-		_, err := ss.PropertyValue().Create(value)
+		for _, value := range []*model.PropertyValue{value1, value2, value3} {
+			_, err := ss.PropertyValue().Create(value)
+			require.NoError(t, err)
+		}
+
+		// Delete values for the field
+		err := ss.PropertyValue().DeleteForField(groupID, fieldID)
 		require.NoError(t, err)
-	}
 
-	// Delete values for the field
-	err := ss.PropertyValue().DeleteForField(fieldID)
-	require.NoError(t, err)
+		// Verify values were soft-deleted
+		deletedValues, err := ss.PropertyValue().GetMany(groupID, []string{value1.ID, value2.ID})
+		require.NoError(t, err)
+		require.Len(t, deletedValues, 2)
+		require.NotZero(t, deletedValues[0].DeleteAt)
+		require.NotZero(t, deletedValues[1].DeleteAt)
 
-	// Verify values were soft-deleted
-	deletedValues, err := ss.PropertyValue().GetMany(groupID, []string{value1.ID, value2.ID})
-	require.NoError(t, err)
-	require.Len(t, deletedValues, 2)
-	require.NotZero(t, deletedValues[0].DeleteAt)
-	require.NotZero(t, deletedValues[1].DeleteAt)
+		// Verify value with different field ID was not deleted
+		nonDeletedValue, err := ss.PropertyValue().Get(groupID, value3.ID)
+		require.NoError(t, err)
+		require.Zero(t, nonDeletedValue.DeleteAt)
+	})
 
-	// Verify value with different field ID was not deleted
-	nonDeletedValue, err := ss.PropertyValue().Get(groupID, value3.ID)
-	require.NoError(t, err)
-	require.Zero(t, nonDeletedValue.DeleteAt)
+	t.Run("should not delete values with non-matching groupID", func(t *testing.T) {
+		fieldID := model.NewId()
+		groupID1 := model.NewId()
+		groupID2 := model.NewId()
+
+		// Create values with same fieldID but different groupIDs
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID1,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"group1 value"`),
+		}
+
+		value2 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID2,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"group2 value"`),
+		}
+
+		for _, value := range []*model.PropertyValue{value1, value2} {
+			_, err := ss.PropertyValue().Create(value)
+			require.NoError(t, err)
+		}
+
+		// Delete values for the field but only in groupID1
+		err := ss.PropertyValue().DeleteForField(groupID1, fieldID)
+		require.NoError(t, err)
+
+		// Verify value1 was deleted
+		deletedValue, err := ss.PropertyValue().Get(groupID1, value1.ID)
+		require.NoError(t, err)
+		require.NotZero(t, deletedValue.DeleteAt)
+
+		// Verify value2 was not deleted (different group)
+		nonDeletedValue, err := ss.PropertyValue().Get(groupID2, value2.ID)
+		require.NoError(t, err)
+		require.Zero(t, nonDeletedValue.DeleteAt)
+	})
+
+	t.Run("should delete values with empty groupID", func(t *testing.T) {
+		fieldID := model.NewId()
+		groupID1 := model.NewId()
+		groupID2 := model.NewId()
+
+		// Create values with same fieldID but different groupIDs
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID1,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"group1 value 2"`),
+		}
+
+		value2 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID2,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"group2 value 2"`),
+		}
+
+		for _, value := range []*model.PropertyValue{value1, value2} {
+			_, err := ss.PropertyValue().Create(value)
+			require.NoError(t, err)
+		}
+
+		// Delete values for the field across all groups (empty groupID)
+		err := ss.PropertyValue().DeleteForField("", fieldID)
+		require.NoError(t, err)
+
+		// Verify both values were deleted
+		opts := model.PropertyValueSearchOpts{
+			FieldID:        fieldID,
+			IncludeDeleted: true,
+			PerPage:        10,
+		}
+
+		values, err := ss.PropertyValue().SearchPropertyValues(opts)
+		require.NoError(t, err)
+
+		// Find our two values within the results
+		var foundValues []*model.PropertyValue
+		for _, v := range values {
+			if v.ID == value1.ID || v.ID == value2.ID {
+				foundValues = append(foundValues, v)
+			}
+		}
+
+		require.Len(t, foundValues, 2)
+		for _, v := range foundValues {
+			require.NotZero(t, v.DeleteAt, "Value should be deleted")
+		}
+	})
+
+	t.Run("should work with multiple calls targeting different groups", func(t *testing.T) {
+		fieldID := model.NewId()
+		groupID1 := model.NewId()
+		groupID2 := model.NewId()
+		groupID3 := model.NewId()
+
+		// Create values with same fieldID across multiple groups
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID1,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"multi-group test 1"`),
+		}
+
+		value2 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID2,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"multi-group test 2"`),
+		}
+
+		value3 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID3,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"multi-group test 3"`),
+		}
+
+		for _, value := range []*model.PropertyValue{value1, value2, value3} {
+			_, err := ss.PropertyValue().Create(value)
+			require.NoError(t, err)
+		}
+
+		// Delete values for the field but only in groupID1
+		err := ss.PropertyValue().DeleteForField(groupID1, fieldID)
+		require.NoError(t, err)
+
+		// Delete values for the field but only in groupID2
+		err = ss.PropertyValue().DeleteForField(groupID2, fieldID)
+		require.NoError(t, err)
+
+		// Verify value1 was deleted
+		value1Result, err := ss.PropertyValue().Get(groupID1, value1.ID)
+		require.NoError(t, err)
+		require.NotZero(t, value1Result.DeleteAt)
+
+		// Verify value2 was deleted
+		value2Result, err := ss.PropertyValue().Get(groupID2, value2.ID)
+		require.NoError(t, err)
+		require.NotZero(t, value2Result.DeleteAt)
+
+		// Verify value3 was not deleted
+		value3Result, err := ss.PropertyValue().Get(groupID3, value3.ID)
+		require.NoError(t, err)
+		require.Zero(t, value3Result.DeleteAt)
+	})
 }
 
 func testDeleteForTarget(t *testing.T, _ request.CTX, ss store.Store) {
