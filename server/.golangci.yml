@@ -22,7 +22,6 @@ linters:
     generated: lax
     presets:
       - comments
-      - legacy
       - std-error-handling
     rules:
       - linters:
