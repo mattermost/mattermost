@@ -210,6 +210,24 @@ func (_m *RemoteClusterStore) Update(rc *model.RemoteCluster) (*model.RemoteClus
 	return r0, r1
 }
 
+// UpdateLastGlobalUserSyncAt provides a mock function with given fields: remoteID, syncAt
+func (_m *RemoteClusterStore) UpdateLastGlobalUserSyncAt(remoteID string, syncAt int64) error {
+	ret := _m.Called(remoteID, syncAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateLastGlobalUserSyncAt")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
+		r0 = rf(remoteID, syncAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateTopics provides a mock function with given fields: remoteClusterID, topics
 func (_m *RemoteClusterStore) UpdateTopics(remoteClusterID string, topics string) (*model.RemoteCluster, error) {
 	ret := _m.Called(remoteClusterID, topics)
