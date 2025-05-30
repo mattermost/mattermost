@@ -29,6 +29,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/services/functions"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -89,6 +90,8 @@ type PlatformService struct {
 	SearchEngine            *searchengine.Broker
 	searchConfigListenerId  string
 	searchLicenseListenerId string
+
+	FunctionService functions.FunctionServiceInterface
 
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
 
@@ -207,19 +210,26 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	searchEngine.RegisterBleveEngine(bleveEngine)
 	ps.SearchEngine = searchEngine
 
-	// Step 4: Init Enterprise
+	// Step 4: Function Service
+	functionService := functions.NewService(ps.Log())
+	if err := functionService.Start(); err != nil {
+		return nil, err
+	}
+	ps.FunctionService = functionService
+
+	// Step 5: Init Enterprise
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	ps.initEnterprise()
 
-	// Step 5: Init Metrics
+	// Step 6: Init Metrics
 	if metricsInterfaceFn != nil && ps.metricsIFace == nil { // if the metrics interface is set by options, do not override it
 		ps.metricsIFace = metricsInterfaceFn(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
 	}
 
 	ps.cacheProvider.SetMetrics(ps.metricsIFace)
 
-	// Step 6: Store.
-	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 5 (metrics) and cluster.
+	// Step 7: Store.
+	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 6 (metrics) and cluster.
 	if ps.newStore == nil {
 		ps.newStore = func() (store.Store, error) {
 			// The layer cake is as follows: (From bottom to top)
@@ -273,7 +283,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("cannot create store: %w", err)
 	}
 
-	// Step 7: initialize status and session cache.
+	// Step 8: initialize status and session cache.
 	// We need to do this because ps.LoadLicense() called in step 8, could
 	// end up calling InvalidateAllCaches, so the status and session caches
 	// need to be initialized before that.
@@ -303,7 +313,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
-	// Step 8: Init License
+	// Step 9: Init License
 	if model.BuildEnterpriseReady == "true" {
 		ps.LoadLicense()
 	}
@@ -317,7 +327,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("Redis cannot be used in an instance without a license or a license without clustering")
 	}
 
-	// Step 9: Initialize filestore
+	// Step 10: Initialize filestore
 	if ps.filestore == nil {
 		insecure := ps.Config().ServiceSettings.EnableInsecureOutgoingConnections
 		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
@@ -491,6 +501,14 @@ func (ps *PlatformService) TotalWebsocketConnections() int {
 	}
 
 	return int(count)
+}
+
+func (ps *PlatformService) StopFunctionService() {
+	if ps.FunctionService != nil {
+		if err := ps.FunctionService.Stop(); err != nil {
+			ps.Log().Error("Failed to stop Function service", mlog.Err(err))
+		}
+	}
 }
 
 func (ps *PlatformService) Shutdown() error {

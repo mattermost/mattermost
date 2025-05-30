@@ -702,6 +702,7 @@ func (s *Server) Shutdown() {
 	s.htmlTemplateWatcher.Close()
 
 	s.platform.StopSearchEngine()
+	s.platform.StopFunctionService()
 
 	if err = s.Audit.Shutdown(); err != nil {
 		s.Log().Warn("Failed to shut down audit", mlog.Err(err))

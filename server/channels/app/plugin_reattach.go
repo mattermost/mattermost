@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // ReattachPlugin allows the server to bind to an existing plugin instance launched elsewhere.
@@ -46,7 +47,16 @@ func (ch *Channels) DetachPlugin(pluginID string) *model.AppError {
 	}
 
 	// Deactivate and remove any existing plugin, if present.
-	pluginsEnvironment.Deactivate(pluginID)
+	deactivated := pluginsEnvironment.Deactivate(pluginID)
+	if deactivated {
+		// Clean up any functions registered by this plugin
+		if functionService := ch.srv.platform.FunctionService; functionService != nil {
+			if err := functionService.UnregisterAllFunctionsForPlugin(pluginID); err != nil {
+				ch.srv.Log().Warn("Failed to clean up functions for detached plugin",
+					mlog.String("plugin_id", pluginID), mlog.Err(err))
+			}
+		}
+	}
 	pluginsEnvironment.RemovePlugin(pluginID)
 
 	return nil

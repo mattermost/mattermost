@@ -122,10 +122,20 @@ func (ch *Channels) syncPluginsActiveState() {
 				defer wg.Done()
 
 				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
-				if deactivated && plugin.Manifest.HasClient() {
-					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil, "")
-					message.Add("manifest", plugin.Manifest.ClientManifest())
-					ch.srv.platform.Publish(message)
+				if deactivated {
+					// Clean up any functions registered by this plugin
+					if functionService := ch.srv.platform.FunctionService; functionService != nil {
+						if err := functionService.UnregisterAllFunctionsForPlugin(plugin.Manifest.Id); err != nil {
+							ch.srv.Log().Warn("Failed to clean up functions for deactivated plugin", 
+								mlog.String("plugin_id", plugin.Manifest.Id), mlog.Err(err))
+						}
+					}
+					
+					if plugin.Manifest.HasClient() {
+						message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil, "")
+						message.Add("manifest", plugin.Manifest.ClientManifest())
+						ch.srv.platform.Publish(message)
+					}
 				}
 			}(plugin)
 		}

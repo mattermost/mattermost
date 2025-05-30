@@ -1460,3 +1460,76 @@ func (api *PluginAPI) GetGroups(page, perPage int, opts model.GroupSearchOpts, v
 	}
 	return api.app.GetGroups(page, perPage, opts, viewRestrictions)
 }
+
+func (api *PluginAPI) CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) *model.AppError {
+	if err := api.checkLDAPLicense(); err != nil {
+		return model.NewAppError("CreateDefaultSyncableMemberships", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
+	}
+
+	err := api.app.CreateDefaultMemberships(api.ctx, params)
+	if err != nil {
+		return model.NewAppError("CreateDefaultSyncableMemberships", "app.group.create_syncable_memberships.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
+	if err := api.checkLDAPLicense(); err != nil {
+		return model.NewAppError("DeleteGroupConstrainedMemberships", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
+	}
+
+	err := api.app.DeleteGroupConstrainedMemberships(api.ctx)
+	if err != nil {
+		return model.NewAppError("DeleteGroupConstrainedMemberships", "app.group.delete_invalid_syncable_memberships.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+// Function Service Methods
+
+func (api *PluginAPI) RegisterFunction(function *model.Function) *model.AppError {
+	functionService := api.app.Functions()
+	if functionService == nil {
+		return model.NewAppError("RegisterFunction", "plugin_api.functions.service_not_available.app_error", nil, "", http.StatusServiceUnavailable)
+	}
+
+	return functionService.RegisterFunction(api.id, function)
+}
+
+func (api *PluginAPI) UnregisterFunction(functionName string) *model.AppError {
+	functionService := api.app.Functions()
+	if functionService == nil {
+		return model.NewAppError("UnregisterFunction", "plugin_api.functions.service_not_available.app_error", nil, "", http.StatusServiceUnavailable)
+	}
+
+	return functionService.UnregisterFunction(api.id, functionName)
+}
+
+func (api *PluginAPI) ListFunctions(userContext *model.FunctionUserContext) ([]*model.Function, *model.AppError) {
+	functionService := api.app.Functions()
+	if functionService == nil {
+		return nil, model.NewAppError("ListFunctions", "plugin_api.functions.service_not_available.app_error", nil, "", http.StatusServiceUnavailable)
+	}
+
+	return functionService.ListFunctions(api.ctx, userContext)
+}
+
+func (api *PluginAPI) ExecuteFunction(functionName string, arguments map[string]any, userContext *model.FunctionUserContext) (*model.FunctionResult, *model.AppError) {
+	functionService := api.app.Functions()
+	if functionService == nil {
+		return nil, model.NewAppError("ExecuteFunction", "plugin_api.functions.service_not_available.app_error", nil, "", http.StatusServiceUnavailable)
+	}
+
+	return functionService.ExecuteFunction(api.ctx, api.id, functionName, arguments, userContext)
+}
+
+func (api *PluginAPI) GetFunctionStats() *model.FunctionStats {
+	functionService := api.app.Functions()
+	if functionService == nil {
+		return &model.FunctionStats{}
+	}
+
+	return functionService.GetStats()
+}

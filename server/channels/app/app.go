@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
+	"github.com/mattermost/mattermost/server/v8/platform/services/functions"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
@@ -83,6 +84,9 @@ func (a *App) DataRetention() einterfaces.DataRetentionInterface {
 }
 func (a *App) SearchEngine() *searchengine.Broker {
 	return a.ch.srv.platform.SearchEngine
+}
+func (a *App) Functions() functions.FunctionServiceInterface {
+	return a.ch.srv.platform.FunctionService
 }
 func (a *App) Ldap() einterfaces.LdapInterface {
 	return a.ch.Ldap

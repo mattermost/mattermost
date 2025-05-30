@@ -1399,6 +1399,48 @@ type API interface {
 	// @tag Group
 	// Minimum server version: 10.7
 	GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError)
+
+	// CreateDefaultSyncableMemberships creates default syncable memberships based off the provided parameters.
+	//
+	// @tag Group
+	// Minimum server version: 10.9
+	CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) *model.AppError
+
+	// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed groups of all group-constrained teams and channels.
+	//
+	// @tag Group
+	// Minimum server version: 10.9
+	DeleteGroupConstrainedMemberships() *model.AppError
+
+	// RegisterFunction registers a function with the Function service for AI integration.
+	//
+	// @tag Function
+	// Minimum server version: 10.10
+	RegisterFunction(function *model.Function) *model.AppError
+
+	// UnregisterFunction removes a function from the Function service.
+	//
+	// @tag Function
+	// Minimum server version: 10.10
+	UnregisterFunction(functionName string) *model.AppError
+
+	// ListFunctions returns all available functions for the given user context.
+	//
+	// @tag Function
+	// Minimum server version: 10.10
+	ListFunctions(userContext *model.FunctionUserContext) ([]*model.Function, *model.AppError)
+
+	// ExecuteFunction executes a function with the given arguments.
+	//
+	// @tag Function
+	// Minimum server version: 10.10
+	ExecuteFunction(functionName string, arguments map[string]any, userContext *model.FunctionUserContext) (*model.FunctionResult, *model.AppError)
+
+	// GetFunctionStats returns statistics about the Function service.
+	//
+	// @tag Function
+	// Minimum server version: 10.10
+	GetFunctionStats() *model.FunctionStats
 }
 
 var handshake = plugin.HandshakeConfig{
