@@ -736,6 +736,13 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	config, _, err := c.GetConfig(context.TODO())
+	if err != nil {
+		return err
+	}
+
+	isLocal, _ := cmd.Flags().GetBool("local")
+
 	users, err := getUsersFromArgs(c, args)
 	if err != nil {
 		printer.PrintError(err.Error())
@@ -745,6 +752,10 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
+		if !*config.ServiceSettings.EnableAPIUserDeletion && !isLocal {
+			printer.PrintError("Unable to delete user '" + user.Username + "' error: Permanent user deletion feature is not enabled. Please contact your System Administrator.")
+			continue
+		}
 		job, _, err := c.CreateJob(context.TODO(), &model.Job{
 			Type: model.JobTypePermanentDeleteUser,
 			Data: model.StringMap{
@@ -752,7 +763,8 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			},
 		})
 		if err != nil {
-			return fmt.Errorf("failed to create user deletion job: %w", err)
+			printer.PrintError("Unable to delete user '" + user.Username + "' error: " + err.Error())
+			continue
 		}
 
 		toPrint := struct {

@@ -405,6 +405,15 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		printer.Clean()
 		arg := "userdoesnotexist@example.com"
 
+		// Mock GetConfig call
+		mockConfig := &model.Config{}
+		mockConfig.ServiceSettings.EnableAPIUserDeletion = model.NewPointer(true)
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(mockConfig, &model.Response{}, nil).
+			Times(1)
+
 		s.client.
 			EXPECT().
 			GetUserByEmail(context.TODO(), arg, "").
@@ -434,6 +443,14 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 	s.Run("Delete users should delete users", func() {
 		printer.Clean()
 
+		// Mock GetConfig call
+		mockConfig := &model.Config{}
+		mockConfig.ServiceSettings.EnableAPIUserDeletion = model.NewPointer(true)
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(mockConfig, &model.Response{}, nil).
+			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(context.TODO(), email1, "").
@@ -441,8 +458,11 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID1).
-			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			CreateJob(context.TODO(), &model.Job{
+				Type: model.JobTypePermanentDeleteUser,
+				Data: model.StringMap{"user_id": mockUser1.Id},
+			}).
+			Return(&model.Job{Id: "id1"}, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
@@ -452,8 +472,11 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID2).
-			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			CreateJob(context.TODO(), &model.Job{
+				Type: model.JobTypePermanentDeleteUser,
+				Data: model.StringMap{"user_id": mockUser2.Id},
+			}).
+			Return(&model.Job{Id: "id2"}, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		cmd := &cobra.Command{}
@@ -461,14 +484,32 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		err := deleteUsersCmdF(s.client, cmd, []string{email1, email2})
 		s.Require().Nil(err)
-		s.Require().Equal(&mockUser1, printer.GetLines()[0])
-		s.Require().Equal(&mockUser2, printer.GetLines()[1])
+		jobResult := printer.GetLines()[0].(struct {
+			Id       string
+			Username string
+		})
+		s.Require().Equal(mockUser1.Username, jobResult.Username)
+		s.Require().Equal("id1", jobResult.Id)
+
+		jobResult = printer.GetLines()[1].(struct {
+			Id       string
+			Username string
+		})
+		s.Require().Equal(mockUser2.Username, jobResult.Username)
+		s.Require().Equal("id2", jobResult.Id)
 	})
 
 	s.Run("Delete users with error on PermanentDeleteUser returns an error", func() {
 		printer.Clean()
 
 		mockError := errors.New("an error occurred on deleting a user")
+		mockConfig := &model.Config{}
+		mockConfig.ServiceSettings.EnableAPIUserDeletion = model.NewPointer(true)
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(mockConfig, &model.Response{}, nil).
+			Times(1)
 
 		s.client.
 			EXPECT().
@@ -478,8 +519,11 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID1).
-			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
+			CreateJob(context.TODO(), &model.Job{
+				Type: model.JobTypePermanentDeleteUser,
+				Data: model.StringMap{"user_id": mockUser1.Id},
+			}).
+			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, mockError).
 			Times(1)
 
 		cmd := &cobra.Command{}
@@ -492,10 +536,18 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 			printer.GetErrorLines()[0])
 	})
 
-	s.Run("Delete two users, first fails with error other passes", func() {
+	s.Run("Delete two users, first fails with error, the other passes", func() {
 		printer.Clean()
 
 		mockError := errors.New("an error occurred on deleting a user")
+
+		mockConfig := &model.Config{}
+		mockConfig.ServiceSettings.EnableAPIUserDeletion = model.NewPointer(true)
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(mockConfig, &model.Response{}, nil).
+			Times(1)
 
 		s.client.
 			EXPECT().
@@ -510,13 +562,20 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID1).
-			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
+			CreateJob(context.TODO(), &model.Job{
+				Type: model.JobTypePermanentDeleteUser,
+				Data: model.StringMap{"user_id": mockUser1.Id},
+			}).
+			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, mockError).
 			Times(1)
+
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID2).
-			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			CreateJob(context.TODO(), &model.Job{
+				Type: model.JobTypePermanentDeleteUser,
+				Data: model.StringMap{"user_id": mockUser2.Id},
+			}).
+			Return(&model.Job{Id: "id2"}, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		cmd := &cobra.Command{}
@@ -526,33 +585,15 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(&mockUser2, printer.GetLines()[0])
+		jobResult := printer.GetLines()[0].(struct {
+			Id       string
+			Username string
+		})
+		s.Require().Equal(mockUser2.Username, jobResult.Username)
+		s.Require().Equal("id2", jobResult.Id)
+
 		s.Require().Equal("Unable to delete user 'User1' error: an error occurred on deleting a user",
 			printer.GetErrorLines()[0])
-	})
-
-	s.Run("partial delete of user, i.e failing to delete profile image gives a warning on the console.", func() {
-		printer.Clean()
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), email1, "").
-			Return(&mockUser1, &model.Response{}, nil).
-			Times(1)
-		s.client.
-			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID1).
-			Return(&model.Response{StatusCode: http.StatusAccepted}, nil).
-			Times(1)
-
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
-
-		err := deleteUsersCmdF(s.client, cmd, []string{email1})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("There were issues with deleting profile image of the user. Please delete it manually. Id: %s", mockUser1.Id), printer.GetErrorLines()[0])
 	})
 }
 
