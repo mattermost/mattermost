@@ -43,6 +43,7 @@ func newSqlCommandStore(sqlStore *SqlStore) store.CommandStore {
 		"Description",
 		"URL",
 		"PluginId",
+		"AutocompleteRequestURL",
 	}
 
 	s.commandsQuery = s.getQueryBuilder().
@@ -83,6 +84,7 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
 			command.Description,
 			command.URL,
 			command.PluginId,
+			command.AutocompleteRequestURL,
 		)
 
 	if _, err := s.GetMaster().ExecBuilder(insertQuery); err != nil {
@@ -219,6 +221,7 @@ func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, error) {
 		Set("Description", cmd.Description).
 		Set("URL", cmd.URL).
 		Set("PluginId", cmd.PluginId).
+		Set("AutocompleteRequestURL", cmd.AutocompleteRequestURL).
 		Where(sq.Eq{"Id": cmd.Id})
 
 	// Trigger is a keyword
