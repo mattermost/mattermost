@@ -291,17 +291,17 @@ func (_m *SearchEngineInterface) GetVersion() int {
 	return r0
 }
 
-// IndexChannel provides a mock function with given fields: rctx, channel, userIDs, teamMemberIDs, userID
-func (_m *SearchEngineInterface) IndexChannel(rctx request.CTX, channel *model.Channel, userIDs []string, teamMemberIDs []string, userID string) *model.AppError {
-	ret := _m.Called(rctx, channel, userIDs, teamMemberIDs, userID)
+// IndexChannel provides a mock function with given fields: rctx, channel, userIDs, teamMemberIDs
+func (_m *SearchEngineInterface) IndexChannel(rctx request.CTX, channel *model.Channel, userIDs []string, teamMemberIDs []string) *model.AppError {
+	ret := _m.Called(rctx, channel, userIDs, teamMemberIDs)
 
 	if len(ret) == 0 {
 		panic("no return value specified for IndexChannel")
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, []string, []string, string) *model.AppError); ok {
-		r0 = rf(rctx, channel, userIDs, teamMemberIDs, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, []string, []string) *model.AppError); ok {
+		r0 = rf(rctx, channel, userIDs, teamMemberIDs)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
