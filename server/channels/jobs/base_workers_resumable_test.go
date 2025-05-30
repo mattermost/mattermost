@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResumableSimpleWorker(t *testing.T) {
@@ -74,7 +75,7 @@ func TestResumableSimpleWorker(t *testing.T) {
 		case worker.JobChannel() <- *job:
 			t.Log("Job sent to worker")
 		case <-time.After(time.Second):
-			t.Fatal("Failed to send job to worker")
+			require.Fail(t, "Failed to send job to worker")
 		}
 
 		// Let the job run for a bit
@@ -149,7 +150,7 @@ func TestResumableSimpleWorker(t *testing.T) {
 		case worker.JobChannel() <- *job:
 			t.Log("Job sent to worker")
 		case <-time.After(time.Second):
-			t.Fatal("Failed to send job to worker")
+			require.Fail(t, "Failed to send job to worker")
 		}
 
 		// Let the job run for a bit
@@ -221,7 +222,7 @@ func TestResumableSimpleWorker(t *testing.T) {
 		case worker.JobChannel() <- *job:
 			t.Log("Job sent to worker")
 		case <-time.After(time.Second):
-			t.Fatal("Failed to send job to worker")
+			require.Fail(t, "Failed to send job to worker")
 		}
 
 		// Wait for job to complete
