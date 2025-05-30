@@ -35,6 +35,16 @@ import SchemaText from '../schema_text';
 import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess} from '../types';
 import './ldap_wizard.scss';
 
+export type LDAPDefinitionSettingButton = AdminDefinitionSettingButton & {
+    action: (success: () => void, error: (error: { message: string }) => void, settings?: Record<string, any>) => void;
+}
+
+export type LDAPDefinitionSetting = AdminDefinitionSetting & {
+    help_text_hover?: string | JSX.Element | MessageDescriptor;
+    help_text_hover_markdown?: boolean;
+    help_text_hover_values?: {[key: string]: any};
+}
+
 export type LDAPAdminDefinitionConfigSchemaSettings = AdminDefinitionSubSectionSchema & {
     sections?: LDAPAdminDefinitionConfigSchemaSection[];
 }
@@ -44,7 +54,7 @@ export type LDAPAdminDefinitionConfigSchemaSection = AdminDefinitionConfigSchema
 }
 
 export type GeneralSettingProps = {
-    setting: AdminDefinitionSetting;
+    setting: LDAPDefinitionSetting;
     schema: AdminDefinitionSubSectionSchema | null;
 }
 
@@ -97,7 +107,7 @@ const LDAPWizard = (props: Props) => {
         }
     }, [props.config, props.roles, schema]);
 
-    const [saveActions, setSaveActions] = useState<Array<() => Promise<{error?: {message?: string}}>>>([]);
+    const [saveActions, setSaveActions] = useState<Array<() => Promise<{ error?: { message?: string } }>>>([]);
 
     const memoizedSections = useMemo(() => {
         return (schema && 'sections' in schema && schema.sections) ? schema.sections : [];
@@ -160,15 +170,19 @@ const LDAPWizard = (props: Props) => {
         );
     };
 
-    const buildButtonSetting = (setting: AdminDefinitionSetting) => {
+    const buildButtonSetting = (setting: AdminDefinitionSetting | LDAPDefinitionSettingButton) => {
+        let config = JSON.parse(JSON.stringify(props.config));
+        config = getConfigFromState(config, state, schema, isDisabled);
+
         return (
             <LDAPButtonSetting
                 key={schema.id + '_button_' + setting.key}
                 onChange={handleChange}
                 saveNeeded={false}
                 schema={schema}
-                disabled={isDisabled(setting)}
-                setting={setting as AdminDefinitionSettingButton}
+                disabled={isDisabled(setting as unknown as AdminDefinitionSetting)}
+                setting={setting as LDAPDefinitionSettingButton}
+                ldapSettingsState={config.LdapSettings}
             />
         );
     };
@@ -412,11 +426,11 @@ const LDAPWizard = (props: Props) => {
         }
     };
 
-    const unRegisterSaveAction = useCallback((saveAction: () => Promise<{error?: {message?: string}}>) => {
+    const unRegisterSaveAction = useCallback((saveAction: () => Promise<{ error?: { message?: string } }>) => {
         setSaveActions((prev) => prev.filter((action) => action !== saveAction));
     }, []);
 
-    const registerSaveAction = useCallback((saveAction: () => Promise<{error?: {message?: string}}>) => {
+    const registerSaveAction = useCallback((saveAction: () => Promise<{ error?: { message?: string } }>) => {
         setSaveActions((prev) => [...prev, saveAction]);
     }, []);
 

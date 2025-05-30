@@ -12,9 +12,10 @@ import FormError, {TYPE_BACKSTAGE} from 'components/form_error';
 
 import Constants from 'utils/constants';
 
+import {renderLDAPSettingHelpText} from './ldap_helpers';
 import type {GeneralSettingProps} from './ldap_wizard';
 
-import {renderLabel, renderSettingHelpText} from '../schema_admin_settings';
+import {renderLabel} from '../schema_admin_settings';
 
 type TextSettingProps = {
     config: Partial<AdminConfig>;
@@ -39,13 +40,17 @@ const LDAPTextSetting = (props: TextSettingProps) => {
         inputType = 'textarea';
     }
 
-    let value = '';
+    let value: string;
     if (props.setting.dynamic_value) {
-        value = props.setting.dynamic_value(value, props.config, props.state);
+        const baseValue = props.state[props.setting.key] ?? (props.setting.default || '');
+        const dynamicValue = props.setting.dynamic_value(baseValue, props.config, props.state);
+        value = sanitizeValue(dynamicValue);
     } else if (props.setting.multiple) {
-        value = props.state[props.setting.key] ? (props.state[props.setting.key] as string[]).join(',') : '';
+        const arrayValue = props.state[props.setting.key] ? (props.state[props.setting.key] as string[]).join(',') : '';
+        value = sanitizeValue(arrayValue);
     } else {
-        value = (props.state[props.setting.key] as string) ?? (props.setting.default as string || '');
+        const rawValue = (props.state[props.setting.key] as string) ?? (props.setting.default as string || '');
+        value = sanitizeValue(rawValue);
     }
 
     let footer = null;
@@ -60,7 +65,7 @@ const LDAPTextSetting = (props: TextSettingProps) => {
     }
 
     const label = renderLabel(props.setting, props.schema, intl);
-    const helpText = renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
+    const helpText = renderLDAPSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
 
     return (
         <TextSetting
@@ -80,5 +85,12 @@ const LDAPTextSetting = (props: TextSettingProps) => {
         />
     );
 };
+
+function sanitizeValue(value: any): string {
+    if (value === null || value === undefined || Number.isNaN(value)) {
+        return '';
+    }
+    return String(value);
+}
 
 export default LDAPTextSetting;
