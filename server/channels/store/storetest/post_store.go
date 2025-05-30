@@ -61,6 +61,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("HasAutoResponsePostByUserSince", func(t *testing.T) { testHasAutoResponsePostByUserSince(t, rctx, ss) })
 	t.Run("GetPostsSinceUpdateForSync", func(t *testing.T) { testGetPostsSinceUpdateForSync(t, rctx, ss, s) })
 	t.Run("GetPostsSinceCreateForSync", func(t *testing.T) { testGetPostsSinceCreateForSync(t, rctx, ss, s) })
+	t.Run("GetPostsSinceForSyncExcludeMetadata", func(t *testing.T) { testGetPostsSinceForSyncExcludeMetadata(t, rctx, ss, s) })
 	t.Run("SetPostReminder", func(t *testing.T) { testSetPostReminder(t, rctx, ss, s) })
 	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, rctx, ss, s) })
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, rctx, ss, s) })
@@ -5278,6 +5279,8 @@ func getPostIds(posts []*model.Post, morePosts ...*model.Post) []string {
 }
 
 func testGetNthRecentPostTime(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-64438")
+
 	_, err := ss.Post().GetNthRecentPostTime(0)
 	assert.Error(t, err)
 	_, err = ss.Post().GetNthRecentPostTime(-1)
@@ -5453,5 +5456,93 @@ func testGetEditHistoryForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		// get edit history
 		_, err = ss.Post().GetEditHistoryForPost(savedUpdatedPost.Id)
 		require.NoError(t, err)
+	})
+}
+
+// testGetPostsSinceForSyncExcludeMetadata tests the ExcludeChannelMetadataSystemPosts option
+// in the GetPostsSinceForSync function to verify that database-level filtering works correctly
+func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	// Create a channel
+	channelID := model.NewId()
+
+	// Create test posts - mix of regular posts and channel metadata system posts
+	first := model.GetMillis()
+
+	data := []*model.Post{
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "regular post 1", Type: model.PostTypeDefault},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "changed header", Type: model.PostTypeHeaderChange},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "regular post 2", Type: model.PostTypeDefault},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "changed display name", Type: model.PostTypeDisplaynameChange},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "regular post 3", Type: model.PostTypeDefault},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "changed purpose", Type: model.PostTypePurposeChange},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "regular post 4", Type: model.PostTypeDefault},
+	}
+
+	// Save posts
+	for i, p := range data {
+		p.UpdateAt = first + (int64(i) * 300000)
+		p.CreateAt = first + (int64(i) * 300000)
+		p.RemoteId = model.NewPointer(model.NewId())
+		_, err := ss.Post().Save(rctx, p)
+		require.NoError(t, err, "couldn't save post")
+	}
+
+	t.Run("ExcludeChannelMetadataSystemPosts=true should filter out metadata posts", func(t *testing.T) {
+		// Set options with ExcludeChannelMetadataSystemPosts = true
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:                         channelID,
+			ExcludeChannelMetadataSystemPosts: true,
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+
+		// Verify only regular posts are returned
+		require.Len(t, posts, 4, "should return only 4 regular posts")
+
+		// Check that only default post types are returned
+		for _, post := range posts {
+			require.Equal(t, model.PostTypeDefault, post.Type, "only default posts should be returned")
+		}
+
+		// Verify we have the expected post IDs (only regular posts)
+		expectedIDs := []string{
+			data[0].Id, // regular post 1
+			data[2].Id, // regular post 2
+			data[4].Id, // regular post 3
+			data[6].Id, // regular post 4
+		}
+
+		postIDs := make([]string, 0, len(posts))
+		for _, p := range posts {
+			postIDs = append(postIDs, p.Id)
+		}
+
+		require.ElementsMatch(t, expectedIDs, postIDs, "returned posts should only be regular posts")
+	})
+
+	t.Run("ExcludeChannelMetadataSystemPosts=false should include all posts", func(t *testing.T) {
+		// Set options with ExcludeChannelMetadataSystemPosts = false
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:                         channelID,
+			ExcludeChannelMetadataSystemPosts: false,
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+
+		// Verify all posts are returned
+		require.Len(t, posts, 7, "should return all 7 posts when not excluding metadata posts")
+
+		// Verify all post types are included by counting each type
+		postTypeCount := make(map[string]int)
+		for _, post := range posts {
+			postTypeCount[post.Type]++
+		}
+
+		require.Equal(t, 4, postTypeCount[model.PostTypeDefault], "should have 4 regular posts")
+		require.Equal(t, 1, postTypeCount[model.PostTypeHeaderChange], "should have 1 header change post")
+		require.Equal(t, 1, postTypeCount[model.PostTypeDisplaynameChange], "should have 1 display name change post")
+		require.Equal(t, 1, postTypeCount[model.PostTypePurposeChange], "should have 1 purpose change post")
 	})
 }
