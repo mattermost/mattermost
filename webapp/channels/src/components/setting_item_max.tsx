@@ -125,7 +125,6 @@ export default class SettingItemMax extends React.PureComponent<Props> {
             clientError = (
                 <div className='form-group'>
                     <label
-                        id='clientError'
                         className='col-sm-12 has-error'
                     >
                         <i
@@ -138,7 +137,9 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                                 defaultMessage='Error'
                             />
                         </span>
-                        {this.props.clientError}
+                        <span id='clientError'>
+                            {this.props.clientError}
+                        </span>
                     </label>
                 </div>
             );
@@ -149,7 +150,6 @@ export default class SettingItemMax extends React.PureComponent<Props> {
             serverError = (
                 <div className='form-group'>
                     <label
-                        id='serverError'
                         className='col-sm-12 has-error'
                     >
                         <i
@@ -162,7 +162,9 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                                 defaultMessage='Error'
                             />
                         </span>
-                        {this.props.serverError}
+                        <span id='serverError'>
+                            {this.props.serverError}
+                        </span>
                     </label>
                 </div>
             );

@@ -86,7 +86,6 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
           >
             <label
               className="col-sm-12 has-error"
-              id="clientError"
             >
               <i
                 className="icon icon-alert-circle-outline"
@@ -100,7 +99,11 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
                   id="setting_item_max.clientError"
                 />
               </span>
-              clientError
+              <span
+                id="clientError"
+              >
+                clientError
+              </span>
             </label>
           </div>
         </div>
@@ -160,7 +163,6 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
           >
             <label
               className="col-sm-12 has-error"
-              id="serverError"
             >
               <i
                 className="icon icon-alert-circle-outline"
@@ -174,7 +176,11 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
                   id="setting_item_max.serverError"
                 />
               </span>
-              serverError
+              <span
+                id="serverError"
+              >
+                serverError
+              </span>
             </label>
           </div>
         </div>
