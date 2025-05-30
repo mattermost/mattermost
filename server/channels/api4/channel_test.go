@@ -2359,6 +2359,24 @@ func TestSearchArchivedChannels(t *testing.T) {
 		}
 		require.Contains(t, channelNames, th.BasicDeletedChannel.Name)
 	})
+
+	t.Run("Guest user should receive 403 Forbidden", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+		defer th.App.Srv().SetLicense(nil)
+
+		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.Enable = &enableGuestAccounts })
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		_, guestClient := th.CreateGuestAndClient(t)
+
+		search.Term = th.BasicDeletedChannel.Name
+		_, resp, err := guestClient.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestSearchAllChannels(t *testing.T) {
