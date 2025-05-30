@@ -68,7 +68,7 @@ func (s SqlProductNoticesStore) View(userId string, notices []string) (err error
 
 	noticeStates := []model.ProductNoticeViewState{}
 	query := s.selectQuery.
-		Where(sq.And{sq.Eq{"UserId": userId}, sq.Eq{"NoticeId": notices}})
+		Where(sq.Eq{"UserId": userId, "NoticeId": notices})
 
 	if err := transaction.SelectBuilder(&noticeStates, query); err != nil {
 		return errors.Wrapf(err, "failed to get ProductNoticeViewState with userId=%s", userId)
