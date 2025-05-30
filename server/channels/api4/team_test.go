@@ -28,6 +28,7 @@ import (
 )
 
 func TestCreateTeam(t *testing.T) {
+	// Test cannot easily run in parallel because it relies on (and mutates) i18n package translations.
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -198,6 +199,7 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestCreateTeamSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -235,6 +237,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 }
 
 func TestGetTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -291,6 +294,7 @@ func TestGetTeam(t *testing.T) {
 }
 
 func TestGetTeamSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -360,6 +364,7 @@ func TestGetTeamSanitization(t *testing.T) {
 }
 
 func TestGetTeamUnread(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -396,6 +401,7 @@ func TestGetTeamUnread(t *testing.T) {
 }
 
 func TestUpdateTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -580,6 +586,7 @@ func TestUpdateTeamPrivacyInvitePermissions(t *testing.T) {
 }
 
 func TestUpdateTeamSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -612,6 +619,7 @@ func TestUpdateTeamSanitization(t *testing.T) {
 }
 
 func TestPatchTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -880,6 +888,7 @@ func TestPatchTeam(t *testing.T) {
 }
 
 func TestRestoreTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -1007,6 +1016,7 @@ func TestRestoreTeam(t *testing.T) {
 }
 
 func TestPatchTeamSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1039,6 +1049,7 @@ func TestPatchTeamSanitization(t *testing.T) {
 }
 
 func TestUpdateTeamPrivacy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -1131,6 +1142,7 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 }
 
 func TestTeamUnicodeNames(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -1201,6 +1213,7 @@ func TestTeamUnicodeNames(t *testing.T) {
 }
 
 func TestRegenerateTeamInviteId(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -1225,6 +1238,7 @@ func TestRegenerateTeamInviteId(t *testing.T) {
 }
 
 func TestSoftDeleteTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1262,6 +1276,7 @@ func TestSoftDeleteTeam(t *testing.T) {
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1313,6 +1328,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 }
 
 func TestGetAllTeams(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	th.LoginSystemManager()
 	defer th.TearDown()
@@ -1579,6 +1595,7 @@ func TestGetAllTeams(t *testing.T) {
 }
 
 func TestGetAllTeamsSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1640,6 +1657,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 }
 
 func TestGetTeamByName(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	team := th.BasicTeam
@@ -1694,6 +1712,7 @@ func TestGetTeamByName(t *testing.T) {
 }
 
 func TestGetTeamByNameSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1764,6 +1783,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 }
 
 func TestSearchAllTeams(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	th.LoginSystemManager()
 	defer th.TearDown()
@@ -1871,6 +1891,7 @@ func TestSearchAllTeams(t *testing.T) {
 }
 
 func TestSearchAllTeamsPaged(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	commonRandom := model.NewId()
@@ -2000,6 +2021,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 }
 
 func TestSearchAllTeamsSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2070,6 +2092,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 }
 
 func TestGetTeamsForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2112,6 +2135,7 @@ func TestGetTeamsForUser(t *testing.T) {
 }
 
 func TestGetTeamsForUserSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2211,6 +2235,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 }
 
 func TestGetTeamMember(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2249,6 +2274,7 @@ func TestGetTeamMember(t *testing.T) {
 }
 
 func TestGetTeamMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2321,6 +2347,7 @@ func TestGetTeamMembers(t *testing.T) {
 }
 
 func TestGetTeamMembersForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2363,6 +2390,7 @@ func TestGetTeamMembersForUser(t *testing.T) {
 }
 
 func TestGetTeamMembersByIds(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2400,6 +2428,7 @@ func TestGetTeamMembersByIds(t *testing.T) {
 }
 
 func TestAddTeamMember(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2688,6 +2717,7 @@ func TestAddTeamMemberGuestPermissions(t *testing.T) {
 }
 
 func TestAddTeamMemberMyself(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2778,6 +2808,7 @@ func TestAddTeamMemberMyself(t *testing.T) {
 }
 
 func TestAddTeamMembersDomainConstrained(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.SystemAdminClient
@@ -2838,6 +2869,7 @@ func TestAddTeamMembersDomainConstrained(t *testing.T) {
 }
 
 func TestAddTeamMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3037,6 +3069,7 @@ func TestAddTeamMembersGuestPermissions(t *testing.T) {
 }
 
 func TestRemoveTeamMember(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3104,6 +3137,7 @@ func TestRemoveTeamMember(t *testing.T) {
 }
 
 func TestRemoveTeamMemberEvents(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3138,6 +3172,7 @@ func TestRemoveTeamMemberEvents(t *testing.T) {
 }
 
 func TestGetTeamStats(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3189,6 +3224,7 @@ func TestGetTeamStats(t *testing.T) {
 }
 
 func TestUpdateTeamMemberRoles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3268,6 +3304,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 }
 
 func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
@@ -3410,6 +3447,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 }
 
 func TestGetMyTeamsUnread(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3442,6 +3480,7 @@ func TestGetMyTeamsUnread(t *testing.T) {
 }
 
 func TestTeamExists(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3538,6 +3577,7 @@ func TestTeamExists(t *testing.T) {
 }
 
 func TestImportTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3629,6 +3669,7 @@ func TestImportTeam(t *testing.T) {
 }
 
 func TestValidateUserPermissionsOnChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3657,6 +3698,7 @@ func TestValidateUserPermissionsOnChannels(t *testing.T) {
 }
 
 func TestInviteUsersToTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3826,6 +3868,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 }
 
 func TestInviteGuestsToTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3971,6 +4014,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 }
 
 func TestInviteGuest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	guest1 := th.GenerateTestEmail()
@@ -4017,6 +4061,7 @@ func TestInviteGuest(t *testing.T) {
 }
 
 func TestGetTeamInviteInfo(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4042,6 +4087,7 @@ func TestGetTeamInviteInfo(t *testing.T) {
 }
 
 func TestSetTeamIcon(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4100,6 +4146,7 @@ func TestSetTeamIcon(t *testing.T) {
 }
 
 func TestGetTeamIcon(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4119,6 +4166,7 @@ func TestGetTeamIcon(t *testing.T) {
 }
 
 func TestRemoveTeamIcon(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4158,6 +4206,7 @@ func TestRemoveTeamIcon(t *testing.T) {
 }
 
 func TestUpdateTeamScheme(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -4238,6 +4287,7 @@ func TestUpdateTeamScheme(t *testing.T) {
 }
 
 func TestTeamMembersMinusGroupMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -4331,6 +4381,7 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 }
 
 func TestInvalidateAllEmailInvites(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

@@ -29,6 +29,7 @@ type TestHelper struct {
 	BasicTeam  *model.Team
 	BasicUser  *model.User
 	BasicUser2 *model.User
+	Store      store.Store
 
 	SystemAdminUser   *model.User
 	LogBuffer         *mlog.Buffer
@@ -36,18 +37,18 @@ type TestHelper struct {
 	IncludeCacheLayer bool
 	ConfigStore       *config.Store
 
-	tempWorkspace             string
-	oldWatcherPollingInterval int
+	tempWorkspace string
 }
 
-func setupTestHelper(tb testing.TB, dbStore store.Store, enterprise bool, includeCacheLayer bool,
-	updateCfg func(cfg *model.Config), options []app.Option) *TestHelper {
+func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlSettings, enterprise bool, includeCacheLayer bool,
+	updateCfg func(cfg *model.Config), options []app.Option,
+) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "jobstest")
 	require.NoError(tb, err)
 
 	configStore := config.NewTestMemoryStore()
 	memoryConfig := configStore.Get()
-	memoryConfig.SqlSettings = *mainHelper.GetSQLSettings()
+	memoryConfig.SqlSettings = *sqlSettings
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -96,6 +97,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, enterprise bool, includ
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
 		ConfigStore:       configStore,
+		Store:             dbStore,
 		tempWorkspace:     tempWorkspace,
 	}
 
@@ -131,10 +133,6 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, enterprise bool, includ
 		if th.tempWorkspace != "" {
 			os.RemoveAll(th.tempWorkspace)
 		}
-
-		if th.oldWatcherPollingInterval != 0 {
-			jobs.DefaultWatcherPollingInterval = th.oldWatcherPollingInterval
-		}
 	})
 
 	return th
@@ -150,16 +148,22 @@ func SetupWithUpdateCfg(tb testing.TB, updateCfg func(cfg *model.Config), option
 		tb.SkipNow()
 	}
 
-	oldWatcherPollingInterval := jobs.DefaultWatcherPollingInterval
-	jobs.DefaultWatcherPollingInterval = 100
+	var dbStore store.Store
+	var dbSettings *model.SqlSettings
+	if mainHelper.Options.RunParallel {
+		dbStore, _, dbSettings, _ = mainHelper.GetNewStores(tb)
+		tb.Cleanup(func() {
+			dbStore.Close()
+		})
+	} else {
+		dbStore = mainHelper.GetStore()
+		dbSettings = mainHelper.GetSQLSettings()
+		dbStore.DropAllTables()
+		dbStore.MarkSystemRanUnitTests()
+		mainHelper.PreloadMigrations()
+	}
 
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
-
-	th := setupTestHelper(tb, dbStore, false, true, updateCfg, options)
-	th.oldWatcherPollingInterval = oldWatcherPollingInterval
+	th := setupTestHelper(tb, dbStore, dbSettings, false, true, updateCfg, options)
 	return th
 }
 
@@ -226,6 +230,22 @@ func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 	}
 	require.Nil(tb, err)
 	return user
+}
+
+func (th *TestHelper) ShutdownApp() {
+	done := make(chan bool)
+	go func() {
+		th.Server.Shutdown()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		// panic instead of fatal to terminate all tests in this package, otherwise the
+		// still running App could spuriously fail subsequent tests.
+		panic("failed to shutdown App within 30 seconds")
+	}
 }
 
 func (th *TestHelper) SetupBatchWorker(tb testing.TB, worker *jobs.BatchWorker) *model.Job {

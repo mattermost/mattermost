@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -17,9 +16,10 @@ import (
 )
 
 func TestCreateCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t)
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	})
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -96,9 +96,10 @@ func TestCreateCPAField(t *testing.T) {
 }
 
 func TestListCPAFields(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t)
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	})
 	defer th.TearDown()
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
@@ -142,9 +143,10 @@ func TestListCPAFields(t *testing.T) {
 }
 
 func TestPatchCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t)
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	})
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -283,9 +285,10 @@ func TestPatchCPAField(t *testing.T) {
 }
 
 func TestDeleteCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t)
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	})
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -355,9 +358,11 @@ func TestDeleteCPAField(t *testing.T) {
 }
 
 func TestListCPAValues(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t).InitBasic()
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	}).InitBasic()
 	defer th.TearDown()
 
 	th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
@@ -442,9 +447,11 @@ func TestListCPAValues(t *testing.T) {
 }
 
 func TestPatchCPAValues(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t).InitBasic()
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	}).InitBasic()
 	defer th.TearDown()
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{

@@ -111,6 +111,7 @@ func TestGetPing(t *testing.T) {
 }
 
 func TestGetAudits(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -143,6 +144,7 @@ func TestGetAudits(t *testing.T) {
 }
 
 func TestEmailTest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -224,6 +226,7 @@ func TestEmailTest(t *testing.T) {
 }
 
 func TestGenerateSupportPacket(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	th.LoginSystemManager()
 	defer th.TearDown()
@@ -283,6 +286,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 }
 
 func TestSupportPacketFileName(t *testing.T) {
+	mainHelper.Parallel(t)
 	tests := map[string]struct {
 		now          time.Time
 		customerName string
@@ -314,6 +318,7 @@ func TestSupportPacketFileName(t *testing.T) {
 }
 
 func TestSiteURLTest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -360,6 +365,7 @@ func TestSiteURLTest(t *testing.T) {
 }
 
 func TestDatabaseRecycle(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -385,6 +391,7 @@ func TestDatabaseRecycle(t *testing.T) {
 }
 
 func TestInvalidateCaches(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -410,6 +417,7 @@ func TestInvalidateCaches(t *testing.T) {
 }
 
 func TestGetLogs(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -458,6 +466,7 @@ func TestGetLogs(t *testing.T) {
 }
 
 func TestDownloadLogs(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -500,6 +509,7 @@ func TestDownloadLogs(t *testing.T) {
 }
 
 func TestPostLog(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -542,6 +552,7 @@ func TestPostLog(t *testing.T) {
 }
 
 func TestGetAnalyticsOld(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -595,8 +606,11 @@ func TestGetAnalyticsOld(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
 	assert.Equal(t, float64(1), rows2[5].Value)
-
 	WebSocketClient.Close()
+
+	// Give it a second for internal webhub counters to be updated after the client disconnects.
+	// Test can be flaky otherwise.
+	time.Sleep(time.Second)
 
 	rows2, _, err = th.SystemAdminClient.GetAnalyticsOld(context.Background(), "standard", "")
 	require.NoError(t, err)
@@ -612,6 +626,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 }
 
 func TestS3TestConnection(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -697,6 +712,7 @@ func TestS3TestConnection(t *testing.T) {
 }
 
 func TestSupportedTimezones(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -709,6 +725,7 @@ func TestSupportedTimezones(t *testing.T) {
 }
 
 func TestRedirectLocation(t *testing.T) {
+	mainHelper.Parallel(t)
 	expected := "https://mattermost.com/wp-content/themes/mattermostv2/img/logo-light.svg"
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -799,6 +816,7 @@ func TestRedirectLocation(t *testing.T) {
 }
 
 func TestSetServerBusy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -819,6 +837,7 @@ func TestSetServerBusy(t *testing.T) {
 }
 
 func TestSetServerBusyInvalidParam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -834,6 +853,7 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 }
 
 func TestClearServerBusy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -854,6 +874,7 @@ func TestClearServerBusy(t *testing.T) {
 }
 
 func TestGetServerBusy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -874,6 +895,7 @@ func TestGetServerBusy(t *testing.T) {
 }
 
 func TestServerBusy503(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -917,6 +939,7 @@ func TestServerBusy503(t *testing.T) {
 }
 
 func TestPushNotificationAck(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	api, err := Init(th.Server)
 	require.NoError(t, err)
@@ -1010,6 +1033,7 @@ func TestPushNotificationAck(t *testing.T) {
 }
 
 func TestCompleteOnboarding(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1143,6 +1167,7 @@ func TestCompleteOnboarding(t *testing.T) {
 }
 
 func TestGetAppliedSchemaMigrations(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1170,6 +1195,7 @@ func TestGetAppliedSchemaMigrations(t *testing.T) {
 }
 
 func TestCheckHasNilFields(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("check if the empty struct has nil fields", func(t *testing.T) {
 		var s model.FileSettings
 		res := checkHasNilFields(&s)

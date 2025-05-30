@@ -18,6 +18,7 @@ func setupRemoteCluster(tb testing.TB) *TestHelper {
 }
 
 func TestAddRemoteCluster(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := setupRemoteCluster(t).InitBasic()
 	defer th.TearDown()
 
@@ -41,6 +42,7 @@ func TestAddRemoteCluster(t *testing.T) {
 }
 
 func TestUpdateRemoteCluster(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := setupRemoteCluster(t).InitBasic()
 	defer th.TearDown()
 

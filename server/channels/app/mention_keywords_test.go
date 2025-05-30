@@ -28,6 +28,7 @@ func mapsToMentionKeywords(userKeywords map[string][]string, groups map[string]*
 }
 
 func TestMentionKeywords_AddUserProfile(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("should add @user", func(t *testing.T) {
 		user := &model.User{
 			Id:       model.NewId(),
