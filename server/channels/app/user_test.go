@@ -868,7 +868,7 @@ func TestGetUsersByStatus(t *testing.T) {
 	})
 }
 
-func TestGetUsersNotInChannelWithABAC(t *testing.T) {
+func TestGetUsersNotInAbacChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -880,9 +880,8 @@ func TestGetUsersNotInChannelWithABAC(t *testing.T) {
 		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
 	})
 
-	// Create two private channels in the same team
+	// Create an ABAC channel
 	abacChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	regularChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
 
 	// Create three test users and add them to the team
 	user1 := th.CreateUser() // Will have matching attributes for ABAC
@@ -932,16 +931,20 @@ func TestGetUsersNotInChannelWithABAC(t *testing.T) {
 		th.App.Srv().ch.AccessControl = originalAccessControl
 	}()
 
-	t.Run("ABAC Channel - Only returns users with matching attributes", func(t *testing.T) {
+	t.Run("Returns users with matching attributes using cursor pagination", func(t *testing.T) {
 		// Set up the mock to return user1 when querying for users
 		mockAccessControl.On("QueryUsersForResource",
 			mock.Anything,
 			abacChannel.Id,
 			"*",
-			mock.Anything).Return([]*model.User{user1}, int64(1), nil).Once()
+			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+				return opts.TeamID == th.BasicTeam.Id &&
+					opts.Limit == 50 &&
+					opts.Cursor.TargetID == ""
+			})).Return([]*model.User{user1}, int64(1), nil).Once()
 
-		// Call the function we're testing
-		users, appErr := th.App.GetUsersNotInChannel(th.BasicTeam.Id, abacChannel.Id, false, 0, 100, nil)
+		// Call the new ABAC-specific function
+		users, appErr := th.App.GetUsersNotInAbacChannel(th.BasicTeam.Id, abacChannel.Id, false, "", 50, true, nil)
 		require.Nil(t, appErr)
 
 		// Create a map of user IDs for easier lookup
@@ -950,42 +953,45 @@ func TestGetUsersNotInChannelWithABAC(t *testing.T) {
 			userMap[u.Id] = true
 		}
 
-		// Verify only user1 is returned for the ABAC channel
+		// Verify only user1 is returned
 		assert.True(t, userMap[user1.Id], "User1 should be returned for ABAC channel")
 		assert.False(t, userMap[user2.Id], "User2 should not be returned for ABAC channel")
 		assert.False(t, userMap[user3.Id], "User3 should not be returned for ABAC channel")
+		assert.Len(t, users, 1, "Should return exactly 1 user")
 	})
 
-	t.Run("Regular Channel - Returns all users", func(t *testing.T) {
-		// For the regular channel, we need to make sure the users are in the team but not in the channel
-		// First, make sure the basic user is in the channel
-		_, appErr := th.App.AddChannelMember(th.Context, th.BasicUser.Id, regularChannel, ChannelMemberOpts{})
+	t.Run("Works with cursor-based pagination", func(t *testing.T) {
+		cursorID := "some-cursor-id"
+
+		// Set up the mock to return user1 when querying with cursor
+		mockAccessControl.On("QueryUsersForResource",
+			mock.Anything,
+			abacChannel.Id,
+			"*",
+			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+				return opts.TeamID == th.BasicTeam.Id &&
+					opts.Limit == 25 &&
+					opts.Cursor.TargetID == cursorID
+			})).Return([]*model.User{user1}, int64(1), nil).Once()
+
+		// Call with cursor ID
+		users, appErr := th.App.GetUsersNotInAbacChannel(th.BasicTeam.Id, abacChannel.Id, false, cursorID, 25, true, nil)
 		require.Nil(t, appErr)
+		assert.Len(t, users, 1, "Should return exactly 1 user with cursor pagination")
+	})
 
-		// Make sure our test users are in the team but not in the channel
-		_, appErr = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user1.Id)
-		require.Nil(t, appErr)
+	t.Run("Returns error when AccessControl service is unavailable", func(t *testing.T) {
+		// Temporarily set AccessControl to nil
+		th.App.Srv().ch.AccessControl = nil
+		defer func() {
+			th.App.Srv().ch.AccessControl = mockAccessControl
+		}()
 
-		_, appErr = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user2.Id)
-		require.Nil(t, appErr)
-
-		_, appErr = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user3.Id)
-		require.Nil(t, appErr)
-
-		// Call the function we're testing
-		users, appErr := th.App.GetUsersNotInChannel(th.BasicTeam.Id, regularChannel.Id, false, 0, 100, nil)
-		require.Nil(t, appErr)
-
-		// Create a map of user IDs for easier lookup
-		userMap := make(map[string]bool)
-		for _, u := range users {
-			userMap[u.Id] = true
-		}
-
-		// Verify all users are returned for the regular channel
-		assert.True(t, userMap[user1.Id], "User1 should be returned for regular channel")
-		assert.True(t, userMap[user2.Id], "User2 should be returned for regular channel")
-		assert.True(t, userMap[user3.Id], "User3 should be returned for regular channel")
+		// Call should return error
+		users, appErr := th.App.GetUsersNotInAbacChannel(th.BasicTeam.Id, abacChannel.Id, false, "", 50, true, nil)
+		require.NotNil(t, appErr)
+		require.Nil(t, users)
+		assert.Equal(t, "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error", appErr.Id)
 	})
 }
 

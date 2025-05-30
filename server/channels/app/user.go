@@ -624,38 +624,7 @@ func (a *App) GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmi
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions, cursorID ...string) ([]*model.User, *model.AppError) {
-	ctx := request.EmptyContext(a.Log())
-
-	if channel, err := a.GetChannel(ctx, channelID); err != nil {
-		return nil, err
-	} else if channel.PolicyEnforced {
-		acs := a.Srv().Channels().AccessControl
-		if acs != nil {
-			// Determine cursor ID to use
-			var targetID string
-			if len(cursorID) > 0 && cursorID[0] != "" {
-				targetID = cursorID[0]
-			}
-			// Note: When no cursor is provided, targetID remains empty string
-			// which means start from the beginning
-
-			users, _, appErr := acs.QueryUsersForResource(ctx, channelID, "*", model.SubjectSearchOptions{
-				TeamID: teamID,
-				Limit:  limit,
-				Cursor: model.SubjectCursor{
-					TargetID: targetID,
-				},
-			})
-			if appErr != nil {
-				return nil, appErr
-			}
-
-			return users, nil
-		}
-	}
-
-	// For non-ABAC channels, use the regular store method with offset/limit
+func (a *App) GetUsersNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store().User().GetProfilesNotInChannel(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersNotInChannel", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -680,20 +649,34 @@ func (a *App) GetUsersNotInChannelMap(teamID string, channelID string, groupCons
 	return userMap, nil
 }
 
-func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions, cursorID ...string) ([]*model.User, *model.AppError) {
-	var users []*model.User
-	var err *model.AppError
-
-	// If cursorID is provided, use cursor-based pagination
-	if len(cursorID) > 0 && cursorID[0] != "" {
-		users, err = a.GetUsersNotInChannel(teamID, channelID, groupConstrained, 0, perPage, viewRestrictions, cursorID[0])
-	} else {
-		// Otherwise, use offset-based pagination
-		users, err = a.GetUsersNotInChannel(teamID, channelID, groupConstrained, page*perPage, perPage, viewRestrictions)
-	}
-
+func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersNotInChannel(teamID, channelID, groupConstrained, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, err
+	}
+
+	return a.sanitizeProfiles(users, asAdmin), nil
+}
+
+func (a *App) GetUsersNotInAbacChannel(teamID string, channelID string, groupConstrained bool, cursorID string, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	ctx := request.EmptyContext(a.Log())
+
+	// Get the AccessControl service
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("GetUsersNotInAbacChannel", "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	// Use cursor-based pagination for ABAC channels
+	users, _, appErr := acs.QueryUsersForResource(ctx, channelID, "*", model.SubjectSearchOptions{
+		TeamID: teamID,
+		Limit:  limit,
+		Cursor: model.SubjectCursor{
+			TargetID: cursorID, // Empty string means start from beginning
+		},
+	})
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	return a.sanitizeProfiles(users, asAdmin), nil
