@@ -3227,12 +3227,12 @@
     "translation": "Error invalidating email invites."
   },
   {
-    "id": "api.team.invite_guests.abac_policy_enforced_channel.app_error",
-    "translation": "Guest invitations are not allowed in ABAC policy-enforced channels."
-  },
-  {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "The channels of the invite must be part of the team of the invite."
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": ""
   },
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
