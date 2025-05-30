@@ -26,7 +26,7 @@ func submitPerformanceReport(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := report.IsValid(); err != nil {
+	if err := report.Validate(); err != nil {
 		c.SetInvalidParamWithErr("submitPerformanceReport", err)
 		return
 	}
