@@ -4,7 +4,6 @@
 package searchlayer
 
 import (
-	"context"
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -113,32 +112,6 @@ func (s *SearchStore) indexUser(rctx request.CTX, user *model.User) {
 	}
 }
 
-// storeContextKey is the base type for all context keys for the store.
-type storeContextKey string
-
-// contextValue is a type to hold some pre-determined context values.
-type contextValue string
-
-// Different possible values of contextValue.
-const (
-	useMaster contextValue = "useMaster"
-)
-
-// WithMaster adds the context value that master DB should be selected for this request.
-//
-// Deprecated: This method is deprecated and there's ongoing change to use `request.CTX` across
-// instead of `context.Context`. Please use `RequestContextWithMaster` instead.
-func WithMaster(ctx context.Context) context.Context {
-	return context.WithValue(ctx, storeContextKey(useMaster), true)
-}
-
-// RequestContextWithMaster adds the context value that master DB should be selected for this request.
-func RequestContextWithMaster(c request.CTX) request.CTX {
-	ctx := WithMaster(c.Context())
-	c = c.WithContext(ctx)
-	return c
-}
-
 func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
 	var (
 		perPage  = 100
@@ -158,7 +131,7 @@ func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
 	}
 
 	// Use master context to avoid replica lag issues when reading team members
-	masterRctx := RequestContextWithMaster(rctx)
+	masterRctx := store.RequestContextWithMaster(rctx)
 	teamMemberIDs, err := s.channel.GetTeamMembersForChannel(masterRctx, channels[0].Id)
 	if err != nil {
 		rctx.Logger().Warn("Encountered error while retrveiving team members for channel", mlog.String("channel_id", channels[0].Id), mlog.Err(err))
