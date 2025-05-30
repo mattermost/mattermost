@@ -43,6 +43,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
     };
     contentRef: React.RefObject<HTMLUListElement>;
     wrapperRef: React.RefObject<HTMLDivElement>;
+    itemRefs: Map<string, HTMLElement>;
     maxHeight: number;
 
     constructor(props: Props) {
@@ -50,6 +51,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
 
         this.contentRef = React.createRef();
         this.wrapperRef = React.createRef();
+        this.itemRefs = new Map();
         this.maxHeight = 0;
     }
 
@@ -102,7 +104,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             const contentTopPadding = this.getComputedCssProperty(content, 'paddingTop');
             const contentBottomPadding = this.getComputedCssProperty(content, 'paddingTop');
 
-            const item = document.getElementById(`suggestionList_item_${term}`);
+            const item = this.itemRefs.get(term);
             if (!item) {
                 return;
             }
@@ -222,6 +224,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             items.push(
                 <Component
                     key={term}
+                    ref={(ref: any) => this.itemRefs.set(term, ref)}
                     id={`suggestionList_item_${term}`}
                     item={this.props.items[i]}
                     term={term}
