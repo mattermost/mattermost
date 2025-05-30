@@ -465,3 +465,74 @@ func TestWebSocketUpgrade(t *testing.T) {
 	require.NoError(t, th.TestLogger.Flush())
 	testlib.AssertLog(t, buffer, mlog.LvlDebug.Name, "URL Blocked because of CORS. Url: ")
 }
+
+func TestValidateDisconnectErrCode(t *testing.T) {
+	testCases := []struct {
+		name    string
+		errCode string
+		valid   bool
+	}{
+		{
+			name:    "empty string",
+			errCode: "",
+			valid:   false,
+		},
+		{
+			name:    "non-numeric string",
+			errCode: "not-a-number",
+			valid:   false,
+		},
+		{
+			name:    "valid standard close code - 1000",
+			errCode: "1000",
+			valid:   true,
+		},
+		{
+			name:    "valid standard close code - 1001",
+			errCode: "1001",
+			valid:   true,
+		},
+		{
+			name:    "valid standard close code - 1015",
+			errCode: "1015",
+			valid:   true,
+		},
+		{
+			name:    "valid standard close code - 1016",
+			errCode: "1016",
+			valid:   true,
+		},
+		{
+			name:    "out of range (too low)",
+			errCode: "999",
+			valid:   false,
+		},
+		{
+			name:    "out of range (too high)",
+			errCode: "1017",
+			valid:   false,
+		},
+		{
+			name:    "valid custom code - client ping timeout",
+			errCode: "4000",
+			valid:   true,
+		},
+		{
+			name:    "valid custom code - client sequence mismatch",
+			errCode: "4001",
+			valid:   true,
+		},
+		{
+			name:    "invalid custom code",
+			errCode: "5000",
+			valid:   false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := validateDisconnectErrCode(tc.errCode)
+			require.Equal(t, tc.valid, result)
+		})
+	}
+}
