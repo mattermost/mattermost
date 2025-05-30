@@ -23,7 +23,11 @@ const PluggableIntroButtons = React.memo(({
     const channelIsArchived = channel.delete_at !== 0;
     const pluginItemsVisible = usePluginVisibilityInSharedChannel(channel.id);
 
-    if (channelIsArchived || pluginButtons.length === 0 || !channelMember || !pluginItemsVisible) {
+    if (!pluginItemsVisible) {
+        return null;
+    }
+
+    if (channelIsArchived || pluginButtons.length === 0 || !channelMember) {
         return null;
     }
 

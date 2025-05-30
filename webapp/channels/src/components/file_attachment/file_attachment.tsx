@@ -198,16 +198,19 @@ export default function FileAttachment(props: Props) {
             );
         }
 
-        const pluginItems = pluginItemsVisible ? pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
-            return (
-                <Menu.ItemAction
-                    id={item.id + '_pluginmenuitem'}
-                    key={item.id + '_pluginmenuitem'}
-                    onClick={() => item?.action(fileInfo)}
-                    text={item.text}
-                />
-            );
-        }) : [];
+        let pluginItems: JSX.Element[] = [];
+        if (pluginItemsVisible) {
+            pluginItems = pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
+                return (
+                    <Menu.ItemAction
+                        id={item.id + '_pluginmenuitem'}
+                        key={item.id + '_pluginmenuitem'}
+                        onClick={() => item?.action(fileInfo)}
+                        text={item.text}
+                    />
+                );
+            });
+        }
 
         const isMenuVisible = defaultItems?.length || pluginItems?.length;
         if (!isMenuVisible) {

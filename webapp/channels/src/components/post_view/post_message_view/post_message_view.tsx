@@ -39,6 +39,7 @@ type Props = {
     overflowType?: AttachmentTextOverflowType;
     maxHeight?: number; /* The max height used by the show more component */
     showPostEditedIndicator?: boolean; /* Whether or not to render the post edited indicator */
+    sharedChannelsPluginsEnabled?: boolean;
 }
 
 type State = {
@@ -171,7 +172,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         showPostEditedIndicator={this.props.showPostEditedIndicator}
                     />
                 </div>
-                {!isSharedChannel && (
+                {(!isSharedChannel || this.props.sharedChannelsPluginsEnabled) && (
                     <Pluggable
                         pluggableName='PostMessageAttachment'
                         postId={post.id}

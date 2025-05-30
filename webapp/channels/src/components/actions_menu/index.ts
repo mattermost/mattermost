@@ -60,16 +60,16 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const currentUser = getCurrentUser(state);
     const isSysAdmin = isSystemAdmin(currentUser.roles);
 
+    const pluginItemsVisible = !channel?.shared || sharedChannelsPluginsEnabled;
+
     return {
         appBindings,
         appsEnabled: apps,
-        pluginMenuItemComponents: state.plugins.components.PostDropdownMenuItem,
+        pluginMenuItemComponents: pluginItemsVisible ? state.plugins.components.PostDropdownMenuItem : [],
         isSysAdmin,
-        pluginMenuItems: state.plugins.components.PostDropdownMenu,
+        pluginMenuItems: pluginItemsVisible ? state.plugins.components.PostDropdownMenu : undefined,
         teamId: getCurrentTeamId(state),
         isMobileView: getIsMobileView(state),
-        channelIsShared: channel?.shared,
-        sharedChannelsPluginsEnabled,
         canOpenMarketplace: (
             isMarketplaceEnabled(state) &&
             haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)
