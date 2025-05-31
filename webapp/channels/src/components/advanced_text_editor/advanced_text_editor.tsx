@@ -523,7 +523,7 @@ const AdvancedTextEditor = ({
     // Update the caret position in the input box when changed by a side effect
     useEffect(() => {
         const textbox: HTMLInputElement | HTMLTextAreaElement | undefined = textboxRef.current?.getInputBox();
-        if (textbox && textbox.selectionStart !== caretPosition) {
+        if (textbox && textbox === document.activeElement && textbox.selectionStart !== caretPosition) {
             Utils.setCaretPosition(textbox, caretPosition);
         }
     }, [caretPosition]);
