@@ -246,12 +246,42 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 		wg.Add(1)
 		go func(mention string) {
 			defer wg.Done()
+
+			// First try to find the user by the full mention (could be username or username:remote)
 			user, nErr := a.Srv().Store().User().GetByUsername(mention)
 
 			var nfErr *store.ErrNotFound
 			if nErr != nil && !errors.As(nErr, &nfErr) {
 				c.Logger().Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
 				return
+			}
+
+			// If not found and mention contains colon, try to find remote user
+			if nErr != nil && strings.Contains(mention, ":") {
+				parts := strings.SplitN(mention, ":", 2)
+				if len(parts) == 2 {
+					username := parts[0]
+					remoteClusterName := parts[1]
+
+					// Look for users with this username
+					users, err := a.Srv().Store().User().GetProfilesByUsernames([]string{username}, &model.ViewUsersRestrictions{})
+					if err == nil {
+						for _, u := range users {
+							if u.RemoteId != nil && *u.RemoteId != "" {
+								// Check if this user belongs to the specified remote cluster
+								rc, rcErr := a.Srv().Store().RemoteCluster().Get(*u.RemoteId, false)
+								if rcErr == nil && strings.EqualFold(rc.Name, remoteClusterName) {
+									// Found the remote user, check team membership
+									_, tmErr := a.GetTeamMember(c, teamID, u.Id)
+									if tmErr == nil {
+										mentionChan <- &mentionMapItem{mention, u.Id}
+										return
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 
 			// If it's a http.StatusNotFound error, check for usernames in substrings

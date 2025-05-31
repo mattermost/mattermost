@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -400,18 +399,8 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		// get mentions and users for each mention
 		mentionMap := scs.app.MentionsToTeamMembers(request.EmptyContext(scs.server.Log()), post.Message, sc.TeamId)
 
-		// Skip notifications for remote users unless mentioned with @username:remote format
-		for mention, userID := range mentionMap {
-			user, err := scs.server.GetStore().User().Get(context.Background(), userID)
-			if err != nil {
-				continue
-			}
-
-			// Skip remote users unless mention contains a colon (@username:remote)
-			if user.RemoteId != nil && !strings.Contains(mention, ":") {
-				continue
-			}
-
+		// Add all mentioned users
+		for _, userID := range mentionMap {
 			userIDs[userID] = p2mm{
 				post:       post,
 				mentionMap: mentionMap,
