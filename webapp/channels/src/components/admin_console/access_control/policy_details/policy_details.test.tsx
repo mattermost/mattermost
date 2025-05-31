@@ -33,7 +33,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     const mockGetAccessControlFields = jest.fn();
     const mockCreateJob = jest.fn();
     const mockUpdateAccessControlPolicyActive = jest.fn();
-
+    const mockGetVisualAST = jest.fn();
     const defaultProps = {
         policyId: 'policy1',
         channels: [
@@ -64,6 +64,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             getAccessControlFields: mockGetAccessControlFields,
             createJob: mockCreateJob,
             updateAccessControlPolicyActive: mockUpdateAccessControlPolicyActive,
+            getVisualAST: mockGetVisualAST,
         },
     };
 
@@ -85,6 +86,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         mockGetAccessControlFields.mockReset();
         mockCreateJob.mockReset();
         mockUpdateAccessControlPolicyActive.mockReset();
+        mockGetVisualAST.mockReset();
     });
 
     test('should match snapshot with new policy', () => {

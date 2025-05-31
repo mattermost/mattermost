@@ -7921,6 +7921,10 @@
     "translation": "Failed to parse the value:{{.Value}} to int64"
   },
   {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Failed to extract data from previous job."
+  },
+  {
     "id": "ent.access_control.sync_job.app_error",
     "translation": "Failed to run access control sync job."
   },

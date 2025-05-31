@@ -28,6 +28,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         className="admin-console__setting-group"
       >
         <TextSetting
+          autoFocus={false}
           id="admin.access_control.policy.edit_policy.policyName"
           inputClassName="col-sm-8"
           label={
@@ -94,7 +95,13 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         </CardHeader>
         <CardBody>
           <TableEditor
+            actions={
+              Object {
+                "getVisualAST": [MockFunction],
+              }
+            }
             onChange={[Function]}
+            onParseError={[Function]}
             onValidate={[Function]}
             userAttributes={Array []}
             value=""
@@ -225,6 +232,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         className="admin-console__setting-group"
       >
         <TextSetting
+          autoFocus={false}
           id="admin.access_control.policy.edit_policy.policyName"
           inputClassName="col-sm-8"
           label={
@@ -291,7 +299,13 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         </CardHeader>
         <CardBody>
           <TableEditor
+            actions={
+              Object {
+                "getVisualAST": [MockFunction],
+              }
+            }
             onChange={[Function]}
+            onParseError={[Function]}
             onValidate={[Function]}
             userAttributes={Array []}
             value=""

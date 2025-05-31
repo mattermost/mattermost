@@ -102,7 +102,9 @@ function CELEditor({
 
     const schemas = {
         user: ['attributes'],
-        'user.attributes': userAttributes.map((attr) => attr.attribute),
+        'user.attributes': userAttributes.
+            map((attr) => attr.attribute).
+            filter((attr) => !attr.includes(' ') && attr.trim() !== ''),
     };
 
     const editorRef = useRef(null);
