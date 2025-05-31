@@ -34,7 +34,7 @@ export function displayUsername(
         } else if (teammateNameDisplay === Preferences.DISPLAY_PREFER_FULL_NAME) {
             name = getFullName(user);
         } else {
-            name = user.username;
+            name = (user.remote_id && user.props?.RemoteUsername) ? user.props.RemoteUsername : user.username;
         }
 
         if (!name || name.trim().length === 0) {
