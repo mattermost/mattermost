@@ -43,6 +43,7 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
     clearable?: boolean;
     clearableTooltipText?: string;
     onClear?: () => void;
+    rows?: number;
 }
 
 const Input = React.forwardRef((
@@ -75,6 +76,7 @@ const Input = React.forwardRef((
         onBlur,
         onChange,
         onClear,
+        rows,
         ...otherProps
     }: InputProps,
     ref?: React.Ref<HTMLInputElement | HTMLTextAreaElement>,
@@ -212,7 +214,7 @@ const Input = React.forwardRef((
                     aria-label={ariaLabel}
                     aria-describedby={customInputLabel ? errorId : undefined}
                     aria-invalid={error || hasError || limitExceeded > 0}
-                    rows={3}
+                    rows={rows || 3}
                     name={name}
                     disabled={disabled}
                     {...otherProps}
@@ -289,6 +291,8 @@ const Input = React.forwardRef((
                             'icon-information-outline': (customInputLabel?.type || 'error') === ItemStatus.INFO,
                             'icon-check': (customInputLabel?.type || 'error') === ItemStatus.SUCCESS,
                         })}
+                        role='img'
+                        aria-label={customInputLabel?.type || 'error'}
                     />
                     <span>{customInputLabel?.value || derivedErrorMessage}</span>
                 </div>
