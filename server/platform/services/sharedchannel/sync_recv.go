@@ -44,6 +44,10 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 	if err := json.Unmarshal(msg.Payload, &sm); err != nil {
 		return fmt.Errorf("invalid sync message: %w", err)
 	}
+
+	// Debug: Always post a message when sync is received
+	scs.postDebugMessage(sm.ChannelId, fmt.Sprintf("RECV: Sync message received from remote %s with %d posts", rc.Name, len(sm.Posts)))
+
 	return scs.processSyncMessage(request.EmptyContext(scs.server.Log()), &sm, rc, response)
 }
 
