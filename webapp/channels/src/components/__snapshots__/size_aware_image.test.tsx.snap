@@ -43,52 +43,6 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
         src="https://example.com/image.png"
         tabIndex={0}
       />
-      <span
-        className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
-      >
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Copy link"
-              id="single_image_view.copy_link_tooltip"
-            />
-          }
-        >
-          <button
-            aria-label="Copy link"
-            className="style--none size-aware-image__copy_link"
-            onClick={[Function]}
-          >
-            <LinkVariantIcon
-              className="style--none"
-              size={20}
-            />
-          </button>
-        </WithTooltip>
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Download"
-              id="single_image_view.download_tooltip"
-            />
-          }
-        >
-          <a
-            aria-label="Download"
-            className="style--none size-aware-image__download"
-            download={true}
-            href="https://example.com/image.png"
-            rel="noopener noreferrer"
-            role="button"
-            target="_blank"
-          >
-            <DownloadOutlineIcon
-              className="style--none"
-              size={20}
-            />
-          </a>
-        </WithTooltip>
-      </span>
     </figure>
   </div>
 </Fragment>
@@ -137,51 +91,6 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
         src="https://example.com/image.png"
         tabIndex={0}
       />
-      <span
-        className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
-      >
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Copy link"
-              id="single_image_view.copy_link_tooltip"
-            />
-          }
-        >
-          <button
-            aria-label="Copy link"
-            className="style--none size-aware-image__copy_link"
-            onClick={[Function]}
-          >
-            <LinkVariantIcon
-              className="style--none"
-              size={20}
-            />
-          </button>
-        </WithTooltip>
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Download"
-              id="single_image_view.download_tooltip"
-            />
-          }
-        >
-          <a
-            aria-label="Download"
-            className="style--none size-aware-image__download"
-            download={true}
-            rel="noopener noreferrer"
-            role="button"
-            target="_blank"
-          >
-            <DownloadOutlineIcon
-              className="style--none"
-              size={20}
-            />
-          </a>
-        </WithTooltip>
-      </span>
     </figure>
   </div>
 </Fragment>
@@ -244,51 +153,6 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
         src="https://example.com/image.png"
         tabIndex={0}
       />
-      <span
-        className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
-      >
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Copy link"
-              id="single_image_view.copy_link_tooltip"
-            />
-          }
-        >
-          <button
-            aria-label="Copy link"
-            className="style--none size-aware-image__copy_link"
-            onClick={[Function]}
-          >
-            <LinkVariantIcon
-              className="style--none"
-              size={20}
-            />
-          </button>
-        </WithTooltip>
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Download"
-              id="single_image_view.download_tooltip"
-            />
-          }
-        >
-          <a
-            aria-label="Download"
-            className="style--none size-aware-image__download"
-            download={true}
-            rel="noopener noreferrer"
-            role="button"
-            target="_blank"
-          >
-            <DownloadOutlineIcon
-              className="style--none"
-              size={20}
-            />
-          </a>
-        </WithTooltip>
-      </span>
     </figure>
   </div>
 </Fragment>

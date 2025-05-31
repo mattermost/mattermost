@@ -1523,8 +1523,8 @@
         // greater z-index than img
         position: absolute;
         z-index: 3;
-        top: 8px;
-        right: 8px;
+        top: 4px;
+        right: 4px;
         display: none;
         padding: 4px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
@@ -1576,20 +1576,15 @@
         }
 
         &--small-image {
-            position: absolute;
             top: 4px;
-            right: 4px;
+            right: -24px;
+            width: fit-content;
         }
 
         // Gallery-specific overrides for small images
         .image-gallery &--small-image,
         .image-gallery &--small-image-no-copy-button {
-            position: absolute;
             z-index: 10;
-            top: 8px;
-            right: 8px;
-            left: auto !important;
-            width: auto !important;
         }
 
         &:hover button.size-aware-image__copy_link,
@@ -1598,12 +1593,13 @@
         }
     }
     // styles for image container of large images.
-    .image-loaded-container {
+    .file-preview__button {
         position: relative;
-        display: inline-block;
 
-        &:hover .image-preview-utility-buttons-container {
-            display: inline-flex;
+        &:hover {
+            .image-preview-utility-buttons-container {
+                display: inline-flex;
+            }
         }
     }
 

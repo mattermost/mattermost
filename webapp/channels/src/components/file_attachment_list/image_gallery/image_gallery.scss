@@ -124,6 +124,10 @@
                     border-radius: 4px;
                     margin: 0;
 
+                    .file-preview__button {
+                        width: auto;
+                    }
+
                     // Loading state styling
                     .image-loading__container {
                         display: flex;
@@ -166,6 +170,38 @@
                     }
                 }
             }
+        }
+
+        // Style utility buttons for small images in gallery
+        .image-preview-utility-buttons-container {
+            top: 4px;
+            right: 4px;
+
+            button.size-aware-image__copy_link,
+            a.size-aware-image__download {
+                display: inline-block;
+                width: 28px;
+                height: 28px;
+                padding: 2px;
+                border-radius: 4px;
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                text-align: center;
+
+                &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                    text-decoration: none;
+                }
+
+                svg {
+                    padding-top: 2px;
+                    fill: rgba(var(--center-channel-color-rgb), 0.75);
+                }
+            }
+        }
+
+        // Show utility buttons on hover
+        &:hover .image-preview-utility-buttons-container {
+            display: inline-flex;
         }
     }
 }

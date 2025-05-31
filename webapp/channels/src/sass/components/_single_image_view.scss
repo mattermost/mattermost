@@ -92,10 +92,10 @@
                 }
             }
 
-            .image-loaded-container {
-                overflow: hidden;
-                height: 100%;
-                border-radius: 4px;
+            .file-preview__button {
+                display: inline-flex;
+                position: relative;
+                width: fit-content;
 
                 &:hover {
                     box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 10px 0 rgba(variables.$black, 0.1);
@@ -104,7 +104,17 @@
                         transform: scale(1.05);
                         transition: transform 0.15s ease-in-out;
                     }
+
+                    .image-preview-utility-buttons-container {
+                        display: inline-flex;
+                    }
                 }
+            }
+
+            .image-loaded-container {
+                overflow: hidden;
+                height: 100%;
+                border-radius: 4px;
 
                 &.image-permalink {
                     margin: 5px 0 0;

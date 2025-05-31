@@ -253,9 +253,159 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             />
         );
 
-        // copyLink, download are two buttons overlayed on image preview
-        // copyLinkTooltip, downloadTooltip are tooltips for the buttons respectively.
-        // if linkCopiedRecently is true, defaultMessage would be 'Copy Link', else 'Copied!'
+        if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
+            const baseClassName = 'small-image__container cursor--pointer a11y--active';
+
+            // Only add min-width/min-height if the image is smaller than MIN_IMAGE_SIZE
+            const wideSmallImageStyle = (this.state.imageWidth < MIN_IMAGE_SIZE || (fileInfo && fileInfo.height && fileInfo.height < MIN_IMAGE_SIZE)) ? {minWidth: MIN_IMAGE_SIZE, minHeight: MIN_IMAGE_SIZE} : {};
+            const needsMinWidth = this.state.imageWidth < MIN_IMAGE_SIZE || (fileInfo && fileInfo.height && fileInfo.height < MIN_IMAGE_SIZE);
+            const className = needsMinWidth ? `${baseClassName} small-image__container--min-width` : baseClassName;
+
+            // For small images that need width styling, add width + 2px padding
+            const containerStyle = this.state.imageWidth >= MIN_IMAGE_SIZE ? {width: this.state.imageWidth + 2} : wideSmallImageStyle;
+
+            return (
+                <figure className={classNames('image-loaded-container')}>
+                    <div
+                        onClick={this.handleImageClick}
+                        className={classNames(className)}
+                        style={containerStyle}
+                    >
+                        {image}
+                    </div>
+                </figure>
+            );
+        }
+
+        // For regular/large images, just return the figure with the image
+        return (
+            <figure className={classNames('image-loaded-container')}>
+                {image}
+            </figure>
+        );
+    };
+
+    renderImageOrFallback = () => {
+        const {
+            dimensions,
+            fileInfo,
+        } = this.props;
+
+        let ariaLabelImage = this.props.intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
+        if (fileInfo) {
+            ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
+        }
+
+        let fallback;
+
+        if (this.dimensionsAvailable(dimensions) && !this.state.loaded) {
+            const ratio = (dimensions?.height ?? 0) > MAX_IMAGE_HEIGHT ? MAX_IMAGE_HEIGHT / (dimensions?.height ?? 1) : 1;
+            const height = (dimensions?.height ?? 0) * ratio;
+            const width = (dimensions?.width ?? 0) * ratio;
+
+            const miniPreview = getFileMiniPreviewUrl(fileInfo);
+
+            if (miniPreview) {
+                fallback = (
+                    <div
+                        className={`image-loading__container ${this.props.className}`}
+                        style={{maxWidth: dimensions?.width}}
+                    >
+                        <img
+                            aria-label={ariaLabelImage}
+                            className={this.props.className}
+                            src={miniPreview}
+                            tabIndex={0}
+                            height={height}
+                            width={width}
+                        />
+                    </div>
+                );
+            } else {
+                fallback = (
+                    <div
+                        className={`image-loading__container ${this.props.className}`}
+                        style={{maxWidth: width}}
+                    >
+                        {this.renderImageLoaderIfNeeded()}
+                        <svg
+                            xmlns='http://www.w3.org/2000/svg'
+                            viewBox={`0 0 ${width} ${height}`}
+                            style={{maxHeight: height, maxWidth: width, verticalAlign: 'middle'}}
+                        />
+                    </div>
+                );
+            }
+        }
+
+        const shouldShowImg = !this.dimensionsAvailable(dimensions) || this.state.loaded;
+        const imageContainer = this.renderImageWithContainerIfNeeded();
+        
+        // Always render utility buttons outside the figure but inside file-preview__button (unless hideUtilities is true)
+        const utilityButtons = this.props.hideUtilities ? null : this.renderUtilityButtons();
+
+        return (
+            <>
+                {fallback}
+                <div
+                    className='file-preview__button'
+                    style={{display: shouldShowImg ? 'flex' : 'none'}}
+                >
+                    {imageContainer}
+                    {shouldShowImg && utilityButtons}
+                </div>
+            </>
+        );
+    };
+
+    isInternalImage = (this.props.fileInfo !== undefined) && (this.props.fileInfo !== null);
+
+    startCopyTimer = () => {
+        // set linkCopiedRecently to true, and reset to false after 1.5 seconds
+        this.setState({linkCopiedRecently: true});
+        if (this.timeout) {
+            clearTimeout(this.timeout);
+        }
+        this.timeout = setTimeout(() => {
+            this.setState({linkCopiedRecently: false, linkCopyInProgress: false});
+        }, 1500);
+    };
+
+    copyLinkToAsset = async () => {
+        // if linkCopyInProgress is true return
+        if (this.state.linkCopyInProgress !== true) {
+            // set linkCopyInProgress to true to prevent multiple api calls
+            this.setState({linkCopyInProgress: true});
+
+            // check if image is external, if not copy this.props.src
+            if (!this.isInternalImage) {
+                copyToClipboard(this.props.src ?? '');
+                this.startCopyTimer();
+                return;
+            }
+
+            // copying public link to clipboard
+            if (this.props.getFilePublicLink) {
+                const data: any = await this.props.getFilePublicLink();
+                const fileURL = data.data?.link;
+                copyToClipboard(fileURL ?? '');
+                this.startCopyTimer();
+            }
+        }
+    };
+
+    renderUtilityButtons = () => {
+        const {
+            enablePublicLink,
+            intl,
+            src,
+            fileURL,
+        } = this.props;
+
+        // Don't render utility buttons for external small images
+        if (this.state.isSmallImage && !this.isInternalImage) {
+            return null;
+        }
 
         const copyLinkTooltipText = this.state.linkCopiedRecently ? (
             <FormattedMessage
@@ -321,163 +471,24 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             </WithTooltip>
         );
 
-        if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
-            const baseClassName = 'small-image__container cursor--pointer a11y--active';
+        // Determine which CSS classes to use based on image type and size
+        const isSmallImage = this.props.handleSmallImageContainer && this.state.isSmallImage;
+        const hasSmallWidth = this.state.imageWidth < MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS;
+        
+        const containerClasses = classNames('image-preview-utility-buttons-container', {
+            'image-preview-utility-buttons-container--small-image': isSmallImage || hasSmallWidth,
+            'image-preview-utility-buttons-container--small-image-no-copy-button': (!enablePublicLink || !this.isInternalImage) && (isSmallImage || hasSmallWidth),
+        });
 
-            // Only add min-width/min-height if the image is smaller than MIN_IMAGE_SIZE
-            const wideSmallImageStyle = (this.state.imageWidth < MIN_IMAGE_SIZE || (fileInfo && fileInfo.height && fileInfo.height < MIN_IMAGE_SIZE)) ? {minWidth: MIN_IMAGE_SIZE, minHeight: MIN_IMAGE_SIZE} : {};
-            const needsMinWidth = this.state.imageWidth < MIN_IMAGE_SIZE || (fileInfo && fileInfo.height && fileInfo.height < MIN_IMAGE_SIZE);
-            const className = needsMinWidth ? `${baseClassName} small-image__container--min-width` : baseClassName;
-
-            // For small images that need width styling, add width + 2px padding
-            const containerStyle = this.state.imageWidth >= MIN_IMAGE_SIZE ? {width: this.state.imageWidth + 2} : wideSmallImageStyle;
-
-            return (
-                <figure className={classNames('image-loaded-container')}>
-                    <div
-                        onClick={this.handleImageClick}
-                        className={classNames(className)}
-                        style={containerStyle}
-                    >
-                        {image}
-                    </div>
-                    <span
-                        className={classNames('image-preview-utility-buttons-container', 'image-preview-utility-buttons-container--small-image', {
-                            'image-preview-utility-buttons-container--small-image-no-copy-button': !enablePublicLink,
-                        })}
-                    >
-                        {enablePublicLink && copyLink}
-                        {download}
-                    </span>
-                </figure>
-            );
-        }
-
-        // handling external small images (OR) handling all large internal / large external images
-        const utilityButtonsWrapper = this.props.hideUtilities || (this.state.isSmallImage && !this.isInternalImage) ? null :
-            (
-                <span
-                    className={classNames('image-preview-utility-buttons-container', {
-
-                        // cases for when image isn't a small image but width is < 100px
-                        'image-preview-utility-buttons-container--small-image': this.state.imageWidth < MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS,
-                        'image-preview-utility-buttons-container--small-image-no-copy-button': (!enablePublicLink || !this.isInternalImage) && this.state.imageWidth < MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS,
-                    })}
-                >
-                    {(enablePublicLink || !this.isInternalImage) && copyLink}
-                    {download}
-                </span>
-            );
-        return (
-            <figure className={classNames('image-loaded-container')}>
-                {image}
-                {utilityButtonsWrapper}
-            </figure>
-        );
-    };
-
-    renderImageOrFallback = () => {
-        const {
-            dimensions,
-            fileInfo,
-        } = this.props;
-
-        let ariaLabelImage = this.props.intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
-        if (fileInfo) {
-            ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
-        }
-
-        let fallback;
-
-        if (this.dimensionsAvailable(dimensions) && !this.state.loaded) {
-            const ratio = (dimensions?.height ?? 0) > MAX_IMAGE_HEIGHT ? MAX_IMAGE_HEIGHT / (dimensions?.height ?? 1) : 1;
-            const height = (dimensions?.height ?? 0) * ratio;
-            const width = (dimensions?.width ?? 0) * ratio;
-
-            const miniPreview = getFileMiniPreviewUrl(fileInfo);
-
-            if (miniPreview) {
-                fallback = (
-                    <div
-                        className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: dimensions?.width}}
-                    >
-                        <img
-                            aria-label={ariaLabelImage}
-                            className={this.props.className}
-                            src={miniPreview}
-                            tabIndex={0}
-                            height={height}
-                            width={width}
-                        />
-                    </div>
-                );
-            } else {
-                fallback = (
-                    <div
-                        className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: width}}
-                    >
-                        {this.renderImageLoaderIfNeeded()}
-                        <svg
-                            xmlns='http://www.w3.org/2000/svg'
-                            viewBox={`0 0 ${width} ${height}`}
-                            style={{maxHeight: height, maxWidth: width, verticalAlign: 'middle'}}
-                        />
-                    </div>
-                );
-            }
-        }
-
-        const shouldShowImg = !this.dimensionsAvailable(dimensions) || this.state.loaded;
+        // Determine which buttons to show
+        const showCopyLink = (enablePublicLink || !this.isInternalImage);
 
         return (
-            <>
-                {fallback}
-                <div
-                    className='file-preview__button'
-                    style={{display: shouldShowImg ? 'flex' : 'none'}}
-                >
-                    {this.renderImageWithContainerIfNeeded()}
-                </div>
-            </>
+            <span className={containerClasses}>
+                {showCopyLink && copyLink}
+                {download}
+            </span>
         );
-    };
-
-    isInternalImage = (this.props.fileInfo !== undefined) && (this.props.fileInfo !== null);
-
-    startCopyTimer = () => {
-        // set linkCopiedRecently to true, and reset to false after 1.5 seconds
-        this.setState({linkCopiedRecently: true});
-        if (this.timeout) {
-            clearTimeout(this.timeout);
-        }
-        this.timeout = setTimeout(() => {
-            this.setState({linkCopiedRecently: false, linkCopyInProgress: false});
-        }, 1500);
-    };
-
-    copyLinkToAsset = async () => {
-        // if linkCopyInProgress is true return
-        if (this.state.linkCopyInProgress !== true) {
-            // set linkCopyInProgress to true to prevent multiple api calls
-            this.setState({linkCopyInProgress: true});
-
-            // check if image is external, if not copy this.props.src
-            if (!this.isInternalImage) {
-                copyToClipboard(this.props.src ?? '');
-                this.startCopyTimer();
-                return;
-            }
-
-            // copying public link to clipboard
-            if (this.props.getFilePublicLink) {
-                const data: any = await this.props.getFilePublicLink();
-                const fileURL = data.data?.link;
-                copyToClipboard(fileURL ?? '');
-                this.startCopyTimer();
-            }
-        }
     };
 
     render() {
