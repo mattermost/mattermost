@@ -140,6 +140,30 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		return err
 	}
 
+	// Handle users-only export
+	if opts.UsersOnly {
+		ctx.Logger().Info("Bulk export: users-only export mode")
+		
+		ctx.Logger().Info("Bulk export: exporting users")
+		profilePictures, appErr := a.exportAllUsers(ctx, job, writer, false, opts.IncludeProfilePictures)
+		if appErr != nil {
+			return appErr
+		}
+
+		if opts.IncludeProfilePictures && len(profilePictures) > 0 {
+			ctx.Logger().Info("Bulk export: exporting profile pictures")
+			for _, profilePicture := range profilePictures {
+				if err := a.exportFile(ctx, outPath, profilePicture, zipWr); err != nil {
+					ctx.Logger().Warn("Unable to export profile picture", mlog.String("profile_picture", profilePicture), mlog.Err(err))
+				}
+			}
+			updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "profile_pictures_exported", len(profilePictures))
+		}
+
+		return nil
+	}
+
+	// Regular full export
 	if opts.IncludeRolesAndSchemes {
 		if err := a.exportRolesAndSchemes(ctx, job, writer); err != nil {
 			return err

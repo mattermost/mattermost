@@ -87,6 +87,85 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		s.Empty(printer.GetErrorLines())
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
 	})
+
+	s.Run("create users-only export", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"users_only": "true",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("users-only", true, "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("create users-only export with profile pictures", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"users_only":              "true",
+				"include_profile_pictures": "true",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("users-only", true, "")
+		cmd.Flags().Bool("include-profile-pictures", true, "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("users-only export ignores channel-specific flags", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"users_only": "true",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("users-only", true, "")
+		cmd.Flags().Bool("no-attachments", true, "")
+		cmd.Flags().Bool("include-archived-channels", true, "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
