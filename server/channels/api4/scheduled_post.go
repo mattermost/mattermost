@@ -71,7 +71,7 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	scheduledPost.UserId = c.AppContext.Session().UserId
 	scheduledPost.SanitizeInput()
 
-	auditRec := c.MakeAuditRecord("createSchedulePost", audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventCreateSchedulePost, audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameterAuditable(auditRec, "scheduledPost", &scheduledPost)
 
@@ -166,7 +166,7 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateScheduledPost", audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdateScheduledPost, audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameterAuditable(auditRec, "scheduledPost", &scheduledPost)
 
@@ -205,7 +205,7 @@ func deleteScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteScheduledPost", audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventDeleteScheduledPost, audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameter(auditRec, "scheduledPostId", scheduledPostId)
 
