@@ -3,6 +3,7 @@
 
 import React, {useCallback, useState} from 'react';
 
+import * as TextFormatting from 'utils/text_formatting';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import SuggestionBox from './suggestion_box';
@@ -240,5 +241,99 @@ describe('SuggestionBox', () => {
 
         // expect(onSuggestionsReceived).toHaveBeenCalledTimes(1);
         expect(screen.getByPlaceholderText('test input')).toHaveValue('@use@use This is important');
+    });
+
+    test('should restore remote mention tokens when completing word', async () => {
+        // Mock the TextFormatting functions
+        const storeRemoteMentionTokenSpy = jest.spyOn(TextFormatting, 'storeRemoteMentionToken');
+        const restoreRemoteMentionTokensSpy = jest.spyOn(TextFormatting, 'restoreRemoteMentionTokens');
+
+        // Store a remote mention token to simulate autocomplete behavior
+        const remoteToken = '$MM_ATMENTION_REMOTE1$';
+        const actualMention = '@user:org1';
+        TextFormatting.storeRemoteMentionToken(remoteToken, actualMention);
+
+        // Create a provider that returns the remote token as a suggestion
+        class RemoteMentionProvider extends Provider {
+            handlePretextChanged(pretext: string, resultCallback: ResultsCallback<string>) {
+                if (pretext.trim().length === 0) {
+                    return false;
+                }
+
+                // Simulate remote mention token being returned from autocomplete
+                resultCallback({
+                    matchedPretext: pretext,
+                    terms: [remoteToken],
+                    items: [remoteToken],
+                    component: TestSuggestion,
+                });
+
+                return true;
+            }
+        }
+
+        const provider = new RemoteMentionProvider();
+
+        renderWithContext(
+            <TestWrapper
+                {...makeBaseProps()}
+                providers={[provider]}
+            />,
+        );
+
+        // Type something to trigger suggestions
+        userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.keyboard('@user');
+
+        await waitFor(() => {
+            expect(screen.queryByRole('listbox')).toBeVisible();
+        });
+
+        // Complete the suggestion by pressing enter
+        await userEvent.keyboard('{enter}');
+
+        // Verify that restoreRemoteMentionTokens was called to convert token back to actual mention
+        expect(restoreRemoteMentionTokensSpy).toHaveBeenCalledWith(remoteToken);
+
+        await waitFor(() => {
+            // The textbox should contain the actual mention, not the token
+            expect(screen.getByPlaceholderText('test input')).toHaveValue('@user:org1 ');
+        });
+
+        storeRemoteMentionTokenSpy.mockRestore();
+        restoreRemoteMentionTokensSpy.mockRestore();
+    });
+
+    test('should handle non-token suggestions normally', async () => {
+        const restoreRemoteMentionTokensSpy = jest.spyOn(TextFormatting, 'restoreRemoteMentionTokens');
+
+        const provider = new TestProvider();
+
+        renderWithContext(
+            <TestWrapper
+                {...makeBaseProps()}
+                providers={[provider]}
+            />,
+        );
+
+        // Type to trigger normal suggestions
+        userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.keyboard('test');
+
+        await waitFor(() => {
+            expect(screen.queryByRole('listbox')).toBeVisible();
+        });
+
+        // Complete the suggestion
+        await userEvent.keyboard('{enter}');
+
+        // Verify that restoreRemoteMentionTokens was still called (but with non-token text)
+        expect(restoreRemoteMentionTokensSpy).toHaveBeenCalledWith('testtest');
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText('test input')).toHaveValue('testtest ');
+        });
+
+        restoreRemoteMentionTokensSpy.mockRestore();
     });
 });

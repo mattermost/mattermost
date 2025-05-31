@@ -8,6 +8,7 @@ import QuickInput from 'components/quick_input';
 
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+import * as TextFormatting from 'utils/text_formatting';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
@@ -448,6 +449,9 @@ export default class SuggestionBox extends React.PureComponent {
             finish = true;
             openCommandInModal = true;
         }
+
+        // Restore remote mention tokens to actual mentions in the textbox
+        fixedTerm = TextFormatting.restoreRemoteMentionTokens(fixedTerm);
 
         if (!finish) {
             if (this.props.replaceAllInputOnSelect) {

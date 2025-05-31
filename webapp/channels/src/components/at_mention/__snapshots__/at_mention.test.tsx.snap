@@ -121,7 +121,7 @@ exports[`components/AtMention should match snapshot when mentioning remote user 
     <span
       className="mention-link"
     >
-      @Remote User
+      @remoteuser:remote
     </span>
   </ProfilePopoverController>
 </Fragment>
@@ -139,7 +139,7 @@ exports[`components/AtMention should match snapshot when mentioning remote user 
     <span
       className="mention-link"
     >
-      @Remote2 User2
+      @remoteuser2:remote
     </span>
   </ProfilePopoverController>
 </Fragment>

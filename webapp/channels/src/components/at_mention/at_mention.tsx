@@ -56,9 +56,12 @@ const AtMention = (props: Props) => {
 
     if (user) {
         const userMentionNameSuffix = props.mentionName.substring(user.username.length);
-        const userDisplayName = displayUsername(user, props.teammateNameDisplay);
-
         const highlightMention = !props.disableHighlight && user.id === props.currentUserId;
+
+        // For remote users, use the mention name directly (user:org1)
+        // For local users, use the display name
+        const isRemoteUser = Boolean(user.remote_id);
+        const userDisplayName = isRemoteUser ? props.mentionName : displayUsername(user, props.teammateNameDisplay);
 
         return (
             <>

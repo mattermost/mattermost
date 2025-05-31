@@ -147,4 +147,68 @@ describe('TextFormatting.AtMentions', () => {
             it(test.label, () => expect(test.actual).toBe(test.expected));
         });
     });
+
+    describe('Remote mention tokens', () => {
+        it('should store and restore remote mention tokens', () => {
+            const token = '$MM_ATMENTION_REMOTE1$';
+            const mentionText = '@user:org1';
+
+            // Store a token
+            TextFormatting.storeRemoteMentionToken(token, mentionText);
+
+            // Test that restoration works
+            const textWithToken = `Hello ${token} how are you?`;
+            const restoredText = TextFormatting.restoreRemoteMentionTokens(textWithToken);
+
+            expect(restoredText).toBe(`Hello ${mentionText} how are you?`);
+        });
+
+        it('should handle multiple remote mention tokens', () => {
+            const token1 = '$MM_ATMENTION_REMOTE1$';
+            const token2 = '$MM_ATMENTION_REMOTE2$';
+            const mention1 = '@user1:org1';
+            const mention2 = '@user2:org2';
+
+            // Store tokens
+            TextFormatting.storeRemoteMentionToken(token1, mention1);
+            TextFormatting.storeRemoteMentionToken(token2, mention2);
+
+            // Test restoration with multiple tokens
+            const textWithTokens = `${token1} and ${token2} are collaborating`;
+            const restoredText = TextFormatting.restoreRemoteMentionTokens(textWithTokens);
+
+            expect(restoredText).toBe(`${mention1} and ${mention2} are collaborating`);
+        });
+
+        it('should handle text without tokens unchanged', () => {
+            const normalText = 'Hello @user how are you?';
+            const restoredText = TextFormatting.restoreRemoteMentionTokens(normalText);
+
+            expect(restoredText).toBe(normalText);
+        });
+
+        it('should handle special characters in tokens correctly', () => {
+            const token = '$MM_ATMENTION_REMOTE1$';
+            const mentionText = '@user:org1';
+
+            TextFormatting.storeRemoteMentionToken(token, mentionText);
+
+            // Test with special regex characters that need escaping
+            const textWithSpecialChars = `(${token}) and [${token}]`;
+            const restoredText = TextFormatting.restoreRemoteMentionTokens(textWithSpecialChars);
+
+            expect(restoredText).toBe(`(${mentionText}) and [${mentionText}]`);
+        });
+
+        it('should handle remote mentions in at mentions processing', () => {
+            const tokens = new Map();
+            
+            // Test that @user:org1 gets captured by the AT_MENTION_PATTERN
+            const result = TextFormatting.autolinkAtMentions('@user:org1', tokens);
+            
+            expect(result).toBe('$MM_ATMENTION0$');
+            expect(tokens.get('$MM_ATMENTION0$')?.originalText).toBe('@user:org1');
+            expect(tokens.get('$MM_ATMENTION0$')?.value).toBe('<span data-mention="user:org1">@user:org1</span>');
+        });
+    });
 });
