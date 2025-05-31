@@ -14,7 +14,9 @@ exports[`NotificationPermissionBar should render the NotificationPermissionNever
       <span>
         We need your permission to show notifications in the browser.
       </span>
-      <button>
+      <button
+        class="btn btn-tertiary btn-xs btn-inverted"
+      >
         Manage notification preferences
       </button>
     </div>
@@ -42,7 +44,9 @@ exports[`NotificationPermissionBar should render the NotificationUnsupportedBar 
       <span>
         Your browser does not support browser notifications.
       </span>
-      <button>
+      <button
+        class="btn btn-tertiary btn-xs btn-inverted"
+      >
         Update your browser
       </button>
     </div>
