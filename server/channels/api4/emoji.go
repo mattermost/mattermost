@@ -11,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -54,7 +53,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createEmoji", audit.Fail)
+	auditRec := c.MakeAuditRecord("createEmoji", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	// Allow any user with CREATE_EMOJIS permission at Team level to create emojis at system level
@@ -137,12 +136,12 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteEmoji", audit.Fail)
+	auditRec := c.MakeAuditRecord("deleteEmoji", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	emoji, err := c.App.GetEmoji(c.AppContext, c.Params.EmojiId)
 	if err != nil {
-		audit.AddEventParameter(auditRec, "emoji_id", c.Params.EmojiId)
+		model.AddEventParameterToAuditRec(auditRec, "emoji_id", c.Params.EmojiId)
 		c.Err = err
 		return
 	}

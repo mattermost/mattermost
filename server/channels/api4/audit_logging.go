@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitAuditLogging() {
@@ -50,9 +49,9 @@ func addAuditLogCertificate(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addAuditLogCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord("addAuditLogCertificate", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
+	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
 	if err := c.App.AddAuditLogCertificate(c.AppContext, fileData); err != nil {
 		c.Err = err
@@ -71,7 +70,7 @@ func removeAuditLogCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeAuditLogCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord("removeAuditLogCertificate", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveAuditLogCertificate(c.AppContext); err != nil {

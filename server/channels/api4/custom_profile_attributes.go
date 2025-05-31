@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitCustomProfileAttributes() {
@@ -62,9 +61,9 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	pf.Name = strings.TrimSpace(pf.Name)
 
-	auditRec := c.MakeAuditRecord("createCPAField", audit.Fail)
+	auditRec := c.MakeAuditRecord("createCPAField", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "property_field", pf)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", pf)
 
 	createdField, appErr := c.App.CreateCPAField(pf)
 	if appErr != nil {
@@ -117,9 +116,9 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchCPAField", audit.Fail)
+	auditRec := c.MakeAuditRecord("patchCPAField", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "property_field_patch", patch)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field_patch", patch)
 
 	originalField, appErr := c.App.GetCPAField(c.Params.FieldId)
 	if appErr != nil {
@@ -160,9 +159,9 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteCPAField", audit.Fail)
+	auditRec := c.MakeAuditRecord("deleteCPAField", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "field_id", c.Params.FieldId)
+	model.AddEventParameterToAuditRec(auditRec, "field_id", c.Params.FieldId)
 
 	field, appErr := c.App.GetCPAField(c.Params.FieldId)
 	if appErr != nil {
@@ -220,9 +219,9 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchCPAValues", audit.Fail)
+	auditRec := c.MakeAuditRecord("patchCPAValues", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "user_id", userID)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
 
 	results := make(map[string]json.RawMessage, len(updates))
 	for fieldID, rawValue := range updates {
