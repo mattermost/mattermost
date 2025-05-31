@@ -220,6 +220,8 @@ const (
 	ElasticsearchSettingsESBackend                          = "elasticsearch"
 	ElasticsearchSettingsOSBackend                          = "opensearch"
 
+	ChannelSearchdefaultDelay = 100
+
 	BleveSettingsDefaultIndexDir  = ""
 	BleveSettingsDefaultBatchSize = 10000
 
@@ -3552,8 +3554,9 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes []string `access:"site_posts"`
-	MaxMarkdownNodes *int     `access:"site_posts"`
+	CustomURLSchemes        []string `access:"site_posts"`
+	MaxMarkdownNodes        *int     `access:"site_posts"`
+	SuggestionDebounceDelay *int     `access:"site_posts"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
@@ -3852,6 +3855,10 @@ func (o *Config) isUpdate() bool {
 
 func (o *Config) SetDefaults() {
 	isUpdate := o.isUpdate()
+
+	if o.DisplaySettings.SuggestionDebounceDelay == nil {
+		o.DisplaySettings.SuggestionDebounceDelay = NewPointer(ChannelSearchdefaultDelay)
+	}
 
 	o.LdapSettings.SetDefaults()
 	o.SamlSettings.SetDefaults()
