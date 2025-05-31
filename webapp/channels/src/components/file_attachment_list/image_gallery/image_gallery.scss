@@ -1,0 +1,230 @@
+@use 'sass:math';
+@use 'sass/utils/variables';
+@use 'sass/utils/functions';
+@use 'sass/utils/mixins';
+
+// Add keyframes for the modal transition
+@keyframes expandImageToModal {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: scale(1.5) translateY(-10%);
+    }
+}
+
+@keyframes collapseImageFromModal {
+    from {
+        opacity: 0;
+        transform: scale(1.5) translateY(-10%);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.image-gallery {
+    margin: 5px 0;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        gap: 8px;
+    }
+
+    &__toggle,
+    &__download-all {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        cursor: pointer;
+        font-size: 12px;
+        gap: 4px;
+
+        &:hover:not(:disabled) {
+            color: var(--center-channel-color);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    }
+
+    &__separator {
+        width: 1px;
+        height: 16px;
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+
+    &__body {
+        display: flex;
+        overflow: hidden;
+        // Max height calculation: dynamic gallery height + 8px (gap) per row
+        // Allow for up to 10 rows of images with dynamic height
+        max-height: 2240px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 8px;
+        opacity: 1;
+        transition: all 250ms ease-in-out;
+
+        &.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+    }
+
+    &__item {
+        position: relative;
+        display: flex;
+        min-width: 48px;
+        max-width: 500px;
+        max-height: 216px;
+        flex: none;
+        border-radius: 4px;
+
+        // Special handling for small images - center them within the gallery height
+        &--small {
+            display: flex;
+            height: 216px;
+            max-height: 216px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        // Override SingleImageView styles to fit our grid
+        .file-view--single {
+            height: 100%;
+            margin: 0;
+
+            .file__image {
+                height: 100%;
+
+                .image-header {
+                    display: none;
+                }
+
+                .image-container {
+                    display: flex;
+                    overflow: hidden;
+                    width: 100%;
+                    min-width: 48px;
+                    max-width: 500px;
+                    height: 100%;
+                    max-height: 216px;
+                    border-radius: 4px;
+                    margin: 0;
+
+                    .file-preview__button {
+                        width: auto;
+                    }
+
+                    // Loading state styling
+                    .image-loading__container {
+                        display: flex;
+                        width: 100%;
+                        max-width: none;
+                        height: 100%;
+                        align-items: center;
+                        justify-content: center;
+                        
+                        img[src] {
+                            width: 100%;
+                            height: 100%;
+                            filter: blur(8px);
+                            object-fit: cover;
+                            transform: scale(1.1);
+                            transition: filter 0.3s ease, transform 0.3s ease;
+                        }
+                        
+                        svg {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        }
+                    }
+
+                    .image-loaded {
+                        height: 100%;
+
+                        img {
+                            display: block;
+                            width: auto;
+                            max-width: 100%;
+                            height: auto;
+                            max-height: 100%;
+                            margin: 0 auto;
+                            filter: none;
+                            object-fit: contain;
+                            transition: filter 0.3s ease, transform 0.15s ease-in-out;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Style utility buttons for small images in gallery
+        .image-preview-utility-buttons-container {
+            top: 4px;
+            right: 4px;
+
+            button.size-aware-image__copy_link,
+            a.size-aware-image__download {
+                display: inline-block;
+                width: 28px;
+                height: 28px;
+                padding: 2px;
+                border-radius: 4px;
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                text-align: center;
+
+                &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                    text-decoration: none;
+                }
+
+                svg {
+                    padding-top: 2px;
+                    fill: rgba(var(--center-channel-color-rgb), 0.75);
+                }
+            }
+        }
+
+        // Show utility buttons on hover
+        &:hover .image-preview-utility-buttons-container {
+            display: inline-flex;
+        }
+    }
+}
+
+.small-image__container {
+    display: flex;
+    width: auto;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+}
+
+.small-image__container img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    margin: 0 auto;
+    object-fit: contain;
+}

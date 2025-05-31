@@ -17,13 +17,15 @@ exports[`components/SingleImageView permalink preview should render with permali
         key="toggle"
         onClick={[Function]}
       >
-        <span
-          className="icon icon-menu-down"
+        <MenuDownIcon
+          color="currentColor"
+          size={16}
         />
       </button>
     </div>
     <div
       className="image-container image-permalink"
+      data-expanded={true}
       style={Object {}}
     >
       <div
@@ -93,13 +95,15 @@ exports[`components/SingleImageView should match snapshot 1`] = `
         key="toggle"
         onClick={[Function]}
       >
-        <span
-          className="icon icon-menu-down"
+        <MenuDownIcon
+          color="currentColor"
+          size={16}
         />
       </button>
     </div>
     <div
       className="image-container"
+      data-expanded={true}
       style={Object {}}
     >
       <div
@@ -169,13 +173,15 @@ exports[`components/SingleImageView should match snapshot 2`] = `
         key="toggle"
         onClick={[Function]}
       >
-        <span
-          className="icon icon-menu-down"
+        <MenuDownIcon
+          color="currentColor"
+          size={16}
         />
       </button>
     </div>
     <div
       className="image-container"
+      data-expanded={true}
       style={Object {}}
     >
       <div
@@ -245,13 +251,15 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
         key="toggle"
         onClick={[Function]}
       >
-        <span
-          className="icon icon-menu-down"
+        <MenuDownIcon
+          color="currentColor"
+          size={16}
         />
       </button>
     </div>
     <div
       className="image-container"
+      data-expanded={true}
       style={Object {}}
     >
       <div
@@ -325,13 +333,15 @@ exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
         key="toggle"
         onClick={[Function]}
       >
-        <span
-          className="icon icon-menu-down"
+        <MenuDownIcon
+          color="currentColor"
+          size={16}
         />
       </button>
     </div>
     <div
       className="image-container"
+      data-expanded={true}
       style={Object {}}
     >
       <div
@@ -405,13 +415,15 @@ exports[`components/SingleImageView should set loaded state on callback of onIma
         key="toggle"
         onClick={[Function]}
       >
-        <span
-          className="icon icon-menu-down"
+        <MenuDownIcon
+          color="currentColor"
+          size={16}
         />
       </button>
     </div>
     <div
       className="image-container"
+      data-expanded={true}
       style={Object {}}
     >
       <div
