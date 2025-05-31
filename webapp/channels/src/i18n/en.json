@@ -258,7 +258,6 @@
   "admin.access_control.cel_help_modal.subheader": "With CEL you can define conditions to filter user attributes and control resource access.",
   "admin.access_control.cel_help_modal.title": "Common Expression Language (CEL)",
   "admin.access_control.cel.line_and_column_number": "L{lineNumber}:{columnNumber}",
-  "admin.access_control.cel.validateSyntax": "Validate syntax",
   "admin.access_control.cel.validating": "Validating...",
   "admin.access_control.delete": "Delete",
   "admin.access_control.edit": "Edit",
