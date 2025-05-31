@@ -1638,6 +1638,38 @@ func TestSearchUsers(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, users[0].Id, th.BasicUser.Id)
 	})
+
+	// Create LDAP user
+	authData := "some auth data"
+	ldapUser := &model.User{
+		Email:         th.GenerateTestEmail(),
+		Username:      GenerateTestUsername(),
+		EmailVerified: true,
+		AuthService:   model.UserAuthServiceLdap,
+		AuthData:      &authData,
+	}
+	ldapUser, appErr = th.App.CreateUser(th.Context, ldapUser)
+	require.Nil(t, appErr)
+
+	t.Run("LDAP authdata field is returned appropriately", func(t *testing.T) {
+		// Search as regular user
+		search := &model.UserSearch{Term: ldapUser.Username}
+		users, resp, err := th.Client.SearchUsers(context.Background(), search)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, users, 1, "should find the ldap user")
+		require.Equal(t, ldapUser.Id, users[0].Id)
+		require.Empty(t, users[0].AuthData, "regular user should not see AuthData")
+
+		// Search as system admin
+		users, resp, err = th.SystemAdminClient.SearchUsers(context.Background(), search)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, users, 1, "should find the ldap user")
+		require.Equal(t, ldapUser.Id, users[0].Id)
+		require.NotNil(t, users[0].AuthData, "admin should see AuthData")
+		require.Equal(t, *ldapUser.AuthData, *users[0].AuthData)
+	})
 }
 
 func findUserInList(id string, users []*model.User) bool { //nolint:unused
@@ -2992,6 +3024,27 @@ func TestGetUsers(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, err.Error(), "Invalid or missing role in request body.")
 	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		user := &model.User{
+			Email:       th.GenerateTestEmail(),
+			Username:    GenerateTestUsername(),
+			AuthService: model.UserAuthServiceLdap,
+			AuthData:    model.NewPointer(model.NewId()),
+		}
+		u, resp, err := c.CreateUser(context.Background(), user)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, u)
+
+		u, resp, err = c.GetUser(context.Background(), u.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, u)
+
+		assert.Equal(t, user.AuthService, u.AuthService)
+		assert.Equal(t, user.AuthData, u.AuthData)
+	}, "AuthData is returned for admins")
 
 	_, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
