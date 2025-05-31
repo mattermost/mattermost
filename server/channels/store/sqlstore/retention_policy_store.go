@@ -441,8 +441,9 @@ func (s *SqlRetentionPolicyStore) Delete(id string) error {
 }
 
 func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int) (model.ChannelListWithTeamData, error) {
-	query := s.getQueryBuilder().Select(`Channels.*, Teams.DisplayName AS TeamDisplayName,
-	  Teams.Name AS TeamName,Teams.UpdateAt AS TeamUpdateAt`).
+	query := s.getQueryBuilder().
+		Select("Teams.DisplayName AS TeamDisplayName", "Teams.Name AS TeamName", "Teams.UpdateAt AS TeamUpdateAt").
+		Columns(channelSliceColumns(true, "Channels")...).
 		From("RetentionPoliciesChannels").
 		InnerJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
 		InnerJoin("Teams ON Channels.TeamId = Teams.Id").
@@ -550,7 +551,7 @@ func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []s
 
 func (s *SqlRetentionPolicyStore) GetTeams(policyId string, offset, limit int) ([]*model.Team, error) {
 	query := s.getQueryBuilder().
-		Select("Teams.*").
+		Select(teamSliceColumns()...).
 		From("RetentionPoliciesTeams").
 		InnerJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
 		Where(sq.Eq{"RetentionPoliciesTeams.PolicyId": policyId}).
@@ -858,7 +859,7 @@ func scanRetentionIdsForDeletion(rows *sql.Rows, isPostgres bool) ([]*model.Rete
 
 func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error) {
 	query := s.getQueryBuilder().
-		Select("*").
+		Select("Id", "TableName", "Ids").
 		From("RetentionIdsForDeletion").
 		Where(
 			sq.Eq{"TableName": tableName},
