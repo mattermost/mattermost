@@ -225,6 +225,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
           "id": "multiselect.placeholder",
         }
       }
+      required={false}
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}
@@ -466,6 +467,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
           "id": "multiselect.placeholder",
         }
       }
+      required={false}
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}
