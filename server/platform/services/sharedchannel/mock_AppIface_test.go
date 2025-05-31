@@ -166,6 +166,46 @@ func (_m *MockAppIface) CreateUploadSession(c request.CTX, us *model.UploadSessi
 	return r0, r1
 }
 
+// DeleteAcknowledgementsForPost provides a mock function with given fields: c, postID
+func (_m *MockAppIface) DeleteAcknowledgementsForPost(c request.CTX, postID string) *model.AppError {
+	ret := _m.Called(c, postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAcknowledgementsForPost")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AppError); ok {
+		r0 = rf(c, postID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// DeleteAcknowledgementsForPostWithPost provides a mock function with given fields: c, post
+func (_m *MockAppIface) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError {
+	ret := _m.Called(c, post)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAcknowledgementsForPostWithPost")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) *model.AppError); ok {
+		r0 = rf(c, post)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DeletePost provides a mock function with given fields: c, postID, deleteByID
 func (_m *MockAppIface) DeletePost(c request.CTX, postID string, deleteByID string) (*model.Post, *model.AppError) {
 	ret := _m.Called(c, postID, deleteByID)
@@ -250,6 +290,38 @@ func (_m *MockAppIface) FileReader(path string) (filestore.ReadCloseSeeker, *mod
 	return r0, r1
 }
 
+// GetAcknowledgementsForPost provides a mock function with given fields: postID
+func (_m *MockAppIface) GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAcknowledgementsForPost")
+	}
+
+	var r0 []*model.PostAcknowledgement
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) ([]*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(postID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.PostAcknowledgement); ok {
+		r0 = rf(postID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(postID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetOrCreateDirectChannel provides a mock function with given fields: c, userId, otherUserId, channelOptions
 func (_m *MockAppIface) GetOrCreateDirectChannel(c request.CTX, userId string, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	_va := make([]interface{}, len(channelOptions))
@@ -280,6 +352,38 @@ func (_m *MockAppIface) GetOrCreateDirectChannel(c request.CTX, userId string, o
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, string, ...model.ChannelOption) *model.AppError); ok {
 		r1 = rf(c, userId, otherUserId, channelOptions...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPriorityForPost provides a mock function with given fields: postID
+func (_m *MockAppIface) GetPriorityForPost(postID string) (*model.PostPriority, *model.AppError) {
+	ret := _m.Called(postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPriorityForPost")
+	}
+
+	var r0 *model.PostPriority
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (*model.PostPriority, *model.AppError)); ok {
+		return rf(postID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.PostPriority); ok {
+		r0 = rf(postID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostPriority)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(postID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -326,6 +430,24 @@ func (_m *MockAppIface) GetProfileImage(user *model.User) ([]byte, bool, *model.
 	}
 
 	return r0, r1, r2
+}
+
+// IsPostPriorityEnabled provides a mock function with given fields:
+func (_m *MockAppIface) IsPostPriorityEnabled() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsPostPriorityEnabled")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
 }
 
 // MentionsToTeamMembers provides a mock function with given fields: c, message, teamID
@@ -469,14 +591,194 @@ func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Cha
 	return r0
 }
 
+// PreparePostForClient provides a mock function with given fields: c, post, isNewPost, includeDeleted, includePriority
+func (_m *MockAppIface) PreparePostForClient(c request.CTX, post *model.Post, isNewPost bool, includeDeleted bool, includePriority bool) *model.Post {
+	ret := _m.Called(c, post, isNewPost, includeDeleted, includePriority)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PreparePostForClient")
+	}
+
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, bool, bool, bool) *model.Post); ok {
+		r0 = rf(c, post, isNewPost, includeDeleted, includePriority)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	return r0
+}
+
 // Publish provides a mock function with given fields: message
 func (_m *MockAppIface) Publish(message *model.WebSocketEvent) {
 	_m.Called(message)
 }
 
+// SaveAcknowledgementForPost provides a mock function with given fields: c, postID, userID
+func (_m *MockAppIface) SaveAcknowledgementForPost(c request.CTX, postID string, userID string) (*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(c, postID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveAcknowledgementForPost")
+	}
+
+	var r0 *model.PostAcknowledgement
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(c, postID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.PostAcknowledgement); ok {
+		r0 = rf(c, postID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
+		r1 = rf(c, postID, userID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SaveAcknowledgementForPostWithPost provides a mock function with given fields: c, post, userID
+func (_m *MockAppIface) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string) (*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(c, post, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveAcknowledgementForPostWithPost")
+	}
+
+	var r0 *model.PostAcknowledgement
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, string) (*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(c, post, userID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, string) *model.PostAcknowledgement); ok {
+		r0 = rf(c, post, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, string) *model.AppError); ok {
+		r1 = rf(c, post, userID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SaveAcknowledgementsForPost provides a mock function with given fields: c, postID, userIDs
+func (_m *MockAppIface) SaveAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(c, postID, userIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveAcknowledgementsForPost")
+	}
+
+	var r0 []*model.PostAcknowledgement
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) ([]*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(c, postID, userIDs)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) []*model.PostAcknowledgement); ok {
+		r0 = rf(c, postID, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, []string) *model.AppError); ok {
+		r1 = rf(c, postID, userIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SaveAcknowledgementsForPostWithPost provides a mock function with given fields: c, post, userIDs
+func (_m *MockAppIface) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Post, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(c, post, userIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveAcknowledgementsForPostWithPost")
+	}
+
+	var r0 []*model.PostAcknowledgement
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, []string) ([]*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(c, post, userIDs)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, []string) []*model.PostAcknowledgement); ok {
+		r0 = rf(c, post, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, []string) *model.AppError); ok {
+		r1 = rf(c, post, userIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SaveAndBroadcastStatus provides a mock function with given fields: status
 func (_m *MockAppIface) SaveAndBroadcastStatus(status *model.Status) {
 	_m.Called(status)
+}
+
+// SavePriorityForPost provides a mock function with given fields: c, post
+func (_m *MockAppIface) SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post, *model.AppError) {
+	ret := _m.Called(c, post)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SavePriorityForPost")
+	}
+
+	var r0 *model.Post
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) (*model.Post, *model.AppError)); ok {
+		return rf(c, post)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) *model.Post); ok {
+		r0 = rf(c, post)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post) *model.AppError); ok {
+		r1 = rf(c, post)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SaveReactionForPost provides a mock function with given fields: c, reaction

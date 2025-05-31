@@ -295,6 +295,18 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	count := len(posts)
 	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt, scs.server.Log())
 
+	// Populate metadata for posts before syncing
+	for i, post := range sd.posts {
+		if post != nil {
+			sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
+			// Debug: Log if post has acknowledgements
+			if sd.posts[i].Metadata != nil && sd.posts[i].Metadata.Acknowledgements != nil && len(sd.posts[i].Metadata.Acknowledgements) > 0 {
+				ackCount := len(sd.posts[i].Metadata.Acknowledgements)
+				scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("SEND: Post %s has %d acknowledgements (new posts batch)", sd.posts[i].Id, ackCount))
+			}
+		}
+	}
+
 	cache := postsSliceToMap(posts)
 
 	// Fill remaining batch capacity with updated posts.
@@ -308,6 +320,18 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		posts = reducePostsSliceInCache(posts, cache)
 		count += len(posts)
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
+
+		// Populate metadata for updated posts before syncing
+		for i, post := range sd.posts {
+			if post != nil {
+				sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
+				// Debug: Log if post has acknowledgements
+				if sd.posts[i].Metadata != nil && sd.posts[i].Metadata.Acknowledgements != nil && len(sd.posts[i].Metadata.Acknowledgements) > 0 {
+					ackCount := len(sd.posts[i].Metadata.Acknowledgements)
+					scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("SEND: Post %s has %d acknowledgements (updated posts batch)", sd.posts[i].Id, ackCount))
+				}
+			}
+		}
 	}
 
 	sd.resultNextCursor = nextCursor
@@ -693,6 +717,9 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 
 // sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).
 func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
+	// Debug: Always post a message when sending sync
+	scs.postDebugMessage(msg.ChannelId, fmt.Sprintf("SEND: Sending sync message to remote %s with %d posts", rc.Name, len(msg.Posts)))
+
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
 		return fmt.Errorf("cannot update remote cluster %s for channel id %s; Remote Cluster Service not enabled", rc.Name, msg.ChannelId)

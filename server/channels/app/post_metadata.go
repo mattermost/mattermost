@@ -157,6 +157,10 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 			c.Logger().Warn("Failed to get post acknowledgements for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 		} else {
 			post.Metadata.Acknowledgements = acknowledgements
+			// Debug: Post message when acknowledgements are found and added to metadata
+			if len(acknowledgements) > 0 {
+				a.postDebugToTownSquare(c, fmt.Sprintf("PreparePostForClient: Added %d acknowledgements to post metadata for post %s", len(acknowledgements), post.Id))
+			}
 		}
 	}
 
@@ -953,4 +957,36 @@ func parseImages(rctx request.CTX, requestURL string, body io.Reader) (*model.Po
 	}
 
 	return image, nil
+}
+
+// postDebugToTownSquare posts a debug system message to the default Town Square channel for instrumentation
+func (a *App) postDebugToTownSquare(c request.CTX, message string) {
+	// Get the default Town Square channel
+	townChannel, err := a.Srv().Store().Channel().GetByName("", model.DefaultChannelName, false)
+	if err != nil {
+		// Fallback: try to find any team's town-square channel
+		teams, teamErr := a.Srv().Store().Team().GetAll()
+		if teamErr != nil || len(teams) == 0 {
+			return
+		}
+		townChannel, err = a.Srv().Store().Channel().GetByName(teams[0].Id, model.DefaultChannelName, false)
+		if err != nil {
+			return
+		}
+	}
+
+	// Create a system post with the debug message
+	post := &model.Post{
+		ChannelId: townChannel.Id,
+		UserId:    "",
+		Message:   fmt.Sprintf("[DEBUG] %s", message),
+		Type:      model.PostTypeSystemGeneric,
+		CreateAt:  model.GetMillis(),
+	}
+
+	// Use CreatePost to post the debug message
+	_, appErr := a.CreatePost(c, post, townChannel, model.CreatePostFlags{})
+	if appErr != nil {
+		c.Logger().Warn("Failed to post debug message", mlog.String("town_channel_id", townChannel.Id), mlog.Err(appErr))
+	}
 }
