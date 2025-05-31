@@ -307,7 +307,7 @@ const AdvancedTextEditor = ({
     }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
 
     useOrientationHandler(textboxRef, rootId);
-    const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
+    const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
         draft,

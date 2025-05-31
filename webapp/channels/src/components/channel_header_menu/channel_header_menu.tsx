@@ -35,6 +35,7 @@ import ChannelPublicPrivateMenu from './channel_header_menu_items/channel_header
 
 import ChannelHeaderTitleDirect from '../channel_header/channel_header_title_direct';
 import ChannelHeaderTitleGroup from '../channel_header/channel_header_title_group';
+import {usePluginVisibilityInSharedChannel} from '../common/hooks/usePluginVisibilityInSharedChannel';
 
 type Props = {
     dmUser?: UserProfile;
@@ -55,6 +56,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
     const isLicensedForLDAPGroups = useSelector(getLicense).LDAPGroups === 'true';
     const pluginMenuItems = useSelector(getChannelHeaderMenuPluginComponents);
     const isChannelBookmarksEnabled = useSelector(getIsChannelBookmarksEnabled);
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channel?.id);
 
     const isReadonly = false;
 
@@ -86,22 +88,26 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
         channelTitle = <ChannelHeaderTitleGroup gmMembers={gmMembers}/>;
     }
 
-    const pluginItems = pluginMenuItems.map((item) => {
-        const handlePluginItemClick = () => {
-            if (item.action) {
-                item.action(channel.id);
-            }
-        };
+    let pluginItems: JSX.Element[] = [];
 
-        return (
-            <Menu.Item
-                id={item.id + '_pluginmenuitem'}
-                key={item.id + '_pluginmenuitem'}
-                onClick={handlePluginItemClick}
-                labels={<span>{item.text}</span>}
-            />
-        );
-    });
+    if (pluginItemsVisible) {
+        pluginItems = pluginMenuItems.map((item) => {
+            const handlePluginItemClick = () => {
+                if (item.action) {
+                    item.action(channel.id);
+                }
+            };
+
+            return (
+                <Menu.Item
+                    id={item.id + '_pluginmenuitem'}
+                    key={item.id + '_pluginmenuitem'}
+                    onClick={handlePluginItemClick}
+                    labels={<span>{item.text}</span>}
+                />
+            );
+        });
+    }
 
     return (
         <Menu.Container
@@ -183,4 +189,3 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
         </Menu.Container>
     );
 }
-

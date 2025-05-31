@@ -370,11 +370,15 @@ class ChannelHeader extends React.PureComponent<Props> {
                             </div>
                         </div>
                     </div>
-                    <ChannelHeaderPlug
-                        channel={channel}
-                        channelMember={channelMember}
-                    />
-                    <CallButton/>
+                    {(!channel.shared || this.props.sharedChannelsPluginsEnabled) && (
+                        <>
+                            <ChannelHeaderPlug
+                                channel={channel}
+                                channelMember={channelMember}
+                            />
+                            <CallButton/>
+                        </>
+                    )}
                     <ChannelInfoButton channel={channel}/>
                 </div>
             </div>
