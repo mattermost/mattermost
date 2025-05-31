@@ -412,6 +412,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			// Save the received acknowledgements
 			if post.Metadata.Acknowledgements != nil {
 				acknowledgements = post.Metadata.Acknowledgements
+				scs.postDebugMessage(post.ChannelId, fmt.Sprintf("RECV: Post %s has %d acknowledgements in metadata", post.Id, len(acknowledgements)))
 			}
 		}
 
@@ -492,6 +493,9 @@ func (scs *Service) syncRemotePriorityMetadata(rctx request.CTX, post *model.Pos
 // syncRemoteAcknowledgementsMetadata handles syncing acknowledgements metadata from a remote post.
 // It replaces all existing acknowledgements with the ones from the remote post.
 func (scs *Service) syncRemoteAcknowledgementsMetadata(rctx request.CTX, post *model.Post, acknowledgements []*model.PostAcknowledgement, rpost *model.Post) *model.Post {
+	// Debug: Log incoming acknowledgements
+	scs.postDebugMessage(post.ChannelId, fmt.Sprintf("RECV: syncRemoteAcknowledgementsMetadata called for post %s with %d acknowledgements", post.Id, len(acknowledgements)))
+
 	// When syncing from remote, we completely replace the existing acknowledgements
 	// with the ones received from the remote, regardless of update type
 	appErrDel := scs.app.DeleteAcknowledgementsForPostWithPost(rctx, post)
@@ -500,6 +504,7 @@ func (scs *Service) syncRemoteAcknowledgementsMetadata(rctx request.CTX, post *m
 			mlog.String("post_id", post.Id),
 			mlog.Err(appErrDel),
 		)
+		scs.postDebugMessage(post.ChannelId, fmt.Sprintf("RECV: Failed to delete existing acks for post %s: %v", post.Id, appErrDel))
 	}
 
 	// Extract all user IDs from acknowledgements for batch processing
@@ -512,6 +517,7 @@ func (scs *Service) syncRemoteAcknowledgementsMetadata(rctx request.CTX, post *m
 	var savedAcks []*model.PostAcknowledgement
 
 	if len(userIDs) > 0 {
+		scs.postDebugMessage(post.ChannelId, fmt.Sprintf("RECV: Saving %d acknowledgements for post %s from users: %v", len(userIDs), post.Id, userIDs))
 		var appErrAck *model.AppError
 		savedAcks, appErrAck = scs.app.SaveAcknowledgementsForPostWithPost(rctx, post, userIDs)
 		if appErrAck != nil {
@@ -520,8 +526,11 @@ func (scs *Service) syncRemoteAcknowledgementsMetadata(rctx request.CTX, post *m
 				mlog.Int("count", len(userIDs)),
 				mlog.Err(appErrAck),
 			)
+			scs.postDebugMessage(post.ChannelId, fmt.Sprintf("RECV: Failed to save acks for post %s: %v", post.Id, appErrAck))
 			// Fall back to original acknowledgements if batch save fails
 			savedAcks = acknowledgements
+		} else {
+			scs.postDebugMessage(post.ChannelId, fmt.Sprintf("RECV: Successfully saved %d acknowledgements for post %s", len(savedAcks), post.Id))
 		}
 	}
 

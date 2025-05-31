@@ -299,6 +299,11 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	for i, post := range sd.posts {
 		if post != nil {
 			sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
+			// Debug: Log if post has acknowledgements
+			if sd.posts[i].Metadata != nil && sd.posts[i].Metadata.Acknowledgements != nil && len(sd.posts[i].Metadata.Acknowledgements) > 0 {
+				ackCount := len(sd.posts[i].Metadata.Acknowledgements)
+				scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("SEND: Post %s has %d acknowledgements (new posts batch)", sd.posts[i].Id, ackCount))
+			}
 		}
 	}
 
@@ -320,6 +325,11 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		for i, post := range sd.posts {
 			if post != nil {
 				sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
+				// Debug: Log if post has acknowledgements
+				if sd.posts[i].Metadata != nil && sd.posts[i].Metadata.Acknowledgements != nil && len(sd.posts[i].Metadata.Acknowledgements) > 0 {
+					ackCount := len(sd.posts[i].Metadata.Acknowledgements)
+					scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("SEND: Post %s has %d acknowledgements (updated posts batch)", sd.posts[i].Id, ackCount))
+				}
 			}
 		}
 	}

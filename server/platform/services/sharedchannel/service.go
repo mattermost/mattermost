@@ -300,3 +300,47 @@ func (scs *Service) UpsertSyncPostForTesting(post *model.Post, targetChannel *mo
 func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	return scs.onReceiveSyncMessage(msg, rc, response)
 }
+
+// postDebugMessage posts a debug system message to the default Town channel for instrumentation
+func (scs *Service) postDebugMessage(channelId, message string) {
+	if scs.app == nil {
+		return
+	}
+
+	// Get the default Town channel
+	townChannel, err := scs.server.GetStore().Channel().GetByName("", model.DefaultChannelName, false)
+	if err != nil {
+		// Fallback: try to find any team's town-square channel
+		teams, teamErr := scs.server.GetStore().Team().GetAll()
+		if teamErr != nil || len(teams) == 0 {
+			return
+		}
+		townChannel, err = scs.server.GetStore().Channel().GetByName(teams[0].Id, model.DefaultChannelName, false)
+		if err != nil {
+			return
+		}
+	}
+
+	// Get the shared channel to find a creator ID for posting
+	sc, scErr := scs.server.GetStore().SharedChannel().Get(channelId)
+	if scErr != nil {
+		return
+	}
+
+	// Include the original channel ID in the message for context
+	debugMessage := fmt.Sprintf("[SharedChannel:%s] %s", channelId, message)
+
+	post := &model.Post{
+		ChannelId: townChannel.Id,
+		UserId:    sc.CreatorId,
+		Message:   debugMessage,
+		Type:      model.PostTypeSystemGeneric,
+		CreateAt:  model.GetMillis(),
+	}
+
+	ctx := request.EmptyContext(scs.server.Log())
+	_, appErr := scs.app.CreatePost(ctx, post, townChannel, model.CreatePostFlags{})
+	if appErr != nil {
+		scs.server.Log().Warn("Failed to post debug message", mlog.String("channel_id", channelId), mlog.String("town_channel_id", townChannel.Id), mlog.Err(appErr))
+	}
+}

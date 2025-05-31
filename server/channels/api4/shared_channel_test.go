@@ -380,6 +380,171 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		// Note: Acknowledgements may be handled separately from the main post sync
 	})
 
+	t.Run("Test 2b: Acknowledgement Count Sync Back to Sender", func(t *testing.T) {
+		var syncedPosts []*model.Post
+		var syncHandler *SelfReferentialSyncHandler
+		var postIdToSync string
+
+		// Create test HTTP server using self-referential approach
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if syncHandler != nil {
+				syncHandler.HandleRequest(w, r)
+			} else {
+				writeOKResponse(w)
+			}
+		}))
+		defer testServer.Close()
+
+		// Create remote cluster
+		selfCluster := &model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			Name:        "test-cluster-ack-sync-back",
+			SiteURL:     testServer.URL,
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
+		}
+		selfCluster, err = th.App.Srv().Store().RemoteCluster().Save(selfCluster)
+		require.NoError(t, err)
+
+		// Create a separate channel for this test
+		testChannel := th.CreatePublicChannel()
+
+		// Add both users to the channel
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, testChannel, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, testChannel, false)
+		require.Nil(t, appErr)
+
+		// Create shared channel
+		sc := &model.SharedChannel{
+			ChannelId: testChannel.Id,
+			TeamId:    testChannel.TeamId,
+			Home:      true,
+			ShareName: "test_ack_count_sync",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  selfCluster.RemoteId,
+		}
+		sc, err = th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+
+		// Create shared channel remote
+		scr := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         sc.ChannelId,
+			CreatorId:         sc.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          sc.RemoteId,
+		}
+		_, err = th.App.SaveSharedChannelRemote(scr)
+		require.NoError(t, err)
+
+		// Initialize sync handler
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
+		syncHandler.OnPostSync = func(post *model.Post) {
+			syncedPosts = append(syncedPosts, post)
+		}
+
+		// Step 1: Create post with acknowledgement request (sender side)
+		originalPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: testChannel.Id,
+			Message:   "Test post for ack count sync " + "@" + th.BasicUser2.Username,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck:            model.NewPointer(true),
+					PersistentNotifications: model.NewPointer(false),
+				},
+			},
+		}, testChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		postIdToSync = originalPost.Id
+
+		// Verify initial state - no acknowledgements
+		acks, appErr := th.App.GetAcknowledgementsForPost(originalPost.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, acks, "Should have no acknowledgements initially")
+
+		// Step 2: Trigger initial sync to simulate post reaching receiver
+		service.NotifyChannelChanged(testChannel.Id)
+
+		// Wait for initial sync
+		require.Eventually(t, func() bool {
+			return len(syncedPosts) >= 2
+		}, 5*time.Second, 100*time.Millisecond, "Should complete initial sync")
+
+		// Step 3: Simulate receiver acknowledging the post
+		// In real scenario, this would happen on the receiver's instance
+		// We simulate it by directly adding an acknowledgement
+		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, originalPost.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		// Step 4: Configure sync handler to capture acknowledgement updates
+		syncHandler.OnPostSync = func(post *model.Post) {
+			if post.Id == postIdToSync {
+				t.Logf("Received sync for target post: ID=%s, HasAcks=%v", post.Id,
+					post.Metadata != nil && post.Metadata.Acknowledgements != nil)
+				if post.Metadata != nil && post.Metadata.Acknowledgements != nil {
+					t.Logf("Acknowledgement count in sync: %d", len(post.Metadata.Acknowledgements))
+					for _, ack := range post.Metadata.Acknowledgements {
+						t.Logf("  Ack from user: %s at %d", ack.UserId, ack.AcknowledgedAt)
+					}
+				}
+			}
+			syncedPosts = append(syncedPosts, post)
+		}
+
+		// Step 5: Trigger sync to simulate acknowledgement syncing back to sender
+		// Clear previous synced posts to track new sync
+		syncedPosts = syncedPosts[:0]
+		service.NotifyChannelChanged(testChannel.Id)
+
+		// Step 6: Verify acknowledgement synced back
+		require.Eventually(t, func() bool {
+			// Check if we received a sync with acknowledgements
+			for _, post := range syncedPosts {
+				if post.Id == postIdToSync &&
+					post.Metadata != nil &&
+					post.Metadata.Acknowledgements != nil &&
+					len(post.Metadata.Acknowledgements) > 0 {
+					return true
+				}
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond, "Should sync acknowledgements back")
+
+		// Step 7: Verify the acknowledgement was properly synced
+		// Find the synced post with acknowledgements
+		var syncedPostWithAcks *model.Post
+		for _, post := range syncedPosts {
+			if post.Id == postIdToSync && post.Metadata != nil && post.Metadata.Acknowledgements != nil {
+				syncedPostWithAcks = post
+				break
+			}
+		}
+
+		require.NotNil(t, syncedPostWithAcks, "Should find synced post with acknowledgements")
+		require.NotNil(t, syncedPostWithAcks.Metadata, "Post metadata should exist")
+		require.NotNil(t, syncedPostWithAcks.Metadata.Acknowledgements, "Acknowledgements should exist")
+		require.Len(t, syncedPostWithAcks.Metadata.Acknowledgements, 1, "Should have exactly 1 acknowledgement")
+
+		// Verify acknowledgement details
+		ack := syncedPostWithAcks.Metadata.Acknowledgements[0]
+		assert.Equal(t, th.BasicUser2.Id, ack.UserId, "Acknowledgement should be from BasicUser2")
+		assert.Equal(t, originalPost.Id, ack.PostId, "Acknowledgement should be for the original post")
+		assert.Greater(t, ack.AcknowledgedAt, int64(0), "Acknowledgement should have a timestamp")
+
+		// Step 8: Verify that after sync, the sender's view would be updated
+		// In a real scenario, the sync would update the sender's database
+		// Here we verify the sync contained the correct acknowledgement data
+		t.Logf("Successfully verified acknowledgement sync: User %s acknowledged post %s",
+			ack.UserId, ack.PostId)
+	})
+
 	t.Run("Test 3: Persistent Notifications Self-Referential Sync", func(t *testing.T) {
 		var syncedPosts []*model.Post
 		var syncHandler *SelfReferentialSyncHandler
