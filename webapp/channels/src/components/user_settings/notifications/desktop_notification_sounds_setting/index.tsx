@@ -12,6 +12,7 @@ import type {UserNotifyProps} from '@mattermost/types/users';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
+import {getOptionLabel} from 'components/widgets/modals/components/react_select_item';
 
 import {UserSettingsNotificationSections} from 'utils/constants';
 import {
@@ -148,6 +149,8 @@ function DesktopNotificationSoundsSettings({
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
                         value={getValueOfNotificationSoundsSelect(desktopNotificationSound)}
                         onChange={handleChangeForMessageNotificationSoundSelect}
+                        getOptionLabel={(option) => getOptionLabel(option, intl)}
+
                     />
                 </div>
             </Fragment>
@@ -187,6 +190,8 @@ function DesktopNotificationSoundsSettings({
                             })}
                             value={getValueOfIncomingCallSoundsSelect(callsNotificationSound)}
                             onChange={handleChangeForIncomingCallSoundSelect}
+                            getOptionLabel={(option) => getOptionLabel(option, intl)}
+
                         />
                     </div>
                 </Fragment>
