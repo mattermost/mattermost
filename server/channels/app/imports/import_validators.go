@@ -745,7 +745,7 @@ func isValidEmailBatchingInterval(emailInterval string) bool {
 		emailInterval == model.PreferenceEmailIntervalHour
 }
 
-// isValidGuestRoles checks if the user has both guest roles in the same team or channel.
+// isValidGuestRoles checks if the user has guest roles consistently across system, team, and channel levels.
 // at this point we assume that the user has a valid role scheme.
 func isValidGuestRoles(data UserImportData) bool {
 	if data.Roles == nil {
@@ -753,36 +753,66 @@ func isValidGuestRoles(data UserImportData) bool {
 	}
 	isSystemGuest := model.IsInRole(*data.Roles, model.SystemGuestRoleId)
 
+	// If user has no teams, they can still be a system guest without issue
+	if data.Teams == nil || len(*data.Teams) == 0 {
+		return true
+	}
+
 	var isTeamGuest, isChannelGuest bool
-	if data.Teams != nil {
-		// counters for guest roles for teams and channels
-		// we expect the total count of guest roles to be equal to the total count of teams and channels
-		var gtc, ctc int
-		for _, team := range *data.Teams {
-			if team.Roles != nil && model.IsInRole(*team.Roles, model.TeamGuestRoleId) {
-				gtc++
-			}
+	var hasTeams, hasChannels bool
 
-			if *team.Channels != nil {
-				for _, channel := range *team.Channels {
-					if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
-						ctc++
-					}
-				}
+	// counters for guest roles for teams and channels
+	var teamGuestCount, channelGuestCount int
+	var totalTeams, totalChannels int
 
-				if ctc == len(*team.Channels) {
-					isChannelGuest = true
-				}
-			}
+	totalTeams = len(*data.Teams)
+	hasTeams = totalTeams > 0
+	for _, team := range *data.Teams {
+		if team.Roles != nil && model.IsInRole(*team.Roles, model.TeamGuestRoleId) {
+			teamGuestCount++
 		}
-		if gtc == len(*data.Teams) {
-			isTeamGuest = true
+
+		// Check if the team has any channels
+		if team.Channels != nil && len(*team.Channels) > 0 {
+			hasChannels = true
+			teamChannels := len(*team.Channels)
+			totalChannels += teamChannels
+
+			for _, channel := range *team.Channels {
+				if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
+					channelGuestCount++
+				}
+			}
 		}
 	}
 
-	// basically we want to be sure if the user either fully guest in all 3 places or not at all
-	// (a | b | c) & !(a & b & c) -> 3-way XOR?
-	if (isSystemGuest || isTeamGuest || isChannelGuest) && !(isSystemGuest && isTeamGuest && isChannelGuest) {
+	// Set flags based on whether all available teams/channels have guest roles
+	if hasTeams && teamGuestCount == totalTeams {
+		isTeamGuest = true
+	}
+
+	if hasChannels && channelGuestCount == totalChannels {
+		isChannelGuest = true
+	}
+
+	// If the user is a system guest, they must have consistent guest roles in any teams/channels they belong to
+	if isSystemGuest {
+		// If they have teams, they must be a team guest in all teams
+		if hasTeams && !isTeamGuest {
+			return false
+		}
+
+		// If they have channels, they must be a channel guest in all channels
+		if hasChannels && !isChannelGuest {
+			return false
+		}
+
+		return true
+	}
+
+	// If not a system guest, ensure consistency in the other direction
+	// If they're a team or channel guest, they must be a system guest
+	if (isTeamGuest || isChannelGuest) && !isSystemGuest {
 		return false
 	}
 
