@@ -20,8 +20,8 @@ type MockApp struct {
 	clusterInfo []*model.ClusterInfo
 }
 
-func (ma MockApp) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
-	return ma.clusterInfo
+func (ma MockApp) GetClusterStatus(rctx request.CTX) ([]*model.ClusterInfo, error) {
+	return ma.clusterInfo, nil
 }
 
 func (ma *MockApp) SetInSync() {
@@ -45,6 +45,8 @@ func (ma *MockApp) SetOutOfSync() {
 }
 
 func TestBatchMigrationWorker(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	setupBatchWorker := func(t *testing.T, th *TestHelper, mockApp *MockApp, doMigrationBatch func(model.StringMap, store.Store) (model.StringMap, bool, error)) (model.Worker, *model.Job) {
 		t.Helper()
 
@@ -100,8 +102,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 	}
 
 	t.Run("done after three batches", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		mockApp := &MockApp{}
 
@@ -128,8 +129,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 	})
 
 	t.Run("clusters not in sync before first batch", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		mockApp := &MockApp{}
 		mockApp.SetOutOfSync()
@@ -155,8 +155,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 	})
 
 	t.Run("clusters not in sync after first batch", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		mockApp := &MockApp{}
 

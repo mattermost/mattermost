@@ -22,6 +22,7 @@ import (
 )
 
 func TestGetOldClientLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -193,6 +194,7 @@ func TestUploadLicenseFile(t *testing.T) {
 }
 
 func TestRemoveLicenseFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -258,7 +260,27 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("mysql database not supported", func(t *testing.T) {
+		// Skip this test unless running with MySQL driver
+		if *th.App.Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
+			t.Skip("Skipping test - only runs with MySQL driver")
+		}
+
+		licenseManagerMock := &mocks.LicenseInterface{}
+		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
+
+		resp, err := th.SystemAdminClient.RequestTrialLicenseWithExtraFields(context.Background(), validTrialRequest)
+		CheckErrorID(t, err, "api.license.request-trial.mysql.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("trial license user count less than current users", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
@@ -295,6 +317,11 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 	})
 
 	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
@@ -325,6 +352,11 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 	})
 
 	t.Run("returns status 400 if request is a mix of legacy and new fields", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		validTrialRequest.CompanyCountry = ""
 		validTrialRequest.Users = 100
 		defer func() { validTrialRequest.CompanyCountry = "US" }()
@@ -365,6 +397,11 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 
 	th.App.Srv().Platform().SetLicenseManager(nil)
 	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		resp, err := th.SystemAdminClient.RequestTrialLicenseWithExtraFields(context.Background(), validTrialRequest)
 		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
 		CheckForbiddenStatus(t, resp)
@@ -372,6 +409,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 }
 
 func TestRequestTrialLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -387,7 +425,27 @@ func TestRequestTrialLicense(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("mysql database not supported", func(t *testing.T) {
+		// Skip this test unless running with MySQL driver
+		if *th.App.Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
+			t.Skip("Skipping test - only runs with MySQL driver")
+		}
+
+		licenseManagerMock := &mocks.LicenseInterface{}
+		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
+
+		resp, err := th.SystemAdminClient.RequestTrialLicense(context.Background(), 1000)
+		CheckErrorID(t, err, "api.license.request-trial.mysql.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("trial license invalid JSON", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		// the JSON is invalid because it is missing a closing brace
 
 		licenseManagerMock := &mocks.LicenseInterface{}
@@ -400,6 +458,11 @@ func TestRequestTrialLicense(t *testing.T) {
 	})
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		nUsers := 1
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewPointer(nUsers)
@@ -435,6 +498,11 @@ func TestRequestTrialLicense(t *testing.T) {
 	})
 
 	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		nUsers := 1
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewPointer(nUsers)
@@ -467,8 +535,165 @@ func TestRequestTrialLicense(t *testing.T) {
 
 	th.App.Srv().Platform().SetLicenseManager(nil)
 	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
+		// Skip this test when MySQL is configured as it hits the MySQL check first
+		if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+			t.Skip("Skipping test - MySQL does not support trial licenses")
+		}
+
 		resp, err := th.SystemAdminClient.RequestTrialLicense(context.Background(), 1)
 		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestGetLicenseLoadMetric(t *testing.T) {
+	t.Run("when user is logged out", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		client := th.CreateClient()
+		_, resp, err := client.GetLicenseLoadMetric(context.Background())
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("when no license is loaded", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.Srv().Platform().SetLicense(nil)
+		data, resp, err := th.Client.GetLicenseLoadMetric(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.Equal(t, 0, data["load"])
+	})
+
+	t.Run("with 50 users on a license count of 1000", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		// Create a license with 1000 users
+		license := model.NewTestLicense()
+		license.Features.Users = model.NewPointer(1000) // Set license for 1000 users
+		th.App.Srv().Platform().SetLicense(license)
+
+		// Make user active by setting their status
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusAway,
+			Manual:         true,
+			LastActivityAt: model.GetMillis(),
+		}
+		initialErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+		require.NoError(t, initialErr)
+
+		// Add 50 active users (50/1000 * 1000 = 50)
+		for i := 0; i < 49; i++ { // 49 + 1 basic user = 50 active users
+			user := th.CreateUser()
+
+			// Make user active
+			status := &model.Status{
+				UserId:         user.Id,
+				Status:         model.StatusAway,
+				Manual:         true,
+				LastActivityAt: model.GetMillis(),
+			}
+			statusErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+			require.NoError(t, statusErr)
+		}
+
+		// Check load metric - should be exactly 50
+		data, resp, err := th.Client.GetLicenseLoadMetric(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		loadValue := data["load"]
+		require.Equal(t, 50, loadValue)
+	})
+
+	t.Run("with 19 users on a license count of 20", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		// Create a license with 20 users
+		license := model.NewTestLicense()
+		license.Features.Users = model.NewPointer(20) // Set license for 20 users
+		th.App.Srv().Platform().SetLicense(license)
+
+		// Make user active by setting their status
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusAway,
+			Manual:         true,
+			LastActivityAt: model.GetMillis(),
+		}
+		initialErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+		require.NoError(t, initialErr)
+
+		// Add 19 active users (19/20 * 1000 = 950)
+		for i := 0; i < 18; i++ { // 18 + 1 basic user = 19 active users
+			user := th.CreateUser()
+
+			// Make user active
+			status := &model.Status{
+				UserId:         user.Id,
+				Status:         model.StatusAway,
+				Manual:         true,
+				LastActivityAt: model.GetMillis(),
+			}
+			statusErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+			require.NoError(t, statusErr)
+		}
+
+		// Check load metric - should be around
+		data, resp, err := th.Client.GetLicenseLoadMetric(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		loadValue := data["load"]
+		require.Equal(t, 950, loadValue)
+	})
+
+	t.Run("with 30 users on a license count of 20", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		// Create a license with 20 users
+		license := model.NewTestLicense()
+		license.Features.Users = model.NewPointer(20) // Set license for 20 users
+		th.App.Srv().Platform().SetLicense(license)
+
+		// Make user active by setting their status
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusAway,
+			Manual:         true,
+			LastActivityAt: model.GetMillis(),
+		}
+		initialErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+		require.NoError(t, initialErr)
+
+		// Add 30 active users (30/20 * 1000 = 1500)
+		for i := 0; i < 29; i++ { // 29 + 1 basic user = 30 active users
+			user := th.CreateUser()
+
+			// Make user active
+			status := &model.Status{
+				UserId:         user.Id,
+				Status:         model.StatusAway,
+				Manual:         true,
+				LastActivityAt: model.GetMillis(),
+			}
+			statusErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+			require.NoError(t, statusErr)
+		}
+
+		// Check load metric - should be exactly 1500
+		data, resp, err := th.Client.GetLicenseLoadMetric(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		loadValue := data["load"]
+		require.Equal(t, 1500, loadValue)
 	})
 }

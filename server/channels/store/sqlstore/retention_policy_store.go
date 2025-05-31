@@ -642,7 +642,8 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 
 func subQueryIN(property string, query sq.SelectBuilder) sq.Sqlizer {
 	queryString, args := query.MustSql()
-	subQuery := fmt.Sprintf("%s IN (SELECT * FROM (%s) AS A)", property, queryString)
+
+	subQuery := fmt.Sprintf("%s IN (%s)", property, queryString)
 	return sq.Expr(subQuery, args...)
 }
 
@@ -650,11 +651,14 @@ func subQueryIN(property string, query sq.SelectBuilder) sq.Sqlizer {
 // where a channel or team no longer exists.
 func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
 	// We need the extra level of nesting to deal with MySQL's locking
-	rpcSubQuery := sq.Select("ChannelId").
-		From("RetentionPoliciesChannels").
-		LeftJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
-		Where("Channels.Id IS NULL").
-		Limit(uint64(limit))
+	rpcSubQuery := sq.Select("ChannelId").FromSelect(
+		sq.Select("ChannelId").
+			From("RetentionPoliciesChannels").
+			LeftJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
+			Where("Channels.Id IS NULL").
+			Limit(uint64(limit)),
+		"A",
+	)
 
 	rpcDeleteQuery, rpcArgs, err := s.getQueryBuilder().
 		Delete("RetentionPoliciesChannels").
@@ -664,11 +668,15 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 		return int64(0), errors.Wrap(err, "retention_policies_channels_tosql")
 	}
 
-	rptSubQuery := sq.Select("TeamId").
-		From("RetentionPoliciesTeams").
-		LeftJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
-		Where("Teams.Id IS NULL").
-		Limit(uint64(limit))
+	// We need the extra level of nesting to deal with MySQL's locking
+	rptSubQuery := sq.Select("TeamId").FromSelect(
+		sq.Select("TeamId").
+			From("RetentionPoliciesTeams").
+			LeftJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
+			Where("Teams.Id IS NULL").
+			Limit(uint64(limit)),
+		"A",
+	)
 
 	rptDeleteQuery, rptArgs, err := s.getQueryBuilder().
 		Delete("RetentionPoliciesTeams").

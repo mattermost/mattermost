@@ -22,8 +22,12 @@ import ThreadFooter from './channels/thread_footer';
 import EmojiGifPicker from './channels/emoji_gif_picker';
 import GenericConfirmModal from './channels/generic_confirm_modal';
 import MessagePriority from './channels/message_priority';
-import ScheduledDraftMenu from './channels/scheduled_draft_menu';
+import ScheduleMessageMenu from './channels/schedule_message_menu';
+import ScheduleMessageModal from './channels/schedule_message_modal';
+import ScheduledPostIndicator from './channels/scheduled_post_indicator';
 import ScheduledDraftModal from './channels/scheduled_draft_modal';
+import UserAccountMenu from './user_account_menu';
+import ProfileModal from './channels/profile_modal';
 import UserProfilePopover from './channels/user_profile_popover';
 import SystemConsoleSidebar from './system_console/sidebar';
 import SystemConsoleNavbar from './system_console/navbar';
@@ -36,6 +40,10 @@ import DeletePostConfirmationDialog from './channels/delete_post_confirmation_di
 import RestorePostConfirmationDialog from './channels/restore_post_confirmation_dialog';
 import SystemConsoleFeatureDiscovery from './system_console/sections/system_users/feature_discovery';
 import SystemConsoleMobileSecurity from './system_console/sections/system_users/mobile_security';
+import ScheduledPost from './channels/scheduled_post';
+import SendMessageNowModal from './channels/send_message_now_modal';
+import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
+import DraftPost from './channels/draft_post';
 
 const components = {
     GlobalHeader,
@@ -48,8 +56,10 @@ const components = {
     ChannelsPostCreate,
     ChannelsPostEdit,
     ChannelsPost,
+    DraftPost,
     FindChannelsModal,
     DeletePostModal,
+    DeleteScheduledPostModal,
     SettingsModal,
     PostDotMenu,
     PostMenu,
@@ -59,8 +69,12 @@ const components = {
     PostReminderMenu,
     EmojiGifPicker,
     GenericConfirmModal,
-    ScheduledDraftMenu,
+    ScheduleMessageMenu,
+    ScheduleMessageModal,
+    ScheduledPostIndicator,
     ScheduledDraftModal,
+    ScheduledPost,
+    SendMessageNowModal,
     SystemConsoleSidebar,
     SystemConsoleNavbar,
     SystemUsers,
@@ -71,13 +85,16 @@ const components = {
     SystemConsoleMobileSecurity,
     MessagePriority,
     UserProfilePopover,
+    UserAccountMenu,
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
+    ProfileModal,
 };
 
 export {
     components,
     GlobalHeader,
+    SearchPopover,
     ChannelsCenterView,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
@@ -86,11 +103,37 @@ export {
     ChannelsPostCreate,
     ChannelsPostEdit,
     ChannelsPost,
+    DraftPost,
     FindChannelsModal,
     DeletePostModal,
+    DeleteScheduledPostModal,
+    SettingsModal,
     PostDotMenu,
     PostMenu,
     ThreadFooter,
+    Footer,
+    MainHeader,
+    PostReminderMenu,
+    EmojiGifPicker,
+    GenericConfirmModal,
+    ScheduleMessageMenu,
+    ScheduleMessageModal,
+    ScheduledPostIndicator,
+    ScheduledDraftModal,
+    ScheduledPost,
+    SendMessageNowModal,
+    SystemConsoleSidebar,
+    SystemConsoleNavbar,
+    SystemUsers,
+    SystemUsersFilterPopover,
+    SystemUsersFilterMenu,
+    SystemUsersColumnToggleMenu,
+    SystemConsoleFeatureDiscovery,
+    SystemConsoleMobileSecurity,
     MessagePriority,
+    UserProfilePopover,
+    UserAccountMenu,
     DeletePostConfirmationDialog,
+    RestorePostConfirmationDialog,
+    ProfileModal,
 };
