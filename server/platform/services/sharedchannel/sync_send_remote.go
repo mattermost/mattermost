@@ -435,6 +435,12 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		if v.post != nil && user.RemoteId != nil && *user.RemoteId == sd.rc.RemoteId {
 			fixMention(v.post, v.mentionMap, user)
 		}
+
+		// Transform @username to @username:localcluster when sending local users to remote clusters
+		if v.post != nil && user.RemoteId == nil {
+			localClusterName := getLocalClusterName(scs.server.Config())
+			addClusterToLocalMention(v.post, v.mentionMap, user, localClusterName)
+		}
 	}
 	return merr.ErrorOrNil()
 }

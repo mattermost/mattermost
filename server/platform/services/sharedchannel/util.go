@@ -6,6 +6,7 @@ package sharedchannel
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -30,6 +31,39 @@ func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.U
 			post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+realUsername)
 		}
 	}
+}
+
+// addClusterToLocalMention transforms @username mentions to @username:clustername format
+// Used when syncing posts to remote clusters for local users
+func addClusterToLocalMention(post *model.Post, mentionMap model.UserMentionMap, user *model.User, clusterName string) {
+	if post == nil || len(mentionMap) == 0 || user.RemoteId != nil {
+		return
+	}
+
+	for mention, id := range mentionMap {
+		// Only process mentions for local users (no RemoteId) that don't already contain a colon
+		if id == user.Id && !strings.Contains(mention, ":") {
+			post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+mention+":"+clusterName)
+		}
+	}
+}
+
+// getLocalClusterName extracts the local cluster name from config, fallback to hostname from site URL
+func getLocalClusterName(config *model.Config) string {
+	// First try to get the cluster name from config
+	if config.ClusterSettings.ClusterName != nil && *config.ClusterSettings.ClusterName != "" {
+		return *config.ClusterSettings.ClusterName
+	}
+
+	// Fallback to hostname from site URL
+	if config.ServiceSettings.SiteURL != nil && *config.ServiceSettings.SiteURL != "" {
+		parsed, err := url.Parse(*config.ServiceSettings.SiteURL)
+		if err == nil && parsed.Hostname() != "" {
+			return parsed.Hostname()
+		}
+	}
+
+	return "local"
 }
 
 func sanitizeUserForSync(user *model.User) *model.User {
