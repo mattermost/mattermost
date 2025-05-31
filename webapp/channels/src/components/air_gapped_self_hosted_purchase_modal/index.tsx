@@ -6,8 +6,11 @@ import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
+import {trackEvent} from 'actions/telemetry_actions';
+
 import {useControlAirGappedSelfHostedPurchaseModal} from 'components/common/hooks/useControlModal';
 import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
+import ExternalLink from 'components/external_link';
 
 import {CloudLinks} from 'utils/constants';
 
@@ -40,7 +43,17 @@ export default function AirGappedSelfHostedPurhcaseModal() {
                         defaultMessage={'It appears that your instance is air-gapped, or it may not be connected to the internet. To purchase a license, please visit'}
                     />
                 </span>
-                <a href={CloudLinks.SELF_HOSTED_PRICING}>{CloudLinks.SELF_HOSTED_PRICING}</a>
+                <ExternalLink
+                    location='air_gapped_self_hosted_purchase_modal'
+                    href={CloudLinks.SELF_HOSTED_PRICING}
+                    onClick={() => {
+                        trackEvent('self_hosted_pricing', 'click_open_pricing_page', {
+                            callerInfo: 'air_gapped_self_hosted_purchase_modal',
+                        });
+                    }}
+                >
+                    {CloudLinks.SELF_HOSTED_PRICING}
+                </ExternalLink>
             </div>
         </GenericModal>
     );
