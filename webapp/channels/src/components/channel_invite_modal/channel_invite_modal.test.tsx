@@ -124,6 +124,14 @@ describe('components/channel_invite_modal', () => {
         onExited: jest.fn(),
     };
 
+    beforeAll(() => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        window.requestAnimationFrame = (_cb: FrameRequestCallback): number => {
+            // do not call cb at all
+            return 0;
+        };
+    });
+
     test('should match snapshot for channel_invite_modal with profiles', () => {
         const wrapper = shallowWithIntl(
             <ChannelInviteModal
@@ -588,5 +596,98 @@ describe('components/channel_invite_modal', () => {
 
         // Check that no tags are shown
         expect(wrapper.find('AlertTag').exists()).toBe(false);
+    });
+
+    // the multiselect returns several elements with the same text, usiing a custom function to get the correct one specifing the tagName
+    const getUserSpan = (user: string) =>
+        screen.getByText((text, element) =>
+            element?.tagName === 'SPAN' && text.trim() === user,
+        ) as HTMLElement;
+
+    test('should not include DM users when ABAC is enabled', async () => {
+        const channelWithPolicy = {...channel, policy_enforced: true};
+        const props = {
+            ...baseProps,
+            channel: channelWithPolicy,
+            profilesNotInCurrentChannel: [users[0]],
+            profilesFromRecentDMs: [users[1]],
+        };
+
+        await act(async () => {
+            renderWithContext(<ChannelInviteModal {...props}/>);
+        });
+
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+        await userEvent.type(input, 'user');
+
+        // now only one visible <span> should match "user-1"
+        expect(getUserSpan('user-1')).toBeInTheDocument();
+
+        // and no <span> with "user-2"
+        expect(screen.queryByText('user-2')).toBeNull();
+    });
+
+    test('should include DM users when ABAC is disabled', async () => {
+        const channelWithoutPolicy = {...channel, policy_enforced: false};
+        const props = {
+            ...baseProps,
+            channel: channelWithoutPolicy,
+            profilesNotInCurrentChannel: [users[0]],
+            profilesFromRecentDMs: [users[1]],
+        };
+
+        await act(async () => {
+            renderWithContext(<ChannelInviteModal {...props}/>);
+        });
+
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+        await userEvent.type(input, 'user');
+
+        // we should see both user-1 and user-2 in visible spans
+        expect(getUserSpan('user-1')).toBeInTheDocument();
+        expect(getUserSpan('user-2')).toBeInTheDocument();
+    });
+
+    test('should not reload data when search term is empty and ABAC is disabled', async () => {
+        const getProfilesNotInChannelMock = jest.fn().mockImplementation(() => Promise.resolve());
+
+        const channelWithoutPolicy = {
+            ...channel,
+            policy_enforced: false,
+        };
+
+        const props = {
+            ...baseProps,
+            channel: channelWithoutPolicy,
+            actions: {
+                ...baseProps.actions,
+                getProfilesNotInChannel: getProfilesNotInChannelMock,
+            },
+        };
+
+        // Render the component
+        await act(async () => {
+            renderWithContext(
+                <ChannelInviteModal {...props}/>,
+            );
+        });
+
+        // Reset the mock after component mount to ignore initial data loading
+        getProfilesNotInChannelMock.mockClear();
+
+        // Find the search input
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+
+        // Type something and then clear it
+        await userEvent.type(input, 'a');
+        await userEvent.clear(input);
+
+        // Wait for the search timeout
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+
+        // Should not call getProfilesNotInChannel after clearing the search
+        expect(getProfilesNotInChannelMock).not.toHaveBeenCalled();
     });
 });
