@@ -90,9 +90,6 @@ const SearchBox = forwardRef(
 
         const inputRef = useRef<HTMLInputElement | null>(null);
 
-        const [showFilterHaveBeenReset, setShowFilterHaveBeenReset] = useState(false);
-        const filterResetTimeout = useRef<NodeJS.Timeout>();
-
         const getCaretPosition = useCallback(() => {
             return inputRef.current?.selectionEnd || 0;
         }, []);
@@ -231,21 +228,7 @@ const SearchBox = forwardRef(
         );
 
         const changeSearchTeam = (selectedTeam: string) => {
-            const newTerms = searchTerms.
-                replace(/\bin:[^\s]*/gi, '').replace(/\s{2,}/g, ' ').
-                replace(/\bfrom:[^\s]*/gi, '').replace(/\s{2,}/g, ' ').
-                trim();
-
-            if (newTerms !== searchTerms) {
-                clearTimeout(filterResetTimeout.current);
-
-                setShowFilterHaveBeenReset(true);
-                filterResetTimeout.current = setTimeout(() => {
-                    setShowFilterHaveBeenReset(false);
-                }, 2500);
-            }
-
-            setSearchTerms(newTerms);
+            // Don't modify search terms when changing teams - preserve everything
             setSearchTeam(selectedTeam);
             inputRef.current?.focus();
         };
@@ -326,7 +309,7 @@ const SearchBox = forwardRef(
                     searchType={searchType}
                     providerResults={providerResults}
                     selectedOption={selectedOption}
-                    showFilterHaveBeenReset={showFilterHaveBeenReset}
+                    showFilterHaveBeenReset={false}
                     focus={focus}
                 />
             </SearchBoxContainer>
