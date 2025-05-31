@@ -87,7 +87,7 @@ func (scs *Service) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedC
 	return scUpdated, nil
 }
 
-// UnshareChannel unshared the channel by deleting the SharedChannels record and unsets the Channel `shared` flag.
+// UnshareChannel unshares the channel by deleting the SharedChannels record and unsets the Channel `shared` flag.
 // Returns true if a shared channel existed and was deleted.
 func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	channel, err := scs.server.GetStore().Channel().Get(channelID, true)
@@ -103,7 +103,6 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	// to avoid fetching the channel again, we manually set the shared
 	// flag before notifying the clients
 	channel.Shared = model.NewPointer(false)
-
 	scs.notifyClientsForSharedChannelConverted(channel)
 	return deleted, nil
 }
