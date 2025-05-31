@@ -50,7 +50,7 @@ func (cs *CustomStatus) AreDurationAndExpirationTimeValid() bool {
 		return true
 	}
 
-	if validCustomStatusDuration[cs.Duration] && !cs.ExpiresAt.Before(time.Now()) {
+	if validCustomStatusDuration[cs.Duration] && (cs.ExpiresAt.IsZero() || !cs.ExpiresAt.Before(time.Now())) {
 		return true
 	}
 
