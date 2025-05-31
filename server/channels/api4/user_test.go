@@ -6623,22 +6623,22 @@ func TestGetKnownUsers(t *testing.T) {
 
 	u1 := th.CreateUser()
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, u1)
+		appErr := th.App.PermanentDeleteUser(th.Context, u1, nil)
 		require.Nil(t, appErr)
 	}()
 	u2 := th.CreateUser()
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, u2)
+		appErr := th.App.PermanentDeleteUser(th.Context, u2, nil)
 		require.Nil(t, appErr)
 	}()
 	u3 := th.CreateUser()
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, u3)
+		appErr := th.App.PermanentDeleteUser(th.Context, u3, nil)
 		require.Nil(t, appErr)
 	}()
 	u4 := th.CreateUser()
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, u4)
+		appErr := th.App.PermanentDeleteUser(th.Context, u4, nil)
 		require.Nil(t, appErr)
 	}()
 

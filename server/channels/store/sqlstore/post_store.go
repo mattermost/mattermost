@@ -1069,35 +1069,31 @@ type postIds struct {
 	UserId string
 }
 
-func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error) {
-	results := []postIds{}
+func (s *SqlPostStore) permanentDeleteAllCommentByUser(userID string, data []postIds) (err error) {
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	err = transaction.Select(&results, "Select Id, RootId FROM Posts WHERE UserId = ? AND RootId != ''", userId)
-	if err != nil {
-		return errors.Wrapf(err, "failed to fetch Posts with userId=%s", userId)
+	// Extract the post IDs from the data
+	postIds := make([]string, len(data))
+	for i, ids := range data {
+		postIds[i] = ids.Id
 	}
 
-	_, err = transaction.Exec("DELETE FROM Posts WHERE UserId = ? AND RootId != ''", userId)
-	if err != nil {
-		return errors.Wrapf(err, "failed to delete Posts with userId=%s", userId)
+	// Delete only the specific posts for this user
+	query := s.getQueryBuilder().
+		Delete("Posts").
+		Where(sq.Eq{"Id": postIds})
+	if _, execErr := transaction.ExecBuilder(query); execErr != nil {
+		return errors.Wrapf(execErr, "failed to delete Posts with userID=%s", userID)
 	}
 
-	postIds := []string{}
-	for _, ids := range results {
-		if err = s.updateThreadAfterReplyDeletion(transaction, ids.RootId, userId); err != nil {
+	for _, ids := range data {
+		if err = s.updateThreadAfterReplyDeletion(transaction, ids.RootId, userID); err != nil {
 			return err
 		}
-		postIds = append(postIds, ids.Id)
-	}
-
-	// Delete all the reactions on the comments
-	if err = s.permanentDeleteReactions(transaction, postIds); err != nil {
-		return err
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -1110,17 +1106,34 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error
 // Permanently deletes all comments by user,
 // cleans up threads (removes said user from participants and decreases reply count),
 // permanent delete all root posts by user,
+// permanent delete all reactions by user,
 // and delete threads and thread memberships for those root posts
+// Note that this method can potentially take a very long time, and is not meant
+// to be called synchronously, but only via jobs.
 func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) error {
 	// First attempt to delete all the comments for a user
-	if err := s.permanentDeleteAllCommentByUser(userId); err != nil {
-		return err
+	for {
+		results := []postIds{}
+		err := s.GetReplica().Select(&results, "Select Id, RootId FROM Posts WHERE UserId = ? AND RootId != '' LIMIT 10", userId)
+		if err != nil {
+			return errors.Wrapf(err, "failed to fetch comment Posts with userId=%s", userId)
+		}
+
+		if len(results) == 0 {
+			break
+		}
+
+		// This creates a long transaction for each element in the results slice.
+		// That's why we limit the number of rows to 10.
+		if err := s.permanentDeleteAllCommentByUser(userId, results); err != nil {
+			return err
+		}
+
+		time.Sleep(time.Second)
 	}
 
 	// Now attempt to delete all the root posts for a user. This will also
 	// delete all the comments for each post
-	const maxLoops = 10
-	count := 0
 	for {
 		var ids []string
 		err := s.GetMaster().Select(&ids, "SELECT Id FROM Posts WHERE UserId = ? LIMIT 1000", userId)
@@ -1136,14 +1149,18 @@ func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) er
 			return err
 		}
 
-		// This is a fail safe, give up if more than 10k messages
-		count++
-		if count >= maxLoops {
-			return store.NewErrLimitExceeded("permanently deleting posts for user", maxLoops*1000, "userId="+userId)
-		}
+		time.Sleep(time.Second)
 	}
 
-	return nil
+	// Finally, we delete all reactions for the user.
+	query := s.getQueryBuilder().
+		Delete("Reactions").
+		Where(
+			sq.Eq{"UserId": userId},
+		)
+	_, err := s.GetMaster().ExecBuilder(query)
+
+	return err
 }
 
 // Permanent deletes all channel root posts and comments,
@@ -3303,18 +3320,30 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				// store teamId for channel for efficiency
 				teamIdByChannelId[channelId] = teamId
 			}
-			// no metadata entry, create one
-			if _, err := transaction.NamedExec(`INSERT INTO Threads
-				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
-				VALUES
-				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants, :TeamId)`, &model.Thread{
+			// no metadata entry, create one using upsert
+			newThread := &model.Thread{
 				PostId:       rootId,
 				ChannelId:    channelId,
 				ReplyCount:   count,
 				LastReplyAt:  lastReplyAt,
 				Participants: participants,
 				TeamId:       teamId,
-			}); err != nil {
+			}
+
+			query := s.getQueryBuilder().
+				Insert("Threads").
+				Columns("PostId", "ChannelId", "ReplyCount", "LastReplyAt", "Participants", "ThreadTeamId").
+				Values(newThread.PostId, newThread.ChannelId, newThread.ReplyCount, newThread.LastReplyAt, newThread.Participants, newThread.TeamId)
+
+			if s.DriverName() == model.DatabaseDriverMysql {
+				query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE ReplyCount = ?, LastReplyAt = ?, Participants = ?",
+					newThread.ReplyCount, newThread.LastReplyAt, newThread.Participants))
+			} else {
+				query = query.SuffixExpr(sq.Expr("ON CONFLICT (PostId) DO UPDATE SET ReplyCount = ?, LastReplyAt = ?, Participants = ?",
+					newThread.ReplyCount, newThread.LastReplyAt, newThread.Participants))
+			}
+
+			if _, err := transaction.ExecBuilder(query); err != nil {
 				return err
 			}
 		} else {
