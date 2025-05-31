@@ -1676,16 +1676,51 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             );
         }
         return (
-            <SettingItem
-                active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
-                title={formatMessage(holders.profilePicture)}
-                describe={minMessage}
-                section={'picture'}
-                updateSection={this.updateSection}
-                max={max}
-            />
+            <>
+                <SettingItem
+                    active={active}
+                    areAllSectionsInactive={this.props.activeSection === ''}
+                    title={formatMessage(holders.profilePicture)}
+                    describe={minMessage}
+                    section={'picture'}
+                    updateSection={this.updateSection}
+                    max={max}
+                />
+                <div
+                    className='sr-only'
+                    aria-live='polite'
+                    aria-atomic='true'
+                >
+                    {this.renderPictureStatus()}
+                </div>
+            </>
         );
+    };
+
+    renderPictureStatus = () => {
+        if (this.state.loadingPicture) {
+            return (
+                <FormattedMessage
+                    id='user.settings.general.picture.uploading'
+                    defaultMessage='Uploading...'
+                />
+            );
+        } else if (this.state.pictureFile) {
+            return (
+                <FormattedMessage
+                    id='user.settings.general.picture.selected'
+                    defaultMessage='Picture selected, ready to save'
+                />
+            );
+        } else if (this.submitActive) {
+            return (
+                <FormattedMessage
+                    id='user.settings.general.picture.uploaded'
+                    defaultMessage='Picture uploaded'
+                />
+            );
+        }
+        return null;
     };
 
     render() {

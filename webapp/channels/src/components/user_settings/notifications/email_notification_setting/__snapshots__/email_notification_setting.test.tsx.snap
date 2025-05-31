@@ -189,6 +189,10 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             className="setting-list-item"
           >
             <hr />
+            <div
+              aria-atomic="true"
+              aria-live="polite"
+            />
             <SaveButton
               disabled={false}
               onClick={[Function]}
@@ -606,6 +610,10 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             className="setting-list-item"
           >
             <hr />
+            <div
+              aria-atomic="true"
+              aria-live="polite"
+            />
             <SaveButton
               disabled={false}
               onClick={[Function]}
