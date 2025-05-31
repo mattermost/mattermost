@@ -67,7 +67,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         appsEnabled: apps,
         pluginMenuItemComponents: pluginItemsVisible ? state.plugins.components.PostDropdownMenuItem : [],
         isSysAdmin,
-        pluginMenuItems: pluginItemsVisible ? state.plugins.components.PostDropdownMenu : undefined,
+        pluginMenuItems: pluginItemsVisible ? state.plugins.components.PostDropdownMenu : [],
         teamId: getCurrentTeamId(state),
         isMobileView: getIsMobileView(state),
         canOpenMarketplace: (
