@@ -3,8 +3,8 @@
 
 import React, {useCallback, useState} from 'react';
 
-import * as TextFormatting from 'utils/text_formatting';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import * as TextFormatting from 'utils/text_formatting';
 
 import SuggestionBox from './suggestion_box';
 

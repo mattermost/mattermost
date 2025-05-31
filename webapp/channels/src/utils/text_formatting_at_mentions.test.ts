@@ -202,10 +202,10 @@ describe('TextFormatting.AtMentions', () => {
 
         it('should handle remote mentions in at mentions processing', () => {
             const tokens = new Map();
-            
+
             // Test that @user:org1 gets captured by the AT_MENTION_PATTERN
             const result = TextFormatting.autolinkAtMentions('@user:org1', tokens);
-            
+
             expect(result).toBe('$MM_ATMENTION0$');
             expect(tokens.get('$MM_ATMENTION0$')?.originalText).toBe('@user:org1');
             expect(tokens.get('$MM_ATMENTION0$')?.value).toBe('<span data-mention="user:org1">@user:org1</span>');
