@@ -8,6 +8,8 @@ import React from 'react';
 import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
+import {FileTypes} from 'utils/constants';
+import {copyToClipboard, getFileType} from 'utils/utils';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
@@ -18,9 +20,6 @@ import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingImagePreview from 'components/loading_image_preview';
 import WithTooltip from 'components/with_tooltip';
-
-import {FileTypes} from 'utils/constants';
-import {copyToClipboard, getFileType} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
@@ -219,6 +218,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
         Reflect.deleteProperty(props, 'intl');
+        Reflect.deleteProperty(props, 'smallImageThreshold');
 
         let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
@@ -322,17 +322,22 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         );
 
         if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
-            const className = 'small-image__container cursor--pointer a11y--active';
+            const baseClassName = 'small-image__container cursor--pointer a11y--active';
 
             // Only add min-width/min-height if the image is smaller than MIN_IMAGE_SIZE
-            const wideSmallImageStyle = (this.state.imageWidth < MIN_IMAGE_SIZE || (fileInfo && fileInfo.height && fileInfo.height < MIN_IMAGE_SIZE)) ? {minWidth: MIN_IMAGE_SIZE, minHeight: MIN_IMAGE_SIZE} : undefined;
+            const wideSmallImageStyle = (this.state.imageWidth < MIN_IMAGE_SIZE || (fileInfo && fileInfo.height && fileInfo.height < MIN_IMAGE_SIZE)) ? {minWidth: MIN_IMAGE_SIZE, minHeight: MIN_IMAGE_SIZE} : {};
+            const needsMinWidth = this.state.imageWidth < MIN_IMAGE_SIZE || (fileInfo && fileInfo.height && fileInfo.height < MIN_IMAGE_SIZE);
+            const className = needsMinWidth ? `${baseClassName} small-image__container--min-width` : baseClassName;
+
+            // For small images that need width styling, add width + 2px padding
+            const containerStyle = this.state.imageWidth >= MIN_IMAGE_SIZE ? {width: this.state.imageWidth + 2} : wideSmallImageStyle;
 
             return (
                 <figure className={classNames('image-loaded-container')}>
                     <div
                         onClick={this.handleImageClick}
                         className={classNames(className)}
-                        style={wideSmallImageStyle}
+                        style={containerStyle}
                     >
                         {image}
                     </div>

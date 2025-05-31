@@ -90,7 +90,7 @@ describe('components/SizeAwareImage', () => {
         wrapper.find(SizeAwareImageComponent).setState({loaded: true, error: false});
 
         const style = wrapper.find('.file-preview__button').prop('style');
-        expect(style).toHaveProperty('display', 'inline-block');
+        expect(style).toHaveProperty('display', 'flex');
     });
 
     test('should render the actual image when first mounted without dimensions', () => {
@@ -170,7 +170,7 @@ describe('components/SizeAwareImage', () => {
 
         wrapper.instance().setState({isSmallImage: true, imageWidth: 24});
         expect(wrapper.find('div.small-image__container').prop('style')).
-            toEqual({});
+            toEqual({minWidth: 48, minHeight: 48});
         expect(wrapper.find('div.small-image__container').hasClass('small-image__container--min-width')).
             toEqual(true);
     });

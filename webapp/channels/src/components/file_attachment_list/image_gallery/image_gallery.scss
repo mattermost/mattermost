@@ -162,9 +162,6 @@
                             filter: none;
                             object-fit: contain;
                             transition: filter 0.3s ease, transform 0.15s ease-in-out;
-                            &:hover {
-                                transform: scale(1.05);
-                            }
                         }
                     }
                 }

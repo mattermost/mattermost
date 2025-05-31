@@ -17,21 +17,10 @@
                 align-items: center;
                 justify-content: center;
                 color: rgba(var(--center-channel-color-rgb), 0.75);
-            }
-
-            &:hover .image-name,
-            &:hover button.single-image-view__toggle {
-                color: rgba(var(--center-channel-color-rgb), 0.75);
-            }
-
-            button.single-image-view__toggle {
-                display: inline-block;
                 padding: 0;
                 border: none;
                 border-radius: 4px;
                 background: transparent;
-                font-size: 18px;
-                line-height: 18px;
                 transition: transform 250ms ease-in-out;
 
                 .icon {
@@ -43,6 +32,11 @@
                         margin-left: 0;
                     }
                 }
+            }
+
+            &:hover .image-name,
+            &:hover button.single-image-view__toggle {
+                color: rgba(var(--center-channel-color-rgb), 0.75);
             }
 
             &--expanded {
@@ -70,7 +64,7 @@
         }
 
         &:hover .image-header--expanded button.single-image-view__toggle {
-            display: block;
+            display: flex;
             color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
@@ -101,9 +95,15 @@
             .image-loaded-container {
                 overflow: hidden;
                 height: 100%;
+                border-radius: 4px;
 
                 &:hover {
                     box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 10px 0 rgba(variables.$black, 0.1);
+
+                    img {
+                        transform: scale(1.05);
+                        transition: transform 0.15s ease-in-out;
+                    }
                 }
 
                 &.image-permalink {

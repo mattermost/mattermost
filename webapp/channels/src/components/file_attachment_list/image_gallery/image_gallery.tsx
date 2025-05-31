@@ -16,7 +16,6 @@ import './image_gallery.scss';
 
 type Props = PropsFromRedux & {
     fileInfos: FileInfo[];
-    enablePublicLink?: boolean;
     canDownloadFiles?: boolean;
     onToggleCollapse?: (collapsed: boolean) => void;
     isEmbedVisible?: boolean;
@@ -79,7 +78,10 @@ const ImageGallery = (props: Props) => {
     };
 
     return (
-        <div className='image-gallery'>
+        <div
+            className='image-gallery'
+            data-testid='fileAttachmentList'
+        >
             <div className='image-gallery__header'>
                 <button
                     className='image-gallery__toggle'

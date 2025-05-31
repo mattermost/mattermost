@@ -2,15 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
+import {FileTypes, ModalIdentifiers} from 'utils/constants';
+import {getFileType} from 'utils/utils';
 
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import FileAttachment from 'components/file_attachment';
 import FilePreviewModal from 'components/file_preview_modal';
 import SingleImageView from 'components/single_image_view';
-
-import {FileTypes, ModalIdentifiers} from 'utils/constants';
-import {getFileType} from 'utils/utils';
 
 import ImageGallery from './image_gallery/index';
 
@@ -38,7 +37,6 @@ export default function FileAttachmentList(props: Props) {
         fileCount,
         locale,
         isInPermalink,
-        enablePublicLink,
         isEmbedVisible,
         post,
     } = props;
@@ -59,7 +57,6 @@ export default function FileAttachmentList(props: Props) {
         return (
             <ImageGallery
                 fileInfos={sortedFileInfos}
-                enablePublicLink={enablePublicLink}
                 isEmbedVisible={isEmbedVisible}
                 postId={post.id}
             />
