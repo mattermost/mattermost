@@ -355,8 +355,18 @@ function PolicyDetails({
                     >
                         <Card.Header>
                             <TitleAndButtonCardHeader
-                                title={'Attribute based access rules'}
-                                subtitle={'Select user attributes and values as rules to restrict channel membership.'}
+                                title={
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.edit_policy.access_rules.title'
+                                        defaultMessage='Attribute-based access rules'
+                                    />
+                                }
+                                subtitle={
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.edit_policy.access_rules.subtitle'
+                                        defaultMessage='Select user attributes and values as rules to restrict channel membership.'
+                                    />
+                                }
                                 buttonText={
                                     editorMode === 'table' ? (
                                         <FormattedMessage
@@ -425,7 +435,7 @@ function PolicyDetails({
                                 subtitle={
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.channel_selector.subtitle'
-                                        defaultMessage='Add channels that this property based access policy will apply to.'
+                                        defaultMessage='Add channels that this attribute-based access policy will apply to.'
                                     />
                                 }
                                 buttonText={
