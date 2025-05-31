@@ -9,5 +9,8 @@ coverage:
     project:
       default:
         threshold: 1.0
+codecov:
+  notify:
+    after_n_builds: 2 # Server and webapp at this point
 ignore:
   - ^store/storetest.*
