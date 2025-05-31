@@ -7,6 +7,7 @@ import React, {useRef, useMemo, memo, useEffect} from 'react';
 import {Client4} from 'mattermost-redux/client';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
+import {useRemoteClusters} from 'components/admin_console/secure_connections/utils';
 import ProfilePopover from 'components/profile_popover';
 import UserGroupPopover from 'components/user_group_popover';
 
@@ -29,10 +30,11 @@ type Props = OwnProps & PropsFromRedux;
 
 const AtMention = (props: Props) => {
     const ref = useRef<HTMLAnchorElement>(null);
+    const [remoteClusters] = useRemoteClusters();
 
     const [user, group] = useMemo(
-        () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight),
-        [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight],
+        () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight, undefined, remoteClusters),
+        [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight, remoteClusters],
     );
 
     useEffect(() => {
@@ -54,8 +56,12 @@ const AtMention = (props: Props) => {
 
     if (user) {
         const userMentionNameSuffix = props.mentionName.substring(user.username.length);
-        const userDisplayName = displayUsername(user, props.teammateNameDisplay);
         const highlightMention = !props.disableHighlight && user.id === props.currentUserId;
+
+        // For remote users, use the mention name directly (user:org1)
+        // For local users, use the display name
+        const isRemoteUser = Boolean(user.remote_id);
+        const userDisplayName = isRemoteUser ? props.mentionName : displayUsername(user, props.teammateNameDisplay);
 
         return (
             <>
