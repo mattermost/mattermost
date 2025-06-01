@@ -122,6 +122,7 @@
                     height: 100%;
                     max-height: 216px;
                     border-radius: 4px;
+                    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
                     background: rgba(var(--center-channel-color-rgb), 0.08);
                     align-items: center;
                     justify-content: center;
@@ -129,6 +130,10 @@
 
                     .file-preview__button {
                         width: auto;
+                    }
+
+                    .image-loaded-container {
+                        border-radius: 0;
                     }
 
                     // Loading state styling

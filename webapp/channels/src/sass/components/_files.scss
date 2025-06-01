@@ -199,9 +199,8 @@ $max-image-height: 350px;
                     position: relative;
                     z-index: 2;
                     overflow: hidden;
-                    max-height: $max-image-height;
+                    max-height: calc($max-image-height - 2px); // 2px is the top and bottom border width
                     align-self: center;
-                    border-radius: 4px;
                     cursor: pointer;
                     transition: all 0.1s linear;
 
