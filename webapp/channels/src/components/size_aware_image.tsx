@@ -330,8 +330,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     <div
                         className={`image-loading__container ${this.props.className}`}
                         style={{
-                            width: width,
-                            height: height,
+                            width,
+                            height,
                             minWidth: MIN_IMAGE_SIZE,
                             minHeight: MIN_IMAGE_SIZE,
                         }}

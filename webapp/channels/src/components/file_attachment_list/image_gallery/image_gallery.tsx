@@ -141,20 +141,20 @@ const ImageGallery = (props: Props) => {
                     const isSmallImage = (fileInfo.width || 0) < 216 || (fileInfo.height || 0) < 216;
                     const naturalWidth = fileInfo.width || 0;
                     const naturalHeight = fileInfo.height || 0;
-                    
+
                     // Calculate width based on aspect ratio and gallery height
                     const calculatedWidth = Math.min(galleryHeight * clampedAspectRatio, 500);
-                    
+
                     // For small images, use their natural width + padding, but ensure it doesn't exceed max width
-                    const itemWidth = isSmallImage ? 
+                    const itemWidth = isSmallImage ?
                         Math.min(naturalWidth + 16, 500) : // Add 16px padding for small images, but cap at 500px
                         calculatedWidth;
 
                     // For height: if small image and it's the tallest, use natural height + padding
                     // Otherwise, use gallery height to match other taller images
                     const naturalHeightWithPadding = naturalHeight + 16;
-                    const itemHeight = isSmallImage && naturalHeightWithPadding === galleryHeight ? 
-                        naturalHeightWithPadding : 
+                    const itemHeight = isSmallImage && naturalHeightWithPadding === galleryHeight ?
+                        naturalHeightWithPadding :
                         galleryHeight;
 
                     return (
