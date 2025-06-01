@@ -319,12 +319,13 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		}
 		posts = reducePostsSliceInCache(posts, cache)
 		count += len(posts)
+		previousLen := len(sd.posts)
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
 
-		// Populate metadata for updated posts before syncing
-		for i, post := range sd.posts {
-			if post != nil {
-				sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
+		// Populate metadata for updated posts before syncing (only process newly appended posts)
+		for i := previousLen; i < len(sd.posts); i++ {
+			if sd.posts[i] != nil {
+				sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), sd.posts[i], false, false, true)
 				// Debug: Log if post has acknowledgements
 				if sd.posts[i].Metadata != nil && sd.posts[i].Metadata.Acknowledgements != nil && len(sd.posts[i].Metadata.Acknowledgements) > 0 {
 					ackCount := len(sd.posts[i].Metadata.Acknowledgements)
