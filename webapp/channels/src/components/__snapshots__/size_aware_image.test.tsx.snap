@@ -6,7 +6,10 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
     className="image-loading__container class"
     style={
       Object {
-        "maxWidth": 300,
+        "height": 200,
+        "minHeight": 48,
+        "minWidth": 48,
+        "width": 300,
       }
     }
   >
@@ -55,7 +58,10 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
     className="image-loading__container class"
     style={
       Object {
-        "maxWidth": 300,
+        "height": 200,
+        "minHeight": 48,
+        "minWidth": 48,
+        "width": 300,
       }
     }
   >
@@ -103,7 +109,10 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
     className="image-loading__container class"
     style={
       Object {
-        "maxWidth": 300,
+        "height": 200,
+        "minHeight": 48,
+        "minWidth": 48,
+        "width": 300,
       }
     }
   >
