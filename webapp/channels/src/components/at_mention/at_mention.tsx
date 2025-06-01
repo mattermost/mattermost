@@ -55,13 +55,26 @@ const AtMention = (props: Props) => {
     };
 
     if (user) {
-        const userMentionNameSuffix = props.mentionName.substring(user.username.length);
         const highlightMention = !props.disableHighlight && user.id === props.currentUserId;
 
-        // For remote users, use the mention name directly (user:org1)
-        // For local users, use the display name
-        const isRemoteUser = Boolean(user.remote_id);
-        const userDisplayName = isRemoteUser ? props.mentionName : displayUsername(user, props.teammateNameDisplay);
+        // Display logic for mentions:
+        // 1. If mentionName contains ":", it's a remote mention format - display as is
+        // 2. Otherwise, use the standard display name
+        let userDisplayName: string;
+        let userMentionNameSuffix = '';
+
+        if (props.mentionName.includes(':')) {
+            // This is a remote mention format (username:clustername)
+            userDisplayName = props.mentionName;
+        } else {
+            // Local mention - use display name
+            userDisplayName = displayUsername(user, props.teammateNameDisplay);
+
+            // Check if there's any suffix after the username in the mention
+            if (props.mentionName.length > user.username.length) {
+                userMentionNameSuffix = props.mentionName.substring(user.username.length);
+            }
+        }
 
         return (
             <>
