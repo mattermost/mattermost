@@ -399,7 +399,7 @@ function PolicyDetails({
                             }
                             text={formatMessage({
                                 id: 'admin.access_control.policy.edit_policy.notice.text',
-                                defaultMessage: 'You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Properties.',
+                                defaultMessage: 'You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Attributes.',
                             })}
                             primaryButton={{
                                 text: formatMessage({
@@ -407,7 +407,7 @@ function PolicyDetails({
                                     defaultMessage: 'Configure user attributes',
                                 }),
                                 onClick: () => {
-                                    getHistory().push('/admin_console/site_config/system_properties');
+                                    getHistory().push('/admin_console/system_attributes/user_attributes');
                                 },
                             }}
                         />
