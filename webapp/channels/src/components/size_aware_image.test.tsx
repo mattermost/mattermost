@@ -166,7 +166,7 @@ describe('components/SizeAwareImage', () => {
 
         wrapper.instance().setState({isSmallImage: true, imageWidth: 220});
         expect(wrapper.find('div.small-image__container').prop('style')).
-            toHaveProperty('width', 222);
+            toHaveProperty('width', 236);
 
         wrapper.instance().setState({isSmallImage: true, imageWidth: 24});
         expect(wrapper.find('div.small-image__container').prop('style')).

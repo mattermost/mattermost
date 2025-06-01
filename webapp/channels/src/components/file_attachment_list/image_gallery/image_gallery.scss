@@ -169,6 +169,10 @@
                             filter: none;
                             object-fit: cover;
                             transition: filter 0.3s ease, transform 0.15s ease-in-out;
+
+                            &.small-image--inside-container {
+                                object-fit: contain;
+                            }
                         }
                         
                         .small-image__container {
@@ -179,10 +183,6 @@
                             border-radius: 4px;
                             margin: 0;
                         }
-                        
-                        .small-image__container img {
-                            object-fit: contain;
-                        }      
                     }
                 }          
             }

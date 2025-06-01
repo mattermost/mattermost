@@ -139,7 +139,7 @@ const ImageGallery = (props: Props) => {
                     // For small images, use their natural width but gallery height for container
                     // For larger images, calculate width based on dynamic gallery height
                     const isSmallImage = (fileInfo.width || 0) < 216 || (fileInfo.height || 0) < 216;
-                    const itemWidth = isSmallImage ? undefined : Math.min(galleryHeight * clampedAspectRatio, 500); // No width for small images
+                    const itemWidth = isSmallImage ? (fileInfo.width || 0) + 16 : Math.min(galleryHeight * clampedAspectRatio, 500); // Add 16px padding for small images
 
                     // For height: if small image and it's the tallest, use natural height + padding
                     // Otherwise, use gallery height to match other taller images
