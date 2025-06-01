@@ -124,10 +124,10 @@
                     max-height: 216px;
                     align-items: center;
                     justify-content: center;
+                    border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
                     border-radius: 4px;
                     margin: 0;
                     background: rgba(var(--center-channel-color-rgb), 0.08);
-                    border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
 
                     .file-preview__button {
                         width: auto;
