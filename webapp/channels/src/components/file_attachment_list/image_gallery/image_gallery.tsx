@@ -139,19 +139,30 @@ const ImageGallery = (props: Props) => {
                     // For small images, use their natural width but gallery height for container
                     // For larger images, calculate width based on dynamic gallery height
                     const isSmallImage = (fileInfo.width || 0) < 216 || (fileInfo.height || 0) < 216;
-                    const itemWidth = isSmallImage ? (fileInfo.width || 0) + 16 : Math.min(galleryHeight * clampedAspectRatio, 500); // Add 16px padding for small images
+                    const naturalWidth = fileInfo.width || 0;
+                    const naturalHeight = fileInfo.height || 0;
+                    
+                    // Calculate width based on aspect ratio and gallery height
+                    const calculatedWidth = Math.min(galleryHeight * clampedAspectRatio, 500);
+                    
+                    // For small images, use their natural width + padding, but ensure it doesn't exceed max width
+                    const itemWidth = isSmallImage ? 
+                        Math.min(naturalWidth + 16, 500) : // Add 16px padding for small images, but cap at 500px
+                        calculatedWidth;
 
                     // For height: if small image and it's the tallest, use natural height + padding
                     // Otherwise, use gallery height to match other taller images
-                    const naturalHeightWithPadding = (fileInfo.height || 0) + 16;
-                    const itemHeight = isSmallImage && naturalHeightWithPadding === galleryHeight ? naturalHeightWithPadding : galleryHeight;
+                    const naturalHeightWithPadding = naturalHeight + 16;
+                    const itemHeight = isSmallImage && naturalHeightWithPadding === galleryHeight ? 
+                        naturalHeightWithPadding : 
+                        galleryHeight;
 
                     return (
                         <div
                             key={fileInfo.id}
                             className={`image-gallery__item ${isSmallImage ? 'image-gallery__item--small' : ''}`}
                             style={{
-                                width: isSmallImage ? undefined : `${itemWidth}px`,
+                                width: `${itemWidth}px`, // Always set width explicitly
                                 height: `${itemHeight}px`,
                                 maxWidth: '500px', // Enforce max width
                                 maxHeight: '216px', // Enforce max height

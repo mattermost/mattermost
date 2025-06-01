@@ -88,8 +88,9 @@
         min-width: 48px;
         max-width: 500px;
         max-height: 216px;
-        flex: none;
+        flex: 0 0 auto;
         border-radius: 4px;
+        margin: 0;
 
         // Special handling for small images - center them within the gallery height
         &--small {
@@ -105,9 +106,11 @@
         .file-view--single {
             height: 100%;
             margin: 0;
+            width: 100%;
 
             .file__image {
                 height: 100%;
+                width: 100%;
 
                 .image-header {
                     display: none;
@@ -141,7 +144,6 @@
                     .image-loading__container {
                         display: flex;
                         width: 100%;
-                        max-width: none;
                         height: 100%;
                         align-items: center;
                         justify-content: center;

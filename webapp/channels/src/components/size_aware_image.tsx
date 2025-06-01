@@ -57,7 +57,7 @@ export type Props = WrappedComponentProps & {
     /*
     * A callback that is called as soon as the image component has a height value
     */
-    onImageLoaded?: ({height, width}: {height: number; width: number}) => void;
+    onImageLoaded?: (dimensions: {height: number; width: number}) => void;
 
     /*
     * A callback that is called when image load fails
@@ -308,7 +308,12 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 fallback = (
                     <div
                         className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: dimensions?.width}}
+                        style={{
+                            width: dimensions?.width,
+                            height: dimensions?.height,
+                            minWidth: MIN_IMAGE_SIZE,
+                            minHeight: MIN_IMAGE_SIZE,
+                        }}
                     >
                         <img
                             aria-label={ariaLabelImage}
@@ -324,7 +329,12 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 fallback = (
                     <div
                         className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: width}}
+                        style={{
+                            width: width,
+                            height: height,
+                            minWidth: MIN_IMAGE_SIZE,
+                            minHeight: MIN_IMAGE_SIZE,
+                        }}
                     >
                         {this.renderImageLoaderIfNeeded()}
                         <svg
