@@ -63,6 +63,9 @@ func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post
 
 	a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementAdded, acknowledgement, post)
 
+	// Trigger post updated event to ensure shared channel sync
+	a.sendPostUpdateEvent(c, post)
+
 	return acknowledgement, nil
 }
 
@@ -120,6 +123,9 @@ func (a *App) DeleteAcknowledgementForPostWithPost(c request.CTX, post *model.Po
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
 	a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementRemoved, oldAck, post)
+
+	// Trigger post updated event to ensure shared channel sync
+	a.sendPostUpdateEvent(c, post)
 
 	return nil
 }
@@ -230,6 +236,9 @@ func (a *App) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Pos
 		a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementAdded, ack, post)
 	}
 
+	// Trigger post updated event to ensure shared channel sync
+	a.sendPostUpdateEvent(c, post)
+
 	return savedAcks, nil
 }
 
@@ -292,6 +301,9 @@ func (a *App) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.P
 	// Invalidate the last post time cache
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
+	// Trigger post updated event to ensure shared channel sync
+	a.sendPostUpdateEvent(c, post)
+
 	return nil
 }
 
@@ -314,4 +326,23 @@ func (a *App) sendAcknowledgementEvent(rctx request.CTX, event model.WebsocketEv
 	}
 	message.Add("acknowledgement", string(acknowledgementJSON))
 	a.Publish(message)
+}
+
+func (a *App) sendPostUpdateEvent(c request.CTX, post *model.Post) {
+	// Fetch the latest version of the post to ensure we have the updated timestamp
+	updatedPost, err := a.GetSinglePost(c, post.Id, false)
+	if err != nil {
+		c.Logger().Warn("Failed to get updated post for acknowledgement sync", mlog.String("post_id", post.Id), mlog.Err(err))
+		return
+	}
+
+	// Send a post edited event to trigger shared channel sync
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", updatedPost.ChannelId, "", nil, "")
+
+	// Prepare the post with metadata for the event
+	preparedPost := a.PreparePostForClient(c, updatedPost, false, true, true)
+
+	if appErr := a.publishWebsocketEventForPost(c, preparedPost, message); appErr != nil {
+		c.Logger().Warn("Failed to send post update event for acknowledgement sync", mlog.String("post_id", post.Id), mlog.Err(appErr))
+	}
 }
