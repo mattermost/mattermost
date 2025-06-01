@@ -39,7 +39,6 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
       <img
         aria-label="file thumbnail photo-1533709752211-118fcaf03312"
         className="class"
-        fileURL="https://example.com/image.png"
         onClick={[Function]}
         onError={[Function]}
         onKeyDown={[Function]}
