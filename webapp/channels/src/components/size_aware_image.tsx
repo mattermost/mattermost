@@ -205,7 +205,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             dimensions,
             src,
             intl,
-            fileURL,
             ...props
         } = this.props;
         Reflect.deleteProperty(props, 'showLoader');
