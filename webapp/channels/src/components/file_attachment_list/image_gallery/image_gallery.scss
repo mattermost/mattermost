@@ -127,6 +127,7 @@
                     border-radius: 4px;
                     margin: 0;
                     background: rgba(var(--center-channel-color-rgb), 0.08);
+                    border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
 
                     .file-preview__button {
                         width: auto;

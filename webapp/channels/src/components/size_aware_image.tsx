@@ -205,7 +205,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             dimensions,
             src,
             intl,
-            fileURL,
             ...props
         } = this.props;
         Reflect.deleteProperty(props, 'showLoader');
@@ -400,6 +399,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             intl,
             src,
             fileURL,
+            fileInfo,
         } = this.props;
 
         // Don't render utility buttons for external small images
