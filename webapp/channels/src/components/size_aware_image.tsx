@@ -8,8 +8,6 @@ import React from 'react';
 import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
-import {FileTypes} from 'utils/constants';
-import {copyToClipboard, getFileType} from 'utils/utils';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
@@ -20,6 +18,9 @@ import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingImagePreview from 'components/loading_image_preview';
 import WithTooltip from 'components/with_tooltip';
+
+import {FileTypes} from 'utils/constants';
+import {copyToClipboard, getFileType} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
@@ -203,8 +204,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             fileInfo,
             dimensions,
             src,
-            fileURL,
-            enablePublicLink,
             intl,
             ...props
         } = this.props;
@@ -340,7 +339,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         const shouldShowImg = !this.dimensionsAvailable(dimensions) || this.state.loaded;
         const imageContainer = this.renderImageWithContainerIfNeeded();
-        
+
         // Always render utility buttons outside the figure but inside file-preview__button (unless hideUtilities is true)
         const utilityButtons = this.props.hideUtilities ? null : this.renderUtilityButtons();
 
@@ -474,7 +473,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         // Determine which CSS classes to use based on image type and size
         const isSmallImage = this.props.handleSmallImageContainer && this.state.isSmallImage;
         const hasSmallWidth = this.state.imageWidth < MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS;
-        
+
         const containerClasses = classNames('image-preview-utility-buttons-container', {
             'image-preview-utility-buttons-container--small-image': isSmallImage || hasSmallWidth,
             'image-preview-utility-buttons-container--small-image-no-copy-button': (!enablePublicLink || !this.isInternalImage) && (isSmallImage || hasSmallWidth),

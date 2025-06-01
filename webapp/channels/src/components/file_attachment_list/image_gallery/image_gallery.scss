@@ -114,6 +114,7 @@
                 }
 
                 .image-container {
+                    position: relative;
                     display: flex;
                     overflow: hidden;
                     width: 100%;
@@ -121,12 +122,11 @@
                     max-width: 500px;
                     height: 100%;
                     max-height: 216px;
-                    border-radius: 4px;
-                    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-                    background: rgba(var(--center-channel-color-rgb), 0.08);
                     align-items: center;
                     justify-content: center;
+                    border-radius: 4px;
                     margin: 0;
+                    background: rgba(var(--center-channel-color-rgb), 0.08);
 
                     .file-preview__button {
                         width: auto;
@@ -176,6 +176,8 @@
                             height: 100%;
                             max-height: 100%;
                             padding: 8px;
+                            border-radius: 4px;
+                            margin: 0;
                         }
                         
                         .small-image__container img {

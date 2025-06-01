@@ -205,14 +205,14 @@ describe('components/SizeAwareImage', () => {
             fileURL,
         };
         const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
-        
+
         // Set state to loaded so utility buttons are rendered
         wrapper.setState({loaded: true});
-        
+
         // The utility buttons are now rendered inside file-preview__button but outside the figure
         const filePreviewButton = wrapper.find('.file-preview__button');
         const utilityButtons = filePreviewButton.find('.image-preview-utility-buttons-container');
-        
+
         expect(utilityButtons).toHaveLength(1);
         expect(utilityButtons.find('.size-aware-image__download').prop('href')).toBe(fileURL);
     });
@@ -226,14 +226,14 @@ describe('components/SizeAwareImage', () => {
 
         const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
         expect(wrapper.state('linkCopyInProgress')).toBe(false);
-        
+
         // Set state to loaded so utility buttons are rendered
         wrapper.setState({loaded: true});
-        
+
         // The utility buttons are now rendered inside file-preview__button but outside the figure
         const filePreviewButton = wrapper.find('.file-preview__button');
         const utilityButtons = filePreviewButton.find('.image-preview-utility-buttons-container');
-        
+
         expect(utilityButtons).toHaveLength(1);
         utilityButtons.find('.size-aware-image__copy_link').first().simulate('click');
         expect(wrapper.state('linkCopyInProgress')).toBe(true);
@@ -246,14 +246,14 @@ describe('components/SizeAwareImage', () => {
         };
 
         const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
-        
-        // Set state to loaded so utility buttons are rendered  
+
+        // Set state to loaded so utility buttons are rendered
         wrapper.setState({loaded: true});
-        
+
         // The utility buttons are now rendered as sibling elements outside the main wrapper
         const fragmentChildren = wrapper.children();
         let utilityButtons = null;
-        
+
         for (let i = 0; i < fragmentChildren.length; i++) {
             const child = fragmentChildren.at(i);
             if (child.hasClass && child.hasClass('image-preview-utility-buttons-container')) {
@@ -261,7 +261,7 @@ describe('components/SizeAwareImage', () => {
                 break;
             }
         }
-        
+
         if (utilityButtons) {
             expect(utilityButtons.find('button.size-aware-image__copy_link').exists()).toEqual(false);
         } else {
