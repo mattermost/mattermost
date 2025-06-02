@@ -14,18 +14,12 @@ import (
 func TestEnvironmentVariableHandling(t *testing.T) {
 	// Clean up any existing environment variables before testing
 	originalConsoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
-	originalCWSURL := os.Getenv("MM_CLOUDSETTINGS_CWSURL")
 	defer func() {
 		// Restore original environment variables
 		if originalConsoleLevel != "" {
 			os.Setenv("MM_LOGSETTINGS_CONSOLELEVEL", originalConsoleLevel)
 		} else {
 			os.Unsetenv("MM_LOGSETTINGS_CONSOLELEVEL")
-		}
-		if originalCWSURL != "" {
-			os.Setenv("MM_CLOUDSETTINGS_CWSURL", originalCWSURL)
-		} else {
-			os.Unsetenv("MM_CLOUDSETTINGS_CWSURL")
 		}
 	}()
 
