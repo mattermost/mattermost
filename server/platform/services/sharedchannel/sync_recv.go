@@ -108,6 +108,13 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 	}
 
 	for _, post := range syncMsg.Posts {
+		// Debug: Log incoming post details
+		var ackInfo string
+		if post.Metadata != nil && post.Metadata.Acknowledgements != nil && len(post.Metadata.Acknowledgements) > 0 {
+			ackInfo = fmt.Sprintf(" (has %d acks)", len(post.Metadata.Acknowledgements))
+		}
+		scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("RECV: Processing post %s%s", post.Id, ackInfo))
+
 		if syncMsg.ChannelId != post.ChannelId {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "ChannelId mismatch",
 				mlog.String("remote", rc.Name),
@@ -143,14 +150,24 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		rpost, err := scs.upsertSyncPost(post, targetChannel, rc)
 		if err != nil {
 			syncResp.PostErrors = append(syncResp.PostErrors, post.Id)
+			scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("RECV: Failed to upsert post %s: %v", post.Id, err))
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync post",
 				mlog.String("post_id", post.Id),
 				mlog.String("channel_id", post.ChannelId),
 				mlog.String("remote", rc.Name),
 				mlog.Err(err),
 			)
-		} else if syncResp.PostsLastUpdateAt < rpost.UpdateAt {
-			syncResp.PostsLastUpdateAt = rpost.UpdateAt
+		} else {
+			// Debug: Log successful post upsert with acknowledgement info
+			var finalAckInfo string
+			if rpost.Metadata != nil && rpost.Metadata.Acknowledgements != nil && len(rpost.Metadata.Acknowledgements) > 0 {
+				finalAckInfo = fmt.Sprintf(" (final: %d acks)", len(rpost.Metadata.Acknowledgements))
+			}
+			scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("RECV: Successfully upserted post %s%s", post.Id, finalAckInfo))
+
+			if syncResp.PostsLastUpdateAt < rpost.UpdateAt {
+				syncResp.PostsLastUpdateAt = rpost.UpdateAt
+			}
 		}
 	}
 
@@ -361,6 +378,13 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 
 func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
 	var appErr *model.AppError
+
+	// Debug: Log what we're trying to upsert
+	var incomingAckInfo string
+	if post.Metadata != nil && post.Metadata.Acknowledgements != nil && len(post.Metadata.Acknowledgements) > 0 {
+		incomingAckInfo = fmt.Sprintf(" (incoming: %d acks)", len(post.Metadata.Acknowledgements))
+	}
+	scs.postDebugMessage(post.ChannelId, fmt.Sprintf("RECV: upsertSyncPost called for post %s%s", post.Id, incomingAckInfo))
 
 	post.RemoteId = model.NewPointer(rc.RemoteId)
 	rctx := request.EmptyContext(scs.server.Log())

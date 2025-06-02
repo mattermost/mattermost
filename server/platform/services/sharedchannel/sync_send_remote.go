@@ -505,7 +505,17 @@ func (scs *Service) fetchPostAttachmentsForSync(sd *syncData) error {
 func (scs *Service) filterPostsForSync(sd *syncData) {
 	filtered := make([]*model.Post, 0, len(sd.posts))
 
+	// Debug: Log initial posts before filtering
+	scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("FILTER: Starting with %d posts for remote %s", len(sd.posts), sd.rc.Name))
+
 	for _, p := range sd.posts {
+		// Debug: Log post details
+		var ackInfo string
+		if p.Metadata != nil && p.Metadata.Acknowledgements != nil && len(p.Metadata.Acknowledgements) > 0 {
+			ackInfo = fmt.Sprintf(" (has %d acks)", len(p.Metadata.Acknowledgements))
+		}
+		scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("FILTER: Checking post %s%s", p.Id, ackInfo))
+
 		// Don't resend an existing post where only the reactions changed.
 		// Posts we must send:
 		//   - new posts (EditAt == 0)
@@ -514,24 +524,31 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 		//   - posts with metadata changes (acknowledgements/priority)
 		hasMetadataChanges := p.Metadata != nil && (p.Metadata.Acknowledgements != nil || p.Metadata.Priority != nil)
 		if p.EditAt > 0 && p.EditAt < sd.scr.LastPostUpdateAt && p.DeleteAt == 0 && !hasMetadataChanges {
+			scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("FILTER: Skipping post %s - no recent edits and no metadata changes", p.Id))
 			continue
 		}
 
 		// Don't send a deleted post if it is just the original copy from an edit.
 		if p.DeleteAt > 0 && p.OriginalId != "" {
+			scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("FILTER: Skipping post %s - deleted original from edit", p.Id))
 			continue
 		}
 
 		// don't sync a post back to the remote it came from.
 		if p.GetRemoteID() == sd.rc.RemoteId {
+			scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("FILTER: Skipping post %s - originated from remote %s", p.Id, sd.rc.RemoteId))
 			continue
 		}
 
 		// parse out all permalinks in the message.
 		p.Message = scs.processPermalinkToRemote(p)
 
+		scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("FILTER: Including post %s%s", p.Id, ackInfo))
 		filtered = append(filtered, p)
 	}
+
+	// Debug: Log final result
+	scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("FILTER: Filtered down to %d posts for remote %s", len(filtered), sd.rc.Name))
 	sd.posts = filtered
 }
 
@@ -653,7 +670,24 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Posts = sd.posts
 
+	// Debug: Log details about posts being sent
+	scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("SEND_POST: Sending %d posts to remote %s", len(msg.Posts), sd.rc.Name))
+	for _, p := range msg.Posts {
+		var ackInfo string
+		if p.Metadata != nil && p.Metadata.Acknowledgements != nil && len(p.Metadata.Acknowledgements) > 0 {
+			ackInfo = fmt.Sprintf(" (has %d acks)", len(p.Metadata.Acknowledgements))
+		}
+		scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("SEND_POST: Post %s%s", p.Id, ackInfo))
+	}
+
 	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+		// Debug: Log response
+		if errResp != nil {
+			scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("SEND_POST: Error response from remote %s: %v", sd.rc.Name, errResp))
+		} else {
+			scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("SEND_POST: Success response from remote %s", sd.rc.Name))
+		}
+
 		if len(syncResp.PostErrors) != 0 {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for post(s) sync",
 				mlog.String("channel_id", sd.task.channelID),
