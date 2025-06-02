@@ -138,7 +138,7 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 	usersOnly, _ := command.Flags().GetBool("users-only")
 	if usersOnly {
 		data["users_only"] = "true"
-		
+
 		// For users-only export, only profile pictures option is relevant
 		includeProfilePictures, _ := command.Flags().GetBool("include-profile-pictures")
 		if includeProfilePictures {

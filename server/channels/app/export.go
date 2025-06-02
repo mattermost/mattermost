@@ -143,7 +143,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	// Handle users-only export
 	if opts.UsersOnly {
 		ctx.Logger().Info("Bulk export: users-only export mode")
-		
+
 		ctx.Logger().Info("Bulk export: exporting users")
 		profilePictures, appErr := a.exportAllUsers(ctx, job, writer, false, opts.IncludeProfilePictures)
 		if appErr != nil {

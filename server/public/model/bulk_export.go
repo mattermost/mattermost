@@ -14,5 +14,5 @@ type BulkExportOpts struct {
 	IncludeRolesAndSchemes  bool
 	CreateArchive           bool
 	// UsersOnly determines whether the export should include only user-related data.
-	UsersOnly               bool
+	UsersOnly bool
 }

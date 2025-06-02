@@ -118,7 +118,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		mockJob := &model.Job{
 			Type: model.JobTypeExportProcess,
 			Data: map[string]string{
-				"users_only":              "true",
+				"users_only":               "true",
 				"include_profile_pictures": "true",
 			},
 		}

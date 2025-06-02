@@ -1743,7 +1743,7 @@ func TestBulkExportUsersOnly(t *testing.T) {
 	// Create some test data
 	team := th.CreateTeam()
 	channel := th.CreateChannel(th.Context, team)
-	
+
 	// Create additional users
 	user1, appErr := th.App.CreateUser(th.Context, &model.User{
 		Email:    "user1@example.com",
@@ -1834,7 +1834,7 @@ func TestBulkExportUsersOnly(t *testing.T) {
 	require.False(t, hasTeams, "Export should NOT contain teams in users-only mode")
 	require.False(t, hasChannels, "Export should NOT contain channels in users-only mode")
 	require.False(t, hasPosts, "Export should NOT contain posts in users-only mode")
-	
+
 	// Verify we have the correct number of users (including system users)
 	require.GreaterOrEqual(t, userCount, 3, "Should have at least 3 users exported")
 }
