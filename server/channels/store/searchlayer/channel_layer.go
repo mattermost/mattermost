@@ -37,7 +37,7 @@ func (c *SearchChannelStore) deleteChannelIndex(rctx request.CTX, channel *model
 }
 
 func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Channel) {
-	teamMemberIDs, err := c.GetTeamMembersForChannel(channel.Id)
+	teamMemberIDs, err := c.GetTeamMembersForChannel(rctx, channel.Id)
 	if err != nil {
 		rctx.Logger().Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 		return

@@ -2480,11 +2480,11 @@ func (s *RetryLayerChannelStore) GetTeamForChannel(channelID string) (*model.Tea
 
 }
 
-func (s *RetryLayerChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
+func (s *RetryLayerChannelStore) GetTeamMembersForChannel(rctx request.CTX, channelID string) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetTeamMembersForChannel(channelID)
+		result, err := s.ChannelStore.GetTeamMembersForChannel(rctx, channelID)
 		if err == nil {
 			return result, nil
 		}
