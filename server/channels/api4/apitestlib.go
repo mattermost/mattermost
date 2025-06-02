@@ -288,8 +288,7 @@ func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 	}
 
 	dbStore, dbSettings, searchEngine := setupStores(tb)
-	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, true, true, nil, options)
-	th := setupTestHelper(tb, dbStore, searchEngine, true, true, removeErrors, options)
+	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, true, true, removeErrors, options)
 	th.InitLogin(tb)
 
 	return th
