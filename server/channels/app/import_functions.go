@@ -193,7 +193,6 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 
 	var team *model.Team
 	team, err := a.Srv().Store().Team().GetByName(teamName)
-
 	if err != nil {
 		team = &model.Team{
 			Name: teamName,
@@ -2063,6 +2062,7 @@ func (a *App) updateFileInfoWithPostId(rctx request.CTX, post *model.Post) {
 		}
 	}
 }
+
 func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelImportData, dryRun bool) *model.AppError {
 	var err *model.AppError
 	if err = imports.ValidateDirectChannelImportData(data); err != nil {
@@ -2117,7 +2117,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 		return model.NewAppError("BulkImport", "app.import.import_direct_channel.get_channel_members.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	var ems = make([]model.ChannelMember, 0, totalMembers)
+	ems := make([]model.ChannelMember, 0, totalMembers)
 	var page int
 
 	for int64(len(ems)) < totalMembers {
