@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -156,6 +157,15 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	// fetch new posts or retry post.
 	if err := scs.fetchPostsForSync(sd); err != nil {
 		return fmt.Errorf("cannot fetch posts for sync %v: %w", sd, err)
+	}
+
+	// Debug: Log posts being synced
+	for _, post := range sd.posts {
+		if strings.Contains(post.Message, "@") {
+			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+				fmt.Sprintf("POST_SYNC_DEBUG: Syncing to %s - Post ID: %s, Message: %s",
+					sd.rc.Name, post.Id, post.Message))
+		}
 	}
 
 	if !rc.IsOnline() {
@@ -393,11 +403,19 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 	}
 
 	for _, post := range sd.posts {
-		// add author
-		userIDs[post.UserId] = p2mm{}
-
 		// get mentions and users for each mention
 		mentionMap := scs.app.MentionsToTeamMembers(request.EmptyContext(scs.server.Log()), post.Message, sc.TeamId)
+
+		// Debug: Log mention map
+		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+			fmt.Sprintf("MENTION_MAP_DEBUG: Post ID: %s, Message: %.100s, MentionMap: %+v",
+				post.Id, post.Message, mentionMap))
+
+		// add author with post and mentionMap so transformations can be applied
+		userIDs[post.UserId] = p2mm{
+			post:       post,
+			mentionMap: mentionMap,
+		}
 
 		// Add all mentioned users
 		for _, userID := range mentionMap {
@@ -411,6 +429,11 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 	merr := merror.New()
 
 	for userID, v := range userIDs {
+		// Debug: Log userIDs loop
+		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+			fmt.Sprintf("USER_LOOP_DEBUG: Processing userID: %s, has post: %v, has mentionMap: %v",
+				userID, v.post != nil, len(v.mentionMap) > 0))
+
 		user, err := scs.server.GetStore().User().Get(context.Background(), userID)
 		if err != nil {
 			merr.Append(fmt.Errorf("could not get user %s: %w", userID, err))
@@ -447,6 +470,11 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		}
 
 		// Transform @username to @username:localcluster when sending local users to remote clusters
+		// Debug: Log condition check
+		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+			fmt.Sprintf("LOCAL_USER_CHECK: userID: %s, username: %s, v.post != nil: %v, user.RemoteId == nil: %v, user.RemoteId: %v",
+				userID, user.Username, v.post != nil, user.RemoteId == nil, user.RemoteId))
+
 		if v.post != nil && user.RemoteId == nil {
 			localClusterName := getLocalClusterName(scs.server.Config())
 
