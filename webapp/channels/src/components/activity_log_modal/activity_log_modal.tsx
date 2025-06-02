@@ -11,7 +11,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ActivityLog from 'components/activity_log_modal/components/activity_log';
 
-export type Props = {
+type Props = {
 
     /**
      * The current user id
