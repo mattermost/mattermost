@@ -137,7 +137,7 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "August"
+    "translation": "Ingen fil under \"sertifikat\" i forespørslen."
   },
   {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
