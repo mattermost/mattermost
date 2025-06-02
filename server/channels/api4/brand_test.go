@@ -15,6 +15,7 @@ import (
 )
 
 func TestGetBrandImage(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -35,6 +36,7 @@ func TestGetBrandImage(t *testing.T) {
 }
 
 func TestUploadBrandImage(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -136,6 +138,7 @@ func TestUploadBrandImageTwice(t *testing.T) {
 }
 
 func TestDeleteBrandImage(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
