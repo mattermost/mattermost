@@ -81,7 +81,7 @@ func (s *SqlPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostA
 	defer finalizeTransactionX(transaction, &err)
 
 	columnsToInsert := []string{"PostId", "UserId", "ChannelId", "AcknowledgedAt"}
-	valuesToInsert := []interface{}{acknowledgement.PostId, acknowledgement.UserId, acknowledgement.ChannelId, acknowledgement.AcknowledgedAt}
+	valuesToInsert := []any{acknowledgement.PostId, acknowledgement.UserId, acknowledgement.ChannelId, acknowledgement.AcknowledgedAt}
 
 	if acknowledgement.RemoteId != nil {
 		columnsToInsert = append(columnsToInsert, "RemoteId")
@@ -302,7 +302,7 @@ func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAc
 		ack.PreSave()
 
 		columnsToInsert := []string{"PostId", "UserId", "ChannelId", "AcknowledgedAt"}
-		valuesToInsert := []interface{}{ack.PostId, ack.UserId, ack.ChannelId, ack.AcknowledgedAt}
+		valuesToInsert := []any{ack.PostId, ack.UserId, ack.ChannelId, ack.AcknowledgedAt}
 
 		if ack.RemoteId != nil {
 			columnsToInsert = append(columnsToInsert, "RemoteId")

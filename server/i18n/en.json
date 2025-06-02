@@ -8753,16 +8753,16 @@
     "translation": "Version is not valid for this access control policy."
   },
   {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
+  },
+  {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
     "translation": "Invalid post id."
   },
   {
     "id": "model.acknowledgement.is_valid.user_id.app_error",
     "translation": "Invalid user id."
-  },
-  {
-    "id": "model.acknowledgement.is_valid.channel_id.app_error",
-    "translation": "Invalid channel id."
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
