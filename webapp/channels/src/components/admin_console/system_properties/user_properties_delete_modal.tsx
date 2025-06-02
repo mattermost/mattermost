@@ -49,7 +49,7 @@ function RemoveUserPropertyFieldModal({
 
     const title = formatMessage({
         id: 'admin.system_properties.confirm.delete.title',
-        defaultMessage: 'Delete {name} property',
+        defaultMessage: 'Delete {name} attribute',
     }, {name});
 
     const confirmButtonText = formatMessage({
@@ -60,7 +60,7 @@ function RemoveUserPropertyFieldModal({
     const message = (
         <FormattedMessage
             id={'admin.system_properties.confirm.delete.text'}
-            defaultMessage={'Deleting this property will remove all user-defined values associated with it.'}
+            defaultMessage={'Deleting this attribute will remove all user-defined values associated with it.'}
         />
     );
 

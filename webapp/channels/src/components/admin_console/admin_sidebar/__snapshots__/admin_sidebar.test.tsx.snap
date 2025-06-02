@@ -1496,10 +1496,40 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 />
               }
             />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="system_attributes"
+            icon={
+              <TableLargeIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="system_attributes"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="System Attributes"
+                id="admin.sidebar.systemAttributes"
+              />
+            }
+          >
             <AdminSidebarSection
-              definitionKey="user_management.attribute_based_access_control_feature_discovery"
-              key="user_management.attribute_based_access_control_feature_discovery"
-              name="user_management/attribute_based_access_control"
+              definitionKey="system_attributes.system_properties"
+              key="system_attributes.system_properties"
+              name="system_attributes/user_attributes"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="User Attributes"
+                  id="admin.sidebar.user_attributes"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="system_attributes.attribute_based_access_control_feature_discovery"
+              key="system_attributes.attribute_based_access_control_feature_discovery"
+              name="system_attributes/attribute_based_access_control"
               restrictedIndicator={
                 <RestrictedIndicator
                   blocked={true}
@@ -1698,17 +1728,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Customization"
                   id="admin.sidebar.customization"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="site.system_properties"
-              key="site.system_properties"
-              name="site_config/system_properties"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Properties"
-                  id="admin.sidebar.system_properties"
                 />
               }
             />
@@ -2567,10 +2586,40 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 />
               }
             />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="system_attributes"
+            icon={
+              <TableLargeIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="system_attributes"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="System Attributes"
+                id="admin.sidebar.systemAttributes"
+              />
+            }
+          >
             <AdminSidebarSection
-              definitionKey="user_management.attribute_based_access_control"
-              key="user_management.attribute_based_access_control"
-              name="user_management/attribute_based_access_control"
+              definitionKey="system_attributes.system_properties"
+              key="system_attributes.system_properties"
+              name="system_attributes/user_attributes"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="User Attributes"
+                  id="admin.sidebar.user_attributes"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="system_attributes.attribute_based_access_control"
+              key="system_attributes.attribute_based_access_control"
+              name="system_attributes/attribute_based_access_control"
               title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Attribute-Based Access"
@@ -2756,17 +2805,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Customization"
                   id="admin.sidebar.customization"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="site.system_properties"
-              key="site.system_properties"
-              name="site_config/system_properties"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Properties"
-                  id="admin.sidebar.system_properties"
                 />
               }
             />

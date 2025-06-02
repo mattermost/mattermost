@@ -589,26 +589,22 @@ func (s *SqlGroupStore) GetMemberCountWithRestrictions(groupID string, viewRestr
 func (s *SqlGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	query := `
-		SELECT
-			Users.*
-		FROM
-			GroupMembers
-			JOIN Users ON Users.Id = GroupMembers.UserId
-		WHERE
-			GroupId = ?
-			AND GroupMembers.UserId IN (
-				SELECT TeamMembers.UserId
-				FROM TeamMembers
-				JOIN Teams ON Teams.Id = ?
-				WHERE TeamMembers.TeamId = Teams.Id
-				AND TeamMembers.DeleteAt = 0
-			)
-			AND GroupMembers.DeleteAt = 0
-			AND Users.DeleteAt = 0
-		`
+	query := s.groupMemberUsersSelectQuery.
+		Where(sq.Eq{
+			"GroupMembers.GroupId": groupID,
+			"GroupMembers.UserId": s.getQueryBuilder().
+				Select("TeamMembers.UserId").
+				From("TeamMembers").
+				Join("Teams ON Teams.Id = TeamMembers.TeamId").
+				Where(sq.Eq{
+					"TeamMembers.TeamId":   teamID,
+					"TeamMembers.DeleteAt": 0,
+				}),
+			"GroupMembers.DeleteAt": 0,
+			"Users.DeleteAt":        0,
+		})
 
-	if err := s.GetReplica().Select(&groupMembers, query, groupID, teamID); err != nil {
+	if err := s.GetReplica().SelectBuilder(&groupMembers, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to member Users for groupId=%s and teamId=%s", groupID, teamID)
 	}
 
@@ -618,32 +614,34 @@ func (s *SqlGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*
 func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	query := `
-		SELECT
-			Users.*
-		FROM
-			GroupMembers
-			JOIN Users ON Users.Id = GroupMembers.UserId
-		WHERE
-			GroupId = ?
-			AND GroupMembers.UserId NOT IN (
-				SELECT ChannelMembers.UserId
-				FROM ChannelMembers
-				WHERE ChannelMembers.ChannelId = ?
-			)
-			AND GroupMembers.UserId IN (
-				SELECT TeamMembers.UserId
-				FROM TeamMembers
-				JOIN Channels ON Channels.Id = ?
-				JOIN Teams ON Teams.Id = Channels.TeamId
-				WHERE TeamMembers.TeamId = Teams.Id
-				AND TeamMembers.DeleteAt = 0
-			)
-			AND GroupMembers.DeleteAt = 0
-			AND Users.DeleteAt = 0
-		`
+	query := s.groupMemberUsersSelectQuery.
+		Where(sq.Eq{
+			"GroupMembers.GroupId": groupID,
+		}).
+		Where(sq.NotEq{
+			"GroupMembers.UserId": s.getQueryBuilder().
+				Select("ChannelMembers.UserId").
+				From("ChannelMembers").
+				Where(sq.Eq{
+					"ChannelMembers.ChannelId": channelID,
+				}),
+		}).
+		Where(sq.Eq{
+			"GroupMembers.UserId": s.getQueryBuilder().
+				Select("TeamMembers.UserId").
+				From("Channels").
+				Join("TeamMembers ON TeamMembers.TeamId = Channels.TeamId").
+				Where(sq.Eq{
+					"Channels.Id":          channelID,
+					"TeamMembers.DeleteAt": 0,
+				}),
+		}).
+		Where(sq.Eq{
+			"GroupMembers.DeleteAt": 0,
+			"Users.DeleteAt":        0,
+		})
 
-	if err := s.GetReplica().Select(&groupMembers, query, groupID, channelID, channelID); err != nil {
+	if err := s.GetReplica().SelectBuilder(&groupMembers, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to member Users for groupId=%s and channelId!=%s", groupID, channelID)
 	}
 

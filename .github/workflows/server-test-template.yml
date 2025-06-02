@@ -59,7 +59,7 @@ jobs:
         env:
           BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' ]]; then
+          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
             export RACE_MODE="-race"
           fi
           docker run --net ghactions_mm-test \
