@@ -342,9 +342,12 @@ func (a *App) sendPostUpdateEvent(c request.CTX, post *model.Post) {
 		return
 	}
 
-	// Debug: Post the UpdateAt timestamp to Town Square
-	a.postDebugToTownSquare(c, fmt.Sprintf("Sending post update event for acknowledgement sync - post_id: %s, update_at: %d, edit_at: %d",
-		updatedPost.Id, updatedPost.UpdateAt, updatedPost.EditAt))
+	channel, _ := a.GetChannel(c, updatedPost.ChannelId)
+	if channel != nil && channel.IsShared() {
+		// Debug: Post the UpdateAt timestamp to Town Square
+		a.postDebugToTownSquare(c, fmt.Sprintf("Sending post update event for acknowledgement sync - post_id: %s, update_at: %d, edit_at: %d",
+			updatedPost.Id, updatedPost.UpdateAt, updatedPost.EditAt))
+	}
 
 	// Send a post edited event to trigger shared channel sync
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", updatedPost.ChannelId, "", nil, "")
@@ -352,10 +355,12 @@ func (a *App) sendPostUpdateEvent(c request.CTX, post *model.Post) {
 	// Prepare the post with metadata for the event
 	preparedPost := a.PreparePostForClient(c, updatedPost, false, true, true)
 
-	// Debug: Post acknowledgements info to Town Square
-	if preparedPost.Metadata != nil && preparedPost.Metadata.Acknowledgements != nil {
-		a.postDebugToTownSquare(c, fmt.Sprintf("Post %s has %d acknowledgements in update event",
-			preparedPost.Id, len(preparedPost.Metadata.Acknowledgements)))
+	if channel != nil && channel.IsShared() {
+		// Debug: Post acknowledgements info to Town Square
+		if preparedPost.Metadata != nil && preparedPost.Metadata.Acknowledgements != nil {
+			a.postDebugToTownSquare(c, fmt.Sprintf("Post %s has %d acknowledgements in update event",
+				preparedPost.Id, len(preparedPost.Metadata.Acknowledgements)))
+		}
 	}
 
 	if appErr := a.publishWebsocketEventForPost(c, preparedPost, message); appErr != nil {

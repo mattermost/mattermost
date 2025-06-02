@@ -403,7 +403,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 				mlog.String("channel_id", post.ChannelId),
 			)
 		}
-	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.Metadata != nil {
+	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.UpdateAt > rpost.UpdateAt || post.Metadata != nil {
 		var priority *model.PostPriority
 		var acknowledgements []*model.PostAcknowledgement
 

@@ -511,7 +511,9 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 		//   - new posts (EditAt == 0)
 		//   - edited posts (EditAt >= LastPostUpdateAt)
 		//   - deleted posts (DeleteAt > 0)
-		if p.EditAt > 0 && p.EditAt < sd.scr.LastPostUpdateAt && p.DeleteAt == 0 {
+		//   - posts with metadata changes (acknowledgements/priority)
+		hasMetadataChanges := p.Metadata != nil && (p.Metadata.Acknowledgements != nil || p.Metadata.Priority != nil)
+		if p.EditAt > 0 && p.EditAt < sd.scr.LastPostUpdateAt && p.DeleteAt == 0 && !hasMetadataChanges {
 			continue
 		}
 
