@@ -22,8 +22,8 @@ import ExternalLink from 'components/external_link';
 import Constants, {DocLinks, LicenseSkus} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
-import {it} from './admin_definition';
 import * as DefinitionConstants from './admin_definition_constants';
+import {it} from './admin_definition_helpers';
 import CustomProfileAttributes from './custom_profile_attributes/custom_profile_attributes';
 import type {LDAPAdminDefinitionConfigSchemaSettings} from './ldap_wizard/ldap_wizard';
 
