@@ -71,6 +71,20 @@ type Auditable interface {
 	Auditable() map[string]any
 }
 
+// GobSafeAuditable is a wrapper type that ensures the underlying data is safe to send over RPC.
+// Consider using this if logging Auditable objects via the plugin API.
+type GobSafeAuditable struct {
+	a Auditable
+}
+
+func (a GobSafeAuditable) Auditable() map[string]any {
+	return makeGobSafe(a.a)
+}
+
+func MakeGobSafeAuditable(a Auditable) Auditable {
+	return GobSafeAuditable{a}
+}
+
 // Success marks the audit record status as successful.
 func (rec *AuditRecord) Success() {
 	rec.Status = AuditStatusSuccess
@@ -96,7 +110,7 @@ func AddEventParameterAuditableToAuditRec(rec *AuditRecord, key string, val Audi
 		rec.EventData.Parameters = make(map[string]any)
 	}
 
-	rec.EventData.Parameters[key] = makeGobSafe(val)
+	rec.EventData.Parameters[key] = val.Auditable()
 }
 
 // AddEventParameterAuditableArrayToAuditRec adds an array of objects of type Auditable to the event
@@ -107,7 +121,7 @@ func AddEventParameterAuditableArrayToAuditRec[T Auditable](rec *AuditRecord, ke
 
 	processedAuditables := make([]map[string]any, 0, len(val))
 	for _, auditableVal := range val {
-		processedAuditables = append(processedAuditables, makeGobSafe(auditableVal))
+		processedAuditables = append(processedAuditables, auditableVal.Auditable())
 	}
 
 	rec.EventData.Parameters[key] = processedAuditables
@@ -115,12 +129,12 @@ func AddEventParameterAuditableArrayToAuditRec[T Auditable](rec *AuditRecord, ke
 
 // AddEventPriorState adds the prior state of the modified object to the audit record
 func (rec *AuditRecord) AddEventPriorState(object Auditable) {
-	rec.EventData.PriorState = makeGobSafe(object)
+	rec.EventData.PriorState = object.Auditable()
 }
 
 // AddEventResultState adds the result state of the modified object to the audit record
 func (rec *AuditRecord) AddEventResultState(object Auditable) {
-	rec.EventData.ResultState = makeGobSafe(object)
+	rec.EventData.ResultState = object.Auditable()
 }
 
 // AddEventObjectType adds the object type of the modified object to the audit record
@@ -152,8 +166,7 @@ func (rec *AuditRecord) AddAppError(err *AppError) {
 
 // makeGobSafe converts Auditable data to a gob-safe representation via JSON round-trip.
 // This eliminates problematic types like nil pointers in interfaces that cause gob
-// encoding to fail when sending audit data over RPC via the plugin API. Without this,
-// a *string(nil) within the data could cause a plugin to panic when calling the API.
+// encoding to fail when sending audit data over RPC via the plugin API.
 func makeGobSafe(auditable Auditable) map[string]any {
 	jsonBytes, err := json.Marshal(auditable.Auditable())
 	if err != nil {
