@@ -168,19 +168,6 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 	mentions, keywords := a.getExplicitMentionsAndKeywords(c, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
 
-	// Debug: Log mention detection results
-	if len(mentions.Mentions) > 0 || len(mentions.GroupMentions) > 0 {
-		mentionedUsers := make([]string, 0)
-		for userId := range mentions.Mentions {
-			if user, ok := profileMap[userId]; ok {
-				mentionedUsers = append(mentionedUsers, fmt.Sprintf("%s (remote_id: %v)", user.Username, user.RemoteId))
-			}
-		}
-		debugMsg := fmt.Sprintf("Mention detection - Post ID: %s, Channel: %s, Mentioned users: %v, Message preview: %.100s",
-			post.Id, channel.Name, mentionedUsers, post.Message)
-		a.postDebugToTownSquareWithContext(c, channel.Id, post.UserId, debugMsg)
-	}
-
 	var allActivityPushUserIds []string
 	if channel.Type != model.ChannelTypeDirect {
 		// Iterate through all groups that were mentioned and insert group members into the list of mentions or potential mentions
