@@ -3,9 +3,17 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('Multiple user mentions test', async ({pw}) => {
+/**
+ * @objective Verify that multiple user mentions are displayed properly in the Recent Mentions section.
+ *
+ * @precondition
+ * Two users must be members of the same team
+ */
+test('displays multiple mentions correctly in Recent Mentions panel', {tag: '@mentions'}, async ({pw}) => {
+    // # Define the number of mentions to create
     const MENTION_COUNT = 20;
 
+    // # Initialize the first user who will create the mentions
     const {
         team,
         user: mentioningUser,
@@ -19,9 +27,10 @@ test('Multiple user mentions test', async ({pw}) => {
     const mentionedUser = pw.random.user('mentioned');
     const {id: mentionedUserID} = await adminClient.createUser(mentionedUser, '', '');
 
+    // # Add the mentioned user to the team
     await adminClient.addToTeam(team.id, mentionedUserID);
 
-    // Get the town-square channel data
+    // # Get the town-square channel data
     const channels = await userClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
 
@@ -29,7 +38,7 @@ test('Multiple user mentions test', async ({pw}) => {
         throw new Error('Town Square channel not found');
     }
 
-    // Use API to create all the mention posts
+    // # Create multiple posts that mention the second user
     for (let i = 0; i < MENTION_COUNT; i++) {
         const message = `Hey @${mentionedUser.username}, this is mention #${i + 1}`;
         await userClient.createPost({
@@ -39,26 +48,24 @@ test('Multiple user mentions test', async ({pw}) => {
         });
     }
 
-    // Login as the mentioned user to check mentions in the UI
+    // # Login as the mentioned user to check mentions in the UI
     const {page: mentionedPage, channelsPage: mentionedChannelsPage} = await pw.testBrowser.login(mentionedUser);
     await mentionedChannelsPage.goto(team.name, 'town-square');
     await mentionedChannelsPage.toBeVisible();
 
-    // Click on the Recent Mentions button in the channel header
+    // # Click on the Recent Mentions button in the channel header
     await mentionedPage.getByRole('button', {name: 'Recent mentions'}).click();
 
-    // Wait for the RHS panel to be visible first
+    // * Verify the right sidebar opens and is visible
     await mentionedChannelsPage.sidebarRight.toBeVisible();
 
-    // Get all the mention posts in the RHS
+    // # Get all the mention posts in the right sidebar
     const mentionPosts = mentionedChannelsPage.sidebarRight.container.locator('.post');
 
-    // Verify we have the expected number of mention posts
-    // Note: RHS might not load all 100 at once due to pagination, so we'll check
-    // a sufficient number is loaded (at least the first page)
+    // * Verify the correct number of mention posts are displayed
     await expect(mentionPosts).toHaveCount(MENTION_COUNT);
 
-    // Verify the content of the first few mentions (most recent first)
+    // * Verify the content of each mention displays correctly with the right mention text
     for (let i = 0; i < MENTION_COUNT; i++) {
         const mentionNumber = MENTION_COUNT - i;
         const expectedText = `Hey @${mentionedUser.username}, this is mention #${mentionNumber}`;
