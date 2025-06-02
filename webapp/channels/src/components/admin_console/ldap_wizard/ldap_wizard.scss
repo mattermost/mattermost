@@ -82,12 +82,20 @@
         }
     }
 
-    .ldap-help-text-more-info {
-        padding: 0;
-        border: none;
-        background: none;
-        color: var(--button-bg);
-        cursor: pointer;
-        text-decoration: underline;
+    .ldap-help-text-hover-tooltip {
+        .tooltipContainer {
+            max-width: 400px; // Wider than the default 220px to accommodate detailed help text
+            text-align: left; // Left-align for better readability of longer text
+            white-space: pre-line; // Preserve line breaks in help text
+        }
+
+        .ldap-help-text-more-info {
+            padding: 0;
+            border: none;
+            background: none;
+            color: var(--button-bg);
+            cursor: pointer;
+            text-decoration: underline;
+        }
     }
 }
