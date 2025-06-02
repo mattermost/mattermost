@@ -21,9 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
-var (
-	rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
-)
+var rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func setupForSharedChannels(tb testing.TB) *TestHelper {
 	th := SetupConfig(tb, func(cfg *model.Config) {
@@ -39,6 +37,7 @@ func setupForSharedChannels(tb testing.TB) *TestHelper {
 }
 
 func TestGetAllSharedChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
 
@@ -939,6 +938,7 @@ func randomBool() bool {
 }
 
 func TestGetRemoteClusterById(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
 
@@ -993,6 +993,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 }
 
 func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("should not create a local DM channel that is shared", func(t *testing.T) {
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
@@ -1108,6 +1109,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 }
 
 func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -1366,6 +1368,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 }
 
 func TestInviteRemoteClusterToChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -1411,6 +1414,7 @@ func TestInviteRemoteClusterToChannel(t *testing.T) {
 }
 
 func TestUninviteRemoteClusterToChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()

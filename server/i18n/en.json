@@ -7930,7 +7930,7 @@
   },
   {
     "id": "ent.access_control.job_data_conversion.app_error",
-    "translation": "Failure for job conversion"
+    "translation": "Failed to extract data from previous job."
   },
   {
     "id": "ent.access_control.sync_job.app_error",

@@ -18,6 +18,7 @@ import (
 )
 
 func TestAsymmetricSigningKey(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 	assert.NotNil(t, th.App.AsymmetricSigningKey())
@@ -25,12 +26,14 @@ func TestAsymmetricSigningKey(t *testing.T) {
 }
 
 func TestPostActionCookieSecret(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 	assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
 }
 
 func TestClientConfigWithComputed(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -58,6 +61,7 @@ func TestClientConfigWithComputed(t *testing.T) {
 }
 
 func TestEnsureInstallationDate(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

@@ -15,6 +15,7 @@ import (
 )
 
 func TestGetJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -36,6 +37,7 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestSessionHasPermissionToCreateJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -132,6 +134,7 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 }
 
 func TestSessionHasPermissionToReadJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -217,6 +220,7 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 }
 
 func TestGetJobByType(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -262,6 +266,7 @@ func TestGetJobByType(t *testing.T) {
 }
 
 func TestGetJobsByTypes(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
