@@ -10,7 +10,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
     <div>
       <Connect(Component)
         className="fa fa-angle-left back"
-        to="/admin_console/user_management/attribute_based_access_control"
+        to="/admin_console/system_attributes/attribute_based_access_control"
       />
       <MemoizedFormattedMessage
         defaultMessage="Edit Access Control Policy"
@@ -193,7 +193,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
     />
     <Connect(Component)
       className="btn btn-quaternary"
-      to="/admin_console/user_management/attribute_based_access_control"
+      to="/admin_console/system_attributes/attribute_based_access_control"
     >
       <MemoizedFormattedMessage
         defaultMessage="Cancel"
@@ -214,7 +214,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
     <div>
       <Connect(Component)
         className="fa fa-angle-left back"
-        to="/admin_console/user_management/attribute_based_access_control"
+        to="/admin_console/system_attributes/attribute_based_access_control"
       />
       <MemoizedFormattedMessage
         defaultMessage="Edit Access Control Policy"
@@ -368,7 +368,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
     />
     <Connect(Component)
       className="btn btn-quaternary"
-      to="/admin_console/user_management/attribute_based_access_control"
+      to="/admin_console/system_attributes/attribute_based_access_control"
     >
       <MemoizedFormattedMessage
         defaultMessage="Cancel"
