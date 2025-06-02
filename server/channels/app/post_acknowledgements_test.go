@@ -32,7 +32,7 @@ func testSaveAcknowledgementForPost(t *testing.T) {
 
 		require.Nil(t, err)
 
-		acknowledgment, err := th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		acknowledgment, err := th.App.SaveAcknowledgementForPostByUserID(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		require.Greater(t, acknowledgment.AcknowledgedAt, int64(0))
@@ -51,7 +51,7 @@ func testSaveAcknowledgementForPost(t *testing.T) {
 
 		oldUpdateAt := post.UpdateAt
 
-		_, err = th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		_, err = th.App.SaveAcknowledgementForPostByUserID(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		post, err = th.App.GetSinglePost(th.Context, post.Id, false)
@@ -73,7 +73,7 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 	require.Nil(t, err1)
 
 	t.Run("delete acknowledgment for post should delete acknowledgement", func(t *testing.T) {
-		_, err := th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		_, err := th.App.SaveAcknowledgementForPostByUserID(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		acknowledgments, err := th.App.GetAcknowledgementsForPost(post.Id)
@@ -81,7 +81,7 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 		require.Len(t, acknowledgments, 1)
 		require.Greater(t, acknowledgments[0].AcknowledgedAt, int64(0))
 
-		err = th.App.DeleteAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		err = th.App.DeleteAcknowledgementForPostByUserID(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		acknowledgments, err = th.App.GetAcknowledgementsForPost(post.Id)
@@ -90,7 +90,7 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 	})
 
 	t.Run("deleting acknowledgment should update the post's update_at", func(t *testing.T) {
-		_, err := th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		_, err := th.App.SaveAcknowledgementForPostByUserID(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		post, err = th.App.GetSinglePost(th.Context, post.Id, false)
@@ -98,7 +98,12 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 
 		oldUpdateAt := post.UpdateAt
 
-		err = th.App.DeleteAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		ack := &model.PostAcknowledgement{
+			PostId:    post.Id,
+			UserId:    th.BasicUser.Id,
+			ChannelId: post.ChannelId,
+		}
+		err = th.App.DeleteAcknowledgementForPost(th.Context, ack)
 		require.Nil(t, err)
 
 		post, err = th.App.GetSinglePost(th.Context, post.Id, false)
@@ -116,7 +121,12 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 		require.Len(t, acknowledgments, 1)
 		require.Greater(t, acknowledgments[0].AcknowledgedAt, int64(0))
 
-		err = th.App.DeleteAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		ack2 := &model.PostAcknowledgement{
+			PostId:    post.Id,
+			UserId:    th.BasicUser.Id,
+			ChannelId: post.ChannelId,
+		}
+		err = th.App.DeleteAcknowledgementForPost(th.Context, ack2)
 		require.NotNil(t, err)
 		require.Equal(t, 403, err.StatusCode)
 
@@ -155,11 +165,11 @@ func testGetAcknowledgementsForPostList(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("get acknowledgments for post list should return a map", func(t *testing.T) {
-		_, err = th.App.SaveAcknowledgementForPost(th.Context, p1.Id, th.BasicUser.Id)
+		_, err = th.App.SaveAcknowledgementForPostByUserID(th.Context, p1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
-		_, err = th.App.SaveAcknowledgementForPost(th.Context, p2.Id, th.BasicUser.Id)
+		_, err = th.App.SaveAcknowledgementForPostByUserID(th.Context, p2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
-		_, err = th.App.SaveAcknowledgementForPost(th.Context, p1.Id, th.BasicUser2.Id)
+		_, err = th.App.SaveAcknowledgementForPostByUserID(th.Context, p1.Id, th.BasicUser2.Id)
 		require.Nil(t, err)
 
 		postList := model.NewPostList()

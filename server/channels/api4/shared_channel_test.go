@@ -355,7 +355,12 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Add acknowledgement to the post
-		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, originalPost.Id, th.BasicUser2.Id)
+		ack := &model.PostAcknowledgement{
+			PostId:    originalPost.Id,
+			UserId:    th.BasicUser2.Id,
+			ChannelId: originalPost.ChannelId,
+		}
+		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, ack)
 		require.Nil(t, appErr)
 
 		// Test the self-referential sync flow:
@@ -480,7 +485,12 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		// Step 3: Simulate receiver acknowledging the post
 		// In real scenario, this would happen on the receiver's instance
 		// We simulate it by directly adding an acknowledgement
-		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, originalPost.Id, th.BasicUser2.Id)
+		ackForStep3 := &model.PostAcknowledgement{
+			PostId:    originalPost.Id,
+			UserId:    th.BasicUser2.Id,
+			ChannelId: originalPost.ChannelId,
+		}
+		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, ackForStep3)
 		require.Nil(t, appErr)
 
 		// Step 4: Configure sync handler to capture acknowledgement updates
@@ -644,6 +654,283 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		assert.Equal(t, "important", *syncedPost.Metadata.Priority.Priority, "Priority should be preserved")
 		assert.False(t, *syncedPost.Metadata.Priority.RequestedAck, "RequestedAck should be preserved as false")
 		assert.True(t, *syncedPost.Metadata.Priority.PersistentNotifications, "PersistentNotifications should be preserved as true")
+	})
+
+	t.Run("Test 4: Cross-Cluster Acknowledgement End-to-End Flow", func(t *testing.T) {
+		var syncedPostsServerA []*model.Post
+		var syncedPostsServerB []*model.Post
+		var syncHandlerA, syncHandlerB *SelfReferentialSyncHandler
+		var postIdToTrack string
+		var targetPost *model.Post
+
+		// Create test HTTP servers for both "clusters"
+		testServerA := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if syncHandlerA != nil {
+				syncHandlerA.HandleRequest(w, r)
+			} else {
+				writeOKResponse(w)
+			}
+		}))
+		defer testServerA.Close()
+
+		testServerB := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if syncHandlerB != nil {
+				syncHandlerB.HandleRequest(w, r)
+			} else {
+				writeOKResponse(w)
+			}
+		}))
+		defer testServerB.Close()
+
+		// Create remote clusters for both "servers"
+		clusterA := &model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			Name:        "cluster-a-ack-flow",
+			SiteURL:     testServerA.URL,
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
+		}
+		clusterA, err = th.App.Srv().Store().RemoteCluster().Save(clusterA)
+		require.NoError(t, err)
+
+		clusterB := &model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			Name:        "cluster-b-ack-flow",
+			SiteURL:     testServerB.URL,
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
+		}
+		clusterB, err = th.App.Srv().Store().RemoteCluster().Save(clusterB)
+		require.NoError(t, err)
+
+		// Create a test channel for this flow
+		testChannel := th.CreatePublicChannel()
+
+		// Add users to the channel
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, testChannel, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, testChannel, false)
+		require.Nil(t, appErr)
+
+		// Create shared channel for cluster A (sender)
+		scA := &model.SharedChannel{
+			ChannelId: testChannel.Id,
+			TeamId:    testChannel.TeamId,
+			Home:      true,
+			ShareName: "test_cross_cluster_ack_a",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  clusterA.RemoteId,
+		}
+		scA, err = th.App.ShareChannel(th.Context, scA)
+		require.NoError(t, err)
+
+		// Create shared channel remote for cluster A
+		scrA := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         scA.ChannelId,
+			CreatorId:         scA.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          scA.RemoteId,
+		}
+		_, err = th.App.SaveSharedChannelRemote(scrA)
+		require.NoError(t, err)
+
+		// Create shared channel for cluster B (receiver)
+		scB := &model.SharedChannel{
+			ChannelId: testChannel.Id,
+			TeamId:    testChannel.TeamId,
+			Home:      false,
+			ShareName: "test_cross_cluster_ack_b",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  clusterB.RemoteId,
+		}
+		scB, err = th.App.ShareChannel(th.Context, scB)
+		require.NoError(t, err)
+
+		// Create shared channel remote for cluster B
+		scrB := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         scB.ChannelId,
+			CreatorId:         scB.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          scB.RemoteId,
+		}
+		_, err = th.App.SaveSharedChannelRemote(scrB)
+		require.NoError(t, err)
+
+		// Initialize sync handlers for both clusters
+		syncHandlerA = NewSelfReferentialSyncHandler(t, service, clusterA)
+		syncHandlerA.OnPostSync = func(post *model.Post) {
+			t.Logf("Cluster A received sync: ID=%s, Message=%s, HasAcks=%v",
+				post.Id, post.Message,
+				post.Metadata != nil && post.Metadata.Acknowledgements != nil)
+			if post.Metadata != nil && post.Metadata.Acknowledgements != nil {
+				t.Logf("  Cluster A sees %d acknowledgements", len(post.Metadata.Acknowledgements))
+			}
+			syncedPostsServerA = append(syncedPostsServerA, post)
+		}
+
+		syncHandlerB = NewSelfReferentialSyncHandler(t, service, clusterB)
+		syncHandlerB.OnPostSync = func(post *model.Post) {
+			t.Logf("Cluster B received sync: ID=%s, Message=%s, RequestedAck=%v",
+				post.Id, post.Message,
+				post.Metadata != nil && post.Metadata.Priority != nil && post.Metadata.Priority.RequestedAck != nil && *post.Metadata.Priority.RequestedAck)
+			syncedPostsServerB = append(syncedPostsServerB, post)
+		}
+
+		// STEP 1: Server A creates a post with acknowledgement request
+		t.Log("=== STEP 1: Server A creates post with ack request ===")
+		originalPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: testChannel.Id,
+			Message:   "Cross-cluster ack test - please acknowledge",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck:            model.NewPointer(true),
+					PersistentNotifications: model.NewPointer(false),
+				},
+			},
+		}, testChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		postIdToTrack = originalPost.Id
+		targetPost = originalPost
+
+		// Verify initial state - no acknowledgements
+		acks, appErr := th.App.GetAcknowledgementsForPost(originalPost.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, acks, "Should have no acknowledgements initially")
+
+		// STEP 2: Post syncs from Server A to Server B
+		t.Log("=== STEP 2: Post syncs from Server A to Server B ===")
+		service.NotifyChannelChanged(testChannel.Id)
+
+		// Wait for Server B to receive the post
+		require.Eventually(t, func() bool {
+			for _, post := range syncedPostsServerB {
+				if post.Id == postIdToTrack && post.Metadata != nil && post.Metadata.Priority != nil &&
+					post.Metadata.Priority.RequestedAck != nil && *post.Metadata.Priority.RequestedAck {
+					t.Logf("Server B received post %s with ack request", post.Id)
+					return true
+				}
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond, "Server B should receive post with ack request")
+
+		// STEP 3: User on Server B acknowledges the post
+		t.Log("=== STEP 3: User on Server B acknowledges the post ===")
+		ackFromServerB := &model.PostAcknowledgement{
+			PostId:    postIdToTrack,
+			UserId:    th.BasicUser2.Id,
+			ChannelId: testChannel.Id,
+			RemoteId:  &clusterB.RemoteId, // Track which cluster this ack came from
+		}
+		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, ackFromServerB)
+		require.Nil(t, appErr)
+
+		// Verify acknowledgement was saved locally
+		acksAfterSave, appErr := th.App.GetAcknowledgementsForPost(postIdToTrack)
+		require.Nil(t, appErr)
+		require.Len(t, acksAfterSave, 1, "Should have exactly 1 acknowledgement after user B acks")
+		require.Equal(t, th.BasicUser2.Id, acksAfterSave[0].UserId)
+
+		// STEP 4: Acknowledgement syncs back from Server B to Server A
+		t.Log("=== STEP 4: Acknowledgement syncs back from Server B to Server A ===")
+
+		// Clear previous sync data to focus on acknowledgement sync
+		syncedPostsServerA = syncedPostsServerA[:0]
+		syncedPostsServerB = syncedPostsServerB[:0]
+
+		// Trigger sync to send acknowledgement back to Server A
+		service.NotifyChannelChanged(testChannel.Id)
+
+		// Wait for Server A to receive the acknowledgement sync
+		require.Eventually(t, func() bool {
+			for _, post := range syncedPostsServerA {
+				if post.Id == postIdToTrack && post.Metadata != nil && post.Metadata.Acknowledgements != nil {
+					t.Logf("Server A received post %s with %d acknowledgements", post.Id, len(post.Metadata.Acknowledgements))
+					return len(post.Metadata.Acknowledgements) > 0
+				}
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond, "Server A should receive acknowledgement sync")
+
+		// STEP 5: Verify the complete acknowledgement flow
+		t.Log("=== STEP 5: Verify complete acknowledgement flow ===")
+
+		// Find the synced post with acknowledgements on Server A
+		var serverAPostWithAcks *model.Post
+		for _, post := range syncedPostsServerA {
+			if post.Id == postIdToTrack && post.Metadata != nil && post.Metadata.Acknowledgements != nil {
+				serverAPostWithAcks = post
+				break
+			}
+		}
+
+		require.NotNil(t, serverAPostWithAcks, "Server A should receive post with acknowledgements")
+		require.NotNil(t, serverAPostWithAcks.Metadata, "Post metadata should exist")
+		require.NotNil(t, serverAPostWithAcks.Metadata.Acknowledgements, "Acknowledgements should exist")
+		require.Len(t, serverAPostWithAcks.Metadata.Acknowledgements, 1, "Should have exactly 1 acknowledgement")
+
+		// Verify acknowledgement details
+		ack := serverAPostWithAcks.Metadata.Acknowledgements[0]
+		assert.Equal(t, th.BasicUser2.Id, ack.UserId, "Acknowledgement should be from BasicUser2")
+		assert.Equal(t, postIdToTrack, ack.PostId, "Acknowledgement should be for the correct post")
+		assert.Greater(t, ack.AcknowledgedAt, int64(0), "Acknowledgement should have a timestamp")
+
+		// Verify the original post still has its priority metadata
+		require.NotNil(t, serverAPostWithAcks.Metadata.Priority, "Priority metadata should be preserved")
+		assert.Equal(t, model.PostPriorityUrgent, *serverAPostWithAcks.Metadata.Priority.Priority, "Priority should be preserved")
+		assert.True(t, *serverAPostWithAcks.Metadata.Priority.RequestedAck, "RequestedAck should be preserved")
+
+		// STEP 6: Verify acknowledgement count is accurate
+		t.Log("=== STEP 6: Verify acknowledgement count consistency ===")
+
+		// Get acknowledgements directly from the database to verify consistency
+		dbAcks, appErr := th.App.GetAcknowledgementsForPost(postIdToTrack)
+		require.Nil(t, appErr)
+		require.Len(t, dbAcks, 1, "Database should have exactly 1 acknowledgement")
+
+		// Check that the acknowledgement synced back matches what's in the database
+		dbAck := dbAcks[0]
+		assert.Equal(t, ack.UserId, dbAck.UserId, "Synced and DB acknowledgement user should match")
+		assert.Equal(t, ack.PostId, dbAck.PostId, "Synced and DB acknowledgement post should match")
+		assert.Equal(t, ack.ChannelId, dbAck.ChannelId, "Synced and DB acknowledgement channel should match")
+
+		// STEP 7: Test echo prevention - verify no duplicate acknowledgements
+		t.Log("=== STEP 7: Test echo prevention ===")
+
+		// Trigger another sync to ensure no duplicates are created
+		initialAckCount := len(dbAcks)
+		service.NotifyChannelChanged(testChannel.Id)
+
+		// Verify no additional acknowledgements were created using Eventually pattern
+		var finalAckCount int
+		require.Eventually(t, func() bool {
+			finalAcks, appErr := th.App.GetAcknowledgementsForPost(postIdToTrack)
+			if appErr != nil {
+				return false
+			}
+			finalAckCount = len(finalAcks)
+			// We expect the count to remain the same (no duplicates)
+			return finalAckCount == initialAckCount
+		}, 2*time.Second, 100*time.Millisecond, "Should not create duplicate acknowledgements")
+
+		t.Logf("✅ Cross-cluster acknowledgement flow completed successfully:")
+		t.Logf("   1. Server A created post with ack request: %s", targetPost.Id)
+		t.Logf("   2. Post synced to Server B with priority metadata intact")
+		t.Logf("   3. User on Server B acknowledged the post: %s", ack.UserId)
+		t.Logf("   4. Acknowledgement synced back to Server A")
+		t.Logf("   5. Server A received acknowledgement count update: %d acks", finalAckCount)
+		t.Logf("   6. Echo prevention verified - no duplicates created")
 	})
 }
 

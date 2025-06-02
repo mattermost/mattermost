@@ -273,12 +273,13 @@ type SharedChannelRemoteFilterOpts struct {
 // SyncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
 // It is sent to remote clusters as the payload of a `RemoteClusterMsg`.
 type SyncMsg struct {
-	Id        string           `json:"id"`
-	ChannelId string           `json:"channel_id"`
-	Users     map[string]*User `json:"users,omitempty"`
-	Posts     []*Post          `json:"posts,omitempty"`
-	Reactions []*Reaction      `json:"reactions,omitempty"`
-	Statuses  []*Status        `json:"statuses,omitempty"`
+	Id               string                 `json:"id"`
+	ChannelId        string                 `json:"channel_id"`
+	Users            map[string]*User       `json:"users,omitempty"`
+	Posts            []*Post                `json:"posts,omitempty"`
+	Reactions        []*Reaction            `json:"reactions,omitempty"`
+	Acknowledgements []*PostAcknowledgement `json:"acknowledgements,omitempty"`
+	Statuses         []*Status              `json:"statuses,omitempty"`
 }
 
 func NewSyncMsg(channelID string) *SyncMsg {
@@ -315,6 +316,9 @@ type SyncResponse struct {
 
 	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at"`
 	ReactionErrors        []string `json:"reaction_errors"`
+
+	AcknowledgementsLastUpdateAt int64    `json:"acknowledgements_last_update_at"`
+	AcknowledgementErrors        []string `json:"acknowledgement_errors"`
 
 	StatusErrors []string `json:"status_errors"` // user IDs for which the status sync failed
 }

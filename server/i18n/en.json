@@ -8761,6 +8761,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
+  },
+  {
     "id": "model.authorize.is_valid.auth_code.app_error",
     "translation": "Invalid authorization code."
   },

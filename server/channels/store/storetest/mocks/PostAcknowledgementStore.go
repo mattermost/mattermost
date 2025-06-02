@@ -140,6 +140,36 @@ func (_m *PostAcknowledgementStore) GetForPost(postID string) ([]*model.PostAckn
 	return r0, r1
 }
 
+// GetForPostSince provides a mock function with given fields: postID, since, excludeRemoteID, inclDeleted
+func (_m *PostAcknowledgementStore) GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.PostAcknowledgement, error) {
+	ret := _m.Called(postID, since, excludeRemoteID, inclDeleted)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForPostSince")
+	}
+
+	var r0 []*model.PostAcknowledgement
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64, string, bool) ([]*model.PostAcknowledgement, error)); ok {
+		return rf(postID, since, excludeRemoteID, inclDeleted)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64, string, bool) []*model.PostAcknowledgement); ok {
+		r0 = rf(postID, since, excludeRemoteID, inclDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64, string, bool) error); ok {
+		r1 = rf(postID, since, excludeRemoteID, inclDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForPosts provides a mock function with given fields: postIds
 func (_m *PostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error) {
 	ret := _m.Called(postIds)
@@ -170,6 +200,36 @@ func (_m *PostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.Post
 	return r0, r1
 }
 
+// GetSingle provides a mock function with given fields: userID, postID, remoteID
+func (_m *PostAcknowledgementStore) GetSingle(userID string, postID string, remoteID string) (*model.PostAcknowledgement, error) {
+	ret := _m.Called(userID, postID, remoteID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSingle")
+	}
+
+	var r0 *model.PostAcknowledgement
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string) (*model.PostAcknowledgement, error)); ok {
+		return rf(userID, postID, remoteID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.PostAcknowledgement); ok {
+		r0 = rf(userID, postID, remoteID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(userID, postID, remoteID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: postID, userID, acknowledgedAt
 func (_m *PostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
 	ret := _m.Called(postID, userID, acknowledgedAt)
@@ -193,6 +253,36 @@ func (_m *PostAcknowledgementStore) Save(postID string, userID string, acknowled
 
 	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
 		r1 = rf(postID, userID, acknowledgedAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SaveWithModel provides a mock function with given fields: acknowledgement
+func (_m *PostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error) {
+	ret := _m.Called(acknowledgement)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveWithModel")
+	}
+
+	var r0 *model.PostAcknowledgement
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.PostAcknowledgement) (*model.PostAcknowledgement, error)); ok {
+		return rf(acknowledgement)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PostAcknowledgement) *model.PostAcknowledgement); ok {
+		r0 = rf(acknowledgement)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PostAcknowledgement) error); ok {
+		r1 = rf(acknowledgement)
 	} else {
 		r1 = ret.Error(1)
 	}

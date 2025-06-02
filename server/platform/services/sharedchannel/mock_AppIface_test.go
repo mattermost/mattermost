@@ -166,6 +166,26 @@ func (_m *MockAppIface) CreateUploadSession(c request.CTX, us *model.UploadSessi
 	return r0, r1
 }
 
+// DeleteAcknowledgementForPost provides a mock function with given fields: c, acknowledgement
+func (_m *MockAppIface) DeleteAcknowledgementForPost(c request.CTX, acknowledgement *model.PostAcknowledgement) *model.AppError {
+	ret := _m.Called(c, acknowledgement)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAcknowledgementForPost")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.PostAcknowledgement) *model.AppError); ok {
+		r0 = rf(c, acknowledgement)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DeleteAcknowledgementsForPost provides a mock function with given fields: c, postID
 func (_m *MockAppIface) DeleteAcknowledgementsForPost(c request.CTX, postID string) *model.AppError {
 	ret := _m.Called(c, postID)
@@ -616,9 +636,9 @@ func (_m *MockAppIface) Publish(message *model.WebSocketEvent) {
 	_m.Called(message)
 }
 
-// SaveAcknowledgementForPost provides a mock function with given fields: c, postID, userID
-func (_m *MockAppIface) SaveAcknowledgementForPost(c request.CTX, postID string, userID string) (*model.PostAcknowledgement, *model.AppError) {
-	ret := _m.Called(c, postID, userID)
+// SaveAcknowledgementForPost provides a mock function with given fields: c, acknowledgement
+func (_m *MockAppIface) SaveAcknowledgementForPost(c request.CTX, acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(c, acknowledgement)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SaveAcknowledgementForPost")
@@ -626,19 +646,19 @@ func (_m *MockAppIface) SaveAcknowledgementForPost(c request.CTX, postID string,
 
 	var r0 *model.PostAcknowledgement
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.PostAcknowledgement, *model.AppError)); ok {
-		return rf(c, postID, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.PostAcknowledgement) (*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(c, acknowledgement)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.PostAcknowledgement); ok {
-		r0 = rf(c, postID, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.PostAcknowledgement) *model.PostAcknowledgement); ok {
+		r0 = rf(c, acknowledgement)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostAcknowledgement)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
-		r1 = rf(c, postID, userID)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.PostAcknowledgement) *model.AppError); ok {
+		r1 = rf(c, acknowledgement)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

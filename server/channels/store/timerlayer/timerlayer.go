@@ -6901,6 +6901,22 @@ func (s *TimerLayerPostAcknowledgementStore) GetForPost(postID string) ([]*model
 	return result, err
 }
 
+func (s *TimerLayerPostAcknowledgementStore) GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.PostAcknowledgement, error) {
+	start := time.Now()
+
+	result, err := s.PostAcknowledgementStore.GetForPostSince(postID, since, excludeRemoteID, inclDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.GetForPostSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error) {
 	start := time.Now()
 
@@ -6917,6 +6933,22 @@ func (s *TimerLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*m
 	return result, err
 }
 
+func (s *TimerLayerPostAcknowledgementStore) GetSingle(userID string, postID string, remoteID string) (*model.PostAcknowledgement, error) {
+	start := time.Now()
+
+	result, err := s.PostAcknowledgementStore.GetSingle(userID, postID, remoteID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.GetSingle", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
 	start := time.Now()
 
@@ -6929,6 +6961,22 @@ func (s *TimerLayerPostAcknowledgementStore) Save(postID string, userID string, 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error) {
+	start := time.Now()
+
+	result, err := s.PostAcknowledgementStore.SaveWithModel(acknowledgement)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.SaveWithModel", success, elapsed)
 	}
 	return result, err
 }
