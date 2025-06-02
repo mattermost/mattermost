@@ -897,8 +897,14 @@ func (g *apiRPCClient) LogAuditRec(rec *model.AuditRecord) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	if err := enc.Encode(rec); err != nil {
-		log.Printf("audit record contains data that cannot be encoded with gob: %s", err.Error())
-		return
+		r := &model.AuditRecord{
+			EventName: rec.EventName,
+			Status:    rec.Status,
+		}
+		errMsg := fmt.Sprintf("audit record contains data that cannot be encoded with gob: %s", err.Error())
+		r.AddErrorDesc(errMsg)
+		log.Printf(errMsg)
+		rec = r
 	}
 	_args := &Z_LogAuditRecArgs{rec}
 	_returns := &Z_LogAuditRecReturns{}
@@ -931,8 +937,14 @@ func (g *apiRPCClient) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.L
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	if err := enc.Encode(rec); err != nil {
-		log.Printf("audit record contains data that cannot be encoded with gob: %s", err.Error())
-		return
+		r := &model.AuditRecord{
+			EventName: rec.EventName,
+			Status:    rec.Status,
+		}
+		errMsg := fmt.Sprintf("audit record contains data that cannot be encoded with gob: %s", err.Error())
+		r.AddErrorDesc(errMsg)
+		log.Printf(errMsg)
+		rec = r
 	}
 	_args := &Z_LogAuditRecWithLevelArgs{rec, level}
 	_returns := &Z_LogAuditRecWithLevelReturns{}
