@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"strings"
 	"testing"
 	"time"
 
@@ -22,6 +21,7 @@ import (
 
 // Test for MM-13598 where an invalid integration URL was causing a crash
 func TestPostActionInvalidURL(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -68,10 +68,11 @@ func TestPostActionInvalidURL(t *testing.T) {
 
 	_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 	require.NotNil(t, err)
-	require.True(t, strings.Contains(err.Error(), "missing protocol scheme"))
+	assert.ErrorContains(t, err, "missing protocol scheme")
 }
 
 func TestPostActionEmptyResponse(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -168,11 +169,12 @@ func TestPostActionEmptyResponse(t *testing.T) {
 
 		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.NotNil(t, err)
-		assert.Contains(t, err.DetailedError, "context deadline exceeded")
+		assert.ErrorContains(t, err, "context deadline exceeded")
 	})
 }
 
 func TestPostAction(t *testing.T) {
+	mainHelper.Parallel(t)
 	testCases := []struct {
 		Description string
 		Channel     func(th *TestHelper) *model.Channel
@@ -331,7 +333,7 @@ func TestPostAction(t *testing.T) {
 
 			_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.NotNil(t, err)
-			require.True(t, strings.Contains(err.Error(), "address forbidden"))
+			assert.ErrorContains(t, err, "address forbidden")
 
 			interactivePostPlugin := model.Post{
 				Message:       "Interactive post",
@@ -417,7 +419,7 @@ func TestPostAction(t *testing.T) {
 
 			_, err = th.App.DoPostActionWithCookie(th.Context, postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.NotNil(t, err)
-			require.False(t, strings.Contains(err.Error(), "address forbidden"))
+			assert.ErrorContains(t, err, "connection refused")
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.SiteURL = ts.URL + "/subpath"
@@ -464,6 +466,7 @@ func TestPostAction(t *testing.T) {
 }
 
 func TestPostActionProps(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -548,6 +551,7 @@ func TestPostActionProps(t *testing.T) {
 }
 
 func TestSubmitInteractiveDialog(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -670,6 +674,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 }
 
 func TestPostActionRelativeURL(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -883,6 +888,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 }
 
 func TestPostActionRelativePluginURL(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -892,7 +898,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 
 		import (
 			"net/http"
-			"encoding/json" 
+			"encoding/json"
 
 			"github.com/mattermost/mattermost/server/public/plugin"
 			"github.com/mattermost/mattermost/server/public/model"
@@ -1080,6 +1086,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 }
 
 func TestDoPluginRequest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

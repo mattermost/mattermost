@@ -41,6 +41,12 @@ GOTESTSUM_FORMAT ?= testname
 GOTESTSUM_JUNITFILE ?= report.xml
 GOTESTSUM_JSONFILE ?= gotestsum.json
 
+# Go test coverage
+ENABLE_COVERAGE ?= false
+ifeq ($(ENABLE_COVERAGE),true)
+COVERAGE_FLAG = -coverprofile=cover.out -covermode=atomic
+endif
+
 # mmctl
 MMCTL_BUILD_TAGS =
 MMCTL_TESTFLAGS ?= -timeout 30m
@@ -136,23 +142,23 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.6.0
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.3.0
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.2.1
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.8.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.4.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.10.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.3.0
 # We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.40.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.1.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.41.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.2.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-ai-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.1
-PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.1.1
+PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.1
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
-PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.6.0
+PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -224,7 +230,9 @@ else
 	docker compose rm start_dependencies
 	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
   ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+	cat tests/custom-schema-objectID.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
   endif
   ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
 	./scripts/replica-mysql-config.sh
@@ -292,15 +300,11 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.7
-
-	@echo Running golangci-lint
-	$(GOBIN)/golangci-lint run ./...
-	$(GOBIN)/golangci-lint run ./public/...
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-  ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-		$(GOBIN)/golangci-lint run $(BUILD_ENTERPRISE_DIR)/...
-  endif
+	$(GOBIN)/golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
+else
+	$(GOBIN)/golangci-lint run ./... ./public/...
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
@@ -449,7 +453,7 @@ test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
-	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
+	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m $(COVERAGE_FLAG)
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -758,7 +762,7 @@ endif
 vet: ## Run mattermost go vet specific checks
 	## Note that it is pinned to a specific commit, rather than a branch. This is to prevent
 	## having to backport the fix to multiple release branches for any new change.
-	$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
+	$(GO) install github.com/mattermost/mattermost-govet/v2@8e4d46e3fad88497dbfe073788a87e75bbae717c
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
  ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
@@ -770,7 +774,7 @@ vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
-	$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
+	$(GO) install github.com/mattermost/mattermost-govet/v2@8e4d46e3fad88497dbfe073788a87e75bbae717c
 	make -C ../api build
 	./scripts/vet-api-check.sh
 
@@ -853,7 +857,7 @@ test-migration:
 	# db_migrations differ due to a typo in the 92. migration name
 	# for now we exclude plugins such as playbooks and focalboard
 	# we also exlude systems table temporarily due to adding some keys while running the initial migration
-	bin/dbcmp --source "${MYSQL_DSN}" --target "${POSTGRES_DSN}" --exclude="db_migrations","ir_","focalboard","systems"
+	bin/dbcmp --source "${MYSQL_DSN}" --target "${POSTGRES_DSN}" --exclude="db_migrations","ir_","focalboard","systems","attributeview"
 
 test-local-filestore: # Run tests for local filestore
 	$(GO) test ./platform/shared/filestore -run '^TestLocalFileBackend' -v

@@ -29,12 +29,15 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 )
 
 func TestPreparePostListForClient(t *testing.T) {
+	mainHelper.Parallel(t)
 	// Most of this logic is covered by TestPreparePostForClient, so this just tests handling of multiple posts
 
 	th := Setup(t)
@@ -66,6 +69,7 @@ func TestPreparePostListForClient(t *testing.T) {
 }
 
 func TestPreparePostForClient(t *testing.T) {
+	mainHelper.Parallel(t)
 	var serverURL string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -860,6 +864,7 @@ func TestPreparePostForClient(t *testing.T) {
 }
 
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
+	mainHelper.Parallel(t)
 	setup := func(t *testing.T) *TestHelper {
 		th := Setup(t).InitBasic()
 
@@ -979,6 +984,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 }
 
 func TestGetEmbedForPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/index.html" {
 			w.Header().Set("Content-Type", "text/html")
@@ -1155,6 +1161,7 @@ func TestGetEmbedForPost(t *testing.T) {
 }
 
 func TestGetImagesForPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("with an image link", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -1443,6 +1450,7 @@ func TestGetImagesForPost(t *testing.T) {
 }
 
 func TestGetEmojiNamesForString(t *testing.T) {
+	mainHelper.Parallel(t)
 	testCases := []struct {
 		Description string
 		Input       string
@@ -1494,6 +1502,7 @@ func TestGetEmojiNamesForString(t *testing.T) {
 }
 
 func TestGetEmojiNamesForPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	testCases := []struct {
 		Description string
 		Post        *model.Post
@@ -1589,6 +1598,7 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 }
 
 func TestGetCustomEmojisForPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1668,6 +1678,7 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 }
 
 func TestGetFirstLinkAndImages(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1725,12 +1736,27 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 			ExpectedFirstLink: "",
 			ExpectedImages:    []string{},
 		},
+		"http link in angle brackets": {
+			Input:             "this is a <http://example.com>",
+			ExpectedFirstLink: "http://example.com",
+			ExpectedImages:    []string{},
+		},
+		"http link with only opening angle bracket": {
+			Input:             "this is a <http://example.com",
+			ExpectedFirstLink: "http://example.com",
+			ExpectedImages:    []string{},
+		},
+		"http link with only closing angle bracket": {
+			Input:             "this is a http://example.com>",
+			ExpectedFirstLink: "http://example.com",
+			ExpectedImages:    []string{},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			firstLink, images := th.App.getFirstLinkAndImages(th.Context, testCase.Input)
 
-			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
-			assert.Equal(t, images, testCase.ExpectedImages)
+			assert.Equal(t, testCase.ExpectedFirstLink, firstLink)
+			assert.Equal(t, testCase.ExpectedImages, images)
 		})
 	}
 
@@ -1821,6 +1847,7 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 }
 
 func TestGetImagesInMessageAttachments(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2606,6 +2633,7 @@ func TestGetLinkMetadata(t *testing.T) {
 }
 
 func TestResolveMetadataURL(t *testing.T) {
+	mainHelper.Parallel(t)
 	for _, test := range []struct {
 		Name       string
 		RequestURL string
@@ -2647,6 +2675,7 @@ func TestResolveMetadataURL(t *testing.T) {
 }
 
 func TestParseLinkMetadata(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -2673,7 +2702,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	}
 
 	t.Run("image", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "image/png")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, imageURL, makeImageReader(), "image/png")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2685,7 +2714,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("image with no content-type given", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, imageURL, makeImageReader(), "")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2697,7 +2726,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("malformed image", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeOpenGraphReader(), "image/png")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, imageURL, makeOpenGraphReader(), "image/png")
 		assert.Error(t, err)
 
 		assert.Nil(t, og)
@@ -2705,7 +2734,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("opengraph", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(ogURL, makeOpenGraphReader(), "text/html; charset=utf-8")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, ogURL, makeOpenGraphReader(), "text/html; charset=utf-8")
 		assert.NoError(t, err)
 
 		assert.NotNil(t, og)
@@ -2716,7 +2745,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("malformed opengraph", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(ogURL, makeImageReader(), "text/html; charset=utf-8")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, ogURL, makeImageReader(), "text/html; charset=utf-8")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2724,7 +2753,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("neither", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata("http://example.com/test.wad", strings.NewReader("garbage"), "application/x-doom")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/test.wad", strings.NewReader("garbage"), "application/x-doom")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2732,7 +2761,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("svg", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata("http://example.com/image.svg", nil, "image/svg+xml")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/image.svg", nil, "image/svg+xml")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2743,6 +2772,7 @@ func TestParseLinkMetadata(t *testing.T) {
 }
 
 func TestParseImages(t *testing.T) {
+	mainHelper.Parallel(t)
 	for name, testCase := range map[string]struct {
 		FileName    string
 		Expected    *model.PostImage
@@ -2820,6 +2850,14 @@ func TestParseImages(t *testing.T) {
 				Format: "jpeg",
 			},
 		},
+		"jpg-9": {
+			FileName: "orientation_test_9.jpeg",
+			Expected: &model.PostImage{
+				Width:  4000,
+				Height: 2667,
+				Format: "jpeg",
+			},
+		},
 		"animated gif": {
 			FileName: "testgif.gif",
 			Expected: &model.PostImage{
@@ -2842,7 +2880,7 @@ func TestParseImages(t *testing.T) {
 			file, err := testutils.ReadTestFile(testCase.FileName)
 			require.NoError(t, err)
 
-			result, err := parseImages(bytes.NewReader(file))
+			result, err := parseImages(request.EmptyContext(mlog.CreateConsoleTestLogger(t)), "", bytes.NewReader(file))
 			if testCase.ExpectError {
 				assert.Error(t, err)
 			} else {
@@ -2854,6 +2892,7 @@ func TestParseImages(t *testing.T) {
 }
 
 func TestLooksLikeAPermalink(t *testing.T) {
+	mainHelper.Parallel(t)
 	const siteURLWithSubpath = "http://localhost:8065/foo"
 	const siteURLWithTrailingSlash = "http://test.com/"
 	const siteURL = "http://test.com"
@@ -2885,6 +2924,7 @@ func TestLooksLikeAPermalink(t *testing.T) {
 }
 
 func TestContainsPermalink(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -2924,6 +2964,7 @@ func TestContainsPermalink(t *testing.T) {
 }
 
 func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3048,6 +3089,7 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 }
 
 func TestSanitizePostMetaDataForAudit(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3100,6 +3142,7 @@ func TestSanitizePostMetaDataForAudit(t *testing.T) {
 }
 
 func TestSanitizePostMetadataForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

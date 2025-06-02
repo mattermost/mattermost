@@ -230,6 +230,19 @@ button {
             color: rgba(var(--center-channel-color-rgb), 0.32) !important;
             opacity: 1;
         }
+
+        &.btn-success {
+            background-color: var(--online-indicator);
+            color: var(--button-color-rgb);
+
+            &:hover {
+                background-color: var(--online-indicator);
+            }
+
+            &:active {
+                background-color: var(--online-indicator);
+            }
+        }
     }
 
     &.btn-secondary {
@@ -327,6 +340,19 @@ button {
 
         &:active {
             background-color: rgb(var(--button-bg-rgb), 0.12);
+        }
+
+        &.btn-inverted {
+            color: rgb(var(--button-color-rgb));
+
+            &:hover {
+                background: rgba(var(--button-color-rgb), 0.12);
+            }
+
+            &:active,
+            &[aria-expanded="true"][aria-haspopup="true"] {
+                background-color: rgb(var(--button-color-rgb), 0.16);
+            }
         }
     }
 

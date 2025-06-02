@@ -18,6 +18,7 @@ import (
 )
 
 func TestCreateCategoryForTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -164,6 +165,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 }
 
 func TestUpdateCategoryForTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -451,6 +453,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 }
 
 func TestUpdateCategoriesForTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -548,6 +551,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 }
 
 func TestGetCategoriesForTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -600,6 +604,7 @@ func TestGetCategoriesForTeamForUser(t *testing.T) {
 }
 
 func TestGetCategoryOrderForTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -658,6 +663,7 @@ func TestGetCategoryOrderForTeamForUser(t *testing.T) {
 }
 
 func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -776,6 +782,7 @@ func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
 }
 
 func TestGetCategoryForTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -874,6 +881,7 @@ func TestGetCategoryForTeamForUser(t *testing.T) {
 }
 
 func TestValidateSidebarCategory(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -996,6 +1004,7 @@ func TestValidateSidebarCategory(t *testing.T) {
 }
 
 func TestValidateSidebarCategoryChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1007,11 +1016,11 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 	}
 
 	t.Run("should filter valid channels", func(t *testing.T) {
-		// Create test channels
-		channels := model.ChannelList{
+		// Create test channelMap
+		channelMap := channelListToMap(model.ChannelList{
 			th.BasicChannel,
 			th.BasicChannel2,
-		}
+		})
 
 		// Test with valid channel IDs
 		channelIds := []string{
@@ -1019,42 +1028,42 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 			th.BasicChannel2.Id,
 		}
 
-		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, channelIds, channels)
+		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, channelIds, channelMap)
 		require.Len(t, filtered, 2)
 		require.ElementsMatch(t, channelIds, filtered)
 	})
 
 	t.Run("should filter out invalid channels", func(t *testing.T) {
-		channels := model.ChannelList{
+		channelMap := channelListToMap(model.ChannelList{
 			th.BasicChannel,
-		}
+		})
 
 		channelIds := []string{
 			th.BasicChannel.Id,
 			"invalid_channel_id",
 		}
 
-		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, channelIds, channels)
+		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, channelIds, channelMap)
 		require.Len(t, filtered, 1)
 		require.Contains(t, filtered, th.BasicChannel.Id)
 		require.NotContains(t, filtered, "invalid_channel_id")
 	})
 
 	t.Run("should handle empty channel list", func(t *testing.T) {
-		channels := model.ChannelList{}
+		channelMap := channelListToMap(model.ChannelList{})
 		channelIds := []string{th.BasicChannel.Id}
 
-		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, channelIds, channels)
+		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, channelIds, channelMap)
 		require.Empty(t, filtered)
 	})
 
 	t.Run("should handle empty channelIds", func(t *testing.T) {
-		channels := model.ChannelList{
+		channelMap := channelListToMap(model.ChannelList{
 			th.BasicChannel,
 			th.BasicChannel2,
-		}
+		})
 
-		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, []string{}, channels)
+		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, []string{}, channelMap)
 		require.Empty(t, filtered)
 	})
 
@@ -1063,10 +1072,10 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 		require.Empty(t, filtered)
 	})
 
-	t.Run("should preserve duplicate channel IDs", func(t *testing.T) {
-		channels := model.ChannelList{
+	t.Run("should prevent duplicate channel IDs", func(t *testing.T) {
+		channelMap := channelListToMap(model.ChannelList{
 			th.BasicChannel,
-		}
+		})
 
 		// Include duplicate channel IDs
 		channelIds := []string{
@@ -1074,13 +1083,14 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 			th.BasicChannel.Id,
 		}
 
-		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, channelIds, channels)
-		require.Len(t, filtered, 2) // Function preserves duplicates as per implementation
-		require.Equal(t, []string{th.BasicChannel.Id, th.BasicChannel.Id}, filtered)
+		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, channelIds, channelMap)
+		require.Len(t, filtered, 1)
+		require.Equal(t, []string{th.BasicChannel.Id}, filtered)
 	})
 }
 
 func TestDeleteCategoryForTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	t.Run("should move channels to default categories when custom category is deleted", func(t *testing.T) {

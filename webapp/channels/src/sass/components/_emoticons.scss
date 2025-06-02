@@ -100,16 +100,6 @@
 
     @include mixins.clearfix;
 
-    .emoji-picker__header {
-        background: var(--sidebar-header-bg);
-    }
-
-    &.emoji-picker--single {
-        .emoji-picker__header {
-            position: relative;
-        }
-    }
-
     .browser--ie & {
         width: 325px;
     }
@@ -135,11 +125,11 @@
             }
 
             a {
-                height: 40px;
                 padding: 7px 12px;
                 border: none !important;
                 border-bottom: 2px solid transparent !important;
                 margin-right: 5px;
+                margin-bottom: 0;
                 margin-left: 5px;
                 background: transparent;
                 outline: none;
@@ -153,8 +143,6 @@
 
             &.active {
                 a {
-                    height: 34px;
-                    padding-top: 9px;
                     border-radius: 0;
                     margin-right: 5px;
                     margin-left: 5px;
@@ -226,15 +214,12 @@
     }
 }
 
-.emoji-picker__header,
-.modal-body .emoji-picker .emoji-picker__header {
-    position: absolute;
+.emoji-picker__header {
     top: 0;
     display: none; // only visible < 480px width screen
     width: 100%;
     padding: 13px 10px 13px 15px;
-    border: 1px solid variables.$light-gray;
-    background: variables.$primary-color;
+    background: var(--sidebar-header-bg);
     color: var(--sidebar-header-text-color);
 
     .emoji-picker__header-title {
@@ -255,23 +240,16 @@
     }
 }
 
-.modal-body .emoji-picker .emoji-picker__header {
-    .emoji-picker__header-title {
-        margin-top: 0;
-    }
-}
-
 .emoji-picker__search-container {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-color: transparent !important;
     margin: 12px;
 
     .skin-tones-animation {
         &-enter {
-            transform: translateX(100%);
+            transform: translateX(calc(100% - 32px));
         }
 
         &-enter-active {
@@ -279,30 +257,34 @@
             transition: transform 200ms ease-in-out;
         }
 
+        &-enter-done {
+            transform: translateX(0%);
+        }
+
         &-exit {
-            position: absolute;
-            width: 100%;
             transform: translateX(0%);
         }
 
         &-exit-active {
-            transform: translateX(90%);
+            transform: translateX(calc(100% - 32px));
             transition: transform 200ms ease-in-out;
         }
     }
 
     .skin-tones {
+        position: absolute;
         z-index: 10;
+        right: 0;
+        bottom: 0;
         display: flex;
         height: 100%;
         align-items: center;
         background: var(--center-channel-bg);
-        margin-inline-start: 8px;
 
         &--active {
             position: absolute;
-            width: 100%;
-            justify-content: space-around;
+            width: fit-content;
+            justify-content: flex-start;
 
             .skin-tones__close,
             .skin-tones__icons {
@@ -351,12 +333,14 @@
     }
 
     .emoji-picker__text-container {
-        position: relative;
-        z-index: 5;
-        width: 100%;
         height: 32px;
+        flex: 1;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
         border-radius: 4px;
+
+        &:not(.gif-picker__text-container) {
+            margin-right: 40px;
+        }
 
         &:focus-within {
             border: 2px solid functions.v(button-bg);
@@ -459,8 +443,8 @@
     }
 
     .gif-attribution {
-        padding: 5px 0 5px 5px;
         margin-inline-start: 8px;
+        padding-inline-start: 5px;
 
         & > img {
             width: 100%;
@@ -476,14 +460,13 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 
 .emoji-picker__items {
     position: relative;
-    width: 100%;
-    height: 270px;
-    padding: 4px 0 4px 12px;
     border-top-width: 1px;
     border-top-style: solid;
     -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
     overflow-y: auto;
+    padding-block: 4px;
+    padding-inline: 0px;
 
     &:has(.no-results__wrapper) {
         display: flex;
@@ -507,11 +490,11 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 
     .emoji-picker__category-header {
         position: relative;
-        padding-top: 3px;
-        margin-top: 6px;
+        align-content: center;
         color: rgba(var(--center-channel-color-rgb), 0.48);
         font-size: 12px;
         font-weight: bold;
+        line-height: normal;
         text-transform: uppercase;
     }
 
@@ -531,6 +514,8 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 .emoji-picker__row {
     display: flex;
     justify-content: flex-start;
+    padding-inline-end: 4px;
+    padding-inline-start: 12px;
 }
 
 .emoji-picker__item {
@@ -576,10 +561,6 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 
     &:active {
         background-color: rgba(var(--center-channel-color-rgb), 0.32);
-    }
-
-    > div {
-        text-align: center;
     }
 
     img {

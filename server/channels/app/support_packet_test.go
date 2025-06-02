@@ -22,10 +22,12 @@ import (
 )
 
 func TestGenerateSupportPacket(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
@@ -269,6 +271,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 }
 
 func TestGetPluginsFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -295,7 +298,8 @@ func TestGetPluginsFile(t *testing.T) {
 	})
 
 	t.Run("two plugins are installed", func(t *testing.T) {
-		path, _ := fileutils.FindDir("tests")
+		path, found := fileutils.FindDir("tests")
+		require.True(t, found, "tests directory not found")
 
 		bundle1, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 		require.NoError(t, err)
@@ -332,6 +336,7 @@ func TestGetPluginsFile(t *testing.T) {
 }
 
 func TestGetSupportPacketStats(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 
 	generateStats := func(t *testing.T) *model.SupportPacketStats {
@@ -461,6 +466,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 }
 
 func TestGetSupportPacketJobList(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -574,10 +580,12 @@ func TestGetSupportPacketJobList(t *testing.T) {
 }
 
 func TestGetSupportPacketPermissionsInfo(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	generatePermissionInfo := func(t *testing.T) *model.SupportPacketPermissionInfo {
 		t.Helper()
@@ -659,6 +667,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 }
 
 func TestGetSupportPacketMetadata(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

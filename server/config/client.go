@@ -226,13 +226,13 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
 		}
 
-		if license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise {
+		if model.MinimumProfessionalLicense(license) {
 			props["EnableCustomGroups"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomGroups)
 			props["PostAcknowledgements"] = "true"
 			props["ScheduledPosts"] = strconv.FormatBool(*c.ServiceSettings.ScheduledPosts)
 		}
 
-		if license.SkuShortName == model.LicenseShortSkuEnterprise {
+		if model.MinimumEnterpriseLicense(license) {
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
@@ -294,7 +294,10 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["PrivacyPolicyLink"] = *c.SupportSettings.PrivacyPolicyLink
 	props["AboutLink"] = *c.SupportSettings.AboutLink
 	props["HelpLink"] = *c.SupportSettings.HelpLink
+	props["ReportAProblemType"] = *c.SupportSettings.ReportAProblemType
 	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
+	props["ReportAProblemMail"] = *c.SupportSettings.ReportAProblemMail
+	props["AllowDownloadLogs"] = strconv.FormatBool(*c.SupportSettings.AllowDownloadLogs)
 	props["ForgotPasswordLink"] = *c.SupportSettings.ForgotPasswordLink
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 	props["EnableAskCommunityLink"] = strconv.FormatBool(*c.SupportSettings.EnableAskCommunityLink)
@@ -399,7 +402,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["OpenIdButtonText"] = *c.OpenIdSettings.ButtonText
 		}
 
-		if license.SkuShortName == model.LicenseShortSkuEnterprise {
+		if model.MinimumEnterpriseLicense(license) {
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)

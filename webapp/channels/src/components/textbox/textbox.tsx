@@ -72,6 +72,7 @@ export type Props = {
     openWhenEmpty?: boolean;
     priorityProfiles?: UserProfile[];
     hasLabels?: boolean;
+    hasError?: boolean;
     isInEditMode?: boolean;
 };
 
@@ -201,7 +202,6 @@ export default class Textbox extends React.PureComponent<Props> {
         if (!prevProps.preview && this.props.preview) {
             this.preview.current?.focus();
         }
-
         this.updateSuggestions(prevProps);
     }
 
@@ -278,13 +278,17 @@ export default class Textbox extends React.PureComponent<Props> {
             textboxClassName += ' textarea--has-labels';
         }
 
+        if (this.props.hasError) {
+            textboxClassName += ' textarea--has-errors';
+        }
+
         return (
             <div
                 ref={this.wrapper}
-                className={classNames('textarea-wrapper', {'textarea-wrapper-preview': this.props.preview})}
+                className={classNames('textarea-wrapper', {'textarea-wrapper-preview': this.props.preview, 'textarea-wrapper-preview--disabled': Boolean(this.props.preview && this.props.disabled)})}
             >
                 <div
-                    tabIndex={this.props.tabIndex || 0}
+                    tabIndex={this.props.tabIndex}
                     ref={this.preview}
                     className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': this.props.hasLabels})}
                     onKeyPress={this.props.onKeyPress}
