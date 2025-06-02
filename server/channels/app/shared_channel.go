@@ -283,45 +283,69 @@ func (a *App) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.Re
 	return pluginHooks.OnSharedChannelsProfileImageSyncMsg(user, rc)
 }
 
+// PostDebugToTownSquare is the interface method required by sharedchannel service
 func (a *App) PostDebugToTownSquare(c request.CTX, message string) {
-	// Get system bot for posting debug messages
-	systemBot, appErr := a.GetSystemBot(c)
-	if appErr != nil {
-		c.Logger().Warn("Failed to get system bot for debug message", mlog.Err(appErr))
-		return
-	}
+	// For interface compatibility, use empty channel ID and find a user
+	a.postDebugToTownSquareWithContext(c, "", "", message)
+}
 
-	// Get all teams to find town-square channels
+// postDebugToTownSquareWithContext is the internal method with full context
+func (a *App) postDebugToTownSquareWithContext(c request.CTX, channelId, userId, message string) {
+	// Get the first available team's town-square channel
 	teams, terr := a.Srv().Store().Team().GetAll()
 	if terr != nil || len(teams) == 0 {
 		c.Logger().Warn("Failed to find any team for debug message", mlog.Err(terr))
 		return
 	}
 
-	// Post to town-square in each team
+	// Find town-square channel
+	var townSquare *model.Channel
+	var err error
 	for _, team := range teams {
-		townSquare, err := a.Srv().Store().Channel().GetByName(team.Id, "town-square", false)
-		if err != nil {
-			c.Logger().Warn("Failed to find town square channel for debug message",
-				mlog.String("team_id", team.Id),
-				mlog.String("team_name", team.Name),
-				mlog.Err(err))
-			continue
+		townSquare, err = a.Srv().Store().Channel().GetByName(team.Id, model.DefaultChannelName, false)
+		if err == nil {
+			break
 		}
+	}
 
-		post := &model.Post{
-			ChannelId: townSquare.Id,
-			Message:   fmt.Sprintf("[SHARED_CHANNEL_DEBUG] %s", message),
-			Type:      model.PostTypeDefault,
-			UserId:    systemBot.UserId,
-		}
+	if townSquare == nil {
+		c.Logger().Warn("Failed to find town square channel for debug message")
+		return
+	}
 
-		_, appErr := a.CreatePost(c, post, townSquare, model.CreatePostFlags{})
-		if appErr != nil {
-			c.Logger().Warn("Failed to post debug message to town square",
-				mlog.String("team_id", team.Id),
-				mlog.String("team_name", team.Name),
-				mlog.Err(appErr))
+	// Include the original channel ID in the message for context if provided
+	debugMessage := message
+	if channelId != "" {
+		debugMessage = fmt.Sprintf("[SharedChannel:%s] %s", channelId, message)
+	}
+
+	// If no user ID provided, find one
+	if userId == "" {
+		// Get any admin user to post the message
+		admins, err := a.Srv().Store().User().GetSystemAdminProfiles()
+		if err != nil || len(admins) == 0 {
+			c.Logger().Warn("Failed to find admin user for debug message", mlog.Err(err))
+			return
 		}
+		// Get the first admin user ID from the map
+		for uid := range admins {
+			userId = uid
+			break
+		}
+	}
+
+	post := &model.Post{
+		ChannelId: townSquare.Id,
+		Message:   debugMessage,
+		Type:      model.PostTypeSystemGeneric,
+		UserId:    userId,
+		CreateAt:  model.GetMillis(),
+	}
+
+	_, appErr := a.CreatePost(c, post, townSquare, model.CreatePostFlags{})
+	if appErr != nil {
+		c.Logger().Warn("Failed to post debug message to town square",
+			mlog.String("channel_id", townSquare.Id),
+			mlog.Err(appErr))
 	}
 }

@@ -178,7 +178,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		}
 		debugMsg := fmt.Sprintf("Mention detection - Post ID: %s, Channel: %s, Mentioned users: %v, Message preview: %.100s",
 			post.Id, channel.Name, mentionedUsers, post.Message)
-		a.PostDebugToTownSquare(c, debugMsg)
+		a.postDebugToTownSquareWithContext(c, channel.Id, post.UserId, debugMsg)
 	}
 
 	var allActivityPushUserIds []string
@@ -1078,7 +1078,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		}
 	} else {
 		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
-		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap, groups)
+		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap, groups, channel.Id)
 
 		mentions = getExplicitMentions(post, keywords)
 
@@ -1545,7 +1545,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap, groups map[string]*model.Group) MentionKeywords {
+func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap, groups map[string]*model.Group, channelId string) MentionKeywords {
 	keywords := make(MentionKeywords)
 
 	for _, profile := range profiles {
@@ -1561,7 +1561,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 				if strings.Contains(profile.Username, ":") {
 					scenario = "SCENARIO2" // Remote user being notified on Server A
 				}
-				a.PostDebugToTownSquare(request.EmptyContext(a.Log()),
+				a.postDebugToTownSquareWithContext(request.EmptyContext(a.Log()), channelId, profile.Id,
 					fmt.Sprintf("%s_NOTIFICATION: Adding remote user keywords - User: %s, RemoteCluster: %s",
 						scenario, profile.Username, remoteClusterName))
 			}
@@ -1581,7 +1581,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 			if strings.Contains(profile.Username, ":") {
 				scenario = "SCENARIO2" // Remote user being notified on Server A
 			}
-			a.PostDebugToTownSquare(request.EmptyContext(a.Log()),
+			a.postDebugToTownSquareWithContext(request.EmptyContext(a.Log()), channelId, profile.Id,
 				fmt.Sprintf("%s_NOTIFICATION: Keywords for %s: @%s and @%s:%s",
 					scenario, profile.Username, profile.Username, profile.Username, remoteClusterName))
 		}
