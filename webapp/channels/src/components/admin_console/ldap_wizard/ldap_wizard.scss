@@ -82,20 +82,67 @@
         }
     }
 
-    .ldap-help-text-hover-tooltip {
-        .tooltipContainer {
-            max-width: 400px; // Wider than the default 220px to accommodate detailed help text
-            text-align: left; // Left-align for better readability of longer text
-            white-space: pre-line; // Preserve line breaks in help text
+    .ldap-expandable-section {
+        margin: 20px 0;
+
+        .ldap-expandable-section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .ldap-help-text-more-info {
-            padding: 0;
+        .ldap-expandable-section-toggle {
+            padding: 4px 0;
             border: none;
             background: none;
             color: var(--button-bg);
-            cursor: pointer;
-            text-decoration: underline;
+            font-weight: 600;
+
+            &:hover {
+                text-decoration: underline;
+            }
+
         }
+
+        .ldap-expandable-arrow {
+            color: var(--button-bg);
+            transition: transform 0.2s ease;
+            
+            &.open {
+                transform: rotate(90deg);
+            }
+        }
+
+        .ldap-expandable-section-content {
+            overflow: hidden;
+            max-height: 0;
+            padding-left: 0;
+            margin-top: 0;
+            opacity: 0;
+            transition: max-height 0.3s ease-out, opacity 0.2s ease-out, margin-top 0.3s ease-out;
+
+            &.expanded {
+                max-height: 800px; // Large enough to contain all settings
+                margin-top: 20px;
+                opacity: 1;
+            }
+        }
+    }
+}
+
+.ldap-help-text-hover-tooltip {
+    .tooltipContainer {
+        max-width: 400px; // Wider than the default 220px to accommodate detailed help text
+        text-align: left; // Left-align for better readability of longer text
+        white-space: pre-line; // Preserve line breaks in help text
+    }
+
+    .ldap-help-text-more-info {
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--button-bg);
+        cursor: pointer;
+        text-decoration: underline;
     }
 }
