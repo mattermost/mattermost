@@ -10,8 +10,8 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import {TELEMETRY_CATEGORIES} from 'utils/constants';
 
+import {useExternalLink} from './use_external_link';
 import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from './useCWSAvailabilityCheck';
-import { useExternalLink } from './use_external_link';
 
 export type TelemetryProps = {
     trackingLocation: string;
@@ -25,7 +25,7 @@ export type UseOpenPricingModalReturn = {
 export default function useOpenPricingModal(): UseOpenPricingModalReturn {
     const isCloud = useSelector(isCurrentLicenseCloud);
     const cwsAvailability = useCWSAvailabilityCheck();
-    const [externalLink] = useExternalLink('https://mattermost.com/pricing')
+    const [externalLink] = useExternalLink('https://mattermost.com/pricing');
 
     const isAirGapped = cwsAvailability === CSWAvailabilityCheckTypes.Unavailable;
     const canAccessExternalPricing = cwsAvailability === CSWAvailabilityCheckTypes.Available ||
