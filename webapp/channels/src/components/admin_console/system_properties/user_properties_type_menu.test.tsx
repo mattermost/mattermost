@@ -103,7 +103,7 @@ describe('UserPropertyTypeMenu', () => {
         fireEvent.click(screen.getByText('Text'));
 
         // Type in the filter input
-        const filterInput = screen.getByRole('textbox', {name: 'Property type'});
+        const filterInput = screen.getByRole('textbox', {name: 'Attribute type'});
         fireEvent.change(filterInput, {target: {value: 'multi'}});
 
         // Should only see Multi-select now
