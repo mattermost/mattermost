@@ -7197,3 +7197,35 @@ func (s *apiRPCServer) MakeAuditRecord(args *Z_MakeAuditRecordArgs, returns *Z_M
 	}
 	return nil
 }
+
+type Z_MakeAuditRecordWithRequestArgs struct {
+	A string
+	B string
+	C Context
+	D string
+	E string
+}
+
+type Z_MakeAuditRecordWithRequestReturns struct {
+	A *model.AuditRecord
+}
+
+func (g *apiRPCClient) MakeAuditRecordWithRequest(event string, initialStatus string, ctx Context, userId, apiPath string) *model.AuditRecord {
+	_args := &Z_MakeAuditRecordWithRequestArgs{event, initialStatus, ctx, userId, apiPath}
+	_returns := &Z_MakeAuditRecordWithRequestReturns{}
+	if err := g.client.Call("Plugin.MakeAuditRecordWithRequest", _args, _returns); err != nil {
+		log.Printf("RPC call to MakeAuditRecordWithRequest API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) MakeAuditRecordWithRequest(args *Z_MakeAuditRecordWithRequestArgs, returns *Z_MakeAuditRecordWithRequestReturns) error {
+	if hook, ok := s.impl.(interface {
+		MakeAuditRecordWithRequest(event string, initialStatus string, ctx Context, userId, apiPath string) *model.AuditRecord
+	}); ok {
+		returns.A = hook.MakeAuditRecordWithRequest(args.A, args.B, args.C, args.D, args.E)
+	} else {
+		return encodableError(fmt.Errorf("API MakeAuditRecordWithRequest called but not implemented."))
+	}
+	return nil
+}

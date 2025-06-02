@@ -1419,6 +1419,12 @@ type API interface {
 	// Minimum server version: 10.10
 	MakeAuditRecord(event string, initialStatus string) *model.AuditRecord
 
+	// MakeAuditRecord creates a new audit record from the provided information.
+	//
+	// @tag Audit
+	// Minimum server version: 10.10
+	MakeAuditRecordWithRequest(event string, initialStatus string, ctx Context, userId, apiPath string) *model.AuditRecord
+
 	// LogAuditRec logs an audit record using the default audit logger.
 	//
 	// @tag Audit
