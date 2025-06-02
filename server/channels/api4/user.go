@@ -843,7 +843,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		if ok, _ := c.App.ChannelAccessControlled(c.AppContext, notInChannelId); ok {
 			// Get cursor_id from query parameters for cursor-based pagination
 			cursorId := r.URL.Query().Get("cursor_id")
-			profiles, appErr = c.App.GetUsersNotInAbacChannel(inTeamId, notInChannelId, groupConstrainedBool, cursorId, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+			profiles, appErr = c.App.GetUsersNotInAbacChannel(c.AppContext, inTeamId, notInChannelId, groupConstrainedBool, cursorId, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else {
 			profiles, appErr = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		}

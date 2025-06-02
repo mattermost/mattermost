@@ -891,10 +891,6 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 	th.LinkUserToTeam(user2, th.BasicTeam)
 	th.LinkUserToTeam(user3, th.BasicTeam)
 
-	// Set user1 attributes to match the policy
-	user1.Props = map[string]string{
-		"program": "test-program",
-	}
 	user1, err := th.App.UpdateUser(th.Context, user1, false)
 	require.Nil(t, err)
 
@@ -943,8 +939,8 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 					opts.Cursor.TargetID == ""
 			})).Return([]*model.User{user1}, int64(1), nil).Once()
 
-		// Call the new ABAC-specific function
-		users, appErr := th.App.GetUsersNotInAbacChannel(th.BasicTeam.Id, abacChannel.Id, false, "", 50, true, nil)
+		// Call the new ABAC-specific function with th.Context as first parameter
+		users, appErr := th.App.GetUsersNotInAbacChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, false, "", 50, true, nil)
 		require.Nil(t, appErr)
 
 		// Create a map of user IDs for easier lookup
@@ -974,8 +970,8 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 					opts.Cursor.TargetID == cursorID
 			})).Return([]*model.User{user1}, int64(1), nil).Once()
 
-		// Call with cursor ID
-		users, appErr := th.App.GetUsersNotInAbacChannel(th.BasicTeam.Id, abacChannel.Id, false, cursorID, 25, true, nil)
+		// Call with cursor ID and th.Context as first parameter
+		users, appErr := th.App.GetUsersNotInAbacChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, false, cursorID, 25, true, nil)
 		require.Nil(t, appErr)
 		assert.Len(t, users, 1, "Should return exactly 1 user with cursor pagination")
 	})
@@ -987,8 +983,8 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 			th.App.Srv().ch.AccessControl = mockAccessControl
 		}()
 
-		// Call should return error
-		users, appErr := th.App.GetUsersNotInAbacChannel(th.BasicTeam.Id, abacChannel.Id, false, "", 50, true, nil)
+		// Call should return error with th.Context as first parameter
+		users, appErr := th.App.GetUsersNotInAbacChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, false, "", 50, true, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, users)
 		assert.Equal(t, "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error", appErr.Id)
