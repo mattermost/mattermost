@@ -248,11 +248,16 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 		go func(mention string) {
 			defer wg.Done()
 
+			a.PostDebugToTownSquare(c,
+				fmt.Sprintf("SCENARIO2_MENTION_RESOLVE: Processing FullMention: %s", mention))
+
 			// First try to find the user by the full mention (could be username or username:remote)
 			user, nErr := a.Srv().Store().User().GetByUsername(mention)
 
 			var nfErr *store.ErrNotFound
 			if nErr != nil && !errors.As(nErr, &nfErr) {
+				a.PostDebugToTownSquare(c,
+					fmt.Sprintf("SCENARIO2_MENTION_RESOLVE: Failed to retrieve mention FullMention: %s", mention))
 				c.Logger().Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
 				return
 			}
