@@ -534,10 +534,14 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 			continue
 		}
 
-		// don't sync a post back to the remote it came from.
+		// don't sync a post back to the remote it came from UNLESS it has metadata changes
 		if p.GetRemoteID() == sd.rc.RemoteId {
-			scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("FILTER: Skipping post %s - originated from remote %s", p.Id, sd.rc.RemoteId))
-			continue
+			hasMetadataChanges := p.Metadata != nil && (p.Metadata.Acknowledgements != nil || p.Metadata.Priority != nil)
+			if !hasMetadataChanges {
+				scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("FILTER: Skipping post %s - originated from remote %s and no metadata changes", p.Id, sd.rc.RemoteId))
+				continue
+			}
+			scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("FILTER: Including post %s - has metadata changes despite originating from remote %s", p.Id, sd.rc.RemoteId))
 		}
 
 		// parse out all permalinks in the message.
