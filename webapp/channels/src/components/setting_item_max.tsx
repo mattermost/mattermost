@@ -20,11 +20,6 @@ type Props = {
     serverError?: ReactNode;
 
     /**
-     * Client error
-     */
-    clientError?: ReactNode;
-
-    /**
      * Settings extra information
      */
     extraInfo?: ReactNode;
@@ -51,6 +46,7 @@ type Props = {
     shiftEnter?: boolean;
     saveButtonText?: string;
     saveButtonClassName?: string;
+    isValid?: boolean;
 }
 export default class SettingItemMax extends React.PureComponent<Props> {
     settingList: React.RefObject<HTMLDivElement>;
@@ -120,20 +116,6 @@ export default class SettingItemMax extends React.PureComponent<Props> {
     };
 
     render() {
-        let clientError = null;
-        if (this.props.clientError) {
-            clientError = (
-                <div className='form-group'>
-                    <label
-                        id='clientError'
-                        className='col-sm-12 has-error'
-                    >
-                        {this.props.clientError}
-                    </label>
-                </div>
-            );
-        }
-
         let serverError = null;
         if (this.props.serverError) {
             serverError = (
@@ -171,7 +153,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                 <SaveButton
                     defaultMessage={this.props.saveButtonText}
                     saving={this.props.saving}
-                    disabled={this.props.saving}
+                    disabled={this.props.saving || this.props.isValid === false}
                     onClick={this.handleSubmit}
                     btnClass={this.props.saveButtonClassName}
                 />
@@ -242,7 +224,6 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                             <hr/>
                             {this.props.submitExtra}
                             {serverError}
-                            {clientError}
                             {submit}
                             <button
                                 id={'cancelSetting'}

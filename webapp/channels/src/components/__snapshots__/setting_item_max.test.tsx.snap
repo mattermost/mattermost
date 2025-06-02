@@ -73,16 +73,6 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
         className="setting-list-item"
       >
         <hr />
-        <div
-          className="form-group"
-        >
-          <label
-            className="col-sm-12 has-error"
-            id="clientError"
-          >
-            clientError
-          </label>
-        </div>
         <SaveButton
           disabled={false}
           onClick={[Function]}
