@@ -29,8 +29,11 @@ npm run test -- <test-name> --project=chrome
 npm run test -- <test-name> --project=firefox
 npm run test -- <test-name> --project=ipad
 
-# Run all tests
+# Run all tests (including visual tests)
 npm run test
+
+# Run CI tests (excludes visual tests, runs only in Chrome)
+npm run test:ci
 
 # Run tests with UI mode
 npm run playwright-ui
@@ -45,7 +48,7 @@ npm run test -- visual
 npm run test:update-snapshots
 
 # Visual testing with Percy
-npm run percy
+npm run percy:docker
 ```
 
 ### Development Commands
@@ -135,6 +138,7 @@ Tests can be configured through environment variables:
 - `PW_SNAPSHOT_ENABLE` - Enable snapshot testing (default: false)
 - `PW_SLOWMO` - Add delay between actions in ms (default: 0)
 - `PW_WORKERS` - Number of parallel workers (default: 1)
+- `PERCY_TOKEN` - Authentication token for Percy visual testing service (required for Percy tests)
 
 ## Server Setup
 
@@ -158,9 +162,15 @@ Before running tests, a Mattermost server must be available. Two options:
 
 2. **Visual Testing**: For visual tests:
 
-    - Run via Docker container for consistency
-    - Use `pw.hideDynamicChannelsContent()` to hide dynamic elements
-    - Update snapshots with `npm run test:update-snapshots`
+    - Place all visual tests in the `specs/visual/` directory
+    - Always include the `@visual` tag in the test tags array
+    - Run via Docker container for consistency to maintain screenshot integrity
+    - Use `pw.hideDynamicChannelsContent()` to hide dynamic elements that could cause flaky tests
+    - Update snapshots with `npm run test:update-snapshots` only from within the Docker container
+    - For Percy-based visual testing:
+        - A valid `PERCY_TOKEN` environment variable must be set
+        - Tests should only be run inside the Playwright Docker container
+    - Follow the visual test documentation format like other tests, with proper JSDoc and comments
 
 3. **Test Title Validation with Claude Code**: When using Claude:
 
