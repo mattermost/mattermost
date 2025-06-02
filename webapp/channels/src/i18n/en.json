@@ -2654,7 +2654,7 @@
   "admin.sidebar.reporting": "Reporting",
   "admin.sidebar.restricted_indicator.tooltip.message.blocked": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
   "admin.sidebar.saml": "SAML 2.0",
-  "admin.sidebar.secureConnections": "Connected Workspaces (Beta)",
+  "admin.sidebar.secureConnections": "Connected Workspaces",
   "admin.sidebar.sessionLengths": "Session Lengths",
   "admin.sidebar.signup": "Signup",
   "admin.sidebar.site": "Site Configuration",
