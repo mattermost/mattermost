@@ -98,6 +98,7 @@ function CELEditor({
         statusBarColor: 'var(--button-bg)',
         showTestResults: false,
         testResults: null as AccessControlTestResult | null,
+        isWaitingForValidation: false,
     });
 
     const schemas = {
@@ -136,12 +137,13 @@ function CELEditor({
                 validationErrors: [],
                 statusBarColor: 'var(--button-bg)',
                 isValidating: false,
+                isWaitingForValidation: false,
             }));
             onValidate?.(true);
             return;
         }
 
-        setEditorState((prev) => ({...prev, isValidating: true}));
+        setEditorState((prev) => ({...prev, isValidating: true, isWaitingForValidation: false}));
 
         try {
             const errors = await Client4.checkAccessControlExpression(expression);
@@ -185,6 +187,7 @@ function CELEditor({
             expression: newValue,
             statusBarColor: 'var(--button-bg)',
             validationErrors: [],
+            isWaitingForValidation: true,
         }));
         onChange(newValue);
 
@@ -247,6 +250,76 @@ function CELEditor({
         };
     }, []); // Only run once on mount
 
+    // Helper function to determine current validation state
+    const getValidationState = useCallback(() => {
+        if (editorState.validationErrors.length > 0) {
+            return 'error';
+        }
+        if (editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)') {
+            return 'validated';
+        }
+        if (editorState.isValidating) {
+            return 'validating';
+        }
+        if (!editorState.expression.trim()) {
+            return 'empty';
+        }
+        if (editorState.isWaitingForValidation) {
+            return 'waiting';
+        }
+        return 'unvalidated';
+    }, [editorState]);
+
+    // Helper function to render status message based on state
+    const renderStatusMessage = useCallback((state: string) => {
+        switch (state) {
+        case 'error':
+            return (
+                <span className='cel-editor__error'>
+                    <i className='icon icon-alert-circle-outline'/>
+                    {editorState.validationErrors[0]}
+                </span>
+            );
+        case 'validated':
+            return (
+                <span className='cel-editor__valid'>
+                    <i className='icon icon-check'/>
+                    {'Valid'}
+                </span>
+            );
+        case 'validating':
+            return (
+                <span className='cel-editor__loading'>
+                    <i className='fa fa-spinner fa-spin'/>
+                    <FormattedMessage
+                        id='admin.access_control.cel.validating'
+                        defaultMessage='Validating...'
+                    />
+                </span>
+            );
+        case 'empty':
+            return (
+                <span className='cel-editor__empty'>
+                    <FormattedMessage
+                        id='admin.access_control.cel.type_expression'
+                        defaultMessage='Type an expression...'
+                    />
+                </span>
+            );
+        case 'waiting':
+            return (
+                <span className='cel-editor__waiting'>
+                    <FormattedMessage
+                        id='admin.access_control.cel.incomplete_expression'
+                        defaultMessage='Incomplete expression, awaiting input...'
+                    />
+                </span>
+            );
+        default:
+            return null;
+        }
+    }, [editorState.validationErrors]);
+
     return (
         <div className={`cel-editor ${className}`}>
             <MonacoLanguageProvider schemas={schemas}/>
@@ -271,58 +344,10 @@ function CELEditor({
                 <div
                     className='cel-editor__status-bar'
                     style={{backgroundColor: editorState.statusBarColor}}
-                    data-validation-state={
-                        (() => {
-                            if (editorState.isValidating) {
-                                return 'validating';
-                            }
-
-                            if (editorState.validationErrors.length > 0) {
-                                return 'error';
-                            }
-
-                            if (editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)') {
-                                return 'validated';
-                            }
-
-                            return 'unvalidated';
-                        })()
-                    }
+                    data-validation-state={getValidationState()}
                 >
                     <div className='cel-editor__status-message'>
-                        {(() => {
-                            if (editorState.validationErrors.length > 0) {
-                                return (
-                                    <span className='cel-editor__error'>
-                                        <i className='icon icon-alert-circle-outline'/>
-                                        {editorState.validationErrors[0]}
-                                    </span>
-                                );
-                            }
-
-                            if (editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)') {
-                                return (
-                                    <span className='cel-editor__valid'>
-                                        <i className='icon icon-check'/>
-                                        {'Valid'}
-                                    </span>
-                                );
-                            }
-
-                            if (editorState.isValidating) {
-                                return (
-                                    <span className='cel-editor__loading'>
-                                        <i className='fa fa-spinner fa-spin'/>
-                                        <FormattedMessage
-                                            id='admin.access_control.cel.validating'
-                                            defaultMessage='Validating...'
-                                        />
-                                    </span>
-                                );
-                            }
-
-                            return null;
-                        })()}
+                        {renderStatusMessage(getValidationState())}
                     </div>
                     <div className='cel-editor__cursor-position'>
                         <FormattedMessage
