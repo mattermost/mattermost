@@ -49,7 +49,7 @@ func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError)
 }
 
 // HasPermissionToReadChannel provides a mock function with given fields: c, userID, channel
-func (_m *SuiteIFace) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
+func (_m *SuiteIFace) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) (bool, bool) {
 	ret := _m.Called(c, userID, channel)
 
 	if len(ret) == 0 {
@@ -57,13 +57,23 @@ func (_m *SuiteIFace) HasPermissionToReadChannel(c request.CTX, userID string, c
 	}
 
 	var r0 bool
+	var r1 bool
+	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.Channel) (bool, bool)); ok {
+		return rf(c, userID, channel)
+	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.Channel) bool); ok {
 		r0 = rf(c, userID, channel)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(request.CTX, string, *model.Channel) bool); ok {
+		r1 = rf(c, userID, channel)
+	} else {
+		r1 = ret.Get(1).(bool)
+	}
+
+	return r0, r1
 }
 
 // RolesGrantPermission provides a mock function with given fields: roleNames, permissionId

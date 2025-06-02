@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -166,7 +167,7 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 
 	// If the other thread finished creating the post, return the created post back to the
 	// client, making the API call feel idempotent.
-	actualPost, err := a.GetPostIfAuthorized(rctx, postID, rctx.Session(), false)
+	actualPost, err, _ := a.GetPostIfAuthorized(rctx, postID, rctx.Session(), false)
 	if err != nil && err.StatusCode == http.StatusForbidden {
 		rctx.Logger().Warn("Ignoring pending_post_id for which the user is unauthorized", mlog.String("pending_post_id", post.PendingPostId), mlog.String("post_id", postID), mlog.Err(err))
 		return nil, nil
@@ -262,7 +263,8 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	var ephemeralPost *model.Post
-	if post.Type == "" && !a.HasPermissionToChannel(c, user.Id, channel.Id, model.PermissionUseChannelMentions) {
+	hasPermission, _ := a.HasPermissionToChannel(c, user.Id, channel.Id, model.PermissionUseChannelMentions)
+	if post.Type == "" && !hasPermission {
 		mention := post.DisableMentionHighlights()
 		if mention != "" {
 			T := i18n.GetUserTranslations(user.Locale)
@@ -534,7 +536,8 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 	}
 
 	matched := atMentionPattern.MatchString(post.Message)
-	if a.Srv().License() != nil && *a.Srv().License().Features.LDAPGroups && matched && !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
+	hasPermission, _ := a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions)
+	if a.Srv().License() != nil && *a.Srv().License().Features.LDAPGroups && matched && !hasPermission {
 		post.AddProp(model.PostPropsGroupHighlightDisabled, true)
 	}
 
@@ -938,9 +941,15 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 	// In case the user does have permission to read, we set the metadata back.
 	// Note that this is the return value to the post creator, and has nothing to do
 	// with the content of the websocket broadcast to that user or any other.
-	if a.HasPermissionToReadChannel(rctx, post.UserId, permalinkPreviewedChannel) {
+	if ok, isMember := a.HasPermissionToReadChannel(rctx, post.UserId, permalinkPreviewedChannel); ok {
 		post.AddProp(model.PostPropsPreviewedPost, previewProp)
 		post.Metadata.Embeds = append(post.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: permalinkPreviewedPost})
+		if !isMember {
+			auditRec := a.MakeAuditRecord(rctx, "viewed_post_without_membership", audit.Success)
+			defer a.LogAuditRec(rctx, auditRec, nil)
+			auditRec.AddMeta("reason", "permalink_preview")
+			auditRec.AddMeta("post_id", permalinkPreviewedPost.PostID)
+		}
 	}
 
 	usePermalinkHook(message, permalinkPreviewedChannel, postJSON)
@@ -967,7 +976,7 @@ func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch, pa
 		return nil, err
 	}
 
-	if !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
+	if ok, _ := a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseChannelMentions); !ok {
 		patch.DisableMentionHighlights()
 	}
 
@@ -2111,28 +2120,29 @@ func (a *App) GetThreadMembershipsForUser(userID, teamID string) ([]*model.Threa
 	return a.Srv().Store().Thread().GetMembershipsForUser(userID, teamID)
 }
 
-func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError) {
+func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError, bool) {
 	post, err := a.GetSinglePost(c, postID, includeDeleted)
 	if err != nil {
-		return nil, err
+		return nil, err, false
 	}
 
 	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
-		return nil, err
+		return nil, err, false
 	}
 
-	if !a.SessionHasPermissionToReadChannel(c, *session, channel) {
+	ok, isMember := a.HasPermissionToChannel(c, session.UserId, post.ChannelId, model.PermissionReadChannelContent)
+	if !ok {
 		if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
-				return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
+				return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel}), false
 			}
 		} else {
-			return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent})
+			return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent}), false
 		}
 	}
 
-	return post, nil
+	return post, nil, isMember
 }
 
 // GetPostsByIds response bool value indicates, if the post is inaccessible due to cloud plan's limit.
@@ -2383,9 +2393,9 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		if channel.Type == model.ChannelTypeOpen {
 			hasPermissionToAccessChannel = true
 		} else if channel.Type == model.ChannelTypePrivate {
-			hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
+			hasPermissionToAccessChannel, _ = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
 		} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-			hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent)
+			hasPermissionToAccessChannel, _ = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent)
 		}
 	}
 
