@@ -1808,6 +1808,10 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return nil
 		}
 	}
+	// needsDelete checks whether this store has already been deleted before
+	// or not, by checking it's job metadata.
+	// Alternatively, if there's no job, then it always returns true allowing internal
+	// calls to PermanentDeleteUser work without a job.
 	needsDelete := func(job *model.Job, stepKey string) bool {
 		return job == nil || job.Data[stepKey] != "true"
 	}

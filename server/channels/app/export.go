@@ -1305,5 +1305,3 @@ func (a *App) DeleteExport(name string) *model.AppError {
 
 	return a.RemoveExportFile(filePath)
 }
-
-// Removed updateJobProgress - now using generic version from user.go

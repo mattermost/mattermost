@@ -405,15 +405,6 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		printer.Clean()
 		arg := "userdoesnotexist@example.com"
 
-		// Mock GetConfig call
-		mockConfig := &model.Config{}
-		mockConfig.ServiceSettings.EnableAPIUserDeletion = model.NewPointer(true)
-		s.client.
-			EXPECT().
-			GetConfig(context.TODO()).
-			Return(mockConfig, &model.Response{}, nil).
-			Times(1)
-
 		s.client.
 			EXPECT().
 			GetUserByEmail(context.TODO(), arg, "").
@@ -443,14 +434,6 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 	s.Run("Delete users should delete users", func() {
 		printer.Clean()
 
-		// Mock GetConfig call
-		mockConfig := &model.Config{}
-		mockConfig.ServiceSettings.EnableAPIUserDeletion = model.NewPointer(true)
-		s.client.
-			EXPECT().
-			GetConfig(context.TODO()).
-			Return(mockConfig, &model.Response{}, nil).
-			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(context.TODO(), email1, "").
@@ -503,13 +486,6 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		printer.Clean()
 
 		mockError := errors.New("an error occurred on deleting a user")
-		mockConfig := &model.Config{}
-		mockConfig.ServiceSettings.EnableAPIUserDeletion = model.NewPointer(true)
-		s.client.
-			EXPECT().
-			GetConfig(context.TODO()).
-			Return(mockConfig, &model.Response{}, nil).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -540,14 +516,6 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		printer.Clean()
 
 		mockError := errors.New("an error occurred on deleting a user")
-
-		mockConfig := &model.Config{}
-		mockConfig.ServiceSettings.EnableAPIUserDeletion = model.NewPointer(true)
-		s.client.
-			EXPECT().
-			GetConfig(context.TODO()).
-			Return(mockConfig, &model.Response{}, nil).
-			Times(1)
 
 		s.client.
 			EXPECT().

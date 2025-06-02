@@ -783,8 +783,10 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 
 		newUser := s.th.CreateUser()
 		err := deleteUsersCmdF(s.th.Client, cmd, []string{newUser.Email})
-		s.Require().Error(err)
-		s.Require().Contains(err.Error(), "You do not have the appropriate permissions")
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Sprintf("Unable to delete user '%s' error: You do not have the appropriate permissions.", newUser.Username), printer.GetErrorLines()[0])
 
 		// expect user not deleted
 		user, err := s.th.App.GetUser(newUser.Id)
