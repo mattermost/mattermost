@@ -154,13 +154,19 @@ type AdminDefinitionSettingRadio = AdminDefinitionSettingBase & {
     default?: string;
 }
 
+type AdminDefinitionSettingExpandable = AdminDefinitionSettingBase & {
+    type: typeof Constants.SettingsTypes.TYPE_EXPANDABLE_SETTING;
+    settings: AdminDefinitionSetting[];
+}
+
 export type AdminDefinitionSetting = AdminDefinitionSettingCustom |
 AdminDefinitionSettingInput | AdminDefinitionSettingGenerated |
 AdminDefinitionSettingBanner | AdminDefinitionSettingDropdown |
 AdminDefinitionSettingButton | AdminDefinitionSettingFileUpload |
 AdminDefinitionSettingJobsTable | AdminDefinitionSettingLanguage |
 AdminDefinitionSettingUsername | AdminDefinitionSettingPermission |
-AdminDefinitionSettingRadio | AdminDefinitionSettingRole;
+AdminDefinitionSettingRadio | AdminDefinitionSettingRole |
+AdminDefinitionSettingExpandable;
 
 export type AdminDefinitionConfigSchemaSettings = {
     id: string;

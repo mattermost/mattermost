@@ -262,7 +262,8 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 type: 'text',
                 key: 'LdapSettings.UserFilter',
                 label: defineMessage({id: 'admin.ldap.userFilterTitle', defaultMessage: 'User Filter:'}),
-                help_text: defineMessage({id: 'admin.ldap.userFilterDisc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use when searching for user objects. Only the users selected by the query will be able to access Mattermost. For Active Directory, the query to filter out disabled users is (&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).'}),
+                help_text: defineMessage({id: 'admin.ldap.userFilterDisc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use when searching for user objects.\nFor Active Directory, the query to filter out disabled users is\n(&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).'}),
+                help_text_hover: defineMessage({id: 'admin.ldap.userFilterDiscHover', defaultMessage: 'Only the users selected by the query will be able to access Mattermost.'}),
                 placeholder: defineMessage({id: 'admin.ldap.userFilterEx', defaultMessage: 'Ex. "(objectClass=user)"'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
@@ -273,62 +274,74 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 ),
             },
             {
-                type: 'text',
-                key: 'LdapSettings.GroupFilter',
-                label: defineMessage({id: 'admin.ldap.groupFilterTitle', defaultMessage: 'Group Filter:'}),
-                help_text: defineMessage({id: 'admin.ldap.groupFilterFilterDesc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use when searching for group objects. Only the groups selected by the query will be available to Mattermost. From [User Management > Groups]({siteURL}/admin_console/user_management/groups), select which AD/LDAP groups should be linked and configured.'}),
-                help_text_markdown: true,
-                help_text_values: {siteURL: getSiteURL()},
-                placeholder: defineMessage({id: 'admin.ldap.groupFilterEx', defaultMessage: 'E.g.: "(objectClass=group)"'}),
-                isHidden: it.not(it.licensedForFeature('LDAPGroups')),
-                isDisabled: it.any(
-                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                    it.stateIsFalse('LdapSettings.EnableSync'),
-                ),
-            },
-            {
-                type: 'bool',
-                key: 'LdapSettings.EnableAdminFilter',
-                label: defineMessage({id: 'admin.ldap.enableAdminFilterTitle', defaultMessage: 'Enable Admin Filter:'}),
-                isDisabled: it.any(
-                    it.not(it.isSystemAdmin),
-                    it.all(
-                        it.stateIsFalse('LdapSettings.Enable'),
-                        it.stateIsFalse('LdapSettings.EnableSync'),
-                    ),
-                ),
-            },
-            {
-                type: 'text',
-                key: 'LdapSettings.AdminFilter',
-                label: defineMessage({id: 'admin.ldap.adminFilterTitle', defaultMessage: 'Admin Filter:'}),
-                help_text: defineMessage({id: 'admin.ldap.adminFilterFilterDesc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use for designating System Admins. The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console. Existing members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to members in **System Console > User Management** to ensure access is restricted immediately. Note: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in **System Console > User Management**.'}),
-                help_text_markdown: true,
-                placeholder: defineMessage({id: 'admin.ldap.adminFilterEx', defaultMessage: 'E.g.: "(objectClass=user)"'}),
-                isDisabled: it.any(
-                    it.not(it.isSystemAdmin),
-                    it.stateIsFalse('LdapSettings.EnableAdminFilter'),
-                    it.all(
-                        it.stateIsFalse('LdapSettings.Enable'),
-                        it.stateIsFalse('LdapSettings.EnableSync'),
-                    ),
-                ),
-            },
-            {
-                type: 'text',
-                key: 'LdapSettings.GuestFilter',
-                label: defineMessage({id: 'admin.ldap.guestFilterTitle', defaultMessage: 'Guest Filter:'}),
-                help_text: defineMessage({id: 'admin.ldap.guestFilterFilterDesc', defaultMessage: '(Optional) Requires Guest Access to be enabled before being applied. Enter an AD/LDAP filter to use when searching for guest objects. Only the users selected by the query will be able to access Mattermost as Guests. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel. Note: If this filter is removed/changed, active guests will not be promoted to a member and will retain their Guest role. Guests can be promoted in **System Console > User Management**. Existing members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to login next. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to guests in **System Console > User Management ** to ensure access is restricted immediately.'}),
-                help_text_markdown: true,
-                placeholder: defineMessage({id: 'admin.ldap.guestFilterEx', defaultMessage: 'E.g.: "(objectClass=user)"'}),
-                isDisabled: it.any(
-                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                    it.configIsFalse('GuestAccountsSettings', 'Enable'),
-                    it.all(
-                        it.stateIsFalse('LdapSettings.Enable'),
-                        it.stateIsFalse('LdapSettings.EnableSync'),
-                    ),
-                ),
+                type: 'expandable_setting',
+                key: 'LdapSettings.AdditionalFilters',
+                label: defineMessage({id: 'admin.ldap.configure_additional_filters', defaultMessage: 'Configure additional filters'}),
+                settings: [
+                    {
+                        type: 'text',
+                        key: 'LdapSettings.GroupFilter',
+                        label: defineMessage({id: 'admin.ldap.groupFilterTitle', defaultMessage: 'Group Filter:'}),
+                        help_text: defineMessage({id: 'admin.ldap.groupFilterFilterDesc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use when searching for group objects.'}),
+                        help_text_hover: defineMessage({id: 'admin.ldap.groupFilterFilterDescHover', defaultMessage: 'Only the groups selected by the query will be available to Mattermost. From [User Management > Groups]({siteURL}/admin_console/user_management/groups), select which AD/LDAP groups should be linked and configured.'}),
+                        help_text_hover_markdown: true,
+                        help_text_hover_values: {siteURL: getSiteURL()},
+                        placeholder: defineMessage({id: 'admin.ldap.groupFilterEx', defaultMessage: 'E.g.: "(objectClass=group)"'}),
+                        isHidden: it.not(it.licensedForFeature('LDAPGroups')),
+                        isDisabled: it.any(
+                            it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                            it.stateIsFalse('LdapSettings.EnableSync'),
+                        ),
+                    },
+                    {
+                        type: 'bool',
+                        key: 'LdapSettings.EnableAdminFilter',
+                        label: defineMessage({id: 'admin.ldap.enableAdminFilterTitle', defaultMessage: 'Enable Admin Filter:'}),
+                        isDisabled: it.any(
+                            it.not(it.isSystemAdmin),
+                            it.all(
+                                it.stateIsFalse('LdapSettings.Enable'),
+                                it.stateIsFalse('LdapSettings.EnableSync'),
+                            ),
+                        ),
+                    },
+                    {
+                        type: 'text',
+                        key: 'LdapSettings.AdminFilter',
+                        label: defineMessage({id: 'admin.ldap.adminFilterTitle', defaultMessage: 'Admin Filter:'}),
+                        help_text: defineMessage({id: 'admin.ldap.adminFilterFilterDesc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use for designating System Admins.'}),
+                        // eslint-disable-next-line formatjs/no-multiple-whitespaces
+                        help_text_hover: defineMessage({id: 'admin.ldap.adminFilterFilterDescHover', defaultMessage: 'The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console. Existing members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to members in **System Console > User Management** to ensure access is restricted immediately.\n \nNote: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in **System Console > User Management**.'}),
+                        help_text_hover_markdown: true,
+                        placeholder: defineMessage({id: 'admin.ldap.adminFilterEx', defaultMessage: 'E.g.: "(objectClass=user)"'}),
+                        isDisabled: it.any(
+                            it.not(it.isSystemAdmin),
+                            it.stateIsFalse('LdapSettings.EnableAdminFilter'),
+                            it.all(
+                                it.stateIsFalse('LdapSettings.Enable'),
+                                it.stateIsFalse('LdapSettings.EnableSync'),
+                            ),
+                        ),
+                    },
+                    {
+                        type: 'text',
+                        key: 'LdapSettings.GuestFilter',
+                        label: defineMessage({id: 'admin.ldap.guestFilterTitle', defaultMessage: 'Guest Filter:'}),
+                        help_text: defineMessage({id: 'admin.ldap.guestFilterFilterDesc', defaultMessage: '(Optional) Requires Guest Access to be enabled before being applied. Enter an AD/LDAP filter to use when searching for guest objects.'}),
+                        // eslint-disable-next-line formatjs/no-multiple-whitespaces
+                        help_text_hover: defineMessage({id: 'admin.ldap.guestFilterFilterDescHover', defaultMessage: 'Only the users selected by the query will be able to access Mattermost as Guests. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel.\n \nNote: If this filter is removed/changed, active guests will not be promoted to a member and will retain their Guest role. Guests can be promoted in **System Console > User Management**. Existing members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to login next. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to guests in **System Console > User Management ** to ensure access is restricted immediately.'}),
+                        help_text_hover_markdown: true,
+                        placeholder: defineMessage({id: 'admin.ldap.guestFilterEx', defaultMessage: 'E.g.: "(objectClass=user)"'}),
+                        isDisabled: it.any(
+                            it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                            it.configIsFalse('GuestAccountsSettings', 'Enable'),
+                            it.all(
+                                it.stateIsFalse('LdapSettings.Enable'),
+                                it.stateIsFalse('LdapSettings.EnableSync'),
+                            ),
+                        ),
+                    },
+                ],
             },
         ],
     },
