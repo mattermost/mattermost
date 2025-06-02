@@ -15,6 +15,7 @@ import (
 )
 
 func TestExportDelete(t *testing.T) {
+	mainHelper.Parallel(t)
 	// Create a temporary export directory
 	fileSettingsDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)

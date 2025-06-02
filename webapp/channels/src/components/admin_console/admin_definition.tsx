@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
+import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon} from '@mattermost/compass-icons/components';
 import type {CloudState, Product} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
@@ -668,8 +668,36 @@ const AdminDefinition: AdminDefinitionType = {
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Enterprise),
             },
+        },
+    },
+    system_attributes: {
+        icon: (
+            <TableLargeIcon
+                size={16}
+                color={'currentColor'}
+            />
+        ),
+        sectionTitle: defineMessage({id: 'admin.sidebar.systemAttributes', defaultMessage: 'System Attributes'}),
+        isHidden: it.not(it.all(
+            it.minLicenseTier(LicenseSkus.Enterprise),
+            it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+        )),
+        subsections: {
+            system_properties: {
+                url: 'system_attributes/user_attributes',
+                title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
+                searchableStrings: systemPropertiesSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+                )),
+                schema: {
+                    id: 'SystemProperties',
+                    component: SystemProperties,
+                },
+            },
             access_control_policy_details_edit: {
-                url: `user_management/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
+                url: `system_attributes/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
@@ -683,10 +711,9 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'AccessControlPolicy',
                     component: PolicyDetails,
                 },
-
             },
             access_control_policy_details: {
-                url: 'user_management/attribute_based_access_control/edit_policy',
+                url: 'system_attributes/attribute_based_access_control/edit_policy',
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
@@ -700,7 +727,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             attribute_based_access_control: {
-                url: 'user_management/attribute_based_access_control',
+                url: 'system_attributes/attribute_based_access_control',
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
                     it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
@@ -720,7 +747,17 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnableAttributeBasedAccessControl',
                                     label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow attribute based access controls on this server'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.'}),
+                                    help_text_values: {
+                                        userAttributes: (
+                                            <a href='../system_attributes/user_attributes'>
+                                                <FormattedMessage
+                                                    id='admin.system_properties.user_properties.title'
+                                                    defaultMessage='User Attributes'
+                                                />
+                                            </a>
+                                        ),
+                                    },
                                 },
                             ],
                         },
@@ -757,7 +794,7 @@ const AdminDefinition: AdminDefinitionType = {
                 restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
             },
             attribute_based_access_control_feature_discovery: {
-                url: 'user_management/attribute_based_access_control',
+                url: 'system_attributes/attribute_based_access_control',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
@@ -2446,19 +2483,6 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                         },
                     ],
-                },
-            },
-            system_properties: {
-                url: 'site_config/system_properties',
-                title: defineMessage({id: 'admin.sidebar.system_properties', defaultMessage: 'System Properties'}),
-                searchableStrings: systemPropertiesSearchableStrings,
-                isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-                )),
-                schema: {
-                    id: 'SystemProperties',
-                    component: SystemProperties,
                 },
             },
             localization: {

@@ -118,8 +118,8 @@ describe('UserPropertyDotMenu', () => {
         fireEvent.click(menuButton);
 
         // Verify both link options are shown
-        expect(screen.getByText('Link property to AD/LDAP')).toBeInTheDocument();
-        expect(screen.getByText('Link property to SAML')).toBeInTheDocument();
+        expect(screen.getByText('Link attribute to AD/LDAP')).toBeInTheDocument();
+        expect(screen.getByText('Link attribute to SAML')).toBeInTheDocument();
     });
 
     it('hides LDAP and SAML link menu options for pending fields', async () => {
@@ -135,8 +135,8 @@ describe('UserPropertyDotMenu', () => {
         fireEvent.click(menuButton);
 
         // Verify both link options are not shown
-        expect(screen.queryByText('Link property to AD/LDAP')).not.toBeInTheDocument();
-        expect(screen.queryByText('Link property to SAML')).not.toBeInTheDocument();
+        expect(screen.queryByText('Link attribute to AD/LDAP')).not.toBeInTheDocument();
+        expect(screen.queryByText('Link attribute to SAML')).not.toBeInTheDocument();
     });
 
     it('shows "Edit link with" text when LDAP attribute is linked', async () => {
@@ -187,7 +187,7 @@ describe('UserPropertyDotMenu', () => {
         fireEvent.click(menuButton);
 
         // Click the duplicate option
-        fireEvent.click(screen.getByText(/Duplicate property/));
+        fireEvent.click(screen.getByText(/Duplicate attribute/));
 
         // Wait for createField to be called
         await waitFor(() => {
@@ -207,7 +207,7 @@ describe('UserPropertyDotMenu', () => {
         fireEvent.click(menuButton);
 
         // Verify duplicate option is not shown
-        expect(screen.queryByText(/Duplicate property/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Duplicate attribute/)).not.toBeInTheDocument();
     });
 
     it('handles field deletion with confirmation when field exists in DB', async () => {
@@ -218,12 +218,12 @@ describe('UserPropertyDotMenu', () => {
         fireEvent.click(menuButton);
 
         // Click delete option
-        const deleteOption = screen.getByRole('menuitem', {name: /Delete property/});
+        const deleteOption = screen.getByRole('menuitem', {name: /Delete attribute/});
         fireEvent.click(deleteOption);
 
         await waitFor(() => {
             // Verify the delete modal is shown
-            expect(screen.getByText('Delete Test Field property')).toBeInTheDocument();
+            expect(screen.getByText('Delete Test Field attribute')).toBeInTheDocument();
         });
 
         // click delete confirm button
@@ -250,7 +250,7 @@ describe('UserPropertyDotMenu', () => {
         fireEvent.click(menuButton);
 
         // Click delete option
-        const deleteOption = screen.getByRole('menuitem', {name: /Delete property/});
+        const deleteOption = screen.getByRole('menuitem', {name: /Delete attribute/});
         fireEvent.click(deleteOption);
 
         await waitFor(() => {
