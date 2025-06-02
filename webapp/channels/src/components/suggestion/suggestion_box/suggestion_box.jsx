@@ -460,7 +460,7 @@ export default class SuggestionBox extends React.PureComponent {
             console.log('[SHARED_CHANNEL_DEBUG] SCENARIO2_SuggestionBox: Token restoration', {
                 before: beforeRestore,
                 after: fixedTerm,
-                step: 'Restoring $MM_ATMENTION_REMOTE0$ → @user:serverB',
+                step: 'Restoring remote mention token to actual mention',
             });
         }
 

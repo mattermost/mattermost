@@ -374,15 +374,41 @@ const globalRemoteMentionTokens = new Map<string, string>();
 
 // Function to store a remote mention token
 export function storeRemoteMentionToken(token: string, mentionText: string): void {
+    // Debug: Log token storage
+    // eslint-disable-next-line no-console
+    console.log('[SHARED_CHANNEL_DEBUG] storeRemoteMentionToken: Storing token', {
+        token,
+        mentionText,
+        step: 'Creating token for remote mention',
+    });
     globalRemoteMentionTokens.set(token, mentionText);
 }
 
 // Function to restore remote mention tokens back to actual mentions
 export function restoreRemoteMentionTokens(text: string): string {
     let output = text;
+    let tokensRestored = false;
+
     globalRemoteMentionTokens.forEach((mentionText, token) => {
+        if (text.includes(token)) {
+            tokensRestored = true;
+            // eslint-disable-next-line no-console
+            console.log('[SHARED_CHANNEL_DEBUG] restoreRemoteMentionTokens: Restoring token', {
+                token,
+                mentionText,
+                step: 'Token restoration in text formatting',
+            });
+        }
         output = output.replace(new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), mentionText);
     });
+
+    if (tokensRestored) {
+        // eslint-disable-next-line no-console
+        console.log('[SHARED_CHANNEL_DEBUG] restoreRemoteMentionTokens: Tokens restored', {
+            before: text,
+            after: output,
+        });
+    }
 
     return output;
 }
@@ -548,6 +574,17 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
 
         const index = tokens.size;
         const alias = `$MM_ATMENTION${index}$`;
+
+        // Debug: Log at mention tokenization
+        if (username.includes(':')) {
+            // eslint-disable-next-line no-console
+            console.log('[SHARED_CHANNEL_DEBUG] autolinkAtMentions: Tokenizing remote mention', {
+                fullMatch,
+                username,
+                alias,
+                step: 'Creating token for remote mention in text formatting',
+            });
+        }
 
         tokens.set(alias, {
             value: `<span data-mention="${username}">@${username}</span>`,

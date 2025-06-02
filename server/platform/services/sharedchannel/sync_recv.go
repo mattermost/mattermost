@@ -135,6 +135,13 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 			post.Message = scs.processPermalinkFromRemote(post, team)
 		}
 
+		// Debug: Log post sync with mention information
+		if strings.Contains(post.Message, "@") {
+			debugMsg := fmt.Sprintf("Processing post sync with mentions - Remote: %s, Post ID: %s, Message preview: %.100s",
+				rc.Name, post.Id, post.Message)
+			scs.app.PostDebugToTownSquare(c, debugMsg)
+		}
+
 		// add/update post
 		rpost, err := scs.upsertSyncPost(post, targetChannel, rc)
 		if err != nil {

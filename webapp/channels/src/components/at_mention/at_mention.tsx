@@ -84,14 +84,15 @@ const AtMention = (props: Props) => {
                 userMentionNameSuffix = props.mentionName.substring(user.username.length);
             }
 
-            // Debug: Log local mention rendering (could be Scenario 2 on Server B)
+            // Debug: Log local mention rendering
             // eslint-disable-next-line no-console
-            console.log('[SHARED_CHANNEL_DEBUG] SCENARIO2_AtMention: Rendering local mention on Server B', {
+            console.log('[SHARED_CHANNEL_DEBUG] SCENARIO2_AtMention: Rendering local mention', {
                 mentionName: props.mentionName,
                 userId: user.id,
                 username: user.username,
                 displayName: userDisplayName,
-                step: 'Server B rendering @user after fixMention transformation',
+                remote_id: user.remote_id || 'local',
+                step: 'Rendering @user after fixMention transformation',
             });
         }
 

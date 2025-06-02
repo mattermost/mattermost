@@ -450,17 +450,17 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		if v.post != nil && user.RemoteId == nil {
 			localClusterName := getLocalClusterName(scs.server.Config())
 
-			// Debug: Log before transformation
+			// Debug: Log before transformation (Scenario 1)
 			beforeMsg := v.post.Message
 			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-				fmt.Sprintf("SYNC_SEND: Transforming local user mention - User: %s, Cluster: %s, Before: %s",
+				fmt.Sprintf("SCENARIO1_SYNC_SEND: Transforming local user mention - User: %s, Cluster: %s, Before: %.100s",
 					user.Username, localClusterName, beforeMsg))
 
 			addClusterToLocalMention(v.post, v.mentionMap, user, localClusterName)
 
-			// Debug: Log after transformation
+			// Debug: Log after transformation (Scenario 1)
 			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-				fmt.Sprintf("SYNC_SEND: After transformation - Message: %s", v.post.Message))
+				fmt.Sprintf("SCENARIO1_SYNC_SEND: After transformation - Message: %.100s", v.post.Message))
 		}
 	}
 	return merr.ErrorOrNil()
