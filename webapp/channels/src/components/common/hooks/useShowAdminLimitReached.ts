@@ -5,12 +5,12 @@
 import {defineMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {trackEvent} from 'actions/telemetry_actions';
 import {setNeedsLoggedInLimitReachedCheck} from 'actions/views/admin';
 import {closeModal, openModal} from 'actions/views/modals';
 import {getNeedsLoggedInLimitReachedCheck} from 'selectors/views/admin';
 
 import CloudUsageModal from 'components/cloud_usage_modal';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
 import {ModalIdentifiers, Preferences} from 'utils/constants';
 
@@ -30,7 +30,6 @@ export default function useShowAdminLimitReached() {
         Preferences.CATEGORY_CLOUD_LIMITS,
         Preferences.SHOWN_LIMITS_REACHED_ON_LOGIN,
     );
-    const openPricingModal = useOpenPricingModal();
 
     if (!limitsLoaded || !usage.messages.historyLoaded || messageLimit === undefined || !needsLoggedInLimitReachedCheck || shownLimitsReachedOnLogin === 'true') {
         return;
@@ -72,7 +71,10 @@ export default function useShowAdminLimitReached() {
                     }),
                     onClick: () => {
                         dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
-                        openPricingModal({trackingLocation: 'admin_login_limit_reached_dashboard'});
+                        trackEvent('admin_login_limit_reached_dashboard', 'click_open_pricing_page', {
+                            callerInfo: 'admin_login_limit_reached_dashboard',
+                        });
+                        window.open('https://mattermost.com/pricing', '_blank', 'noopener,noreferrer');
                     },
                 },
                 onClose: () => {

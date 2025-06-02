@@ -377,7 +377,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             Curious about upgrading? 
             <ForwardRef
-              href="https://mattermost.com/pl/pricing/"
+              href="https://mattermost.com/pricing"
               id="privacyLink"
               location="license_settings"
             >
@@ -1185,7 +1185,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             Curious about upgrading? 
             <ForwardRef
-              href="https://mattermost.com/pl/pricing/"
+              href="https://mattermost.com/pricing"
               id="privacyLink"
               location="license_settings"
             >
@@ -1306,7 +1306,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             Curious about upgrading? 
             <ForwardRef
-              href="https://mattermost.com/pl/pricing/"
+              href="https://mattermost.com/pricing"
               id="privacyLink"
               location="license_settings"
             >
@@ -1427,7 +1427,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             Curious about upgrading? 
             <ForwardRef
-              href="https://mattermost.com/pl/pricing/"
+              href="https://mattermost.com/pricing"
               id="privacyLink"
               location="license_settings"
             >
@@ -1670,7 +1670,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             Curious about upgrading? 
             <ForwardRef
-              href="https://mattermost.com/pl/pricing/"
+              href="https://mattermost.com/pricing"
               id="privacyLink"
               location="license_settings"
             >
@@ -1777,7 +1777,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             Curious about upgrading? 
             <ForwardRef
-              href="https://mattermost.com/pl/pricing/"
+              href="https://mattermost.com/pricing"
               id="privacyLink"
               location="license_settings"
             >
