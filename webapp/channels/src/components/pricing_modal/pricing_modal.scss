@@ -81,7 +81,7 @@
             }
 
             a {
-                color: var(--denim-button-bg);
+                color: var(--button-bg);
                 font-family: 'Open Sans';
                 font-size: 14px;
                 font-style: normal;
@@ -129,7 +129,7 @@
                     }
 
                     .contact {
-                        color: var(--denim-button-bg);
+                        color: var(--button-bg);
                     }
                 }
 
@@ -148,7 +148,7 @@
                 padding: 8px;
                 border-radius: 8px;
                 margin-top: 24px;
-                background: rgba(var(--denim-button-bg-rgb), 0.08);
+                background: rgba(var(--button-bg-rgb), 0.08);
                 font-family: 'Open Sans';
                 font-size: 14px;
                 font-style: normal;
@@ -161,7 +161,7 @@
                 }
 
                 .learn {
-                    color: var(--denim-button-bg);
+                    color: var(--button-bg);
                 }
             }
         }
@@ -307,7 +307,7 @@
                             border: none;
                             border-radius: 4px;
                             background: none;
-                            color: var(--denim-button-bg);
+                            color: var(--button-bg);
                             font-weight: 600;
 
                             &.grayed {
@@ -317,21 +317,21 @@
                             }
 
                             &.secondary {
-                                background: rgba(var(--denim-button-bg-rgb), 0.08);
-                                color: var(--denim-button-bg);
+                                background: rgba(var(--button-bg-rgb), 0.08);
+                                color: var(--button-bg);
                             }
 
                             &.active {
-                                border: 1px solid var(--denim-button-bg);
+                                border: 1px solid var(--button-bg);
                             }
 
                             &.special {
-                                background: var(--denim-button-bg);
+                                background: var(--button-bg);
                                 color: var(--button-color);
                             }
 
                             &.green {
-                                background: var(--denim-status-online);
+                                background: var(--online-indicator);
                                 color: var(--button-color);
                             }
                         }
