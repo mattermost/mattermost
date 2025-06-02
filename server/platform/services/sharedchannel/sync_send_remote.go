@@ -433,13 +433,34 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 		// Transform @username:remote to @username when sending to a user's home cluster
 		if v.post != nil && user.RemoteId != nil && *user.RemoteId == sd.rc.RemoteId {
+			// Debug: Log before fixMention transformation (Scenario 2)
+			beforeMsg := v.post.Message
+			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+				fmt.Sprintf("SCENARIO2_SYNC_SEND: Transforming remote user mention - User: %s, Before: %s",
+					user.Username, beforeMsg))
+
 			fixMention(v.post, v.mentionMap, user)
+
+			// Debug: Log after fixMention transformation (Scenario 2)
+			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+				fmt.Sprintf("SCENARIO2_SYNC_SEND: After fixMention - Message: %s", v.post.Message))
 		}
 
 		// Transform @username to @username:localcluster when sending local users to remote clusters
 		if v.post != nil && user.RemoteId == nil {
 			localClusterName := getLocalClusterName(scs.server.Config())
+
+			// Debug: Log before transformation
+			beforeMsg := v.post.Message
+			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+				fmt.Sprintf("SYNC_SEND: Transforming local user mention - User: %s, Cluster: %s, Before: %s",
+					user.Username, localClusterName, beforeMsg))
+
 			addClusterToLocalMention(v.post, v.mentionMap, user, localClusterName)
+
+			// Debug: Log after transformation
+			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+				fmt.Sprintf("SYNC_SEND: After transformation - Message: %s", v.post.Message))
 		}
 	}
 	return merr.ErrorOrNil()

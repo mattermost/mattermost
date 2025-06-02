@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
@@ -1541,6 +1542,15 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 		if profile.RemoteId != nil && *profile.RemoteId != "" {
 			if rc, err := a.Srv().Store().RemoteCluster().Get(*profile.RemoteId, false); err == nil {
 				remoteClusterName = rc.Name
+
+				// Debug: Log remote user keyword addition
+				scenario := "SCENARIO1" // Default to Scenario 1 (local user synced to remote)
+				if strings.Contains(profile.Username, ":") {
+					scenario = "SCENARIO2" // Remote user being notified on Server A
+				}
+				a.PostDebugToTownSquare(request.EmptyContext(a.Log()),
+					fmt.Sprintf("%s_NOTIFICATION: Adding remote user keywords - User: %s, RemoteCluster: %s",
+						scenario, profile.Username, remoteClusterName))
 			}
 		}
 
@@ -1551,6 +1561,17 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 			allowChannelMentions,
 			remoteClusterName,
 		)
+
+		// Debug: Log keywords added for user
+		if profile.RemoteId != nil && *profile.RemoteId != "" && remoteClusterName != "" {
+			scenario := "SCENARIO1" // Default to Scenario 1
+			if strings.Contains(profile.Username, ":") {
+				scenario = "SCENARIO2" // Remote user being notified on Server A
+			}
+			a.PostDebugToTownSquare(request.EmptyContext(a.Log()),
+				fmt.Sprintf("%s_NOTIFICATION: Keywords for %s: @%s and @%s:%s",
+					scenario, profile.Username, profile.Username, profile.Username, remoteClusterName))
+		}
 	}
 
 	keywords.AddGroupsMap(groups)

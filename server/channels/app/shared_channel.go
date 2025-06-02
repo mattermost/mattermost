@@ -282,3 +282,32 @@ func (a *App) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.Re
 
 	return pluginHooks.OnSharedChannelsProfileImageSyncMsg(user, rc)
 }
+
+func (a *App) PostDebugToTownSquare(c request.CTX, message string) {
+	townSquare, err := a.Srv().Store().Channel().GetByName("", "town-square", false)
+	if err != nil {
+		teams, terr := a.Srv().Store().Team().GetAll()
+		if terr != nil || len(teams) == 0 {
+			c.Logger().Warn("Failed to find any team for debug message", mlog.Err(terr))
+			return
+		}
+
+		townSquare, err = a.Srv().Store().Channel().GetByName(teams[0].Id, "town-square", false)
+		if err != nil {
+			c.Logger().Warn("Failed to find town square channel for debug message", mlog.Err(err))
+			return
+		}
+	}
+
+	post := &model.Post{
+		ChannelId: townSquare.Id,
+		Message:   fmt.Sprintf("[SHARED_CHANNEL_DEBUG] %s", message),
+		Type:      model.PostTypeSystemGeneric,
+		UserId:    "system",
+	}
+
+	_, appErr := a.CreatePost(c, post, townSquare, model.CreatePostFlags{})
+	if appErr != nil {
+		c.Logger().Warn("Failed to post debug message to town square", mlog.Err(appErr))
+	}
+}

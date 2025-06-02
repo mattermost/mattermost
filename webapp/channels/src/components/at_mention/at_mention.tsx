@@ -66,6 +66,15 @@ const AtMention = (props: Props) => {
         if (props.mentionName.includes(':')) {
             // This is a remote mention format (username:clustername)
             userDisplayName = props.mentionName;
+
+            // Debug: Log remote mention rendering
+            // eslint-disable-next-line no-console
+            console.log('[SHARED_CHANNEL_DEBUG] AtMention: Rendering remote mention', {
+                mentionName: props.mentionName,
+                userId: user.id,
+                username: user.username,
+                remote_id: user.remote_id,
+            });
         } else {
             // Local mention - use display name
             userDisplayName = displayUsername(user, props.teammateNameDisplay);
@@ -74,6 +83,16 @@ const AtMention = (props: Props) => {
             if (props.mentionName.length > user.username.length) {
                 userMentionNameSuffix = props.mentionName.substring(user.username.length);
             }
+
+            // Debug: Log local mention rendering (could be Scenario 2 on Server B)
+            // eslint-disable-next-line no-console
+            console.log('[SHARED_CHANNEL_DEBUG] SCENARIO2_AtMention: Rendering local mention on Server B', {
+                mentionName: props.mentionName,
+                userId: user.id,
+                username: user.username,
+                displayName: userDisplayName,
+                step: 'Server B rendering @user after fixMention transformation',
+            });
         }
 
         return (

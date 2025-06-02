@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -263,6 +264,11 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 					username := parts[0]
 					remoteClusterName := parts[1]
 
+					// Debug: Log remote mention lookup attempt (Scenario 2)
+					a.PostDebugToTownSquare(c,
+						fmt.Sprintf("SCENARIO2_MENTION_RESOLVE: Looking up remote mention - Username: %s, Cluster: %s, FullMention: %s",
+							username, remoteClusterName, mention))
+
 					// Look for users with this username
 					users, err := a.Srv().Store().User().GetProfilesByUsernames([]string{username}, &model.ViewUsersRestrictions{})
 					if err == nil {
@@ -274,6 +280,11 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 									// Found the remote user, check team membership
 									_, tmErr := a.GetTeamMember(c, teamID, u.Id)
 									if tmErr == nil {
+										// Debug: Log successful remote mention resolution (Scenario 2)
+										a.PostDebugToTownSquare(c,
+											fmt.Sprintf("SCENARIO2_MENTION_RESOLVE: Found remote user - UserId: %s, Username: %s, RemoteCluster: %s",
+												u.Id, u.Username, rc.Name))
+
 										mentionChan <- &mentionMapItem{mention, u.Id}
 										return
 									}

@@ -385,12 +385,24 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
 		}
 
+		// Debug: Log received post content with scenario detection
+		scenario := "SCENARIO1" // Default to Scenario 1 (local user mention with cluster suffix)
+		if !strings.Contains(post.Message, ":") && strings.Contains(post.Message, "@") {
+			scenario = "SCENARIO2" // Remote user mention transformed to local (no colon)
+		}
+		scs.app.PostDebugToTownSquare(rctx,
+			fmt.Sprintf("%s_SYNC_RECV: Received post from %s - Message: %s", scenario, rc.Name, post.Message))
+
 		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 				mlog.String("post_id", post.Id),
 				mlog.String("channel_id", post.ChannelId),
 			)
+
+			// Debug: Log successful post creation
+			scs.app.PostDebugToTownSquare(rctx,
+				fmt.Sprintf("%s_SYNC_RECV: Successfully created post - PostId: %s", scenario, post.Id))
 		}
 	} else if post.DeleteAt > 0 {
 		// delete post

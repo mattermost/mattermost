@@ -451,7 +451,18 @@ export default class SuggestionBox extends React.PureComponent {
         }
 
         // Restore remote mention tokens to actual mentions in the textbox
+        const beforeRestore = fixedTerm;
         fixedTerm = TextFormatting.restoreRemoteMentionTokens(fixedTerm);
+
+        // Debug: Log token restoration for Scenario 2
+        if (beforeRestore !== fixedTerm && beforeRestore.includes('$MM_ATMENTION_REMOTE')) {
+            // eslint-disable-next-line no-console
+            console.log('[SHARED_CHANNEL_DEBUG] SCENARIO2_SuggestionBox: Token restoration', {
+                before: beforeRestore,
+                after: fixedTerm,
+                step: 'Restoring $MM_ATMENTION_REMOTE0$ → @user:serverB',
+            });
+        }
 
         if (!finish) {
             if (this.props.replaceAllInputOnSelect) {

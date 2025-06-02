@@ -469,6 +469,11 @@ func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Cha
 	return r0
 }
 
+// PostDebugToTownSquare provides a mock function with given fields: c, message
+func (_m *MockAppIface) PostDebugToTownSquare(c request.CTX, message string) {
+	_m.Called(c, message)
+}
+
 // Publish provides a mock function with given fields: message
 func (_m *MockAppIface) Publish(message *model.WebSocketEvent) {
 	_m.Called(message)
