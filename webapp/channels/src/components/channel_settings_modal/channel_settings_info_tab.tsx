@@ -106,10 +106,10 @@ function ChannelSettingsInfoTab({
     useEffect(() => {
         // Calculate unsaved changes directly
         const unsavedChanges = channel ? (
-            displayName !== channel.display_name ||
-            channelUrl !== channel.name ||
-            channelPurpose !== channel.purpose ||
-            channelHeader !== channel.header ||
+            displayName.trim() !== channel.display_name ||
+            channelUrl.trim() !== channel.name ||
+            channelPurpose.trim() !== channel.purpose ||
+            channelHeader.trim() !== channel.header ||
             channelType !== channel.type
         ) : false;
 
@@ -122,7 +122,7 @@ function ChannelSettingsInfoTab({
             setSaveChangesPanelState(undefined);
             setUrlError('');
         }
-        setChannelURL(newURL);
+        setChannelURL(newURL.trim());
     }, [internalUrlError]);
 
     const togglePurposePreview = useCallback(() => {
@@ -155,7 +155,7 @@ function ChannelSettingsInfoTab({
         setChannelHeader(newValue);
 
         // Check for character limit
-        if (newValue.length > HEADER_MAX_LENGTH) {
+        if (newValue.trim().length > HEADER_MAX_LENGTH) {
             setFormError(formatMessage({
                 id: 'edit_channel_header_modal.error',
                 defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
@@ -176,7 +176,7 @@ function ChannelSettingsInfoTab({
         setChannelPurpose(newValue);
 
         // Check for character limit
-        if (newValue.length > Constants.MAX_CHANNELPURPOSE_LENGTH) {
+        if (newValue.trim().length > Constants.MAX_CHANNELPURPOSE_LENGTH) {
             setFormError(formatMessage({
                 id: 'channel_settings.error_purpose_length',
                 defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
@@ -243,6 +243,12 @@ function ChannelSettingsInfoTab({
             return false;
         }
 
+        // After every successful save, update local state to match the saved values
+        // with this, we make sure that the unsavedChanges check will return false after saving
+        setDisplayName(updated.display_name);
+        setChannelURL(updated.name);
+        setChannelPurpose(updated.purpose);
+        setChannelHeader(updated.header);
         return true;
     }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, setFormError, handleServerError]);
 
@@ -308,10 +314,10 @@ function ChannelSettingsInfoTab({
     // Memoize the calculation for whether to show the save changes panel
     const shouldShowPanel = useMemo(() => {
         const unsavedChanges = channel ? (
-            displayName !== channel.display_name ||
-            channelUrl !== channel.name ||
-            channelPurpose !== channel.purpose ||
-            channelHeader !== channel.header ||
+            displayName.trim() !== channel.display_name ||
+            channelUrl.trim() !== channel.name ||
+            channelPurpose.trim() !== channel.purpose ||
+            channelHeader.trim() !== channel.header ||
             channelType !== channel.type
         ) : false;
 
@@ -445,7 +451,7 @@ function ChannelSettingsInfoTab({
             />
 
             {/* SaveChangesPanel for unsaved changes */}
-            {shouldShowPanel && (
+            {(canManageChannelProperties && shouldShowPanel) && (
                 <SaveChangesPanel
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}

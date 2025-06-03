@@ -1400,6 +1400,18 @@ type API interface {
 	// Minimum server version: 10.7
 	GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError)
 
+	// CreateDefaultSyncableMemberships creates default syncable memberships based off the provided parameters.
+	//
+	// @tag Group
+	// Minimum server version: 10.9
+	CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) *model.AppError
+
+	// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed groups of all group-constrained teams and channels.
+	//
+	// @tag Group
+	// Minimum server version: 10.9
+	DeleteGroupConstrainedMemberships() *model.AppError
+
 	// CreatePropertyField creates a new property field.
 	//
 	// @tag PropertyField
