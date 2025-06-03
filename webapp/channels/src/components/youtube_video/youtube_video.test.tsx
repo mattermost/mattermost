@@ -11,11 +11,11 @@ import mockStore from 'tests/test_store';
 
 import type {GlobalState} from 'types/store';
 
-import YouTubeVideo from './youtube_video';
+import YoutubeVideo from './youtube_video';
 
 jest.mock('actions/integration_actions');
 
-describe('YouTubeVideo', () => {
+describe('YoutubeVideo', () => {
     const baseProps = {
         postId: 'post_id_1',
         googleDeveloperKey: 'googledevkey',
@@ -50,7 +50,7 @@ describe('YouTubeVideo', () => {
         const store = mockStore(initialState);
         const wrapper = mount(
             <Provider store={store}>
-                <YouTubeVideo {...baseProps}/>
+                <YoutubeVideo {...baseProps}/>
             </Provider>,
         );
         expect(wrapper).toMatchSnapshot();
@@ -59,14 +59,14 @@ describe('YouTubeVideo', () => {
     });
 
     test('should match snapshot for playing state', () => {
-        const wrapper = shallow(<YouTubeVideo {...baseProps}/>);
+        const wrapper = shallow(<YoutubeVideo {...baseProps}/>);
         wrapper.setState({playing: true});
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot for playing state and `youtubeReferrerPolicy = true`', () => {
         const wrapper = shallow(
-            <YouTubeVideo
+            <YoutubeVideo
                 {...baseProps}
                 youtubeReferrerPolicy={true}
             />,
@@ -85,7 +85,7 @@ describe('YouTubeVideo', () => {
                 }],
             },
         };
-        const wrapper = shallow(<YouTubeVideo {...props}/>);
+        const wrapper = shallow(<YoutubeVideo {...props}/>);
 
         expect(wrapper.find('img.video-thumbnail').prop('src')).toEqual('https://img.youtube.com/vi/xqCoNej8Zxo/hqdefault.jpg');
     });
