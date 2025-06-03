@@ -1149,7 +1149,7 @@ func TestPluginAPIGetTeamIcon(t *testing.T) {
 	fileReader := bytes.NewReader(dataBytes)
 
 	// Set the Team Icon
-	appErr := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	appErr := th.App.SetTeamIconFromFile(th.Context, th.BasicTeam, fileReader)
 	require.Nil(t, appErr)
 
 	// Get the team icon to check
@@ -1211,7 +1211,7 @@ func TestPluginAPIRemoveTeamIcon(t *testing.T) {
 	fileReader := bytes.NewReader(dataBytes)
 
 	// Set the Team Icon
-	err := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	err := th.App.SetTeamIconFromFile(th.Context, th.BasicTeam, fileReader)
 	require.Nil(t, err)
 	err = api.RemoveTeamIcon(th.BasicTeam.Id)
 	require.Nil(t, err)
@@ -1863,6 +1863,91 @@ func TestPluginHTTPConnHijack(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, "OK", string(body))
+}
+
+func TestPluginMFAEnforcement(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
+
+	pluginCode := `
+	package main
+
+	import (
+		"net/http"
+		"github.com/mattermost/mattermost/server/public/plugin"
+	)
+
+	type MyPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+		// Simply return the value of Mattermost-User-Id header
+		userID := r.Header.Get("Mattermost-User-Id")
+		w.Write([]byte(userID))
+	}
+
+	func main() {
+		plugin.ClientMain(&MyPlugin{})
+	}
+	`
+
+	// Create and setup plugin
+	tearDown, ids, errs := SetAppEnvironmentWithPlugins(t, []string{pluginCode}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, errs[0])
+	require.Len(t, ids, 1)
+
+	pluginID := ids[0]
+
+	// Create user that requires MFA
+	user := th.CreateUser()
+
+	// Create session
+	session, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId: user.Id,
+	})
+	require.Nil(t, appErr)
+
+	client := &http.Client{}
+	makeRequest := func() string {
+		reqURL := fmt.Sprintf("http://localhost:%d/plugins/%s", th.Server.ListenAddr.Port, pluginID)
+		req, err := http.NewRequest("GET", reqURL, nil)
+		require.NoError(t, err)
+		req.Header.Set(model.HeaderAuth, model.HeaderToken+" "+session.Token)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		return string(body)
+	}
+
+	t.Run("MFA not enforced", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+			*cfg.ServiceSettings.EnforceMultifactorAuthentication = false
+		})
+
+		// Should return user ID since MFA is not enforced
+		userID := makeRequest()
+		assert.Equal(t, user.Id, userID)
+	})
+
+	t.Run("MFA enforced", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+			*cfg.ServiceSettings.EnforceMultifactorAuthentication = true
+		})
+
+		// Should return empty string since MFA is enforced but not active
+		userID := makeRequest()
+		assert.Empty(t, userID)
+	})
 }
 
 func TestPluginHTTPUpgradeWebSocket(t *testing.T) {

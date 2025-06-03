@@ -149,7 +149,7 @@ var config = {
     target: 'web',
     plugins: [
         new webpack.ProvidePlugin({
-            process: 'process/browser',
+            process: 'process/browser.js',
         }),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash].css',

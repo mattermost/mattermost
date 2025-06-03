@@ -857,7 +857,7 @@ type GroupStore interface {
 	GetByIDs(groupIDs []string) ([]*model.Group, error)
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error)
-	GetByUser(userID string) ([]*model.Group, error)
+	GetByUser(userID string, opts model.GroupSearchOpts) ([]*model.Group, error)
 	Update(group *model.Group) (*model.Group, error)
 	Delete(groupID string) (*model.Group, error)
 	Restore(groupID string) (*model.Group, error)
@@ -1034,7 +1034,7 @@ type PostPersistentNotificationStore interface {
 	DeleteByTeam(teamIds []string) error
 }
 type ChannelBookmarkStore interface {
-	ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error
+	ErrorIfBookmarkFileInfoAlreadyAttached(fileID string, channelID string) error
 	Get(Id string, includeDeleted bool) (b *model.ChannelBookmarkWithFileInfo, err error)
 	Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (b *model.ChannelBookmarkWithFileInfo, err error)
 	Update(bookmark *model.ChannelBookmark) error

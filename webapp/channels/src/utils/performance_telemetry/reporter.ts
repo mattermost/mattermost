@@ -162,7 +162,16 @@ export default class PerformanceReporter {
     }
 
     private handleMeasure(entry: PerformanceMeasure) {
-        if (!entry.detail?.report) {
+        let report;
+        try {
+            report = Boolean(entry.detail?.report);
+        } catch {
+            // Measures recorded by browser extensions may be in a separate context which causes accessing
+            // entry.detail to throw an error
+            report = false;
+        }
+
+        if (!report) {
             return;
         }
 
@@ -174,7 +183,16 @@ export default class PerformanceReporter {
     }
 
     private handleMark(entry: PerformanceMeasure) {
-        if (!entry.detail?.report) {
+        let report;
+        try {
+            report = Boolean(entry.detail?.report);
+        } catch {
+            // Measures recorded by browser extensions may be in a separate context which causes accessing
+            // entry.detail to throw an error
+            report = false;
+        }
+
+        if (!report) {
             return;
         }
 

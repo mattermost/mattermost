@@ -450,7 +450,7 @@ type AppIface interface {
 	AddUserToTeamByInviteId(c request.CTX, inviteId string, userID string) (*model.Team, *model.TeamMember, *model.AppError)
 	AddUserToTeamByTeamId(c request.CTX, teamID string, user *model.User) *model.AppError
 	AddUserToTeamByToken(c request.CTX, userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError)
-	AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError)
+	AdjustImage(rctx request.CTX, file io.ReadSeeker) (*bytes.Buffer, *model.AppError)
 	AdjustInProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError
 	AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError
 	AllowOAuthAppAccessToUser(c request.CTX, userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
@@ -713,7 +713,7 @@ type AppIface interface {
 	GetGroupsByChannel(channelID string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
-	GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError)
+	GetGroupsByUserId(userID string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
 	GetHubForUserId(userID string) *platform.Hub
 	GetIncomingWebhook(hookID string) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksForTeamPage(teamID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
@@ -956,6 +956,7 @@ type AppIface interface {
 	ListTeamCommands(teamID string) ([]*model.Command, *model.AppError)
 	Log() *mlog.Logger
 	LoginByOAuth(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
+	MFARequired(rctx request.CTX) *model.AppError
 	MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError)
 	MaxPostSize() int
 	MessageExport() einterfaces.MessageExportInterface
@@ -1031,6 +1032,7 @@ type AppIface interface {
 	RemoveUserFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError
 	RemoveUserFromTeam(c request.CTX, teamID string, userID string, requestorId string) *model.AppError
 	RemoveUsersFromChannelNotMemberOfTeam(c request.CTX, remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
+	ResetPasswordFailedAttempts(c request.CTX, user *model.User) *model.AppError
 	ResetPasswordFromToken(c request.CTX, userSuppliedTokenString, newPassword string) *model.AppError
 	ResetPermissionsSystem() *model.AppError
 	ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError)
@@ -1122,7 +1124,7 @@ type AppIface interface {
 	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
 	SetPostReminder(rctx request.CTX, postID, userID string, targetTime int64) *model.AppError
 	SetProfileImage(c request.CTX, userID string, imageData *multipart.FileHeader) *model.AppError
-	SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError
+	SetProfileImageFromFile(c request.CTX, userID string, file io.ReadSeeker) *model.AppError
 	SetProfileImageFromMultiPartFile(c request.CTX, userID string, file multipart.File) *model.AppError
 	SetRemoteClusterLastPingAt(remoteClusterId string) *model.AppError
 	SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError
@@ -1133,9 +1135,9 @@ type AppIface interface {
 	SetStatusOffline(userID string, manual bool)
 	SetStatusOnline(userID string, manual bool)
 	SetStatusOutOfOffice(userID string)
-	SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError
-	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
-	SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError
+	SetTeamIcon(rctx request.CTX, teamID string, imageData *multipart.FileHeader) *model.AppError
+	SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.ReadSeeker) *model.AppError
+	SetTeamIconFromMultiPartFile(rctx request.CTX, teamID string, file multipart.File) *model.AppError
 	ShareChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error)
 	ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool
 	SlackImport(c request.CTX, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer)

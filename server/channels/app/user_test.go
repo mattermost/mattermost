@@ -111,14 +111,14 @@ func TestAdjustProfileImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	_, appErr := th.App.AdjustImage(bytes.NewReader([]byte{}))
+	_, appErr := th.App.AdjustImage(th.Context, bytes.NewReader([]byte{}))
 	require.NotNil(t, appErr)
 
 	// test image isn't the correct dimensions
 	// it should be adjusted
 	testjpg, err := testutils.ReadTestFile("testjpg.jpg")
 	require.NoError(t, err)
-	adjusted, appErr := th.App.AdjustImage(bytes.NewReader(testjpg))
+	adjusted, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(testjpg))
 	require.Nil(t, appErr)
 	assert.True(t, adjusted.Len() > 0)
 	assert.NotEqual(t, testjpg, adjusted)
@@ -127,7 +127,7 @@ func TestAdjustProfileImage(t *testing.T) {
 	user := th.BasicUser
 	image, appErr := th.App.GetDefaultProfileImage(user)
 	require.Nil(t, appErr)
-	image2, appErr := th.App.AdjustImage(bytes.NewReader(image))
+	image2, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(image))
 	require.Nil(t, appErr)
 	assert.Equal(t, image, image2.Bytes())
 }
@@ -304,7 +304,8 @@ func TestCreateUser(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.NewPluginAPI)
+		`,
+			}, th.App, th.NewPluginAPI)
 		defer tearDown()
 
 		user := &model.User{
@@ -1835,7 +1836,7 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 	_, err = th.App.UpdateUserRolesWithUser(th.Context, user, "does not exist", false)
 	require.NotNil(t, err)
 
-	//Test reset to User role
+	// Test reset to User role
 	user, err = th.App.UpdateUserRolesWithUser(th.Context, user, model.SystemUserRoleId, false)
 	require.Nil(t, err)
 	assert.Equal(t, user.Roles, model.SystemUserRoleId)

@@ -609,7 +609,7 @@ func (a *OpenTracingAppLayer) AddUserToTeamByToken(c request.CTX, userID string,
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
+func (a *OpenTracingAppLayer) AdjustImage(rctx request.CTX, file io.ReadSeeker) (*bytes.Buffer, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AdjustImage")
 
@@ -621,7 +621,7 @@ func (a *OpenTracingAppLayer) AdjustImage(file io.Reader) (*bytes.Buffer, *model
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AdjustImage(file)
+	resultVar0, resultVar1 := a.app.AdjustImage(rctx, file)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7159,7 +7159,7 @@ func (a *OpenTracingAppLayer) GetGroupsByTeam(teamID string, opts model.GroupSea
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroupsByUserId(userID string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupsByUserId")
 
@@ -7171,7 +7171,7 @@ func (a *OpenTracingAppLayer) GetGroupsByUserId(userID string) ([]*model.Group, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetGroupsByUserId(userID)
+	resultVar0, resultVar1 := a.app.GetGroupsByUserId(userID, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12848,6 +12848,28 @@ func (a *OpenTracingAppLayer) LoginByOAuth(c request.CTX, service string, userDa
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) MFARequired(rctx request.CTX) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MFARequired")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.MFARequired(rctx)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *audit.Record {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MakeAuditRecord")
@@ -14760,6 +14782,28 @@ func (a *OpenTracingAppLayer) RenameTeam(team *model.Team, newTeamName string, n
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) ResetPasswordFailedAttempts(c request.CTX, user *model.User) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ResetPasswordFailedAttempts")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.ResetPasswordFailedAttempts(c, user)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) ResetPasswordFromToken(c request.CTX, userSuppliedTokenString string, newPassword string) *model.AppError {
@@ -16812,7 +16856,7 @@ func (a *OpenTracingAppLayer) SetProfileImage(c request.CTX, userID string, imag
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError {
+func (a *OpenTracingAppLayer) SetProfileImageFromFile(c request.CTX, userID string, file io.ReadSeeker) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetProfileImageFromFile")
 
@@ -17035,7 +17079,7 @@ func (a *OpenTracingAppLayer) SetStatusOutOfOffice(userID string) {
 	a.app.SetStatusOutOfOffice(userID)
 }
 
-func (a *OpenTracingAppLayer) SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError {
+func (a *OpenTracingAppLayer) SetTeamIcon(rctx request.CTX, teamID string, imageData *multipart.FileHeader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetTeamIcon")
 
@@ -17047,7 +17091,7 @@ func (a *OpenTracingAppLayer) SetTeamIcon(teamID string, imageData *multipart.Fi
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetTeamIcon(teamID, imageData)
+	resultVar0 := a.app.SetTeamIcon(rctx, teamID, imageData)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17057,7 +17101,7 @@ func (a *OpenTracingAppLayer) SetTeamIcon(teamID string, imageData *multipart.Fi
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
+func (a *OpenTracingAppLayer) SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.ReadSeeker) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetTeamIconFromFile")
 
@@ -17069,7 +17113,7 @@ func (a *OpenTracingAppLayer) SetTeamIconFromFile(team *model.Team, file io.Read
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetTeamIconFromFile(team, file)
+	resultVar0 := a.app.SetTeamIconFromFile(rctx, team, file)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17079,7 +17123,7 @@ func (a *OpenTracingAppLayer) SetTeamIconFromFile(team *model.Team, file io.Read
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError {
+func (a *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(rctx request.CTX, teamID string, file multipart.File) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetTeamIconFromMultiPartFile")
 
@@ -17091,7 +17135,7 @@ func (a *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(teamID string, file m
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetTeamIconFromMultiPartFile(teamID, file)
+	resultVar0 := a.app.SetTeamIconFromMultiPartFile(rctx, teamID, file)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

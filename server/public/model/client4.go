@@ -1584,6 +1584,16 @@ func (c *Client4) UpdateUserActive(ctx context.Context, userId string, active bo
 	return BuildResponse(r), nil
 }
 
+// ResetFailedAttempts resets the number of failed attempts for a user.
+func (c *Client4) ResetFailedAttempts(ctx context.Context, userId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+"/reset_failed_attempts", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // DeleteUser deactivates a user in the system based on the provided user id string.
 func (c *Client4) DeleteUser(ctx context.Context, userId string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, c.userRoute(userId))

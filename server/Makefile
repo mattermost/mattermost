@@ -144,11 +144,11 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.29.7
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.29.8
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.1
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.40.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.41.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
@@ -226,7 +226,8 @@ else
 	docker compose rm start_dependencies
 	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
   ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+	cat tests/custom-schema-objectID.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
   endif
   ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
 	./scripts/replica-mysql-config.sh
@@ -834,7 +835,7 @@ test-migration:
 	# run pgloader and save the logs
 	pgloader --debug tests/temp.load > migration.log
 
-	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@latest
+	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@9324978963
 	# compare two database contents
 	# db_migrations differ due to a typo in the 92. migration name
 	# for now we exclude plugins such as playbooks and focalboard

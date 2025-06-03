@@ -236,6 +236,10 @@
     "translation": "Your license does not support channel bookmarks."
   },
   {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Failed to create the channel bookmark."
+  },
+  {
     "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
     "translation": "User is not allowed to create a channel bookmark."
   },
@@ -246,6 +250,10 @@
   {
     "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
     "translation": "Failed to create the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Failed to delete the channel bookmark."
   },
   {
     "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
@@ -260,6 +268,10 @@
     "translation": "Failed to delete the channel bookmark."
   },
   {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark."
+  },
+  {
     "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
     "translation": "Failed to update the channel bookmark."
   },
@@ -270,6 +282,10 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
     "translation": "Failed to update the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark's sort order."
   },
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
@@ -1680,6 +1696,10 @@
   {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Session not found."
   },
   {
     "id": "api.context.get_user.app_error",
@@ -3823,6 +3843,10 @@
     "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
   },
   {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Your account is locked because of too many failed password attempts. Please contact your System Administrator."
+  },
+  {
     "id": "api.user.check_user_mfa.bad_code.app_error",
     "translation": "Invalid MFA token."
   },
@@ -4111,6 +4135,14 @@
     "translation": "Unable to parse the reset password token"
   },
   {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "User auth service must be LDAP or Email."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "You do not have permission to update this resource."
+  },
+  {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server."
   },
@@ -4277,6 +4309,10 @@
   {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
     "translation": "Cannot retrieve users for an archived channel"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Cannot retrieve bookmarks for an archived channel"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -5283,6 +5319,10 @@
     "translation": "Unable to read the version of the data import file."
   },
   {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Failed to validate attachment import data. Invalid path: \"{{.Path}}\""
+  },
+  {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Channel display_name is not within permitted length constraints."
   },
@@ -5343,6 +5383,10 @@
     "translation": "Direct channel can only be favorited by members. \"{{.Username}}\" is not a member."
   },
   {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Failed to validate direct post attachment data."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "Missing required direct post property: channel_members"
   },
@@ -5387,8 +5431,16 @@
     "translation": "Import emoji image field missing or blank."
   },
   {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Import emoji image field has an invalid path: \"{{.Path}}\""
+  },
+  {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
     "translation": "Import emoji name field missing or blank."
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Failed to validate post attachment data."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -5445,6 +5497,10 @@
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Missing required Reaction property: User."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Failed to validate reply attachment data."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -5605,6 +5661,10 @@
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
     "translation": "User First Name is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "User profile image path is invalid: \"{{.Path}}\""
   },
   {
     "id": "app.import.validate_user_import_data.last_name_length.error",
@@ -6875,6 +6935,10 @@
     "translation": "Failed to update the user."
   },
   {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Failed to reset login attempts."
+  },
+  {
     "id": "app.user.save.app_error",
     "translation": "Unable to save the account."
   },
@@ -7711,6 +7775,10 @@
     "translation": "Error loading LDAP TLS Certificate file."
   },
   {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Invalid AD/LDAP Id"
+  },
+  {
     "id": "ent.ldap.do_login.invalid_password.app_error",
     "translation": "Invalid Password."
   },
@@ -7745,6 +7813,10 @@
   {
     "id": "ent.ldap.do_login.x509.app_error",
     "translation": "Error creating key pair"
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Failed to get user."
   },
   {
     "id": "ent.ldap.no.users.checkcertificate",
@@ -7797,6 +7869,10 @@
   {
     "id": "ent.ldap_groups.groups_search_error",
     "translation": "error retrieving ldap groups"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Invalid AD/LDAP id"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
@@ -8697,6 +8773,10 @@
   {
     "id": "model.config.is_valid.ldap_login_id",
     "translation": "AD/LDAP field \"Login ID Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Invalid maximum login attempts for ldap settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",

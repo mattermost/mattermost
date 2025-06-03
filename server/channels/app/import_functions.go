@@ -192,7 +192,6 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 
 	var team *model.Team
 	team, err := a.Srv().Store().Team().GetByName(*data.Name)
-
 	if err != nil {
 		team = &model.Team{}
 	}
@@ -1747,6 +1746,7 @@ func (a *App) updateFileInfoWithPostId(rctx request.CTX, post *model.Post) {
 		}
 	}
 }
+
 func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelImportData, dryRun bool) *model.AppError {
 	var err *model.AppError
 	if err = imports.ValidateDirectChannelImportData(data); err != nil {

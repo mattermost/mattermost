@@ -118,7 +118,7 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 	}
 
 	if nErr != nil {
-		return nil, model.NewAppError("errorGetPostId", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("deduplicateCreatePost", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	// If another thread saved the cache record, but hasn't yet updated it with the actual post
@@ -130,8 +130,11 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 
 	// If the other thread finished creating the post, return the created post back to the
 	// client, making the API call feel idempotent.
-	actualPost, err := a.GetSinglePost(rctx, postID, false)
-	if err != nil {
+	actualPost, err := a.GetPostIfAuthorized(rctx, postID, rctx.Session(), false)
+	if err != nil && err.StatusCode == http.StatusForbidden {
+		rctx.Logger().Warn("Ignoring pending_post_id for which the user is unauthorized", mlog.String("pending_post_id", post.PendingPostId), mlog.String("post_id", postID), mlog.Err(err))
+		return nil, nil
+	} else if err != nil {
 		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1311,6 +1314,7 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	originalList.NextPostId = nextPostId
 	originalList.PrevPostId = prevPostId
 }
+
 func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	var lastViewedAt int64
 	var err *model.AppError
@@ -2123,7 +2127,6 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 
 func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError) {
 	posts, err := a.Srv().Store().Post().GetEditHistoryForPost(postID)
-
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

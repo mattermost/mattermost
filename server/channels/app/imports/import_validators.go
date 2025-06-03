@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"unicode/utf8"
 
@@ -191,6 +192,10 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 
 func ValidateUserImportData(data *UserImportData) *model.AppError {
 	if data.ProfileImage != nil && data.ProfileImageData == nil {
+		// Check if the resolved path is within the expected base path.
+		if _, valid := ValidateAttachmentPathForImport(*data.ProfileImage, model.ExportDataDir); !valid {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.invalid_image_path.error", map[string]any{"Path": *data.ProfileImage}, "", http.StatusBadRequest)
+		}
 		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
@@ -439,6 +444,14 @@ func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 		mlog.Warn("Reply CreateAt is before parent post CreateAt", mlog.Int("reply_create_at", *data.CreateAt), mlog.Int("parent_create_at", parentCreateAt))
 	}
 
+	if data.Attachments != nil {
+		for _, attachment := range *data.Attachments {
+			if err := ValidateAttachmentImportData(&attachment); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.attachment.error", nil, "", http.StatusNotFound).Wrap(err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -483,6 +496,14 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 
 	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJSON(*data.Props)) > model.PostPropsMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.props_too_large.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Attachments != nil {
+		for _, attachment := range *data.Attachments {
+			if err := ValidateAttachmentImportData(&attachment); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_post_import_data.attachment.error", nil, "", http.StatusNotFound).Wrap(err)
+			}
+		}
 	}
 
 	return nil
@@ -581,6 +602,14 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 		}
 	}
 
+	if data.Attachments != nil {
+		for _, attachment := range *data.Attachments {
+			if err := ValidateAttachmentImportData(&attachment); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.attachment.error", nil, "", http.StatusNotFound).Wrap(err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -597,6 +626,11 @@ func ValidateEmojiImportData(data *EmojiImportData) *model.AppError {
 
 	if data.Image == nil || *data.Image == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.image_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	// Check if the resolved path is within the expected base path.
+	if _, valid := ValidateAttachmentPathForImport(*data.Image, model.ExportDataDir); !valid {
+		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.invalid_image_path.error", map[string]any{"Path": *data.Image}, "", http.StatusBadRequest)
 	}
 
 	if err := model.IsValidEmojiName(*data.Name); err != nil {
@@ -632,4 +666,43 @@ func isValidEmailBatchingInterval(emailInterval string) bool {
 	return emailInterval == model.PreferenceEmailIntervalImmediately ||
 		emailInterval == model.PreferenceEmailIntervalFifteen ||
 		emailInterval == model.PreferenceEmailIntervalHour
+}
+
+// ValidateAttachmentPathForImport joins 'path' to 'basePath' (defaulting to "." if empty) and ensures
+// the result does not escape the base directory. Returns the cleaned joined path (and true),
+// or an empty string (and false) if the result escapes the base.
+func ValidateAttachmentPathForImport(path, basePath string) (string, bool) {
+	if basePath == "" {
+		basePath = "."
+	}
+
+	joined := filepath.Join(basePath, path)
+
+	// Check if the resolved joined path is within basePath
+	rel, err := filepath.Rel(basePath, joined)
+	if err != nil {
+		return "", false
+	}
+	if strings.HasPrefix(rel, ".."+string(filepath.Separator)) || rel == ".." {
+		return "", false
+	}
+
+	return joined, true
+}
+
+func ValidateAttachmentImportData(data *AttachmentImportData) *model.AppError {
+	if data == nil {
+		return nil
+	}
+
+	if data.Path == nil || *data.Path == "" {
+		return nil
+	}
+
+	// Check if the resolved path is within the expected base path.
+	if _, valid := ValidateAttachmentPathForImport(*data.Path, model.ExportDataDir); !valid {
+		return model.NewAppError("BulkImport", "app.import.validate_attachment_import_data.invalid_path.error", map[string]any{"Path": *data.Path}, "", http.StatusBadRequest)
+	}
+
+	return nil
 }

@@ -77,7 +77,8 @@ type Channels struct {
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
 
-	loginAttemptsMut sync.Mutex
+	emailLoginAttemptsMut sync.Mutex
+	ldapLoginAttemptsMut  sync.Mutex
 }
 
 func NewChannels(s *Server) (*Channels, error) {
