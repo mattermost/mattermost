@@ -5,7 +5,6 @@ import React from 'react';
 
 import type {OpenGraphMetadata} from '@mattermost/types/posts';
 
-import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
 
 import {getVideoId, ytRegex, handleYoutubeTime} from 'utils/youtube';
@@ -18,25 +17,70 @@ type Props = {
     youtubeReferrerPolicy?: boolean;
 }
 
+// State tracks whether we're using maxresdefault (true) or hqdefault (false)
+// and whether the video is currently playing
 type State = {
     playing: boolean;
+    isMaxRes: boolean;
 }
 
-export default class YoutubeVideo extends React.PureComponent<Props, State> {
+export default class YouTubeVideo extends React.PureComponent<Props, State> {
+    static isYoutubeLink(link: string): boolean {
+        return Boolean(link.trim().match(ytRegex));
+    }
+
     constructor(props: Props) {
         super(props);
 
         this.state = {
             playing: false,
+            isMaxRes: false, // Start with hqdefault by default
         };
     }
 
+    componentDidMount() {
+        this.checkMaxResImage();
+    }
+
+    componentDidUpdate(prevProps: Props) {
+        if (prevProps.link !== this.props.link) {
+            this.checkMaxResImage();
+        }
+    }
+
+    // Check if maxresdefault image exists for this video
+    // If it does, switch to using it; otherwise stay with hqdefault
+    checkMaxResImage = async () => {
+        const videoId = getVideoId(this.props.link);
+        const maxResUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        
+        try {
+            const response = await fetch(maxResUrl, {method: 'HEAD'});
+            if (response.ok) {
+                this.setState({isMaxRes: true});
+            }
+        } catch (error) {
+            // Stay with hqdefault if maxresdefault doesn't exist or fails to load
+            this.setState({isMaxRes: false});
+        }
+    };
+
     static getDerivedStateFromProps(props: Props, state: State): State | null {
         if (!props.show && state.playing) {
-            return {playing: false};
+            return {
+                ...state,
+                playing: false,
+            };
         }
         return null;
     }
+
+    // Fallback to hqdefault if maxresdefault fails to load
+    handleImageError = () => {
+        if (this.state.isMaxRes) {
+            this.setState({isMaxRes: false});
+        }
+    };
 
     play = () => {
         this.setState({playing: true});
@@ -48,10 +92,15 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 
     render() {
         const {metadata, link} = this.props;
-
         const videoId = getVideoId(link);
         const videoTitle = metadata?.title || 'unknown';
         const time = handleYoutubeTime(link);
+
+        // Use hqdefault by default, switch to maxresdefault if available
+        const hqUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        const maxResUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        const thumbnailUrl = this.state.isMaxRes ? maxResUrl : hqUrl;
+        const aspectRatioClass = this.state.isMaxRes ? 'maxres' : 'hq';
 
         const header = (
             <h4>
@@ -71,59 +120,44 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 
         if (this.state.playing) {
             content = (
-                <iframe
-                    src={'https://www.youtube.com/embed/' + videoId + '?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1' + time}
-                    width='480px'
-                    height='360px'
-                    frameBorder='0'
-                    allowFullScreen={true}
-                    allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
-                    referrerPolicy={this.props.youtubeReferrerPolicy ? 'strict-origin-when-cross-origin' : 'no-referrer'}
-                    title={videoTitle}
-                    sandbox='allow-scripts allow-same-origin allow-popups allow-presentation'
-                />
+                <div className={`video-thumbnail__container ${aspectRatioClass}`}>
+                    <iframe
+                        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0${time}`}
+                        frameBorder='0'
+                        allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+                        allowFullScreen={true}
+                        title={videoTitle}
+                    />
+                </div>
             );
         } else {
-            const image = metadata?.images[0];
-
             content = (
-                <div className='embed-responsive video-div__placeholder'>
-                    <div className='video-thumbnail__container'>
-                        <ExternalImage src={image?.secure_url || image?.url || ''}>
-                            {(safeUrl) => (
-                                <img
-                                    src={safeUrl}
-                                    alt='youtube video thumbnail'
-                                    className='video-thumbnail'
-                                />
-                            )}
-                        </ExternalImage>
-                        <div className='block'>
-                            <span className='play-button'><span/></span>
-                        </div>
+                <div 
+                    className={`video-thumbnail__container ${aspectRatioClass}`}
+                    onClick={this.play}
+                >
+                    <img
+                        className='video-thumbnail'
+                        src={thumbnailUrl}
+                        alt=''
+                        onError={this.handleImageError}
+                    />
+                    <div className='play-button'>
+                        <i className='icon-play'/>
                     </div>
                 </div>
             );
         }
 
         return (
-            <div
-                className='post__embed-container'
-            >
+            <div className='post__embed-container'>
                 <div>
                     {header}
-                    <div
-                        className='video-div embed-responsive-item'
-                        onClick={this.play}
-                    >
+                    <div className='video-div embed-responsive-item'>
                         {content}
                     </div>
                 </div>
             </div>
         );
-    }
-
-    public static isYoutubeLink(link: string): boolean {
-        return Boolean(link.trim().match(ytRegex));
     }
 }
