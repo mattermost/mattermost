@@ -5319,6 +5319,10 @@
     "translation": "Unable to read the version of the data import file."
   },
   {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Failed to validate attachment import data. Invalid path: \"{{.Path}}\""
+  },
+  {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Channel display_name is not within permitted length constraints."
   },
@@ -5379,6 +5383,10 @@
     "translation": "Direct channel can only be favorited by members. \"{{.Username}}\" is not a member."
   },
   {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Failed to validate direct post attachment data."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "Missing required direct post property: channel_members"
   },
@@ -5423,8 +5431,16 @@
     "translation": "Import emoji image field missing or blank."
   },
   {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Import emoji image field has an invalid path: \"{{.Path}}\""
+  },
+  {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
     "translation": "Import emoji name field missing or blank."
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Failed to validate post attachment data."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -5481,6 +5497,10 @@
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Missing required Reaction property: User."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Failed to validate reply attachment data."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -5641,6 +5661,10 @@
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
     "translation": "User First Name is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "User profile image path is invalid: \"{{.Path}}\""
   },
   {
     "id": "app.import.validate_user_import_data.last_name_length.error",
