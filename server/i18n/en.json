@@ -6759,90 +6759,6 @@
     "translation": "Prepackged plugin version could not be parsed."
   },
   {
-    "id": "app.property.create_property_field.app_error",
-    "translation": "Failed to create property field"
-  },
-  {
-    "id": "app.property.create_property_value.app_error",
-    "translation": "Failed to create property value"
-  },
-  {
-    "id": "app.property.delete_property_field.app_error",
-    "translation": "Failed to delete property field"
-  },
-  {
-    "id": "app.property.delete_property_value.app_error",
-    "translation": "Failed to delete property value"
-  },
-  {
-    "id": "app.property.delete_property_values_for_field.app_error",
-    "translation": "Failed to delete property values for field"
-  },
-  {
-    "id": "app.property.delete_property_values_for_target.app_error",
-    "translation": "Failed to delete property values for target"
-  },
-  {
-    "id": "app.property.get_property_field.app_error",
-    "translation": "Failed to get property field"
-  },
-  {
-    "id": "app.property.get_property_field_by_name.app_error",
-    "translation": "Failed to get property field by name"
-  },
-  {
-    "id": "app.property.get_property_fields.app_error",
-    "translation": "Failed to get property fields"
-  },
-  {
-    "id": "app.property.get_property_group.app_error",
-    "translation": "Failed to get property group"
-  },
-  {
-    "id": "app.property.get_property_value.app_error",
-    "translation": "Failed to get property value"
-  },
-  {
-    "id": "app.property.get_property_values.app_error",
-    "translation": "Failed to get property values"
-  },
-  {
-    "id": "app.property.register_property_group.app_error",
-    "translation": "Failed to register property group"
-  },
-  {
-    "id": "app.property.search_property_fields.app_error",
-    "translation": "Failed to search property fields"
-  },
-  {
-    "id": "app.property.search_property_values.app_error",
-    "translation": "Failed to search property values"
-  },
-  {
-    "id": "app.property.update_property_field.app_error",
-    "translation": "Failed to update property field"
-  },
-  {
-    "id": "app.property.update_property_fields.app_error",
-    "translation": "Failed to update property fields"
-  },
-  {
-    "id": "app.property.update_property_value.app_error",
-    "translation": "Failed to update property value"
-  },
-  {
-    "id": "app.property.update_property_values.app_error",
-    "translation": "Failed to update property values"
-  },
-  {
-    "id": "app.property.upsert_property_value.app_error",
-    "translation": "Failed to create or update property value"
-  },
-  {
-    "id": "app.property.upsert_property_values.app_error",
-    "translation": "Failed to create or update property values"
-  },
-  {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
     "translation": "Unable to get reactions for post."
   },
@@ -10635,6 +10551,90 @@
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
     "translation": "Unable to get public link for file. File must be attached to a post that can be read."
+  },
+  {
+    "id": "plugin_api.property.create_property_field.app_error",
+    "translation": "Failed to create property field"
+  },
+  {
+    "id": "plugin_api.property.create_property_value.app_error",
+    "translation": "Failed to create property value"
+  },
+  {
+    "id": "plugin_api.property.delete_property_field.app_error",
+    "translation": "Failed to delete property field"
+  },
+  {
+    "id": "plugin_api.property.delete_property_value.app_error",
+    "translation": "Failed to delete property value"
+  },
+  {
+    "id": "plugin_api.property.delete_property_values_for_field.app_error",
+    "translation": "Failed to delete property values for field"
+  },
+  {
+    "id": "plugin_api.property.delete_property_values_for_target.app_error",
+    "translation": "Failed to delete property values for target"
+  },
+  {
+    "id": "plugin_api.property.get_property_field.app_error",
+    "translation": "Failed to get property field"
+  },
+  {
+    "id": "plugin_api.property.get_property_field_by_name.app_error",
+    "translation": "Failed to get property field by name"
+  },
+  {
+    "id": "plugin_api.property.get_property_fields.app_error",
+    "translation": "Failed to get property fields"
+  },
+  {
+    "id": "plugin_api.property.get_property_group.app_error",
+    "translation": "Failed to get property group"
+  },
+  {
+    "id": "plugin_api.property.get_property_value.app_error",
+    "translation": "Failed to get property value"
+  },
+  {
+    "id": "plugin_api.property.get_property_values.app_error",
+    "translation": "Failed to get property values"
+  },
+  {
+    "id": "plugin_api.property.register_property_group.app_error",
+    "translation": "Failed to register property group"
+  },
+  {
+    "id": "plugin_api.property.search_property_fields.app_error",
+    "translation": "Failed to search property fields"
+  },
+  {
+    "id": "plugin_api.property.search_property_values.app_error",
+    "translation": "Failed to search property values"
+  },
+  {
+    "id": "plugin_api.property.update_property_field.app_error",
+    "translation": "Failed to update property field"
+  },
+  {
+    "id": "plugin_api.property.update_property_fields.app_error",
+    "translation": "Failed to update property fields"
+  },
+  {
+    "id": "plugin_api.property.update_property_value.app_error",
+    "translation": "Failed to update property value"
+  },
+  {
+    "id": "plugin_api.property.update_property_values.app_error",
+    "translation": "Failed to update property values"
+  },
+  {
+    "id": "plugin_api.property.upsert_property_value.app_error",
+    "translation": "Failed to create or update property value"
+  },
+  {
+    "id": "plugin_api.property.upsert_property_values.app_error",
+    "translation": "Failed to create or update property values"
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
