@@ -6,6 +6,7 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {openModal} from 'actions/views/modals';
@@ -29,6 +30,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         enableSVGs: config.EnableSVGs === 'true',
         enablePublicLink: config.EnablePublicLink === 'true',
         pluginMenuItems: getFilesDropdownPluginMenuItems(state),
+        currentChannel: getCurrentChannel(state),
     };
 }
 

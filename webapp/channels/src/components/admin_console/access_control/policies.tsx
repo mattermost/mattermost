@@ -197,7 +197,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                     <Menu.Item
                                         id={`policy-menu-edit-${policy.id}`}
                                         onClick={() => {
-                                            history.push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
+                                            history.push(`/admin_console/system_attributes/attribute_based_access_control/edit_policy/${policy.id}`);
                                         }}
                                         leadingElement={<i className='icon icon-pencil-outline'/>}
                                         labels={
@@ -229,7 +229,7 @@ export default function PolicyList(props: Props): JSX.Element {
                     if (props.onPolicySelected) {
                         props.onPolicySelected(policy);
                     } else {
-                        history.push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
+                        history.push(`/admin_console/system_attributes/attribute_based_access_control/edit_policy/${policy.id}`);
                     }
                 },
             };
@@ -326,7 +326,7 @@ export default function PolicyList(props: Props): JSX.Element {
                     <button
                         className='btn btn-primary'
                         onClick={() => {
-                            history.push('/admin_console/user_management/attribute_based_access_control/edit_policy');
+                            history.push('/admin_console/system_attributes/attribute_based_access_control/edit_policy');
                         }}
                     >
                         <i className='icon icon-plus'/>

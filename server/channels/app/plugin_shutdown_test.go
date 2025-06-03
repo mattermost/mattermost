@@ -11,6 +11,7 @@ import (
 )
 
 func TestPluginShutdownTest(t *testing.T) {
+	mainHelper.Parallel(t)
 	if testing.Short() {
 		t.Skip("skipping test to verify forced shutdown of slow plugin")
 	}

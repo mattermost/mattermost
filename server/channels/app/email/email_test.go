@@ -4,7 +4,6 @@
 package email
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,6 +13,8 @@ import (
 )
 
 func TestCondenseSiteURL(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	require.Equal(t, "", condenseSiteURL(""))
 	require.Equal(t, "mattermost.com", condenseSiteURL("mattermost.com"))
 	require.Equal(t, "mattermost.com", condenseSiteURL("mattermost.com/"))
@@ -35,6 +36,7 @@ func TestCondenseSiteURL(t *testing.T) {
 }
 
 func TestSendInviteEmails(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.ConfigureInbucketMail()
@@ -84,13 +86,14 @@ func TestSendInviteEmails(t *testing.T) {
 
 	t.Run("SendInviteEmails can return error when SMTP connection fails", func(t *testing.T) {
 		originalPort := *th.service.config().EmailSettings.SMTPPort
+		originalTimeout := *th.service.config().EmailSettings.SMTPServerTimeout
 		th.UpdateConfig(func(cfg *model.Config) {
-			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", "5432")
 			*cfg.EmailSettings.SMTPPort = "5432"
+			*cfg.EmailSettings.SMTPServerTimeout = 4
 		})
 		defer th.UpdateConfig(func(cfg *model.Config) {
-			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", originalPort)
 			*cfg.EmailSettings.SMTPPort = originalPort
+			*cfg.EmailSettings.SMTPServerTimeout = originalTimeout
 		})
 
 		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true, false, false)
@@ -123,14 +126,15 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendGuestInviteEmail can return error when SMTP connection fails", func(t *testing.T) {
+		originalTimeout := *th.service.config().EmailSettings.SMTPServerTimeout
 		originalPort := *th.service.config().EmailSettings.SMTPPort
 		th.UpdateConfig(func(cfg *model.Config) {
-			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", "5432")
 			*cfg.EmailSettings.SMTPPort = "5432"
+			*cfg.EmailSettings.SMTPServerTimeout = 4
 		})
 		defer th.UpdateConfig(func(cfg *model.Config) {
-			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", originalPort)
 			*cfg.EmailSettings.SMTPPort = originalPort
+			*cfg.EmailSettings.SMTPServerTimeout = originalTimeout
 		})
 
 		err := th.service.SendGuestInviteEmails(
@@ -255,6 +259,7 @@ func TestSendInviteEmails(t *testing.T) {
 }
 
 func TestSendCloudWelcomeEmail(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.ConfigureInbucketMail()
@@ -294,6 +299,7 @@ func TestSendCloudWelcomeEmail(t *testing.T) {
 }
 
 func TestMailServiceConfig(t *testing.T) {
+	mainHelper.Parallel(t)
 	configuredReplyTo := "feedbackexample@test.com"
 	customReplyTo := "customreplyto@test.com"
 

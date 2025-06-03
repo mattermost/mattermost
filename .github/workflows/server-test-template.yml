@@ -14,11 +14,20 @@ on:
       logsartifact:
         required: true
         type: string
+      fullyparallel:
+        required: false
+        type: boolean
+        default: false
+      enablecoverage:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   test:
     name: ${{ inputs.name }}
     runs-on: ubuntu-latest-8-cores
+    continue-on-error: ${{ inputs.fullyparallel }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
@@ -50,7 +59,7 @@ jobs:
         env:
           BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' ]]; then
+          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
             export RACE_MODE="-race"
           fi
           docker run --net ghactions_mm-test \
@@ -60,12 +69,20 @@ jobs:
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
             --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
             --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
+            --env ENABLE_FULLY_PARALLEL_TESTS="${{ inputs.fullyparallel }}" \
+            --env ENABLE_COVERAGE="${{ inputs.enablecoverage }}" \
             -v $(go env GOCACHE):/go/cache \
             -e GOCACHE=/go/cache \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
             make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          disable_search: true
+          files: server/cover.out
       - name: Stop docker compose
         run: |
           cd server/build
@@ -78,5 +95,6 @@ jobs:
           path: |
             server/gotestsum.json
             server/report.xml
+            server/cover.out
             server/test-name
             server/pr-number

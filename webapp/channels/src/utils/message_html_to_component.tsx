@@ -36,6 +36,7 @@ export type Options = Partial<{
     images: boolean;
     atPlanMentions: boolean;
     channelId: string;
+    channelIsShared: boolean;
 
     /**
      * Whether or not the AtMention component should attempt to fetch at-mentioned users if none can be found for
@@ -267,6 +268,7 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                         code={node.attribs['data-codeblock-code']}
                         language={node.attribs['data-codeblock-language']}
                         searchedContent={node.attribs['data-codeblock-searchedcontent']}
+                        channelId={options.channelId}
                     />
                 );
             },

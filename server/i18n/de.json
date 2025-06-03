@@ -10774,5 +10774,25 @@
   {
     "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
     "translation": "Die Farbe des Kanal-Banners muss eine gültige Hex-Farbe sein (z.B. #FF0000 oder #F00)"
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "Diese Lizenz unterstützt MySQL nicht."
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "Testlizenzen werden für MySQL-Datenbanken nicht unterstützt. Bitte verwende PostgreSQL, um auf die Testfunktionen zuzugreifen."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Führendes oder nachgestelltes Leerzeichen für {{.Setting}} erkannt. Gefunden \"{{.Value}}\"."
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Es ist nicht möglich, synchronisierbare Gruppenmitgliedschaften zu erstellen."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Es ist nicht möglich, ungültige synchronisierbare Gruppenmitgliedschaften zu löschen."
   }
 ]

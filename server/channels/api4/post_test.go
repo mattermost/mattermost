@@ -34,6 +34,8 @@ import (
 )
 
 func TestCreatePost(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -304,6 +306,8 @@ func TestCreatePost(t *testing.T) {
 }
 
 func TestCreatePostForPriority(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -477,6 +481,7 @@ func TestCreatePostForPriority(t *testing.T) {
 }
 
 func TestCreatePostWithOAuthClient(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -545,6 +550,8 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 }
 
 func TestCreatePostEphemeral(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.SystemAdminClient
@@ -583,6 +590,8 @@ func testCreatePostWithOutgoingHook(
 	triggerWhen int,
 	commentPostType bool,
 ) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.SystemAdminUser
@@ -1089,6 +1098,8 @@ func TestMoveThread(t *testing.T) {
 }
 
 func TestCreatePostPublic(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1146,6 +1157,8 @@ func TestCreatePostPublic(t *testing.T) {
 }
 
 func TestCreatePostAll(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1212,6 +1225,8 @@ func TestCreatePostAll(t *testing.T) {
 }
 
 func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1274,6 +1289,8 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 }
 
 func TestCreatePostCheckOnlineStatus(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1340,6 +1357,8 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 }
 
 func TestUpdatePost(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1690,6 +1709,8 @@ func TestUpdatePost(t *testing.T) {
 }
 
 func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	// This test checks that a sysadmin with the "EDIT_OTHERS_POSTS" permission can edit someone else's post in a
 	// channel without a team (DM/GM). This indirectly checks for the proper cascading all the way to system-wide roles
 	// on the user object of permissions based on a post in a channel with no team ID.
@@ -1715,6 +1736,8 @@ func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 }
 
 func TestPatchPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2041,6 +2064,8 @@ func TestPatchPost(t *testing.T) {
 }
 
 func TestPinPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2072,6 +2097,8 @@ func TestPinPost(t *testing.T) {
 }
 
 func TestUnpinPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2103,6 +2130,8 @@ func TestUnpinPost(t *testing.T) {
 }
 
 func TestGetPostsForChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2346,6 +2375,8 @@ func TestGetPostsForChannel(t *testing.T) {
 }
 
 func TestGetFlaggedPostsForUser(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2552,6 +2583,8 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 }
 
 func TestGetPostsBefore(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2719,6 +2752,8 @@ func TestGetPostsBefore(t *testing.T) {
 }
 
 func TestGetPostsAfter(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2867,6 +2902,8 @@ func TestGetPostsAfter(t *testing.T) {
 }
 
 func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3120,6 +3157,8 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 }
 
 func TestGetPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	// TODO: migrate this entirely to the subtest's client
@@ -3219,6 +3258,8 @@ func TestGetPost(t *testing.T) {
 }
 
 func TestDeletePost(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3275,6 +3316,8 @@ func TestDeletePost(t *testing.T) {
 }
 
 func TestPermanentDeletePost(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3352,7 +3395,11 @@ func TestPermanentDeletePost(t *testing.T) {
 }
 
 func TestWebHubMembership(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	t.Run("WithChannelIteration", func(t *testing.T) {
+		mainHelper.Parallel(t)
+
 		th := SetupConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableWebHubChannelIteration = true
 		}).InitBasic()
@@ -3362,6 +3409,8 @@ func TestWebHubMembership(t *testing.T) {
 	})
 
 	t.Run("WithoutChannelIteration", func(t *testing.T) {
+		mainHelper.Parallel(t)
+
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -3490,6 +3539,8 @@ func _testWebHubMembership(th *TestHelper, t *testing.T) {
 }
 
 func TestWebHubCloseConnOnDBFail(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := SetupConfig(t, func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableWebHubChannelIteration = true
 	}).InitBasic()
@@ -3510,12 +3561,21 @@ func TestWebHubCloseConnOnDBFail(t *testing.T) {
 
 	wsClient, err := th.CreateWebSocketClientWithClient(cli)
 	require.NoError(t, err)
+
+	wsClient.Listen()
+	select {
+	case <-wsClient.EventChannel: // event channel should be closed on failure
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "timed out waiting for event")
+	}
 	wsClient.Close()
 
 	require.NoError(t, th.TestLogger.Flush())
 }
 
 func TestDeletePostEvent(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3543,6 +3603,8 @@ func TestDeletePostEvent(t *testing.T) {
 }
 
 func TestDeletePostMessage(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 	_, appErr := th.App.AddUserToChannel(th.Context, th.SystemAdminUser, th.BasicChannel, false)
@@ -3589,6 +3651,8 @@ func TestDeletePostMessage(t *testing.T) {
 }
 
 func TestGetPostThread(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3718,6 +3782,8 @@ func TestGetPostThread(t *testing.T) {
 }
 
 func TestSearchPosts(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
@@ -3870,6 +3936,8 @@ func TestSearchPosts(t *testing.T) {
 }
 
 func TestSearchHashtagPosts(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.LoginBasic()
@@ -3896,6 +3964,8 @@ func TestSearchHashtagPosts(t *testing.T) {
 }
 
 func TestSearchPostsInChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.LoginBasic()
@@ -3950,6 +4020,8 @@ func TestSearchPostsInChannel(t *testing.T) {
 }
 
 func TestSearchPostsFromUser(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4018,6 +4090,8 @@ func TestSearchPostsFromUser(t *testing.T) {
 }
 
 func TestSearchPostsWithDateFlags(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.LoginBasic()
@@ -4161,6 +4235,8 @@ func TestGetFileInfosForPost(t *testing.T) {
 }
 
 func TestSetChannelUnread(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -4335,6 +4411,8 @@ func TestSetChannelUnread(t *testing.T) {
 }
 
 func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -4430,6 +4508,8 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 }
 
 func TestGetPostsByIds(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4454,6 +4534,8 @@ func TestGetPostsByIds(t *testing.T) {
 }
 
 func TestGetEditHistoryForPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4574,6 +4656,8 @@ func TestGetEditHistoryForPost(t *testing.T) {
 }
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	rpost := th.CreatePost()
@@ -4727,6 +4811,8 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 }
 
 func TestGetPostStripActionIntegrations(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4838,6 +4924,8 @@ func TestPostReminder(t *testing.T) {
 }
 
 func TestPostGetInfo(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5107,6 +5195,8 @@ func TestPostGetInfo(t *testing.T) {
 }
 
 func TestAcknowledgePost(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
@@ -5148,6 +5238,8 @@ func TestAcknowledgePost(t *testing.T) {
 }
 
 func TestUnacknowledgePost(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
@@ -5193,6 +5285,8 @@ func TestUnacknowledgePost(t *testing.T) {
 }
 
 func TestRestorePostVersion(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client

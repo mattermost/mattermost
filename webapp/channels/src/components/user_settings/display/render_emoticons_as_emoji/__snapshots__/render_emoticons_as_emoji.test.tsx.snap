@@ -1,0 +1,92 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoticons_as_emoji should match snapshot 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Render emoticons as emojis
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <fieldset>
+            <legend
+              class="form-legend hidden-label"
+            >
+              Render emoticons as emojis
+            </legend>
+            <div
+              class="radio"
+            >
+              <label>
+                <input
+                  checked=""
+                  class="a11y--active a11y--focused"
+                  id="renderEmoticonsAsEmojiOn"
+                  name="renderEmoticonsAsEmoji"
+                  type="radio"
+                  value="true"
+                />
+                On
+              </label>
+              <br />
+            </div>
+            <div
+              class="radio"
+            >
+              <label>
+                <input
+                  id="renderEmoticonsAsEmojiOff"
+                  name="renderEmoticonsAsEmoji"
+                  type="radio"
+                  value="false"
+                />
+                Off
+              </label>
+              <br />
+            </div>
+            <div
+              class="mt-5"
+            >
+              When enabled, text emoticons in messages will be rendered as emojis (For example :D as 😄)
+            </div>
+          </fieldset>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;

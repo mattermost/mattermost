@@ -2,19 +2,11 @@
     width: 100%;
     height: 40px;
     justify-content: start;
-    border-color: transparent;
-    border-radius: 0;
-    box-shadow: none;
+    border: none;
     font-weight: normal;
     
-    &:hover,
-    &:focus {
-        border-color: transparent;
-        box-shadow: none;
-    }
-
     &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.04)
+        background: rgba(var(--center-channel-color-rgb), 0.04);
     }
     
     &:focus,
@@ -27,20 +19,79 @@
         opacity: 0.6;
     }
 
-    svg {
-        margin-right: 8px;
+    > span > span:first-child:not([style*="flex-wrap: wrap"]) {
+        overflow: hidden;
+        padding-inline-start: 10px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 
-.select-attribute-mui-menu,
-.select-operator-mui-menu {
-    margin-top: 0;
+.value-selector-menu-button {
+    &__multi-values-container {
+        display: flex;
+        overflow: hidden;
+        flex-grow: 1;
+        flex-wrap: wrap;
+        gap: 2px;
+    }
 
-    .MenuItem {
-        height: 40px;
+    &__inner-wrapper {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.values-editor {
+    width: 100%;
+    
+    .select__multi-value {
+        display: flex;
+        height: 24px;
+        align-items: center;
+        border-radius: 4px;
+        margin: 2px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+    
+    .select__multi-value__label {
+        padding: 0 4px 0 8px;
+        font-size: 12px;
+    }
+    
+    .select__multi-value__remove {
+        padding: 0 4px;
+        cursor: pointer;
         
-        svg {
-            margin-right: 8px;
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.16);
         }
+    }
+
+    &__simple-input {
+        width: 100%;
+        height: 40px;
+        border: none;
+        background: transparent;
+        font-size: 14px;
+        padding-inline-start: 22px;
+
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.06);
+            outline: none;
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    }
+
+    .MenuItem__trailing-elements {
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
 }

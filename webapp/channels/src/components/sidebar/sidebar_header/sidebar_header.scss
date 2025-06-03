@@ -6,13 +6,24 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
+    color: var(--sidebar-header-text-color);
 
     button#sidebarTeamMenuButton {
         overflow: hidden;
         padding: 2px 6px;
+        color: inherit;
         font-family: Metropolis, sans-serif;
         font-size: 16px;
         gap: 1px;
+
+        &:hover {
+            background: rgba(var(--sidebar-header-text-color-rgb), 0.08);
+        }
+
+        &:active,
+        &[aria-expanded=true][aria-haspopup=true] {
+            background: rgba(var(--sidebar-header-text-color-rgb), 0.12);
+        }
 
         & > span {
             overflow: hidden;

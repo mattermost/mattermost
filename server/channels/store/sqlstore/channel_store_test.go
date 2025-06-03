@@ -25,6 +25,10 @@ func TestSearchChannelStore(t *testing.T) {
 }
 
 func TestChannelSearchQuerySQLInjection(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
 	for _, st := range storeTypes {
 		t.Run(st.Name, func(t *testing.T) {
 			s := &SqlChannelStore{

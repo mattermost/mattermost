@@ -16,6 +16,7 @@ import (
 )
 
 func TestGetPreferences(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -87,6 +88,7 @@ func TestGetPreferences(t *testing.T) {
 }
 
 func TestGetPreferencesByCategory(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -157,6 +159,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 }
 
 func TestGetPreferenceByCategoryAndName(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -226,6 +229,7 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 }
 
 func TestUpdatePreferences(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -305,6 +309,7 @@ func TestUpdatePreferences(t *testing.T) {
 }
 
 func TestUpdatePreferencesOverload(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -341,6 +346,7 @@ func TestUpdatePreferencesOverload(t *testing.T) {
 }
 
 func TestUpdatePreferencesWebsocket(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -392,6 +398,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 }
 
 func TestUpdateSidebarPreferences(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("when favoriting a channel, should add it to the Favorites sidebar category", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -619,6 +626,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 }
 
 func TestDeletePreferences(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -689,6 +697,7 @@ func TestDeletePreferences(t *testing.T) {
 }
 
 func TestDeletePreferencesOverload(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -725,6 +734,7 @@ func TestDeletePreferencesOverload(t *testing.T) {
 }
 
 func TestDeletePreferencesWebsocket(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -778,6 +788,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 }
 
 func TestDeleteSidebarPreferences(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("when removing a favorited channel preference, should remove it from the Favorites sidebar category", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -993,6 +1004,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 }
 
 func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Update limit_visible_dms_gms to a valid value", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()

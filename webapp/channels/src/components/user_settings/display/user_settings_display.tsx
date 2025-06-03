@@ -28,6 +28,7 @@ import {a11yFocus} from 'utils/utils';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
+import RenderEmoticonsAsEmoji from './render_emoticons_as_emoji';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
@@ -120,6 +121,7 @@ type Props = OwnProps & {
     timezoneLabel: string;
     lastActiveDisplay: boolean;
     lastActiveTimeEnabled: boolean;
+    renderEmoticonsAsEmoji: string;
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         autoUpdateTimezone: (deviceTimezone: string) => void;
@@ -1147,6 +1149,46 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             });
         }
 
+        const renderEmoticonsAsEmojiSection = (
+            <div>
+                <SettingItem
+                    active={this.props.activeSection === 'renderEmoticonsAsEmoji'}
+                    areAllSectionsInactive={this.props.activeSection === ''}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.renderEmoticonsAsEmojiTitle'
+                            defaultMessage='Render emoticons as emojis'
+                        />
+                    }
+                    describe={
+                        this.props.renderEmoticonsAsEmoji === 'true' ? (
+                            <FormattedMessage
+                                id='user.settings.advance.on'
+                                defaultMessage='On'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='user.settings.advance.off'
+                                defaultMessage='Off'
+                            />
+                        )
+                    }
+                    section='renderEmoticonsAsEmoji'
+                    updateSection={this.updateSection}
+                    max={(
+                        <RenderEmoticonsAsEmoji
+                            renderEmoticonsAsEmoji={this.props.renderEmoticonsAsEmoji}
+                            user={this.props.user}
+                            updateSection={this.updateSection}
+                            adminMode={this.props.adminMode}
+                            userPreferences={this.props.userPreferences}
+                        />
+                    )}
+                />
+                <div className='divider-dark'/>
+            </div>
+        );
+
         return (
             <div
                 id='displaySettings'
@@ -1187,6 +1229,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     {clickToReply}
                     {channelDisplayModeSection}
                     {oneClickReactionsOnPostsSection}
+                    {renderEmoticonsAsEmojiSection}
                     {languagesSection}
                 </div>
             </div>
