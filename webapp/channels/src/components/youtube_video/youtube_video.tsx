@@ -135,15 +135,28 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                 <div
                     className={`video-thumbnail__container ${aspectRatioClass}`}
                     onClick={this.play}
+                    role="button"
+                    aria-label={`Play ${videoTitle} on YouTube`}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            this.play();
+                        }
+                    }}
                 >
                     <img
                         className='video-thumbnail'
                         src={thumbnailUrl}
-                        alt=''
+                        alt={`Thumbnail for ${videoTitle} on YouTube`}
                         onError={this.handleImageError}
                     />
-                    <div className='play-button'>
-                        <i className='icon-play'/>
+                    <div 
+                        className='play-button'
+                        role="img"
+                        aria-label="Play video"
+                    >
+                        <i className='icon-play' aria-hidden="true"/>
                     </div>
                 </div>
             );
