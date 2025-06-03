@@ -3509,7 +3509,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             secure_connections: {
                 url: 'site_config/secure_connections',
-                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'}),
+                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces'}),
                 searchableStrings: secureConnectionsSearchableStrings,
                 isHidden: it.not(it.all(
                     it.configIsTrue('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
