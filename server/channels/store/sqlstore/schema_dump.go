@@ -170,7 +170,6 @@ func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, e
 					currentColumns = []model.DatabaseColumn{}
 				}
 
-				// Add column (but only once per column)
 				if columnName != "" {
 					maxLength := int64(0)
 					if characterMaxLength.Valid {
