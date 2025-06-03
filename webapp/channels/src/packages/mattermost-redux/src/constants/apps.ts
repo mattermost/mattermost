@@ -33,10 +33,12 @@ export const AppExpandLevels: { [name: string]: AppExpandLevel } = {
 
 export const AppFieldTypes: { [name: string]: AppFieldType } = {
     TEXT: 'text',
+    TEXTAREA: 'textarea',
     STATIC_SELECT: 'static_select',
     DYNAMIC_SELECT: 'dynamic_select',
     BOOL: 'bool',
     USER: 'user',
     CHANNEL: 'channel',
     MARKDOWN: 'markdown',
+    RADIO: 'radio',
 };

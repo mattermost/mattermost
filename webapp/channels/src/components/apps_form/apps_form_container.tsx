@@ -19,7 +19,8 @@ type Props = {
     intl: IntlShape;
     form?: AppForm;
     context?: AppContext;
-    onExited: () => void;
+    onExited?: () => void;
+    onHide?: () => void;
     actions: {
         doAppSubmit: DoAppSubmit<any>;
         doAppFetchForm: DoAppFetchForm<any>;
@@ -200,6 +201,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
             <AppsForm
                 form={form}
                 onExited={this.props.onExited}
+                onHide={this.props.onHide}
                 actions={{
                     submit: this.submitForm,
                     performLookupCall: this.performLookupCall,
