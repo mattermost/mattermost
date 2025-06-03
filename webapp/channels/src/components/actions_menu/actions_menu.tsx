@@ -298,7 +298,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         }}
                     />
                 );
-            }) || [];
+            });
 
         let appBindings = [] as JSX.Element[];
         if (this.props.appsEnabled && this.state.appBindings) {
