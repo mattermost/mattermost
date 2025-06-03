@@ -25,17 +25,16 @@
             position: relative;
             overflow: hidden;
             width: 100%;
-            background-color: #000;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
             border-radius: 4px;
-            overflow: hidden;
+            background-color: #000;
             outline: none; // Remove default focus outline
 
             // Focus state for keyboard navigation
             &:focus-visible {
+                border-radius: 4px;
                 outline: 2px solid var(--button-bg);
                 outline-offset: 2px;
-                border-radius: 4px;
             }
 
             // 16:9 aspect ratio for maxresdefault images

@@ -135,7 +135,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                 <div
                     className={`video-thumbnail__container ${aspectRatioClass}`}
                     onClick={this.play}
-                    role="button"
+                    role='button'
                     aria-label={`Play ${videoTitle} on YouTube`}
                     tabIndex={0}
                     onKeyDown={(e) => {
@@ -151,12 +151,15 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                         alt={`Thumbnail for ${videoTitle} on YouTube`}
                         onError={this.handleImageError}
                     />
-                    <div 
+                    <div
                         className='play-button'
-                        role="img"
-                        aria-label="Play video"
+                        role='img'
+                        aria-label='Play video'
                     >
-                        <i className='icon-play' aria-hidden="true"/>
+                        <i
+                            className='icon-play'
+                            aria-hidden='true'
+                        />
                     </div>
                 </div>
             );
