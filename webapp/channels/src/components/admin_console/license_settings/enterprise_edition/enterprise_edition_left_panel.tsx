@@ -55,7 +55,7 @@ const EnterpriseEditionLeftPanel = ({
 }: EnterpriseEditionProps) => {
     const {formatMessage} = useIntl();
     const [unsanitizedLicense, setUnsanitizedLicense] = useState(license);
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const [openContactSales] = useOpenSalesLink();
 
     useEffect(() => {
@@ -73,7 +73,7 @@ const EnterpriseEditionLeftPanel = ({
     const skuName = getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true');
     const expirationDays = getRemainingDaysFromFutureTimestamp(parseInt(unsanitizedLicense.ExpiresAt, 10));
 
-    const viewPlansButton = (
+    const viewPlansButton = isAirGapped ? null : (
         <button
             id='enterprise_edition_view_plans'
             onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
@@ -163,7 +163,7 @@ const EnterpriseEditionLeftPanel = ({
                         >
                             {'here'}
                         </a>
-                        {' for “Enterprise Edition License” for details. '}
+                        {' for "Enterprise Edition License" for details. '}
                         {'See NOTICE.txt for information about open source software used in the system.'}
                     </p>
                 </> : <p>
