@@ -32,7 +32,8 @@ import './apps_form_component.scss';
 export type AppsFormProps = {
     form: AppForm;
     isEmbedded?: boolean;
-    onExited: () => void;
+    onExited?: () => void;
+    onHide?: () => void;
     actions: {
         submit: (submission: {
             values: AppFormValues;
@@ -289,6 +290,9 @@ export class AppsForm extends React.PureComponent<Props, State> {
     };
 
     onHide = () => {
+        if (this.props.onHide) {
+            this.props.onHide();
+        }
         this.handleHide(false);
     };
 
@@ -306,7 +310,11 @@ export class AppsForm extends React.PureComponent<Props, State> {
             // this.props.actions.submit(dialog);
         }
 
-        this.setState({show: false});
+        this.setState({show: false}, () => {
+            if (this.props.onExited) {
+                this.props.onExited();
+            }
+        });
     };
 
     onChange = (name: string, value: any) => {

@@ -14,6 +14,7 @@ import type AutocompleteSelector from 'components/autocomplete_selector';
 import Markdown from 'components/markdown';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import BoolSetting from 'components/widgets/settings/bool_setting';
+import RadioSetting from 'components/widgets/settings/radio_setting';
 import TextSetting from 'components/widgets/settings/text_setting';
 import type {InputTypes} from 'components/widgets/settings/text_setting';
 
@@ -75,7 +76,9 @@ export default class AppsFormField extends React.PureComponent<Props> {
         displayNameContent = (
             <>
                 {displayName}
-                {!field.is_required && (
+                {field.is_required ? (
+                    <span className='error-text'> {' *'}</span>
+                ) : (
                     <span className='light'>
                         {' (optional)'}
                     </span>
@@ -97,7 +100,8 @@ export default class AppsFormField extends React.PureComponent<Props> {
         }
 
         switch (field.type) {
-        case AppFieldTypes.TEXT: {
+        case AppFieldTypes.TEXT:
+        case AppFieldTypes.TEXTAREA: {
             const subtype = field.subtype || 'text';
 
             let maxLength = field.max_length;
@@ -115,7 +119,7 @@ export default class AppsFormField extends React.PureComponent<Props> {
                     autoFocus={this.props.autoFocus}
                     id={name}
                     disabled={field.readonly}
-                    type={subtype as InputTypes}
+                    type={(field.type === 'textarea' ? 'textarea' : subtype) as InputTypes || 'text'}
                     label={displayNameContent}
                     maxLength={maxLength}
                     value={textValue || ''}
@@ -143,16 +147,40 @@ export default class AppsFormField extends React.PureComponent<Props> {
             );
         }
         case AppFieldTypes.BOOL: {
-            const boolValue = value as boolean;
+            // Convert string "true" to boolean true
+            let boolValue = false;
+            if (typeof value === 'boolean') {
+                boolValue = value;
+            } else if (typeof value === 'string') {
+                boolValue = value.toLowerCase() === 'true';
+            }
+
             return (
                 <BoolSetting
                     autoFocus={this.props.autoFocus}
                     id={name}
                     disabled={field.readonly}
                     label={displayNameContent}
-                    value={boolValue || false}
+                    value={boolValue}
                     helpText={helpTextContent}
                     placeholder={placeholder}
+                    onChange={onChange}
+                />
+            );
+        }
+        case AppFieldTypes.RADIO:{
+            const textValue = value as string;
+            return (
+                <RadioSetting
+                    id={name}
+                    label={displayNameContent}
+                    helpText={helpTextContent}
+                    options={field.options?.map((opt) => ({
+                        text: opt.label,
+                        value: opt.value,
+                    }))}
+
+                    value={textValue}
                     onChange={onChange}
                 />
             );
