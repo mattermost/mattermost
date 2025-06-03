@@ -436,13 +436,17 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 		user, err := scs.server.GetStore().User().Get(context.Background(), userID)
 		if err != nil {
+			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+				fmt.Sprintf("USER_LOOP_DEBUG: Could not get user %s, %v", userID, err))
 			merr.Append(fmt.Errorf("could not get user %s: %w", userID, err))
 			continue
 		}
 
 		sync, syncImage, err2 := scs.shouldUserSync(user, sd.task.channelID, sd.rc)
 		if err2 != nil {
-			merr.Append(fmt.Errorf("could not check should sync user %s: %w", userID, err))
+			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+				fmt.Sprintf("USER_LOOP_DEBUG: could not check should sync user %s, %v", userID, err2))
+			merr.Append(fmt.Errorf("could not check should sync user %s: %w", userID, err2))
 			continue
 		}
 
