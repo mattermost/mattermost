@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
@@ -1775,17 +1776,17 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	return ruser, nil
 }
 
-// jobProgressValue defines the types that can be used for job progress values
-type jobProgressValue interface {
+// jobMetadataValue defines the types that can be used for job progress values
+type jobMetadataValue interface {
 	int | string | bool
 }
 
-// updateJobProgress is a generic helper function to update job progress with various value types
-func updateJobProgress[T jobProgressValue](logger mlog.LoggerIFace, store store.Store, job *model.Job, key string, value T) {
+// updateJobProgressWithMetadata is a generic helper function to update job progress with various value types
+func updateJobProgressWithMetadata[T jobMetadataValue](logger mlog.LoggerIFace, jobSrv *jobs.JobServer, job *model.Job, key string, value T) {
 	if job != nil {
 		job.Data[key] = fmt.Sprint(value)
-		if _, err := store.Job().UpdateOptimistically(job, model.JobStatusInProgress); err != nil {
-			logger.Warn("Failed to update job status", mlog.Err(err))
+		if appErr := jobSrv.SetJobProgress(job, 0); appErr != nil {
+			logger.Warn("Failed to update job status", mlog.Err(appErr))
 		}
 	}
 }
@@ -1808,6 +1809,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return nil
 		}
 	}
+
 	// needsDelete checks whether this store has already been deleted before
 	// or not, by checking it's job metadata.
 	// Alternatively, if there's no job, then it always returns true allowing internal
@@ -1827,7 +1829,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return err
 		}
 		logger.Info("User deactivated before deletion")
-		updateJobProgress(logger, a.Srv().Store(), job, "user_deactivated", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "user_deactivated", "true")
 	} else {
 		logger.Info("User deactivation already completed, skipping")
 	}
@@ -1843,7 +1845,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.session.permanent_delete_sessions_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User sessions deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "sessions_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "sessions_deleted", "true")
 	} else {
 		logger.Info("User sessions already deleted, skipping")
 	}
@@ -1859,7 +1861,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User access tokens deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "access_tokens_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "access_tokens_deleted", "true")
 	} else {
 		logger.Info("User access tokens already deleted, skipping")
 	}
@@ -1875,7 +1877,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.oauth.permanent_delete_auth_data_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User OAuth data deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "oauth_data_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "oauth_data_deleted", "true")
 	} else {
 		logger.Info("User OAuth data already deleted, skipping")
 	}
@@ -1891,7 +1893,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_incoming_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User incoming webhooks deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "incoming_webhooks_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "incoming_webhooks_deleted", "true")
 	} else {
 		logger.Info("User incoming webhooks already deleted, skipping")
 	}
@@ -1907,7 +1909,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_outgoing_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User outgoing webhooks deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "outgoing_webhooks_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "outgoing_webhooks_deleted", "true")
 	} else {
 		logger.Info("User outgoing webhooks already deleted, skipping")
 	}
@@ -1923,7 +1925,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.user.permanentdeleteuser.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User commands deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "commands_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "commands_deleted", "true")
 	} else {
 		logger.Info("User commands already deleted, skipping")
 	}
@@ -1939,7 +1941,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.preference.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User preferences deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "preferences_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "preferences_deleted", "true")
 	} else {
 		logger.Info("User preferences already deleted, skipping")
 	}
@@ -1955,7 +1957,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User channel memberships deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "channel_memberships_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "channel_memberships_deleted", "true")
 	} else {
 		logger.Info("User channel memberships already deleted, skipping")
 	}
@@ -1971,7 +1973,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.group.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User group memberships deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "group_memberships_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "group_memberships_deleted", "true")
 	} else {
 		logger.Info("User group memberships already deleted, skipping")
 	}
@@ -1987,7 +1989,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User posts deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "posts_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "posts_deleted", "true")
 	} else {
 		logger.Info("User posts already deleted, skipping")
 	}
@@ -2003,7 +2005,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.scheduled_post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User scheduled posts deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "scheduled_posts_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "scheduled_posts_deleted", "true")
 	} else {
 		logger.Info("User scheduled posts already deleted, skipping")
 	}
@@ -2019,7 +2021,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.drafts.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User drafts deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "drafts_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "drafts_deleted", "true")
 	} else {
 		logger.Info("User drafts already deleted, skipping")
 	}
@@ -2041,7 +2043,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			}
 		}
 		logger.Info("User bot accounts deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "bot_accounts_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "bot_accounts_deleted", "true")
 	} else {
 		logger.Info("User bot accounts already deleted, skipping")
 	}
@@ -2060,7 +2062,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 
 		a.RemoveFilesFromFileStore(rctx, infos)
 		logger.Info("User files removed from file store")
-		updateJobProgress(logger, a.Srv().Store(), job, "files_removed", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "files_removed", "true")
 	} else {
 		logger.Info("User files already removed from file store, skipping")
 	}
@@ -2099,7 +2101,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 				)
 			} else {
 				logger.Info("User profile image directory removed")
-				updateJobProgress(logger, a.Srv().Store(), job, "profile_image_removed", "true")
+				updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "profile_image_removed", "true")
 			}
 		}
 	} else {
@@ -2117,7 +2119,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User file info deleted from database")
-		updateJobProgress(logger, a.Srv().Store(), job, "file_info_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "file_info_deleted", "true")
 	} else {
 		logger.Info("User file info already deleted from database, skipping")
 	}
@@ -2133,7 +2135,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User record permanently deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "user_record_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "user_record_deleted", "true")
 	} else {
 		logger.Info("User record already deleted, skipping")
 	}
@@ -2149,7 +2151,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.audit.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User audit records deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "audit_records_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "audit_records_deleted", "true")
 	} else {
 		logger.Info("User audit records already deleted, skipping")
 	}
@@ -2165,7 +2167,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 			return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		logger.Info("User team memberships deleted")
-		updateJobProgress(logger, a.Srv().Store(), job, "team_memberships_deleted", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "team_memberships_deleted", "true")
 	} else {
 		logger.Info("User team memberships already deleted, skipping")
 	}
@@ -2179,7 +2181,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 	if needsDelete(job, "cache_invalidated") {
 		a.InvalidateCacheForUser(user.Id)
 		logger.Info("User cache invalidated")
-		updateJobProgress(logger, a.Srv().Store(), job, "cache_invalidated", "true")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "cache_invalidated", "true")
 	} else {
 		logger.Info("User cache already invalidated, skipping")
 	}

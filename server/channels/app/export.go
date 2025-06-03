@@ -229,10 +229,10 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 						nil, "", http.StatusInternalServerError).Wrap(err)
 				}
 			}
-			updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "num_warnings", len(warnings))
+			updateJobProgressWithMetadata(ctx.Logger(), a.Srv().Jobs, job, "num_warnings", len(warnings))
 		}
 
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "attachments_exported", len(attachments)+len(directAttachments)+len(emojiPaths))
+		updateJobProgressWithMetadata(ctx.Logger(), a.Srv().Jobs, job, "attachments_exported", len(attachments)+len(directAttachments)+len(emojiPaths))
 	}
 
 	if opts.IncludeProfilePictures {
@@ -242,7 +242,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 				ctx.Logger().Warn("Unable to export profile picture", mlog.String("profile_picture", profilePicture), mlog.Err(err))
 			}
 		}
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "profile_pictures_exported", len(profilePictures))
+		updateJobProgressWithMetadata(ctx.Logger(), a.Srv().Jobs, job, "profile_pictures_exported", len(profilePictures))
 	}
 
 	return nil
@@ -338,7 +338,7 @@ func (a *App) exportRoles(ctx request.CTX, job *model.Job, writer io.Writer, sch
 		}
 	}
 
-	updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "roles_exported", cnt)
+	updateJobProgressWithMetadata(ctx.Logger(), a.Srv().Jobs, job, "roles_exported", cnt)
 
 	return nil
 }
@@ -390,7 +390,7 @@ func (a *App) exportSchemes(ctx request.CTX, job *model.Job, writer io.Writer, s
 
 		cnt += len(schemes)
 
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, fmt.Sprintf("%s_schemes_exported", scope), cnt)
+		updateJobProgressWithMetadata(ctx.Logger(), a.Srv().Jobs, job, fmt.Sprintf("%s_schemes_exported", scope), cnt)
 
 		if len(schemes) < pageSize {
 			return nil
@@ -412,7 +412,7 @@ func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) 
 			break
 		}
 		cnt += len(teams)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "teams_exported", cnt)
+		updateJobProgressWithMetadata(ctx.Logger(), a.Srv().Jobs, job, "teams_exported", cnt)
 
 		for _, team := range teams {
 			afterId = team.Id
@@ -446,7 +446,7 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 			break
 		}
 		cnt += len(channels)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "channels_exported", cnt)
+		updateJobProgressWithMetadata(ctx.Logger(), a.Srv().Jobs, job, "channels_exported", cnt)
 
 		for _, channel := range channels {
 			afterId = channel.Id
@@ -484,7 +484,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 			break
 		}
 		cnt += len(users)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "users_exported", cnt)
+		updateJobProgressWithMetadata(ctx.Logger(), a.Srv().Jobs, job, "users_exported", cnt)
 
 		for _, user := range users {
 			afterId = user.Id
@@ -584,7 +584,7 @@ func (a *App) exportAllBots(ctx request.CTX, job *model.Job, writer io.Writer, i
 		}
 
 		cnt += len(bots)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "bots_exported", cnt)
+		updateJobProgressWithMetadata(ctx.Logger(), a.Srv().Jobs, job, "bots_exported", cnt)
 
 		for _, bot := range bots {
 			afterId = bot.UserId
@@ -725,7 +725,7 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 			return attachments, nil
 		}
 		cnt += len(posts)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "posts_exported", cnt)
+		updateJobProgressWithMetadata(ctx.Logger(), a.Srv().Jobs, job, "posts_exported", cnt)
 
 		for _, post := range posts {
 			afterId = post.Id
@@ -887,7 +887,7 @@ func (a *App) exportCustomEmoji(rctx request.CTX, job *model.Job, writer io.Writ
 			break
 		}
 		cnt += len(customEmojiList)
-		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "emojis_exported", cnt)
+		updateJobProgressWithMetadata(rctx.Logger(), a.Srv().Jobs, job, "emojis_exported", cnt)
 
 		pageNumber++
 
@@ -977,7 +977,7 @@ func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io
 			break
 		}
 		cnt += len(channels)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "direct_channels_exported", cnt)
+		updateJobProgressWithMetadata(ctx.Logger(), a.Srv().Jobs, job, "direct_channels_exported", cnt)
 
 		for _, channel := range channels {
 			afterId = channel.Id
@@ -1130,7 +1130,7 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 			break
 		}
 		cnt += len(posts)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "direct_posts_exported", cnt)
+		updateJobProgressWithMetadata(ctx.Logger(), a.Srv().Jobs, job, "direct_posts_exported", cnt)
 
 		channelsToSkip := model.SliceToMapKey(strings.Split(job.Data["skipped_direct_channels"], ",")...)
 		for _, post := range posts {
