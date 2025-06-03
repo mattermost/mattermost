@@ -239,7 +239,7 @@ function PolicyDetails({
         setSaveNeeded(false);
         setShowConfirmationModal(false);
         actions.setNavigationBlocked(false);
-        getHistory().push('/admin_console/user_management/attribute_based_access_control');
+        getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
     };
 
     const handleDelete = async () => {
@@ -275,7 +275,7 @@ function PolicyDetails({
         }
 
         if (success) {
-            getHistory().push('/admin_console/user_management/attribute_based_access_control');
+            getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
         }
     };
 
@@ -331,7 +331,7 @@ function PolicyDetails({
             <AdminHeader withBackButton={true}>
                 <div>
                     <BlockableLink
-                        to='/admin_console/user_management/attribute_based_access_control'
+                        to='/admin_console/system_attributes/attribute_based_access_control'
                         className='fa fa-angle-left back'
                     />
                     <FormattedMessage
@@ -399,7 +399,7 @@ function PolicyDetails({
                             }
                             text={formatMessage({
                                 id: 'admin.access_control.policy.edit_policy.notice.text',
-                                defaultMessage: 'You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Properties.',
+                                defaultMessage: 'You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Attributes.',
                             })}
                             primaryButton={{
                                 text: formatMessage({
@@ -407,7 +407,7 @@ function PolicyDetails({
                                     defaultMessage: 'Configure user attributes',
                                 }),
                                 onClick: () => {
-                                    getHistory().push('/admin_console/site_config/system_properties');
+                                    getHistory().push('/admin_console/system_attributes/user_attributes');
                                 },
                             }}
                         />
@@ -642,7 +642,7 @@ function PolicyDetails({
                 />
                 <BlockableLink
                     className='btn btn-quaternary'
-                    to='/admin_console/user_management/attribute_based_access_control'
+                    to='/admin_console/system_attributes/attribute_based_access_control'
                 >
                     <FormattedMessage
                         id='admin.access_control.edit_policy.cancel'

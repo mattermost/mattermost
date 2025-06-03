@@ -40,6 +40,11 @@ export type OwnProps = {
      */
     showPostEditedIndicator?: boolean;
     options?: TextFormattingOptions;
+
+    /**
+     * Whether or not to render text emoticons (:D) as emojis
+     */
+    renderEmoticonsAsEmoji?: boolean;
 };
 
 type Props = PropsFromRedux & OwnProps;
@@ -52,12 +57,13 @@ export default class PostMarkdown extends React.PureComponent<Props> {
     };
 
     getOptions = memoize(
-        (options?: TextFormattingOptions, disableGroupHighlight?: boolean, mentionHighlight?: boolean, editedAt?: number) => {
+        (options?: TextFormattingOptions, disableGroupHighlight?: boolean, mentionHighlight?: boolean, editedAt?: number, renderEmoticonsAsEmoji?: boolean) => {
             return {
                 ...options,
                 disableGroupHighlight,
                 mentionHighlight,
                 editedAt,
+                renderEmoticonsAsEmoji,
             };
         });
 
@@ -110,6 +116,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             this.props.post?.props?.disable_group_highlight === true,
             mentionHighlight,
             this.props.post?.edit_at,
+            this.props?.renderEmoticonsAsEmoji,
         );
 
         let highlightKeys;
