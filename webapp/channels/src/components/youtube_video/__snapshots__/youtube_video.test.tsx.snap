@@ -13,7 +13,7 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
     }
   }
 >
-  <YouTubeVideo
+  <YoutubeVideo
     googleDeveloperKey="googledevkey"
     hasImageProxy={false}
     link="https://www.youtube.com/watch?v=xqCoNej8Zxo"
@@ -85,7 +85,7 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
         </div>
       </div>
     </div>
-  </YouTubeVideo>
+  </YoutubeVideo>
 </Provider>
 `;
 

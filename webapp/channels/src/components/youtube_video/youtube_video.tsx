@@ -24,7 +24,7 @@ type State = {
     isMaxRes: boolean;
 }
 
-export default class YouTubeVideo extends React.PureComponent<Props, State> {
+export default class YoutubeVideo extends React.PureComponent<Props, State> {
     static isYoutubeLink(link: string): boolean {
         return Boolean(link.trim().match(ytRegex));
     }
