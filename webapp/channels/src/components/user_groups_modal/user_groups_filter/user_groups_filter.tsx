@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import * as Menu from 'components/menu';
 
 type Props = {
     selectedFilter: string;
     getGroups: (page: number, groupType: string) => void;
+    onToggle: (isOpen: boolean) => void;
 }
 
 const UserGroupsFilter = (props: Props) => {
@@ -45,42 +45,58 @@ const UserGroupsFilter = (props: Props) => {
 
     return (
         <div className='more-modal__dropdown'>
-            <MenuWrapper id='groupsFilterDropdown'>
-                <a>
-                    <span>{filterLabel()}</span>
-                    <span className='icon icon-chevron-down'/>
-                </a>
-                <Menu
-                    openLeft={false}
-                    ariaLabel={intl.formatMessage({id: 'user_groups_modal.filterAriaLabel', defaultMessage: 'Groups Filter Menu'})}
-                >
-                    <Menu.Group>
-                        <Menu.ItemAction
-                            id='groupsDropdownAll'
-                            buttonClass='groups-filter-btn'
-                            onClick={allGroupsOnClick}
-                            text={intl.formatMessage({id: 'user_groups_modal.allGroups', defaultMessage: 'All Groups'})}
-                            rightDecorator={selectedFilter === 'all' && <i className='icon icon-check'/>}
+            <Menu.Container
+                menuButton={{
+                    id: 'groupsFilterDropdown',
+                    class: 'groups-filter-btn',
+                    children: (
+                        <>
+                            <span>{filterLabel()}</span>
+                            <span className='icon icon-chevron-down'/>
+                        </>
+                    ),
+                }}
+                menu={{
+                    id: 'groupsFilterDropdownMenu',
+                    onToggle: props.onToggle,
+                    'aria-label': intl.formatMessage({id: 'user_groups_modal.filterAriaLabel', defaultMessage: 'Groups Filter'}),
+                }}
+            >
+                <Menu.Item
+                    id='groupsDropdownAll'
+                    onClick={allGroupsOnClick}
+                    labels={
+                        <FormattedMessage
+                            id='user_groups_modal.allGroups'
+                            defaultMessage='All Groups'
                         />
-                        <Menu.ItemAction
-                            id='groupsDropdownMy'
-                            buttonClass='groups-filter-btn'
-                            onClick={myGroupsOnClick}
-                            text={intl.formatMessage({id: 'user_groups_modal.myGroups', defaultMessage: 'My Groups'})}
-                            rightDecorator={selectedFilter === 'my' && <i className='icon icon-check'/>}
+                    }
+                    trailingElements={selectedFilter === 'all' && <i className='icon icon-check'/>}
+                />
+                <Menu.Item
+                    id='groupsDropdownMy'
+                    onClick={myGroupsOnClick}
+                    labels={
+                        <FormattedMessage
+                            id='user_groups_modal.myGroups'
+                            defaultMessage='My Groups'
                         />
-                    </Menu.Group>
-                    <Menu.Group>
-                        <Menu.ItemAction
-                            id='groupsDropdownArchived'
-                            buttonClass='groups-filter-btn'
-                            onClick={archivedGroupsOnClick}
-                            text={intl.formatMessage({id: 'user_groups_modal.archivedGroups', defaultMessage: 'Archived Groups'})}
-                            rightDecorator={selectedFilter === 'archived' && <i className='icon icon-check'/>}
+                    }
+                    trailingElements={selectedFilter === 'my' && <i className='icon icon-check'/>}
+                />
+                <Menu.Separator/>
+                <Menu.Item
+                    id='groupsDropdownArchived'
+                    onClick={archivedGroupsOnClick}
+                    labels={
+                        <FormattedMessage
+                            id='user_groups_modal.archivedGroups'
+                            defaultMessage='Archived Groups'
                         />
-                    </Menu.Group>
-                </Menu>
-            </MenuWrapper>
+                    }
+                    trailingElements={selectedFilter === 'archived' && <i className='icon icon-check'/>}
+                />
+            </Menu.Container>
         </div>
     );
 };
