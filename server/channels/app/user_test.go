@@ -904,9 +904,6 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 	th.LinkUserToTeam(user2, th.BasicTeam)
 	th.LinkUserToTeam(user3, th.BasicTeam)
 
-	user1, err := th.App.UpdateUser(th.Context, user1, false)
-	require.Nil(t, err)
-
 	// Create a policy with the same ID as the ABAC channel
 	channelPolicy := &model.AccessControlPolicy{
 		Type:     model.AccessControlPolicyTypeChannel,
