@@ -1501,6 +1501,42 @@ type API interface {
 	// @tag PropertyGroup
 	// Minimum server version: 10.10
 	GetPropertyGroup(name string) (*model.PropertyGroup, *model.AppError)
+
+	// GetPropertyFieldByName gets a property field by groupID, targetID and name.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.10
+	GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, *model.AppError)
+
+	// UpdatePropertyFields updates multiple property fields in a single operation.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.10
+	UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, *model.AppError)
+
+	// UpdatePropertyValues updates multiple property values in a single operation.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, *model.AppError)
+
+	// UpsertPropertyValues creates or updates multiple property values in a single operation.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, *model.AppError)
+
+	// DeletePropertyValuesForTarget deletes all property values for a specific target.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	DeletePropertyValuesForTarget(groupID, targetType, targetID string) *model.AppError
+
+	// DeletePropertyValuesForField deletes all property values for a specific field.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	DeletePropertyValuesForField(groupID, fieldID string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

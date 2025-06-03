@@ -1602,3 +1602,45 @@ func (api *apiTimerLayer) GetPropertyGroup(name string) (*model.PropertyGroup, *
 	api.recordTime(startTime, "GetPropertyGroup", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (api *apiTimerLayer) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyFieldByName(groupID, targetID, name)
+	api.recordTime(startTime, "GetPropertyFieldByName", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePropertyFields(groupID, fields)
+	api.recordTime(startTime, "UpdatePropertyFields", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePropertyValues(groupID, values)
+	api.recordTime(startTime, "UpdatePropertyValues", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpsertPropertyValues(values)
+	api.recordTime(startTime, "UpsertPropertyValues", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeletePropertyValuesForTarget(groupID, targetType, targetID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyValuesForTarget(groupID, targetType, targetID)
+	api.recordTime(startTime, "DeletePropertyValuesForTarget", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) DeletePropertyValuesForField(groupID, fieldID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyValuesForField(groupID, fieldID)
+	api.recordTime(startTime, "DeletePropertyValuesForField", _returnsA == nil)
+	return _returnsA
+}

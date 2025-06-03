@@ -1606,3 +1606,51 @@ func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, *mode
 	}
 	return result, nil
 }
+
+func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, *model.AppError) {
+	result, err := api.app.PropertyService().GetPropertyFieldByName(groupID, targetID, name)
+	if err != nil {
+		return nil, model.NewAppError("GetPropertyFieldByName", "app.property.get_property_field_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}
+
+func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, *model.AppError) {
+	result, err := api.app.PropertyService().UpdatePropertyFields(groupID, fields)
+	if err != nil {
+		return nil, model.NewAppError("UpdatePropertyFields", "app.property.update_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}
+
+func (api *PluginAPI) UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, *model.AppError) {
+	result, err := api.app.PropertyService().UpdatePropertyValues(groupID, values)
+	if err != nil {
+		return nil, model.NewAppError("UpdatePropertyValues", "app.property.update_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}
+
+func (api *PluginAPI) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, *model.AppError) {
+	result, err := api.app.PropertyService().UpsertPropertyValues(values)
+	if err != nil {
+		return nil, model.NewAppError("UpsertPropertyValues", "app.property.upsert_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}
+
+func (api *PluginAPI) DeletePropertyValuesForTarget(groupID, targetType, targetID string) *model.AppError {
+	err := api.app.PropertyService().DeletePropertyValuesForTarget(groupID, targetType, targetID)
+	if err != nil {
+		return model.NewAppError("DeletePropertyValuesForTarget", "app.property.delete_property_values_for_target.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
+}
+
+func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) *model.AppError {
+	err := api.app.PropertyService().DeletePropertyValuesForField(groupID, fieldID)
+	if err != nil {
+		return model.NewAppError("DeletePropertyValuesForField", "app.property.delete_property_values_for_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
+}

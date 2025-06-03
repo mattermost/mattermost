@@ -6775,8 +6775,20 @@
     "translation": "Failed to delete property value"
   },
   {
+    "id": "app.property.delete_property_values_for_field.app_error",
+    "translation": "Failed to delete property values for field"
+  },
+  {
+    "id": "app.property.delete_property_values_for_target.app_error",
+    "translation": "Failed to delete property values for target"
+  },
+  {
     "id": "app.property.get_property_field.app_error",
     "translation": "Failed to get property field"
+  },
+  {
+    "id": "app.property.get_property_field_by_name.app_error",
+    "translation": "Failed to get property field by name"
   },
   {
     "id": "app.property.get_property_fields.app_error",
@@ -6811,12 +6823,24 @@
     "translation": "Failed to update property field"
   },
   {
+    "id": "app.property.update_property_fields.app_error",
+    "translation": "Failed to update property fields"
+  },
+  {
     "id": "app.property.update_property_value.app_error",
     "translation": "Failed to update property value"
   },
   {
+    "id": "app.property.update_property_values.app_error",
+    "translation": "Failed to update property values"
+  },
+  {
     "id": "app.property.upsert_property_value.app_error",
     "translation": "Failed to create or update property value"
+  },
+  {
+    "id": "app.property.upsert_property_values.app_error",
+    "translation": "Failed to create or update property values"
   },
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
