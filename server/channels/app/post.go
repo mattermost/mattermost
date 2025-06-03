@@ -263,17 +263,18 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	var ephemeralPost *model.Post
-	hasPermission, _ := a.HasPermissionToChannel(c, user.Id, channel.Id, model.PermissionUseChannelMentions)
-	if post.Type == "" && !hasPermission {
-		mention := post.DisableMentionHighlights()
-		if mention != "" {
-			T := i18n.GetUserTranslations(user.Locale)
-			ephemeralPost = &model.Post{
-				UserId:    user.Id,
-				RootId:    post.RootId,
-				ChannelId: channel.Id,
-				Message:   T("model.post.channel_notifications_disabled_in_channel.message", model.StringInterface{"ChannelName": channel.Name, "Mention": mention}),
-				Props:     model.StringInterface{model.PostPropsMentionHighlightDisabled: true},
+	if post.Type == "" {
+		if hasPermission, _ := a.HasPermissionToChannel(c, user.Id, channel.Id, model.PermissionUseChannelMentions); !hasPermission {
+			mention := post.DisableMentionHighlights()
+			if mention != "" {
+				T := i18n.GetUserTranslations(user.Locale)
+				ephemeralPost = &model.Post{
+					UserId:    user.Id,
+					RootId:    post.RootId,
+					ChannelId: channel.Id,
+					Message:   T("model.post.channel_notifications_disabled_in_channel.message", model.StringInterface{"ChannelName": channel.Name, "Mention": mention}),
+					Props:     model.StringInterface{model.PostPropsMentionHighlightDisabled: true},
+				}
 			}
 		}
 	}
@@ -536,8 +537,12 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 	}
 
 	matched := atMentionPattern.MatchString(post.Message)
-	hasPermission, _ := a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions)
-	if a.Srv().License() != nil && *a.Srv().License().Features.LDAPGroups && matched && !hasPermission {
+	shouldAddProp := false
+	if a.Srv().License() != nil && *a.Srv().License().Features.LDAPGroups && matched {
+		hasPermission, _ := a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions)
+		shouldAddProp = !hasPermission
+	}
+	if shouldAddProp {
 		post.AddProp(model.PostPropsGroupHighlightDisabled, true)
 	}
 
@@ -2131,7 +2136,7 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 		return nil, err, false
 	}
 
-	ok, isMember := a.HasPermissionToChannel(c, session.UserId, post.ChannelId, model.PermissionReadChannelContent)
+	ok, isMember := a.SessionHasPermissionToReadChannel(c, *session, channel)
 	if !ok {
 		if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
