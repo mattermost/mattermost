@@ -1,202 +1,246 @@
-run:
-  timeout: 10m
-
-linters-settings:
-  gofmt:
-    simplify: true
-    rewrite-rules:
-      - pattern: 'interface{}'
-        replacement: 'any'
-  govet:
-    enable-all: true
-    disable:
-      - fieldalignment
-
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
-    - typecheck # This is to improve error reporting
-    - gofmt
-    - gosimple
+    - bidichk
+    - errcheck
     - govet
     - ineffassign
+    - makezero
+    - misspell
     - revive
     - staticcheck
     - unconvert
     - unused
-    - misspell
-    - goimports
-    - makezero
     - whitespace
-    - errcheck
-    - bidichk
-
+  settings:
+    govet:
+      disable:
+        - fieldalignment
+      enable-all: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - std-error-handling
+    rules:
+      - linters:
+          - unused
+        text: SetupEnterprise
+      - linters:
+          - revive
+        text: var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block
+      - linters:
+          - revive
+        path: enterprise
+        text: var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block
+      - linters:
+          - misspell
+        path: platform/shared/markdown/html_entities.go
+      - linters:
+          - staticcheck
+        text: SA1019
+      - linters:
+          - staticcheck
+        text: ST1023
+      - linters:
+          - staticcheck
+        text: ST1012
+      - linters:
+          - staticcheck
+        text: ST1005
+      - linters:
+          - staticcheck
+        text: QF1011
+      - linters:
+          - staticcheck
+        text: QF1001
+      - linters:
+          - staticcheck
+        text: QF1003
+      - linters:
+          - staticcheck
+        text: QF1012
+      - linters:
+          - staticcheck
+        text: QT1019
+      - linters:
+          - staticcheck
+        text: QF1008
+      - linters:
+          - staticcheck
+        text: QF1004
+      - linters:
+          - staticcheck
+        text: ST1019
+      - linters:
+          - staticcheck
+        text: QF1006
+      - linters:
+          - staticcheck
+        text: QF1002
+      - linters:
+          - staticcheck
+        text: QF1007
+      - linters:
+          - errcheck
+        path: "\
+          channels/api4/apitestlib.go|\
+          channels/api4/bot_test.go|\
+          channels/api4/channel_test.go|\
+          channels/api4/cloud.go|\
+          channels/api4/cloud_test.go|\
+          channels/api4/cluster.go|\
+          channels/api4/command.go|\
+          channels/api4/command_test.go|\
+          channels/api4/compliance.go|\
+          channels/api4/config.go|\
+          channels/api4/config_local.go|\
+          channels/api4/config_test.go|\
+          channels/api4/data_retention.go|\
+          channels/api4/preference_test.go|\
+          channels/api4/reaction_test.go|\
+          channels/api4/role.go|\
+          channels/api4/saml.go|\
+          channels/api4/scheme.go|\
+          channels/api4/shared_channel.go|\
+          channels/api4/system.go|\
+          channels/api4/system_local.go|\
+          channels/api4/team_local.go|\
+          channels/api4/websocket_test.go|\
+          channels/app/bot_test.go|\
+          channels/app/file_test.go|\
+          channels/app/helper_test.go|\
+          channels/app/permissions_test.go|\
+          channels/app/platform/helper_test.go|\
+          channels/store/localcachelayer/channel_layer.go|\
+          channels/store/localcachelayer/channel_layer_test.go|\
+          channels/store/localcachelayer/emoji_layer.go|\
+          channels/store/localcachelayer/emoji_layer_test.go|\
+          channels/store/localcachelayer/file_info_layer.go|\
+          channels/store/localcachelayer/file_info_layer_test.go|\
+          channels/store/localcachelayer/post_layer.go|\
+          channels/store/localcachelayer/post_layer_test.go|\
+          channels/store/localcachelayer/reaction_layer.go|\
+          channels/store/localcachelayer/reaction_layer_test.go|\
+          channels/store/localcachelayer/role_layer.go|\
+          channels/store/localcachelayer/role_layer_test.go|\
+          channels/store/localcachelayer/scheme_layer.go|\
+          channels/store/localcachelayer/scheme_layer_test.go|\
+          channels/store/localcachelayer/team_layer.go|\
+          channels/store/localcachelayer/terms_of_service_layer.go|\
+          channels/store/localcachelayer/terms_of_service_layer_test.go|\
+          channels/store/localcachelayer/user_layer.go|\
+          channels/store/localcachelayer/webhook_layer.go|\
+          channels/store/localcachelayer/webhook_layer_test.go|\
+          channels/store/retrylayer/retrylayer_test.go|\
+          channels/store/searchtest/channel_layer.go|\
+          channels/store/searchtest/file_info_layer.go|\
+          channels/store/searchtest/helper.go|\
+          channels/store/searchtest/post_layer.go|\
+          channels/store/searchtest/user_layer.go|\
+          channels/store/sqlstore/command_store.go|\
+          channels/store/sqlstore/integrity_test.go|\
+          channels/store/sqlstore/session_store.go|\
+          channels/store/sqlstore/store.go|\
+          channels/store/storetest/channel_bookmark.go|\
+          channels/store/storetest/channel_store.go|\
+          channels/store/storetest/channel_store_categories.go|\
+          channels/store/storetest/file_info_store.go|\
+          channels/store/storetest/group_store.go|\
+          channels/store/storetest/job_store.go|\
+          channels/store/storetest/post_persistent_notification_store.go|\
+          channels/store/storetest/post_store.go|\
+          channels/store/storetest/product_notices_store.go|\
+          channels/store/storetest/role_store.go|\
+          channels/store/storetest/scheme_store.go|\
+          channels/store/storetest/shared_channel_store.go|\
+          channels/store/storetest/team_store.go|\
+          channels/store/storetest/thread_store.go|\
+          channels/store/storetest/user_store.go|\
+          channels/web/web_test.go|\
+          cmd/mattermost/commands/cmdtestlib.go|\
+          cmd/mattermost/commands/db.go|\
+          cmd/mattermost/commands/export.go|\
+          cmd/mattermost/commands/import.go|\
+          cmd/mattermost/commands/jobserver.go|\
+          cmd/mattermost/commands/server.go|\
+          cmd/mattermost/commands/server_test.go|\
+          cmd/mattermost/commands/test.go|\
+          cmd/mattermost/commands/version.go|\
+          platform/services/cache/lru_striped.go|\
+          platform/services/cache/lru_striped_bench_test.go|\
+          platform/services/cache/lru_striped_test.go|\
+          platform/services/cache/lru_test.go|\
+          platform/services/docextractor/combine.go|\
+          platform/services/docextractor/pdf.go|\
+          platform/services/imageproxy/atmos_camo_test.go|\
+          platform/services/imageproxy/local.go|\
+          platform/services/imageproxy/local_test.go|\
+          platform/services/remotecluster/invitation.go|\
+          platform/services/remotecluster/ping_test.go|\
+          platform/services/remotecluster/send_test.go|\
+          platform/services/remotecluster/sendfile.go|\
+          platform/services/remotecluster/sendprofileImage_test.go|\
+          platform/services/searchengine/bleveengine/bleve_test.go|\
+          platform/services/searchengine/bleveengine/common.go|\
+          platform/services/searchengine/bleveengine/indexer/indexing_job.go|\
+          platform/services/sharedchannel/attachment.go|\
+          platform/services/sharedchannel/channelinvite.go|\
+          platform/services/sharedchannel/permalink_test.go|\
+          platform/services/sharedchannel/sync_recv.go|\
+          platform/services/sharedchannel/sync_send.go|\
+          platform/services/slackimport/slackimport.go|\
+          platform/services/telemetry/telemetry.go|\
+          platform/services/telemetry/telemetry_test.go|\
+          platform/services/upgrader/upgrader_linux.go|\
+          platform/services/upgrader/upgrader_linux_test.go|\
+          platform/shared/filestore/filesstore_test.go|\
+          platform/shared/filestore/s3store.go|\
+          platform/shared/filestore/s3store_test.go|\
+          platform/shared/mail/inbucket.go|\
+          platform/shared/mail/mail.go|\
+          platform/shared/mail/mail_test.go|\
+          platform/shared/mfa/mfa.go|\
+          platform/shared/templates/templates_test.go|\
+          public/model/channel.go|\
+          public/model/client4.go|\
+          public/model/config.go|\
+          public/model/incoming_webhook.go|\
+          public/model/license.go|\
+          public/model/link_metadata.go|\
+          public/model/post.go|\
+          public/model/preference.go|\
+          public/model/user.go|\
+          public/model/utils.go|\
+          public/model/websocket_client.go|\
+          public/model/websocket_message_test.go|\
+          public/plugin/http.go|\
+          public/plugin/supervisor_test.go|\
+          public/shared/mlog/default.go|\
+          public/shared/mlog/global_test.go|\
+          public/shared/mlog/mlog.go"
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+      rewrite-rules:
+        - pattern: interface{}
+          replacement: any
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - mock.*
 issues:
-  exclude-rules:
-    - linters:
-      # ignore unused warnings from enterprise code
-      # add more as required.
-      - unused
-      text: "SetupEnterprise"
-
-    - linters:
-      - revive
-      # We need to fix the unused parameter issues and remove the exception.
-      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block"
-
-    # Use a seperate set of exception for the enterprise code to allow community members to fix only the open source issues.
-    - linters:
-      - revive
-      path: "enterprise"
-      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block"
-
-    - linters:
-      - misspell
-      path: "platform/shared/markdown/html_entities.go"
-
-    - linters:
-      - staticcheck
-      text: SA1019
-
-    - linters:
-      - gofmt
-      path: "mock.*"
-
-    - linters:
-        - errcheck
-      path: "\
-        channels/api4/apitestlib.go|\
-        channels/api4/bot_test.go|\
-        channels/api4/channel_test.go|\
-        channels/api4/cloud.go|\
-        channels/api4/cloud_test.go|\
-        channels/api4/cluster.go|\
-        channels/api4/command.go|\
-        channels/api4/command_test.go|\
-        channels/api4/compliance.go|\
-        channels/api4/config.go|\
-        channels/api4/config_local.go|\
-        channels/api4/config_test.go|\
-        channels/api4/data_retention.go|\
-        channels/api4/preference_test.go|\
-        channels/api4/reaction_test.go|\
-        channels/api4/role.go|\
-        channels/api4/saml.go|\
-        channels/api4/scheme.go|\
-        channels/api4/shared_channel.go|\
-        channels/api4/system.go|\
-        channels/api4/system_local.go|\
-        channels/api4/team_local.go|\
-        channels/api4/websocket_test.go|\
-        channels/app/bot_test.go|\
-        channels/app/file_test.go|\
-        channels/app/helper_test.go|\
-        channels/app/permissions_test.go|\
-        channels/app/platform/helper_test.go|\
-        channels/store/localcachelayer/channel_layer.go|\
-        channels/store/localcachelayer/channel_layer_test.go|\
-        channels/store/localcachelayer/emoji_layer.go|\
-        channels/store/localcachelayer/emoji_layer_test.go|\
-        channels/store/localcachelayer/file_info_layer.go|\
-        channels/store/localcachelayer/file_info_layer_test.go|\
-        channels/store/localcachelayer/post_layer.go|\
-        channels/store/localcachelayer/post_layer_test.go|\
-        channels/store/localcachelayer/reaction_layer.go|\
-        channels/store/localcachelayer/reaction_layer_test.go|\
-        channels/store/localcachelayer/role_layer.go|\
-        channels/store/localcachelayer/role_layer_test.go|\
-        channels/store/localcachelayer/scheme_layer.go|\
-        channels/store/localcachelayer/scheme_layer_test.go|\
-        channels/store/localcachelayer/team_layer.go|\
-        channels/store/localcachelayer/terms_of_service_layer.go|\
-        channels/store/localcachelayer/terms_of_service_layer_test.go|\
-        channels/store/localcachelayer/user_layer.go|\
-        channels/store/localcachelayer/webhook_layer.go|\
-        channels/store/localcachelayer/webhook_layer_test.go|\
-        channels/store/retrylayer/retrylayer_test.go|\
-        channels/store/searchtest/channel_layer.go|\
-        channels/store/searchtest/file_info_layer.go|\
-        channels/store/searchtest/helper.go|\
-        channels/store/searchtest/post_layer.go|\
-        channels/store/searchtest/user_layer.go|\
-        channels/store/sqlstore/command_store.go|\
-        channels/store/sqlstore/integrity_test.go|\
-        channels/store/sqlstore/session_store.go|\
-        channels/store/sqlstore/store.go|\
-        channels/store/storetest/channel_bookmark.go|\
-        channels/store/storetest/channel_store.go|\
-        channels/store/storetest/channel_store_categories.go|\
-        channels/store/storetest/file_info_store.go|\
-        channels/store/storetest/group_store.go|\
-        channels/store/storetest/job_store.go|\
-        channels/store/storetest/post_persistent_notification_store.go|\
-        channels/store/storetest/post_store.go|\
-        channels/store/storetest/product_notices_store.go|\
-        channels/store/storetest/role_store.go|\
-        channels/store/storetest/scheme_store.go|\
-        channels/store/storetest/shared_channel_store.go|\
-        channels/store/storetest/team_store.go|\
-        channels/store/storetest/thread_store.go|\
-        channels/store/storetest/user_store.go|\
-        channels/web/web_test.go|\
-        cmd/mattermost/commands/cmdtestlib.go|\
-        cmd/mattermost/commands/db.go|\
-        cmd/mattermost/commands/export.go|\
-        cmd/mattermost/commands/import.go|\
-        cmd/mattermost/commands/jobserver.go|\
-        cmd/mattermost/commands/server.go|\
-        cmd/mattermost/commands/server_test.go|\
-        cmd/mattermost/commands/test.go|\
-        cmd/mattermost/commands/version.go|\
-        platform/services/cache/lru_striped.go|\
-        platform/services/cache/lru_striped_bench_test.go|\
-        platform/services/cache/lru_striped_test.go|\
-        platform/services/cache/lru_test.go|\
-        platform/services/docextractor/combine.go|\
-        platform/services/docextractor/pdf.go|\
-        platform/services/imageproxy/atmos_camo_test.go|\
-        platform/services/imageproxy/local.go|\
-        platform/services/imageproxy/local_test.go|\
-        platform/services/remotecluster/invitation.go|\
-        platform/services/remotecluster/ping_test.go|\
-        platform/services/remotecluster/send_test.go|\
-        platform/services/remotecluster/sendfile.go|\
-        platform/services/remotecluster/sendprofileImage_test.go|\
-        platform/services/searchengine/bleveengine/bleve_test.go|\
-        platform/services/searchengine/bleveengine/common.go|\
-        platform/services/searchengine/bleveengine/indexer/indexing_job.go|\
-        platform/services/sharedchannel/attachment.go|\
-        platform/services/sharedchannel/channelinvite.go|\
-        platform/services/sharedchannel/permalink_test.go|\
-        platform/services/sharedchannel/sync_recv.go|\
-        platform/services/sharedchannel/sync_send.go|\
-        platform/services/slackimport/slackimport.go|\
-        platform/services/telemetry/telemetry.go|\
-        platform/services/telemetry/telemetry_test.go|\
-        platform/services/upgrader/upgrader_linux.go|\
-        platform/services/upgrader/upgrader_linux_test.go|\
-        platform/shared/filestore/filesstore_test.go|\
-        platform/shared/filestore/s3store.go|\
-        platform/shared/filestore/s3store_test.go|\
-        platform/shared/mail/inbucket.go|\
-        platform/shared/mail/mail.go|\
-        platform/shared/mail/mail_test.go|\
-        platform/shared/mfa/mfa.go|\
-        platform/shared/templates/templates_test.go|\
-        public/model/channel.go|\
-        public/model/client4.go|\
-        public/model/config.go|\
-        public/model/incoming_webhook.go|\
-        public/model/license.go|\
-        public/model/link_metadata.go|\
-        public/model/post.go|\
-        public/model/preference.go|\
-        public/model/user.go|\
-        public/model/utils.go|\
-        public/model/websocket_client.go|\
-        public/model/websocket_message_test.go|\
-        public/plugin/http.go|\
-        public/plugin/supervisor_test.go|\
-        public/shared/mlog/default.go|\
-        public/shared/mlog/global_test.go|\
-        public/shared/mlog/mlog.go"
+  max-issues-per-linter: 0 # no maximum
+  max-same-issues: 0 # no maximum
