@@ -129,7 +129,7 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
         };
     };
 
-    private handleCancel = () => {
+    private handleHide = () => {
         const {url, callbackId, state, notifyOnCancel} = this.props;
 
         if (notifyOnCancel) {
