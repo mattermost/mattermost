@@ -307,11 +307,6 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	for i, post := range sd.posts {
 		if post != nil {
 			sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
-			// Debug: Log if post has acknowledgements
-			if sd.posts[i].Metadata != nil && sd.posts[i].Metadata.Acknowledgements != nil && len(sd.posts[i].Metadata.Acknowledgements) > 0 {
-				ackCount := len(sd.posts[i].Metadata.Acknowledgements)
-				scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("SEND: Post %s has %d acknowledgements (new posts batch)", sd.posts[i].Id, ackCount))
-			}
 		}
 	}
 
@@ -334,11 +329,6 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		for i := previousLen; i < len(sd.posts); i++ {
 			if sd.posts[i] != nil {
 				sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), sd.posts[i], false, false, true)
-				// Debug: Log if post has acknowledgements
-				if sd.posts[i].Metadata != nil && sd.posts[i].Metadata.Acknowledgements != nil && len(sd.posts[i].Metadata.Acknowledgements) > 0 {
-					ackCount := len(sd.posts[i].Metadata.Acknowledgements)
-					scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("SEND: Post %s has %d acknowledgements (updated posts batch)", sd.posts[i].Id, ackCount))
-				}
 			}
 		}
 	}
@@ -570,7 +560,8 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 
 		// don't sync a post back to the remote it came from
 		if p.GetRemoteID() == sd.rc.RemoteId {
-			scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("FILTER: Skipping post %s - originated from remote %s and no metadata changes", p.Id, sd.rc.RemoteId))
+			scs.postDebugMessage(sd.task.channelID, fmt.Sprintf("FILTER: Skipping post %s - originated from remote %s", p.Id, sd.rc.RemoteId))
+			continue
 		}
 
 		// parse out all permalinks in the message.

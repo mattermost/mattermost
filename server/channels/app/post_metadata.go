@@ -157,10 +157,6 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 			c.Logger().Warn("Failed to get post acknowledgements for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 		} else {
 			post.Metadata.Acknowledgements = acknowledgements
-			// Debug: Post message when acknowledgements are found and added to metadata
-			if len(acknowledgements) > 0 {
-				a.postDebugToTownSquare(c, fmt.Sprintf("PreparePostForClient: Added %d acknowledgements to post metadata for post %s", len(acknowledgements), post.Id))
-			}
 		}
 	}
 
