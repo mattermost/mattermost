@@ -238,6 +238,10 @@ Before running tests, a Mattermost server must be available. Two options:
     - Use comment prefixes to clearly indicate actions and verifications:
         - `// # descriptive action` - Comments that describe steps being taken (e.g., `// # Initialize user and login`)
         - `// * descriptive verification` - Comments that describe assertions/checks (e.g., `// * Verify message appears in channel`)
+    - When using helper functions:
+        - Include verification comments (`// *`) in both the main test and the helper function
+        - This ensures test documentation tools can capture all steps and verifications
+        - For shared helper functions, duplicate verification comments in the calling test to document what will be verified
 
 6. **Browser Compatibility**:
 
@@ -246,7 +250,25 @@ Before running tests, a Mattermost server must be available. Two options:
     - Use `test.skip()` for browser-specific limitations
 
 7. **Test Documentation Linting**:
+
     - Run `npm run lint:test-docs` to verify all spec files follow the documentation format
     - The linter checks for proper JSDoc tags, test titles, feature tags, and action/verification comments
     - This is also included in the standard `npm run check` command
     - See the example in `specs/functional/channels/scheduled_messages/scheduled_messages.spec.ts`
+
+8. **Accessibility Testing**: For accessibility tests in `specs/accessibility/`:
+
+    - Follow the comprehensive accessibility guidelines found in `specs/accessibility/guidelines/`
+    - These guidelines are based on WCAG 2.1 Level AA standards and Microsoft's Accessibility Insights methodology
+    - Cover all 25 accessibility categories including:
+        - **Automated checks** using tools like axe-core for detecting common issues
+        - **Keyboard navigation** ensuring all interactive components are accessible via keyboard
+        - **Focus management** with visible focus indicators and logical focus order
+        - **Landmarks, headings, and page structure** for screen reader navigation
+        - **Form controls and custom widgets** with proper ARIA implementation
+        - **Visual design** including contrast, images, and sensory characteristics
+        - **Content accessibility** including multimedia, language, and cognitive requirements
+    - Use the `@accessibility` tag for accessibility-specific tests
+    - Combine automated testing tools (axe-core integration) with manual testing procedures
+    - Reference specific guideline files for detailed test procedures and WCAG success criteria
+    - Test examples can be found in existing accessibility spec files like `specs/accessibility/channels/account_menu_keyboard.spec.ts`

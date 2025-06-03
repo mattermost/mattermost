@@ -3,6 +3,9 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+/**
+ * @objective Verify that the base channel view meets accessibility standards
+ */
 test.fixme('Base channel accessibility', async ({pw, axe}) => {
     // # Create and sign in a new user
     const {user} = await pw.initSetup();
@@ -23,7 +26,10 @@ test.fixme('Base channel accessibility', async ({pw, axe}) => {
     expect(accessibilityScanResults.violations).toHaveLength(0);
 });
 
-test('Post actions tab support', async ({pw, axe}) => {
+/**
+ * @objective Verify that post actions menu is keyboard accessible and meets accessibility standards
+ */
+test('Post actions tab support', {tag: '@accessibility'}, async ({pw, axe}) => {
     // # Create and sign in a new user
     const {user, adminClient} = await pw.initSetup();
     const config = await adminClient.getConfig();

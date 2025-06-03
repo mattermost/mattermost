@@ -3,7 +3,10 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('/signup_user_complete accessibility quick check', async ({pw, axe}) => {
+/**
+ * @objective Verify that signup page meets accessibility standards
+ */
+test('/signup_user_complete accessibility quick check', {tag: '@accessibility'}, async ({pw, axe}) => {
     // Set up the page not to redirect to the landing page
     await pw.hasSeenLandingPage();
 
@@ -20,7 +23,10 @@ test('/signup_user_complete accessibility quick check', async ({pw, axe}) => {
     expect(accessibilityScanResults.violations).toHaveLength(0);
 });
 
-test('/signup_user_complete accessibility tab support', async ({pw}, testInfo) => {
+/**
+ * @objective Verify that signup page is fully keyboard accessible through tab navigation
+ */
+test('/signup_user_complete accessibility tab support', {tag: '@accessibility'}, async ({pw}, testInfo) => {
     // Set up the page not to redirect to the landing page
     await pw.hasSeenLandingPage();
 
