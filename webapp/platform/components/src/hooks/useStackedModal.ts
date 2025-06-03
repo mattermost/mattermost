@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useLayoutEffect, useRef, useState} from 'react';
+import {useLayoutEffect, useMemo, useRef, useState} from 'react';
 
 const BASE_MODAL_Z_INDEX = 1050; // Bootstrap default modal z-index
 const BASE_BACKDROP_Z_INDEX = 1040; // Bootstrap default backdrop z-index
@@ -129,11 +129,15 @@ export function useStackedModal(
         };
     }, [isOpen, isStacked]);
 
+    const modalStyle = useMemo(() => {
+        return isStacked ? {
+            zIndex: zIndexes.modal,
+        } : {};
+    }, [isStacked, zIndexes.modal]);
+
     return {
         shouldRenderBackdrop,
-        modalStyle: isStacked ? {
-            zIndex: zIndexes.modal,
-        } : {},
+        modalStyle,
         parentModalRef,
     };
 }

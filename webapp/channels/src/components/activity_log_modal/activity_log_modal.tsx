@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
@@ -75,22 +75,24 @@ const ActivityLogModal = ({
         getSessions(currentUserId);
     }, [currentUserId, getSessions]);
 
-    const activityList = sessions.reduce((array: JSX.Element[], currentSession, index) => {
-        if (currentSession.props.type === 'UserAccessToken') {
-            return array;
-        }
+    const activityList = useMemo(() => {
+        return sessions.reduce((array: JSX.Element[], currentSession, index) => {
+            if (currentSession.props.type === 'UserAccessToken') {
+                return array;
+            }
 
-        array.push(
-            <ActivityLog
-                key={currentSession.id}
-                index={index}
-                locale={locale}
-                currentSession={currentSession}
-                submitRevoke={submitRevoke}
-            />,
-        );
-        return array;
-    }, []);
+            array.push(
+                <ActivityLog
+                    key={currentSession.id}
+                    index={index}
+                    locale={locale}
+                    currentSession={currentSession}
+                    submitRevoke={submitRevoke}
+                />,
+            );
+            return array;
+        }, []);
+    }, [sessions, locale, submitRevoke]);
 
     const content = <form>{activityList}</form>;
 
