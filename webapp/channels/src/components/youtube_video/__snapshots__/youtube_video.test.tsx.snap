@@ -65,19 +65,26 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
           className="video-div embed-responsive-item"
         >
           <div
+            aria-label="Play Youtube title on YouTube"
             className="video-thumbnail__container hq"
             onClick={[Function]}
+            onKeyDown={[Function]}
+            role="button"
+            tabIndex={0}
           >
             <img
-              alt=""
+              alt="Thumbnail for Youtube title on YouTube"
               className="video-thumbnail"
               onError={[Function]}
               src="https://img.youtube.com/vi/xqCoNej8Zxo/hqdefault.jpg"
             />
             <div
+              aria-label="Play video"
               className="play-button"
+              role="img"
             >
               <i
+                aria-hidden="true"
                 className="icon-play"
               />
             </div>
