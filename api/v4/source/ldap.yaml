@@ -47,7 +47,7 @@
   /api/v4/ldap/groups:
     get:
       tags:
-        - ldap
+        - LDAP
       summary: Returns a list of LDAP groups
       description: >
         ##### Permissions
@@ -94,7 +94,7 @@
   /api/v4/ldap/groups/{remote_id}/link:
     post:
       tags:
-        - ldap
+        - LDAP
       summary: Link a LDAP group
       description: >
         ##### Permissions
