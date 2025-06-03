@@ -62,6 +62,7 @@ func (s *SqlPostAcknowledgementStore) Save(postID, userID string, acknowledgedAt
 		PostId:         postID,
 		ChannelId:      channelId,
 		AcknowledgedAt: acknowledgedAt,
+		RemoteId:       nil,
 	}
 
 	acknowledgement.PreSave()
@@ -80,13 +81,14 @@ func (s *SqlPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostA
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	columnsToInsert := []string{"PostId", "UserId", "ChannelId", "AcknowledgedAt"}
-	valuesToInsert := []any{acknowledgement.PostId, acknowledgement.UserId, acknowledgement.ChannelId, acknowledgement.AcknowledgedAt}
-
+	columnsToInsert := []string{"PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId"}
+	var remoteIdValue any
 	if acknowledgement.RemoteId != nil {
-		columnsToInsert = append(columnsToInsert, "RemoteId")
-		valuesToInsert = append(valuesToInsert, *acknowledgement.RemoteId)
+		remoteIdValue = *acknowledgement.RemoteId
+	} else {
+		remoteIdValue = nil
 	}
+	valuesToInsert := []any{acknowledgement.PostId, acknowledgement.UserId, acknowledgement.ChannelId, acknowledgement.AcknowledgedAt, remoteIdValue}
 
 	query := s.getQueryBuilder().
 		Insert("PostAcknowledgements").
@@ -281,8 +283,24 @@ func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAc
 		return []*model.PostAcknowledgement{}, nil
 	}
 
-	// Validate all acknowledgements before saving
+	// Populate missing ChannelId fields and validate all acknowledgements
 	for _, ack := range acknowledgements {
+		// If ChannelId is not set, look it up from the post
+		if ack.ChannelId == "" {
+			// Get the channelId from the post
+			postQuery := s.getQueryBuilder().
+				Select("ChannelId").
+				From("Posts").
+				Where(sq.Eq{"Id": ack.PostId})
+
+			var channelId string
+			err := s.GetReplica().GetBuilder(&channelId, postQuery)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to get channel id for post %s", ack.PostId)
+			}
+			ack.ChannelId = channelId
+		}
+
 		if err := ack.IsValid(); err != nil {
 			return nil, err
 		}
@@ -301,13 +319,14 @@ func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAc
 	for _, ack := range acknowledgements {
 		ack.PreSave()
 
-		columnsToInsert := []string{"PostId", "UserId", "ChannelId", "AcknowledgedAt"}
-		valuesToInsert := []any{ack.PostId, ack.UserId, ack.ChannelId, ack.AcknowledgedAt}
-
+		columnsToInsert := []string{"PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId"}
+		var remoteIdValue any
 		if ack.RemoteId != nil {
-			columnsToInsert = append(columnsToInsert, "RemoteId")
-			valuesToInsert = append(valuesToInsert, *ack.RemoteId)
+			remoteIdValue = *ack.RemoteId
+		} else {
+			remoteIdValue = nil
 		}
+		valuesToInsert := []any{ack.PostId, ack.UserId, ack.ChannelId, ack.AcknowledgedAt, remoteIdValue}
 
 		query := s.getQueryBuilder().
 			Insert("PostAcknowledgements").

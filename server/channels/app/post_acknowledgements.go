@@ -35,8 +35,15 @@ func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post
 		return nil, model.NewAppError("SaveAcknowledgementForPost", "api.acknowledgement.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
-	acknowledgedAt := model.GetMillis()
-	acknowledgement, nErr := a.Srv().Store().PostAcknowledgement().Save(post.Id, userID, acknowledgedAt)
+	// Pre-populate the ChannelId to save a DB call in store
+	acknowledgement := &model.PostAcknowledgement{
+		PostId:    post.Id,
+		UserId:    userID,
+		ChannelId: post.ChannelId,
+	}
+	acknowledgement.PreSave()
+
+	savedAck, nErr := a.Srv().Store().PostAcknowledgement().SaveWithModel(acknowledgement)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -62,7 +69,7 @@ func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post
 	// The post is always modified since the UpdateAt always changes
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementAdded, acknowledgement, post)
+	a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementAdded, savedAck, post)
 
 	// Trigger post updated event to ensure shared channel sync
 	a.sendPostUpdateEvent(c, post)
@@ -72,7 +79,7 @@ func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post
 		a.postDebugToTownSquare(c, fmt.Sprintf("Acknowledgement added for shared channel post %s by user %s", post.Id, userID))
 	}
 
-	return acknowledgement, nil
+	return savedAck, nil
 }
 
 func (a *App) SaveAcknowledgementForPostByUserID(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
@@ -203,6 +210,7 @@ func (a *App) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Pos
 		acknowledgements = append(acknowledgements, &model.PostAcknowledgement{
 			PostId:         post.Id,
 			UserId:         userID,
+			ChannelId:      post.ChannelId,
 			AcknowledgedAt: acknowledgedAt,
 		})
 	}

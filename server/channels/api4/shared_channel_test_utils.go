@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 	"github.com/stretchr/testify/require"
@@ -39,9 +40,15 @@ type SelfReferentialSyncHandler struct {
 	t                *testing.T
 	handler          func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error
 	syncMessageCount *int32
+	remoteCluster    *model.RemoteCluster
+	service          *sharedchannel.Service
 
 	// Callbacks for capturing sync data
-	OnPostSync func(post *model.Post)
+	OnPostSync            func(post *model.Post)
+	OnAcknowledgementSync func(ack *model.PostAcknowledgement)
+
+	// Pending acknowledgements to inject into next sync
+	pendingAcknowledgements []*model.PostAcknowledgement
 }
 
 // NewSelfReferentialSyncHandler creates a new handler for processing sync messages in tests
@@ -50,15 +57,23 @@ func NewSelfReferentialSyncHandler(t *testing.T, service *sharedchannel.Service,
 	return &SelfReferentialSyncHandler{
 		t:                t,
 		syncMessageCount: &count,
+		remoteCluster:    selfCluster,
+		service:          service,
 		handler: func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 			return service.OnReceiveSyncMessageForTesting(msg, selfCluster, response)
 		},
+		pendingAcknowledgements: make([]*model.PostAcknowledgement, 0),
 	}
 }
 
 // GetSyncMessageCount returns the current count of sync messages received
 func (h *SelfReferentialSyncHandler) GetSyncMessageCount() int32 {
 	return atomic.LoadInt32(h.syncMessageCount)
+}
+
+// QueueAcknowledgementForSync adds an acknowledgement to be included in the next sync message
+func (h *SelfReferentialSyncHandler) QueueAcknowledgementForSync(ack *model.PostAcknowledgement) {
+	h.pendingAcknowledgements = append(h.pendingAcknowledgements, ack)
 }
 
 // HandleRequest processes incoming HTTP requests for the test server.
@@ -80,7 +95,7 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 			// Parse the message first to see what's being sent
 			var syncMsg model.SyncMsg
 			if unmarshalErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); unmarshalErr == nil {
-				h.t.Logf("Sync message contains %d posts", len(syncMsg.Posts))
+				h.t.Logf("Sync message contains %d posts, %d acknowledgements", len(syncMsg.Posts), len(syncMsg.Acknowledgements))
 				for i, post := range syncMsg.Posts {
 					h.t.Logf("Post %d: ID=%s, Message=%s, HasMetadata=%v", i, post.Id, post.Message, post.Metadata != nil)
 					if post.Metadata != nil && post.Metadata.Priority != nil {
@@ -88,6 +103,9 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 							post.Metadata.Priority.Priority,
 							post.Metadata.Priority.RequestedAck,
 							post.Metadata.Priority.PersistentNotifications)
+					}
+					for i, ack := range syncMsg.Acknowledgements {
+						h.t.Logf("Acknowledgement %d: PostId=%s, UserId=%s, RemoteId=%v", i, ack.PostId, ack.UserId, ack.RemoteId)
 					}
 				}
 			}
@@ -109,6 +127,13 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 					if len(syncMsg.Posts) > 0 && h.OnPostSync != nil {
 						for _, post := range syncMsg.Posts {
 							h.OnPostSync(post)
+						}
+					}
+
+					// Handle acknowledgements - call callback for verification
+					if len(syncMsg.Acknowledgements) > 0 && h.OnAcknowledgementSync != nil {
+						for _, ack := range syncMsg.Acknowledgements {
+							h.OnAcknowledgementSync(ack)
 						}
 					}
 
@@ -164,6 +189,12 @@ func ensureCleanState(t *testing.T, th *TestHelper) {
 	allRemoteClusters, _ := ss.RemoteCluster().GetAll(0, 1000, model.RemoteClusterQueryFilter{})
 	for _, rc := range allRemoteClusters {
 		_, _ = ss.RemoteCluster().Delete(rc.RemoteId)
+	}
+
+	// Clear all acknowledgements from previous tests by setting AcknowledgedAt to 0
+	// This uses raw SQL to ensure all acknowledgements are cleared regardless of their state
+	if sqlStore, ok := ss.(*sqlstore.SqlStore); ok {
+		_, _ = sqlStore.GetMaster().Exec("UPDATE PostAcknowledgements SET AcknowledgedAt = 0")
 	}
 
 	// Verify cleanup is complete
