@@ -142,25 +142,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 
 	// Handle users-only export
 	if opts.UsersOnly {
-		ctx.Logger().Info("Bulk export: users-only export mode")
-
-		ctx.Logger().Info("Bulk export: exporting users")
-		profilePictures, appErr := a.exportAllUsers(ctx, job, writer, false, opts.IncludeProfilePictures)
-		if appErr != nil {
-			return appErr
-		}
-
-		if opts.IncludeProfilePictures && len(profilePictures) > 0 {
-			ctx.Logger().Info("Bulk export: exporting profile pictures")
-			for _, profilePicture := range profilePictures {
-				if err := a.exportFile(ctx, outPath, profilePicture, zipWr); err != nil {
-					ctx.Logger().Warn("Unable to export profile picture", mlog.String("profile_picture", profilePicture), mlog.Err(err))
-				}
-			}
-			updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "profile_pictures_exported", len(profilePictures))
-		}
-
-		return nil
+		return a.bulkExportUsersOnly(ctx, job, writer, outPath, zipWr, opts)
 	}
 
 	// Regular full export
@@ -270,6 +252,36 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "profile_pictures_exported", len(profilePictures))
 	}
 
+	return nil
+}
+
+func (a *App) bulkExportUsersOnly(ctx request.CTX, job *model.Job, writer io.Writer, outPath string, zipWr *zip.Writer, opts model.BulkExportOpts) *model.AppError {
+	ctx.Logger().Info("Bulk export: users-only export mode")
+
+	ctx.Logger().Info("Bulk export: exporting users")
+	profilePictures, appErr := a.exportAllUsers(ctx, job, writer, false, opts.IncludeProfilePictures)
+	if appErr != nil {
+		return appErr
+	}
+
+	if opts.IncludeProfilePictures && len(profilePictures) > 0 {
+		appErr = a.bulkExportProfilePictures(ctx, outPath, profilePictures, zipWr, job)
+		if appErr != nil {
+			return appErr
+		}
+	}
+
+	return nil
+}
+
+func (a *App) bulkExportProfilePictures(ctx request.CTX, outPath string, profilePictures []string, zipWr *zip.Writer, job *model.Job) *model.AppError {
+	ctx.Logger().Info("Bulk export: exporting profile pictures")
+	for _, profilePicture := range profilePictures {
+		if err := a.exportFile(ctx, outPath, profilePicture, zipWr); err != nil {
+			ctx.Logger().Warn("Unable to export profile picture", mlog.String("profile_picture", profilePicture), mlog.Err(err))
+		}
+	}
+	updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "profile_pictures_exported", len(profilePictures))
 	return nil
 }
 

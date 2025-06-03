@@ -103,7 +103,7 @@ func init() {
 	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Include archived channels in the export file.")
 	ExportCreateCmd.Flags().Bool("include-profile-pictures", false, "Include profile pictures in the export file.")
 	ExportCreateCmd.Flags().Bool("no-roles-and-schemes", false, "Exclude roles and custom permission schemes from the export file.")
-	ExportCreateCmd.Flags().Bool("users-only", false, "Export only user data for re-import after modification.")
+	ExportCreateCmd.Flags().Bool("only-users", false, "Export only user data for re-import after modification.")
 
 	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
 	_ = ExportDownloadCmd.Flags().MarkHidden("resume")
@@ -135,8 +135,16 @@ func init() {
 func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) error {
 	data := make(map[string]string)
 
-	usersOnly, _ := command.Flags().GetBool("users-only")
+	usersOnly, _ := command.Flags().GetBool("only-users")
 	if usersOnly {
+		// Check for incompatible flags
+		incompatibleFlags := []string{"no-attachments", "include-archived-channels", "no-roles-and-schemes"}
+		for _, flag := range incompatibleFlags {
+			if flagValue, _ := command.Flags().GetBool(flag); flagValue {
+				return fmt.Errorf("flag --%s cannot be used with --only-users", flag)
+			}
+		}
+
 		data["users_only"] = "true"
 
 		// For users-only export, only profile pictures option is relevant

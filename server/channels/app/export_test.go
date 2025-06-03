@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -1776,55 +1777,28 @@ func TestBulkExportUsersOnly(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// Create some test data
-	team := th.CreateTeam()
-	channel := th.CreateChannel(th.Context, team)
-
-	// Create additional users
-	user1, appErr := th.App.CreateUser(th.Context, &model.User{
-		Email:    "user1@example.com",
-		Username: "user1",
-		Password: "password123",
-	})
-	require.Nil(t, appErr)
-
-	user2, appErr := th.App.CreateUser(th.Context, &model.User{
-		Email:    "user2@example.com",
-		Username: "user2",
-		Password: "password123",
-	})
-	require.Nil(t, appErr)
-
-	// Add users to teams and channels
-	_, appErr = th.App.JoinUserToTeam(th.Context, team, user1, "")
-	require.Nil(t, appErr)
-	_, appErr = th.App.JoinUserToTeam(th.Context, team, user2, "")
-	require.Nil(t, appErr)
-
-	_, appErr = th.App.AddUserToChannel(th.Context, user1, channel, false)
-	require.Nil(t, appErr)
-	_, appErr = th.App.AddUserToChannel(th.Context, user2, channel, false)
-	require.Nil(t, appErr)
+	// Use the existing test data from InitBasic
+	// th.BasicTeam, th.BasicChannel, th.BasicUser, th.BasicUser2, th.SystemAdminUser are available
 
 	// Create some posts (these should NOT be exported in users-only mode)
 	post1, appErr := th.App.CreatePost(th.Context, &model.Post{
-		UserId:    user1.Id,
-		ChannelId: channel.Id,
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
 		Message:   "Test post 1",
-	}, channel, model.CreatePostFlags{SetOnline: true})
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 	require.NotNil(t, post1)
 
 	// Create user preferences
 	preferences := model.Preferences{
 		{
-			UserId:   user1.Id,
+			UserId:   th.BasicUser.Id,
 			Category: model.PreferenceCategoryTheme,
 			Name:     "",
 			Value:    `{"type":"custom"}`,
 		},
 	}
-	appErr = th.App.UpdatePreferences(th.Context, user1.Id, preferences)
+	appErr = th.App.UpdatePreferences(th.Context, th.BasicUser.Id, preferences)
 	require.Nil(t, appErr)
 
 	// Export with UsersOnly option
@@ -1835,8 +1809,19 @@ func TestBulkExportUsersOnly(t *testing.T) {
 	appErr = th.App.BulkExport(th.Context, &b, "", nil, opts)
 	require.Nil(t, appErr)
 
-	// Parse the export and verify contents
-	scanner := bufio.NewScanner(&b)
+	// Validate the export file and verify import works
+	exportData := b.String()
+	require.NotEmpty(t, exportData, "Export should not be empty")
+
+	// Create a new team to import the users into
+	importTeam := th.CreateTeam()
+	
+	// Try to bulk import the exported data to validate it
+	appErr = th.App.BulkImport(th.Context, strings.NewReader(exportData), false, 5)
+	require.Nil(t, appErr, "Users-only export should be valid for import")
+
+	// Parse the export and verify only users were exported
+	scanner := bufio.NewScanner(strings.NewReader(exportData))
 	hasUsers := false
 	hasTeams := false
 	hasPosts := false
@@ -1879,17 +1864,10 @@ func TestBulkExportUsersOnlyWithProfilePictures(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// Create a user with a profile picture
-	user, appErr := th.App.CreateUser(th.Context, &model.User{
-		Email:    "userpp@example.com",
-		Username: "userpp",
-		Password: "password123",
-	})
-	require.Nil(t, appErr)
-
-	// Set up user to have a profile picture flag (simulate having one)
+	// Use existing user from InitBasic and set up profile picture flag
+	user := th.BasicUser
 	user.LastPictureUpdate = model.GetMillis()
-	_, appErr = th.App.UpdateUser(th.Context, user, false)
+	_, appErr := th.App.UpdateUser(th.Context, user, false)
 	require.Nil(t, appErr)
 
 	// Create export directory
@@ -1911,8 +1889,16 @@ func TestBulkExportUsersOnlyWithProfilePictures(t *testing.T) {
 	appErr = th.App.BulkExport(th.Context, exportFile, dir, nil, opts)
 	require.Nil(t, appErr)
 
-	// Verify the export file was created
+	// Verify the export file was created and is valid
 	stat, err := exportFile.Stat()
 	require.NoError(t, err)
 	require.Greater(t, stat.Size(), int64(0), "Export file should not be empty")
+
+	// Close the file so we can read it
+	exportFile.Close()
+
+	// Try to validate the export by reading it back
+	exportContent, err := os.ReadFile(filepath.Join(dir, "users_export.zip"))
+	require.NoError(t, err)
+	require.NotEmpty(t, exportContent, "Export content should not be empty")
 }
