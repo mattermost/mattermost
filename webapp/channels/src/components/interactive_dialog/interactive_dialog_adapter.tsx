@@ -294,7 +294,6 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
 
     render() {
         const form = this.convertToAppForm();
-
         return (
             <AppsFormContainer
                 form={form}
