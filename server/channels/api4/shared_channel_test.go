@@ -714,22 +714,22 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		// Add local user to the channel
 		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, testChannel, false)
 		require.Nil(t, appErr)
-		
+
 		// Create a remote user from Cluster B
 		remoteUserFromClusterB := &model.User{
-			Email:          "remote-user-b@example.com",
-			Username:       "remoteuserb" + model.NewId()[:4],
-			Password:       "password123",
-			EmailVerified:  true,
-			RemoteId:       &clusterB.RemoteId,
+			Email:         "remote-user-b@example.com",
+			Username:      "remoteuserb" + model.NewId()[:4],
+			Password:      "password123",
+			EmailVerified: true,
+			RemoteId:      &clusterB.RemoteId,
 		}
 		remoteUserFromClusterB, appErr = th.App.CreateUser(th.Context, remoteUserFromClusterB)
 		require.Nil(t, appErr)
-		
+
 		// Add remote user to the team first
 		_, _, appErr = th.App.AddUserToTeam(th.Context, testChannel.TeamId, remoteUserFromClusterB.Id, "")
 		require.Nil(t, appErr)
-		
+
 		// Add remote user to the channel
 		_, appErr = th.App.AddUserToChannel(th.Context, remoteUserFromClusterB, testChannel, false)
 		require.Nil(t, appErr)
@@ -836,9 +836,9 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		// STEP 3: User on Server B acknowledges the post
 		t.Log("=== STEP 3: User on Server B acknowledges the post ===")
 		ackFromServerB := &model.PostAcknowledgement{
-			PostId:    syncedPostIdOnServerB,
-			UserId:    remoteUserFromClusterB.Id,
-			ChannelId: testChannel.Id,
+			PostId:         syncedPostIdOnServerB,
+			UserId:         remoteUserFromClusterB.Id,
+			ChannelId:      testChannel.Id,
 			AcknowledgedAt: model.GetMillis(),
 		}
 		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, ackFromServerB)
