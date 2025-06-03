@@ -24,14 +24,26 @@ import InteractiveDialogAdapter from './interactive_dialog_adapter';
 function mapStateToProps(state: GlobalState) {
     const data = state.entities.integrations.dialog;
     if (!data || !data.dialog) {
-        return {};
+        // Provide default values for all required props
+        return {
+            url: '',
+            callbackId: undefined,
+            elements: undefined,
+            title: '',
+            introductionText: undefined,
+            iconUrl: undefined,
+            submitLabel: undefined,
+            notifyOnCancel: undefined,
+            state: undefined,
+            emojiMap: getEmojiMap(state),
+        };
     }
 
     return {
-        url: data.url,
+        url: data.url ?? '',
         callbackId: data.dialog.callback_id,
         elements: data.dialog.elements,
-        title: data.dialog.title,
+        title: data.dialog.title ?? '',
         introductionText: data.dialog.introduction_text,
         iconUrl: data.dialog.icon_url,
         submitLabel: data.dialog.submit_label,
