@@ -6,28 +6,29 @@
     .video-div {
         position: relative;
         overflow: hidden;
-        max-width: 480px;
         width: 100%;
-        border-radius: 4px;
+        max-width: 480px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: 4px;
         margin-bottom: 8px;
 
         // Video player iframe - inherits aspect ratio from container
         iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             display: block;
             width: 100%;
             height: 100%;
             border: none;
-            position: absolute;
-            top: 0;
-            left: 0;
+
         }
 
         // Container for thumbnails with different aspect ratios
         .video-thumbnail__container {
             position: relative;
-            width: 100%;
             overflow: hidden;
+            width: 100%;
             background-color: #000;
 
             // 16:9 aspect ratio for maxresdefault images
@@ -42,15 +43,15 @@
 
             // Darkening overlay on hover
             &::after {
-                content: '';
                 position: absolute;
                 top: 0;
                 left: 0;
                 width: 100%;
                 height: 100%;
                 background-color: rgba(0, 0, 0, 0);
-                transition: background-color 0.2s ease;
+                content: '';
                 pointer-events: none;
+                transition: background-color 0.2s ease;
             }
 
             &:hover {
@@ -74,28 +75,27 @@
         .video-thumbnail {
             width: 100%;
             height: 100%;
-            object-fit: cover;
             cursor: pointer;
+            object-fit: cover;
         }
 
         // Play button container
         .play-button {
             position: absolute;
-            top: calc(50% - 24px);
-            left: calc(50% - 34px);
+            z-index: 1;
+            top: calc(50% - 28px);
+            left: calc(50% - 40px);
+            display: flex;
             width: 80px;
             height: 56px;
-            border-radius: 8px;
-            background-color: rgba(0, 0, 0, 0.9);
-            transition: background-color 0.2s ease;
-            display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1;
-            cursor: pointer;
-            padding-bottom: 1px;
             padding-right: 1px;
-
+            padding-bottom: 1px;
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.9);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
 
             i.icon-play {
                 color: #fff;

@@ -53,7 +53,7 @@ export default class YouTubeVideo extends React.PureComponent<Props, State> {
     checkMaxResImage = async () => {
         const videoId = getVideoId(this.props.link);
         const maxResUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-        
+
         try {
             const response = await fetch(maxResUrl, {method: 'HEAD'});
             if (response.ok) {
@@ -132,7 +132,7 @@ export default class YouTubeVideo extends React.PureComponent<Props, State> {
             );
         } else {
             content = (
-                <div 
+                <div
                     className={`video-thumbnail__container ${aspectRatioClass}`}
                     onClick={this.play}
                 >

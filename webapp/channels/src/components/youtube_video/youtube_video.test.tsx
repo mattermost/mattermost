@@ -7,17 +7,15 @@ import {Provider} from 'react-redux';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import ExternalImage from 'components/external_image';
-
 import mockStore from 'tests/test_store';
 
 import type {GlobalState} from 'types/store';
 
-import YoutubeVideo from './youtube_video';
+import YouTubeVideo from './youtube_video';
 
 jest.mock('actions/integration_actions');
 
-describe('YoutubeVideo', () => {
+describe('YouTubeVideo', () => {
     const baseProps = {
         postId: 'post_id_1',
         googleDeveloperKey: 'googledevkey',
@@ -52,23 +50,23 @@ describe('YoutubeVideo', () => {
         const store = mockStore(initialState);
         const wrapper = mount(
             <Provider store={store}>
-                <YoutubeVideo {...baseProps}/>
+                <YouTubeVideo {...baseProps}/>
             </Provider>,
         );
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(ExternalImage).prop('src')).toEqual('linkForThumbnail');
+        expect(wrapper.find('img.video-thumbnail').prop('src')).toEqual('https://img.youtube.com/vi/xqCoNej8Zxo/hqdefault.jpg');
         expect(wrapper.find('a').text()).toEqual('Youtube title');
     });
 
     test('should match snapshot for playing state', () => {
-        const wrapper = shallow(<YoutubeVideo {...baseProps}/>);
+        const wrapper = shallow(<YouTubeVideo {...baseProps}/>);
         wrapper.setState({playing: true});
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot for playing state and `youtubeReferrerPolicy = true`', () => {
         const wrapper = shallow(
-            <YoutubeVideo
+            <YouTubeVideo
                 {...baseProps}
                 youtubeReferrerPolicy={true}
             />,
@@ -87,8 +85,8 @@ describe('YoutubeVideo', () => {
                 }],
             },
         };
-        const wrapper = shallow(<YoutubeVideo {...props}/>);
+        const wrapper = shallow(<YouTubeVideo {...props}/>);
 
-        expect(wrapper.find(ExternalImage).prop('src')).toEqual('linkUrl');
+        expect(wrapper.find('img.video-thumbnail').prop('src')).toEqual('https://img.youtube.com/vi/xqCoNej8Zxo/hqdefault.jpg');
     });
 });
