@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {AppField, AppForm, AppFormValues, AppSelectOption, FormResponseData, AppLookupResponse} from '@mattermost/types/apps';
+import type {AppCallRequest, AppField, AppForm, AppFormValues, AppSelectOption} from '@mattermost/types/apps';
 import type {DialogElement, DialogSubmission} from '@mattermost/types/integrations';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
@@ -83,11 +83,12 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
         };
     }
 
-    private handleSubmit = async (submission: {values: AppFormValues}) => {
-        const {url, callbackId, state, notifyOnCancel} = this.props;
+    private handleSubmit = async (call: AppCallRequest) => {
+        const {url, callbackId, state} = this.props;
+        const submissionValues = call.values as AppFormValues;
 
         // Convert AppSelectOption values to their raw value before submission
-        const processedValues = Object.entries(submission.values).reduce((result, [key, value]) => {
+        const processedValues = Object.entries(submissionValues).reduce((result, [key, value]) => {
             if (value && typeof value === 'object' && 'value' in value) {
                 result[key] = value.value;
             } else {
@@ -150,13 +151,13 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
 
     render() {
         const form = this.convertToAppForm();
-        
+
         return (
             <AppsFormContainer
                 form={form}
                 onExited={this.props.onExited}
                 onHide={this.handleHide}
-                context={{}}
+                context={{app_id: ''}}
                 actions={{
                     doAppSubmit: this.handleSubmit,
                     doAppFetchForm: this.props.actions.doAppFetchForm,
