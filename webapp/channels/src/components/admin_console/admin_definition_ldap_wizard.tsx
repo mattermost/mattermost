@@ -11,6 +11,7 @@ import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 import {
     ldapTest,
     ldapTestConnection,
+    ldapTestFilters,
     removePrivateLdapCertificate,
     removePublicLdapCertificate,
     uploadPrivateLdapCertificate,
@@ -340,6 +341,22 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                         ),
                     },
                 ],
+            },
+            {
+                type: 'button',
+                action: ldapTestFilters,
+                key: 'LdapSettings.TestFilters',
+                label: defineMessage({id: 'admin.ldap.testFiltersTitle', defaultMessage: 'Test Filters'}),
+                help_text_markdown: false,
+                error_message: defineMessage({id: 'admin.ldap.testFiltersFailure', defaultMessage: 'We failed to apply some filters.'}),
+                success_message: defineMessage({id: 'admin.ldap.testFiltersSuccess', defaultMessage: 'Test Successful'}),
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                    it.all(
+                        it.stateIsFalse('LdapSettings.Enable'),
+                        it.stateIsFalse('LdapSettings.EnableSync'),
+                    ),
+                ),
             },
         ],
     },
