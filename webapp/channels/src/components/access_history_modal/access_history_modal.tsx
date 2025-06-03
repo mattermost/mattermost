@@ -56,11 +56,13 @@ const AccessHistoryModal = ({
                     defaultMessage='Access History'
                 />
             }
+            modalHeaderTextId='accessHistoryModalLabel'
             show={true}
             onHide={onHide}
             modalLocation='top'
             isStacked={true}
             compassDesign={true}
+            ariaLabelledby='accessHistoryModalLabel'
         >
             <div className='access-history-modal__body'>
                 {content}

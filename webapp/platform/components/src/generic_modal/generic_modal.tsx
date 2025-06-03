@@ -18,6 +18,7 @@ export type Props = {
     onEntered?: () => void;
     onHide?: () => void;
     modalHeaderText?: React.ReactNode;
+    modalHeaderTextId?: string;
     modalSubheaderText?: React.ReactNode;
     show?: boolean;
     handleCancel?: () => void;
@@ -105,6 +106,7 @@ export const GenericModal: React.FC<Props> = ({
     onEntered,
     onHide,
     modalHeaderText,
+    modalHeaderTextId,
     modalSubheaderText,
     handleCancel,
     handleConfirm,
@@ -248,7 +250,7 @@ export const GenericModal: React.FC<Props> = ({
     // Build header text if provided.
     const headerText = modalHeaderText && (
         <div className='GenericModal__header'>
-            <h1 id='genericModalLabel' className='modal-title'>
+            <h1 id={modalHeaderTextId || 'genericModalLabel'} className='modal-title'>
                 {modalHeaderText}
             </h1>
             {headerButton}
