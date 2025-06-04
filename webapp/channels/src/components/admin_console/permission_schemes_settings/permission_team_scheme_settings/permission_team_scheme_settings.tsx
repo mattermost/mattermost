@@ -816,8 +816,9 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                         }
                     />
                     <BlockableLink
-                        className='cancel-button'
+                        className='btn btn-tertiary'
                         to='/admin_console/user_management/permissions'
+                        data-testid='permission-scheme-cancel-button'
                     >
                         <FormattedMessage
                             id='admin.permissions.permissionSchemes.cancel'
