@@ -101,7 +101,7 @@ describe('Image Gallery', () => {
 
         // * Verify download all functionality
         cy.findByText('Download all').click();
-        
+
         // Note: We can't verify actual downloads in Cypress, but we can verify the button state
         cy.findByText('Download all').should('have.attr', 'disabled');
     });
