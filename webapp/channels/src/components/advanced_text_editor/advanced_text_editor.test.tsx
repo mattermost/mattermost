@@ -442,29 +442,31 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
     });
 
-    it('should show @mention warning when a mention exists in the message', () => {
+    it('should show @mention warning when a mention exists in the message', async () => {
         const props = {
             ...baseProps,
             rootId: 'post_id_1',
             isInEditMode: true,
         };
 
-        renderWithContext(
-            <AdvancedTextEditor
-                {...props}
-            />,
-            mergeObjects(initialState, {
-                storage: {
+        await act(async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...props}
+                />,
+                mergeObjects(initialState, {
                     storage: {
-                        [StoragePrefixes.COMMENT_DRAFT + 'post_id_1']: {
-                            value: TestHelper.getPostDraftMock({
-                                message: 'mentioning @user',
-                            }),
+                        storage: {
+                            [StoragePrefixes.COMMENT_DRAFT + 'post_id_1']: {
+                                value: TestHelper.getPostDraftMock({
+                                    message: 'mentioning @user',
+                                }),
+                            },
                         },
                     },
-                },
-            }),
-        );
+                }),
+            );
+        });
 
         expect(screen.getByText('Editing this message with an \'@mention\' will not notify the recipient.')).toBeVisible();
     });
