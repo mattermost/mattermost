@@ -41,14 +41,14 @@ export default function DeleteConfirmationModal({onExited, onConfirm, filterToDe
             <Modal.Footer>
                 <button
                     type='button'
-                    className='btn-cancel'
+                    className='btn btn-tertiary'
                     onClick={onExited}
                 >
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
                 </button>
                 <button
                     type='button'
-                    className='btn-delete'
+                    className='btn btn-primary btn-danger'
                     onClick={() => onConfirm?.(filterToDelete!)}
                 >
                     {formatMessage({id: 'admin.ip_filtering.delete_filter', defaultMessage: 'Delete filter'})}
