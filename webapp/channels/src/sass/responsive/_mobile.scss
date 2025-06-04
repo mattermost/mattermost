@@ -1829,6 +1829,30 @@
                 }
             }
         }
+
+        #browseChannelsModal.modal .GenericModal  {
+            .modal-header {
+                box-shadow: none;
+            
+                .GenericModal__header__text_container .GenericModal__header {
+                    flex-direction: column;
+                    align-items: flex-start;
+    
+                    button {
+                        margin-top: 16px;
+                    }
+                }
+            }
+    
+            .more-modal__dropdown {
+                flex-direction: column;
+                align-items: flex-start;
+    
+                #modalPreferenceContainer #menuWrapper {
+                    padding-left: 0;
+                }
+            }
+        }
     }
 
     .member-div {
