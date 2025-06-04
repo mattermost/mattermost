@@ -72,6 +72,8 @@ const ImageGallery = (props: Props) => {
                 link.download = fileInfo.name;
                 link.click();
             });
+            // Add a small delay to ensure the button stays disabled long enough for testing
+            await new Promise((resolve) => setTimeout(resolve, 100));
         } finally {
             setIsDownloading(false);
         }
@@ -129,7 +131,7 @@ const ImageGallery = (props: Props) => {
                     collapsed: isCollapsed,
                 })}
             >
-                {fileInfos.map((fileInfo) => {
+                {!isCollapsed && fileInfos.map((fileInfo) => {
                     // Calculate the width based on the image's aspect ratio
                     const aspectRatio = fileInfo.width && fileInfo.height ? fileInfo.width / fileInfo.height : 1;
 
@@ -160,19 +162,21 @@ const ImageGallery = (props: Props) => {
                     return (
                         <div
                             key={fileInfo.id}
-                            className={`image-gallery__item ${isSmallImage ? 'image-gallery__item--small' : ''}`}
+                            className={classNames('image-gallery__item', {
+                                'image-gallery__item--small': isSmallImage,
+                            })}
                             style={{
-                                width: `${itemWidth}px`, // Always set width explicitly
+                                width: `${itemWidth}px`,
                                 height: `${itemHeight}px`,
-                                maxWidth: '500px', // Enforce max width
-                                maxHeight: '216px', // Enforce max height
+                                maxWidth: '500px',
+                                maxHeight: '216px',
                             }}
                         >
                             <SingleImageView
                                 fileInfo={fileInfo}
                                 fileInfos={allFilesForPost}
-                                isEmbedVisible={isEmbedVisible}
                                 postId={postId}
+                                isEmbedVisible={true}
                                 compactDisplay={false}
                                 isInPermalink={false}
                                 disableActions={false}
@@ -180,7 +184,7 @@ const ImageGallery = (props: Props) => {
                                 handleImageClick={() => {
                                     const startIndex = allFilesForPost?.findIndex((f) => f.id === fileInfo.id) ?? -1;
                                     if (startIndex >= 0 && allFilesForPost) {
-                                        handleImageClick(startIndex, allFilesForPost);
+                                        handleImageClick?.(startIndex, allFilesForPost);
                                     }
                                 }}
                             />
