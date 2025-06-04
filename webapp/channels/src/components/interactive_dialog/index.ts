@@ -6,15 +6,11 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-<<<<<<< HEAD
-import {submitInteractiveDialog} from 'actions/integration_actions';
-=======
-import {submitInteractiveDialog} from 'mattermost-redux/actions/integrations';
+import {submitInteractiveDialog, lookupInteractiveDialog} from 'mattermost-redux/actions/integrations';
 
 import {doAppSubmit, doAppFetchForm, doAppLookup, postEphemeralCallResponseForContext} from 'actions/apps';
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsers} from 'actions/user_actions';
->>>>>>> 1f89a69da3 (replace InteractiveDialog with AppsFormContainer)
 import {getEmojiMap} from 'selectors/emojis';
 
 import type {GlobalState} from 'types/store';
@@ -57,6 +53,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             submitInteractiveDialog,
+            lookupInteractiveDialog,
             doAppSubmit,
             doAppFetchForm,
             doAppLookup,

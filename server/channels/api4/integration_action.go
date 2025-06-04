@@ -16,6 +16,7 @@ func (api *API) InitAction() {
 
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/open", api.APIHandler(openDialog)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/submit", api.APISessionRequired(submitDialog)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/lookup", api.APISessionRequired(lookupDialog)).Methods(http.MethodPost)
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -130,6 +131,67 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	resp, err := c.App.SubmitInteractiveDialog(c.AppContext, submit)
 	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, _ := json.Marshal(resp)
+
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func toString(val any) string {
+	if str, ok := val.(string); ok {
+		return str
+	}
+	return ""
+}
+
+func lookupDialog(c *Context, w http.ResponseWriter, r *http.Request) {
+	var lookup model.SubmitDialogRequest
+
+	jsonErr := json.NewDecoder(r.Body).Decode(&lookup)
+	if jsonErr != nil {
+		c.SetInvalidParamWithErr("dialog", jsonErr)
+		return
+	}
+
+	if lookup.URL == "" {
+		c.SetInvalidParam("url")
+		return
+	}
+
+	lookup.UserId = c.AppContext.Session().UserId
+
+	channel, err := c.App.GetChannel(c.AppContext, lookup.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), lookup.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	c.Logger.Debug("Performing lookup dialog request",
+		mlog.String("url", lookup.URL),
+		mlog.String("user_id", lookup.UserId),
+		mlog.String("channel_id", lookup.ChannelId),
+		mlog.String("team_id", lookup.TeamId),
+		mlog.String("selected_field", toString(lookup.Submission["selected_field"])),
+		mlog.String("query", toString(lookup.Submission["query"])),
+	)
+
+	resp, err := c.App.LookupInteractiveDialog(c.AppContext, lookup)
+	if err != nil {
+		c.Logger.Error("Error performing lookup dialog", mlog.Err(err))
 		c.Err = err
 		return
 	}
