@@ -167,11 +167,10 @@ var UserEditEmailCmd = &cobra.Command{
 }
 
 var UserEditAuthdataCmd = &cobra.Command{
-	Use:   "authdata [user] [new authdata]",
-	Short: "Edit user's authdata",
-	Long:  "Edit a user's authentication data. Use empty string to clear authdata.",
-	Example: `user edit authdata user@example.com newid123
-  user edit authdata user@example.com ""`,
+	Use:               "authdata [user] [new authdata]",
+	Short:             "Edit user's authdata",
+	Long:              "Edit a user's authentication data. Use empty string to clear authdata.",
+	Example:           `user edit authdata user@example.com newid123`,
 	Args:              cobra.ExactArgs(2),
 	ValidArgsFunction: validateArgsWithClient(userEditCompletionF),
 	RunE:              withClient(userEditAuthdataCmdF),
