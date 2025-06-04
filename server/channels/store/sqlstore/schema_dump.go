@@ -122,8 +122,8 @@ func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, e
 		} else {
 			defer rows.Close()
 
-			var currentTable string
-			var currentColumns []model.DatabaseColumn
+			// Use a map to track tables and their columns
+			tablesMap := make(map[string]*model.DatabaseTable)
 
 			for rows.Next() {
 				var tableName, columnName, dataType, isNullable string
@@ -136,47 +136,30 @@ func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, e
 					continue
 				}
 
-				// Track collation names for tables - we only need the first non-null one
+				// Track collation names for tables.
+				// Only the first non-null collation encountered per table is stored in tableCollations.
 				if collationName.Valid && collationName.String != "" {
 					if _, ok := tableCollations[tableName]; !ok {
 						tableCollations[tableName] = collationName.String
 					}
 				}
 
-				// Handle table grouping
-				if currentTable != tableName {
-					// Save previous table
-					if currentTable != "" {
-						tableInfo := model.DatabaseTable{
-							Name:    currentTable,
-							Columns: currentColumns,
-						}
-
-						// Add table collation if it's ok
-						if collation, ok := tableCollations[currentTable]; ok {
-							tableInfo.Collation = collation
-						}
-
-						// Add table options if they exist
-						if options, ok := tableOptions[currentTable]; ok && len(options) > 0 {
-							tableInfo.Options = options
-						}
-
-						schemaInfo.Tables = append(schemaInfo.Tables, tableInfo)
+				// Initialize table in map if it doesn't exist
+				if _, ok := tablesMap[tableName]; !ok {
+					tablesMap[tableName] = &model.DatabaseTable{
+						Name:    tableName,
+						Columns: []model.DatabaseColumn{},
 					}
-
-					// Start new table
-					currentTable = tableName
-					currentColumns = []model.DatabaseColumn{}
 				}
 
+				// Add column to table
 				if columnName != "" {
 					maxLength := int64(0)
 					if characterMaxLength.Valid {
 						maxLength = characterMaxLength.Int64
 					}
 
-					currentColumns = append(currentColumns, model.DatabaseColumn{
+					tablesMap[tableName].Columns = append(tablesMap[tableName].Columns, model.DatabaseColumn{
 						Name:       columnName,
 						DataType:   dataType,
 						MaxLength:  maxLength,
@@ -185,24 +168,19 @@ func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, e
 				}
 			}
 
-			// Add the last table
-			if currentTable != "" {
-				tableInfo := model.DatabaseTable{
-					Name:    currentTable,
-					Columns: currentColumns,
-				}
-
-				// Add table collation if it's ok
-				if collation, ok := tableCollations[currentTable]; ok {
-					tableInfo.Collation = collation
+			// Convert map to slice and add metadata
+			for _, table := range tablesMap {
+				// Add table collation if it exists
+				if collation, ok := tableCollations[table.Name]; ok {
+					table.Collation = collation
 				}
 
 				// Add table options if they exist
-				if options, ok := tableOptions[currentTable]; ok && len(options) > 0 {
-					tableInfo.Options = options
+				if options, ok := tableOptions[table.Name]; ok && len(options) > 0 {
+					table.Options = options
 				}
 
-				schemaInfo.Tables = append(schemaInfo.Tables, tableInfo)
+				schemaInfo.Tables = append(schemaInfo.Tables, *table)
 			}
 		}
 	}
