@@ -61,7 +61,7 @@ describe('Image Gallery', () => {
                             cy.get('img').and(($img) => {
                                 const renderedRatio = $img.width() / $img.height();
                                 const originalRatio = image.width / image.height;
-                                
+
                                 if (originalRatio > 5) {
                                     expect(renderedRatio).to.be.lessThan(originalRatio);
                                     expect(renderedRatio).to.be.greaterThan(0.5);
@@ -101,6 +101,7 @@ describe('Image Gallery', () => {
 
         // * Verify download all functionality
         cy.findByText('Download all').click();
+        
         // Note: We can't verify actual downloads in Cypress, but we can verify the button state
         cy.findByText('Download all').should('have.attr', 'disabled');
     });
@@ -166,4 +167,4 @@ describe('Image Gallery', () => {
             });
         });
     });
-}); 
+});
