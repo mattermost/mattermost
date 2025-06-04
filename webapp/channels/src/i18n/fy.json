@@ -2608,7 +2608,6 @@
   "channel_loader.postedImage": " plaatste een afbeelding",
   "channel_loader.socketError": "Controleer de verbinding, Mattermost is onbereikbaar. Als het probleem zich blijft voordoen, vraag dan aan de beheerder om [de WebSocket port te controleren] (!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Immen",
-  "channel_loader.something": " deed iets nieuws",
   "channel_loader.unknown_error": "We kregen een onverwachte statuscode van de server.",
   "channel_loader.uploadedFile": " heeft een bestand geüpload",
   "channel_loader.uploadedImage": " heeft een afbeelding geüpload",
