@@ -555,8 +555,6 @@ func (a *App) LookupInteractiveDialog(c request.CTX, request model.SubmitDialogR
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
-	c.Logger().Info("Performing lookup dialog request",
-		mlog.String("url", url))
 
 	resp, appErr := a.DoActionRequest(c.WithContext(ctx), url, b)
 	if appErr != nil {

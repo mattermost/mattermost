@@ -152,7 +152,7 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
         
         // Get the lookup path from the call or field configuration
         let lookupPath = call.path;
-        
+
         // If the field has a lookup path defined, use that instead
         if (!lookupPath && call.selected_field) {
             const field = this.props.elements?.find(element => element.name === call.selected_field);
@@ -160,10 +160,20 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
                 lookupPath = field.data_source_url;
             }
         }
-        
+
         // If still no path, fall back to the dialog URL
         if (!lookupPath) {
             lookupPath = url;
+        }
+
+        // Validate URL for security
+        if (lookupPath && !lookupPath.startsWith('/') && !lookupPath.startsWith('http')) {
+            return {
+                error: {
+                    type: AppCallResponseTypes.ERROR,
+                    text: 'Invalid lookup URL format',
+                },
+            };
         }
 
         // Convert AppSelectOption values to their raw value before submission
@@ -236,7 +246,7 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
             return {
                 error: {
                     type: AppCallResponseTypes.ERROR,
-                    text: 'Failed to perform lookup',
+                    text: error instanceof Error ? `Failed to perform lookup: ${error.message}` : 'Failed to perform lookup',
                 },
             };
         }
