@@ -3,12 +3,12 @@
 
 import React from 'react';
 
-import type {AppCallRequest, AppField, AppForm, AppFormValues, AppSelectOption, AppLookupResponse} from '@mattermost/types/apps';
+import type {AppCallRequest, AppField, AppForm, AppFormValues, AppSelectOption} from '@mattermost/types/apps';
 import type {DialogElement, DialogSubmission} from '@mattermost/types/integrations';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
-import AppsFormContainer from 'components/apps_form/apps_form_container';
+import AppsFormContainer from './apps_form/apps_form_container';
 
 import type {PropsFromRedux} from './index';
 
@@ -67,7 +67,7 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
                 field.lookup = {
                     path: element.data_source_url || this.props.url || '',
                 };
-                
+
                 // Ensure the path is properly formatted for plugins
                 if (field.lookup.path && !field.lookup.path.startsWith('http') && !field.lookup.path.startsWith('/')) {
                     field.lookup.path = '/' + field.lookup.path;
@@ -149,13 +149,13 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
     private handleLookup = async (call: AppCallRequest) => {
         const {url, callbackId, state} = this.props;
         const submissionValues = call.values as AppFormValues;
-        
+
         // Get the lookup path from the call or field configuration
         let lookupPath = call.path;
 
         // If the field has a lookup path defined, use that instead
         if (!lookupPath && call.selected_field) {
-            const field = this.props.elements?.find(element => element.name === call.selected_field);
+            const field = this.props.elements?.find((element) => element.name === call.selected_field);
             if (field?.data_source === 'dynamic' && field?.data_source_url) {
                 lookupPath = field.data_source_url;
             }
@@ -176,7 +176,7 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
                     },
                 };
             }
-            
+
             // Additional validation for http URLs
             if (lookupPath.startsWith('http') && !lookupPath.match(/^https?:\/\/[^\s/$.?#].[^\s]*$/i)) {
                 return {
@@ -263,7 +263,7 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            
+
             return {
                 error: {
                     type: AppCallResponseTypes.ERROR,
