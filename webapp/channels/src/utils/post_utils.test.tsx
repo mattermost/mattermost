@@ -1318,6 +1318,78 @@ describe('PostUtils.getUserOrGroupFromMentionName', () => {
 
         expect(result).toEqual(expected);
     });
+
+    describe('remote user mentions', () => {
+        const remoteUser1 = TestHelper.getUserMock({username: 'admin:org1', remote_id: 'remote_id_1'});
+        const remoteUser2 = TestHelper.getUserMock({username: 'user:cluster2', remote_id: 'remote_id_2'});
+        const localUser = TestHelper.getUserMock({username: 'localuser'});
+        const remoteUsers = {
+            'admin:org1': remoteUser1,
+            'user:cluster2': remoteUser2,
+            localuser: localUser,
+        };
+        const remoteClusters = [
+            {remote_id: 'remote_id_1', name: 'org1', display_name: 'Organization 1'},
+            {remote_id: 'remote_id_2', name: 'cluster2', display_name: 'Cluster 2'},
+        ];
+
+        test.each([
+            ['remote user by direct lookup', 'admin:org1', undefined, remoteUser1],
+            ['nothing when remote user not found', 'admin:nonexistent', undefined, undefined],
+            ['local user without colon', 'localuser', undefined, localUser],
+            ['remote user by cluster mapping', 'admin:org1', remoteClusters, remoteUser1],
+            ['remote user with case-insensitive cluster name', 'admin:ORG1', remoteClusters, remoteUser1],
+            ['nothing when username part is wrong', 'wronguser:org1', remoteClusters, undefined],
+            ['nothing when cluster name is wrong', 'admin:wrongcluster', remoteClusters, undefined],
+            ['nothing with malformed mention', ':org1', remoteClusters, undefined],
+            ['nothing with empty cluster name', 'admin:', remoteClusters, undefined],
+        ])('should return %s', (description, mention, clusters, expectedUser) => {
+            const result = PostUtils.getUserOrGroupFromMentionName(
+                mention,
+                remoteUsers,
+                {},
+                false,
+                (usersOrGroups, mention) => usersOrGroups[mention],
+                clusters,
+            );
+
+            expect(result).toEqual([expectedUser, undefined]);
+        });
+
+        test('should still find remote user by direct lookup when no remote clusters provided', () => {
+            const result = PostUtils.getUserOrGroupFromMentionName(
+                'admin:org1',
+                remoteUsers,
+                {},
+                false,
+                (usersOrGroups, mention) => usersOrGroups[mention],
+                [],
+            );
+
+            expect(result).toEqual([remoteUser1, undefined]);
+        });
+
+        test('should handle remote user fallback lookup when direct lookup fails', () => {
+            const usersWithPartialMatch = {
+                'admin:differentCluster': TestHelper.getUserMock({
+                    username: 'admin:differentCluster',
+                    remote_id: 'remote_id_1',
+                }),
+                localuser: localUser,
+            };
+
+            const result = PostUtils.getUserOrGroupFromMentionName(
+                'admin:org1',
+                usersWithPartialMatch,
+                {},
+                false,
+                (usersOrGroups, mention) => usersOrGroups[mention],
+                remoteClusters,
+            );
+
+            expect(result).toEqual([usersWithPartialMatch['admin:differentCluster'], undefined]);
+        });
+    });
 });
 
 describe('makeGetIsReactionAlreadyAddedToPost', () => {

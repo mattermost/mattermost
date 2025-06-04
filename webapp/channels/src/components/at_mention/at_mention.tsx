@@ -7,6 +7,7 @@ import React, {useRef, useMemo, memo, useEffect} from 'react';
 import {Client4} from 'mattermost-redux/client';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
+import {useRemoteClusters} from 'components/admin_console/secure_connections/utils';
 import ProfilePopover from 'components/profile_popover';
 import UserGroupPopover from 'components/user_group_popover';
 
@@ -29,10 +30,11 @@ type Props = OwnProps & PropsFromRedux;
 
 const AtMention = (props: Props) => {
     const ref = useRef<HTMLAnchorElement>(null);
+    const [remoteClusters] = useRemoteClusters();
 
     const [user, group] = useMemo(
-        () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight),
-        [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight],
+        () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight, undefined, remoteClusters),
+        [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight, remoteClusters],
     );
 
     useEffect(() => {
