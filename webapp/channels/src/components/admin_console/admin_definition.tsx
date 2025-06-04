@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
+import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon} from '@mattermost/compass-icons/components';
 import type {CloudState, Product} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
@@ -668,8 +668,36 @@ const AdminDefinition: AdminDefinitionType = {
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Enterprise),
             },
+        },
+    },
+    system_attributes: {
+        icon: (
+            <TableLargeIcon
+                size={16}
+                color={'currentColor'}
+            />
+        ),
+        sectionTitle: defineMessage({id: 'admin.sidebar.systemAttributes', defaultMessage: 'System Attributes'}),
+        isHidden: it.not(it.all(
+            it.minLicenseTier(LicenseSkus.Enterprise),
+            it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+        )),
+        subsections: {
+            system_properties: {
+                url: 'system_attributes/user_attributes',
+                title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
+                searchableStrings: systemPropertiesSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+                )),
+                schema: {
+                    id: 'SystemProperties',
+                    component: SystemProperties,
+                },
+            },
             access_control_policy_details_edit: {
-                url: `user_management/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
+                url: `system_attributes/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
@@ -683,10 +711,9 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'AccessControlPolicy',
                     component: PolicyDetails,
                 },
-
             },
             access_control_policy_details: {
-                url: 'user_management/attribute_based_access_control/edit_policy',
+                url: 'system_attributes/attribute_based_access_control/edit_policy',
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
@@ -700,7 +727,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             attribute_based_access_control: {
-                url: 'user_management/attribute_based_access_control',
+                url: 'system_attributes/attribute_based_access_control',
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
                     it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
@@ -720,7 +747,17 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnableAttributeBasedAccessControl',
                                     label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow attribute based access controls on this server'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.'}),
+                                    help_text_values: {
+                                        userAttributes: (
+                                            <a href='../system_attributes/user_attributes'>
+                                                <FormattedMessage
+                                                    id='admin.system_properties.user_properties.title'
+                                                    defaultMessage='User Attributes'
+                                                />
+                                            </a>
+                                        ),
+                                    },
                                 },
                             ],
                         },
@@ -757,7 +794,7 @@ const AdminDefinition: AdminDefinitionType = {
                 restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
             },
             attribute_based_access_control_feature_discovery: {
-                url: 'user_management/attribute_based_access_control',
+                url: 'system_attributes/attribute_based_access_control',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
@@ -2448,19 +2485,6 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
-            system_properties: {
-                url: 'site_config/system_properties',
-                title: defineMessage({id: 'admin.sidebar.system_properties', defaultMessage: 'System Properties'}),
-                searchableStrings: systemPropertiesSearchableStrings,
-                isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-                )),
-                schema: {
-                    id: 'SystemProperties',
-                    component: SystemProperties,
-                },
-            },
             localization: {
                 url: 'site_config/localization',
                 title: defineMessage({id: 'admin.sidebar.localization', defaultMessage: 'Localization'}),
@@ -3485,7 +3509,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             secure_connections: {
                 url: 'site_config/secure_connections',
-                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'}),
+                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces'}),
                 searchableStrings: secureConnectionsSearchableStrings,
                 isHidden: it.not(it.all(
                     it.configIsTrue('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
@@ -4169,6 +4193,19 @@ const AdminDefinition: AdminDefinitionType = {
                                     key: 'LdapSettings.SyncIntervalMinutes',
                                     label: defineMessage({id: 'admin.ldap.syncIntervalTitle', defaultMessage: 'Synchronization Interval (minutes):'}),
                                     help_text: defineMessage({id: 'admin.ldap.syncIntervalHelpText', defaultMessage: 'AD/LDAP Synchronization updates Mattermost user information to reflect updates on the AD/LDAP server. For example, when a user\'s name changes on the AD/LDAP server, the change updates in Mattermost when synchronization is performed. Accounts removed from or disabled in the AD/LDAP server have their Mattermost accounts set to "Inactive" and have their account sessions revoked. Mattermost performs synchronization on the interval entered. For example, if 60 is entered, Mattermost synchronizes every 60 minutes.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                                        it.all(
+                                            it.stateIsFalse('LdapSettings.Enable'),
+                                            it.stateIsFalse('LdapSettings.EnableSync'),
+                                        ),
+                                    ),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'LdapSettings.ReAddRemovedMembers',
+                                    label: defineMessage({id: 'admin.ldap.reAddRemovedMembersTitle', defaultMessage: 'Re-add removed members on sync:'}),
+                                    help_text: defineMessage({id: 'admin.ldap.reAddRemovedMembersDesc', defaultMessage: 'When enabled, members who were previously removed from group-synced teams or channels will be re-added during LDAP synchronization if they are still a member of the LDAP group.'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                                         it.all(

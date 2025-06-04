@@ -1,0 +1,13 @@
+comment:
+  layout: "diff, flags, files"
+  behavior: default
+  require_changes: false  # if true: only post the comment if coverage changes
+coverage:
+  status:
+    changes: false
+    patch: false
+    project:
+      default:
+        threshold: 1.0
+ignore:
+  - ^store/storetest.*

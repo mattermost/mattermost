@@ -160,9 +160,11 @@ func TestRemoteClusterInviteEncryption(t *testing.T) {
 
 func makeInvite(url string) RemoteClusterInvite {
 	return RemoteClusterInvite{
-		RemoteId: NewId(),
-		SiteURL:  url,
-		Token:    NewId(),
+		RemoteId:       NewId(),
+		SiteURL:        url,
+		Token:          NewId(),
+		RefreshedToken: NewId(),
+		Version:        2,
 	}
 }
 
