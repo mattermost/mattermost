@@ -72,6 +72,7 @@ const ImageGallery = (props: Props) => {
                 link.download = fileInfo.name;
                 link.click();
             });
+
             // Add a small delay to ensure the button stays disabled long enough for testing
             await new Promise((resolve) => setTimeout(resolve, 100));
         } finally {
