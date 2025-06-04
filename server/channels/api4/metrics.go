@@ -18,7 +18,9 @@ var validate = validator.New()
 
 func init() {
 	// Register custom semver validation
-	validate.RegisterValidation("semver", validateSemver)
+	if err := validate.RegisterValidation("semver", validateSemver); err != nil {
+		panic("failed to register semver validation: " + err.Error())
+	}
 }
 
 // validateSemver is a custom validation function for semver format
