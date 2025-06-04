@@ -276,13 +276,6 @@ func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 		tb.SkipNow()
 	}
 
-	// Prevent static asset rewriting during tests by setting BuildNumber to "dev"
-	var oldBuildNumber = model.BuildNumber
-	model.BuildNumber = "dev"
-	tb.Cleanup(func() {
-		model.BuildNumber = oldBuildNumber
-	})
-
 	removeErrors := func(config *model.Config) {
 		*config.ServiceSettings.SiteURL = "http://localhost:8065"
 	}
@@ -372,13 +365,6 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
-	// Prevent static asset rewriting during tests by setting BuildNumber to "dev"
-	var oldBuildNumber = model.BuildNumber
-	model.BuildNumber = "dev"
-	tb.Cleanup(func() {
-		model.BuildNumber = oldBuildNumber
-	})
-
 	removeErrors := func(config *model.Config) {
 		*config.ServiceSettings.SiteURL = "http://localhost:8065"
 	}

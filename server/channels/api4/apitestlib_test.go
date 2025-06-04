@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestEnvironmentVariableHandling should NEVER be run with t.Parallel()
 func TestEnvironmentVariableHandling(t *testing.T) {
 	// Clean up any existing environment variables before testing
 	originalConsoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
