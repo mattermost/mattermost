@@ -137,13 +137,13 @@
                 }
             }
         }
+    }
 
-        @media screen and (max-width: 640px) {
-            margin: 0 !important;
+    @media screen and (max-width: 640px) {
+        margin: 0 !important;
 
-            .modal-header {
-                box-shadow: var(--elevation-2);
-            }
+        .modal-header {
+            box-shadow: var(--elevation-2);
         }
     }
 
