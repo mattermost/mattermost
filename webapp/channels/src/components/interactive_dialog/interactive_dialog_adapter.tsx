@@ -8,7 +8,7 @@ import type {DialogElement, DialogSubmission} from '@mattermost/types/integratio
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
-import AppsFormContainer from './apps_form/apps_form_container';
+import AppsFormContainer from 'components/apps_form/apps_form_container';
 
 import type {PropsFromRedux} from './index';
 
@@ -167,11 +167,30 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
         }
 
         // Validate URL for security
-        if (lookupPath && !lookupPath.startsWith('/') && !lookupPath.startsWith('http')) {
+        if (lookupPath) {
+            if (!lookupPath.startsWith('/') && !lookupPath.startsWith('http')) {
+                return {
+                    error: {
+                        type: AppCallResponseTypes.ERROR,
+                        text: 'Invalid lookup URL format: URL must start with "/" or "http"',
+                    },
+                };
+            }
+            
+            // Additional validation for http URLs
+            if (lookupPath.startsWith('http') && !lookupPath.match(/^https?:\/\/[^\s/$.?#].[^\s]*$/i)) {
+                return {
+                    error: {
+                        type: AppCallResponseTypes.ERROR,
+                        text: 'Invalid lookup URL format: Malformed URL',
+                    },
+                };
+            }
+        } else {
             return {
                 error: {
                     type: AppCallResponseTypes.ERROR,
-                    text: 'Invalid lookup URL format',
+                    text: 'No lookup URL provided',
                 },
             };
         }
@@ -243,10 +262,12 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
                 },
             };
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            
             return {
                 error: {
                     type: AppCallResponseTypes.ERROR,
-                    text: error instanceof Error ? `Failed to perform lookup: ${error.message}` : 'Failed to perform lookup',
+                    text: `Failed to perform lookup: ${errorMessage}`,
                 },
             };
         }
