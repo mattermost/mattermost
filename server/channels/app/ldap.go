@@ -73,10 +73,10 @@ func (a *App) TestLdapFilters(rctx request.CTX, settings *model.LdapSettings) ([
 			return nil, err
 		}
 		return res, nil
-	} else {
-		err := model.NewAppError("TestLdapConnection", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
-		return nil, err
 	}
+
+	err := model.NewAppError("TestLdapConnection", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+	return nil, err
 }
 
 // GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
