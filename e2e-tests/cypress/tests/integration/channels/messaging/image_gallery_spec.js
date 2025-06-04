@@ -80,6 +80,7 @@ describe('Image Gallery', () => {
                 cy.get('.image-gallery__toggle').click();
                 cy.get('.image-gallery__body').should('have.class', 'collapsed');
                 cy.get('.image-gallery__toggle').should('contain.text', 'Show 4 images');
+
                 // Verify gallery items don't exist when collapsed
                 cy.get('.image-gallery__item').should('not.exist');
 
@@ -87,6 +88,7 @@ describe('Image Gallery', () => {
                 cy.get('.image-gallery__toggle').click();
                 cy.get('.image-gallery__body').should('not.have.class', 'collapsed');
                 cy.get('.image-gallery__toggle').should('contain.text', '4 images');
+
                 // Verify gallery items exist and are visible when expanded
                 cy.get('.image-gallery__item').should('exist').and('be.visible');
             });

@@ -64,5 +64,24 @@ function verifySingleImageThumbnail({mode = null} = {}) {
         
         // * The image should be hidden (removed from DOM)
         cy.get('figure.image-loaded-container').should('not.exist');
+
+        // * Verify image is shown in the attachment list
+        cy.findByTestId('fileAttachmentList')
+            .should('exist')
+            .and('be.visible')
+            .within(() => {
+                // * Verify no gallery elements exist
+                cy.get('.image-gallery__toggle').should('not.exist');
+                cy.get('.image-gallery__body').should('not.exist');
+
+                // * Verify image is shown in the attachment list
+                cy.get('.post-image__column')
+                    .should('have.length', 1)
+                    .find('.post-image')
+                    .should('exist');
+                cy.get('.post-image__column')
+                    .find('.file-icon')
+                    .should('not.exist');
+            });
     });
 }
