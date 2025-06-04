@@ -349,3 +349,247 @@ func TestSubmitDialog(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 	assert.Nil(t, submitResp)
 }
+
+func TestLookupDialogAPI(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	// Create a test server that will respond to lookup requests
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req model.SubmitDialogRequest
+		err := json.NewDecoder(r.Body).Decode(&req)
+		require.NoError(t, err)
+
+		// Check that the request contains the expected fields
+		assert.Equal(t, "dialog_lookup", req.Type)
+		assert.Contains(t, req.Submission, "query")
+		assert.Contains(t, req.Submission, "selected_field")
+
+		// Return different responses based on the query
+		query, ok := req.Submission["query"].(string)
+		if !ok {
+			query = ""
+		}
+
+		var resp model.LookupDialogResponse
+		if query == "empty" {
+			resp = model.LookupDialogResponse{
+				Items: []model.DialogSelectOption{},
+			}
+		} else if query == "error" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"error": "Bad request"}`))
+			return
+		} else {
+			resp = model.LookupDialogResponse{
+				Items: []model.DialogSelectOption{
+					{Text: "Result 1", Value: "res1"},
+					{Text: "Result 2", Value: "res2"},
+				},
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	}))
+	defer testServer.Close()
+
+	// Test cases
+	testCases := []struct {
+		Name           string
+		Request        model.SubmitDialogRequest
+		ExpectedStatus int
+		ExpectedItems  int
+	}{
+		{
+			Name: "Valid lookup request",
+			Request: model.SubmitDialogRequest{
+				URL:        testServer.URL,
+				TeamId:     th.BasicTeam.Id,
+				ChannelId:  th.BasicChannel.Id,
+				Submission: map[string]any{"query": "test", "selected_field": "field1"},
+			},
+			ExpectedStatus: http.StatusOK,
+			ExpectedItems:  2,
+		},
+		{
+			Name: "Empty results",
+			Request: model.SubmitDialogRequest{
+				URL:        testServer.URL,
+				TeamId:     th.BasicTeam.Id,
+				ChannelId:  th.BasicChannel.Id,
+				Submission: map[string]any{"query": "empty", "selected_field": "field1"},
+			},
+			ExpectedStatus: http.StatusOK,
+			ExpectedItems:  0,
+		},
+		{
+			Name: "Error response",
+			Request: model.SubmitDialogRequest{
+				URL:        testServer.URL,
+				TeamId:     th.BasicTeam.Id,
+				ChannelId:  th.BasicChannel.Id,
+				Submission: map[string]any{"query": "error", "selected_field": "field1"},
+			},
+			ExpectedStatus: http.StatusBadRequest,
+			ExpectedItems:  0,
+		},
+		{
+			Name: "Invalid URL",
+			Request: model.SubmitDialogRequest{
+				URL:        "invalid-url",
+				TeamId:     th.BasicTeam.Id,
+				ChannelId:  th.BasicChannel.Id,
+				Submission: map[string]any{"query": "test", "selected_field": "field1"},
+			},
+			ExpectedStatus: http.StatusBadRequest,
+			ExpectedItems:  0,
+		},
+		{
+			Name: "Missing URL",
+			Request: model.SubmitDialogRequest{
+				URL:        "",
+				TeamId:     th.BasicTeam.Id,
+				ChannelId:  th.BasicChannel.Id,
+				Submission: map[string]any{"query": "test", "selected_field": "field1"},
+			},
+			ExpectedStatus: http.StatusBadRequest,
+			ExpectedItems:  0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			// Create the request
+			jsonRequest, err := json.Marshal(tc.Request)
+			require.NoError(t, err)
+
+			resp, err := client.DoAPIRequest(http.MethodPost, "/api/v4/actions/dialogs/lookup", jsonRequest, "")
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			if tc.ExpectedStatus != http.StatusOK {
+				assert.Equal(t, tc.ExpectedStatus, resp.StatusCode)
+				return
+			}
+
+			require.Equal(t, http.StatusOK, resp.StatusCode)
+
+			var lookupResp model.LookupDialogResponse
+			err = json.NewDecoder(resp.Body).Decode(&lookupResp)
+			require.NoError(t, err)
+
+			assert.Len(t, lookupResp.Items, tc.ExpectedItems)
+		})
+	}
+}
+
+func TestURLValidationInDialogs(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	// Generate a valid trigger ID
+	_, triggerId, appErr := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+	require.Nil(t, appErr)
+
+	testCases := []struct {
+		Name           string
+		URL            string
+		ExpectedStatus int
+	}{
+		{
+			Name:           "Valid HTTP URL",
+			URL:            "https://example.com/action",
+			ExpectedStatus: http.StatusOK,
+		},
+		{
+			Name:           "Valid plugin URL with leading slash",
+			URL:            "/plugins/myplugin/action",
+			ExpectedStatus: http.StatusOK,
+		},
+		{
+			Name:           "Valid plugin URL without leading slash",
+			URL:            "plugins/myplugin/action",
+			ExpectedStatus: http.StatusOK,
+		},
+		{
+			Name:           "Invalid URL - no protocol or plugin prefix",
+			URL:            "example.com/action",
+			ExpectedStatus: http.StatusBadRequest,
+		},
+		{
+			Name:           "Empty URL",
+			URL:            "",
+			ExpectedStatus: http.StatusBadRequest,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			// Create a dialog request with the test URL
+			dialog := model.OpenDialogRequest{
+				TriggerId: triggerId,
+				URL:       tc.URL,
+				Dialog: model.Dialog{
+					CallbackId: "callbackid",
+					Title:      "Test Dialog",
+					Elements: []model.DialogElement{
+						{
+							DisplayName: "Element Name",
+							Name:        "element_name",
+							Type:        "text",
+						},
+					},
+				},
+			}
+
+			resp, err := client.OpenInteractiveDialog(context.Background(), dialog)
+			
+			if tc.ExpectedStatus == http.StatusOK {
+				assert.NoError(t, err)
+				CheckOKStatus(t, resp)
+			} else {
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+			}
+		})
+	}
+}
+
+	submit.URL = ts.URL
+
+	submitResp, _, err := client.SubmitInteractiveDialog(context.Background(), submit)
+	require.NoError(t, err)
+	assert.NotNil(t, submitResp)
+
+	submit.URL = ""
+	submitResp, resp, err := client.SubmitInteractiveDialog(context.Background(), submit)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	assert.Nil(t, submitResp)
+
+	submit.URL = ts.URL
+	submit.ChannelId = model.NewId()
+	submitResp, resp, err = client.SubmitInteractiveDialog(context.Background(), submit)
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+	assert.Nil(t, submitResp)
+
+	submit.URL = ts.URL
+	submit.ChannelId = th.BasicChannel.Id
+	submit.TeamId = model.NewId()
+	submitResp, resp, err = client.SubmitInteractiveDialog(context.Background(), submit)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+	assert.Nil(t, submitResp)
+}
