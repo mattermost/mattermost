@@ -32,17 +32,6 @@ func localCreateJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "job", &job)
 
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), &job)
-	if permissionRequired == nil {
-		c.Err = model.NewAppError("unableToCreateJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if !hasPermission {
-		c.SetPermissionError(permissionRequired)
-		return
-	}
-
 	rjob, err := c.App.CreateJob(c.AppContext, &job)
 	if err != nil {
 		c.Err = err

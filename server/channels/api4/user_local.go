@@ -333,7 +333,7 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("user")
 
 	if c.Params.Permanent {
-		err = c.App.PermanentDeleteUser(c.AppContext, user, nil)
+		err = c.App.PermanentDeleteUser(c.AppContext, user)
 	} else {
 		_, err = c.App.UpdateActive(c.AppContext, user, false)
 	}

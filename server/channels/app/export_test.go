@@ -353,9 +353,9 @@ func TestExportDMChannel(t *testing.T) {
 		require.NoError(t, nErr)
 		assert.Equal(t, 1, len(channels))
 
-		appErr := th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2, nil)
+		appErr := th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2)
 		require.Nil(t, appErr)
-		appErr = th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser, nil)
+		appErr = th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser)
 		require.Nil(t, appErr)
 
 		var b bytes.Buffer
@@ -391,7 +391,7 @@ func TestExportDMChannel(t *testing.T) {
 		assert.Equal(t, 2, len(channels))
 
 		// Permanentley delete other user
-		appErr := th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2, nil)
+		appErr := th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2)
 		require.Nil(t, appErr)
 
 		var b bytes.Buffer

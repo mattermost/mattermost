@@ -1791,7 +1791,17 @@ func updateJobProgressWithMetadata[T jobMetadataValue](logger mlog.LoggerIFace, 
 	}
 }
 
-func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model.Job) *model.AppError {
+// PermanentDeleteUser permanently deletes a user from the system without job tracking
+func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError {
+	return a._permanentDeleteUser(rctx, user, nil)
+}
+
+// PermanentDeleteUserWithJob permanently deletes a user with job progress tracking
+func (a *App) PermanentDeleteUserWithJob(rctx request.CTX, user *model.User, job *model.Job) *model.AppError {
+	return a._permanentDeleteUser(rctx, user, job)
+}
+
+func (a *App) _permanentDeleteUser(rctx request.CTX, user *model.User, job *model.Job) *model.AppError {
 	// Create a contextual logger with user_id field already included
 	logger := rctx.Logger().With(mlog.String("user_id", user.Id))
 
@@ -1810,8 +1820,8 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User, job *model
 		}
 	}
 
-	// needsDelete checks whether this store has already been deleted before
-	// or not, by checking it's job metadata.
+	// needsDelete checks whether a step has been completed or not,
+	// by checking it's job metadata.
 	// Alternatively, if there's no job, then it always returns true allowing internal
 	// calls to PermanentDeleteUser work without a job.
 	needsDelete := func(job *model.Job, stepKey string) bool {
@@ -2201,7 +2211,7 @@ func (a *App) PermanentDeleteAllUsers(c request.CTX) *model.AppError {
 		return model.NewAppError("PermanentDeleteAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	for _, user := range users {
-		if appErr := a.PermanentDeleteUser(c, user, nil); appErr != nil {
+		if appErr := a.PermanentDeleteUser(c, user); appErr != nil {
 			c.Logger().Warn("Error while deleting user", mlog.Err(appErr))
 		}
 	}

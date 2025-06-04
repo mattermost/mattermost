@@ -7,8 +7,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -45,6 +47,28 @@ type postWithExtra struct {
 }
 
 func (s *SqlPostStore) ClearCaches() {
+}
+
+// getPermanentDeleteUserSleepInterval returns the sleep interval for user deletion operations.
+// It reads from MM_PERMANENT_DELETE_USER_SLEEP_INTERVAL environment variable and defaults to 1 second.
+func getPermanentDeleteUserSleepInterval() time.Duration {
+	envValue := os.Getenv("MM_PERMANENT_DELETE_USER_SLEEP_INTERVAL")
+	if envValue == "" {
+		return time.Second // Default to 1 second
+	}
+
+	// Try parsing as duration string (e.g., "1s", "500ms", "2s")
+	if duration, err := time.ParseDuration(envValue); err == nil {
+		return duration
+	}
+
+	// Try parsing as milliseconds integer for backward compatibility
+	if milliseconds, err := strconv.ParseInt(envValue, 10, 64); err == nil {
+		return time.Duration(milliseconds) * time.Millisecond
+	}
+
+	// If parsing fails, log and return default
+	return time.Second
 }
 
 func postSliceColumnsWithTypes() []struct {
@@ -1129,7 +1153,7 @@ func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) er
 			return err
 		}
 
-		time.Sleep(time.Second)
+		time.Sleep(getPermanentDeleteUserSleepInterval())
 	}
 
 	// Now attempt to delete all the root posts for a user. This will also
@@ -1149,7 +1173,7 @@ func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) er
 			return err
 		}
 
-		time.Sleep(time.Second)
+		time.Sleep(getPermanentDeleteUserSleepInterval())
 	}
 
 	// Finally, we delete all reactions for the user.
@@ -3167,23 +3191,28 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 			}
 		}
 
-		lastReplyAtSubquery := sq.Select("COALESCE(MAX(CreateAt), 0)").
+		// Fetch both aggregated values in a single query to avoid duplicate subqueries
+		// TODO: when MySQL is deprecated, we can use just a single query with CTE.
+		statsQuery := s.getQueryBuilder().Select("COALESCE(MAX(CreateAt), 0) AS last_reply_at", "COUNT(*) AS reply_count").
 			From("Posts").
 			Where(sq.Eq{
 				"RootId":   rootId,
 				"DeleteAt": 0,
 			})
 
-		lastReplyCountSubquery := sq.Select("Count(*)").
-			From("Posts").
-			Where(sq.Eq{
-				"RootId":   rootId,
-				"DeleteAt": 0,
-			})
+		var threadStats struct {
+			LastReplyAt int64 `db:"last_reply_at"`
+			ReplyCount  int64 `db:"reply_count"`
+		}
+
+		err = transaction.GetBuilder(&threadStats, statsQuery)
+		if err != nil {
+			return errors.Wrap(err, "failed to fetch thread stats")
+		}
 
 		updateQueryString, updateArgs, err := updateQuery.
-			Set("LastReplyAt", lastReplyAtSubquery).
-			Set("ReplyCount", lastReplyCountSubquery).
+			Set("LastReplyAt", threadStats.LastReplyAt).
+			Set("ReplyCount", threadStats.ReplyCount).
 			Where(sq.And{
 				sq.Eq{"PostId": rootId},
 				sq.Gt{"ReplyCount": 0},

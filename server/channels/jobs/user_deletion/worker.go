@@ -16,7 +16,7 @@ const jobName = "UserDeletion"
 
 type AppIface interface {
 	GetUser(userID string) (*model.User, *model.AppError)
-	PermanentDeleteUser(rctx request.CTX, user *model.User, job *model.Job) *model.AppError
+	PermanentDeleteUserWithJob(rctx request.CTX, user *model.User, job *model.Job) *model.AppError
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
@@ -41,7 +41,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		}
 
 		// Perform the actual user deletion with the cancellable context
-		appErr = app.PermanentDeleteUser(rctx, user, job)
+		appErr = app.PermanentDeleteUserWithJob(rctx, user, job)
 		if appErr != nil {
 			return fmt.Errorf("failed to permanently delete user %s: %v", userId, appErr)
 		}

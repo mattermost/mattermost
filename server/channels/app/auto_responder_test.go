@@ -20,7 +20,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 
 	user := th.CreateUser()
 	defer func() {
-		err := th.App.PermanentDeleteUser(th.Context, user, nil)
+		err := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, err)
 	}()
 
@@ -62,7 +62,7 @@ func TestDisableAutoResponder(t *testing.T) {
 
 	user := th.CreateUser()
 	defer func() {
-		err := th.App.PermanentDeleteUser(th.Context, user, nil)
+		err := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, err)
 	}()
 
@@ -262,7 +262,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 
 	user := th.CreateUser()
 	defer func() {
-		err := th.App.PermanentDeleteUser(th.Context, user, nil)
+		err := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, err)
 	}()
 
@@ -307,7 +307,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 
 	user := th.CreateUser()
 	defer func() {
-		err := th.App.PermanentDeleteUser(th.Context, user, nil)
+		err := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, err)
 	}()
 
@@ -361,7 +361,7 @@ func TestSendAutoResponseFailure(t *testing.T) {
 
 	user := th.CreateUser()
 	defer func() {
-		err := th.App.PermanentDeleteUser(th.Context, user, nil)
+		err := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, err)
 	}()
 

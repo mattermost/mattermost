@@ -5,6 +5,7 @@ package jobs
 
 import (
 	"errors"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -18,6 +19,10 @@ import (
 )
 
 func TestResumableSimpleWorker(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("should set job to pending when worker stops", func(t *testing.T) {
 		jobServer, mockStore, mockMetrics := makeJobServer(t)
 

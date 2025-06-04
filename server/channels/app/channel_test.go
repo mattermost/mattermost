@@ -1873,7 +1873,7 @@ func TestAddUserToChannel(t *testing.T) {
 	user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser1, _ := th.App.CreateUser(th.Context, &user1)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, &user1, nil)
+		appErr := th.App.PermanentDeleteUser(th.Context, &user1)
 		require.Nil(t, appErr)
 	}()
 	bot := th.CreateBot()
@@ -1913,7 +1913,7 @@ func TestAddUserToChannel(t *testing.T) {
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser2, _ := th.App.CreateUser(th.Context, &user2)
 	defer func() {
-		appErr = th.App.PermanentDeleteUser(th.Context, &user2, nil)
+		appErr = th.App.PermanentDeleteUser(th.Context, &user2)
 		require.Nil(t, appErr)
 	}()
 
@@ -1968,7 +1968,7 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ := th.App.CreateUser(th.Context, &user)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, ruser, nil)
+		appErr := th.App.PermanentDeleteUser(th.Context, ruser)
 		require.Nil(t, appErr)
 	}()
 
@@ -2746,7 +2746,7 @@ func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {
 	t.Run("Mentions counted correctly if post is edited", func(t *testing.T) {
 		user3 := th.CreateUser()
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, user3, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, user3)
 			require.Nil(t, appErr)
 		}()
 		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "root post"}, th.BasicChannel, model.CreatePostFlags{})

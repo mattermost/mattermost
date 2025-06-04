@@ -677,7 +677,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	user4 := th.CreateUser()
 	guestAndUser4Channel := th.CreateChannel(th.Context, th.BasicTeam)
 	defer func() {
-		appErr := th.App.PermanentDeleteUser(th.Context, guest, nil)
+		appErr := th.App.PermanentDeleteUser(th.Context, guest)
 		require.Nil(t, appErr)
 	}()
 	th.LinkUserToTeam(user3, th.BasicTeam)

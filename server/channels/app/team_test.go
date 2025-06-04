@@ -91,7 +91,7 @@ func TestAddUserToTeam(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user)
 			require.Nil(t, appErr)
 		}()
 
@@ -107,7 +107,7 @@ func TestAddUserToTeam(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user)
 			require.Nil(t, appErr)
 		}()
 
@@ -124,7 +124,7 @@ func TestAddUserToTeam(t *testing.T) {
 		ruser, err := th.App.CreateUser(th.Context, &user)
 		require.Nil(t, err, "Error creating user: %s", err)
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user)
 			require.NotNil(t, appErr)
 		}()
 
@@ -136,7 +136,7 @@ func TestAddUserToTeam(t *testing.T) {
 		ruser, err = th.App.CreateUser(th.Context, &user)
 		require.Nil(t, err, "Error creating authservice user: %s", err)
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user)
 			require.Nil(t, appErr)
 		}()
 
@@ -163,7 +163,7 @@ func TestAddUserToTeam(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user)
 			require.Nil(t, appErr)
 		}()
 
@@ -187,15 +187,15 @@ func TestAddUserToTeam(t *testing.T) {
 		ruser3, _ := th.App.CreateUser(th.Context, &user3)
 
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user1, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user1)
 			require.Nil(t, appErr)
 		}()
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user2, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user2)
 			require.Nil(t, appErr)
 		}()
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user3, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user3)
 			require.Nil(t, appErr)
 		}()
 
@@ -449,7 +449,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user)
 			require.Nil(t, appErr)
 		}()
 
@@ -507,7 +507,7 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user)
 			require.Nil(t, appErr)
 		}()
 
@@ -950,7 +950,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user)
 			require.Nil(t, appErr)
 		}()
 
@@ -965,11 +965,11 @@ func TestJoinUserToTeam(t *testing.T) {
 		ruser2, _ := th.App.CreateUser(th.Context, &user2)
 
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user1, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user1)
 			require.Nil(t, appErr)
 		}()
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user2, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user2)
 			require.Nil(t, appErr)
 		}()
 
@@ -988,11 +988,11 @@ func TestJoinUserToTeam(t *testing.T) {
 		ruser2, _ := th.App.CreateUser(th.Context, &user2)
 
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user1, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user1)
 			require.Nil(t, appErr)
 		}()
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user2, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user2)
 			require.Nil(t, appErr)
 		}()
 
@@ -1011,7 +1011,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser1, _ := th.App.CreateUser(th.Context, &user1)
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user1, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user1)
 			require.Nil(t, appErr)
 		}()
 
@@ -1038,7 +1038,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser2, _ := th.App.CreateUser(th.Context, &user2)
 		defer func() {
-			appErr = th.App.PermanentDeleteUser(th.Context, &user2, nil)
+			appErr = th.App.PermanentDeleteUser(th.Context, &user2)
 			require.Nil(t, appErr)
 		}()
 
@@ -1215,7 +1215,7 @@ func TestGetTeamMembers(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, ruser)
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, &user, nil)
+			appErr := th.App.PermanentDeleteUser(th.Context, &user)
 			require.Nil(t, appErr)
 		}()
 
