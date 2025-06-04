@@ -1415,6 +1415,7 @@
 
         .sidebar-right__body {
             height: calc(100% - 56px);
+            overflow-y: scroll;
         }
     }
 
