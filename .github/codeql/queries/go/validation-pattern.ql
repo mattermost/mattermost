@@ -16,6 +16,7 @@ predicate isTargetedFile(File f) {
   // Add files as they are migrated to the new pattern
   f.getBaseName() = "metrics.go"
   // Add more files as needed
+  // f.getBaseName() = "other_file.go"
 }
 
 /**
@@ -30,22 +31,42 @@ predicate isAPIHandler(Function f) {
 }
 
 /**
- * Checks if a function name follows our validation naming pattern
+ * Checks if a function calls the validator.Struct() method
  */
-predicate isValidationFunction(string name) {
-  name.matches("Validate%")
-}
-
-/**
- * Find validation function calls
- */
-predicate callsValidation(Function f) {
+predicate callsValidatorStruct(Function f) {
   exists(CallExpr call |
-    isValidationFunction(call.getTarget().getName()) and
-    call.getEnclosingFunction() = f
+    call.getEnclosingFunction() = f and
+    (
+      // Direct call to validate.Struct()
+      (call.getTarget().getName() = "Struct" and
+       call.getAnArgument().getTarget().getName() = "validate") or
+      // Method call on validator instance
+      (call.getTarget().hasName("Struct") and
+       call.getReceiver().getType().getName().matches("%validator%"))
+    )
   )
 }
 
+/**
+ * Checks if a function calls custom validation functions
+ */
+predicate callsCustomValidation(Function f) {
+  exists(CallExpr call |
+    call.getEnclosingFunction() = f and
+    (
+      call.getTarget().getName().matches("validate%Custom") or
+      call.getTarget().getName().matches("Validate%") 
+    )
+  )
+}
+
+/**
+ * Checks if the function uses any form of validation
+ */
+predicate usesValidation(Function f) {
+  callsValidatorStruct(f) or callsCustomValidation(f)
+}
+
 from Function f
-where isAPIHandler(f) and not callsValidation(f)
-select f, "HTTP handler does not validate input using the validation framework" 
+where isAPIHandler(f) and not usesValidation(f)
+select f, "HTTP handler does not validate input using the validation framework (missing validate.Struct() or custom validation calls)" 
