@@ -3,6 +3,7 @@
 
 import type {IncomingWebhook, OutgoingWebhook, Command, OAuthApp} from '@mattermost/types/integrations';
 
+import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 
 import * as Actions from 'actions/integration_actions';
@@ -12,6 +13,12 @@ import mockStore from 'tests/test_store';
 jest.mock('mattermost-redux/actions/users', () => ({
     getProfilesByIds: jest.fn(() => {
         return {type: ''};
+    }),
+}));
+
+jest.mock('mattermost-redux/actions/integrations', () => ({
+    submitInteractiveDialog: jest.fn(() => {
+        return {type: 'MOCK_SUBMIT_DIALOG', data: {errors: {}}};
     }),
 }));
 
@@ -37,6 +44,10 @@ describe('actions/integration_actions', () => {
                 currentUserId: 'current_user_id',
                 profiles: {current_user_id: {id: 'current_user_id', username: 'current_user'}, user_id3: {id: 'user_id3', username: 'user3'}, user_id4: {id: 'user_id4', username: 'user4'}},
             },
+            channels: {
+                currentChannelId: 'current_channel_id',
+            },
+            integrations: {},
         },
     };
 
@@ -117,6 +128,64 @@ describe('actions/integration_actions', () => {
             const testStore = mockStore(initialState);
             testStore.dispatch(Actions.loadProfilesForOAuthApps([]));
             expect(getProfilesByIds).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('submitInteractiveDialog', () => {
+        test('submitInteractiveDialog with current channel', async () => {
+            const testState = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    integrations: {
+                        ...initialState.entities.integrations,
+                        dialogArguments: {
+                            channel_id: 'dialog_channel_id',
+                        },
+                    },
+                },
+            };
+            const testStore = mockStore(testState);
+            const submission = {
+                callback_id: 'callback_id',
+                state: 'state',
+                submission: {
+                    name: 'value',
+                },
+                user_id: 'current_user_id',
+                team_id: 'team_id1',
+                channel_id: '',
+                cancelled: false,
+            };
+
+            const expectedSubmission = {
+                ...submission,
+                channel_id: 'dialog_channel_id',
+            };
+
+            await testStore.dispatch(Actions.submitInteractiveDialog(submission));
+
+            expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(expectedSubmission);
+        });
+
+        test('submitInteractiveDialog with currentChannel context', async () => {
+            const testStore = mockStore(initialState);
+
+            const submission = {
+                callback_id: 'callback_id',
+                state: 'state',
+                submission: {
+                    name: 'value',
+                },
+                user_id: 'current_user_id',
+                team_id: 'team_id1',
+                channel_id: 'current_channel_id',
+                cancelled: false,
+            };
+
+            await testStore.dispatch(Actions.submitInteractiveDialog(submission));
+
+            expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(submission);
         });
     });
 });

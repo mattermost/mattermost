@@ -22,6 +22,7 @@ import (
 )
 
 func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
+	mainHelper.Parallel(t)
 	expectedPrefix := "[http://localhost:8065] New Direct Message from @sender on"
 	user := &model.User{}
 	post := &model.Post{
@@ -33,6 +34,7 @@ func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
 }
 
 func TestGetGroupMessageNotificationEmailSubjectFull(t *testing.T) {
+	mainHelper.Parallel(t)
 	expectedPrefix := "[http://localhost:8065] New Group Message in sender on"
 	user := &model.User{}
 	post := &model.Post{
@@ -45,6 +47,7 @@ func TestGetGroupMessageNotificationEmailSubjectFull(t *testing.T) {
 }
 
 func TestGetGroupMessageNotificationEmailSubjectGeneric(t *testing.T) {
+	mainHelper.Parallel(t)
 	expectedPrefix := "[http://localhost:8065] New Group Message on"
 	user := &model.User{}
 	post := &model.Post{
@@ -57,6 +60,7 @@ func TestGetGroupMessageNotificationEmailSubjectGeneric(t *testing.T) {
 }
 
 func TestGetNotificationEmailSubject(t *testing.T) {
+	mainHelper.Parallel(t)
 	expectedPrefix := "[http://localhost:8065] Notification in team on"
 	user := &model.User{}
 	post := &model.Post{
@@ -68,6 +72,7 @@ func TestGetNotificationEmailSubject(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -99,6 +104,7 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -130,6 +136,7 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -161,6 +168,7 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -192,6 +200,7 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -227,6 +236,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -275,6 +285,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -308,6 +319,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -341,6 +353,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 }
 
 func TestGetNotificationEmailBodyWithUserPreference(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -385,6 +398,7 @@ func TestGetNotificationEmailBodyWithUserPreference(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -483,6 +497,7 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 
 // from here
 func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -513,6 +528,7 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 }
 
 func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -543,6 +559,7 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -573,6 +590,7 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 }
 
 func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -603,6 +621,7 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 }
 
 func TestGetNotificationEmailEscapingChars(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -637,6 +656,7 @@ func TestGetNotificationEmailEscapingChars(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -684,6 +704,7 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -756,6 +777,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -803,6 +825,7 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 }
 
 func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -834,6 +857,7 @@ func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 }
 
 func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -890,6 +914,7 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 }
 
 func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -919,6 +944,7 @@ func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 }
 
 func TestLandingLink(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -948,6 +974,7 @@ func TestLandingLink(t *testing.T) {
 }
 
 func TestLandingLinkPermalink(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -978,6 +1005,7 @@ func TestLandingLinkPermalink(t *testing.T) {
 }
 
 func TestMarkdownConversion(t *testing.T) {
+	mainHelper.Parallel(t)
 	tests := []struct {
 		name string
 		args string

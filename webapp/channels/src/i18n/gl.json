@@ -1509,8 +1509,6 @@
   "reaction.reacted": "{users} {reactionVerb} con {emoji}",
   "reaction.you": "Vostede",
   "removed_channel.someone": "Alguén",
-  "rename_channel.cancel": "Cancelar",
-  "rename_channel.save": "Gardar",
   "rhs_root.mobile.flag": "Gardar",
   "save_button.save": "Gardar",
   "search_bar.search": "Buscar",

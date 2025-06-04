@@ -74,7 +74,7 @@ const SelectType = (props: Props) => {
                     key='filter_types'
                     id='filter_types'
                     type='text'
-                    placeholder={formatMessage({id: 'admin.system_properties.user_properties.table.filter_type', defaultMessage: 'Property type'})}
+                    placeholder={formatMessage({id: 'admin.system_properties.user_properties.table.filter_type', defaultMessage: 'Attribute type'})}
                     className='search-teams-selector-search'
                     value={filter}
                     onChange={onFilterChange}
@@ -119,12 +119,15 @@ export default SelectType;
 
 const getTypeDescriptor = (field: UserPropertyField): TypeDescriptor => {
     for (const descriptor of Object.values(TYPE_DESCRIPTOR)) {
-        if (descriptor.fieldType === field.type && descriptor.valueType === field.attrs?.value_type) {
+        if (
+            descriptor.fieldType === field.type &&
+            descriptor.valueType === (field.attrs?.value_type ?? '')
+        ) {
             return descriptor;
         }
     }
 
-    throw new Error('Invalid type');
+    return TYPE_DESCRIPTOR.text;
 };
 
 type TypeID = 'text' | 'email' | 'phone' | 'url' | 'select' | 'multiselect';

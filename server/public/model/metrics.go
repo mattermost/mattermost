@@ -84,8 +84,13 @@ var (
 )
 
 type MetricSample struct {
+<<<<<<< HEAD
 	Metric MetricType        `json:"metric" validate:"required"`
 	Value  float64           `json:"value" validate:"required,gte=0"`
+=======
+	Metric MetricType        `json:"metric"`
+	Value  float64           `json:"value"`
+>>>>>>> master
 	Labels map[string]string `json:"labels,omitempty"`
 }
 
