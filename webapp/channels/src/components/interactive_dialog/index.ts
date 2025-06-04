@@ -6,7 +6,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {submitInteractiveDialog} from 'mattermost-redux/actions/integrations';
+import {submitInteractiveDialog, lookupInteractiveDialog} from 'mattermost-redux/actions/integrations';
 
 import {doAppSubmit, doAppFetchForm, doAppLookup, postEphemeralCallResponseForContext} from 'actions/apps';
 import {autocompleteChannels} from 'actions/channel_actions';
@@ -53,6 +53,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             submitInteractiveDialog,
+            lookupInteractiveDialog,
             doAppSubmit,
             doAppFetchForm,
             doAppLookup,

@@ -3,12 +3,12 @@
 
 import React from 'react';
 
-import type {AppCallRequest, AppField, AppForm, AppFormValues, AppSelectOption} from '@mattermost/types/apps';
+import type {AppCallRequest, AppField, AppForm, AppFormValues, AppSelectOption, AppLookupResponse} from '@mattermost/types/apps';
 import type {DialogElement, DialogSubmission} from '@mattermost/types/integrations';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
-import AppsFormContainer from 'components/apps_form/apps_form_container';
+import AppsFormContainer from './apps_form/apps_form_container';
 
 import type {PropsFromRedux} from './index';
 
@@ -30,6 +30,8 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
                     type = 'user';
                 } else if (element.data_source === 'channels') {
                     type = 'channel';
+                } else if (element.data_source === 'dynamic') {
+                    type = 'dynamic_select';
                 }
             }
 
@@ -41,7 +43,7 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
                 value = defaultOption ? {label: defaultOption.text, value} : '';
             }
 
-            return {
+            const field: AppField = {
                 name: element.name,
                 type,
                 subtype: element.subtype,
@@ -59,6 +61,20 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
                 readonly: false,
                 value,
             };
+
+            // Add lookup configuration for dynamic select
+            if (type === 'dynamic_select') {
+                field.lookup = {
+                    path: element.data_source_url || this.props.url || '',
+                };
+                
+                // Ensure the path is properly formatted for plugins
+                if (field.lookup.path && !field.lookup.path.startsWith('http') && !field.lookup.path.startsWith('/')) {
+                    field.lookup.path = '/' + field.lookup.path;
+                }
+            }
+
+            return field;
         });
     }
 
@@ -130,6 +146,102 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
         };
     };
 
+    private handleLookup = async (call: AppCallRequest) => {
+        const {url, callbackId, state} = this.props;
+        const submissionValues = call.values as AppFormValues;
+        
+        // Get the lookup path from the call or field configuration
+        let lookupPath = call.path;
+        
+        // If the field has a lookup path defined, use that instead
+        if (!lookupPath && call.selected_field) {
+            const field = this.props.elements?.find(element => element.name === call.selected_field);
+            if (field?.data_source === 'dynamic' && field?.data_source_url) {
+                lookupPath = field.data_source_url;
+            }
+        }
+        
+        // If still no path, fall back to the dialog URL
+        if (!lookupPath) {
+            lookupPath = url;
+        }
+
+        // Convert AppSelectOption values to their raw value before submission
+        const processedValues = Object.entries(submissionValues).reduce((result, [key, value]) => {
+            if (value && typeof value === 'object' && 'value' in value) {
+                result[key] = value.value;
+            } else {
+                result[key] = value;
+            }
+            return result;
+        }, {} as Record<string, any>);
+
+        // For dynamic select, we need to make a lookup call to get options
+        const dialog: DialogSubmission = {
+            url: lookupPath || '',
+            callback_id: callbackId ?? '',
+            state: state ?? '',
+            submission: processedValues as { [x: string]: string },
+            user_id: '',
+            channel_id: '',
+            team_id: '',
+            cancelled: false,
+        };
+
+        // Add the query and selected field to the submission
+        if (call.query) {
+            dialog.submission.query = call.query;
+        }
+
+        if (call.selected_field) {
+            dialog.submission.selected_field = call.selected_field;
+        }
+
+        try {
+            const response = await this.props.actions.lookupInteractiveDialog(dialog);
+
+            // Convert the response to the format expected by AppsFormContainer
+            if (response?.data?.items) {
+                return {
+                    data: {
+                        type: AppCallResponseTypes.OK,
+                        data: {
+                            items: response.data.items.map((item) => ({
+                                label: item.text,
+                                value: item.value,
+                            })),
+                        },
+                    },
+                };
+            }
+
+            if (response?.error) {
+                return {
+                    error: {
+                        type: AppCallResponseTypes.ERROR,
+                        text: response.error,
+                    },
+                };
+            }
+
+            return {
+                data: {
+                    type: AppCallResponseTypes.OK,
+                    data: {
+                        items: [],
+                    },
+                },
+            };
+        } catch (error) {
+            return {
+                error: {
+                    type: AppCallResponseTypes.ERROR,
+                    text: 'Failed to perform lookup',
+                },
+            };
+        }
+    };
+
     private handleHide = () => {
         const {url, callbackId, state, notifyOnCancel} = this.props;
 
@@ -161,7 +273,7 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
                 actions={{
                     doAppSubmit: this.handleSubmit,
                     doAppFetchForm: this.props.actions.doAppFetchForm,
-                    doAppLookup: this.props.actions.doAppLookup,
+                    doAppLookup: this.handleLookup,
                     postEphemeralCallResponseForContext: this.props.actions.postEphemeralCallResponseForContext,
                 }}
             />
