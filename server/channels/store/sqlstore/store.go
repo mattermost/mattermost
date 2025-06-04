@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
-	dbsql "database/sql"
 	"fmt"
 	"path"
 	"strconv"
@@ -134,7 +133,7 @@ type SqlStore struct {
 
 	searchReplicaXs []*atomic.Pointer[sqlxDBWrapper]
 
-	replicaLagHandles []*dbsql.DB
+	replicaLagHandles []*sql.DB
 	stores            SqlStoreStores
 	settings          *model.SqlSettings
 	lockedToMaster    bool
@@ -353,7 +352,7 @@ func (ss *SqlStore) initConnection() error {
 	}
 
 	if len(ss.settings.ReplicaLagSettings) > 0 {
-		ss.replicaLagHandles = make([]*dbsql.DB, 0, len(ss.settings.ReplicaLagSettings))
+		ss.replicaLagHandles = make([]*sql.DB, 0, len(ss.settings.ReplicaLagSettings))
 		for i, src := range ss.settings.ReplicaLagSettings {
 			if src.DataSource == nil {
 				continue
@@ -535,7 +534,7 @@ func (ss *SqlStore) monitorReplicas() {
 	}
 }
 
-func (ss *SqlStore) setDB(replica *atomic.Pointer[sqlxDBWrapper], handle *dbsql.DB, name string) {
+func (ss *SqlStore) setDB(replica *atomic.Pointer[sqlxDBWrapper], handle *sql.DB, name string) {
 	replica.Store(newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace))
