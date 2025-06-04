@@ -50,9 +50,19 @@ function verifySingleImageThumbnail({mode = null} = {}) {
         cy.contains('div', filename).should('not.exist');
 
         // * There are arrows to collapse the preview
-        cy.get('img[src*="preview"]').should('be.visible');
-        cy.findByLabelText('Toggle Embed Visibility').should('exist').and('have.attr', 'data-expanded', 'true').click({force: true});
-        cy.findByLabelText('Toggle Embed Visibility').should('exist').and('have.attr', 'data-expanded', 'false');
-        cy.get('img[src*="preview"]').should('not.exist');
+        cy.get('figure.image-loaded-container img[src*="preview"]').should('be.visible');
+        cy.findByLabelText('Toggle Embed Visibility')
+            .should('exist')
+            .and('have.attr', 'data-expanded', 'true')
+            .click({force: true});
+        cy.findByLabelText('Toggle Embed Visibility')
+            .should('exist')
+            .and('have.attr', 'data-expanded', 'false');
+
+        // * The image container should be collapsed
+        cy.get('.image-container').should('have.attr', 'data-expanded', 'false');
+        
+        // * The image should be hidden (removed from DOM)
+        cy.get('figure.image-loaded-container').should('not.exist');
     });
 }

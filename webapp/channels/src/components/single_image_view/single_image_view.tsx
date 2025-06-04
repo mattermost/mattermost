@@ -252,28 +252,30 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                         style={imageContainerStyle}
                         data-expanded={this.props.isEmbedVisible}
                     >
-                        <div
-                            className={classNames('image-loaded', fadeInClass, svgClass)}
-                            style={styleIfSvgWithDimensions}
-                        >
-                            <div className={classNames(permalinkClass)}>
-                                <SizeAwareImage
-                                    onClick={this.handleImageClick}
-                                    className={classNames(minPreviewClass, permalinkClass)}
-                                    src={previewURL}
-                                    dimensions={this.state.dimensions}
-                                    fileInfo={this.props.fileInfo}
-                                    fileURL={fileURL}
-                                    onImageLoaded={this.imageLoaded}
-                                    showLoader={this.props.isEmbedVisible}
-                                    handleSmallImageContainer={true}
-                                    enablePublicLink={this.props.enablePublicLink}
-                                    getFilePublicLink={this.getFilePublicLink}
-                                    hideUtilities={this.props.disableActions}
-                                    smallImageThreshold={this.props.smallImageThreshold}
-                                />
+                        {this.props.isEmbedVisible && (
+                            <div
+                                className={classNames('image-loaded', fadeInClass, svgClass)}
+                                style={styleIfSvgWithDimensions}
+                            >
+                                <div className={classNames(permalinkClass)}>
+                                    <SizeAwareImage
+                                        onClick={this.handleImageClick}
+                                        className={classNames(minPreviewClass, permalinkClass)}
+                                        src={previewURL}
+                                        dimensions={this.state.dimensions}
+                                        fileInfo={this.props.fileInfo}
+                                        fileURL={fileURL}
+                                        onImageLoaded={this.imageLoaded}
+                                        showLoader={this.props.isEmbedVisible}
+                                        handleSmallImageContainer={true}
+                                        enablePublicLink={this.props.enablePublicLink}
+                                        getFilePublicLink={this.getFilePublicLink}
+                                        hideUtilities={this.props.disableActions}
+                                        smallImageThreshold={this.props.smallImageThreshold}
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>
