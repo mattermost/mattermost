@@ -147,7 +147,7 @@ PLUGIN_PACKAGES += mattermost-plugin-github-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.10.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.3.0
 # We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.41.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.41.1
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.2.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
@@ -300,15 +300,11 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.7
-
-	@echo Running golangci-lint
-	$(GOBIN)/golangci-lint run ./...
-	$(GOBIN)/golangci-lint run ./public/...
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-  ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-		$(GOBIN)/golangci-lint run $(BUILD_ENTERPRISE_DIR)/...
-  endif
+	$(GOBIN)/golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
+else
+	$(GOBIN)/golangci-lint run ./... ./public/...
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
