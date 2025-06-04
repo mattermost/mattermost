@@ -90,6 +90,38 @@ func (_m *LdapDiagnosticInterface) RunTestConnection(rctx request.CTX, settings 
 	return r0
 }
 
+// RunTestFilters provides a mock function with given fields: rctx, settings
+func (_m *LdapDiagnosticInterface) RunTestFilters(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapFilterTestResult, *model.AppError) {
+	ret := _m.Called(rctx, settings)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RunTestFilters")
+	}
+
+	var r0 []model.LdapFilterTestResult
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) ([]model.LdapFilterTestResult, *model.AppError)); ok {
+		return rf(rctx, settings)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) []model.LdapFilterTestResult); ok {
+		r0 = rf(rctx, settings)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.LdapFilterTestResult)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.LdapSettings) *model.AppError); ok {
+		r1 = rf(rctx, settings)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // NewLdapDiagnosticInterface creates a new instance of LdapDiagnosticInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewLdapDiagnosticInterface(t interface {
