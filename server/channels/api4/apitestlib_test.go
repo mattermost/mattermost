@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestEnvironmentVariableHandling should NEVER be run with t.Parallel()
 func TestEnvironmentVariableHandling(t *testing.T) {
-	// Clean up any existing environment variables before testing
+	// TestEnvironmentVariableHandling should NEVER be run with t.Parallel()
+
 	originalConsoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
 	defer func() {
 		// Restore original environment variables
@@ -25,6 +25,8 @@ func TestEnvironmentVariableHandling(t *testing.T) {
 	}()
 
 	t.Run("MM_LOGSETTINGS_CONSOLELEVEL should be respected when set", func(t *testing.T) {
+		// never run with t.Parallel()
+
 		// Set the console level environment variable
 		os.Setenv("MM_LOGSETTINGS_CONSOLELEVEL", "ERROR")
 		defer os.Unsetenv("MM_LOGSETTINGS_CONSOLELEVEL")
@@ -38,6 +40,8 @@ func TestEnvironmentVariableHandling(t *testing.T) {
 	})
 
 	t.Run("Only MM_LOGSETTINGS_CONSOLELEVEL is manually processed", func(t *testing.T) {
+		// never run with t.Parallel()
+
 		// This test verifies that we haven't accidentally enabled general environment
 		// variable processing - we only manually handle MM_LOGSETTINGS_CONSOLELEVEL
 
