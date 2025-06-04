@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -159,6 +160,12 @@ func lookupDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if lookup.URL == "" {
+		c.SetInvalidParam("url")
+		return
+	}
+
+	// Validate URL for security
+	if !model.IsValidHTTPURL(lookup.URL) && !strings.HasPrefix(lookup.URL, "/plugins/") {
 		c.SetInvalidParam("url")
 		return
 	}
