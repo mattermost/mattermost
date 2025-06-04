@@ -58,9 +58,7 @@ func TestGetSchemaDefinition(t *testing.T) {
 
 			// Verify some core tables
 			expectedTables := []string{"users", "channels", "teams", "posts"}
-			for _, expected := range expectedTables {
-				assert.Contains(t, tableNames, expected)
-			}
+			assert.Subset(t, tableNames, expectedTables)
 
 			// Verify table structure
 			for _, table := range schemaInfo.Tables {
@@ -72,9 +70,7 @@ func TestGetSchemaDefinition(t *testing.T) {
 					}
 
 					expectedColumns := []string{"id", "username", "email"}
-					for _, expected := range expectedColumns {
-						assert.Contains(t, columnNames, expected)
-					}
+					assert.Subset(t, columnNames, expectedColumns)
 
 					break
 				}
