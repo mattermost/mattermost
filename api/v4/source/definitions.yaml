@@ -1355,6 +1355,59 @@ components:
           type: string
         LoginButtonTextColor:
           type: string
+    LdapFilterTestResult:
+      type: object
+      properties:
+        filter_name:
+          type: string
+          description: Name/type of the filter being tested
+        filter_value:
+          type: string
+          description: The actual filter string used
+        success:
+          type: boolean
+          description: Whether the filter test succeeded
+        result_count:
+          type: integer
+          description: Number of entries found by the filter
+        message:
+          type: string
+          description: Optional success/info message
+        error:
+          type: string
+          description: Optional error message if test failed
+        sample_results:
+          type: array
+          description: Array of sample LDAP entries found
+          items:
+            type: object
+            properties:
+              dn:
+                type: string
+                description: Distinguished Name
+              username:
+                type: string
+                description: Username
+              email:
+                type: string
+                description: Email
+              first_name:
+                type: string
+                description: First name
+              last_name:
+                type: string
+                description: Last name
+              id:
+                type: string
+                description: ID attribute
+              display_name:
+                type: string
+                description: Display name for groups
+              available_attributes:
+                type: object
+                description: Map of all available LDAP attributes
+                additionalProperties:
+                  type: string
     Config:
       type: object
       properties:
