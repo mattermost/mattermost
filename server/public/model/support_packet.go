@@ -136,6 +136,7 @@ type DatabaseTable struct {
 	Collation string            `yaml:"collation,omitempty"`
 	Options   map[string]string `yaml:"options,omitempty"`
 	Columns   []DatabaseColumn  `yaml:"columns"`
+	Indexes   []DatabaseIndex   `yaml:"indexes,omitempty"`
 }
 
 // DatabaseColumn represents a column in a database table.
@@ -144,6 +145,12 @@ type DatabaseColumn struct {
 	DataType   string `yaml:"data_type"`
 	MaxLength  int64  `yaml:"max_length,omitempty"`
 	IsNullable bool   `yaml:"is_nullable"`
+}
+
+// DatabaseIndex represents an index in a database table.
+type DatabaseIndex struct {
+	Name       string `yaml:"name"`
+	Definition string `yaml:"definition"`
 }
 
 type FileData struct {

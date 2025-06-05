@@ -30,7 +30,6 @@ func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, e
 		rErr = multierror.Append(rErr, err)
 	} else {
 		schemaInfo.DatabaseCollation = dbCollation
-
 	}
 	// Get table options
 	tableOptions, err := ss.getTableOptions()
@@ -40,6 +39,12 @@ func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, e
 
 	// Get table schema information
 	tablesMap, tableCollations, err := ss.getTableSchemaInformation()
+	if err != nil {
+		rErr = multierror.Append(rErr, err)
+	}
+
+	// Get table indexes
+	tableIndexes, err := ss.getTableIndexes()
 	if err != nil {
 		rErr = multierror.Append(rErr, err)
 	}
@@ -54,6 +59,11 @@ func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, e
 		// Add table options if they exist
 		if options, ok := tableOptions[table.Name]; ok && len(options) > 0 {
 			table.Options = options
+		}
+
+		// Add table indexes if they exist
+		if indexes, ok := tableIndexes[table.Name]; ok {
+			table.Indexes = indexes
 		}
 
 		schemaInfo.Tables = append(schemaInfo.Tables, *table)
@@ -81,7 +91,6 @@ func (ss *SqlStore) getDatabaseCollation() (string, error) {
 
 	if !dbCollation.Valid {
 		return "", nil
-
 	}
 
 	return dbCollation.String, nil
@@ -218,4 +227,49 @@ func (ss *SqlStore) getTableSchemaInformation() (map[string]*model.DatabaseTable
 	}
 
 	return tablesMap, tableCollations, rErr.ErrorOrNil()
+}
+
+// getTableIndexes retrieves index information for all tables
+func (ss *SqlStore) getTableIndexes() (map[string][]model.DatabaseIndex, error) {
+	tableIndexes := make(map[string][]model.DatabaseIndex)
+
+	// Query pg_indexes for index information
+	indexQuery := sq.Select(
+		"tablename",
+		"indexname",
+		"indexdef",
+	).
+		From("pg_indexes").
+		Where(sq.Eq{"schemaname": "public"})
+
+	indexSql, indexArgs, err := indexQuery.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build index query")
+	}
+
+	rows, err := ss.GetMaster().DB.Query(indexSql, indexArgs...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query index information")
+	}
+	defer rows.Close()
+
+	var rErr *multierror.Error
+	for rows.Next() {
+		var tableName, indexName, indexDef string
+
+		err = rows.Scan(&tableName, &indexName, &indexDef)
+		if err != nil {
+			rErr = multierror.Append(rErr, errors.Wrap(err, "failed to scan index row"))
+			continue
+		}
+
+		index := model.DatabaseIndex{
+			Name:       indexName,
+			Definition: indexDef,
+		}
+
+		tableIndexes[tableName] = append(tableIndexes[tableName], index)
+	}
+
+	return tableIndexes, rErr.ErrorOrNil()
 }
