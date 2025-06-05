@@ -21,6 +21,10 @@ describe('Image Gallery', () => {
     });
 
     it('MM-T1798 Gallery grid layout with multiple images', () => {
+        // Wait for channel to be fully loaded
+        cy.get('#channelHeaderTitle').should('be.visible');
+        cy.get('#post_textbox').should('be.visible');
+
         const images = [
             {filename: 'image-small-height.png', width: 340, height: 24},
             {filename: 'image-small-width.png', width: 21, height: 350},
@@ -31,7 +35,8 @@ describe('Image Gallery', () => {
         // # Upload multiple images
         images.forEach((image) => {
             // Wait for the text editor to be ready
-            cy.get('#advancedTextEditorCell').should('be.visible').within(() => {
+            cy.get('#post_textbox').should('be.visible').click();
+            cy.get('#advancedTextEditorCell', {timeout: 10000}).should('be.visible').within(() => {
                 cy.get('#fileUploadInput').should('exist').attachFile(image.filename);
             });
             cy.get('.post-image__thumbnail').should('be.visible');
@@ -107,6 +112,10 @@ describe('Image Gallery', () => {
     });
 
     it('MM-T1799 Gallery with mixed content types', () => {
+        // Wait for channel to be fully loaded
+        cy.get('#channelHeaderTitle').should('be.visible');
+        cy.get('#post_textbox').should('be.visible');
+
         const files = [
             {filename: 'image-small-height.png', type: 'image'},
             {filePath: 'mm_file_testing/Documents/PDF.pdf', fileName: 'PDF.pdf', type: 'document'},
@@ -116,7 +125,8 @@ describe('Image Gallery', () => {
         // # Upload mixed content
         files.forEach((file) => {
             // Wait for the text editor to be ready
-            cy.get('#advancedTextEditorCell').should('be.visible').within(() => {
+            cy.get('#post_textbox').should('be.visible').click();
+            cy.get('#advancedTextEditorCell', {timeout: 10000}).should('be.visible').within(() => {
                 if (file.filePath) {
                     // Use attachFile helper for PDF
                     attachFile({
