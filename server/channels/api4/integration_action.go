@@ -5,8 +5,8 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -143,13 +143,25 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func toString(val any) string {
+// getStringValue safely converts an interface{} value to a string with logging for failures.
+// It handles nil values gracefully and logs warnings when conversion fails.
+func getStringValue(val any, fieldName string, logger *mlog.Logger) string {
+	if val == nil {
+		return ""
+	}
 	if str, ok := val.(string); ok {
 		return str
 	}
+	logger.Warn("Failed to convert field to string",
+		mlog.String("field", fieldName),
+		mlog.String("type", fmt.Sprintf("%T", val)),
+		mlog.Any("value", val))
 	return ""
 }
 
+// lookupDialog handles API requests for dynamic dialog element lookups.
+// It validates the request URL for security, checks user permissions, and
+// delegates to the app layer for the actual lookup operation.
 func lookupDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 	var lookup model.SubmitDialogRequest
 
@@ -165,7 +177,7 @@ func lookupDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate URL for security
-	if !model.IsValidHTTPURL(lookup.URL) && !strings.HasPrefix(lookup.URL, "/plugins/") {
+	if !model.IsValidLookupURL(lookup.URL) {
 		c.SetInvalidParam("url")
 		return
 	}
@@ -192,8 +204,8 @@ func lookupDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.String("user_id", lookup.UserId),
 		mlog.String("channel_id", lookup.ChannelId),
 		mlog.String("team_id", lookup.TeamId),
-		mlog.String("selected_field", toString(lookup.Submission["selected_field"])),
-		mlog.String("query", toString(lookup.Submission["query"])),
+		mlog.String("selected_field", getStringValue(lookup.Submission["selected_field"], "selected_field", c.Logger)),
+		mlog.String("query", getStringValue(lookup.Submission["query"], "query", c.Logger)),
 	)
 
 	resp, err := c.App.LookupInteractiveDialog(c.AppContext, lookup)

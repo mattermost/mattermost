@@ -8,6 +8,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -580,7 +581,7 @@ func TestDialogElement_IsValid(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			err := tc.Element.IsValid()
-			
+
 			if tc.ExpectError {
 				require.Error(t, err)
 				if tc.ErrorMsg != "" {
@@ -628,16 +629,16 @@ func TestLookupDialogResponse(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			assert.Equal(t, tc.ItemsLen, len(tc.Response.Items))
-			
+
 			// Test marshaling
 			data, err := json.Marshal(tc.Response)
 			require.NoError(t, err)
-			
+
 			// Test unmarshaling
 			var unmarshaled LookupDialogResponse
 			err = json.Unmarshal(data, &unmarshaled)
 			require.NoError(t, err)
-			
+
 			assert.Equal(t, tc.ItemsLen, len(unmarshaled.Items))
 		})
 	}
@@ -858,4 +859,75 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "Placeholder cannot be longer than 150 characters")
 	})
+}
+
+func TestIsValidLookupURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		url      string
+		expected bool
+	}{
+		{
+			name:     "empty URL",
+			url:      "",
+			expected: false,
+		},
+		{
+			name:     "valid HTTPS URL",
+			url:      "https://example.com/api/lookup",
+			expected: true,
+		},
+		{
+			name:     "invalid HTTP URL (not allowed)",
+			url:      "http://example.com/api/lookup",
+			expected: false,
+		},
+		{
+			name:     "valid plugin path",
+			url:      "/plugins/myplugin/api/lookup",
+			expected: true,
+		},
+		{
+			name:     "invalid plugin path with traversal",
+			url:      "/plugins/../etc/passwd",
+			expected: false,
+		},
+		{
+			name:     "invalid plugin path with double slash",
+			url:      "/plugins//myplugin",
+			expected: false,
+		},
+		{
+			name:     "invalid relative path",
+			url:      "api/lookup",
+			expected: false,
+		},
+		{
+			name:     "invalid protocol",
+			url:      "ftp://example.com/lookup",
+			expected: false,
+		},
+		{
+			name:     "malformed HTTPS URL",
+			url:      "https://",
+			expected: false,
+		},
+		{
+			name:     "valid HTTPS URL with query params",
+			url:      "https://api.example.com/lookup?type=user",
+			expected: true,
+		},
+		{
+			name:     "valid plugin path with nested structure",
+			url:      "/plugins/myplugin/api/v1/lookup",
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := IsValidLookupURL(tt.url)
+			assert.Equal(t, tt.expected, result, "URL: %s", tt.url)
+		})
+	}
 }

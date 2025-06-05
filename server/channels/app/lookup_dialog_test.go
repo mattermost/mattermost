@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -46,7 +47,7 @@ func TestLookupInteractiveDialog(t *testing.T) {
 			}
 
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			_ = json.NewEncoder(w).Encode(response)
 		}))
 		defer ts.Close()
 
@@ -77,7 +78,7 @@ func TestLookupInteractiveDialog(t *testing.T) {
 				Items: []model.DialogSelectOption{},
 			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			_ = json.NewEncoder(w).Encode(response)
 		}))
 		defer ts.Close()
 
@@ -98,7 +99,7 @@ func TestLookupInteractiveDialog(t *testing.T) {
 	t.Run("error response", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(`{"error": "Bad request"}`))
+			_, _ = w.Write([]byte(`{"error": "Bad request"}`))
 		}))
 		defer ts.Close()
 
@@ -139,7 +140,7 @@ func TestLookupInteractiveDialog(t *testing.T) {
 				Items: []model.DialogSelectOption{},
 			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			_ = json.NewEncoder(w).Encode(response)
 		}))
 		defer ts.Close()
 

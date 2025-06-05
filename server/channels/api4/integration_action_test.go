@@ -383,7 +383,7 @@ func TestLookupDialogAPI(t *testing.T) {
 			}
 		} else if query == "error" {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(`{"error": "Bad request"}`))
+			_, _ = w.Write([]byte(`{"error": "Bad request"}`))
 			return
 		} else {
 			resp = model.LookupDialogResponse{
@@ -395,7 +395,7 @@ func TestLookupDialogAPI(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	}))
 	defer testServer.Close()
 
@@ -469,7 +469,7 @@ func TestLookupDialogAPI(t *testing.T) {
 			jsonRequest, err := json.Marshal(tc.Request)
 			require.NoError(t, err)
 
-			resp, err := client.DoAPIRequest(http.MethodPost, "/api/v4/actions/dialogs/lookup", jsonRequest, "")
+			resp, err := client.DoAPIRequest(context.Background(), http.MethodPost, "/api/v4/actions/dialogs/lookup", string(jsonRequest), "")
 			require.NoError(t, err)
 			defer resp.Body.Close()
 
@@ -554,7 +554,7 @@ func TestURLValidationInDialogs(t *testing.T) {
 			}
 
 			resp, err := client.OpenInteractiveDialog(context.Background(), dialog)
-			
+
 			if tc.ExpectedStatus == http.StatusOK {
 				assert.NoError(t, err)
 				CheckOKStatus(t, resp)
@@ -564,32 +564,4 @@ func TestURLValidationInDialogs(t *testing.T) {
 			}
 		})
 	}
-}
-
-	submit.URL = ts.URL
-
-	submitResp, _, err := client.SubmitInteractiveDialog(context.Background(), submit)
-	require.NoError(t, err)
-	assert.NotNil(t, submitResp)
-
-	submit.URL = ""
-	submitResp, resp, err := client.SubmitInteractiveDialog(context.Background(), submit)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
-	assert.Nil(t, submitResp)
-
-	submit.URL = ts.URL
-	submit.ChannelId = model.NewId()
-	submitResp, resp, err = client.SubmitInteractiveDialog(context.Background(), submit)
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-	assert.Nil(t, submitResp)
-
-	submit.URL = ts.URL
-	submit.ChannelId = th.BasicChannel.Id
-	submit.TeamId = model.NewId()
-	submitResp, resp, err = client.SubmitInteractiveDialog(context.Background(), submit)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-	assert.Nil(t, submitResp)
 }

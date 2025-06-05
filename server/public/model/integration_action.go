@@ -493,6 +493,29 @@ func (d *Dialog) IsValid() error {
 	return multiErr.ErrorOrNil()
 }
 
+// IsValidLookupURL validates if a URL is safe for lookup operations
+func IsValidLookupURL(url string) bool {
+	if url == "" {
+		return false
+	}
+
+	// Only allow HTTPS for external URLs (more secure than HTTP)
+	if strings.HasPrefix(url, "https://") {
+		return IsValidHTTPURL(url)
+	}
+
+	// Only allow plugin paths that start with /plugins/
+	if strings.HasPrefix(url, "/plugins/") {
+		// Additional validation for plugin paths - ensure no path traversal
+		if strings.Contains(url, "..") || strings.Contains(url, "//") {
+			return false
+		}
+		return true
+	}
+
+	return false
+}
+
 func (e *DialogElement) IsValid() error {
 	var multiErr *multierror.Error
 	textSubTypes := map[string]bool{
@@ -539,8 +562,8 @@ func (e *DialogElement) IsValid() error {
 			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users', 'channels', or 'dynamic'", e.DataSource))
 		}
 		if e.DataSource == "dynamic" && e.DataSourceURL != "" {
-			if !IsValidHTTPURL(e.DataSourceURL) && !strings.HasPrefix(e.DataSourceURL, "/plugins/") {
-				multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source URL %q", e.DataSourceURL))
+			if !IsValidLookupURL(e.DataSourceURL) {
+				multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source URL %q - must be HTTPS URL or /plugins/ path", e.DataSourceURL))
 			}
 		}
 		if e.DataSource == "" && !isDefaultInOptions(e.Default, e.Options) {

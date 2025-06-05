@@ -78,6 +78,82 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
         });
     }
 
+    /**
+     * Type guard to check if a value is AppFormValues
+     * @param values - The value to check
+     * @returns True if the value is AppFormValues
+     */
+    private isAppFormValues(values: unknown): values is AppFormValues {
+        return typeof values === 'object' && values !== null;
+    }
+
+    /**
+     * Type guard to check if a URL is valid for lookup operations
+     * @param url - The URL to validate
+     * @returns True if the URL is valid
+     */
+    private isValidLookupURL(url: string): boolean {
+        if (!url) {
+            return false;
+        }
+
+        // Allow HTTPS URLs or plugin paths
+        if (url.startsWith('https://')) {
+            return url.match(/^https:\/\/[^\s/$.?#].[^\s]*$/i) !== null;
+        }
+
+        if (url.startsWith('/plugins/')) {
+            // Ensure no path traversal
+            return !url.includes('..') && !url.includes('//');
+        }
+
+        return false;
+    }
+
+    /**
+     * Sanitizes error messages for user display by removing sensitive information
+     * @param error - The error object or message
+     * @returns User-safe error message
+     */
+    private getSafeErrorMessage(error: unknown): string {
+        if (error instanceof Error) {
+            // Only expose safe error messages, log full details internally
+            const message = error.message.toLowerCase();
+            if (message.includes('network') || message.includes('fetch')) {
+                return 'Network error occurred while performing lookup';
+            }
+            if (message.includes('timeout')) {
+                return 'Request timed out while performing lookup';
+            }
+            if (message.includes('unauthorized') || message.includes('forbidden')) {
+                return 'Access denied for lookup request';
+            }
+
+            // For unknown errors, return a generic message
+            return 'An error occurred while performing lookup';
+        }
+        if (typeof error === 'string') {
+            return error.length > 100 ? 'An error occurred while performing lookup' : error;
+        }
+        return 'An unexpected error occurred';
+    }
+
+    /**
+     * Processes form values by converting AppSelectOption objects to their raw values
+     * @param values - The form values from the app call
+     * @returns Processed values with AppSelectOption objects converted to strings
+     */
+    private processSubmissionValues(values: AppFormValues): Record<string, any> {
+        return Object.entries(values).reduce((result, [key, value]) => {
+            if (value && typeof value === 'object' && 'value' in value) {
+                result[key] = value.value;
+            } else {
+                result[key] = value;
+            }
+            return result;
+        }, {} as Record<string, any>);
+    }
+
     private convertToAppForm(): AppForm {
         const {
             title,
@@ -95,23 +171,23 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
                 path: this.props.url || '',
             },
             fields: this.convertElementsToFields(elements),
-            submit_label: submitLabel,
+            submit_buttons: submitLabel,
         };
     }
 
     private handleSubmit = async (call: AppCallRequest) => {
         const {url, callbackId, state} = this.props;
-        const submissionValues = call.values as AppFormValues;
+        if (!this.isAppFormValues(call.values)) {
+            return {
+                error: {
+                    type: AppCallResponseTypes.ERROR,
+                    text: 'Invalid form values provided',
+                },
+            };
+        }
 
         // Convert AppSelectOption values to their raw value before submission
-        const processedValues = Object.entries(submissionValues).reduce((result, [key, value]) => {
-            if (value && typeof value === 'object' && 'value' in value) {
-                result[key] = value.value;
-            } else {
-                result[key] = value;
-            }
-            return result;
-        }, {} as Record<string, any>);
+        const processedValues = this.processSubmissionValues(call.values);
 
         const dialog: DialogSubmission = {
             url,
@@ -146,9 +222,24 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
         };
     };
 
+    /**
+     * Handles dynamic lookup requests for interactive dialog select fields.
+     * Validates the lookup URL, processes form values, and makes the lookup call
+     * to fetch dynamic options for select elements.
+     *
+     * @param call - The app call request containing lookup parameters
+     * @returns Promise resolving to lookup response with options or error
+     */
     private handleLookup = async (call: AppCallRequest) => {
         const {url, callbackId, state} = this.props;
-        const submissionValues = call.values as AppFormValues;
+        if (!this.isAppFormValues(call.values)) {
+            return {
+                error: {
+                    type: AppCallResponseTypes.ERROR,
+                    text: 'Invalid form values provided',
+                },
+            };
+        }
 
         // Get the lookup path from the call or field configuration
         let lookupPath = call.path;
@@ -167,26 +258,7 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
         }
 
         // Validate URL for security
-        if (lookupPath) {
-            if (!lookupPath.startsWith('/') && !lookupPath.startsWith('http')) {
-                return {
-                    error: {
-                        type: AppCallResponseTypes.ERROR,
-                        text: 'Invalid lookup URL format: URL must start with "/" or "http"',
-                    },
-                };
-            }
-
-            // Additional validation for http URLs
-            if (lookupPath.startsWith('http') && !lookupPath.match(/^https?:\/\/[^\s/$.?#].[^\s]*$/i)) {
-                return {
-                    error: {
-                        type: AppCallResponseTypes.ERROR,
-                        text: 'Invalid lookup URL format: Malformed URL',
-                    },
-                };
-            }
-        } else {
+        if (!lookupPath) {
             return {
                 error: {
                     type: AppCallResponseTypes.ERROR,
@@ -195,15 +267,17 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
             };
         }
 
+        if (!this.isValidLookupURL(lookupPath)) {
+            return {
+                error: {
+                    type: AppCallResponseTypes.ERROR,
+                    text: 'Invalid lookup URL: must be HTTPS URL or /plugins/ path',
+                },
+            };
+        }
+
         // Convert AppSelectOption values to their raw value before submission
-        const processedValues = Object.entries(submissionValues).reduce((result, [key, value]) => {
-            if (value && typeof value === 'object' && 'value' in value) {
-                result[key] = value.value;
-            } else {
-                result[key] = value;
-            }
-            return result;
-        }, {} as Record<string, any>);
+        const processedValues = this.processSubmissionValues(call.values);
 
         // For dynamic select, we need to make a lookup call to get options
         const dialog: DialogSubmission = {
@@ -262,12 +336,13 @@ export default class InteractiveDialogAdapter extends React.PureComponent<Props>
                 },
             };
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            // Log the full error for debugging but return a sanitized message to the user
+            // console.error('Lookup request failed:', error);
 
             return {
                 error: {
                     type: AppCallResponseTypes.ERROR,
-                    text: `Failed to perform lookup: ${errorMessage}`,
+                    text: this.getSafeErrorMessage(error),
                 },
             };
         }
