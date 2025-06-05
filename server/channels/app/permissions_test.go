@@ -115,7 +115,6 @@ func withMigrationMarkedComplete(t *testing.T, th *TestHelper, f func()) {
 	// Mark the migration as done.
 	_, err := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
 	require.NoError(t, err)
-	//t.testify()
 	err = th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 	require.NoError(t, err)
 	// Un-mark the migration at the end of the test.
