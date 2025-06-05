@@ -76,6 +76,11 @@ func (s *SearchStore) indexUserFromID(rctx request.CTX, userId string) {
 }
 
 func (s *SearchStore) indexUser(rctx request.CTX, user *model.User) {
+	if user.DeleteAt != 0 {
+		s.user.deleteUserIndex(rctx, user)
+		return
+	}
+
 	for _, engine := range s.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
