@@ -2672,6 +2672,8 @@
   "admin.sidebar.usersAndTeams": "Users and Teams",
   "admin.sidebar.webServer": "Web Server",
   "admin.sidebar.workspaceOptimization": "Workspace Optimization",
+  "admin.sidebar.contentFlagging": "Content Flagging",
+  "admin.contentFlagging.title": "Content Flagging",
   "admin.sidebarHeader.systemConsole": "System Console",
   "admin.site.announcementBanner": "System-wide Notifications",
   "admin.site.customization": "Customization",
