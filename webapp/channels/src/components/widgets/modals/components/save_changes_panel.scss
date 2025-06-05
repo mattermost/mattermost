@@ -74,7 +74,6 @@
         display: flex;
         flex: 1 1 auto;
         justify-content: flex-end;
-        gap: 8px;
 
         #panelCloseButton {
             color: rgba(var(--button-color-rgb), 0.64);
@@ -83,52 +82,32 @@
     }
 
     &__cancel-btn {
-        display: flex;
-        min-width: 64px;
-        height: 32px;
-        align-items: center;
-        padding: 10px 16px;
-        border: none;
-        border-radius: 4px;
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--button-bg);
-        font-family: inherit;
-        font-size: 12px;
-        font-weight: 600;
-        gap: 10px;
-        line-height: 10px;
+        &.btn {
+            &.error {
+                background: rgba(var(--button-color-rgb), 0.12);
+                color: var(--button-color);
 
-        &.error {
-            background: rgba(var(--button-color-rgb), 0.12);
-            color: var(--button-color);
+                &:hover {
+                    background-color: rgba(var(--button-color-rgb), 0.16);
+                }
+            }
         }
     }
 
     &__save-btn {
-        display: flex;
-        min-width: 59px;
-        height: 32px;
-        flex-direction: column;
-        align-items: center;
-        padding: 10px 16px;
-        border: none;
-        border-radius: 4px;
-        background: var(--button-bg);
-        color: var(--button-color);
-        font-family: inherit;
-        font-size: 12px;
-        font-weight: 600;
-        gap: 10px;
-        line-height: 10px;
+        &.btn {
+            &.error {
+                background-color: var(--button-color);
+                color: var(--dnd-indicator);
 
-        &.error {
-            background-color: var(--button-color);
-            color: var(--button-bg);
-        }
+                &:hover {
+                    background-color: rgba(var(--button-color-rgb), 0.9);
+                }
 
-        &:disabled {
-            background: var(--center-channel-bg);
-            opacity: 0.32; 
-        }
+                &:disabled {
+                    background: rgba(var(--button-color-rgb), 0.16); 
+                }
+            }
+        }   
     }
 }
