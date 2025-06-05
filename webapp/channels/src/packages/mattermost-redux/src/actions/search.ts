@@ -226,6 +226,26 @@ export function getFlaggedPosts(): ActionFuncAsync<PostList> {
     };
 }
 
+export function countFlaggedPosts(): ActionFuncAsync<{ count: number }> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const userId = getCurrentUserId(state);
+
+        let results;
+        try {
+            results = await Client4.countFlaggedPosts(userId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({type: SearchTypes.RECEIVED_COUNT_FLAGGED_POSTS, data: results});
+
+        return {data: results};
+    };
+}
+
 export function getPinnedPosts(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         dispatch({type: SearchTypes.SEARCH_PINNED_POSTS_REQUEST});

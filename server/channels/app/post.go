@@ -1146,6 +1146,33 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 	return postList, nil
 }
 
+func (a *App) CountFlaggedPosts(userID string) (int64, *model.AppError) {
+	count, err := a.Srv().Store().Post().CountFlaggedPosts(userID)
+	if err != nil {
+		return 0, model.NewAppError("CountFlaggedPosts", "app.post.count_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return count, nil
+}
+
+func (a *App) CountFlaggedPostsForTeam(userID, teamID string) (int64, *model.AppError) {
+	count, err := a.Srv().Store().Post().CountFlaggedPostsForTeam(userID, teamID)
+	if err != nil {
+		return 0, model.NewAppError("CountFlaggedPostsForTeam", "app.post.count_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return count, nil
+}
+
+func (a *App) CountFlaggedPostsForChannel(userID, channelID string) (int64, *model.AppError) {
+	count, err := a.Srv().Store().Post().CountFlaggedPostsForChannel(userID, channelID)
+	if err != nil {
+		return 0, model.NewAppError("CountFlaggedPostsForChannel", "app.post.count_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return count, nil
+}
+
 func (a *App) GetPermalinkPost(c request.CTX, postID string, userID string) (*model.PostList, *model.AppError) {
 	list, nErr := a.Srv().Store().Post().Get(context.Background(), postID, model.GetPostsOptions{}, userID, a.Config().GetSanitizeOptions())
 	if nErr != nil {

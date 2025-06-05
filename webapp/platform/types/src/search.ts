@@ -11,6 +11,7 @@ export type SearchState = {
     results: string[];
     fileResults: string[];
     flagged: string[];
+    flaggedCount: number;
     pinned: Record<string, string[]>;
     isSearchingTerm: boolean;
     isSearchGettingMore: boolean;

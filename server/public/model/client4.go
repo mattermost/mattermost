@@ -4376,6 +4376,23 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(ctx context.Context, userId st
 	return &list, BuildResponse(r), nil
 }
 
+// CountFlaggedPostsForUser returns a number of flagged posts of a user based on user id string.
+func (c *Client4) CountFlaggedPostsForUser(ctx context.Context, userId string) (int64, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/posts/count/flagged", "")
+	if err != nil {
+		return 0, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var count int64
+	if r.StatusCode == http.StatusNotModified {
+		return count, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(count); err != nil {
+		return 0, nil, NewAppError("CountFlaggedPostsForUser", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return count, BuildResponse(r), nil
+}
+
 // GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
 func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int64, collapsedThreads bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?since=%v", time)

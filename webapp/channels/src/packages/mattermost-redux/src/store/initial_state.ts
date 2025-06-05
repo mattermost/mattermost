@@ -154,6 +154,7 @@ const state: GlobalState = {
             current: {},
             matches: {},
             flagged: [],
+            flaggedCount: 0,
             pinned: {},
             isSearchingTerm: false,
             isSearchGettingMore: false,

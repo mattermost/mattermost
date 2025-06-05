@@ -556,6 +556,65 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 	return pl, nil
 }
 
+func (s *SqlPostStore) CountFlaggedPosts(userId string) (int64, error) {
+	return s.countFlaggedPosts(userId, "", "")
+}
+
+func (s *SqlPostStore) CountFlaggedPostsForTeam(userId, teamId string) (int64, error) {
+	return s.countFlaggedPosts(userId, "", teamId)
+}
+
+func (s *SqlPostStore) CountFlaggedPostsForChannel(userId, channelId string) (int64, error) {
+	return s.countFlaggedPosts(userId, channelId, "")
+}
+
+func (s *SqlPostStore) countFlaggedPosts(userId, channelId, teamId string) (int64, error) {
+	query := `
+		SELECT
+            COUNT(*)
+        FROM
+            Posts
+        INNER JOIN Channels ON Channels.Id = Posts.ChannelId
+        WHERE
+            Posts.Id IN (
+                SELECT
+                    Name
+                FROM
+                    Preferences
+                WHERE
+                    UserId = ?
+                    AND Category = ?
+            )
+            CHANNEL_FILTER
+            AND Posts.DeleteAt = 0
+            AND Posts.ChannelId IN (
+                SELECT
+                    ChannelId
+                FROM
+                    ChannelMembers
+                WHERE UserId = ?
+            )
+            TEAM_FILTER`
+
+	queryParams := []any{userId, model.PreferenceCategoryFlaggedPost}
+
+	var channelClause, teamClause string
+	channelClause, queryParams = s.buildFlaggedPostChannelFilterClause(channelId, queryParams)
+	query = strings.Replace(query, "CHANNEL_FILTER", channelClause, 1)
+
+	queryParams = append(queryParams, userId)
+
+	teamClause, queryParams = s.buildFlaggedPostTeamFilterClause(teamId, queryParams)
+	query = strings.Replace(query, "TEAM_FILTER", teamClause, 1)
+
+	var count int64
+	if err := s.GetReplica().Get(&count, query, queryParams...); err != nil {
+		return 0, errors.Wrap(err, "failed to count Posts")
+	}
+
+	return count, nil
+}
+
 func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryParams []any) (string, []any) {
 	if teamId == "" {
 		return "", queryParams

@@ -141,6 +141,19 @@ function flagged(state: string[] = [], action: MMReduxAction) {
     }
 }
 
+function flaggedCount(state: number = 0, action: MMReduxAction) {
+    switch (action.type) {
+    case SearchTypes.RECEIVED_COUNT_FLAGGED_POSTS: {
+        return action.data.count;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return 0;
+
+    default:
+        return state;
+    }
+}
+
 function removePinnedPost(state: Record<string, string[]>, post: Post) {
     if (post && state[post.channel_id]) {
         const postId = post.id;
@@ -272,6 +285,8 @@ export default combineReducers({
 
     // An ordered array with posts ids of flagged posts
     flagged,
+
+    flaggedCount,
 
     // An Object where every key is a channel id mapping to an ordered array with posts ids of pinned posts
     pinned,

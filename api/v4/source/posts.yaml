@@ -508,6 +508,52 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/posts/count/flagged":
+    get:
+      tags:
+        - posts
+      summary: Count flagged posts
+      description: >
+        Count flagged posts of a user provided user id string. Counts
+        from a channel, team, or all flagged posts by a user.
+
+        ##### Permissions
+
+        Must be user or have `manage_system` permission.
+      operationId: CountFlaggedPostsForUser
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: string
+        - name: team_id
+          in: query
+          description: Team ID
+          schema:
+            type: string
+        - name: channel_id
+          in: query
+          description: Channel ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PostList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   "/api/v4/posts/{post_id}/files/info":
     get:
       tags:

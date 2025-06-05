@@ -31,6 +31,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost)).Methods(http.MethodGet)
 	api.BaseRoutes.PostsForChannel.Handle("", api.APISessionRequired(getPostsForChannel)).Methods(http.MethodGet)
 	api.BaseRoutes.PostsForUser.Handle("/flagged", api.APISessionRequired(getFlaggedPostsForUser)).Methods(http.MethodGet)
+	api.BaseRoutes.PostsForUser.Handle("/count/flagged", api.APISessionRequired(countFlaggedPostsForUser)).Methods(http.MethodGet)
 
 	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.APISessionRequired(getPostsForChannelAroundLastUnread)).Methods(http.MethodGet)
 
@@ -437,6 +438,45 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if err := clientPostList.EncodeJSON(w); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func countFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	channelId := r.URL.Query().Get("channel_id")
+	teamId := r.URL.Query().Get("team_id")
+
+	var count int64
+	var err *model.AppError
+
+	if channelId != "" {
+		count, err = c.App.CountFlaggedPostsForChannel(c.Params.UserId, channelId)
+	} else if teamId != "" {
+		count, err = c.App.CountFlaggedPostsForTeam(c.Params.UserId, teamId)
+	} else {
+		count, err = c.App.CountFlaggedPosts(c.Params.UserId)
+	}
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	type CountResponse struct {
+		Count int64 `json:"count"`
+	}
+
+	response := CountResponse{Count: count}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

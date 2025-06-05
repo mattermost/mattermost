@@ -13,6 +13,7 @@ import {SearchTypes} from 'mattermost-redux/action_types';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {createSchedulePost} from 'mattermost-redux/actions/scheduled_posts';
+import {countFlaggedPosts} from 'mattermost-redux/actions/search';
 import * as ThreadActions from 'mattermost-redux/actions/threads';
 import {getChannel, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
 import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
@@ -108,6 +109,8 @@ export function flagPost(postId: string): ActionFuncAsync {
             dispatch(addPostToSearchResults(postId));
         }
 
+        dispatch(countFlaggedPosts());
+
         return {data: true};
     };
 }
@@ -121,6 +124,8 @@ export function unflagPost(postId: string): ActionFuncAsync {
         if (rhsState === RHSStates.FLAG) {
             removePostFromSearchResults(postId, state, dispatch);
         }
+
+        dispatch(countFlaggedPosts());
 
         return {data: true};
     };

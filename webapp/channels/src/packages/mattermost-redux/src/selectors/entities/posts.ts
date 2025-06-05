@@ -54,6 +54,10 @@ export function isPostFlagged(state: GlobalState, postId: Post['id']): boolean {
     return getBool(state, Preferences.CATEGORY_FLAGGED_POST, postId);
 }
 
+export function getFlaggedPostsCount(state: GlobalState) {
+    return state.entities.search.flaggedCount;
+}
+
 export function getPostRepliesCount(state: GlobalState, postId: Post['id']): number {
     return state.entities.posts.postsReplies[postId] || 0;
 }

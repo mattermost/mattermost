@@ -357,6 +357,39 @@ func (_m *PostStore) GetFlaggedPostsForTeam(userID string, teamID string, offset
 	return r0, r1
 }
 
+// CountFlaggedPosts provides a mock function with given fields: userID
+func (_m *PostStore) CountFlaggedPosts(userID string) (int64, error) {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountFlaggedPosts")
+	}
+
+	return 0, nil
+}
+
+// CountFlaggedPostsForChannel provides a mock function with given fields: userID, channelID
+func (_m *PostStore) CountFlaggedPostsForChannel(userID string, channelID string) (int64, error) {
+	ret := _m.Called(userID, channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountFlaggedPostsForChannel")
+	}
+
+	return 0, nil
+}
+
+// CountFlaggedPostsForTeam provides a mock function with given fields: userID, teamID
+func (_m *PostStore) CountFlaggedPostsForTeam(userID string, teamID string) (int64, error) {
+	ret := _m.Called(userID, teamID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountFlaggedPostsForTeam")
+	}
+
+	return 0, nil
+}
+
 // GetMaxPostSize provides a mock function with given fields:
 func (_m *PostStore) GetMaxPostSize() int {
 	ret := _m.Called()
