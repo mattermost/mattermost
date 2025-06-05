@@ -6,7 +6,6 @@ package app
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,10 +28,9 @@ func TestExportPermissions(t *testing.T) {
 
 	var scheme *model.Scheme
 	var roles []*model.Role
-	err := withMigrationMarkedComplete(th, func() {
+	withMigrationMarkedComplete(t, th, func() {
 		scheme, roles = th.CreateScheme()
 	})
-	require.Nil(t, err)
 
 	results := [][]byte{}
 
@@ -43,7 +41,7 @@ func TestExportPermissions(t *testing.T) {
 		},
 	}
 
-	err = th.App.ExportPermissions(tw)
+	err := th.App.ExportPermissions(tw)
 	if err != nil {
 		t.Error(err)
 	}
@@ -113,23 +111,17 @@ func TestMigration(t *testing.T) {
 	assert.Contains(t, role.Permissions, model.PermissionUseGroupMentions.Id)
 }
 
-func withMigrationMarkedComplete(th *TestHelper, f func()) error {
+func withMigrationMarkedComplete(t *testing.T, th *TestHelper, f func()) {
 	// Mark the migration as done.
 	_, err := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
-	if err != nil {
-		return err
-	}
+	require.NoError(t, err)
+	//t.testify()
 	err = th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
-	if err != nil {
-		return err
-	}
+	require.NoError(t, err)
 	// Un-mark the migration at the end of the test.
 	defer func() {
 		_, err := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
-		if err != nil {
-			log.Printf("failed to delete migration key AdvancedPermissionsPhase2: %v", err)
-		}
+		require.NoError(t, err)
 	}()
 	f()
-	return nil
 }
