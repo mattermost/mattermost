@@ -1324,7 +1324,7 @@
 
     .post__embed-container {
         display: block;
-        overflow: visible;
+        overflow: hidden;
         max-height: 1000px;
         padding-top: 5px;
         transition: max-height 500ms ease;

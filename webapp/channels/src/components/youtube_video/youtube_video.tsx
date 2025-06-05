@@ -32,7 +32,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
         super(props);
         this.state = {
             playing: false,
-            thumbnailUrl: this.getMaxResUrl(props.link),
+            thumbnailUrl: '', // Initialize empty, will be set in componentDidMount
         };
     }
 
