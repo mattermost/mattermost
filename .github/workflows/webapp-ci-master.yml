@@ -8,3 +8,4 @@ on:
 jobs:
   master-ci:
     uses: ./.github/workflows/webapp-ci-template.yml
+    secrets: inherit
