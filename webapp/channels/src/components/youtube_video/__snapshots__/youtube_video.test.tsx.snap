@@ -66,7 +66,7 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
         >
           <div
             aria-label="Play Youtube title on YouTube"
-            className="video-thumbnail__container hq"
+            className="video-thumbnail__container"
             onClick={[Function]}
             onKeyDown={[Function]}
             role="button"
@@ -76,7 +76,7 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
               alt="Thumbnail for Youtube title on YouTube"
               className="video-thumbnail"
               onError={[Function]}
-              src="https://img.youtube.com/vi/xqCoNej8Zxo/hqdefault.jpg"
+              src="https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg"
             />
             <div
               aria-label="Play video"
@@ -122,14 +122,16 @@ exports[`YoutubeVideo should match snapshot for playing state 1`] = `
       className="video-div embed-responsive-item"
     >
       <div
-        className="video-thumbnail__container hq"
+        className="video-div playing"
       >
         <iframe
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen={true}
           frameBorder="0"
+          height="100%"
           src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0"
           title="Youtube title"
+          width="100%"
         />
       </div>
     </div>
@@ -163,14 +165,16 @@ exports[`YoutubeVideo should match snapshot for playing state and \`youtubeRefer
       className="video-div embed-responsive-item"
     >
       <div
-        className="video-thumbnail__container hq"
+        className="video-div playing"
       >
         <iframe
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen={true}
           frameBorder="0"
+          height="100%"
           src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0"
           title="Youtube title"
+          width="100%"
         />
       </div>
     </div>

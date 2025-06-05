@@ -20,31 +20,20 @@
             border: none;
         }
 
-        // Container for thumbnails with different aspect ratios
+        // Container for thumbnails
         .video-thumbnail__container {
             position: relative;
             overflow: hidden;
             width: 100%;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-            border-radius: 4px;
             background-color: #000;
             outline: none; // Remove default focus outline
+            aspect-ratio: 16/9; // Always use 16:9
+            border-radius: 4px;
 
             // Focus state for keyboard navigation
             &:focus-visible {
-                border-radius: 4px;
                 outline: 2px solid var(--button-bg);
                 outline-offset: 2px;
-            }
-
-            // 16:9 aspect ratio for maxresdefault images
-            &.maxres {
-                aspect-ratio: 16/9;
-            }
-
-            // 4:3 aspect ratio for hqdefault images
-            &.hq {
-                aspect-ratio: 4/3;
             }
 
             // Darkening overlay on hover
@@ -73,9 +62,21 @@
             }
         }
 
-        // When video is playing, container should match the thumbnail's aspect ratio
-        &.playing {
-            aspect-ratio: inherit; // Inherit from the thumbnail container
+        // Playing state container
+        .video-div.playing {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            background-color: #000;
+            aspect-ratio: 16/9; // Always use 16:9
+
+            iframe {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
         }
 
         // Thumbnail image

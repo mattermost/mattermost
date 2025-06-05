@@ -17,11 +17,10 @@ type Props = {
     youtubeReferrerPolicy?: boolean;
 }
 
-// State tracks whether we're using maxresdefault (true) or hqdefault (false)
-// and whether the video is currently playing
+// State tracks whether the video is playing and the current thumbnail URL
 type State = {
     playing: boolean;
-    isMaxRes: boolean;
+    thumbnailUrl: string;
 }
 
 export default class YoutubeVideo extends React.PureComponent<Props, State> {
@@ -31,38 +30,42 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 
     constructor(props: Props) {
         super(props);
-
         this.state = {
             playing: false,
-            isMaxRes: false, // Start with hqdefault by default
+            thumbnailUrl: this.getMaxResUrl(props.link),
         };
     }
 
     componentDidMount() {
-        this.checkMaxResImage();
+        this.setThumbnailUrl();
     }
 
     componentDidUpdate(prevProps: Props) {
         if (prevProps.link !== this.props.link) {
-            this.checkMaxResImage();
+            this.setThumbnailUrl();
         }
     }
 
-    // Check if maxresdefault image exists for this video
-    // If it does, switch to using it; otherwise stay with hqdefault
-    checkMaxResImage = async () => {
-        const videoId = getVideoId(this.props.link);
-        const maxResUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    getMaxResUrl(link: string) {
+        const videoId = getVideoId(link);
+        return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    }
 
-        try {
-            const response = await fetch(maxResUrl, {method: 'HEAD'});
-            if (response.ok) {
-                this.setState({isMaxRes: true});
-            }
-        } catch (error) {
-            // Stay with hqdefault if maxresdefault doesn't exist or fails to load
-            this.setState({isMaxRes: false});
-        }
+    getHQUrl(link: string) {
+        const videoId = getVideoId(link);
+        return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    }
+
+    setThumbnailUrl = () => {
+        this.setState({
+            thumbnailUrl: this.getMaxResUrl(this.props.link),
+        });
+    };
+
+    handleImageError = () => {
+        this.setState({
+            thumbnailUrl: this.getHQUrl(this.props.link),
+        });
     };
 
     static getDerivedStateFromProps(props: Props, state: State): State | null {
@@ -74,13 +77,6 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
         }
         return null;
     }
-
-    // Fallback to hqdefault if maxresdefault fails to load
-    handleImageError = () => {
-        if (this.state.isMaxRes) {
-            this.setState({isMaxRes: false});
-        }
-    };
 
     play = () => {
         this.setState({playing: true});
@@ -95,12 +91,6 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
         const videoId = getVideoId(link);
         const videoTitle = metadata?.title || 'unknown';
         const time = handleYoutubeTime(link);
-
-        // Use hqdefault by default, switch to maxresdefault if available
-        const hqUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-        const maxResUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-        const thumbnailUrl = this.state.isMaxRes ? maxResUrl : hqUrl;
-        const aspectRatioClass = this.state.isMaxRes ? 'maxres' : 'hq';
 
         const header = (
             <h4>
@@ -120,20 +110,22 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 
         if (this.state.playing) {
             content = (
-                <div className={`video-thumbnail__container ${aspectRatioClass}`}>
+                <div className='video-div playing'>
                     <iframe
                         src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0${time}`}
+                        title={videoTitle}
+                        width='100%'
+                        height='100%'
                         frameBorder='0'
                         allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
                         allowFullScreen={true}
-                        title={videoTitle}
                     />
                 </div>
             );
         } else {
             content = (
                 <div
-                    className={`video-thumbnail__container ${aspectRatioClass}`}
+                    className='video-thumbnail__container'
                     onClick={this.play}
                     role='button'
                     aria-label={`Play ${videoTitle} on YouTube`}
@@ -147,7 +139,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                 >
                     <img
                         className='video-thumbnail'
-                        src={thumbnailUrl}
+                        src={this.state.thumbnailUrl}
                         alt={`Thumbnail for ${videoTitle} on YouTube`}
                         onError={this.handleImageError}
                     />
