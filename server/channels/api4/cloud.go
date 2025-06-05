@@ -80,7 +80,9 @@ func getPreviewSubscription(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
