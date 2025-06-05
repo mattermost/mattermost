@@ -64,6 +64,18 @@
             }
         }
     }
+
+    @media screen and (max-width: 640px) {
+        .modal-content .GenericModal__wrapper {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+
+            > .modal-body {
+                flex: 1
+            }
+        }
+    }
 }
 
 #new-channel-with-board-tooltip {
