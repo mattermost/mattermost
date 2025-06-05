@@ -25,6 +25,7 @@ func (h *testBroadcastHook) Process(msg *HookedWebSocketEvent, webConn *WebConn,
 }
 
 func TestRunBroadcastHooks(t *testing.T) {
+	mainHelper.Parallel(t)
 	hub := &Hub{
 		broadcastHooks: map[string]BroadcastHook{
 			broadcastTest: &testBroadcastHook{},

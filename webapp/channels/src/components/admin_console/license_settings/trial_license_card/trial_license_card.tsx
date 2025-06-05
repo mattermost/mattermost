@@ -59,7 +59,7 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
                 </div>
                 <div className='RenewLicenseCard__buttons'>
                     <ContactUsButton
-                        customClass='contact_us_primary_cta'
+                        customClass='btn-sm btn-primary'
                     />
                 </div>
             </div>
