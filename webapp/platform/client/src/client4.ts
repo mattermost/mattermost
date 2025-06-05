@@ -109,7 +109,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {PropertyField, UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
@@ -4004,12 +4004,6 @@ export default class Client4 {
         );
     };
 
-    getSelfHostedProducts = () => {
-        return this.doFetch<Product[]>(
-            `${this.getCloudRoute()}/products/selfhosted`, {method: 'get'},
-        );
-    };
-
     subscribeToNewsletter = (newletterRequestBody: NewsletterRequestBody) => {
         return this.doFetch<StatusOK>(
             `${this.getHostedCustomerRoute()}/subscribe-newsletter`,
@@ -4486,7 +4480,7 @@ export default class Client4 {
     };
 
     getAccessControlFields = (after: string, limit: number) => {
-        return this.doFetch<PropertyField[]>(
+        return this.doFetch<UserPropertyField[]>(
             `${this.getBaseRoute()}/access_control_policies/cel/autocomplete/fields?after=${after}&limit=${limit}`,
             {method: 'get'},
         );
