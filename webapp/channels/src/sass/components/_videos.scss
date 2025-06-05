@@ -11,12 +11,16 @@
 
         iframe {
             position: absolute;
+            overflow: hidden;
             top: 0;
             left: 0;
             display: block;
             width: 100%;
             height: 100%;
             border: none;
+            aspect-ratio: 16/9; // Always use 16:9
+            border-radius: 4px;
+            background-color: #000;
         }
 
         // Container for thumbnails
@@ -66,7 +70,6 @@
             position: relative;
             width: 100%;
             overflow: hidden;
-            background-color: #000;
             aspect-ratio: 16/9; // Always use 16:9
 
             iframe {
