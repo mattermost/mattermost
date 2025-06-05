@@ -58,7 +58,7 @@ func (a *App) TestLdapConnection(rctx request.CTX, settings *model.LdapSettings)
 
 	// NOTE: normally we would test (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync),
 	// but we want to allow sysadmins to test the connection without enabling and saving the config first.
-	if ldapI != nil && license != nil && *license.Features.LDAP {
+	if ldapI != nil && license != nil && model.SafeDereference(license.Features.LDAP) {
 		return ldapI.RunTestConnection(rctx, settings)
 	}
 
