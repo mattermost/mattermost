@@ -192,7 +192,7 @@
     "test:watch": "cross-env TZ=Etc/UTC jest --watch",
     "test:updatesnapshot": "cross-env TZ=Etc/UTC jest --updateSnapshot",
     "test:debug": "cross-env TZ=Etc/UTC jest --forceExit --detectOpenHandles --verbose",
-    "test-ci": "cross-env TZ=Etc/UTC jest --ci --maxWorkers=100%",
+    "test-ci": "cross-env TZ=Etc/UTC jest --ci --maxWorkers=100% --coverage",
     "clean": "rm -rf dist node_modules .eslintcache .stylelintcache tsconfig.tsbuildinfo",
     "stats": "cross-env NODE_ENV=production webpack --profile --json > webpack_stats.json",
     "mmjstool": "mmjstool",
