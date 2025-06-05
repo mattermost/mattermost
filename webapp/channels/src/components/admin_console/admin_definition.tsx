@@ -114,6 +114,8 @@ import TeamDetails from './team_channel_settings/team/details';
 import type {Check, AdminDefinition as AdminDefinitionType, ConsoleAccess} from './types';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
+import ContentFlaggingNotificationSettings
+    from "components/admin_console/content_flagging/notificatin_settings/notification_settings";
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';
@@ -3320,8 +3322,13 @@ const AdminDefinition: AdminDefinitionType = {
                     settings: [
                         {
                             type: 'bool',
-                            key: "ContentFlaggingSettings.EnableContentFlagging",
+                            key: 'ContentFlaggingSettings.EnableContentFlagging',
                             label: defineMessage({id: 'admin.contentFlagging.enableTitle', defaultMessage: 'Enable Content Flagging'}),
+                        },
+                        {
+                            type: 'custom',
+                            key: 'ContentFlaggingSettings.NotificationSettings',
+                            component: ContentFlaggingNotificationSettings,
                         },
                     ],
                 },
