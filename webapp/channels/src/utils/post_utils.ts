@@ -39,7 +39,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import Constants, {PostListRowListIds} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import {formatWithRenderer} from 'utils/markdown';
+import {formatWithRenderer, formatWithRendererForMentions} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {allAtMentions} from 'utils/text_formatting';
 import {isMobile} from 'utils/user_agent';
@@ -867,7 +867,7 @@ export function makeGetUserOrGroupMentionCountFromMessage(): (state: GlobalState
         getAllGroupsForReferenceByName,
         (message, users, groups) => {
             let count = 0;
-            const markdownCleanedText = formatWithRenderer(message, new MentionableRenderer());
+            const markdownCleanedText = formatWithRendererForMentions(message, new MentionableRenderer());
             const mentions = new Set(markdownCleanedText.match(Constants.MENTIONS_REGEX) || []);
             mentions.forEach((mention) => {
                 const [user, group] = getUserOrGroupFromMentionName(mention.substring(1), users, groups);
