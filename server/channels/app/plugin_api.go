@@ -197,7 +197,6 @@ func (api *PluginAPI) GetTeamsForUser(userID string) ([]*model.Team, *model.AppE
 	return api.app.GetTeamsForUser(userID)
 }
 
-
 func (api *PluginAPI) LogAuditRec(rec *model.AuditRecord) {
 	api.LogAuditRecWithLevel(rec, mlog.LvlAuditCLI)
 }

@@ -36,6 +36,7 @@ func MakeAuditRecord(pluginId string, event string, initialStatus string) *model
 // The Context should come from plugin hook parameters or HTTP request handlers.
 func MakeAuditRecordWithContext(pluginId string, event string, initialStatus string, ctx Context, userId, apiPath string) *model.AuditRecord {
 	rec := MakeAuditRecord(pluginId, event, initialStatus)
+	rec.AddMeta(model.AuditKeyAPIPath, apiPath)
 	rec.Actor.UserId = userId
 	rec.Actor.SessionId = ctx.SessionId
 	rec.Actor.Client = ctx.UserAgent

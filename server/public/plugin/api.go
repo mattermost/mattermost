@@ -1413,7 +1413,6 @@ type API interface {
 	// Minimum server version: 10.9
 	DeleteGroupConstrainedMemberships() *model.AppError
 
-
 	// LogAuditRec logs an audit record using the default audit logger.
 	//
 	// @tag Audit
