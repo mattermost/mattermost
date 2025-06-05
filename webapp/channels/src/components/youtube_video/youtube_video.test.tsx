@@ -50,18 +50,19 @@ describe('YoutubeVideo', () => {
         const store = mockStore(initialState);
         const wrapper = mount(
             <Provider store={store}>
-                <YoutubeVideo {...baseProps} />
+                <YoutubeVideo {...baseProps}/>
             </Provider>,
         );
         expect(wrapper).toMatchSnapshot();
+
         // Verify that the thumbnail is set to maxresdefault.jpg by default.
         expect(wrapper.find('img.video-thumbnail').prop('src')).toEqual('https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg');
         expect(wrapper.find('h4').text()).toEqual('YouTube - Youtube title');
     });
 
     test('should match snapshot for playing state', () => {
-        const wrapper = shallow(<YoutubeVideo {...baseProps} />);
-        wrapper.setState({ playing: true });
+        const wrapper = shallow(<YoutubeVideo {...baseProps}/>);
+        wrapper.setState({playing: true});
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -72,8 +73,9 @@ describe('YoutubeVideo', () => {
                 youtubeReferrerPolicy={true}
             />,
         );
-        wrapper.setState({ playing: true });
+        wrapper.setState({playing: true});
         expect(wrapper).toMatchSnapshot();
+
         // Verify that the iframe has a referrerPolicy attribute (set to 'origin') when youtubeReferrerPolicy is true.
         expect(wrapper.find('.video-playing iframe').prop('referrerPolicy')).toEqual('origin');
     });
@@ -88,16 +90,19 @@ describe('YoutubeVideo', () => {
                 }],
             },
         };
-        const wrapper = shallow(<YoutubeVideo {...props} />);
+        const wrapper = shallow(<YoutubeVideo {...props}/>);
+
         // Verify that the thumbnail is set to maxresdefault.jpg by default.
         expect(wrapper.find('img.video-thumbnail').prop('src')).toEqual('https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg');
     });
 
     describe('thumbnail fallback', () => {
         it('should fallback to hqdefault.jpg on image error', () => {
-            const wrapper = shallow(<YoutubeVideo {...baseProps} />);
+            const wrapper = shallow(<YoutubeVideo {...baseProps}/>);
+
             // Simulate an image error by calling handleImageError.
             (wrapper.instance() as YoutubeVideo).handleImageError();
+
             // Verify that the thumbnail is now hqdefault.jpg.
             expect(wrapper.state('thumbnailUrl')).toEqual('https://img.youtube.com/vi/xqCoNej8Zxo/hqdefault.jpg');
         });

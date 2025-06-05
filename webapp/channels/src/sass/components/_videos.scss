@@ -5,22 +5,22 @@
     // Container for both video and thumbnail
     .video-div {
         position: relative;
+        overflow: hidden; // Ensure hover effects stay contained
         width: 100%;
         max-width: 480px;
         margin-bottom: 8px;
-        overflow: hidden; // Ensure hover effects stay contained
 
         iframe {
             position: absolute;
-            overflow: hidden;
             top: 0;
             left: 0;
             display: block;
+            overflow: hidden;
             width: 100%;
             height: 100%;
             border: none;
-            aspect-ratio: 16/9; // Always use 16:9
             border-radius: var(--radius-s);
+            aspect-ratio: 16/9; // Always use 16:9
             background-color: #000;
         }
 
@@ -29,10 +29,10 @@
             position: relative;
             overflow: hidden;
             width: 100%;
+            border-radius: var(--radius-s);
+            aspect-ratio: 16/9; // Always use 16:9
             background-color: #000;
             outline: none; // Remove default focus outline
-            aspect-ratio: 16/9; // Always use 16:9
-            border-radius: var(--radius-s);
 
             // Focus state for keyboard navigation
             &:focus-visible {
@@ -69,8 +69,8 @@
         // Playing state container
         .video-playing {
             position: relative;
-            width: 100%;
             overflow: hidden;
+            width: 100%;
             aspect-ratio: 16/9; // Always use 16:9
 
             iframe {
