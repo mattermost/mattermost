@@ -111,7 +111,6 @@ linters:
           channels/app/bot_test.go|\
           channels/app/file_test.go|\
           channels/app/helper_test.go|\
-          channels/app/permissions_test.go|\
           channels/app/platform/helper_test.go|\
           channels/store/localcachelayer/channel_layer.go|\
           channels/store/localcachelayer/channel_layer_test.go|\
