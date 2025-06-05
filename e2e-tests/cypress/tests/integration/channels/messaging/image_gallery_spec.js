@@ -16,6 +16,16 @@ describe('Image Gallery', () => {
     before(() => {
         // # Create new team and new user and visit Town Square channel
         cy.apiInitSetup({loginAfter: true}).then(({team}) => {
+            cy.apiGetChannelByName(team.name, 'town-square').then(({channel}) => {
+                // Use cy.request to fetch posts
+                cy.request(`/api/v4/channels/${channel.id}/posts?per_page=100`).then((response) => {
+                    const posts = response.body.posts;
+                    const postIds = Object.keys(posts);
+                    postIds.forEach((postId) => {
+                        cy.apiDeletePost(postId);
+                    });
+                });
+            });
             cy.visit(`/${team.name}/channels/town-square`);
         });
     });
