@@ -59,16 +59,11 @@ func (a *App) TestLdapConnection(rctx request.CTX, settings *model.LdapSettings)
 	// NOTE: normally we would test (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync),
 	// but we want to allow sysadmins to test the connection without enabling and saving the config first.
 	if ldapI != nil && license != nil && *license.Features.LDAP {
-		if err := ldapI.RunTestConnection(rctx, settings); err != nil {
-			err.StatusCode = 500
-			return err
-		}
-	} else {
-		err := model.NewAppError("TestLdapConnection", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
-		return err
+		return ldapI.RunTestConnection(rctx, settings)
 	}
 
-	return nil
+	return model.NewAppError("TestLdapConnection",
+		"ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }
 
 // GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
