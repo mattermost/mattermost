@@ -6,8 +6,11 @@ package storetest
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"math/rand"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,6 +30,7 @@ func TestChannelStoreCategories(t *testing.T, rctx request.CTX, ss store.Store, 
 	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, rctx, ss, s) })
 	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, rctx, ss) })
 	t.Run("SidebarCategoryDeadlock", func(t *testing.T) { testSidebarCategoryDeadlock(t, rctx, ss) })
+	t.Run("SidebarCategoryConcurrentAccess", func(t *testing.T) { testSidebarCategoryConcurrentAccess(t, rctx, ss, s) })
 }
 
 func setupTeam(t *testing.T, rctx request.CTX, ss store.Store, userIds ...string) *model.Team {
@@ -2412,4 +2416,263 @@ func testSidebarCategoryDeadlock(t *testing.T, rctx request.CTX, ss store.Store)
 	}()
 
 	wg.Wait()
+}
+
+func testSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	if s.DriverName() == model.DatabaseDriverMysql {
+		t.Skip("This is known to fail on MySQL")
+	}
+
+	for i := 0; i < 2; i++ {
+		i := i
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			t.Parallel()
+			doTestSidebarCategoryConcurrentAccess(t, rctx, ss)
+		})
+	}
+}
+
+func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss store.Store) {
+	userID := model.NewId()
+	team := setupTeam(t, rctx, ss, userID)
+
+	numGoroutines := 20
+
+	// Create regular channels
+	channels := make([]*model.Channel, 5)
+	for i := 0; i < len(channels); i++ {
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
+			Name:        fmt.Sprintf("channel-%d", i),
+			DisplayName: fmt.Sprintf("Channel %d", i),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}, 10)
+		require.NoError(t, nErr)
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			UserId:      userID,
+			ChannelId:   channel.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+		channels[i] = channel
+	}
+
+	// Create DM channels to exercise different code paths
+	dmChannels := make([]*model.Channel, 3)
+	for i := 0; i < len(dmChannels); i++ {
+		otherUserID := model.NewId()
+		dmChannel, nErr := ss.Channel().CreateDirectChannel(rctx, &model.User{
+			Id: userID,
+		}, &model.User{
+			Id: otherUserID,
+		})
+		require.NoError(t, nErr)
+		dmChannels[i] = dmChannel
+	}
+
+	// Put them into a channel so that we can ensure they're evenly used across goroutines, and put 4x the number of
+	// goroutines in since that should ensure we have enough
+	channelChan := make(chan string, 4*numGoroutines)
+	for i := 0; i < cap(channelChan); i++ {
+		channelChan <- channels[i%len(channels)].Id
+	}
+	dmChannelChan := make(chan string, 4*numGoroutines)
+	for i := 0; i < cap(dmChannelChan); i++ {
+		dmChannelChan <- dmChannels[i%len(dmChannels)].Id
+	}
+
+	// Create the initial categories
+	opts := &store.SidebarCategorySearchOpts{
+		TeamID:      team.Id,
+		ExcludeTeam: false,
+	}
+	res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+	require.NoError(t, nErr)
+	require.NotEmpty(t, res)
+
+	initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+	require.NoError(t, err)
+
+	// Create custom categories
+	customCategories := make([]*model.SidebarCategoryWithChannels, 2)
+	for i := 0; i < 2; i++ {
+		customCategory, createErr := ss.Channel().CreateSidebarCategory(userID, team.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: fmt.Sprintf("Custom Category %d", i),
+			},
+		})
+		require.NoError(t, createErr)
+		customCategories[i] = customCategory
+	}
+
+	// Run concurrent operations
+	var wg sync.WaitGroup
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		// Run GetSidebarCategoriesForTeamForUser
+		go func() {
+			defer wg.Done()
+			categories, getErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+			require.NoError(t, getErr)
+			require.NotEmpty(t, categories.Categories)
+		}()
+
+		// Run UpdateSidebarCategories with different update patterns
+		wg.Add(1)
+		go func(iteration int) {
+			defer wg.Done()
+
+			var updatedCategories []*model.SidebarCategoryWithChannels
+
+			switch iteration % 8 {
+			case 0:
+				// Move a regular channel to a custom category
+				updatedCategories = []*model.SidebarCategoryWithChannels{
+					{
+						SidebarCategory: initialCategories.Categories[1].SidebarCategory, // Channels category
+						Channels:        []string{},
+					},
+					{
+						SidebarCategory: customCategories[0].SidebarCategory,
+						Channels:        []string{<-channelChan, <-channelChan, <-channelChan},
+					},
+				}
+			case 1:
+				// Move a regular channel back from a custom category
+				updatedCategories = []*model.SidebarCategoryWithChannels{
+					{
+						SidebarCategory: initialCategories.Categories[1].SidebarCategory, // Channels category
+						Channels:        []string{<-channelChan, <-channelChan, <-channelChan},
+					},
+					{
+						SidebarCategory: customCategories[0].SidebarCategory,
+						Channels:        []string{},
+					},
+				}
+			case 2:
+				// Move a DM channel to a custom category
+				updatedCategories = []*model.SidebarCategoryWithChannels{
+					{
+						SidebarCategory: initialCategories.Categories[2].SidebarCategory, // DMs category
+						Channels:        []string{},
+					},
+					{
+						SidebarCategory: customCategories[1].SidebarCategory,
+						Channels:        []string{<-dmChannelChan, <-channelChan, <-channelChan},
+					},
+				}
+			case 3:
+				// Move a DM channel back from to a custom category
+				updatedCategories = []*model.SidebarCategoryWithChannels{
+					{
+						SidebarCategory: initialCategories.Categories[2].SidebarCategory, // DMs category
+						Channels:        []string{<-dmChannelChan},
+					},
+					{
+						SidebarCategory: customCategories[1].SidebarCategory,
+						Channels:        []string{<-channelChan, <-channelChan},
+					},
+				}
+			case 4:
+				// Move a channel between custom categories
+				updatedCategories = []*model.SidebarCategoryWithChannels{
+					{
+						SidebarCategory: customCategories[0].SidebarCategory,
+						Channels:        []string{<-channelChan, <-channelChan, <-channelChan},
+					},
+					{
+						SidebarCategory: customCategories[1].SidebarCategory,
+						Channels:        []string{<-channelChan},
+					},
+				}
+			case 5:
+				// Move a channel back between custom categories
+				updatedCategories = []*model.SidebarCategoryWithChannels{
+					{
+						SidebarCategory: customCategories[0].SidebarCategory,
+						Channels:        []string{<-channelChan},
+					},
+					{
+						SidebarCategory: customCategories[1].SidebarCategory,
+						Channels:        []string{<-channelChan, <-channelChan, <-channelChan},
+					},
+				}
+			case 6:
+				// Add to favorites category (triggers preference updates)
+				updatedCategories = []*model.SidebarCategoryWithChannels{
+					{
+						SidebarCategory: initialCategories.Categories[0].SidebarCategory, // Favorites category
+						Channels:        []string{<-channelChan, <-dmChannelChan},
+					},
+				}
+			case 7:
+				// Update category properties
+				customCatIndex := rand.Intn(2)
+				updatedCategories = []*model.SidebarCategoryWithChannels{
+					{
+						SidebarCategory: model.SidebarCategory{
+							Id:          customCategories[customCatIndex].Id,
+							DisplayName: fmt.Sprintf("Updated Name %d", iteration),
+							Sorting:     model.SidebarCategorySortRecent,
+							Muted:       iteration%2 == 0,
+						},
+						Channels: customCategories[customCatIndex].Channels,
+					},
+				}
+			}
+
+			// Remove duplicates to prevent database errors when updating the SidebarChannels table
+			for i, category := range updatedCategories {
+				updatedCategories[i].Channels = model.RemoveDuplicateStringsNonSort(category.Channels)
+			}
+
+			_, _, updateErr := ss.Channel().UpdateSidebarCategories(userID, team.Id, updatedCategories)
+			if err != nil {
+				require.NoError(t, fmt.Errorf("[iteration %d]: %v", iteration, updateErr))
+			}
+		}(i)
+
+		// Small sleep to vary timing between iterations
+		time.Sleep(time.Millisecond * time.Duration(rand.Intn(3)))
+	}
+
+	// Wait with timeout to catch any deadlocks
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		// All goroutines completed successfully
+	case <-time.After(30 * time.Second):
+		t.Log("Test timed out, likely deadlock")
+		t.FailNow()
+	}
+
+	// Verify the final state is valid
+	finalCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(finalCategories.Categories), 5, "Should have at least 5 categories (3 default + 2 custom)")
+
+	// Verify each channel is assigned to a category
+	channelFound := make(map[string]bool)
+	for _, channel := range channels {
+		channelFound[channel.Id] = false
+	}
+
+	for _, category := range finalCategories.Categories {
+		for _, channelId := range category.Channels {
+			if _, exists := channelFound[channelId]; exists {
+				channelFound[channelId] = true
+			}
+		}
+	}
+
+	// Every channel should be found in at least one category
+	for channelId, found := range channelFound {
+		require.True(t, found, "Channel %s should be assigned to at least one category", channelId)
+	}
 }

@@ -17,8 +17,9 @@ import (
 // TestBatchWorkerRace tests race conditions during the start/stop
 // cases of the batch worker. Use the -race flag while testing this.
 func TestBatchWorkerRace(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t)
-	defer th.TearDown()
 
 	worker := jobs.MakeBatchWorker(th.Server.Jobs, th.Server.Store(), 1*time.Second, func(rctx *request.Context, job *model.Job) bool {
 		return false
@@ -29,6 +30,8 @@ func TestBatchWorkerRace(t *testing.T) {
 }
 
 func TestBatchWorker(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	createBatchWorker := func(t *testing.T, th *TestHelper, doBatch func(rctx *request.Context, job *model.Job) bool) (*jobs.BatchWorker, *model.Job) {
 		t.Helper()
 
@@ -59,8 +62,9 @@ func TestBatchWorker(t *testing.T) {
 	}
 
 	t.Run("stop after first batch", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		mainHelper.Parallel(t)
+
+		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
 		worker, job := createBatchWorker(t, th, func(rctx *request.Context, job *model.Job) bool {
@@ -86,8 +90,9 @@ func TestBatchWorker(t *testing.T) {
 	})
 
 	t.Run("stop after second batch", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		mainHelper.Parallel(t)
+
+		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
 		worker, job := createBatchWorker(t, th, func(rctx *request.Context, job *model.Job) bool {
@@ -113,8 +118,9 @@ func TestBatchWorker(t *testing.T) {
 	})
 
 	t.Run("done after first batch", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		mainHelper.Parallel(t)
+
+		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
 		worker, job := createBatchWorker(t, th, func(rctx *request.Context, job *model.Job) bool {
@@ -137,8 +143,9 @@ func TestBatchWorker(t *testing.T) {
 	})
 
 	t.Run("done after three batches", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		mainHelper.Parallel(t)
+
+		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
 		worker, job := createBatchWorker(t, th, func(rctx *request.Context, job *model.Job) bool {

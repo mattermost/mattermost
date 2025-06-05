@@ -4,8 +4,10 @@
 package model
 
 import (
+	"fmt"
 	"slices"
 
+	"github.com/pkg/errors"
 	"golang.org/x/mod/semver"
 )
 
@@ -18,13 +20,41 @@ const (
 	AccessControlPolicyVersionV0_1 = "v0.1"
 )
 
-// ParentPolicy is a augmented version of AccessPolicy to be used in
-// system console and API responses.
-type ParentPolicy struct {
-	ID         string                 `json:"id"`
-	Name       string                 `json:"name"`
-	Attributes map[string]string      `json:"attributes"`
-	Children   []*AccessControlPolicy `json:"children"`
+// AccessControlAttribute represents a user attribute with its name and possible values
+type AccessControlAttribute struct {
+	Attribute PropertyField `json:"attribute"`
+	Values    []string      `json:"values"`
+}
+
+type AccessControlPolicyTestResponse struct {
+	Users []*User `json:"users"`
+	Total int64   `json:"total"`
+}
+
+type GetAccessControlPolicyOptions struct {
+	Type     string                    `json:"type"`
+	ParentID string                    `json:"parent_id"`
+	Cursor   AccessControlPolicyCursor `json:"cursor"`
+	Limit    int                       `json:"limit"`
+}
+
+type AccessControlPolicySearch struct {
+	Term            string                    `json:"term"`
+	Type            string                    `json:"type"`
+	ParentID        string                    `json:"parent_id"`
+	Cursor          AccessControlPolicyCursor `json:"cursor"`
+	Limit           int                       `json:"limit"`
+	IncludeChildren bool                      `json:"include_children"`
+	Active          bool                      `json:"active"`
+}
+
+type AccessControlPolicyCursor struct {
+	ID string `json:"id"`
+}
+
+type AccessControlPoliciesWithCount struct {
+	Policies []*AccessControlPolicy `json:"policies"`
+	Total    int64                  `json:"total"`
 }
 
 type AccessControlPolicy struct {
@@ -46,6 +76,16 @@ type AccessControlPolicy struct {
 type AccessControlPolicyRule struct {
 	Actions    []string `json:"actions"`
 	Expression string   `json:"expression"`
+}
+
+type CELExpressionError struct {
+	Line    int    `json:"line"`
+	Column  int    `json:"column"`
+	Message string `json:"message"`
+}
+
+type AccessControlQueryResult struct {
+	MatchedSubjectIDs []string `json:"matched_subject_ids"`
 }
 
 func (p *AccessControlPolicy) IsValid() *AppError {
@@ -102,4 +142,64 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_1() *AppError {
 	}
 
 	return nil
+}
+
+func (p *AccessControlPolicy) Inherit(resourceID, resourceType string) (*AccessControlPolicy, *AppError) {
+	rules := make([]AccessControlPolicyRule, len(p.Rules))
+
+	switch p.Version {
+	case AccessControlPolicyVersionV0_1:
+		for i, rule := range p.Rules {
+			actions := make([]string, len(rule.Actions))
+			copy(actions, rule.Actions)
+			rules[i] = AccessControlPolicyRule{
+				Actions:    actions,
+				Expression: fmt.Sprintf("policies.id_%s", p.ID),
+			}
+		}
+	default:
+		return nil, NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.version.app_error", nil, "", 400)
+	}
+
+	child := &AccessControlPolicy{
+		ID:       resourceID,
+		Type:     resourceType,
+		Active:   p.Active,
+		CreateAt: GetMillis(),
+		Version:  p.Version,
+		Imports:  []string{p.ID},
+		Rules:    rules,
+
+		Props: map[string]any{},
+	}
+
+	if appErr := child.IsValid(); appErr != nil {
+		return nil, appErr
+	}
+
+	return child, nil
+}
+
+func (c *AccessControlPolicyCursor) IsEmpty() bool {
+	return c.ID == ""
+}
+
+func (c *AccessControlPolicyCursor) IsValid() error {
+	if c.IsEmpty() {
+		return nil
+	}
+
+	if !IsValidId(c.ID) {
+		return errors.New("cursor id is invalid")
+	}
+
+	return nil
+}
+
+func (p *AccessControlPolicy) Auditable() map[string]any {
+	return map[string]any{
+		"id":       p.ID,
+		"type":     p.Type,
+		"revision": p.Revision,
+	}
 }
