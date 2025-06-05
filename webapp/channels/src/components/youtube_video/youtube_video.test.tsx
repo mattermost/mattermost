@@ -110,8 +110,7 @@ describe('YoutubeVideo', () => {
 
     it('should initialize thumbnail in componentDidMount', () => {
         const wrapper = shallow(<YoutubeVideo {...baseProps}/>);
-        expect(wrapper.state('thumbnailUrl')).toBe('');
-        (wrapper.instance() as YoutubeVideo).componentDidMount();
+        // componentDidMount is called automatically after shallow mount
         expect(wrapper.state('thumbnailUrl')).toBe('https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg');
     });
 });
