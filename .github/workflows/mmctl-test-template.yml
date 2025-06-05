@@ -43,7 +43,7 @@ jobs:
         id: build
         run: |
           if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
-            echo "IMAGE=cgr.dev/mattermost.com/go-msft-fips:1.22-dev" >> "${GITHUB_OUTPUT}"
+            echo "IMAGE=cgr.dev/mattermost.com/go-msft-fips:1.23-dev" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
           else
             echo "IMAGE=mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}" >> "${GITHUB_OUTPUT}"

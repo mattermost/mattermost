@@ -101,7 +101,7 @@ ifeq ($(HOME),/)
 endif
 
 OUTPUT_CONFIG ?= config/config.json
-FIPS_IMAGE ?= cgr.dev/mattermost.com/go-msft-fips:1.22-dev
+FIPS_IMAGE ?= cgr.dev/mattermost.com/go-msft-fips:1.23-dev
 
 # Go Flags
 GOFLAGS ?= $(GOFLAGS:)
@@ -815,7 +815,7 @@ vet-api: ## Run mattermost go vet to verify api4 documentation, currently not pa
 	@make -C ../api build
 	@if [ "$(FIPS_ENABLED)" = "true" ]; then \
 		echo "Running vet-api check with FIPS enabled"; \
-		docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server --entrypoint /bin/bash -e GOOS -e MATTERMOST_DIR=/build/mattermost -e GOARCH -e GO -e GOBIN -e ROOT cgr.dev/mattermost.com/go-msft-fips:1.22-dev ./scripts/vet-api-check.sh; \
+		docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server --entrypoint /bin/bash -e GOOS -e MATTERMOST_DIR=/build/mattermost -e GOARCH -e GO -e GOBIN -e ROOT cgr.dev/mattermost.com/go-msft-fips:1.23-dev ./scripts/vet-api-check.sh; \
 	else \
 		echo "Running vet-api check with FIPS disabled"; \
 		export MATTERMOST_DIR=$(PWD)/../; \
