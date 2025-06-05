@@ -122,13 +122,14 @@ exports[`YoutubeVideo should match snapshot for playing state 1`] = `
       className="video-div embed-responsive-item"
     >
       <div
-        className="video-div playing"
+        className="video-playing"
       >
         <iframe
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen={true}
           frameBorder="0"
           height="100%"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
           src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0"
           title="Youtube title"
           width="100%"
@@ -165,7 +166,7 @@ exports[`YoutubeVideo should match snapshot for playing state and \`youtubeRefer
       className="video-div embed-responsive-item"
     >
       <div
-        className="video-div playing"
+        className="video-playing"
       >
         <iframe
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -173,6 +174,7 @@ exports[`YoutubeVideo should match snapshot for playing state and \`youtubeRefer
           frameBorder="0"
           height="100%"
           referrerPolicy="origin"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
           src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0"
           title="Youtube title"
           width="100%"

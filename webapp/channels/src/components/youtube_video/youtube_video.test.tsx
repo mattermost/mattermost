@@ -75,7 +75,7 @@ describe('YoutubeVideo', () => {
         wrapper.setState({ playing: true });
         expect(wrapper).toMatchSnapshot();
         // Verify that the iframe has a referrerPolicy attribute (set to 'origin') when youtubeReferrerPolicy is true.
-        expect(wrapper.find('iframe').prop('referrerPolicy')).toEqual('origin');
+        expect(wrapper.find('.video-playing iframe').prop('referrerPolicy')).toEqual('origin');
     });
 
     test('should use url if secure_url is not present', () => {
