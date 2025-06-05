@@ -7,7 +7,7 @@
         position: relative;
         width: 100%;
         max-width: 480px;
-        margin-bottom: 8px;
+        overflow: hidden; // Ensure hover effects stay contained
 
         iframe {
             position: absolute;
@@ -60,7 +60,7 @@
 
                 .play-button {
                     background-color: #FF0033; //youtube red
-                    transform: scale(1.05);
+                    transform: scale(1.02); // Reduced scale to prevent overflow
                 }
             }
         }
@@ -105,7 +105,7 @@
             border-radius: var(--radius-m);
             background-color: rgba(0, 0, 0, 0.9);
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.2s ease, transform 0.2s ease;
 
             i.icon-play {
                 color: #fff;

@@ -56,7 +56,7 @@ describe('YoutubeVideo', () => {
         expect(wrapper).toMatchSnapshot();
         // Verify that the thumbnail is set to maxresdefault.jpg by default.
         expect(wrapper.find('img.video-thumbnail').prop('src')).toEqual('https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg');
-        expect(wrapper.find('a').text()).toEqual('Youtube title');
+        expect(wrapper.find('h4').text()).toEqual('YouTube - Youtube title');
     });
 
     test('should match snapshot for playing state', () => {
@@ -74,6 +74,8 @@ describe('YoutubeVideo', () => {
         );
         wrapper.setState({ playing: true });
         expect(wrapper).toMatchSnapshot();
+        // Verify that the iframe has a referrerPolicy attribute (set to 'origin') when youtubeReferrerPolicy is true.
+        expect(wrapper.find('iframe').prop('referrerPolicy')).toEqual('origin');
     });
 
     test('should use url if secure_url is not present', () => {
