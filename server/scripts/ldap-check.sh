@@ -24,7 +24,7 @@ if [[ -z ${1} ]]; then
 fi
 
 find_config_file() {
-	local config_paths=("./config.json" "./config/config.json" "/opt/mattermost/config/config.json")
+	local config_paths=("./config.json" "./config/config.json" "../config/config.json" "/opt/mattermost/config/config.json")
 	
 	for path in "${config_paths[@]}"; do
 		if [[ -e "$path" ]]; then
@@ -33,11 +33,14 @@ find_config_file() {
 		fi
 	done
 	
-	echo "We could not find config.json" >&2
-	exit 1
+	return 1
 }
 
 config_file=$(find_config_file)
+if [[ $? -ne 0 ]]; then
+	echo "We could not find config.json"
+	exit 1
+fi
 
 LdapServer=`cat $config_file | jq -r .LdapSettings.LdapServer`
 LdapPort=`cat $config_file | jq -r .LdapSettings.LdapPort`
