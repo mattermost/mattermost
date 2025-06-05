@@ -107,4 +107,11 @@ describe('YoutubeVideo', () => {
             expect(wrapper.state('thumbnailUrl')).toEqual('https://img.youtube.com/vi/xqCoNej8Zxo/hqdefault.jpg');
         });
     });
+
+    it('should initialize thumbnail in componentDidMount', () => {
+        const wrapper = shallow(<YoutubeVideo {...baseProps}/>);
+        expect(wrapper.state('thumbnailUrl')).toBe('');
+        (wrapper.instance() as YoutubeVideo).componentDidMount();
+        expect(wrapper.state('thumbnailUrl')).toBe('https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg');
+    });
 });
