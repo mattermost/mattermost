@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import styled from 'styled-components';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
@@ -88,6 +89,15 @@ import useUploadFiles from './use_upload_files';
 import './advanced_text_editor.scss';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
+
+const SendToChannelContainer = styled.div`
+    padding-left: 17px;
+    background: transparent;
+
+    .channel-name {
+        font-weight: 600;
+    }
+`;
 
 export type Props = {
 
@@ -604,6 +614,13 @@ const AdvancedTextEditor = ({
         };
     }, [channelId, rootId]);
 
+    const handleSendToChannelCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setDraft((prev: PostDraft) => ({
+            ...prev,
+            sendToChannel: e.target.checked,
+        }));
+    }, []);
+
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
@@ -724,6 +741,13 @@ const AdvancedTextEditor = ({
 
     const containsAtMentionsInMessage = allAtMentions(draft?.message)?.length > 0;
 
+    const showSendToChannel = !isDisabled && location === Locations.RHS_COMMENT;
+
+    let sendToChannelMessage: string = '';
+    if (showSendToChannel) {
+        sendToChannelMessage = formatMessage({id: 'create_comment.sendToChannel', defaultMessage: 'Also send to {channelDisplayName}'}, {channelDisplayName});
+    }
+
     return (
         <form
             id={rootId ? undefined : 'create_post'}
@@ -813,6 +837,22 @@ const AdvancedTextEditor = ({
                                 {showFormatJSX}
                             </TexteditorActions>
                         )}
+                        {
+                            showSendToChannel && (
+                                <SendToChannelContainer>
+                                    <div className='checkbox mb-0'>
+                                        <label>
+                                            <input
+                                                type='checkbox'
+                                                onChange={handleSendToChannelCheckboxChange}
+                                                checked={draft.sendToChannel}
+                                            />
+                                            {sendToChannelMessage}
+                                        </label>
+                                    </div>
+                                </SendToChannelContainer>
+                            )
+                        }
                         {showFormattingSpacer ? (
                             <FormattingBarSpacer>
                                 {formattingBar}

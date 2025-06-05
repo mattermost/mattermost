@@ -1342,7 +1342,12 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", options.UserId).
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
-		Where(sq.Eq{"Posts.RootId": ""}).
+		Where(
+            sq.Or{
+                sq.Eq{"Posts.RootId": ""}, // Original root posts
+                sq.Expr("Posts.Props->>'send_to_channel' = 'true'"), // Thread replies with send_to_channel flag
+            },
+        ).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
 		OrderBy("Posts.CreateAt DESC").ToSql()

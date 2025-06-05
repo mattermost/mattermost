@@ -59,7 +59,7 @@ export function submitPost(
             user_id: userId,
             create_at: time,
             metadata: {...draft.metadata},
-            props: {...draft.props},
+            props: {...draft.props, send_to_channel: draft.sendToChannel},
         } as unknown as Post;
 
         const channel = getChannel(state, channelId);

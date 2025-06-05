@@ -99,6 +99,7 @@ export function makeGetDraft() {
         updateAt: 0,
         channelId: '',
         rootId: '',
+        sendToChannel: false,
     });
 
     return createSelector(

@@ -45,6 +45,8 @@ export type OwnProps = {
      * Whether or not to render text emoticons (:D) as emojis
      */
     renderEmoticonsAsEmoji?: boolean;
+
+    isRHS?: boolean; /* Flags if the post_message_view is for the RHS (Reply). */
 };
 
 type Props = PropsFromRedux & OwnProps;
@@ -109,6 +111,10 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         let mentionHighlight = this.props.options?.mentionHighlight;
         if (this.props.post && this.props.post.props) {
             mentionHighlight = !this.props.post.props.mentionHighlightDisabled;
+
+            if (!this.props.isRHS && this.props.post.props.send_to_channel) {
+                message = `*replied to a thread*\n${message}`;
+            }
         }
 
         const options = this.getOptions(
