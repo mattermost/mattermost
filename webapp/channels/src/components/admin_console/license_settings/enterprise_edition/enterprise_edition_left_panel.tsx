@@ -77,7 +77,7 @@ const EnterpriseEditionLeftPanel = ({
         <button
             id='enterprise_edition_view_plans'
             onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
-            className='btn btn-secondary PlanDetails__viewPlansButton'
+            className='btn btn-tertiary btn-sm PlanDetails__viewPlansButton'
         >
             {formatMessage({
                 id: 'workspace_limits.menu_limit.view_plans',
@@ -127,7 +127,7 @@ const EnterpriseEditionLeftPanel = ({
                 <div className='license-details-top'>
                     <span className='title'>{'License details'}</span>
                     <button
-                        className='add-seats-button btn btn-primary'
+                        className='btn btn-primary btn-sm add-seats-button '
                         onClick={openContactSales}
                     >
                         <FormattedMessage
@@ -297,7 +297,7 @@ const renderAddNewLicenseButton = (
     return (
         <>
             <button
-                className='add-new-licence-btn'
+                className='btn btn-tertiary add-new-licence-btn'
                 onClick={() => fileInputRef.current?.click()}
             >
                 <FormattedMessage
