@@ -13,6 +13,7 @@
     height: 100%;
     color: functions.v(center-channel-color);
     grid-area: center;
+    scroll-behavior: smooth;
 
     > div {
         width: 100%;
@@ -62,24 +63,6 @@
 
     .admin-console__content {
         max-width: 920px;
-
-        .admin-console__content {
-            border-bottom: 1px solid rgba(61, 60, 64, 0.08);
-        }    
-
-        .section-header {
-            padding: 24px 0px;
-            border-top: 1px solid rgba(61, 60, 64, 0.08);
-
-            .section-title {
-                font-size: 16px;
-                font-weight: bold;
-            }
-    
-            .section-subtitle {
-                font-size: 14px;
-            }    
-        }
     }
 
     .admin-console__checkbox-list {

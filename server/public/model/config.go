@@ -147,6 +147,12 @@ const (
 	SupportSettingsDefaultSupportEmail       = ""
 	SupportSettingsDefaultReAcceptancePeriod = 365
 
+	SupportSettingsReportAProblemTypeLink    = "link"
+	SupportSettingsReportAProblemTypeMail    = "email"
+	SupportSettingsReportAProblemTypeHidden  = "hidden"
+	SupportSettingsReportAProblemTypeDefault = "default"
+	SupportSettingsDefaultReportAProblemType = SupportSettingsReportAProblemTypeDefault
+
 	LdapSettingsDefaultFirstNameAttribute        = ""
 	LdapSettingsDefaultLastNameAttribute         = ""
 	LdapSettingsDefaultEmailAttribute            = ""
@@ -1538,6 +1544,7 @@ type ExperimentalAuditSettings struct {
 	FileCompress        *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileMaxQueueSize    *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	AdvancedLoggingJSON json.RawMessage `access:"experimental_features"`
+	Certificate         *string         `access:"experimental_features"` // telemetry: none
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1571,6 +1578,10 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		s.AdvancedLoggingJSON = []byte("{}")
+	}
+
+	if s.Certificate == nil {
+		s.Certificate = NewPointer("")
 	}
 }
 
@@ -2141,6 +2152,9 @@ type SupportSettings struct {
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	HelpLink                               *string `access:"site_customization"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	ReportAProblemType                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	ReportAProblemMail                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	AllowDownloadLogs                      *bool   `access:"site_customization,write_restrictable,cloud_restrictable"`
 	ForgotPasswordLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
@@ -2187,6 +2201,18 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.ReportAProblemLink == nil {
 		s.ReportAProblemLink = NewPointer(SupportSettingsDefaultReportAProblemLink)
+	}
+
+	if s.ReportAProblemType == nil {
+		s.ReportAProblemType = NewPointer(SupportSettingsDefaultReportAProblemType)
+	}
+
+	if s.ReportAProblemMail == nil {
+		s.ReportAProblemMail = NewPointer("")
+	}
+
+	if s.AllowDownloadLogs == nil {
+		s.AllowDownloadLogs = NewPointer(true)
 	}
 
 	if !isSafeLink(s.ForgotPasswordLink) {
@@ -2454,7 +2480,8 @@ type LdapSettings struct {
 	PictureAttribute   *string `access:"authentication_ldap"`
 
 	// Synchronization
-	SyncIntervalMinutes *int `access:"authentication_ldap"`
+	SyncIntervalMinutes *int  `access:"authentication_ldap"`
+	ReAddRemovedMembers *bool `access:"authentication_ldap"`
 
 	// Advanced
 	SkipCertificateVerification *bool   `access:"authentication_ldap"`
@@ -2585,6 +2612,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.SyncIntervalMinutes == nil {
 		s.SyncIntervalMinutes = NewPointer(60)
+	}
+
+	if s.ReAddRemovedMembers == nil {
+		s.ReAddRemovedMembers = NewPointer(false)
 	}
 
 	if s.SkipCertificateVerification == nil {
@@ -3982,6 +4013,26 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if o.SupportSettings.ReportAProblemType != nil {
+		if *o.SupportSettings.ReportAProblemType == SupportSettingsReportAProblemTypeMail {
+			if o.SupportSettings.ReportAProblemMail == nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.missing.app_error", nil, "", http.StatusBadRequest)
+			}
+			if !IsValidEmail(*o.SupportSettings.ReportAProblemMail) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.invalid.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+		if *o.SupportSettings.ReportAProblemType == SupportSettingsReportAProblemTypeLink {
+			if o.SupportSettings.ReportAProblemLink == nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.missing.app_error", nil, "", http.StatusBadRequest)
+			}
+
+			if !IsValidHTTPURL(*o.SupportSettings.ReportAProblemLink) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.invalid.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -4078,6 +4129,11 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.directory.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Check for leading/trailing whitespace in directory path
+	if strings.TrimSpace(*s.Directory) != *s.Directory {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.Directory", "Value": *s.Directory}, "", http.StatusBadRequest)
+	}
+
 	if *s.MaxImageDecoderConcurrency < -1 || *s.MaxImageDecoderConcurrency == 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.image_decoder_concurrency.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
 	}
@@ -4090,8 +4146,20 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.AmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
 
+	if strings.TrimSpace(*s.AmazonS3PathPrefix) != *s.AmazonS3PathPrefix {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.AmazonS3PathPrefix", "Value": *s.AmazonS3PathPrefix}, "", http.StatusBadRequest)
+	}
+
 	if *s.ExportAmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.ExportAmazonS3StorageClass) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.ExportAmazonS3StorageClass}, "", http.StatusBadRequest)
+	}
+
+	if strings.TrimSpace(*s.ExportAmazonS3PathPrefix) != *s.ExportAmazonS3PathPrefix {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.ExportAmazonS3PathPrefix", "Value": *s.ExportAmazonS3PathPrefix}, "", http.StatusBadRequest)
+	}
+
+	if strings.TrimSpace(*s.ExportDirectory) != *s.ExportDirectory {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.ExportDirectory", "Value": *s.ExportDirectory}, "", http.StatusBadRequest)
 	}
 
 	return nil

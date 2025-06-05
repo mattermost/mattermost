@@ -1,0 +1,143 @@
+@import 'utils/mixins';
+
+.AdvancedTextbox {
+    position: relative;
+
+    &__wrapper {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__label {
+        position: absolute;
+        z-index: 1;
+        top: -6px; // Adjusted from -8px to -6px to center with border
+        left: 12px;
+        display: flex;
+        width: auto;
+        padding: 0 4px;
+        border: none;
+        background-color: var(--center-channel-bg);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 10px;
+        line-height: 14px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition-duration: 0.15s;
+        transition-property: opacity, transform, color;
+        transition-timing-function: ease-in-out;
+        white-space: nowrap;
+
+        &--active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        &--focused {
+            color: var(--button-bg); // Change color to match the border when focused
+        }
+
+        &--error {
+            color: var(--error-text); // Change color to red when there's an error
+        }
+
+        // Error state takes precedence over focus state
+        &--focused.AdvancedTextbox__label--error {
+            color: var(--error-text);
+        }
+    }
+
+    .textarea-wrapper {
+        position: relative;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+
+        
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.48);
+        }
+        
+        &:focus-within {
+            border-color: var(--button-bg);
+            box-shadow: inset 0 0 0 1px var(--button-bg);
+        }
+        
+        &.textarea-wrapper-preview--disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            &:hover {
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            }
+        }
+        // forcing this styles since textarea has ohter styles that affect the post input, so keeping it here isolated inside advanced textbox
+        .textarea--has-errors{
+            border-color: var(--error-text) !important;
+
+            &:focus {
+                border-color: var(--error-text) !important;
+                box-shadow: 0 0 0 1px var(--error-text) !important;
+            }
+        }
+        
+        // Override default textarea styles to work with our border
+        .custom-textarea {
+            border: none;
+            box-shadow: none;
+
+            &.textbox-preview-area {
+                overflow-y: auto;
+            }
+            
+            &:focus {
+                box-shadow: none;
+            }
+        }
+    }
+
+    &__error-wrapper {
+        display: flex;
+    }
+
+    &__error-message {
+        display: flex;
+        width: 90%;
+        align-items: center;
+        margin-top: 4px;
+        color: var(--error-text);
+        font-size: 12px;
+
+        i {
+            margin-right: 4px;
+            font-size: 14px;
+        }
+    }
+
+    &__character-count {
+        margin-top: 4px;
+        margin-left: auto;
+        font-size: 12px;
+
+        &.exceeds-limit {
+            color: var(--error-text);
+        }
+
+        &.below-minimum {
+            color: var(--error-text);
+        }
+    }
+
+    &__description {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        margin-top: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-family: "Open Sans", sans-serif;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 16px;
+    }
+
+}

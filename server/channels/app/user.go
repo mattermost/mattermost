@@ -959,7 +959,7 @@ func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPa
 }
 
 func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
-	a.SetStatusOffline(userID, false)
+	a.SetStatusOffline(userID, false, true)
 
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -2090,6 +2090,26 @@ func (a *App) SearchUsersInChannel(channelID string, term string, options *model
 
 func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
+
+	ctx := request.EmptyContext(a.Log())
+	if ok, err := a.ChannelAccessControlled(ctx, channelID); err != nil {
+		return nil, err
+	} else if ok {
+		acs := a.Srv().Channels().AccessControl
+		if acs != nil {
+			users, _, appErr := acs.QueryUsersForResource(ctx, channelID, "*", model.SubjectSearchOptions{
+				Term:   term,
+				TeamID: teamID,
+				Limit:  options.Limit,
+			})
+			if appErr != nil {
+				return nil, appErr
+			}
+
+			return users, nil
+		}
+	}
+
 	users, err := a.Srv().Store().User().SearchNotInChannel(teamID, channelID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("SearchUsersNotInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
