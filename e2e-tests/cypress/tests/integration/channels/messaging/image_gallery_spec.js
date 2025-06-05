@@ -12,14 +12,9 @@
 
 import {attachFile} from '../files_and_attachments/helpers';
 
-let testTeam;
-let testChannel;
-
 describe('Image Gallery', () => {
     before(() => {
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
-            testTeam = team;
-            testChannel = channel;
             cy.visit(`/${team.name}/channels/${channel.name}`);
         });
     });
