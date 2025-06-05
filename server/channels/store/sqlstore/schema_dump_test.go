@@ -37,6 +37,9 @@ func TestGetSchemaDefinition(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, schemaInfo)
 
+			// Verify database encoding is captured
+			assert.Equal(t, "UTF8", schemaInfo.DatabaseEncoding, "Database encoding should be captured")
+
 			// Verify schema structure
 			assert.NotEmpty(t, schemaInfo.Tables)
 

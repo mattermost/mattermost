@@ -31,6 +31,15 @@ func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, e
 	} else {
 		schemaInfo.DatabaseCollation = dbCollation
 	}
+
+	// Get the database encoding
+	dbEncoding, err := ss.getDatabaseEncoding()
+	if err != nil {
+		rErr = multierror.Append(rErr, err)
+	} else {
+		schemaInfo.DatabaseEncoding = dbEncoding
+	}
+
 	// Get table options
 	tableOptions, err := ss.getTableOptions()
 	if err != nil {
@@ -94,6 +103,30 @@ func (ss *SqlStore) getDatabaseCollation() (string, error) {
 	}
 
 	return dbCollation.String, nil
+}
+
+// getDatabaseEncoding retrieves the database encoding for PostgreSQL
+func (ss *SqlStore) getDatabaseEncoding() (string, error) {
+	var dbEncoding sql.NullString
+	encodingQuery := sq.Select("pg_encoding_to_char(encoding)").
+		From("pg_database").
+		Where(sq.Expr("datname = current_database()"))
+
+	sqlString, args, err := encodingQuery.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "failed to build database encoding query")
+	}
+
+	err = ss.GetMaster().DB.QueryRow(sqlString, args...).Scan(&dbEncoding)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get database encoding")
+	}
+
+	if !dbEncoding.Valid {
+		return "", nil
+	}
+
+	return dbEncoding.String, nil
 }
 
 // getTableOptions retrieves table-specific options from PostgreSQL system catalogs

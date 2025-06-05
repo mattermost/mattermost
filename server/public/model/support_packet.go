@@ -127,6 +127,7 @@ type SupportPacketPluginList struct {
 // It is included in the Support Packet.
 type SupportPacketDatabaseSchema struct {
 	DatabaseCollation string          `yaml:"database_collation,omitempty"`
+	DatabaseEncoding  string          `yaml:"database_encoding,omitempty"`
 	Tables            []DatabaseTable `yaml:"tables"`
 }
 
