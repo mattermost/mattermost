@@ -24,6 +24,7 @@ export default class MentionableRenderer extends PlainRenderer {
         if (this.hasRemoteMentions) {
             return text;
         }
+
         // Otherwise, use PlainRenderer behavior (adds spaces)
         return super.strong(text);
     }
@@ -33,6 +34,7 @@ export default class MentionableRenderer extends PlainRenderer {
         if (this.hasRemoteMentions) {
             return text;
         }
+
         // Otherwise, use PlainRenderer behavior (adds spaces)
         return super.em(text);
     }
