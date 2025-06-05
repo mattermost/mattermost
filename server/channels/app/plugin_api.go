@@ -16,7 +16,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -198,61 +197,6 @@ func (api *PluginAPI) GetTeamsForUser(userID string) ([]*model.Team, *model.AppE
 	return api.app.GetTeamsForUser(userID)
 }
 
-func (api *PluginAPI) MakeAuditRecord(event string, initialStatus string) *model.AuditRecord {
-	rec := &model.AuditRecord{
-		EventName: event,
-		Status:    initialStatus,
-		Meta: map[string]any{
-			model.AuditKeyAPIPath:   "",
-			model.AuditKeyClusterID: api.app.GetClusterId(),
-		},
-		Actor: model.AuditEventActor{
-			UserId:        "",
-			SessionId:     "",
-			Client:        "",
-			IpAddress:     "",
-			XForwardedFor: "",
-		},
-		EventData: model.AuditEventData{
-			Parameters: map[string]any{
-				"plugin_id": api.id,
-			},
-			PriorState:  map[string]any{},
-			ResultState: map[string]any{},
-			ObjectType:  "",
-		},
-	}
-
-	return rec
-}
-
-func (api *PluginAPI) MakeAuditRecordWithRequest(event string, initialStatus string, ctx plugin.Context, userID, apiPath string) *model.AuditRecord {
-	rec := &model.AuditRecord{
-		EventName: event,
-		Status:    initialStatus,
-		Meta: map[string]any{
-			model.AuditKeyAPIPath:   apiPath,
-			model.AuditKeyClusterID: api.app.GetClusterId(),
-		},
-		Actor: model.AuditEventActor{
-			UserId:        userID,
-			SessionId:     ctx.SessionId,
-			Client:        ctx.UserAgent,
-			IpAddress:     ctx.IPAddress,
-			XForwardedFor: "",
-		},
-		EventData: model.AuditEventData{
-			Parameters: map[string]any{
-				"plugin_id": api.id,
-			},
-			PriorState:  map[string]any{},
-			ResultState: map[string]any{},
-			ObjectType:  "",
-		},
-	}
-
-	return rec
-}
 
 func (api *PluginAPI) LogAuditRec(rec *model.AuditRecord) {
 	api.LogAuditRecWithLevel(rec, mlog.LvlAuditCLI)

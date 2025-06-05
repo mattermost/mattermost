@@ -1499,20 +1499,6 @@ func (api *apiTimerLayer) DeleteGroupConstrainedMemberships() *model.AppError {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) MakeAuditRecord(event string, initialStatus string) *model.AuditRecord {
-	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.MakeAuditRecord(event, initialStatus)
-	api.recordTime(startTime, "MakeAuditRecord", true)
-	return _returnsA
-}
-
-func (api *apiTimerLayer) MakeAuditRecordWithRequest(event string, initialStatus string, ctx Context, userId, apiPath string) *model.AuditRecord {
-	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.MakeAuditRecordWithRequest(event, initialStatus, ctx, userId, apiPath)
-	api.recordTime(startTime, "MakeAuditRecordWithRequest", true)
-	return _returnsA
-}
-
 func (api *apiTimerLayer) LogAuditRec(rec *model.AuditRecord) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogAuditRec(rec)
