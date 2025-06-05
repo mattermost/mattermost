@@ -43,7 +43,8 @@ func (a *App) TestLdap(rctx request.CTX) *model.AppError {
 		return ldapI.RunTest(rctx)
 	}
 
-	return model.NewAppError("TestLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+	return model.NewAppError("TestLdap",
+		"ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }
 
 func (a *App) TestLdapConnection(rctx request.CTX, settings *model.LdapSettings) *model.AppError {
@@ -67,16 +68,10 @@ func (a *App) TestLdapFilters(rctx request.CTX, settings *model.LdapSettings) ([
 	// NOTE: normally we would test (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync),
 	// but we want to allow sysadmins to test the connection without enabling and saving the config first.
 	if ldapI != nil && license != nil && *license.Features.LDAP {
-		res, err := ldapI.RunTestFilters(rctx, settings)
-		if err != nil {
-			err.StatusCode = 500
-			return nil, err
-		}
-		return res, nil
+		return ldapI.RunTestFilters(rctx, settings)
 	}
 
-	err := model.NewAppError("TestLdapConnection", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
-	return nil, err
+	return nil, model.NewAppError("TestLdapConnection", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }
 
 // GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
