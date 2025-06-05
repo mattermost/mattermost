@@ -1173,17 +1173,6 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -2145,17 +2134,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
                 />
               }
             />
