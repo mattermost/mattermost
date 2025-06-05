@@ -141,18 +141,9 @@ func testLdapFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: need to marshal and return res to client
-	b, err := json.Marshal(res)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.testLdapFilters", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(b); err != nil {
+	if err := json.NewEncoder(w).Encode(res); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
-
-	ReturnStatusOK(w)
 }
 
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
