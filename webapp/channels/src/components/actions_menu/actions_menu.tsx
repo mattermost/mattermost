@@ -212,10 +212,10 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 <div className='visit-marketplace' >
                     <button
                         id='marketPlaceButton'
-                        className='btn btn-primary visit-marketplace-button'
+                        className='btn btn-primary btn-sm visit-marketplace-button'
                         onClick={this.handleOpenMarketplace}
                     >
-                        <ActionsMenuIcon name='icon-view-grid-plus-outline visit-marketplace-button-icon'/>
+                        <ActionsMenuIcon name='icon-view-grid-plus-outline'/>
                         <span className='visit-marketplace-button-text'>
                             <FormattedMessage
                                 id='post_info.actions.visitMarketplace'
