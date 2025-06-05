@@ -21,7 +21,6 @@ Examples
 ::
 
   user edit authdata user@example.com newid123
-    user edit authdata user@example.com ""
 
 Options
 ~~~~~~~
