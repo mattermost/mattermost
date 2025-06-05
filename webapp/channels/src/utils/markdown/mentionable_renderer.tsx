@@ -11,4 +11,14 @@ export default class MentionableRenderer extends PlainRenderer {
         // Remove all emojis
         return text.replace(EMOJI_PATTERN, '');
     }
+
+    public strong(text: string) {
+        // Don't add spaces around bold text to preserve mentions like @user:org1
+        return text;
+    }
+
+    public em(text: string) {
+        // Don't add spaces around italic text to preserve mentions like @user:org1
+        return text;
+    }
 }
