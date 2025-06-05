@@ -55,7 +55,7 @@
 
         ##### Permissions
 
-        Must have `manage_system` permission.
+        Must have `sysconsole_read_authentication_ldap` or `manage_system` permission.
       operationId: TestLdapConnection
       requestBody:
         description: LDAP settings to test
