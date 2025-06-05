@@ -40,16 +40,10 @@ func (a *App) SyncLdap(c request.CTX, reAddRemovedMembers *bool) {
 func (a *App) TestLdap(rctx request.CTX) *model.AppError {
 	license := a.Srv().License()
 	if ldapI := a.LdapDiagnostic(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
-		if err := ldapI.RunTest(rctx); err != nil {
-			err.StatusCode = 500
-			return err
-		}
-	} else {
-		err := model.NewAppError("TestLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
-		return err
+		return ldapI.RunTest(rctx)
 	}
 
-	return nil
+	return model.NewAppError("TestLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }
 
 func (a *App) TestLdapConnection(rctx request.CTX, settings *model.LdapSettings) *model.AppError {

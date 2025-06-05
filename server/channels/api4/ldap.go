@@ -93,7 +93,7 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testLdapConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAP {
+	if c.App.Channels().License() == nil || !model.SafeDereference(c.App.Channels().License().Features.LDAP) {
 		c.Err = model.NewAppError("api4.testLdapConnection", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
