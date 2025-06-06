@@ -15,13 +15,26 @@ import {attachFile} from '../files_and_attachments/helpers';
 describe('Image Gallery', () => {
     before(() => {
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
+            // Visit the channel and wait for it to be fully loaded
             cy.visit(`/${team.name}/channels/${channel.name}`);
+            
+            // Wait for the app to be fully loaded
+            cy.get('#app-content', {timeout: 30000}).should('be.visible');
+            
+            // Wait for the channel to be fully loaded
+            cy.get('#channel-header', {timeout: 30000}).should('be.visible');
+            cy.get('#channelHeaderTitle', {timeout: 30000}).should('be.visible');
+            cy.get('#post_textbox', {timeout: 30000}).should('be.visible');
+            
+            // Additional check to ensure the channel is ready
+            cy.get('#postListContent', {timeout: 30000}).should('be.visible');
         });
     });
 
     it('MM-T1798 Gallery grid layout with multiple images', () => {
-        cy.get('#channelHeaderTitle', {timeout: 20000}).should('be.visible');
-        cy.get('#post_textbox').should('be.visible');
+        // Ensure we're in a clean state before starting the test
+        cy.get('#channelHeaderTitle', {timeout: 30000}).should('be.visible');
+        cy.get('#post_textbox', {timeout: 30000}).should('be.visible');
 
         const images = [
             {filename: 'image-small-height.png', width: 340, height: 24},
@@ -88,8 +101,9 @@ describe('Image Gallery', () => {
     });
 
     it('MM-T1799 Gallery with mixed content types', () => {
-        cy.get('#channelHeaderTitle', {timeout: 20000}).should('be.visible');
-        cy.get('#post_textbox').should('be.visible');
+        // Ensure we're in a clean state before starting the test
+        cy.get('#channelHeaderTitle', {timeout: 30000}).should('be.visible');
+        cy.get('#post_textbox', {timeout: 30000}).should('be.visible');
 
         const files = [
             {filename: 'image-small-height.png', type: 'image'},
