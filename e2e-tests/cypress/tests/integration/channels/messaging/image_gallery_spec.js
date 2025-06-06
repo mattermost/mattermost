@@ -17,15 +17,15 @@ describe('Image Gallery', () => {
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
             // Visit the channel and wait for it to be fully loaded
             cy.visit(`/${team.name}/channels/${channel.name}`);
-            
+
             // Wait for the app to be fully loaded
             cy.get('#app-content', {timeout: 30000}).should('be.visible');
-            
+
             // Wait for the channel to be fully loaded
             cy.get('#channel-header', {timeout: 30000}).should('be.visible');
             cy.get('#channelHeaderTitle', {timeout: 30000}).should('be.visible');
             cy.get('#post_textbox', {timeout: 30000}).should('be.visible');
-            
+
             // Additional check to ensure the channel is ready
             cy.get('#postListContent', {timeout: 30000}).should('be.visible');
         });
