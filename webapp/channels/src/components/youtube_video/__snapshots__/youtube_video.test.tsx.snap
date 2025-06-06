@@ -64,31 +64,50 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
         <div
           className="video-div embed-responsive-item"
         >
-          <div
-            aria-label="Play Youtube title on YouTube"
-            className="video-thumbnail__container"
-            onClick={[Function]}
-            onKeyDown={[Function]}
-            role="button"
-            tabIndex={0}
+          <YouTubeThumbnail
+            onError={[Function]}
+            play={[Function]}
+            thumbnailUrl="https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg"
+            useMaxResThumbnail={true}
+            videoTitle="Youtube title"
           >
-            <img
-              alt="Thumbnail for Youtube title on YouTube"
-              className="video-thumbnail"
-              onError={[Function]}
-              src="https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg"
-            />
             <div
-              aria-label="Play video"
-              className="play-button"
-              role="img"
+              aria-label="Play Youtube title on YouTube"
+              className="video-thumbnail__container"
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              role="button"
+              tabIndex={0}
             >
-              <i
-                aria-hidden="true"
-                className="icon-play"
-              />
+              <Connect(Component)
+                src="https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg"
+              >
+                <Memo(ExternalImage)
+                  dispatch={[Function]}
+                  enableSVGs={false}
+                  hasImageProxy={false}
+                  src="https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg"
+                >
+                  <img
+                    alt="Thumbnail for Youtube title on YouTube"
+                    className="video-thumbnail"
+                    onError={[Function]}
+                    src="https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg"
+                  />
+                </Memo(ExternalImage)>
+              </Connect(Component)>
+              <div
+                aria-label="Play video"
+                className="play-button"
+                role="presentation"
+              >
+                <i
+                  aria-hidden="true"
+                  className="icon-play"
+                />
+              </div>
             </div>
-          </div>
+          </YouTubeThumbnail>
         </div>
       </div>
     </div>
@@ -130,7 +149,7 @@ exports[`YoutubeVideo should match snapshot for playing state 1`] = `
           frameBorder="0"
           height="100%"
           sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
-          src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0"
+          src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0&fs=1&enablejsapi=1"
           title="Youtube title"
           width="100%"
         />
@@ -175,7 +194,7 @@ exports[`YoutubeVideo should match snapshot for playing state and \`youtubeRefer
           height="100%"
           referrerPolicy="origin"
           sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
-          src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0"
+          src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0&fs=1&enablejsapi=1"
           title="Youtube title"
           width="100%"
         />

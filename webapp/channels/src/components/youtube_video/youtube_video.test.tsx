@@ -55,8 +55,8 @@ describe('YoutubeVideo', () => {
         );
         expect(wrapper).toMatchSnapshot();
 
-        // Verify that the thumbnail is set to maxresdefault.jpg by default.
-        expect(wrapper.find('img.video-thumbnail').prop('src')).toEqual('https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg');
+        // Verify that useMaxResThumbnail is true by default
+        expect((wrapper.find('YoutubeVideo').instance() as YoutubeVideo).state.useMaxResThumbnail).toBe(true);
         expect(wrapper.find('h4').text()).toEqual('YouTube - Youtube title');
     });
 
@@ -78,6 +78,8 @@ describe('YoutubeVideo', () => {
 
         // Verify that the iframe has a referrerPolicy attribute (set to 'origin') when youtubeReferrerPolicy is true.
         expect(wrapper.find('.video-playing iframe').prop('referrerPolicy')).toEqual('origin');
+        // Verify that the iframe src includes the new parameters
+        expect(wrapper.find('.video-playing iframe').prop('src')).toEqual('https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0&fs=1&enablejsapi=1');
     });
 
     test('should use url if secure_url is not present', () => {
@@ -92,8 +94,8 @@ describe('YoutubeVideo', () => {
         };
         const wrapper = shallow(<YoutubeVideo {...props}/>);
 
-        // Verify that the thumbnail is set to maxresdefault.jpg by default.
-        expect(wrapper.find('img.video-thumbnail').prop('src')).toEqual('https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg');
+        // Verify that useMaxResThumbnail is true by default
+        expect(wrapper.state('useMaxResThumbnail')).toBe(true);
     });
 
     describe('thumbnail fallback', () => {
@@ -103,15 +105,15 @@ describe('YoutubeVideo', () => {
             // Simulate an image error by calling handleImageError.
             (wrapper.instance() as YoutubeVideo).handleImageError();
 
-            // Verify that the thumbnail is now hqdefault.jpg.
-            expect(wrapper.state('thumbnailUrl')).toEqual('https://img.youtube.com/vi/xqCoNej8Zxo/hqdefault.jpg');
+            // Verify that useMaxResThumbnail is now false (will use hqdefault.jpg).
+            expect(wrapper.state('useMaxResThumbnail')).toBe(false);
         });
     });
 
-    it('should initialize thumbnail in componentDidMount', () => {
+    it('should initialize with useMaxResThumbnail set to true', () => {
         const wrapper = shallow(<YoutubeVideo {...baseProps}/>);
 
-        // componentDidMount is called automatically after shallow mount
-        expect(wrapper.state('thumbnailUrl')).toBe('https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg');
+        // Verify that the component initializes with useMaxResThumbnail = true
+        expect(wrapper.state('useMaxResThumbnail')).toBe(true);
     });
 });
