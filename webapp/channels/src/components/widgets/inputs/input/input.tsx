@@ -43,7 +43,7 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
     clearable?: boolean;
     clearableTooltipText?: string;
     onClear?: () => void;
-    validate?: () => CustomMessageInputType | undefined;
+    validate?: (value: React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>['value']) => CustomMessageInputType | undefined;
 }
 
 const Input = React.forwardRef((
@@ -154,7 +154,7 @@ const Input = React.forwardRef((
 
     const validateInput = () => {
         if (validate) {
-            const validationError = validate();
+            const validationError = validate(value);
             if (validationError) {
                 setCustomInputLabel(validationError);
             }

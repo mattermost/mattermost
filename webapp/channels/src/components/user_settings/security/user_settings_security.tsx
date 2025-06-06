@@ -263,8 +263,8 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     id: 'user.settings.security.currentPassword',
                                     defaultMessage: 'Current Password',
                                 })}
-                                validate={() => {
-                                    if (this.state.currentPassword === '') {
+                                validate={(value) => {
+                                    if (typeof value !== 'string' || value === '') {
                                         return {
                                             type: 'error' as const,
                                             value: (
@@ -280,10 +280,6 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                             />
                         </div>
                     </div>,
-                );
-                const {valid, error} = isValidPassword(
-                    this.state.newPassword,
-                    this.props.passwordConfig,
                 );
                 inputs.push(
                     <div
@@ -310,10 +306,14 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     id: 'user.settings.security.newPassword',
                                     defaultMessage: 'New Password',
                                 })}
-                                validate={() => {
+                                validate={(value) => {
+                                    const {valid, error} = isValidPassword(
+                                        value as string,
+                                        this.props.passwordConfig,
+                                    );
                                     if (!valid) {
                                         return {
-                                            type: 'error',
+                                            type: 'error' as const,
                                             value: error,
                                         };
                                     }
@@ -348,8 +348,11 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     id: 'user.settings.security.retypePassword',
                                     defaultMessage: 'Retype New Password',
                                 })}
-                                validate={() => {
-                                    if (this.state.newPassword !== this.state.confirmPassword) {
+                                validate={(value) => {
+                                    if (typeof value !== 'string') {
+                                        return undefined;
+                                    }
+                                    if (this.state.newPassword !== value) {
                                         return {
                                             type: 'error' as const,
                                             value: (

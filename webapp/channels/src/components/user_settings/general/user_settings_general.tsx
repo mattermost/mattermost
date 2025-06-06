@@ -645,8 +645,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                     maxLength={Constants.MAX_EMAIL_LENGTH}
                                     value={this.state.email}
                                     aria-label={formatMessage({id: 'user.settings.general.newEmail', defaultMessage: 'New Email'})}
-                                    validate={() => {
-                                        if (this.state.email === '' || !isEmail(this.state.email)) {
+                                    validate={(value) => {
+                                        if (value === '' || !isEmail(value as string)) {
                                             return {
                                                 type: 'error',
                                                 value: formatMessage(holders.validEmail),
@@ -681,8 +681,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                     maxLength={Constants.MAX_EMAIL_LENGTH}
                                     value={this.state.confirmEmail}
                                     aria-label={formatMessage({id: 'user.settings.general.confirmEmail', defaultMessage: 'Confirm Email'})}
-                                    validate={() => {
-                                        if (this.state.email !== this.state.confirmEmail) {
+                                    validate={(value) => {
+                                        if (this.state.email !== value) {
                                             return {
                                                 type: 'error',
                                                 value: formatMessage(holders.emailMatch),
@@ -716,8 +716,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                     onChange={this.updateCurrentPassword}
                                     value={this.state.currentPassword}
                                     aria-label={formatMessage({id: 'user.settings.general.currentPassword', defaultMessage: 'Current Password'})}
-                                    validate={() => {
-                                        if (this.state.currentPassword === '') {
+                                    validate={(value) => {
+                                        if (value === '') {
                                             return {
                                                 type: 'error',
                                                 value: formatMessage(holders.emptyPassword),
@@ -1252,8 +1252,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 autoCapitalize='off'
                                 onFocus={Utils.moveCursorToEnd}
                                 aria-label={formatMessage({id: 'user.settings.general.username', defaultMessage: 'Username'})}
-                                validate={() => {
-                                    const usernameError = Utils.isValidUsername(this.state.username);
+                                validate={(value) => {
+                                    const usernameError = Utils.isValidUsername(value as string);
                                     if (usernameError) {
                                         if (usernameError.id === ValidationErrors.RESERVED_NAME) {
                                             return {
