@@ -44,7 +44,7 @@ export function formatWithRendererForMentions(text: string, renderer: marked.Ren
 
     const protectedText = text.replace(Constants.MENTIONS_REGEX, (match) => {
         if (match.includes(':')) {
-            const placeholder = `__RM_${counter++}__`;
+            const placeholder = `REMOTE_MENTION_${counter++}_END`;
             remoteMentions.set(placeholder, match);
             return placeholder;
         }
