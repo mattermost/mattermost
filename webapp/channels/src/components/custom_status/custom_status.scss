@@ -255,29 +255,3 @@ span.emoticon[style]:hover {
         }
     }
 }
-
-.dateTime {
-    display: flex;
-    margin: 24px 0 8px;
-    gap: 16px;
-
-    & &__date {
-        position: relative;
-        width: 100%;
-    }
-
-    & &__time {
-        position: relative;
-        width: 100%;
-
-        .dateTime__time-menu {
-            width: 100%;
-        }
-
-        #expiryTimeMenu .dropdown-menu {
-            overflow: auto;
-            min-width: 266px;
-            max-height: 268px;
-        }
-    }
-}

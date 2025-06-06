@@ -4,7 +4,7 @@
 import {DateTime} from 'luxon';
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useState, useCallback, useRef} from 'react';
 import type {DayModifiers, DayPickerProps} from 'react-day-picker';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -75,8 +75,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const [timeOptions, setTimeOptions] = useState<Date[]>([]);
     const [isPopperOpen, setIsPopperOpen] = useState(false);
     const [isTimeMenuOpen, setIsTimeMenuOpen] = useState(false);
+    const [menuWidth, setMenuWidth] = useState<string>('200px');
     const {formatMessage} = useIntl();
     const theme = useSelector(getTheme);
+    const timeContainerRef = useRef<HTMLDivElement>(null);
 
     const handlePopperOpenState = useCallback((isOpen: boolean) => {
         setIsPopperOpen(isOpen);
@@ -86,6 +88,15 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const handleTimeMenuToggle = useCallback((isOpen: boolean) => {
         setIsTimeMenuOpen(isOpen);
         setIsInteracting?.(isOpen);
+        
+        // Measure and set menu width when opening
+        if (isOpen && timeContainerRef.current) {
+            const button = timeContainerRef.current.querySelector('button');
+            if (button) {
+                const buttonWidth = button.getBoundingClientRect().width;
+                setMenuWidth(`${buttonWidth}px`);
+            }
+        }
     }, [setIsInteracting]);
 
     const handleTimeChange = useCallback((time: Date) => {
@@ -179,7 +190,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         <></>
                     </DatePicker>
                 </div>
-                <div className='dateTime__time'>
+                <div className='dateTime__time' ref={timeContainerRef}>
                     <Menu.Container
                         menuButton={{
                             id: 'time_button',
@@ -203,7 +214,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                             id: 'expiryTimeMenu',
                             'aria-label': formatMessage({id: 'time_dropdown.choose_time', defaultMessage: 'Choose a time'}),
                             onToggle: handleTimeMenuToggle,
-                            width: '200px',
+                            width: menuWidth,
                             className: 'time-menu-scrollable',
                         }}
                     >
