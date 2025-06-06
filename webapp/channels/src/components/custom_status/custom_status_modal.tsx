@@ -416,6 +416,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                         handleChange={setCustomExpiryTime}
                         timezone={timezone}
                         setIsInteracting={setIsInteracting}
+                        relativeDate={true}
                     />
                 )}
             </div>

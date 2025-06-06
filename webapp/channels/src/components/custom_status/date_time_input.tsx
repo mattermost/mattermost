@@ -80,12 +80,18 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const locale = useSelector(getCurrentLocale);
     const [timeOptions, setTimeOptions] = useState<Date[]>([]);
     const [isPopperOpen, setIsPopperOpen] = useState(false);
+    const [isTimeMenuOpen, setIsTimeMenuOpen] = useState(false);
     const {formatMessage} = useIntl();
-    const timeButtonRef = useRef<HTMLButtonElement>(null);
+    const timeButtonRef = useRef<HTMLDivElement>(null);
     const theme = useSelector(getTheme);
 
     const handlePopperOpenState = useCallback((isOpen: boolean) => {
         setIsPopperOpen(isOpen);
+        setIsInteracting?.(isOpen);
+    }, [setIsInteracting]);
+
+    const handleTimeMenuToggle = useCallback((isOpen: boolean) => {
+        setIsTimeMenuOpen(isOpen);
         setIsInteracting?.(isOpen);
     }, [setIsInteracting]);
 
@@ -154,14 +160,12 @@ const DateTimeInputContainer: React.FC<Props> = ({
         return relativeDate ? relativeFormatDate(date, formatMessage) : DateTime.fromJSDate(date.toDate()).toLocaleString();
     };
 
-    const inputIcon = (
-        <IconButton
-            onClick={() => handlePopperOpenState(true)}
-            icon={'calendar-outline'}
-            className='dateTime__calendar-icon'
-            size={'sm'}
-            aria-haspopup='grid'
-        />
+    const calendarIcon = (
+        <i className='icon-calendar-outline'/>
+    );
+
+    const clockIcon = (
+        <i className='icon-clock-outline'/>
     );
 
     const datePickerProps: DayPickerProps = {
@@ -185,43 +189,39 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         handlePopperOpenState={handlePopperOpenState}
                         locale={locale}
                         datePickerProps={datePickerProps}
-                    >
-                        <Input
-                            value={formatDate(time)}
-                            id='customStatus__calendar-input'
-                            readOnly={true}
-                            className={classNames('dateTime__calendar-input', {isOpen: isPopperOpen})}
-                            label={formatMessage({id: 'dnd_custom_time_picker_modal.date', defaultMessage: 'Date'})}
-                            onClick={() => handlePopperOpenState(true)}
-                            tabIndex={-1}
-                            inputPrefix={inputIcon}
-                        />
-                    </DatePicker>
+                        label={formatMessage({id: 'dnd_custom_time_picker_modal.date', defaultMessage: 'Date'})}
+                        icon={calendarIcon}
+                        value={formatDate(time)}
+                    />
                 </div>
                 <div className='dateTime__time'>
                     <MenuWrapper
                         className='dateTime__time-menu'
-                        onToggle={setIsInteracting}
+                        onToggle={handleTimeMenuToggle}
                     >
-                        <button
-                            data-testid='time_button'
-                            className='style--none'
+                        <div
+                            className={`date-time-input${isTimeMenuOpen ? ' isOpen' : ''}`}
                             ref={timeButtonRef}
+                            role="button"
+                            tabIndex={0}
+                            data-testid='time_button'
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    // The MenuWrapper will handle opening the menu
+                                }
+                            }}
                         >
-                            <span className='dateTime__input-title'>{formatMessage({id: 'custom_status.expiry.time_picker.title', defaultMessage: 'Time'})}</span>
-                            <span className='dateTime__time-icon'>
-                                <i className='icon-clock-outline'/>
-                            </span>
-                            <div
-                                className='dateTime__input'
-                            >
+                            <span className='date-time-input__label'>{formatMessage({id: 'custom_status.expiry.time_picker.title', defaultMessage: 'Time'})}</span>
+                            <span className='date-time-input__icon'>{clockIcon}</span>
+                            <span className='date-time-input__value'>
                                 <Timestamp
                                     useRelative={false}
                                     useDate={false}
                                     value={time.toString()}
                                 />
-                            </div>
-                        </button>
+                            </span>
+                        </div>
                         <Menu
                             ariaLabel={formatMessage({id: 'time_dropdown.choose_time', defaultMessage: 'Choose a time'})}
                             id='expiryTimeMenu'
@@ -251,3 +251,4 @@ const DateTimeInputContainer: React.FC<Props> = ({
 };
 
 export default DateTimeInputContainer;
+

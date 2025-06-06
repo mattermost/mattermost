@@ -304,19 +304,13 @@ span.emoticon[style]:hover {
     & &__date {
         position: relative;
         width: 100%;
-
-        &-icon {
-            position: absolute;
-            top: 11.3px;
-            left: 15px;
-        }
     }
 
     & &__time {
         position: relative;
         width: 100%;
 
-        .style--none {
+        .dateTime__time-menu {
             width: 100%;
         }
 
@@ -324,42 +318,6 @@ span.emoticon[style]:hover {
             overflow: auto;
             min-width: 266px;
             max-height: 268px;
-        }
-
-        &-icon {
-            position: absolute;
-            top: 9.5px;
-            left: 15px;
-        }
-
-        .dateTime__input {
-            display: flex;
-            align-items: center;
-        }
-    }
-
-    & &__input {
-        width: 266px;
-        height: 40px;
-        padding: 10px 40px;
-        border: 2px solid var(--button-bg);
-        border-radius: 4px;
-        background: var(--center-channel-bg);
-        color: var(--center-channel-color);
-        cursor: pointer;
-        font-size: 14px;
-        text-align: left;
-
-        &-title {
-            position: absolute;
-            bottom: 32px;
-            left: 12px;
-            padding: 0 4px;
-            background: var(--center-channel-bg);
-            color: rgba(var(--center-channel-color-rgb), 0.75);
-            font-size: 10px;
-            letter-spacing: 0.03em;
-            line-height: 16px;
         }
     }
 }

@@ -1,16 +1,100 @@
-.date-picker__popper {
-    padding: 12px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    border-radius: 4px;
-    margin: 0;
-    background: var(--center-channel-bg);
-    box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.12);
+.date-picker {
+    &__wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    &__input {
+        width: 100%;
+        height: 40px;
+        padding: 10px 40px;
+        border: 2px solid var(--button-bg);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-size: 14px;
+        text-align: left;
+        transition: border-color 0.15s ease-in-out;
+
+        &:hover {
+            border-color: var(--button-bg);
+        }
+
+        &-title {
+            position: absolute;
+            bottom: 32px;
+            left: 12px;
+            padding: 0 4px;
+            background: var(--center-channel-bg);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 10px;
+            letter-spacing: 0.03em;
+            line-height: 16px;
+        }
+
+        .Input_wrapper {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+
+            input {
+                height: auto;
+                padding: 0;
+                border: 0;
+                font-weight: 400;
+                background: transparent;
+                cursor: pointer;
+
+                &[readonly] {
+                    background: transparent;
+                }
+
+                &:hover {
+                    cursor: pointer;
+                }
+
+                &:focus {
+                    box-shadow: none;
+                }
+            }
+
+            .Input_icon {
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                pointer-events: none;
+            }
+        }
+    }
+
+    &__popper {
+        padding: 16px;
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    }
 }
 
+// Remove duplicate styles since they're now in the main class
+.dateTime__calendar-input,
+.DndModal__calendar-input {
+    @extend .date-picker__input;
+}
+
+// Common styles for all date picker inputs
 .rdp {
     --rdp-accent-color: var(--button-bg);
     --rdp-background-color: rgba(var(--center-channel-color-rgb), 0.08);
     --rdp-cell-size: 36px;
+    margin: 0;
 
     .rdp-caption {
         padding: 4px;

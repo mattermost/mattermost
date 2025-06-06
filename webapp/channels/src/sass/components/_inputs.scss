@@ -126,3 +126,55 @@ input::-webkit-file-upload-button {
         }
     }
 }
+
+.date-time-input {
+    position: relative;
+    cursor: pointer;
+    width: 100%;
+    height: 40px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    color: var(--center-channel-color);
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+
+    &:focus-within,
+    &.isOpen,
+    &.focus-within:hover,
+    &.isOpen:hover, {
+        border-color: var(--button-bg);
+        box-shadow: 0 0 0 1px var(--button-bg);
+    }
+
+    &:hover {
+        border-color: rgba(var(--center-channel-color-rgb), 0.40);
+    }
+
+    .date-time-input__label {
+        position: absolute;
+        top: -8px;
+        left: 12px;
+        background: var(--center-channel-bg);
+        padding: 0 4px;
+        font-size: 10px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+    }
+
+    .date-time-input__icon {
+        margin-right: 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    .date-time-input__value {
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+}
