@@ -37,6 +37,7 @@ type TestHelper struct {
 	BasicUser    *model.User
 	BasicChannel *model.Channel
 	BasicTeam    *model.Team
+	BasicPost    *model.Post
 
 	SystemAdminUser *model.User
 
@@ -179,6 +180,16 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 
 	th.BasicChannel, appErr = th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id, CreatorId: th.BasicUser.Id}, true)
 	require.Nil(tb, appErr)
+
+	id := model.NewId()
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "message_" + id,
+		CreateAt:  model.GetMillis() - 10000,
+	}
+
+	th.BasicPost, _= th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{});
 
 	return th
 }
