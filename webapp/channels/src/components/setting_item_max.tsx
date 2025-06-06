@@ -20,11 +20,6 @@ type Props = {
     serverError?: ReactNode;
 
     /**
-     * Client error
-     */
-    clientError?: ReactNode;
-
-    /**
      * Settings extra information
      */
     extraInfo?: ReactNode;
@@ -51,6 +46,7 @@ type Props = {
     shiftEnter?: boolean;
     saveButtonText?: string;
     saveButtonClassName?: string;
+    isValid?: boolean;
 }
 export default class SettingItemMax extends React.PureComponent<Props> {
     settingList: React.RefObject<HTMLDivElement>;
@@ -120,31 +116,6 @@ export default class SettingItemMax extends React.PureComponent<Props> {
     };
 
     render() {
-        let clientError = null;
-        if (this.props.clientError) {
-            clientError = (
-                <div className='form-group'>
-                    <label
-                        className='col-sm-12 has-error'
-                    >
-                        <i
-                            className='icon icon-alert-circle-outline'
-                            role='img'
-                        />
-                        <span className='sr-only'>
-                            <FormattedMessage
-                                id='setting_item_max.error'
-                                defaultMessage='Error'
-                            />
-                        </span>
-                        <span id='clientError'>
-                            {this.props.clientError}
-                        </span>
-                    </label>
-                </div>
-            );
-        }
-
         let serverError = null;
         if (this.props.serverError) {
             serverError = (
@@ -193,7 +164,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                 <SaveButton
                     defaultMessage={this.props.saveButtonText}
                     saving={this.props.saving}
-                    disabled={this.props.saving}
+                    disabled={this.props.saving || this.props.isValid === false}
                     onClick={this.handleSubmit}
                     btnClass={this.props.saveButtonClassName}
                 />
@@ -267,7 +238,6 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                                 role='alert'
                             >
                                 {serverError}
-                                {clientError}
                             </div>
                             {submit}
                             <button
