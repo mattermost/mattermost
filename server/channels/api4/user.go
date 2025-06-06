@@ -1251,22 +1251,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Debug: Log before sanitization
-	originalRemoteId := user.GetRemoteID()
-	if originalRemoteId != "" {
-		c.App.PostDebugToTownSquare(c.AppContext,
-			fmt.Sprintf("UPDATE_USER_SANITIZE: Before sanitization - UserID: %s, Username: %s, RemoteId: %s",
-				user.Id, user.Username, originalRemoteId))
-	}
-
 	user.SanitizeInput(c.IsSystemAdmin())
-
-	// Debug: Log after sanitization if RemoteId was cleared
-	if originalRemoteId != "" && user.GetRemoteID() == "" {
-		c.App.PostDebugToTownSquare(c.AppContext,
-			fmt.Sprintf("UPDATE_USER_SANITIZE: After sanitization - UserID: %s, Username: %s, RemoteId cleared from: %s",
-				user.Id, user.Username, originalRemoteId))
-	}
 
 	audit.AddEventParameterAuditable(auditRec, "user", &user)
 	// The user being updated in the payload must be the same one as indicated in the URL.
@@ -1349,21 +1334,11 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Debug: Log before sanitization
-	if patch.RemoteId != nil {
-		c.App.PostDebugToTownSquare(c.AppContext,
-			fmt.Sprintf("PATCH_USER_SANITIZE: Before sanitization - UserID: %s, Patch RemoteId: %s",
-				c.Params.UserId, *patch.RemoteId))
-	}
 
 	// Sanitize input: prevent clients from setting RemoteId (system-controlled field)
 	patch.RemoteId = nil
 
 	// Debug: Log after sanitization
-	if patch.RemoteId == nil {
-		c.App.PostDebugToTownSquare(c.AppContext,
-			fmt.Sprintf("PATCH_USER_SANITIZE: After sanitization - UserID: %s, Patch RemoteId cleared",
-				c.Params.UserId))
-	}
 
 	auditRec := c.MakeAuditRecord("patchUser", audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "user_patch", &patch)
