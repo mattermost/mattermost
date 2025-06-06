@@ -4,13 +4,14 @@
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Label} from "components/admin_console/boolean_setting";
+import {Label} from 'components/admin_console/boolean_setting';
 import {
     AdminSection,
     SectionContent,
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
 
+import {UserMultiSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
 
 export default function ContentFlaggingContentReviewers(props) {
     console.log('ContentFlaggingContentReviewers props:', props);
@@ -83,10 +84,26 @@ export default function ContentFlaggingContentReviewers(props) {
                             </Label>
                         </div>
                     </div>
+
+                    {
+                        sameReviewersForAllTeams &&
+                        <div className='content-flagging-section-setting'>
+                            <div className='setting-title'>
+                                <FormattedMessage
+                                    id='admin.contentFlagging.reviewerSettings.commonReviewers'
+                                    defaultMessage='Reviewers:'
+                                />
+                            </div>
+
+                            <div className='setting-content'>
+                                <UserMultiSelector
+                                    id='content_reviewers_common_reviewers'
+                                />
+                            </div>
+                        </div>
+                    }
                 </div>
             </SectionContent>
         </AdminSection>
     );
 }
-
-// Same reviewers for all teams
