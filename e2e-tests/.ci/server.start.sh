@@ -39,8 +39,6 @@ for MIGRATION in migration_advanced_permissions_phase_2; do
     # Save postgres logs to a file
     ${MME2E_DC_SERVER} logs --no-log-prefix -- postgres >"$LOG_DIR/postgres.log"
     mme2e_log "Postgres logs saved to postgres.log"
-
-    exit 2
   fi
   mme2e_log "${MIGRATION}: completed."
 done
