@@ -7,7 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,9 +16,10 @@ import (
 )
 
 func TestCreateCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t)
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	})
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -95,9 +96,10 @@ func TestCreateCPAField(t *testing.T) {
 }
 
 func TestListCPAFields(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t)
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	})
 	defer th.TearDown()
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
@@ -141,9 +143,10 @@ func TestListCPAFields(t *testing.T) {
 }
 
 func TestPatchCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t)
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	})
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -215,13 +218,77 @@ func TestPatchCPAField(t *testing.T) {
 			require.NotEmpty(t, wsField.ID)
 			require.Equal(t, patchedField, &wsField)
 		})
+
+		t.Run("sanitization should remove options and sync details when necessary", func(t *testing.T) {
+			// Create a select field with options
+			optionID1 := model.NewId()
+			optionID2 := model.NewId()
+			selectField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+				Name: model.NewId(),
+				Type: model.PropertyFieldTypeSelect,
+				Attrs: model.StringInterface{
+					"options": []map[string]any{
+						{"id": optionID1, "name": "Option 1", "color": "#FF0000"},
+						{"id": optionID2, "name": "Option 2", "color": "#00FF00"},
+					},
+				},
+			})
+			require.NoError(t, err)
+
+			createdField, _, err := client.CreateCPAField(context.Background(), selectField.ToPropertyField())
+			require.NoError(t, err)
+			require.NotNil(t, createdField)
+
+			// Verify options were created
+			options, ok := createdField.Attrs["options"]
+			require.True(t, ok)
+			require.NotNil(t, options)
+
+			// Patch to change type to text with LDAP attribute
+			// Options should be automatically removed even though we don't explicitly remove them
+			ldapAttr := "user_attribute"
+			textPatch := &model.PropertyFieldPatch{
+				Type:  model.NewPointer(model.PropertyFieldTypeText),
+				Attrs: &model.StringInterface{"ldap": ldapAttr},
+			}
+
+			patchedTextField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, textPatch)
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTypeText, patchedTextField.Type)
+
+			// Verify options were removed
+			options = patchedTextField.Attrs["options"]
+			require.Empty(t, options)
+
+			// Verify LDAP attribute was set
+			ldap, ok := patchedTextField.Attrs["ldap"]
+			require.True(t, ok)
+			require.Equal(t, ldapAttr, ldap)
+
+			// Now patch to change type to date
+			// LDAP attribute should be automatically removed even though we don't explicitly remove it
+			datePatch := &model.PropertyFieldPatch{
+				Type: model.NewPointer(model.PropertyFieldTypeDate),
+			}
+
+			patchedDateField, resp, err := client.PatchCPAField(context.Background(), patchedTextField.ID, datePatch)
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTypeDate, patchedDateField.Type)
+
+			// Verify LDAP attribute was removed
+			ldap = patchedDateField.Attrs["ldap"]
+			require.Empty(t, ldap)
+		})
 	}, "a user with admin permissions should be able to patch the field")
 }
 
 func TestDeleteCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t)
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	})
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -291,9 +358,11 @@ func TestDeleteCPAField(t *testing.T) {
 }
 
 func TestListCPAValues(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t).InitBasic()
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	}).InitBasic()
 	defer th.TearDown()
 
 	th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
@@ -309,7 +378,7 @@ func TestListCPAValues(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
-	_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdField.ID, json.RawMessage(`"Field Value"`))
+	_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdField.ID, json.RawMessage(`"Field Value"`), true)
 	require.Nil(t, appErr)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
@@ -353,7 +422,7 @@ func TestListCPAValues(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, createdArrayField)
 
-		_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdArrayField.ID, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, optionID1, optionID2)))
+		_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdArrayField.ID, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, optionID1, optionID2)), true)
 		require.Nil(t, appErr)
 
 		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
@@ -378,9 +447,11 @@ func TestListCPAValues(t *testing.T) {
 }
 
 func TestPatchCPAValues(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t).InitBasic()
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	}).InitBasic()
 	defer th.TearDown()
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
@@ -517,5 +588,86 @@ func TestPatchCPAValues(t *testing.T) {
 		actualValues = nil
 		require.NoError(t, json.Unmarshal(patchedValues[createdArrayField.ID], &actualValues))
 		require.Equal(t, optionsID[2:4], actualValues)
+	})
+
+	t.Run("should fail if any of the values belongs to a field that is LDAP/SAML synced", func(t *testing.T) {
+		// Create a field with LDAP attribute
+		ldapField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attr",
+			},
+		})
+		require.NoError(t, err)
+
+		createdLDAPField, appErr := th.App.CreateCPAField(ldapField)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdLDAPField)
+
+		// Create a field with SAML attribute
+		samlField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsSAML: "saml_attr",
+			},
+		})
+		require.NoError(t, err)
+
+		createdSAMLField, appErr := th.App.CreateCPAField(samlField)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdSAMLField)
+
+		// Test LDAP field
+		values := map[string]json.RawMessage{
+			createdLDAPField.ID: json.RawMessage(`"LDAP Value"`),
+		}
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+
+		// Test SAML field
+		values = map[string]json.RawMessage{
+			createdSAMLField.ID: json.RawMessage(`"SAML Value"`),
+		}
+		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+
+		// Test multiple fields with one being LDAP synced
+		values = map[string]json.RawMessage{
+			createdField.ID:     json.RawMessage(`"Regular Value"`),
+			createdLDAPField.ID: json.RawMessage(`"LDAP Value"`),
+		}
+		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+	})
+
+	t.Run("an invalid patch should be rejected", func(t *testing.T) {
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdField)
+
+		// Create a value that's too long (over 64 characters)
+		tooLongValue := strings.Repeat("a", model.CPAValueTypeTextMaxLength+1)
+		values := map[string]json.RawMessage{
+			createdField.ID: json.RawMessage(fmt.Sprintf(`"%s"`, tooLongValue)),
+		}
+
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "Failed to validate property value")
 	})
 }

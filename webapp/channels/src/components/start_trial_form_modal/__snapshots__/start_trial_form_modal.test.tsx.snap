@@ -121,7 +121,6 @@ Object {
                   role="alert"
                 >
                   <i
-                    aria-hidden="true"
                     class="icon error icon-alert-circle-outline"
                   />
                   <span>
@@ -353,7 +352,7 @@ Object {
                 class="buttons"
               >
                 <button
-                  class="confirm-btn btn btn-default"
+                  class="btn btn-primary btn btn-default"
                   disabled=""
                   type="button"
                 >

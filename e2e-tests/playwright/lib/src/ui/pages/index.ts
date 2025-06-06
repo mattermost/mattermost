@@ -7,8 +7,9 @@ import LoginPage from './login';
 import ResetPasswordPage from './reset_password';
 import SignupPage from './signup';
 import SystemConsolePage from './system_console';
-import ScheduledDraftPage from './scheduled_draft';
-import DraftPage from './drafts';
+import ScheduledPostsPage from './scheduled_posts';
+import DraftsPage from './drafts';
+import ThreadsPage from './threads';
 
 const pages = {
     ChannelsPage,
@@ -16,19 +17,20 @@ const pages = {
     LoginPage,
     ResetPasswordPage,
     SignupPage,
-    ScheduledDraftPage,
+    ScheduledPostsPage,
     SystemConsolePage,
-    DraftPage,
+    DraftsPage,
+    ThreadsPage,
 };
 
 export {
     pages,
     ChannelsPage,
+    DraftsPage,
     LandingLoginPage,
     LoginPage,
     ResetPasswordPage,
     SignupPage,
-    ScheduledDraftPage,
+    ScheduledPostsPage,
     SystemConsolePage,
-    DraftPage,
 };

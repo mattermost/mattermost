@@ -51,7 +51,7 @@
                 visibility: hidden;
 
                 &.success {
-                    color: var(--denim-status-online);
+                    color: var(--online-indicator);
                     visibility: visible;
                 }
 

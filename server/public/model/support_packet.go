@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	CurrentSupportPacketVersion = 1
+	CurrentSupportPacketVersion = 2
 	SupportPacketErrorFile      = "warning.txt"
 )
 

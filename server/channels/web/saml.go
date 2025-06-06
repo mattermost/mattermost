@@ -155,7 +155,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.LogErrorByCode(err)
 				break
 			}
-			c.App.AddDirectChannels(c.AppContext, teamId, user)
+			if err = c.App.AddDirectChannels(c.AppContext, teamId, user); err != nil {
+				c.LogErrorByCode(err)
+			}
 		}
 	case model.OAuthActionEmailToSSO:
 		if err = c.App.RevokeAllSessions(c.AppContext, user.Id); err != nil {
@@ -180,10 +182,16 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		AcceptLanguage: c.AppContext.AcceptLanguage(),
 		UserAgent:      c.AppContext.UserAgent(),
 	}
+
+	var hookErr error
 	c.App.Channels().RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
-		err := hooks.OnSAMLLogin(pluginContext, user, assertion)
-		return err == nil
+		hookErr = hooks.OnSAMLLogin(pluginContext, user, assertion)
+		return hookErr == nil
 	}, plugin.OnSAMLLoginID)
+	if hookErr != nil {
+		handleError(model.NewAppError("completeSaml", "api.user.authorize_oauth_user.saml_hook_error.app_error", nil, "", http.StatusInternalServerError).Wrap(hookErr))
+		return
+	}
 
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")

@@ -15,46 +15,6 @@ type LdapInterface struct {
 	mock.Mock
 }
 
-// CheckPassword provides a mock function with given fields: c, id, password
-func (_m *LdapInterface) CheckPassword(c request.CTX, id string, password string) *model.AppError {
-	ret := _m.Called(c, id, password)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CheckPassword")
-	}
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AppError); ok {
-		r0 = rf(c, id, password)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
-// CheckPasswordAuthData provides a mock function with given fields: c, authData, password
-func (_m *LdapInterface) CheckPasswordAuthData(c request.CTX, authData string, password string) *model.AppError {
-	ret := _m.Called(c, authData, password)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CheckPasswordAuthData")
-	}
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AppError); ok {
-		r0 = rf(c, authData, password)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
 // CheckProviderAttributes provides a mock function with given fields: c, LS, ouser, patch
 func (_m *LdapInterface) CheckProviderAttributes(c request.CTX, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string {
 	ret := _m.Called(c, LS, ouser, patch)
@@ -105,39 +65,21 @@ func (_m *LdapInterface) DoLogin(c request.CTX, id string, password string) (*mo
 	return r0, r1
 }
 
-// FirstLoginSync provides a mock function with given fields: c, user, userAuthService, userAuthData, email
-func (_m *LdapInterface) FirstLoginSync(c request.CTX, user *model.User, userAuthService string, userAuthData string, email string) *model.AppError {
-	ret := _m.Called(c, user, userAuthService, userAuthData, email)
+// FirstLoginSync provides a mock function with given fields: c, user
+func (_m *LdapInterface) FirstLoginSync(c request.CTX, user *model.User) *model.AppError {
+	ret := _m.Called(c, user)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FirstLoginSync")
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, string, string, string) *model.AppError); ok {
-		r0 = rf(c, user, userAuthService, userAuthData, email)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User) *model.AppError); ok {
+		r0 = rf(c, user)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
 		}
-	}
-
-	return r0
-}
-
-// GetADLdapIdFromSAMLId provides a mock function with given fields: c, authData
-func (_m *LdapInterface) GetADLdapIdFromSAMLId(c request.CTX, authData string) string {
-	ret := _m.Called(c, authData)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetADLdapIdFromSAMLId")
-	}
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(request.CTX, string) string); ok {
-		r0 = rf(c, authData)
-	} else {
-		r0 = ret.Get(0).(string)
 	}
 
 	return r0
@@ -246,22 +188,43 @@ func (_m *LdapInterface) GetGroup(rctx request.CTX, groupUID string) (*model.Gro
 	return r0, r1
 }
 
-// GetSAMLIdFromADLdapId provides a mock function with given fields: c, authData
-func (_m *LdapInterface) GetSAMLIdFromADLdapId(c request.CTX, authData string) string {
-	ret := _m.Called(c, authData)
+// GetLDAPUserForMMUser provides a mock function with given fields: rctx, mmUser
+func (_m *LdapInterface) GetLDAPUserForMMUser(rctx request.CTX, mmUser *model.User) (*model.User, string, *model.AppError) {
+	ret := _m.Called(rctx, mmUser)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetSAMLIdFromADLdapId")
+		panic("no return value specified for GetLDAPUserForMMUser")
 	}
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func(request.CTX, string) string); ok {
-		r0 = rf(c, authData)
+	var r0 *model.User
+	var r1 string
+	var r2 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User) (*model.User, string, *model.AppError)); ok {
+		return rf(rctx, mmUser)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User) *model.User); ok {
+		r0 = rf(rctx, mmUser)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.User) string); ok {
+		r1 = rf(rctx, mmUser)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, *model.User) *model.AppError); ok {
+		r2 = rf(rctx, mmUser)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2
 }
 
 // GetUser provides a mock function with given fields: c, id
@@ -346,9 +309,9 @@ func (_m *LdapInterface) MigrateIDAttribute(c request.CTX, toAttribute string) e
 	return r0
 }
 
-// StartSynchronizeJob provides a mock function with given fields: c, waitForJobToFinish, includeRemovedMembers
-func (_m *LdapInterface) StartSynchronizeJob(c request.CTX, waitForJobToFinish bool, includeRemovedMembers bool) (*model.Job, *model.AppError) {
-	ret := _m.Called(c, waitForJobToFinish, includeRemovedMembers)
+// StartSynchronizeJob provides a mock function with given fields: c, waitForJobToFinish, reAddRemovedMembers
+func (_m *LdapInterface) StartSynchronizeJob(c request.CTX, waitForJobToFinish bool, reAddRemovedMembers *bool) (*model.Job, *model.AppError) {
+	ret := _m.Called(c, waitForJobToFinish, reAddRemovedMembers)
 
 	if len(ret) == 0 {
 		panic("no return value specified for StartSynchronizeJob")
@@ -356,19 +319,19 @@ func (_m *LdapInterface) StartSynchronizeJob(c request.CTX, waitForJobToFinish b
 
 	var r0 *model.Job
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, bool, bool) (*model.Job, *model.AppError)); ok {
-		return rf(c, waitForJobToFinish, includeRemovedMembers)
+	if rf, ok := ret.Get(0).(func(request.CTX, bool, *bool) (*model.Job, *model.AppError)); ok {
+		return rf(c, waitForJobToFinish, reAddRemovedMembers)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, bool, bool) *model.Job); ok {
-		r0 = rf(c, waitForJobToFinish, includeRemovedMembers)
+	if rf, ok := ret.Get(0).(func(request.CTX, bool, *bool) *model.Job); ok {
+		r0 = rf(c, waitForJobToFinish, reAddRemovedMembers)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Job)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, bool, bool) *model.AppError); ok {
-		r1 = rf(c, waitForJobToFinish, includeRemovedMembers)
+	if rf, ok := ret.Get(1).(func(request.CTX, bool, *bool) *model.AppError); ok {
+		r1 = rf(c, waitForJobToFinish, reAddRemovedMembers)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

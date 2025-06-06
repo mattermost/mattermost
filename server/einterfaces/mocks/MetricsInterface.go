@@ -73,6 +73,11 @@ func (_m *MetricsInterface) GetLoggerMetricsCollector() logr.MetricsCollector {
 	return r0
 }
 
+// IncrementAccessControlCacheInvalidation provides a mock function with given fields:
+func (_m *MetricsInterface) IncrementAccessControlCacheInvalidation() {
+	_m.Called()
+}
+
 // IncrementChannelIndexCounter provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementChannelIndexCounter() {
 	_m.Called()
@@ -293,14 +298,29 @@ func (_m *MetricsInterface) IncrementWebsocketEvent(eventType model.WebsocketEve
 	_m.Called(eventType)
 }
 
-// IncrementWebsocketReconnectEvent provides a mock function with given fields: eventType
-func (_m *MetricsInterface) IncrementWebsocketReconnectEvent(eventType string) {
-	_m.Called(eventType)
+// IncrementWebsocketReconnectEventWithDisconnectErrCode provides a mock function with given fields: eventType, disconnectErrCode
+func (_m *MetricsInterface) IncrementWebsocketReconnectEventWithDisconnectErrCode(eventType string, disconnectErrCode string) {
+	_m.Called(eventType, disconnectErrCode)
 }
 
 // ObserveAPIEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, originClient, pageLoadContext, elapsed
 func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method string, statusCode string, originClient string, pageLoadContext string, elapsed float64) {
 	_m.Called(endpoint, method, statusCode, originClient, pageLoadContext, elapsed)
+}
+
+// ObserveAccessControlEvaluateDuration provides a mock function with given fields: value
+func (_m *MetricsInterface) ObserveAccessControlEvaluateDuration(value float64) {
+	_m.Called(value)
+}
+
+// ObserveAccessControlExpressionCompileDuration provides a mock function with given fields: value
+func (_m *MetricsInterface) ObserveAccessControlExpressionCompileDuration(value float64) {
+	_m.Called(value)
+}
+
+// ObserveAccessControlSearchQueryDuration provides a mock function with given fields: value
+func (_m *MetricsInterface) ObserveAccessControlSearchQueryDuration(value float64) {
+	_m.Called(value)
 }
 
 // ObserveClientChannelSwitchDuration provides a mock function with given fields: platform, agent, fresh, userID, elapsed
