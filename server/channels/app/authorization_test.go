@@ -1011,9 +1011,9 @@ func TestIsChannelArchivedAndHidden(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	t.Run("nil channel should return false", func(t *testing.T) {
+	t.Run("nil channel should return true", func(t *testing.T) {
 		result := th.App.isChannelArchivedAndHidden(nil)
-		assert.False(t, result, "nil channel should return false")
+		assert.True(t, result, "nil channel should return true")
 	})
 
 	t.Run("non-archived channel with config enabled should return false", func(t *testing.T) {

@@ -453,7 +453,7 @@ func (a *App) isChannelArchivedAndHidden(channel *model.Channel) bool {
 	// This isn't technically needed, but we see crashes in Sentry.
 	// So adding this safeguard.
 	if channel == nil {
-		return false
+		return true
 	}
 	return !model.SafeDereference(a.Config().TeamSettings.ExperimentalViewArchivedChannels) && channel.DeleteAt != 0
 }
