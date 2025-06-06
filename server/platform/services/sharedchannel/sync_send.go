@@ -552,14 +552,18 @@ func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 // or there is an entry but the LastSyncAt is less than user.UpdateAt
 func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model.RemoteCluster) (sync bool, syncImage bool, err error) {
 	// Debug: Log function entry
+	remoteIdStr := "nil"
+	if user.RemoteId != nil {
+		remoteIdStr = *user.RemoteId
+	}
 	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-		fmt.Sprintf("SHOULD_USER_SYNC: Entry - User: %s, UserID: %s, RemoteId: %v, ChannelID: %s, RC: %s",
-			user.Username, user.Id, user.RemoteId, channelID, rc.Name))
+		fmt.Sprintf("SEND_SHOULD_USER_SYNC: Entry - User: %s, UserID: %s, RemoteId: %s, ChannelID: %s, RC: %s",
+			user.Username, user.Id, remoteIdStr, channelID, rc.Name))
 
 	// don't sync users with the remote they originated from.
 	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
 		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("SHOULD_USER_SYNC: Skipping - User %s originated from remote %s",
+			fmt.Sprintf("SEND_SHOULD_USER_SYNC: Skipping - User %s originated from remote %s",
 				user.Username, rc.Name))
 		return false, false, nil
 	}
@@ -568,14 +572,14 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
 			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-				fmt.Sprintf("SHOULD_USER_SYNC: Error getting SCU - User: %s, Error: %v",
+				fmt.Sprintf("SEND_SHOULD_USER_SYNC: Error getting SCU - User: %s, Error: %v",
 					user.Username, err))
 			return false, false, err
 		}
 
 		// user not in the SharedChannelUsers table, so we must add them.
 		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("SHOULD_USER_SYNC: User not in SCU table, adding - User: %s, IsLocal: %v",
+			fmt.Sprintf("SEND_SHOULD_USER_SYNC: User not in SCU table, adding - User: %s, IsLocal: %v",
 				user.Username, user.RemoteId == nil))
 
 		scu = &model.SharedChannelUser{
@@ -598,7 +602,7 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 			)
 		}
 		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("SHOULD_USER_SYNC: Returning true,true for new user - User: %s",
+			fmt.Sprintf("SEND_SHOULD_USER_SYNC: Returning true,true for new user - User: %s",
 				user.Username))
 		return true, true, nil
 	}
@@ -607,7 +611,7 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 	syncImage = user.LastPictureUpdate > scu.LastSyncAt
 
 	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-		fmt.Sprintf("SHOULD_USER_SYNC: Result - User: %s, sync: %v, syncImage: %v, UpdateAt: %d, LastSyncAt: %d",
+		fmt.Sprintf("SEND_SHOULD_USER_SYNC: Result - User: %s, sync: %v, syncImage: %v, UpdateAt: %d, LastSyncAt: %d",
 			user.Username, syncUser, syncImage, user.UpdateAt, scu.LastSyncAt))
 
 	return syncUser, syncImage, nil

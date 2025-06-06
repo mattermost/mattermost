@@ -249,7 +249,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 			defer wg.Done()
 
 			a.PostDebugToTownSquare(c,
-				fmt.Sprintf("SCENARIO2_MENTION_RESOLVE: Processing FullMention: %s", mention))
+				fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Processing FullMention: %s", mention))
 
 			// First try to find the user by the full mention (could be username or username:remote)
 			user, nErr := a.Srv().Store().User().GetByUsername(mention)
@@ -257,7 +257,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 			var nfErr *store.ErrNotFound
 			if nErr != nil && !errors.As(nErr, &nfErr) {
 				a.PostDebugToTownSquare(c,
-					fmt.Sprintf("SCENARIO2_MENTION_RESOLVE: Failed to retrieve mention FullMention: %s", mention))
+					fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Failed to retrieve mention FullMention: %s", mention))
 				c.Logger().Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
 				return
 			}
@@ -271,7 +271,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 
 					// Debug: Log remote mention lookup attempt (Scenario 2)
 					a.PostDebugToTownSquare(c,
-						fmt.Sprintf("SCENARIO2_MENTION_RESOLVE: Looking up remote mention - Username: %s, Cluster: %s, FullMention: %s",
+						fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Looking up remote mention - Username: %s, Cluster: %s, FullMention: %s",
 							username, remoteClusterName, mention))
 
 					// Look for users with this username
@@ -287,7 +287,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 									if tmErr == nil {
 										// Debug: Log successful remote mention resolution (Scenario 2)
 										a.PostDebugToTownSquare(c,
-											fmt.Sprintf("SCENARIO2_MENTION_RESOLVE: Found remote user - UserId: %s, Username: %s, RemoteCluster: %s",
+											fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Found remote user - UserId: %s, Username: %s, RemoteCluster: %s",
 												u.Id, u.Username, rc.Name))
 
 										mentionChan <- &mentionMapItem{mention, u.Id}

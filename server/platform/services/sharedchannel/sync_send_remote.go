@@ -163,7 +163,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	for _, post := range sd.posts {
 		if strings.Contains(post.Message, "@") {
 			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-				fmt.Sprintf("POST_SYNC_DEBUG: Syncing to %s - Post ID: %s, Message: %s",
+				fmt.Sprintf("SEND_POST_SYNC_DEBUG: Syncing to %s - Post ID: %s, Message: %s",
 					sd.rc.Name, post.Id, post.Message))
 		}
 	}
@@ -408,7 +408,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 		// Debug: Log mention map
 		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("MENTION_MAP_DEBUG: Post ID: %s, Message: %.100s, MentionMap: %+v",
+			fmt.Sprintf("SEND_MENTION_MAP_DEBUG: Post ID: %s, Message: %.100s, MentionMap: %+v",
 				post.Id, post.Message, mentionMap))
 
 		// add author with post and mentionMap so transformations can be applied
@@ -431,13 +431,13 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 	for userID, v := range userIDs {
 		// Debug: Log userIDs loop
 		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("USER_LOOP_DEBUG: Processing userID: %s, has post: %v, has mentionMap: %v",
+			fmt.Sprintf("SEND_USER_LOOP_DEBUG: Processing userID: %s, has post: %v, has mentionMap: %v",
 				userID, v.post != nil, len(v.mentionMap) > 0))
 
 		user, err := scs.server.GetStore().User().Get(context.Background(), userID)
 		if err != nil {
 			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-				fmt.Sprintf("USER_LOOP_DEBUG: Could not get user %s, %v", userID, err))
+				fmt.Sprintf("SEND_USER_LOOP_DEBUG: Could not get user %s, %v", userID, err))
 			merr.Append(fmt.Errorf("could not get user %s: %w", userID, err))
 			continue
 		}
@@ -445,7 +445,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		sync, syncImage, err2 := scs.shouldUserSync(user, sd.task.channelID, sd.rc)
 		if err2 != nil {
 			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-				fmt.Sprintf("USER_LOOP_DEBUG: could not check should sync user %s, %v", userID, err2))
+				fmt.Sprintf("SEND_USER_LOOP_DEBUG: could not check should sync user %s, %v", userID, err2))
 			merr.Append(fmt.Errorf("could not check should sync user %s: %w", userID, err2))
 			continue
 		}
@@ -463,21 +463,25 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			// Debug: Log before fixMention transformation (Scenario 2)
 			beforeMsg := v.post.Message
 			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-				fmt.Sprintf("SCENARIO2_SYNC_SEND: Transforming remote user mention - User: %s, Before: %s",
+				fmt.Sprintf("SEND_SCENARIO2_SYNC: Transforming remote user mention - User: %s, Before: %s",
 					user.Username, beforeMsg))
 
 			fixMention(v.post, v.mentionMap, user)
 
 			// Debug: Log after fixMention transformation (Scenario 2)
 			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-				fmt.Sprintf("SCENARIO2_SYNC_SEND: After fixMention - Message: %s", v.post.Message))
+				fmt.Sprintf("SEND_SCENARIO2_SYNC: After fixMention - Message: %s", v.post.Message))
 		}
 
 		// Transform @username to @username:localcluster when sending local users to remote clusters
 		// Debug: Log condition check
+		remoteIdStr := "nil"
+		if user.RemoteId != nil {
+			remoteIdStr = *user.RemoteId
+		}
 		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("LOCAL_USER_CHECK: userID: %s, username: %s, v.post != nil: %v, user.RemoteId == nil: %v, user.RemoteId: %v",
-				userID, user.Username, v.post != nil, user.RemoteId == nil, user.RemoteId))
+			fmt.Sprintf("SEND_LOCAL_USER_CHECK: userID: %s, username: %s, v.post != nil: %v, user.RemoteId == nil: %v, user.RemoteId: %s",
+				userID, user.Username, v.post != nil, user.RemoteId == nil, remoteIdStr))
 
 		if v.post != nil && user.RemoteId == nil {
 			localClusterName := getLocalClusterName(scs.server.Config())
@@ -485,14 +489,14 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			// Debug: Log before transformation (Scenario 1)
 			beforeMsg := v.post.Message
 			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-				fmt.Sprintf("SCENARIO1_SYNC_SEND: Transforming local user mention - User: %s, Cluster: %s, Before: %.100s",
+				fmt.Sprintf("SEND_SCENARIO1_SYNC: Transforming local user mention - User: %s, Cluster: %s, Before: %.100s",
 					user.Username, localClusterName, beforeMsg))
 
 			addClusterToLocalMention(v.post, v.mentionMap, user, localClusterName)
 
 			// Debug: Log after transformation (Scenario 1)
 			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-				fmt.Sprintf("SCENARIO1_SYNC_SEND: After transformation - Message: %.100s", v.post.Message))
+				fmt.Sprintf("SEND_SCENARIO1_SYNC: After transformation - Message: %.100s", v.post.Message))
 		}
 	}
 	return merr.ErrorOrNil()

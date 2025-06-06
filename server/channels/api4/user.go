@@ -1333,12 +1333,8 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Debug: Log before sanitization
-
 	// Sanitize input: prevent clients from setting RemoteId (system-controlled field)
 	patch.RemoteId = nil
-
-	// Debug: Log after sanitization
 
 	auditRec := c.MakeAuditRecord("patchUser", audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "user_patch", &patch)

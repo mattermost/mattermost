@@ -84,12 +84,22 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 
 	// add/update users before posts
 	for _, user := range syncMsg.Users {
+		// Debug: Log each user being synced from remote
+		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+			fmt.Sprintf("RECV_SYNC_MSG_USER: Processing user from sync message - UserID: %s, Username: %s, From Remote: %s",
+				user.Id, user.Username, rc.RemoteId))
+
 		if userSaved, err := scs.upsertSyncUser(c, user, targetChannel, rc); err != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync user",
 				mlog.String("remote", rc.Name),
 				mlog.String("channel_id", syncMsg.ChannelId),
 				mlog.String("user_id", user.Id),
 				mlog.Err(err))
+
+			// Debug: Log sync failure
+			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+				fmt.Sprintf("RECV_SYNC_MSG_USER: FAILED to sync user - UserID: %s, Username: %s, Error: %v",
+					user.Id, user.Username, err))
 		} else {
 			syncResp.UsersSyncd = append(syncResp.UsersSyncd, userSaved.Id)
 			if syncResp.UsersLastUpdateAt < user.UpdateAt {
@@ -100,6 +110,11 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 				mlog.String("channel_id", syncMsg.ChannelId),
 				mlog.String("user_id", user.Id),
 			)
+
+			// Debug: Log successful sync
+			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+				fmt.Sprintf("RECV_SYNC_MSG_USER: SUCCESS syncing user - UserID: %s, Username: %s, Saved as: %s",
+					user.Id, user.Username, userSaved.Username))
 		}
 	}
 
@@ -137,7 +152,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 
 		// Debug: Log post sync with mention information
 		if strings.Contains(post.Message, "@") {
-			debugMsg := fmt.Sprintf("Processing post sync with mentions - Remote: %s, Post ID: %s, Message preview: %.100s",
+			debugMsg := fmt.Sprintf("RECV_Processing post sync with mentions - Remote: %s, Post ID: %s, Message preview: %.100s",
 				rc.Name, post.Id, post.Message)
 			scs.app.PostDebugToTownSquare(c, debugMsg)
 		}
@@ -195,7 +210,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
 
-	// Check if user already exists
+	// Check if user already exists by ID
 	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
@@ -203,20 +218,30 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 		}
 	}
 
+	// CRITICAL: Check for username collision - a different user with same username
+	userByUsername, err := scs.server.GetStore().User().GetByUsername(user.Username)
+	var usernameCollision bool
+	if err == nil && userByUsername != nil && userByUsername.Id != user.Id {
+		usernameCollision = true
+		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+			fmt.Sprintf("RECV_UPSERT_SYNC_USER: USERNAME COLLISION DETECTED! Remote user %s (ID: %s) has same username as existing user %s (ID: %s, RemoteId: %s)",
+				user.Username, user.Id, userByUsername.Username, userByUsername.Id, userByUsername.GetRemoteID()))
+	}
+
 	// Debug: Log user sync attempt
 	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-		fmt.Sprintf("UPSERT_SYNC_USER: Attempting sync - UserID: %s, Username: %s, From Remote: %s, User exists locally: %v",
-			user.Id, user.Username, rc.RemoteId, euser != nil))
+		fmt.Sprintf("RECV_UPSERT_SYNC_USER: Attempting sync - UserID: %s, Username: %s, From Remote: %s, User exists by ID: %v, Username collision: %v",
+			user.Id, user.Username, rc.RemoteId, euser != nil, usernameCollision))
 
 	if euser != nil {
 		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("UPSERT_SYNC_USER: Existing user - UserID: %s, Username: %s, Current RemoteId: '%s', Incoming RemoteId: '%s', Remote cluster: '%s'",
+			fmt.Sprintf("RECV_UPSERT_SYNC_USER: Existing user - UserID: %s, Username: %s, Current RemoteId: '%s', Incoming RemoteId: '%s', Remote cluster: '%s'",
 				euser.Id, euser.Username, euser.GetRemoteID(), user.GetRemoteID(), rc.RemoteId))
 
 		// Check for potential ID collision between local and remote users
 		if euser.GetRemoteID() == "" {
 			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-				fmt.Sprintf("UPSERT_SYNC_USER: LOCAL USER COLLISION - Local user %s (ID: %s) has same ID as incoming remote user from %s",
+				fmt.Sprintf("RECV_UPSERT_SYNC_USER: LOCAL USER COLLISION - Local user %s (ID: %s) has same ID as incoming remote user from %s",
 					euser.Username, euser.Id, rc.RemoteId))
 		}
 	}
@@ -226,7 +251,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 		// new user.  Make sure the remoteID is correct and insert the record
 		user.RemoteId = model.NewPointer(rc.RemoteId)
 		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("UPSERT_SYNC_USER: Creating new user - UserID: %s, Username: %s, Setting RemoteId: %s",
+			fmt.Sprintf("RECV_UPSERT_SYNC_USER: Creating new user - UserID: %s, Username: %s, Setting RemoteId: %s",
 				user.Id, user.Username, rc.RemoteId))
 		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
 			return nil, err
@@ -237,7 +262,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 			// Special debug for local users being overwritten
 			if euser.GetRemoteID() == "" {
 				scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-					fmt.Sprintf("UPSERT_SYNC_USER: CRITICAL - Attempt to overwrite LOCAL user! UserID: %s, Username: %s, From Remote: %s",
+					fmt.Sprintf("RECV_UPSERT_SYNC_USER: CRITICAL - Attempt to overwrite LOCAL user! UserID: %s, Username: %s, From Remote: %s",
 						euser.Id, euser.Username, rc.RemoteId))
 			}
 
@@ -284,6 +309,11 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 			return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
 		}
 	}
+
+	// Debug: Log final user state after sync
+	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+		fmt.Sprintf("RECV_UPSERT_SYNC_USER: FINAL STATE - UserID: %s, Username: %s, RemoteId: %s, From Remote: %s",
+			userSaved.Id, userSaved.Username, userSaved.GetRemoteID(), rc.RemoteId))
 
 	return userSaved, nil
 }
@@ -426,7 +456,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			scenario = "SCENARIO2" // Remote user mention transformed to local (no colon)
 		}
 		scs.app.PostDebugToTownSquare(rctx,
-			fmt.Sprintf("%s_SYNC_RECV: Received post from %s - Message: %s", scenario, rc.Name, post.Message))
+			fmt.Sprintf("RECV_%s_SYNC: Received post from %s - Message: %s", scenario, rc.Name, post.Message))
 
 		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
 		if appErr == nil {
@@ -437,7 +467,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 
 			// Debug: Log successful post creation
 			scs.app.PostDebugToTownSquare(rctx,
-				fmt.Sprintf("%s_SYNC_RECV: Successfully created post - PostId: %s", scenario, post.Id))
+				fmt.Sprintf("RECV_%s_SYNC: Successfully created post - PostId: %s", scenario, post.Id))
 		}
 	} else if post.DeleteAt > 0 {
 		// delete post

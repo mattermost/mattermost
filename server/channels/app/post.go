@@ -183,7 +183,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// Debug: Log post creation with mentions
 	if strings.Contains(post.Message, "@") && channel.IsShared() {
 		a.postDebugToTownSquareWithContext(c, channel.Id, post.UserId,
-			fmt.Sprintf("CREATE_POST_DEBUG: Creating post - Channel: %s, Message: %s",
+			fmt.Sprintf("RECV_CREATE_POST_DEBUG: Creating post - Channel: %s, Message: %s",
 				channel.Name, post.Message))
 	}
 
