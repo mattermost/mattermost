@@ -88,7 +88,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const handleTimeMenuToggle = useCallback((isOpen: boolean) => {
         setIsTimeMenuOpen(isOpen);
         setIsInteracting?.(isOpen);
-        
+
         // Measure and set menu width when opening
         if (isOpen && timeContainerRef.current) {
             const button = timeContainerRef.current.querySelector('button');
@@ -190,7 +190,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         <></>
                     </DatePicker>
                 </div>
-                <div className='dateTime__time' ref={timeContainerRef}>
+                <div
+                    className='dateTime__time'
+                    ref={timeContainerRef}
+                >
                     <Menu.Container
                         menuButton={{
                             id: 'time_button',
