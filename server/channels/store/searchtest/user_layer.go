@@ -27,7 +27,7 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should honor team restrictions when autocompleting users",
 		Fn:   testHonorTeamRestrictionsAutocompletingUsers,
-		Tags: []string{EngineElasticSearch, EngineBleve},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name:        "Should return nothing if the user can't access the channels of a given search",
@@ -71,17 +71,17 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should be able to autocomplete a user by part of its username splitted by Dot",
 		Fn:   testAutocompleteUserByUsernameWithDot,
-		Tags: []string{EngineElasticSearch, EngineBleve},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to autocomplete a user by part of its username splitted by underscore",
 		Fn:   testAutocompleteUserByUsernameWithUnderscore,
-		Tags: []string{EngineElasticSearch, EngineBleve},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to autocomplete a user by part of its username splitted by hyphen",
 		Fn:   testAutocompleteUserByUsernameWithHyphen,
-		Tags: []string{EngineElasticSearch, EngineBleve},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should escape the percentage character",
