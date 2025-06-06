@@ -439,7 +439,9 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 		c.Err = model.NewAppError("listCommandAutocompleteSuggestions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -487,5 +489,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp := make(map[string]string)
 	resp["token"] = rcmd.Token
 
-	w.Write([]byte(model.MapToJSON(resp)))
+	if _, err := w.Write([]byte(model.MapToJSON(resp))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
