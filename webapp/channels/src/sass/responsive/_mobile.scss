@@ -1579,7 +1579,7 @@
     }
 
     .filtered-user-list {
-        height: calc(100vh - 80px);
+        height: calc(100vh - 80px) !important;
     }
 
     .more-modal--action {
@@ -1850,8 +1850,15 @@
             }
         }
 
-        #browseChannelsModal.modal .GenericModal  {
+        #browseChannelsModal.modal .GenericModal, #userGroupsModal.modal .GenericModal {
+            .GenericModal__wrapper {
+                display: flex;
+                max-height: 100vh;
+                flex-direction: column;
+            }
+
             .modal-header {
+                min-height: unset;
                 box-shadow: none;
             
                 .GenericModal__header__text_container .GenericModal__header {

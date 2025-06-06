@@ -1,6 +1,10 @@
 #browseChannelsModal {
     .modal-dialog {
         margin-top: calc(45vh - 240px) !important;
+
+        @media screen and (max-width: 640px) {
+            margin-top: 0 !important;
+        }
     }
 
     .filter-row--full {
