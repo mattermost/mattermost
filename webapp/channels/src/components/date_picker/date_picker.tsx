@@ -83,7 +83,7 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                 ref={setReference}
                 {...getReferenceProps()}
                 onClick={handleWrapperClick}
-                className={`date-time-input${isPopperOpen ? ' isOpen' : ''}`}
+                className={isPopperOpen ? 'date-time-input date-time-input--open' : 'date-time-input'}
                 role='button'
                 tabIndex={0}
                 onKeyDown={(e) => {
