@@ -1008,6 +1008,7 @@ func TestHasPermissionToChannelByPost(t *testing.T) {
 }
 
 func TestIsChannelArchivedAndHidden(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
