@@ -11,6 +11,13 @@ mme2e_wait_image "$SERVER_IMAGE" 4 30
 mme2e_log "Starting E2E containers"
 ${MME2E_DC_SERVER} create
 ${MME2E_DC_SERVER} up -d --remove-orphans
+
+# Postgres check
+if ! mme2e_wait_command_success "${MME2E_DC_SERVER} exec -T -- postgres pg_isready -h localhost" "Waiting for postgres to accept connections" "30" "5"; then
+    mme2e_log "Postgres not accepting connections"
+    exit 1
+fi
+
 if ! mme2e_wait_service_healthy server 60 10; then
   mme2e_log "Mattermost container not healthy, retry attempts exhausted. Giving up." >&2
   exit 1
