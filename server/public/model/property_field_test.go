@@ -248,7 +248,7 @@ func TestPluginPropertyOption(t *testing.T) {
 	t.Run("NewPluginPropertyOption", func(t *testing.T) {
 		id := NewId()
 		option := NewPluginPropertyOption(id, "test-name")
-		
+
 		assert.Equal(t, id, option.GetID())
 		assert.Equal(t, "test-name", option.GetName())
 		assert.NoError(t, option.IsValid())
@@ -258,16 +258,16 @@ func TestPluginPropertyOption(t *testing.T) {
 		option := &PluginPropertyOption{}
 		newId := NewId()
 		option.SetID(newId)
-		
+
 		assert.Equal(t, newId, option.GetID())
 	})
 
 	t.Run("GetValue and SetValue", func(t *testing.T) {
 		option := NewPluginPropertyOption(NewId(), "test-name")
-		
+
 		option.SetValue("color", "red")
 		option.SetValue("description", "test description")
-		
+
 		assert.Equal(t, "red", option.GetValue("color"))
 		assert.Equal(t, "test description", option.GetValue("description"))
 		assert.Equal(t, "", option.GetValue("nonexistent"))
@@ -342,11 +342,16 @@ func TestPluginPropertyOption(t *testing.T) {
 	})
 
 	t.Run("PropertyField with PluginPropertyOptions", func(t *testing.T) {
+		fieldID := NewId()
+		groupID := NewId()
+		fieldName := "Test Field"
+		fieldType := PropertyFieldTypeSelect
+
 		field := &PropertyField{
-			ID:      NewId(),
-			GroupID: NewId(),
-			Name:    "Test Field",
-			Type:    PropertyFieldTypeSelect,
+			ID:      fieldID,
+			GroupID: groupID,
+			Name:    fieldName,
+			Type:    fieldType,
 			Attrs:   make(StringInterface),
 		}
 
@@ -356,6 +361,12 @@ func TestPluginPropertyOption(t *testing.T) {
 		}
 
 		field.Attrs[PropertyFieldAttributeOptions] = options
+
+		// Verify the field properties are set correctly
+		assert.Equal(t, fieldID, field.ID)
+		assert.Equal(t, groupID, field.GroupID)
+		assert.Equal(t, fieldName, field.Name)
+		assert.Equal(t, fieldType, field.Type)
 
 		// Test that we can retrieve the options
 		if optionsFromField, err := NewPropertyOptionsFromFieldAttrs[*PluginPropertyOption](field.Attrs[PropertyFieldAttributeOptions]); err == nil {

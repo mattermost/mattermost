@@ -280,21 +280,21 @@ func (p *PluginPropertyOption) IsValid() error {
 	if p.Data == nil {
 		return errors.New("data cannot be nil")
 	}
-	
+
 	id := p.GetID()
 	if id == "" {
 		return errors.New("id cannot be empty")
 	}
-	
+
 	if !IsValidId(id) {
 		return errors.New("id is not a valid ID")
 	}
-	
+
 	name := p.GetName()
 	if name == "" {
 		return errors.New("name cannot be empty")
 	}
-	
+
 	return nil
 }
 
