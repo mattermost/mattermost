@@ -415,12 +415,68 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 	teamName := "team1"
 	teamID := "teamId"
 
+	t := true
+	mockConfig := model.Config{
+		ServiceSettings: model.ServiceSettings{
+			EnableAPITeamDeletion: &t,
+		},
+	}
+
 	s.Run("Delete teams with confirm false returns an error", func() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
+
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfig, &model.Response{}, nil).
+			Times(1)
+
 		err := deleteTeamsCmdF(s.client, cmd, []string{"some"})
 		s.Require().NotNil(err)
 		s.Require().Equal("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell", err.Error())
+	})
+
+	s.Run("Delete teams with delete config disabled (set to false)", func() {
+		f := false
+
+		mockConfigDeleteDisabled := model.Config{
+			ServiceSettings: model.ServiceSettings{
+				EnableAPIChannelDeletion: &f,
+			},
+		}
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfigDeleteDisabled, &model.Response{}, nil).
+			Times(1)
+
+		err := deleteTeamsCmdF(s.client, cmd, []string{"some"})
+		s.Require().NotNil(err)
+		s.Require().Equal("ServiceSettings.EnableAPITeamDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information", err.Error())
+	})
+
+	s.Run("Delete teams with delete config disabled (set to nil)", func() {
+		mockConfigDeleteDisabled := model.Config{
+			ServiceSettings: model.ServiceSettings{
+				EnableAPIChannelDeletion: nil,
+			},
+		}
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfigDeleteDisabled, &model.Response{}, nil).
+			Times(1)
+
+		err := deleteTeamsCmdF(s.client, cmd, []string{"some"})
+		s.Require().NotNil(err)
+		s.Require().Equal("ServiceSettings.EnableAPITeamDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information", err.Error())
 	})
 
 	s.Run("Delete teams with team not exist in db returns an error", func() {
@@ -440,6 +496,12 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfig, &model.Response{}, nil).
+			Times(1)
 
 		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
 		s.Require().Error(err)
@@ -467,6 +529,12 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfig, &model.Response{}, nil).
+			Times(1)
 
 		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
 		s.Require().Nil(err)
@@ -496,6 +564,12 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			GetConfig(cmd.Context()).
+			Return(&mockConfig, &model.Response{}, nil).
+			Times(1)
 
 		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
 		s.Require().Error(err)
