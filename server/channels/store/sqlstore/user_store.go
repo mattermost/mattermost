@@ -263,6 +263,12 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 		}
 	}
 
+	// In the past, changing the email of a SSO user would mark the email as unverified.
+	// This is a lazy migration to fix broken records.
+	if user.IsSSOUser() {
+		user.EmailVerified = true
+	}
+
 	if user.Username != oldUser.Username {
 		user.UpdateMentionKeysFromUsername(oldUser.Username)
 	}
