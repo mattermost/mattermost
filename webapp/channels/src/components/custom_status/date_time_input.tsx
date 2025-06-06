@@ -94,7 +94,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
             const button = timeContainerRef.current.querySelector('button');
             if (button) {
                 const buttonWidth = button.getBoundingClientRect().width;
-                setMenuWidth(`${buttonWidth}px`);
+                setMenuWidth(`${Math.max(buttonWidth, 200)}px`); // Ensure minimum width of 200px
             }
         }
     }, [setIsInteracting]);
