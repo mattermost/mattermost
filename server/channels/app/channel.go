@@ -876,6 +876,12 @@ func (a *App) PatchChannel(c request.CTX, channel *model.Channel, patch *model.C
 	oldChannelHeader := channel.Header
 	oldChannelPurpose := channel.Purpose
 
+	if *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting && strings.Contains(*patch.DisplayName, "/") {
+		parts := strings.Split(*patch.DisplayName, "/")
+		*patch.DisplayName = strings.Join(parts[1:], "/")
+		channel.DefaultCategoryName = strings.TrimSpace(parts[0])
+	}
+
 	channel.Patch(patch)
 	channel, err := a.UpdateChannel(c, channel)
 	if err != nil {

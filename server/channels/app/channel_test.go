@@ -3473,3 +3473,47 @@ func TestCreateChannelWithCategorySorting(t *testing.T) {
 		assert.False(t, foundCategory, "Category 'Category2' not found in sidebar categories")
 	})
 }
+
+func TestPatchChannelWithCategorySorting(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Enable ExperimentalChannelCategorySorting
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.ExperimentalChannelCategorySorting = true
+	})
+
+	// Create initial channel
+	channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+	channel.DisplayName = "Initial Name"
+	channel, appErr := th.App.UpdateChannel(th.Context, channel)
+	require.Nil(t, appErr)
+
+	// Add user to channel
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+	require.Nil(t, appErr)
+
+	// Patch channel with new display name containing category
+	patch := &model.ChannelPatch{
+		DisplayName: model.NewPointer("  New Category  /  New Channel Name  "),
+	}
+
+	patchedChannel, appErr := th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+	require.Nil(t, appErr)
+	require.Equal(t, "New Channel Name", patchedChannel.DisplayName)
+	require.Equal(t, "New Category", patchedChannel.DefaultCategoryName)
+
+	// Test that category is not updated when feature is disabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.ExperimentalChannelCategorySorting = false
+	})
+
+	patch = &model.ChannelPatch{
+		DisplayName: model.NewPointer("Disabled Category/Channel Name"),
+	}
+
+	patchedChannel, appErr = th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+	require.Nil(t, appErr)
+	require.Equal(t, "Disabled Category/Channel Name", patchedChannel.DisplayName)
+	require.Equal(t, "New Category", patchedChannel.DefaultCategoryName)
+}

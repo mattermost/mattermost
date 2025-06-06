@@ -15,8 +15,6 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 var (
@@ -365,15 +363,8 @@ func (o *Channel) IsOpen() bool {
 
 func (o *Channel) Patch(patch *ChannelPatch) {
 	if patch.DisplayName != nil {
-		if strings.Contains(*patch.DisplayName, "/") {
-			parts := strings.Split(*patch.DisplayName, "/")
-			o.DisplayName = strings.Join(parts[1:], "/")
-			o.DefaultCategoryName = strings.TrimSpace(parts[0])
-		} else {
-			o.DisplayName = *patch.DisplayName
-		}
+		o.DisplayName = strings.TrimSpace(*patch.DisplayName)
 	}
-	mlog.Info("channel.DefaultCategoryName", mlog.String("channel.DefaultCategoryName", o.DefaultCategoryName))
 
 	if patch.Name != nil {
 		o.Name = *patch.Name
