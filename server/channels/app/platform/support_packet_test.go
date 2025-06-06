@@ -360,13 +360,18 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 	require.NoError(t, err)
 
 	// Ensure sensitive fields are redacted
-	assert.Equal(t, model.FakeSetting, *config.SqlSettings.DataSource)
+	assert.Equal(t, model.FakeSetting, *config.FileSettings.PublicLinkSalt)
 
 	// Ensure non-sensitive fields are present
 	assert.Equal(t, "example.com", *config.ServiceSettings.AllowedUntrustedInternalConnections)
 
 	// Ensure feature flags are present
 	assert.Equal(t, "true", config.FeatureFlags.TestFeature)
+
+	// Ensure DataSource is partially sanitized (not completely replaced with FakeSetting)
+	// The default test database connection string should have username/password redacted
+	assert.Contains(t, *config.SqlSettings.DataSource, "****:****")
+	assert.NotEqual(t, model.FakeSetting, *config.SqlSettings.DataSource)
 }
 
 func TestGetCPUProfile(t *testing.T) {
