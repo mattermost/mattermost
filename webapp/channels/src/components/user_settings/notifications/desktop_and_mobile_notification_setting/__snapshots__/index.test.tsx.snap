@@ -164,8 +164,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
         >
           <hr />
           <div
-            aria-atomic="true"
-            aria-live="polite"
+            role="alert"
           />
           <button
             class="btn btn-primary "
@@ -381,8 +380,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
         >
           <hr />
           <div
-            aria-atomic="true"
-            aria-live="polite"
+            role="alert"
           />
           <button
             class="btn btn-primary "

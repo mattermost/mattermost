@@ -133,7 +133,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                         />
                         <span className='sr-only'>
                             <FormattedMessage
-                                id='setting_item_max.clientError'
+                                id='setting_item_max.error'
                                 defaultMessage='Error'
                             />
                         </span>
@@ -154,11 +154,11 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                     >
                         <i
                             className='icon icon-alert-circle-outline'
-                            role='img'
+                            role='presentation'
                         />
                         <span className='sr-only'>
                             <FormattedMessage
-                                id='setting_item_max.serverError'
+                                id='setting_item_max.error'
                                 defaultMessage='Error'
                             />
                         </span>
@@ -264,8 +264,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                             <hr/>
                             {this.props.submitExtra}
                             <div
-                                aria-live='polite'
-                                aria-atomic='true'
+                                role='alert'
                             >
                                 {serverError}
                                 {clientError}

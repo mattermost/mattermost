@@ -190,8 +190,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           >
             <hr />
             <div
-              aria-atomic="true"
-              aria-live="polite"
+              role="alert"
             />
             <SaveButton
               disabled={false}
@@ -611,8 +610,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           >
             <hr />
             <div
-              aria-atomic="true"
-              aria-live="polite"
+              role="alert"
             />
             <SaveButton
               disabled={false}
