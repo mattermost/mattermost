@@ -46,7 +46,7 @@ type Props = {
 
 function SearchLimitsBanner(props: Props) {
     const {formatMessage, formatNumber} = useIntl();
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const usage = useGetUsage();
     const [cloudLimits] = useGetLimits();
     const isAdminUser = isAdmin(useSelector(getCurrentUser).roles);
@@ -83,43 +83,61 @@ function SearchLimitsBanner(props: Props) {
     };
 
     switch (props.searchType) {
-    case DataSearchTypes.FILES_SEARCH_TYPE:
+    case DataSearchTypes.FILES_SEARCH_TYPE: {
         if ((fileStorageLimit === undefined) || !(currentFileStorageUsage > fileStorageLimit)) {
             return null;
         }
-        return renderBanner(formatMessage({
-            id: 'workspace_limits.search_files_limit.banner_text',
-            defaultMessage: 'Some older files may not be shown because your workspace has met its file storage limit of {storage}. <a>{ctaAction}</a>',
-        }, {
-            ctaAction,
-            storage: asGBString(fileStorageLimit, formatNumber),
-            a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                <StyledA
-                    onClick={() => openPricingModal({trackingLocation: 'file_search_limits_banner'})}
-                >
-                    {chunks}
-                </StyledA>
-            ),
-        }), `${DataSearchTypes.FILES_SEARCH_TYPE}_search_limits_banner`);
+        const filesBannerMessage = isAirGapped ?
+            formatMessage({
+                id: 'workspace_limits.search_files_limit.banner_text_airgapped',
+                defaultMessage: 'Some older files may not be shown because your workspace has met its file storage limit of {storage}.',
+            }, {
+                storage: asGBString(fileStorageLimit, formatNumber),
+            }) :
+            formatMessage({
+                id: 'workspace_limits.search_files_limit.banner_text',
+                defaultMessage: 'Some older files may not be shown because your workspace has met its file storage limit of {storage}. <a>{ctaAction}</a>',
+            }, {
+                ctaAction,
+                storage: asGBString(fileStorageLimit, formatNumber),
+                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                    <StyledA
+                        onClick={() => openPricingModal({trackingLocation: 'file_search_limits_banner'})}
+                    >
+                        {chunks}
+                    </StyledA>
+                ),
+            });
+        return renderBanner(filesBannerMessage, `${DataSearchTypes.FILES_SEARCH_TYPE}_search_limits_banner`);
+    }
 
-    case DataSearchTypes.MESSAGES_SEARCH_TYPE:
+    case DataSearchTypes.MESSAGES_SEARCH_TYPE: {
         if ((messagesLimit === undefined) || !(currentMessagesUsage > messagesLimit)) {
             return null;
         }
-        return renderBanner(formatMessage({
-            id: 'workspace_limits.search_message_limit.banner_text',
-            defaultMessage: 'Some older messages may not be shown because your workspace has over {messages} messages. <a>{ctaAction}</a>',
-        }, {
-            ctaAction,
-            messages: formatNumber(messagesLimit),
-            a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                <StyledA
-                    onClick={() => openPricingModal({trackingLocation: 'messages_search_limits_banner'})}
-                >
-                    {chunks}
-                </StyledA>
-            ),
-        }), `${DataSearchTypes.MESSAGES_SEARCH_TYPE}_search_limits_banner`);
+        const messagesBannerMessage = isAirGapped ?
+            formatMessage({
+                id: 'workspace_limits.search_message_limit.banner_text_airgapped',
+                defaultMessage: 'Some older messages may not be shown because your workspace has over {messages} messages.',
+            }, {
+                messages: formatNumber(messagesLimit),
+            }) :
+            formatMessage({
+                id: 'workspace_limits.search_message_limit.banner_text',
+                defaultMessage: 'Some older messages may not be shown because your workspace has over {messages} messages. <a>{ctaAction}</a>',
+            }, {
+                ctaAction,
+                messages: formatNumber(messagesLimit),
+                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                    <StyledA
+                        onClick={() => openPricingModal({trackingLocation: 'messages_search_limits_banner'})}
+                    >
+                        {chunks}
+                    </StyledA>
+                ),
+            });
+        return renderBanner(messagesBannerMessage, `${DataSearchTypes.MESSAGES_SEARCH_TYPE}_search_limits_banner`);
+    }
     default:
         return null;
     }

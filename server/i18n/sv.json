@@ -10690,5 +10690,109 @@
   {
     "id": "app.pap.get_channel_members_to_remove.app_error",
     "translation": "Kunde inte hämta kanalmedlemmar som ska tas bort."
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "Den här licensen stödjer inte MySQL."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "Det gick inte att få fram attribut för policyn."
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "MySQL-databaser stöds inte av testlicenser. Använd PostgreSQL för att få tillgång till testfunktioner."
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Det går inte att skapa synkroniserbara gruppmedlemskap."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Det går inte att ta bort ogiltiga synkroniserbara gruppmedlemskap."
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "Kunde inte generera visuell AST från uttrycket."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Det gick inte att få åtkomstkontrollen automatiskt slutförd."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Det gick inte att få fram policys för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Det gick inte att hämta policyn för åtkomstkontroll."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Ett inledande eller avslutande blanksteg upptäcktes för {{.Setting}}. Hittade \"{{.Value}}\"."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Gränsen för Get Channels är inte giltig."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Gränsen för Hämta fält är inte giltig."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Det går inte att tilldela policyn för åtkomstkontroll till kanaler."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Det gick inte att initiera tjänsten för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "Tjänsten för åtkomstkontroll är inte klar."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "Ett attribut saknas i uttrycket."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "Det gick inte att normalisera policyuttryck."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "Kunde inte söka efter uttryck."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Det går inte att spara policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Kunde inte söka efter policyer för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Det gick inte att ta bort policy för åtkomstkontroll från kanaler."
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "Kunde inte ändra aktiv status för policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Misslyckades med att utvärdera policy för åtkomstkontroll."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Misslyckades med att köra synkroniseringsjobbet för åtkomstkontroll."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Kunde inte ärva policy för åtkomstkontroll."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Kanalens bannerfärg måste vara en giltig färg i hexadecimalform (t.ex. #FF0000 eller #F00)"
   }
 ]

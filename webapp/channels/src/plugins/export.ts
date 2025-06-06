@@ -9,7 +9,6 @@ import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from 'components/channel_members_modal';
-import {openPricingModal} from 'components/global_header/right_controls/plan_upgrade_button';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import StartTrialFormModal from 'components/start_trial_form_modal';
@@ -30,6 +29,12 @@ import {imageURLForUser} from 'utils/utils';
 
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
 import Textbox from './textbox';
+
+// Note: We can't directly use the hook here, but we can create a function that opens the external pricing page
+// For plugins, we'll always try to open the external page and let the browser handle if it's blocked
+const openPricingModalForPlugins = () => {
+    (window as any).open('https://mattermost.com/pricing', '_blank', 'noopener,noreferrer');
+};
 
 interface WindowWithLibraries {
     React: typeof import('react');
@@ -61,7 +66,7 @@ interface WindowWithLibraries {
         openUserSettings: (dialogProps: any) => void;
         browserHistory: ReturnType<typeof getHistory>;
     };
-    openPricingModal: () => typeof openPricingModal;
+    openPricingModal: () => void;
     Components: {
         Textbox: typeof Textbox;
         Timestamp: typeof Timestamp;
@@ -133,11 +138,9 @@ window.WebappUtils = {
     }),
 };
 
-// This need to be a function because `openPricingModal`
-// is initialized when `UpgradeCloudButton` is loaded.
-// So if we export `openPricingModal` directly, it will be locked
-// to the initial value of undefined.
-window.openPricingModal = () => openPricingModal;
+// For plugins, we provide a simple function that always tries to open the external pricing page
+// This won't respect air-gapped status, but plugins shouldn't be calling this in air-gapped environments
+window.openPricingModal = openPricingModalForPlugins;
 
 // Components exposed on window FOR INTERNAL PLUGIN USE ONLY. These components may have breaking changes in the future
 // outside of major releases. They will be replaced by common components once that project is more mature and able to

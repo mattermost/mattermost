@@ -627,11 +627,11 @@ func (c *Client4) accessControlPoliciesRoute() string {
 }
 
 func (c *Client4) celRoute() string {
-	return "/access_control_policies/cel"
+	return fmt.Sprintf(c.accessControlPoliciesRoute() + "/cel")
 }
 
 func (c *Client4) accessControlPolicyRoute(policyID string) string {
-	return fmt.Sprintf(c.accessControlPoliciesRoute()+"/%v", policyID)
+	return fmt.Sprintf(c.accessControlPoliciesRoute()+"/%v", url.PathEscape(policyID))
 }
 
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
