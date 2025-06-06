@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import type {AppField, AppSelectOption} from '@mattermost/types/apps';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
@@ -14,6 +15,7 @@ import type AutocompleteSelector from 'components/autocomplete_selector';
 import Markdown from 'components/markdown';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import BoolSetting from 'components/widgets/settings/bool_setting';
+import RadioSetting from 'components/widgets/settings/radio_setting';
 import TextSetting from 'components/widgets/settings/text_setting';
 import type {InputTypes} from 'components/widgets/settings/text_setting';
 
@@ -71,17 +73,27 @@ export default class AppsFormField extends React.PureComponent<Props> {
         const placeholder = field.hint || '';
 
         const displayName = (field.modal_label || field.label) as string;
-        let displayNameContent: React.ReactNode = (field.modal_label || field.label) as string;
-        displayNameContent = (
-            <>
-                {displayName}
-                {!field.is_required && (
-                    <span className='light'>
-                        {' (optional)'}
+        let displayNameContent: React.ReactNode = displayName;
+        if (field.is_required) {
+            displayNameContent = (
+                <>
+                    {displayName}
+                    <span className='error-text'>{' *'}</span>
+                </>
+            );
+        } else {
+            displayNameContent = (
+                <>
+                    {displayName + ' '}
+                    <span className='font-weight--normal light'>
+                        <FormattedMessage
+                            id='interactive_dialog.element.optional'
+                            defaultMessage='(optional)'
+                        />
                     </span>
-                )}
-            </>
-        );
+                </>
+            );
+        }
 
         const helpText = field.description;
         let helpTextContent: React.ReactNode = <Markdown message={helpText}/>;
@@ -97,25 +109,29 @@ export default class AppsFormField extends React.PureComponent<Props> {
         }
 
         switch (field.type) {
-        case AppFieldTypes.TEXT: {
-            const subtype = field.subtype || 'text';
+        case AppFieldTypes.TEXT:
+        case AppFieldTypes.TEXTAREA: {
+            // Determine the input type and default max length
+            let inputType: InputTypes;
+            let defaultMaxLength: number;
 
-            let maxLength = field.max_length;
-            if (!maxLength) {
-                if (subtype === 'textarea') {
-                    maxLength = TEXTAREA_DEFAULT_MAX_LENGTH;
-                } else {
-                    maxLength = TEXT_DEFAULT_MAX_LENGTH;
-                }
+            if (field.type === AppFieldTypes.TEXTAREA) {
+                inputType = 'textarea';
+                defaultMaxLength = TEXTAREA_DEFAULT_MAX_LENGTH;
+            } else {
+                inputType = (field.subtype || 'text') as InputTypes;
+                defaultMaxLength = field.subtype === 'textarea' ? TEXTAREA_DEFAULT_MAX_LENGTH : TEXT_DEFAULT_MAX_LENGTH;
             }
 
+            const maxLength = field.max_length || defaultMaxLength;
             const textValue = value as string;
+
             return (
                 <TextSetting
                     autoFocus={this.props.autoFocus}
                     id={name}
                     disabled={field.readonly}
-                    type={subtype as InputTypes}
+                    type={inputType}
                     label={displayNameContent}
                     maxLength={maxLength}
                     value={textValue || ''}
@@ -161,6 +177,25 @@ export default class AppsFormField extends React.PureComponent<Props> {
             return (
                 <Markdown
                     message={field.description}
+                />
+            );
+        }
+        case AppFieldTypes.RADIO: {
+            const radioValue = value as string;
+            const radioOptions = field.options?.map((option) => ({
+                text: option.label,
+                value: option.value,
+            })) || [];
+
+            return (
+                <RadioSetting
+                    autoFocus={this.props.autoFocus}
+                    id={name}
+                    options={radioOptions}
+                    label={displayNameContent}
+                    value={radioValue || ''}
+                    helpText={helpTextContent}
+                    onChange={onChange}
                 />
             );
         }

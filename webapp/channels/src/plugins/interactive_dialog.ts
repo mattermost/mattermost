@@ -3,17 +3,15 @@
 
 import {IntegrationTypes} from 'mattermost-redux/action_types';
 
-import {openModal} from 'actions/views/modals';
 import store from 'stores/redux_store';
 
-import InteractiveDialog from 'components/interactive_dialog';
-
-import {ModalIdentifiers} from 'utils/constants';
+import {openInteractiveDialogModal} from 'utils/interactive_dialog_utils';
 
 export function openInteractiveDialog(dialog: any): void {
     store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: InteractiveDialog}));
+    // Use centralized utility function that handles feature flag logic
+    openInteractiveDialogModal(dialog);
 }
 
 // This code is problematic for a couple of different reasons:
@@ -39,5 +37,6 @@ store.subscribe(() => {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: InteractiveDialog}));
+    // Use centralized utility function that handles feature flag logic
+    openInteractiveDialogModal(dialog);
 });

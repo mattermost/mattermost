@@ -15,7 +15,7 @@ type Props = {
     labelClassName?: string;
     inputClassName?: string;
     helpText?: React.ReactNode;
-
+    autoFocus?: boolean;
 }
 
 const RadioSetting = ({
@@ -27,6 +27,7 @@ const RadioSetting = ({
     label,
     helpText,
     value,
+    autoFocus = false,
 }: Props) => {
     const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback((e) => {
         onChange(id, e.target.value);
@@ -41,7 +42,7 @@ const RadioSetting = ({
             inputId={id}
         >
             {
-                options.map(({value: option, text}) => {
+                options.map(({value: option, text}, index) => {
                     return (
                         <div
                             className='radio'
@@ -54,6 +55,7 @@ const RadioSetting = ({
                                     name={id}
                                     checked={option === value}
                                     onChange={handleChange}
+                                    autoFocus={autoFocus && index === 0}
                                 />
                                 {text}
                             </label>

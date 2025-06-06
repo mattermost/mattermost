@@ -147,7 +147,7 @@ export type IntegrationsState = {
     };
 };
 
-type Dialog = {
+export type Dialog = {
     callback_id?: string;
     elements?: DialogElement[];
     title: string;
@@ -183,6 +183,7 @@ export type DialogElement = {
     min_length: number;
     max_length: number;
     data_source: string;
+    multiselect: boolean;
     options: Array<{
         text: string;
         value: any;
