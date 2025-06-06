@@ -10,12 +10,17 @@ type Props = {
 }
 
 function AtPlanMention(props: Props) {
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         e.preventDefault();
         openPricingModal({trackingLocation: 'notify_admin_message_view'});
     };
+
+    if (isAirGapped) {
+        return <span id='at_plan_mention'>{props.plan}</span>;
+    }
+
     return (
         <a
             id='at_plan_mention'

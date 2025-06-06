@@ -352,7 +352,7 @@ Object {
                 class="buttons"
               >
                 <button
-                  class="confirm-btn btn btn-default"
+                  class="btn btn-primary btn btn-default"
                   disabled=""
                   type="button"
                 >
