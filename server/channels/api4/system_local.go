@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitSystemLocal() {
@@ -24,7 +23,7 @@ func (api *API) InitSystemLocal() {
 }
 
 func localCheckIntegrity(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localCheckIntegrity", audit.Fail)
+	auditRec := c.MakeAuditRecord("localCheckIntegrity", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	var results []model.IntegrityCheckResult

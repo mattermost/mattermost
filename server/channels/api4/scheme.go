@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitScheme() {
@@ -29,9 +28,9 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createScheme", audit.Fail)
+	auditRec := c.MakeAuditRecord("createScheme", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "scheme", &scheme)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "scheme", &scheme)
 
 	if c.App.Channels().License() == nil || (!*c.App.Channels().License().Features.CustomPermissionsSchemes && c.App.Channels().License().SkuShortName != model.LicenseShortSkuProfessional) {
 		c.Err = model.NewAppError("Api4.CreateScheme", "api.scheme.create_scheme.license.error", nil, "", http.StatusNotImplemented)
@@ -194,8 +193,8 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchScheme", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "scheme_patch", &patch)
+	auditRec := c.MakeAuditRecord("patchScheme", model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "scheme_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
 	if c.App.Channels().License() == nil || (!*c.App.Channels().License().Features.CustomPermissionsSchemes && c.App.Channels().License().SkuShortName != model.LicenseShortSkuProfessional) {
@@ -203,7 +202,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audit.AddEventParameter(auditRec, "scheme_id", c.Params.SchemeId)
+	model.AddEventParameterToAuditRec(auditRec, "scheme_id", c.Params.SchemeId)
 
 	scheme, err := c.App.GetScheme(c.Params.SchemeId)
 	if err != nil {
@@ -239,8 +238,8 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteScheme", audit.Fail)
-	audit.AddEventParameter(auditRec, "scheme_id", c.Params.SchemeId)
+	auditRec := c.MakeAuditRecord("deleteScheme", model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "scheme_id", c.Params.SchemeId)
 	defer c.LogAuditRec(auditRec)
 
 	if c.App.Channels().License() == nil || (!*c.App.Channels().License().Features.CustomPermissionsSchemes && c.App.Channels().License().SkuShortName != model.LicenseShortSkuProfessional) {

@@ -197,6 +197,17 @@ func (api *PluginAPI) GetTeamsForUser(userID string) ([]*model.Team, *model.AppE
 	return api.app.GetTeamsForUser(userID)
 }
 
+func (api *PluginAPI) LogAuditRec(rec *model.AuditRecord) {
+	api.LogAuditRecWithLevel(rec, mlog.LvlAuditCLI)
+}
+
+func (api *PluginAPI) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level) {
+	if rec == nil {
+		return
+	}
+	api.app.Srv().Audit.LogRecord(level, *rec)
+}
+
 func (api *PluginAPI) CreateTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
 	return api.app.AddTeamMember(api.ctx, teamID, userID)
 }

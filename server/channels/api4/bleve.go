@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitBleve() {
@@ -15,7 +14,7 @@ func (api *API) InitBleve() {
 }
 
 func purgeBleveIndexes(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("purgeBleveIndexes", audit.Fail)
+	auditRec := c.MakeAuditRecord("purgeBleveIndexes", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionPurgeBleveIndexes) {

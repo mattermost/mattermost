@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -320,7 +319,7 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userId := c.Params.UserId
 
-	auditRec := c.MakeAuditRecord("localDeleteUser", audit.Fail)
+	auditRec := c.MakeAuditRecord("localDeleteUser", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	user, err := c.App.GetUser(userId)
@@ -328,7 +327,7 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 	auditRec.AddEventPriorState(user)
 	auditRec.AddEventObjectType("user")
 
@@ -347,7 +346,7 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localPermanentDeleteAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localPermanentDeleteAllUsers", audit.Fail)
+	auditRec := c.MakeAuditRecord("localPermanentDeleteAllUsers", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.PermanentDeleteAllUsers(c.AppContext); err != nil {
