@@ -5,6 +5,7 @@ import React from 'react';
 
 import type {OpenGraphMetadata} from '@mattermost/types/posts';
 
+import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
 
 import {getVideoId, ytRegex, handleYoutubeTime} from 'utils/youtube';
@@ -17,33 +18,82 @@ type Props = {
     youtubeReferrerPolicy?: boolean;
 }
 
-// State tracks whether the video is playing and the current thumbnail URL
 type State = {
     playing: boolean;
+    useMaxResThumbnail: boolean;
+    prevLink: string;
+}
+
+type YouTubeThumbnailProps = {
+    play: () => void;
+    videoTitle: string;
+    onError: () => void;
     thumbnailUrl: string;
+    useMaxResThumbnail: boolean;
+};
+
+function YouTubeThumbnail({play, videoTitle, onError, thumbnailUrl, useMaxResThumbnail}: YouTubeThumbnailProps) {
+    return (
+        <div
+            className='video-thumbnail__container'
+            onClick={play}
+            role='button'
+            aria-label={`Play ${videoTitle} on YouTube`}
+            tabIndex={0}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    play();
+                }
+            }}
+        >
+            <ExternalImage src={thumbnailUrl}>
+                {(src) => (
+                    <img
+                        className='video-thumbnail'
+                        src={src}
+                        alt={`Thumbnail for ${videoTitle} on YouTube`}
+                        onError={onError}
+                    />
+                )}
+            </ExternalImage>
+            <div
+                className='play-button'
+                role='presentation'
+                aria-label='Play video'
+            >
+                <i
+                    className='icon-play'
+                    aria-hidden='true'
+                />
+            </div>
+        </div>
+    );
 }
 
 export default class YoutubeVideo extends React.PureComponent<Props, State> {
-    static isYoutubeLink(link: string): boolean {
-        return Boolean(link.trim().match(ytRegex));
-    }
-
     constructor(props: Props) {
         super(props);
         this.state = {
             playing: false,
-            thumbnailUrl: '', // Initialize empty, will be set in componentDidMount
+            useMaxResThumbnail: true,
+            prevLink: props.link,
         };
     }
 
-    componentDidMount() {
-        this.setThumbnailUrl();
-    }
+    static getDerivedStateFromProps(props: Props, state: State): Partial<State> | null {
+        const nextState: Partial<State> = {};
 
-    componentDidUpdate(prevProps: Props) {
-        if (prevProps.link !== this.props.link) {
-            this.setThumbnailUrl();
+        if (!props.show && state.playing) {
+            nextState.playing = false;
         }
+
+        if (props.link !== state.prevLink) {
+            nextState.useMaxResThumbnail = true;
+            nextState.prevLink = props.link;
+        }
+
+        return Object.keys(nextState).length > 0 ? nextState : null;
     }
 
     getMaxResUrl(link: string) {
@@ -56,27 +106,11 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
         return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
     }
 
-    setThumbnailUrl = () => {
-        this.setState({
-            thumbnailUrl: this.getMaxResUrl(this.props.link),
-        });
-    };
-
     handleImageError = () => {
         this.setState({
-            thumbnailUrl: this.getHQUrl(this.props.link),
+            useMaxResThumbnail: false,
         });
     };
-
-    static getDerivedStateFromProps(props: Props, state: State): State | null {
-        if (!props.show && state.playing) {
-            return {
-                ...state,
-                playing: false,
-            };
-        }
-        return null;
-    }
 
     play = () => {
         this.setState({playing: true});
@@ -91,6 +125,8 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
         const videoId = getVideoId(link);
         const videoTitle = metadata?.title || 'unknown';
         const time = handleYoutubeTime(link);
+        
+        const thumbnailUrl = this.state.useMaxResThumbnail ? this.getMaxResUrl(link) : this.getHQUrl(link);
 
         const header = (
             <h4>
@@ -112,7 +148,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
             content = (
                 <div className='video-playing'>
                     <iframe
-                        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0${time}`}
+                        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&fs=1&enablejsapi=1${time}`}
                         title={videoTitle}
                         width='100%'
                         height='100%'
@@ -126,36 +162,13 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
             );
         } else {
             content = (
-                <div
-                    className='video-thumbnail__container'
-                    onClick={this.play}
-                    role='button'
-                    aria-label={`Play ${videoTitle} on YouTube`}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            this.play();
-                        }
-                    }}
-                >
-                    <img
-                        className='video-thumbnail'
-                        src={this.state.thumbnailUrl}
-                        alt={`Thumbnail for ${videoTitle} on YouTube`}
-                        onError={this.handleImageError}
-                    />
-                    <div
-                        className='play-button'
-                        role='img'
-                        aria-label='Play video'
-                    >
-                        <i
-                            className='icon-play'
-                            aria-hidden='true'
-                        />
-                    </div>
-                </div>
+                <YouTubeThumbnail
+                    play={this.play}
+                    videoTitle={videoTitle}
+                    onError={this.handleImageError}
+                    thumbnailUrl={thumbnailUrl}
+                    useMaxResThumbnail={this.state.useMaxResThumbnail}
+                />
             );
         }
 
@@ -169,5 +182,9 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                 </div>
             </div>
         );
+    }
+    
+    static isYoutubeLink(link: string): boolean {
+        return Boolean(link.trim().match(ytRegex));
     }
 }

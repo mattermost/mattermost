@@ -1,5 +1,6 @@
 @use "utils/functions";
 @use "utils/variables";
+@use "utils/mixins";
 
 .post {
     // Container for both video and thumbnail
@@ -8,6 +9,7 @@
         overflow: hidden; // Ensure hover effects stay contained
         width: 100%;
         max-width: 480px;
+        max-height: 270px;
         margin-bottom: 8px;
 
         iframe {
@@ -34,11 +36,8 @@
             background-color: #000;
             outline: none; // Remove default focus outline
 
-            // Focus state for keyboard navigation
-            &:focus-visible {
-                outline: 2px solid var(--button-bg);
-                outline-offset: 2px;
-            }
+            // Use existing button focus mixin
+            @include mixins.button-focus;
 
             // Darkening overlay on hover
             &::after {
@@ -61,7 +60,7 @@
 
                 .play-button {
                     background-color: #FF0033; //youtube red
-                    transform: scale(1.02); // Reduced scale to prevent overflow
+                    transform: scale(1.02);
                 }
             }
         }
@@ -72,14 +71,6 @@
             overflow: hidden;
             width: 100%;
             aspect-ratio: 16/9; // Always use 16:9
-
-            iframe {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-            }
         }
 
         // Thumbnail image
@@ -100,15 +91,16 @@
             width: 80px;
             height: 56px;
             align-items: center;
-            justify-content: center;
-            padding-right: 1px;
-            padding-bottom: 1px;
+            justify-content: center;      
             border-radius: var(--radius-m);
             background-color: rgba(0, 0, 0, 0.9);
             cursor: pointer;
             transition: background-color 0.2s ease, transform 0.2s ease;
 
             i.icon-play {
+                position: relative;
+                top: -1px;
+                left: -1px;
                 color: #fff;
                 font-size: 48px;
                 line-height: 1;
