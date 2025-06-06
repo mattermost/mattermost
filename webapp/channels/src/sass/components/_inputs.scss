@@ -129,52 +129,106 @@ input::-webkit-file-upload-button {
 
 .date-time-input {
     position: relative;
-    cursor: pointer;
-    width: 100%;
-    height: 40px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 4px;
-    background: var(--center-channel-bg);
     display: flex;
+    min-height: 40px;
     align-items: center;
-    padding: 0 10px;
-    color: var(--center-channel-color);
-    transition: border-color 0.15s;
-    box-sizing: border-box;
-
-    &:focus-within,
-    &.isOpen,
-    &.focus-within:hover,
-    &.isOpen:hover, {
-        border-color: var(--button-bg);
-        box-shadow: 0 0 0 1px var(--button-bg);
-    }
+    padding: 8px 12px;
+    border: 1px solid var(--center-channel-color-24);
+    border-radius: 4px;
+    background-color: var(--center-channel-bg);
+    cursor: pointer;
+    transition: border-color 0.15s ease-in-out;
 
     &:hover {
-        border-color: rgba(var(--center-channel-color-rgb), 0.40);
+        border-color: var(--center-channel-color-40);
     }
 
-    .date-time-input__label {
+    &:focus,
+    &.isOpen {
+        border-color: var(--button-bg);
+        box-shadow: 0 0 0 1px var(--button-bg);
+        outline: none;
+    }
+
+    &__label {
         position: absolute;
         top: -8px;
         left: 12px;
-        background: var(--center-channel-bg);
         padding: 0 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color-75);
         font-size: 10px;
-        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
-    .date-time-input__icon {
+    &__icon {
+        flex-shrink: 0;
         margin-right: 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-        font-size: 20px;
-        display: flex;
-        align-items: center;
+        color: var(--center-channel-color-56);
+        
+        i {
+            font-size: 16px;
+        }
     }
 
-    .date-time-input__value {
-        flex: 1;
-        display: flex;
-        align-items: center;
+    &__value {
+        overflow: hidden;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
+}
+
+// Date Time layout
+.dateTime {
+    display: flex;
+    margin: 24px 0 8px;
+    gap: 16px;
+
+    &__date {
+        position: relative;
+        flex: 1;
+    }
+
+    &__time {
+        position: relative;
+        flex: 1;
+        
+        // Ensure Menu.Container and its button take full width
+        > div {
+            width: 100%;
+            
+            button {
+                width: 100%;
+            }
+        }
+    }
+}
+
+// Modal-specific dateTime layout
+.modal,
+.date-time-picker-modal,
+.DndModal,
+.StatusModal {
+    .dateTime {
+        width: 100%;
+        
+        &__date,
+        &__time {
+            width: 100%;
+        }
+        
+        // Ensure all nested elements take full width
+        .date-time-input,
+        .date-picker__wrapper,
+        > div {
+            width: 100%;
+        }
+    }
+}
+
+// Scrollable time menu
+.time-menu-scrollable {
+    max-height: 300px;
+    overflow-y: auto;
 }

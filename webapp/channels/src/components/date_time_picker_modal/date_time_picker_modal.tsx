@@ -107,7 +107,8 @@ export default function DateTimePickerModal({
             handleEnterKeyPress={handleEnterKeyPress}
             className={classnames('date-time-picker-modal', className)}
             compassDesign={true}
-            keyboardEscape={false}
+            keyboardEscape={true}
+            enforceFocus={false}
             cancelButtonText={cancelButtonText}
             autoCloseOnConfirmButton={false}
             errorText={errorText}

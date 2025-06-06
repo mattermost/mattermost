@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {DayPickerProps} from 'react-day-picker';
-import {defineMessage, FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 import moment from 'moment';
+import React from 'react';
+import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {UserStatus} from '@mattermost/types/users';
@@ -12,12 +11,9 @@ import type {UserStatus} from '@mattermost/types/users';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
-import DatePicker from 'components/date_picker';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import DateTimeInput from 'components/custom_status/date_time_input';
 
-import Constants, {A11yCustomEventTypes, UserStatuses} from 'utils/constants';
-import type {A11yFocusEventDetail} from 'utils/constants';
+import Constants, {UserStatuses} from 'utils/constants';
 import {toUTCUnixInSeconds, relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {localizeMessage} from 'utils/utils';
@@ -37,31 +33,23 @@ type Props = {
 } & WrappedComponentProps;
 
 type State = {
-    selectedDate: Date;
-    selectedTime: string;
-    timeMenuList: string[];
-    dayPickerStartDate: Date;
-    isPopperOpen: boolean;
+    selectedDateTime: moment.Moment;
 }
 
 export default injectIntl(class DndCustomTimePicker extends React.PureComponent<Props, State> {
-    private buttonRef = React.createRef<HTMLDivElement>();
     constructor(props: Props) {
         super(props);
 
         const {currentDate} = this.props;
-        const selectedDate: Date = new Date(currentDate);
+        let selectedDateTime = moment(currentDate);
 
         // if current time is > 23:20 then we will set date to tomorrow and show all times
         if (currentDate.getHours() === 23 && currentDate.getMinutes() > 20) {
-            selectedDate.setDate(currentDate.getDate() + 1);
+            selectedDateTime = selectedDateTime.add(1, 'day').startOf('day').add(9, 'hours');
         }
 
         this.state = {
-            selectedDate,
-            dayPickerStartDate: selectedDate,
-            ...this.makeTimeMenuList(selectedDate),
-            isPopperOpen: false,
+            selectedDateTime,
         };
     }
 
@@ -75,17 +63,12 @@ export default injectIntl(class DndCustomTimePicker extends React.PureComponent<
 
     handleKeyDown = (event: KeyboardEvent) => {
         if (isKeyPressed(event, Constants.KeyCodes.ESCAPE)) {
-            if (this.state.isPopperOpen) {
-                this.handlePopperOpenState(false);
-            } else {
-                this.props.onExited();
-            }
+            this.props.onExited();
         }
     };
 
-    formatDate = (date: Date): string => {
-        const momentDate = moment(date);
-        return relativeFormatDate(momentDate, this.props.intl.formatMessage);
+    formatDate = (date: moment.Moment): string => {
+        return relativeFormatDate(date, this.props.intl.formatMessage);
     };
 
     getText = () => {
@@ -109,13 +92,7 @@ export default injectIntl(class DndCustomTimePicker extends React.PureComponent<
     };
 
     handleConfirm = async () => {
-        if (this.state.isPopperOpen) {
-            return;
-        }
-        const hours = parseInt(this.state.selectedTime.split(':')[0], 10);
-        const minutes = parseInt(this.state.selectedTime.split(':')[1], 10);
-        const endTime = new Date(this.state.selectedDate);
-        endTime.setHours(hours, minutes);
+        const endTime = this.state.selectedDateTime.toDate();
         if (endTime < new Date()) {
             return;
         }
@@ -129,49 +106,9 @@ export default injectIntl(class DndCustomTimePicker extends React.PureComponent<
         this.props.onExited();
     };
 
-    handleDaySelection = (day: Date) => {
+    handleDateTimeChange = (newDateTime: moment.Moment) => {
         this.setState({
-            isPopperOpen: false,
-            selectedDate: day,
-            ...this.makeTimeMenuList(day),
-        });
-    };
-
-    makeTimeMenuList = (date: Date): {timeMenuList: string[]; selectedTime: string} => {
-        const timeMenuItems: string[] = [];
-        let h = 0;
-        let m = 0;
-        const curr = this.props.currentDate;
-
-        if (this.formatDate(curr) === this.formatDate(date)) {
-            h = curr.getHours();
-            m = curr.getMinutes();
-            if (m > 20) {
-                h++;
-                m = 0;
-            } else {
-                m = 30;
-            }
-        }
-
-        for (let i = h; i < 24; i++) {
-            for (let j = m / 30; j < 2; j++) {
-                const t = i.toString().padStart(2, '0') + ':' + (j * 30).toString().padStart(2, '0');
-                timeMenuItems.push(
-                    t,
-                );
-            }
-        }
-
-        return {
-            timeMenuList: timeMenuItems,
-            selectedTime: timeMenuItems[0],
-        };
-    };
-
-    handlePopperOpenState = (isOpen: boolean) => {
-        this.setState({
-            isPopperOpen: isOpen,
+            selectedDateTime: newDateTime,
         });
     };
 
@@ -181,43 +118,7 @@ export default injectIntl(class DndCustomTimePicker extends React.PureComponent<
             confirmButtonText,
         } = this.getText();
 
-        const {timeMenuList, selectedTime, selectedDate, dayPickerStartDate, isPopperOpen} = this.state;
-        const timeMenuItems = timeMenuList.map((time) => {
-            return (
-                <Menu.ItemAction
-                    id={`dndTime_dropdown_${time}`}
-                    key={time}
-                    text={time}
-                    ariaLabel={`${time} hours`}
-                    onClick={() => {
-                        this.setState({
-                            selectedTime: time,
-                        });
-                        document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
-                            A11yCustomEventTypes.FOCUS, {
-                                detail: {
-                                    target: this.buttonRef.current,
-                                    keyboardOnly: true,
-                                },
-                            },
-                        ));
-                    }}
-                >
-                    {time}
-                </Menu.ItemAction>
-            );
-        });
-
-        const dayPickerProps: DayPickerProps = {
-            initialFocus: isPopperOpen,
-            mode: 'single',
-            selected: selectedDate,
-            onDayClick: this.handleDaySelection,
-            disabled: [{
-                before: dayPickerStartDate,
-            }],
-            showOutsideDays: true,
-        };
+        const {selectedDateTime} = this.state;
 
         return (
             <CompassThemeProvider theme={this.props.theme}>
@@ -232,46 +133,16 @@ export default injectIntl(class DndCustomTimePicker extends React.PureComponent<
                     id='dndCustomTimePickerModal'
                     className={'DndModal modal-overflow'}
                     tabIndex={-1}
-                    keyboardEscape={false}
+                    keyboardEscape={true}
+                    enforceFocus={false}
                 >
                     <div className='DndModal__content'>
-                        <DatePicker
-                            isPopperOpen={isPopperOpen}
-                            handlePopperOpenState={this.handlePopperOpenState}
-                            locale={this.props.locale}
-                            datePickerProps={dayPickerProps}
-                            label={defineMessage({id: 'dnd_custom_time_picker_modal.date', defaultMessage: 'Date'}).defaultMessage}
-                            icon={<i className='icon-calendar-outline'/>}
-                            value={this.formatDate(selectedDate)}
+                        <DateTimeInput
+                            time={selectedDateTime}
+                            handleChange={this.handleDateTimeChange}
+                            timezone={this.props.locale}
+                            relativeDate={true}
                         />
-                        <MenuWrapper
-                            id='dropdown-no-caret'
-                            stopPropagationOnToggle={true}
-                        >
-                            <div
-                                className={`date-time-input`}
-                                role="button"
-                                tabIndex={0}
-                                ref={this.buttonRef as React.RefObject<HTMLDivElement>}
-                            >
-                                <span className='date-time-input__label'>
-                                    <FormattedMessage
-                                        id='dnd_custom_time_picker_modal.time'
-                                        defaultMessage='Time'
-                                    />
-                                </span>
-                                <span className='date-time-input__icon'>
-                                    <i className='icon-clock-outline'/>
-                                </span>
-                                <span className='date-time-input__value'>{selectedTime}</span>
-                            </div>
-                            <Menu
-                                openLeft={false}
-                                ariaLabel={'Clear custom status after'}
-                            >
-                                {timeMenuItems}
-                            </Menu>
-                        </MenuWrapper>
                     </div>
                 </GenericModal>
             </CompassThemeProvider>

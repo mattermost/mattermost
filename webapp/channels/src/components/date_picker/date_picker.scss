@@ -34,21 +34,21 @@
         }
 
         .Input_wrapper {
+            display: flex;
             width: 100%;
             height: 100%;
+            align-items: center;
             padding: 0;
             border: none;
             background: transparent;
-            display: flex;
-            align-items: center;
 
             input {
                 height: auto;
                 padding: 0;
                 border: 0;
-                font-weight: 400;
                 background: transparent;
                 cursor: pointer;
+                font-weight: 400;
 
                 &[readonly] {
                     background: transparent;
@@ -65,21 +65,21 @@
 
             .Input_icon {
                 position: absolute;
-                right: 12px;
                 top: 50%;
-                transform: translateY(-50%);
+                right: 12px;
                 color: rgba(var(--center-channel-color-rgb), 0.64);
                 pointer-events: none;
+                transform: translateY(-50%);
             }
         }
     }
 
     &__popper {
         padding: 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
         background: var(--center-channel-bg);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     }
 }
 

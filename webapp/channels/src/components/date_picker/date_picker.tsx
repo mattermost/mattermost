@@ -72,6 +72,7 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
     const handleWrapperClick = useCallback((e: React.MouseEvent) => {
         // Prevent click from bubbling up to parent elements
         e.stopPropagation();
+
         // Open the popper when clicking anywhere in the wrapper
         handlePopperOpenState(true);
     }, [handlePopperOpenState]);
