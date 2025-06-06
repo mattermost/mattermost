@@ -121,10 +121,21 @@ export default class SettingItemMax extends React.PureComponent<Props> {
             serverError = (
                 <div className='form-group'>
                     <label
-                        id='serverError'
                         className='col-sm-12 has-error'
                     >
-                        {this.props.serverError}
+                        <i
+                            className='icon icon-alert-circle-outline'
+                            role='presentation'
+                        />
+                        <span className='sr-only'>
+                            <FormattedMessage
+                                id='setting_item_max.error'
+                                defaultMessage='Error'
+                            />
+                        </span>
+                        <span id='serverError'>
+                            {this.props.serverError}
+                        </span>
                     </label>
                 </div>
             );
@@ -223,7 +234,11 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                         <div className='setting-list-item'>
                             <hr/>
                             {this.props.submitExtra}
-                            {serverError}
+                            <div
+                                role='alert'
+                            >
+                                {serverError}
+                            </div>
                             {submit}
                             <button
                                 id={'cancelSetting'}
