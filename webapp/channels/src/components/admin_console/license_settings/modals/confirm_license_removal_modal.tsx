@@ -79,7 +79,7 @@ const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element 
                 <div className='content-footer'>
                     <button
                         onClick={handleOnClose}
-                        className='btn light-blue-btn'
+                        className='btn btn-tertiary'
                         id='cancel-removal'
                     >
                         <FormattedMessage

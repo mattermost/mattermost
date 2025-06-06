@@ -58,7 +58,11 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
     return (
         <div className='file_preview_modal_main_nav'>
             {leftArrow}
-            <span className='modal-bar-file-count'>
+            <span
+                className='modal-bar-file-count'
+                aria-live='polite'
+                aria-atomic='true'
+            >
                 <FormattedMessage
                     id='file_preview_modal_main_nav.file'
                     defaultMessage='{count, number} of {total, number}'
