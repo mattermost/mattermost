@@ -647,6 +647,14 @@ func (u *User) Patch(patch *UserPatch) {
 	}
 
 	if patch.RemoteId != nil {
+		// Debug: Log when RemoteId is being set via patch
+		if u.RemoteId == nil || *u.RemoteId == "" {
+			// This is a local user getting RemoteId set!
+			// Note: We can't use PostDebugToTownSquare here since we don't have app context
+			// But we can use regular logging
+			fmt.Printf("USER_PATCH_DEBUG: Setting RemoteId on local user! UserID: %s, Username: %s, Old RemoteId: '%s', New RemoteId: '%s'\n",
+				u.Id, u.Username, u.GetRemoteID(), SafeDereference(patch.RemoteId))
+		}
 		u.RemoteId = patch.RemoteId
 	}
 }

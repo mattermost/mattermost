@@ -203,16 +203,44 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 		}
 	}
 
+	// Debug: Log user sync attempt
+	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+		fmt.Sprintf("UPSERT_SYNC_USER: Attempting sync - UserID: %s, Username: %s, From Remote: %s, User exists locally: %v",
+			user.Id, user.Username, rc.RemoteId, euser != nil))
+
+	if euser != nil {
+		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+			fmt.Sprintf("UPSERT_SYNC_USER: Existing user - UserID: %s, Username: %s, Current RemoteId: '%s', Incoming RemoteId: '%s', Remote cluster: '%s'",
+				euser.Id, euser.Username, euser.GetRemoteID(), user.GetRemoteID(), rc.RemoteId))
+
+		// Check for potential ID collision between local and remote users
+		if euser.GetRemoteID() == "" {
+			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+				fmt.Sprintf("UPSERT_SYNC_USER: LOCAL USER COLLISION - Local user %s (ID: %s) has same ID as incoming remote user from %s",
+					euser.Username, euser.Id, rc.RemoteId))
+		}
+	}
+
 	var userSaved *model.User
 	if euser == nil {
 		// new user.  Make sure the remoteID is correct and insert the record
 		user.RemoteId = model.NewPointer(rc.RemoteId)
+		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+			fmt.Sprintf("UPSERT_SYNC_USER: Creating new user - UserID: %s, Username: %s, Setting RemoteId: %s",
+				user.Id, user.Username, rc.RemoteId))
 		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
 			return nil, err
 		}
 	} else {
 		// existing user. Make sure user belongs to the remote that issued the update
 		if euser.GetRemoteID() != rc.RemoteId {
+			// Special debug for local users being overwritten
+			if euser.GetRemoteID() == "" {
+				scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+					fmt.Sprintf("UPSERT_SYNC_USER: CRITICAL - Attempt to overwrite LOCAL user! UserID: %s, Username: %s, From Remote: %s",
+						euser.Id, euser.Username, rc.RemoteId))
+			}
+
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "RemoteID mismatch sync'ing user",
 				mlog.String("remote", rc.Name),
 				mlog.String("user_id", user.Id),
