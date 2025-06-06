@@ -684,10 +684,8 @@ func TestDeleteImport(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	dataDir, found := fileutils.FindDir("data")
-	require.True(t, found)
-	importDir := filepath.Join(dataDir, "import")
-	err := os.Mkdir(importDir, os.ModePerm)
+	importDir := filepath.Join(th.tempWorkspace, "data", "import")
+	err := os.MkdirAll(importDir, os.ModePerm)
 	require.NoError(t, err)
 	f, err := os.Create(filepath.Join(importDir, "import.zip"))
 	require.NoError(t, err)
