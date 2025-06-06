@@ -114,7 +114,9 @@ import TeamDetails from './team_channel_settings/team/details';
 import type {Check, AdminDefinition as AdminDefinitionType, ConsoleAccess} from './types';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
-import ContentFlaggingNotificationSettings
+import ContentFlaggingContentReviewers
+    from "components/admin_console/content_flagging/content_reviewers/content_reviewers";
+import ContentFlaggingNotificationSettingsSection
     from "components/admin_console/content_flagging/notificatin_settings/notification_settings";
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
@@ -3327,8 +3329,13 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'custom',
+                            key: 'ContentFlaggingSettings.ReviewerSettings',
+                            component: ContentFlaggingContentReviewers,
+                        },
+                        {
+                            type: 'custom',
                             key: 'ContentFlaggingSettings.NotificationSettings',
-                            component: ContentFlaggingNotificationSettings,
+                            component: ContentFlaggingNotificationSettingsSection,
                         },
                     ],
                 },

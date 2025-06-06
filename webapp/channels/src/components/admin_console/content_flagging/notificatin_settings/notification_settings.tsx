@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, { useCallback } from "react";
 import {FormattedMessage} from 'react-intl';
 
+import CheckboxSetting from 'components/admin_console/checkbox_setting';
 import {
     AdminSection,
     SectionContent,
@@ -11,11 +12,15 @@ import {
 } from 'components/admin_console/system_properties/controls';
 
 import '../content_flagging_section_base.scss';
-import CheckboxSetting from "components/admin_console/checkbox_setting";
+import { SystemConsoleCustomSettingsComponentProps } from "components/admin_console/schema_admin_settings";
+import { ContentFlaggingNotificationSettings } from "@mattermost/types/lib/config";
 
 const noOp = () => null;
 
-export default function ContentFlaggingNotificationSettings() {
+export default function ContentFlaggingNotificationSettingsSection(props: SystemConsoleCustomSettingsComponentProps) {
+    const [notificationSettings, setNotificationSettings] = React.useState<ContentFlaggingNotificationSettings>(props.value);
+
+
     return (
         <AdminSection>
             <SectionHeader>
@@ -55,7 +60,7 @@ export default function ContentFlaggingNotificationSettings() {
                                         defaultMessage='Reviewer(s)'
                                     />
                                 }
-                                defaultChecked={true}
+                                defaultChecked={notificationSettings.EventTargetMapping.flagged.includes('reviewers')}
                                 onChange={noOp}
                                 setByEnv={false}
                                 disabled={true}
@@ -69,7 +74,7 @@ export default function ContentFlaggingNotificationSettings() {
                                         defaultMessage='Author'
                                     />
                                 }
-                                defaultChecked={false}
+                                defaultChecked={notificationSettings.EventTargetMapping.flagged.includes('author')}
                                 onChange={noOp}
                                 setByEnv={false}
                             />
@@ -94,7 +99,7 @@ export default function ContentFlaggingNotificationSettings() {
                                         defaultMessage='Reviewer(s)'
                                     />
                                 }
-                                defaultChecked={true}
+                                defaultChecked={notificationSettings.EventTargetMapping.assigned.includes('reviewers')}
                                 onChange={noOp}
                                 setByEnv={false}
                             />
@@ -119,7 +124,7 @@ export default function ContentFlaggingNotificationSettings() {
                                         defaultMessage='Reviewer(s)'
                                     />
                                 }
-                                defaultChecked={true}
+                                defaultChecked={notificationSettings.EventTargetMapping.removed.includes('reviewers')}
                                 onChange={noOp}
                                 setByEnv={false}
                             />
@@ -132,7 +137,7 @@ export default function ContentFlaggingNotificationSettings() {
                                         defaultMessage='Author'
                                     />
                                 }
-                                defaultChecked={false}
+                                defaultChecked={notificationSettings.EventTargetMapping.removed.includes('author')}
                                 onChange={noOp}
                                 setByEnv={false}
                             />
@@ -145,7 +150,7 @@ export default function ContentFlaggingNotificationSettings() {
                                         defaultMessage='Reporter'
                                     />
                                 }
-                                defaultChecked={false}
+                                defaultChecked={notificationSettings.EventTargetMapping.removed.includes('reporter')}
                                 onChange={noOp}
                                 setByEnv={false}
                             />
@@ -170,7 +175,7 @@ export default function ContentFlaggingNotificationSettings() {
                                         defaultMessage='Reviewer(s)'
                                     />
                                 }
-                                defaultChecked={true}
+                                defaultChecked={notificationSettings.EventTargetMapping.dismissed.includes('reviewers')}
                                 onChange={noOp}
                                 setByEnv={false}
                             />
@@ -183,7 +188,7 @@ export default function ContentFlaggingNotificationSettings() {
                                         defaultMessage='Author'
                                     />
                                 }
-                                defaultChecked={false}
+                                defaultChecked={notificationSettings.EventTargetMapping.dismissed.includes('author')}
                                 onChange={noOp}
                                 setByEnv={false}
                             />
@@ -196,7 +201,7 @@ export default function ContentFlaggingNotificationSettings() {
                                         defaultMessage='Reporter'
                                     />
                                 }
-                                defaultChecked={false}
+                                defaultChecked={notificationSettings.EventTargetMapping.dismissed.includes('reporter')}
                                 onChange={noOp}
                                 setByEnv={false}
                             />

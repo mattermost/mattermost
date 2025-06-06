@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+
+import type {ContentFlaggingEvent, NotificationTarget} from './content_flagging';
+
 export type ClientConfig = {
     AboutLink: string;
     AllowBannerDismissal: string;
@@ -979,6 +982,14 @@ export type AccessControlSettings = {
     EnableChannelScopeAccessControl: boolean;
 };
 
+export type ContentFlaggingNotificationSettings = {
+    EventTargetMapping: Record<ContentFlaggingEvent, NotificationTarget[]>;
+}
+
+export type ContentFlaggingSettings = {
+    NotificationSettings: ContentFlaggingNotificationSettings;
+}
+
 export type AdminConfig = {
     ServiceSettings: ServiceSettings;
     TeamSettings: TeamSettings;
@@ -1025,6 +1036,7 @@ export type AdminConfig = {
     WranglerSettings: WranglerSettings;
     ConnectedWorkspacesSettings: ConnectedWorkspacesSettings;
     AccessControlSettings: AccessControlSettings;
+    ContentFlaggingSettings: ContentFlaggingSettings;
 };
 
 export type ReplicaLagSetting = {
