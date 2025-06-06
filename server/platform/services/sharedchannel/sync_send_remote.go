@@ -480,10 +480,10 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			remoteIdStr = *user.RemoteId
 		}
 		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("SEND_LOCAL_USER_CHECK: userID: %s, username: %s, v.post != nil: %v, user.RemoteId == nil: %v, user.RemoteId: %s",
-				userID, user.Username, v.post != nil, user.RemoteId == nil, remoteIdStr))
+			fmt.Sprintf("SEND_LOCAL_USER_CHECK: userID: %s, username: %s, v.post != nil: %v, !user.IsRemote(): %v, user.RemoteId: %s",
+				userID, user.Username, v.post != nil, !user.IsRemote(), remoteIdStr))
 
-		if v.post != nil && user.RemoteId == nil {
+		if v.post != nil && !user.IsRemote() {
 			localClusterName := getLocalClusterName(scs.server.Config())
 
 			// Debug: Log before transformation (Scenario 1)

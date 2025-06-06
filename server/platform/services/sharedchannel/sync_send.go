@@ -580,7 +580,7 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 		// user not in the SharedChannelUsers table, so we must add them.
 		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
 			fmt.Sprintf("SEND_SHOULD_USER_SYNC: User not in SCU table, adding - User: %s, IsLocal: %v",
-				user.Username, user.RemoteId == nil))
+				user.Username, !user.IsRemote()))
 
 		scu = &model.SharedChannelUser{
 			UserId:    user.Id,

@@ -648,7 +648,7 @@ func (u *User) Patch(patch *UserPatch) {
 
 	if patch.RemoteId != nil {
 		// Debug: Log when RemoteId is being set via patch
-		if u.RemoteId == nil || *u.RemoteId == "" {
+		if !u.IsRemote() {
 			// This is a local user getting RemoteId set!
 			// Note: We can't use PostDebugToTownSquare here since we don't have app context
 			// But we can use regular logging
