@@ -78,6 +78,7 @@ describe('YoutubeVideo', () => {
 
         // Verify that the iframe has a referrerPolicy attribute (set to 'origin') when youtubeReferrerPolicy is true.
         expect(wrapper.find('.video-playing iframe').prop('referrerPolicy')).toEqual('origin');
+
         // Verify that the iframe src includes the new parameters
         expect(wrapper.find('.video-playing iframe').prop('src')).toEqual('https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0&fs=1&enablejsapi=1');
     });

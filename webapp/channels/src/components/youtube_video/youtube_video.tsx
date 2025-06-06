@@ -32,7 +32,7 @@ type YouTubeThumbnailProps = {
     useMaxResThumbnail: boolean;
 };
 
-function YouTubeThumbnail({play, videoTitle, onError, thumbnailUrl, useMaxResThumbnail}: YouTubeThumbnailProps) {
+function YouTubeThumbnail({play, videoTitle, onError, thumbnailUrl}: YouTubeThumbnailProps) {
     return (
         <div
             className='video-thumbnail__container'
@@ -125,7 +125,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
         const videoId = getVideoId(link);
         const videoTitle = metadata?.title || 'unknown';
         const time = handleYoutubeTime(link);
-        
+
         const thumbnailUrl = this.state.useMaxResThumbnail ? this.getMaxResUrl(link) : this.getHQUrl(link);
 
         const header = (
@@ -183,7 +183,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
             </div>
         );
     }
-    
+
     static isYoutubeLink(link: string): boolean {
         return Boolean(link.trim().match(ytRegex));
     }
