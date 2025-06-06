@@ -72,8 +72,8 @@
                     min-height: 100%;
 
                     .GenericModal__body {
-                        max-height: 100%;
                         display: flex;
+                        max-height: 100%;
 
                         > div {
                             max-height: 100%;
@@ -88,14 +88,14 @@
                     }
 
                     .settings-table {
-                        max-height: 100%;
                         display: flex;
                         min-height: 0;
+                        max-height: 100%;
 
                         .settings-content {
                             > div {
-                                max-height: 100%;
                                 display: flex;
+                                max-height: 100%;
 
                                 > div {
                                     display: flex;

@@ -70,9 +70,9 @@
 
         .custom-textarea {
             height: auto !important;
-            flex-basis: 8em;
             min-height: 46px;
             max-height: 60vh;
+            flex-basis: 8em;
             -webkit-overflow-scrolling: touch;
             -ms-overflow-style: auto;
             overflow-y: auto;
