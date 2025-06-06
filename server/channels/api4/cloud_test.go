@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
-func Test_GetSubscription(t *testing.T) {
+func TestGetSubscription(t *testing.T) {
 	mainHelper.Parallel(t)
 	deliquencySince := int64(2000000000)
 
@@ -57,7 +57,8 @@ func Test_GetSubscription(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -83,7 +84,8 @@ func Test_GetSubscription(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -105,14 +107,15 @@ func Test_GetSubscription(t *testing.T) {
 	})
 }
 
-func Test_validateBusinessEmail(t *testing.T) {
+func TestValidateBusinessEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Returns forbidden for invalid business email", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		validBusinessEmail := model.ValidateBusinessEmailRequest{Email: "invalid@slacker.com"}
 
@@ -138,7 +141,8 @@ func Test_validateBusinessEmail(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		validBusinessEmail := model.ValidateBusinessEmailRequest{Email: "valid@mattermost.com"}
 
@@ -164,7 +168,8 @@ func Test_validateBusinessEmail(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -175,14 +180,15 @@ func Test_validateBusinessEmail(t *testing.T) {
 	})
 }
 
-func Test_validateWorkspaceBusinessEmail(t *testing.T) {
+func TestValidateWorkspaceBusinessEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("validate the Cloud Customer has used a valid email to create the workspace", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -205,7 +211,7 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		_, err := th.SystemAdminClient.ValidateWorkspaceBusinessEmail(context.Background())
+		_, err = th.SystemAdminClient.ValidateWorkspaceBusinessEmail(context.Background())
 		require.NoError(t, err)
 	})
 
@@ -214,7 +220,8 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -242,7 +249,7 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		_, err := th.SystemAdminClient.ValidateWorkspaceBusinessEmail(context.Background())
+		_, err = th.SystemAdminClient.ValidateWorkspaceBusinessEmail(context.Background())
 		require.NoError(t, err)
 	})
 
@@ -251,7 +258,8 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -353,7 +361,8 @@ func TestGetCloudProducts(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		require.NoError(t, err)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -376,7 +385,8 @@ func TestGetCloudProducts(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
