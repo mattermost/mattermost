@@ -195,7 +195,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         menuButton={{
                             id: 'time_button',
                             'aria-label': formatMessage({id: 'custom_status.expiry.time_picker.title', defaultMessage: 'Time'}),
-                            class: 'date-time-input',
+                            class: isTimeMenuOpen ? 'date-time-input date-time-input--open' : 'date-time-input',
                             children: (
                                 <>
                                     <span className='date-time-input__label'>{formatMessage({id: 'custom_status.expiry.time_picker.title', defaultMessage: 'Time'})}</span>
