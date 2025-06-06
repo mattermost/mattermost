@@ -1006,3 +1006,81 @@ func TestHasPermissionToChannelByPost(t *testing.T) {
 		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.SystemAdminUser.Id, post.Id, model.PermissionReadChannel))
 	})
 }
+
+func TestIsChannelArchivedAndHidden(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("nil channel should return false", func(t *testing.T) {
+		result := th.App.isChannelArchivedAndHidden(nil)
+		assert.False(t, result, "nil channel should return false")
+	})
+
+	t.Run("non-archived channel with config enabled should return false", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewPointer(true)
+		})
+
+		channel := &model.Channel{
+			Id:       model.NewId(),
+			TeamId:   th.BasicTeam.Id,
+			Name:     "test-channel",
+			Type:     model.ChannelTypeOpen,
+			DeleteAt: 0, // Not archived
+		}
+
+		result := th.App.isChannelArchivedAndHidden(channel)
+		assert.False(t, result, "non-archived channel should return false regardless of config")
+	})
+
+	t.Run("non-archived channel with config disabled should return false", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewPointer(false)
+		})
+
+		channel := &model.Channel{
+			Id:       model.NewId(),
+			TeamId:   th.BasicTeam.Id,
+			Name:     "test-channel",
+			Type:     model.ChannelTypeOpen,
+			DeleteAt: 0, // Not archived
+		}
+
+		result := th.App.isChannelArchivedAndHidden(channel)
+		assert.False(t, result, "non-archived channel should return false")
+	})
+
+	t.Run("archived channel with config enabled should return false", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewPointer(true)
+		})
+
+		channel := &model.Channel{
+			Id:       model.NewId(),
+			TeamId:   th.BasicTeam.Id,
+			Name:     "test-channel",
+			Type:     model.ChannelTypeOpen,
+			DeleteAt: 12345, // Archived
+		}
+
+		result := th.App.isChannelArchivedAndHidden(channel)
+		assert.False(t, result, "archived channel should return false when config allows viewing archived channels")
+	})
+
+	t.Run("archived channel with config disabled should return true", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewPointer(false)
+		})
+
+		channel := &model.Channel{
+			Id:       model.NewId(),
+			TeamId:   th.BasicTeam.Id,
+			Name:     "test-channel",
+			Type:     model.ChannelTypeOpen,
+			DeleteAt: 12345, // Archived
+		}
+
+		result := th.App.isChannelArchivedAndHidden(channel)
+		assert.True(t, result, "archived channel should return true when config disables viewing archived channels")
+	})
+}

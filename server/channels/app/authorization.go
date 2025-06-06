@@ -450,5 +450,10 @@ func (a *App) HasPermissionToChannelMemberCount(c request.CTX, userID string, ch
 }
 
 func (a *App) isChannelArchivedAndHidden(channel *model.Channel) bool {
-	return !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0
+	// This isn't technically needed, but we see crashes in Sentry.
+	// So adding this safeguard.
+	if channel == nil {
+		return false
+	}
+	return !model.SafeDereference(a.Config().TeamSettings.ExperimentalViewArchivedChannels) && channel.DeleteAt != 0
 }
