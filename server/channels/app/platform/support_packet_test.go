@@ -25,6 +25,8 @@ import (
 )
 
 func TestGenerateSupportPacket(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -196,7 +198,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	t.Run("Happy path", func(t *testing.T) {
 		d := getDiagnostics(t)
 
-		assert.Equal(t, 1, d.Version)
+		assert.Equal(t, 2, d.Version)
 
 		/* License */
 		assert.Equal(t, "My awesome Company", d.License.Company)
