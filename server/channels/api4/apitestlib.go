@@ -276,12 +276,13 @@ func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 		tb.SkipNow()
 	}
 
-	removeErrors := func(config *model.Config) {
+	removeSpuriousErrors := func(config *model.Config) {
+		// If not set, you will receive an unactionable error in the console
 		*config.ServiceSettings.SiteURL = "http://localhost:8065"
 	}
 
 	dbStore, dbSettings, searchEngine := setupStores(tb)
-	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, true, true, removeErrors, options)
+	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, true, true, removeSpuriousErrors, options)
 	th.InitLogin(tb)
 
 	return th
@@ -365,11 +366,12 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
-	removeErrors := func(config *model.Config) {
+	removeSpuriousErrors := func(config *model.Config) {
+		// If not set, you will receive an unactionable error in the console
 		*config.ServiceSettings.SiteURL = "http://localhost:8065"
 	}
 
-	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, true, false, removeErrors, options)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, true, false, removeSpuriousErrors, options)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
