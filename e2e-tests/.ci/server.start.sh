@@ -21,6 +21,18 @@ for MIGRATION in migration_advanced_permissions_phase_2; do
   MIGRATION_CHECK_COMMAND="${MME2E_DC_SERVER} exec -T -- postgres psql -U mmuser mattermost_test -c \"select 1 / (select count(*) from Systems where name = '${MIGRATION}' and value = 'true');\""
   if ! mme2e_wait_command_success "$MIGRATION_CHECK_COMMAND >/dev/null 2>&1" "Waiting for migration to be completed: ${MIGRATION}" "30" "10"; then
     mme2e_log "Migration ${MIGRATION} not completed, retry attempts exhausted. Giving up." >&2
+
+    LOG_DIR="../${TEST}/logs"
+    mkdir -p "$LOG_DIR"
+
+    # Save server logs to a file
+    ${MME2E_DC_SERVER} logs --no-log-prefix -- server >"$LOG_DIR/server.log"
+    mme2e_log "Server logs saved to server.log"
+
+    # Save postgres logs to a file
+    ${MME2E_DC_SERVER} logs --no-log-prefix -- postgres >"$LOG_DIR/postgres.log"
+    mme2e_log "Postgres logs saved to postgres.log"
+
     exit 2
   fi
   mme2e_log "${MIGRATION}: completed."
