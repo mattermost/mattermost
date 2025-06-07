@@ -40,7 +40,7 @@ export type LDAPDefinitionSettingButton = AdminDefinitionSettingButton & {
 }
 
 export type LDAPDefinitionSetting = AdminDefinitionSetting & {
-    help_text_hover?: string | JSX.Element | MessageDescriptor;
+    help_text_more_info?: string | JSX.Element | MessageDescriptor;
 }
 
 export type LDAPAdminDefinitionConfigSchemaSettings = AdminDefinitionSubSectionSchema & {
