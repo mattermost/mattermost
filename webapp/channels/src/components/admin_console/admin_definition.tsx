@@ -6361,7 +6361,7 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.BindUsername',
                 label: defineMessage({id: 'admin.ldap.bindUserTitle', defaultMessage: 'Bind Username:'}),
                 help_text: defineMessage({id: 'admin.ldap.bindUserDesc', defaultMessage: 'The username used to perform the AD/LDAP search.'}),
-                help_text_hover: defineMessage({id: 'admin.ldap.bindUserDescHover', defaultMessage: 'This should typically be an account created specifically for use with Mattermost. It should have access limited to read the portion of the AD/LDAP tree specified in the Base DN field.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.bindUserDescHover', defaultMessage: 'This should typically be an account created specifically for use with Mattermost. It should have access limited to read the portion of the AD/LDAP tree specified in the Base DN field.'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
@@ -6415,7 +6415,7 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.SkipCertificateVerification',
                 label: defineMessage({id: 'admin.ldap.skipCertificateVerification', defaultMessage: 'Skip Certificate Verification:'}),
                 help_text: defineMessage({id: 'admin.ldap.skipCertificateVerificationDesc', defaultMessage: 'Skips the certificate verification step for TLS or STARTTLS connections.'}),
-                help_text_hover: defineMessage({id: 'admin.ldap.skipCertificateVerificationDescHover', defaultMessage: 'Skipping certificate verification is not recommended for production environments where TLS is required.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.skipCertificateVerificationDescHover', defaultMessage: 'Skipping certificate verification is not recommended for production environments where TLS is required.'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.stateIsFalse('LdapSettings.ConnectionSecurity'),
@@ -6426,7 +6426,7 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.PrivateKeyFile',
                 label: defineMessage({id: 'admin.ldap.privateKeyFileTitle', defaultMessage: 'Private Key:'}),
                 help_text: defineMessage({id: 'admin.ldap.privateKeyFileFileDesc', defaultMessage: 'The private key file for TLS Certificate.'}),
-                help_text_hover: defineMessage({id: 'admin.ldap.privateKeyFileFileDescHover', defaultMessage: 'If using TLS client certificates as primary authentication mechanism. This will be provided by your LDAP Authentication Provider.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.privateKeyFileFileDescHover', defaultMessage: 'If using TLS client certificates as primary authentication mechanism. This will be provided by your LDAP Authentication Provider.'}),
                 remove_help_text: defineMessage({id: 'admin.ldap.privateKeyFileFileRemoveDesc', defaultMessage: 'Remove the private key file for TLS Certificate.'}),
                 remove_button_text: defineMessage({id: 'admin.ldap.remove.privKey', defaultMessage: 'Remove TLS Certificate Private Key'}),
                 removing_text: defineMessage({id: 'admin.ldap.removing.privKey', defaultMessage: 'Removing Private Key...'}),
@@ -6447,7 +6447,7 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.PublicCertificateFile',
                 label: defineMessage({id: 'admin.ldap.publicCertificateFileTitle', defaultMessage: 'Public Certificate:'}),
                 help_text: defineMessage({id: 'admin.ldap.publicCertificateFileDesc', defaultMessage: 'The public certificate file for TLS Certificate.'}),
-                help_text_hover: defineMessage({id: 'admin.ldap.publicCertificateFileDescHover', defaultMessage: 'If using TLS client certificates as primary authentication mechanism. This will be provided by your LDAP Authentication Provider.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.publicCertificateFileDescHover', defaultMessage: 'If using TLS client certificates as primary authentication mechanism. This will be provided by your LDAP Authentication Provider.'}),
                 remove_help_text: defineMessage({id: 'admin.ldap.publicCertificateFileRemoveDesc', defaultMessage: 'Remove the public certificate file for TLS Certificate.'}),
                 remove_button_text: defineMessage({id: 'admin.ldap.remove.sp_certificate', defaultMessage: 'Remove Service Provider Certificate'}),
                 removing_text: defineMessage({id: 'admin.ldap.removing.certificate', defaultMessage: 'Removing Certificate...'}),
@@ -6468,7 +6468,7 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.MaximumLoginAttempts',
                 label: defineMessage({id: 'admin.ldap.maximumLoginAttemptsTitle', defaultMessage: 'Maximum Login Attempts:'}),
                 help_text: defineMessage({id: 'admin.ldap.maximumLoginAttemptsDesc', defaultMessage: 'The maximum number of login attempts before the Mattermost account is locked.'}),
-                help_text_hover: defineMessage({id: 'admin.ldap.maximumLoginAttemptsDescHover', defaultMessage: 'You can unlock the account in system console on the users page. Setting this value lower than your LDAP maximum login attempts ensures that the users won\'t be locked out of your LDAP server because of failed login attempts in Mattermost.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.maximumLoginAttemptsDescHover', defaultMessage: 'You can unlock the account in system console on the users page. Setting this value lower than your LDAP maximum login attempts ensures that the users won\'t be locked out of your LDAP server because of failed login attempts in Mattermost.'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
