@@ -29,7 +29,7 @@ const LDAPTextSetting = (props: TextSettingProps) => {
     const intl = useIntl();
 
     if (!props.schema || !props.setting.key || (props.setting.type !== 'text' && props.setting.type !== 'longtext' && props.setting.type !== 'number')) {
-        return (<></>);
+        return null;
     }
 
     let inputType: 'text' | 'number' | 'textarea' = 'text';

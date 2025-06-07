@@ -18,7 +18,7 @@ const LDAPJobsTableSetting = (props: Props) => {
     const intl = useIntl();
 
     if (!props.schema || props.setting.type !== 'jobstable') {
-        return (<></>);
+        return null;
     }
 
     const helpText = renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
