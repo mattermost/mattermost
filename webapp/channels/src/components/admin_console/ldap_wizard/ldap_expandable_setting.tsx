@@ -31,6 +31,7 @@ const LDAPExpandableSetting = (props: ExpandableSettingProps) => {
     // Get the settings array from the expandable section setting
     const settings = props.setting.settings || [];
     const label = renderLabel(props.setting, props.schema, intl);
+    const contentId = `ldap-expandable-content-${props.setting.key}`;
 
     return (
         <div className='ldap-expandable-section'>
@@ -38,12 +39,17 @@ const LDAPExpandableSetting = (props: ExpandableSettingProps) => {
                 <button
                     className='ldap-expandable-section-toggle'
                     onClick={toggleExpanded}
+                    aria-expanded={expanded}
+                    aria-controls={contentId}
                 >
                     {label}
                 </button>
                 <i className={`fa fa-caret-right ldap-expandable-arrow ${expanded ? 'open' : ''}`}/>
             </div>
-            <div className={`ldap-expandable-section-content ${expanded ? 'expanded' : ''}`}>
+            <div
+                id={contentId}
+                className={`ldap-expandable-section-content ${expanded ? 'expanded' : ''}`}
+            >
                 {settings.map((setting: LDAPDefinitionSetting, index: number) => (
                     <div key={setting.key || `setting-${index}`}>
                         {props.buildSettingFunction(setting)}
