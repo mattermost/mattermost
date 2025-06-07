@@ -41,8 +41,6 @@ export type LDAPDefinitionSettingButton = AdminDefinitionSettingButton & {
 
 export type LDAPDefinitionSetting = AdminDefinitionSetting & {
     help_text_hover?: string | JSX.Element | MessageDescriptor;
-    help_text_hover_markdown?: boolean;
-    help_text_hover_values?: {[key: string]: any};
 }
 
 export type LDAPAdminDefinitionConfigSchemaSettings = AdminDefinitionSubSectionSchema & {
@@ -180,7 +178,7 @@ const LDAPWizard = (props: Props) => {
                 onChange={handleChange}
                 saveNeeded={false}
                 schema={schema}
-                disabled={isDisabled(setting as unknown as AdminDefinitionSetting)}
+                disabled={isDisabled(setting)}
                 setting={setting as LDAPDefinitionSettingButton}
                 ldapSettingsState={config.LdapSettings}
             />
