@@ -10,6 +10,8 @@ import FullName from 'components/profile_popover/profile_popover_full_name';
 import Position from 'components/profile_popover/profile_popover_position';
 import UserName from 'components/profile_popover/profile_popover_user_name';
 
+import {getUsername} from 'utils/utils';
+
 type Props = {
     haveOverrideProp: boolean;
     user: UserProfile;
@@ -34,7 +36,7 @@ const ProfilePopoverName = ({
             )}
             <UserName
                 hasFullName={Boolean(fullname)}
-                username={user.username}
+                username={getUsername(user)}
             />
             {(user.position && !haveOverrideProp) && (
                 <Position
