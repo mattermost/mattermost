@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, type MessageDescriptor} from 'react-intl';
 
 import WithTooltip from 'components/with_tooltip';
 
@@ -32,15 +32,15 @@ export const LDAPHelpTextWithHover: React.FC<{
                     <SchemaText text={hoverText}/>
                 )}
             >
-                <span
-                    style={{
-                        color: '#0066cc',
-                        cursor: 'pointer',
-                        textDecoration: 'underline',
-                    }}
+                <button
+                    type='button'
+                    className='ldap-help-text-more-info'
                 >
-                    {'More Info'}
-                </span>
+                    <FormattedMessage
+                        id='admin.ldap.more_info'
+                        defaultMessage='More Info'
+                    />
+                </button>
             </WithTooltip>
         </>
     );
@@ -72,13 +72,13 @@ export const renderLDAPSettingHelpText = (
     }
 
     // Check if hover text is available (LDAP-specific extension)
-    if (setting.help_text_hover) {
+    if (setting.help_text_more_info) {
         return (
             <LDAPHelpTextWithHover
                 baseText={helpText}
                 baseIsMarkdown={isMarkdown}
                 baseTextValues={helpTextValues}
-                hoverText={setting.help_text_hover}
+                hoverText={setting.help_text_more_info}
             />
         );
     }
