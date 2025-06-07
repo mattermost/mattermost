@@ -205,20 +205,19 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             dimensions,
             src,
             intl,
-            ...props
+            hideUtilities,
+            getFilePublicLink,
+            smallImageThreshold,
+            fileURL,
+            enablePublicLink,
+            handleSmallImageContainer,
+            className,
+            onImageLoaded,
+            onImageLoadFail,
+            showLoader,
+            onClick,
+            ...restProps
         } = this.props;
-        Reflect.deleteProperty(props, 'showLoader');
-        Reflect.deleteProperty(props, 'onImageLoaded');
-        Reflect.deleteProperty(props, 'onImageLoadFail');
-        Reflect.deleteProperty(props, 'dimensions');
-        Reflect.deleteProperty(props, 'handleSmallImageContainer');
-        Reflect.deleteProperty(props, 'enablePublicLink');
-        Reflect.deleteProperty(props, 'onClick');
-        Reflect.deleteProperty(props, 'hideUtilities');
-        Reflect.deleteProperty(props, 'getFilePublicLink');
-        Reflect.deleteProperty(props, 'intl');
-        Reflect.deleteProperty(props, 'smallImageThreshold');
-        Reflect.deleteProperty(props, 'fileURL');
 
         let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
@@ -237,15 +236,12 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         const image = (
             <img
-                {...props}
+                {...restProps}
                 aria-label={ariaLabelImage}
                 tabIndex={0}
                 onClick={this.handleImageClick}
                 onKeyDown={this.onEnterKeyDown}
-                className={
-                    this.props.className +
-                    (this.props.handleSmallImageContainer &&
-                        this.state.isSmallImage ? ' small-image--inside-container' : '')}
+                className={className + (handleSmallImageContainer && this.state.isSmallImage ? ' small-image--inside-container' : '')}
                 src={src}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
@@ -253,7 +249,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             />
         );
 
-        if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
+        if (handleSmallImageContainer && this.state.isSmallImage) {
             const baseClassName = 'small-image__container cursor--pointer a11y--active';
 
             // Only add min-width/min-height if the image is smaller than MIN_IMAGE_SIZE
@@ -287,11 +283,26 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
     renderImageOrFallback = () => {
         const {
-            dimensions,
             fileInfo,
+            dimensions,
+            src,
+            intl,
+            hideUtilities,
+            getFilePublicLink,
+            smallImageThreshold,
+            fileURL,
+            enablePublicLink,
+            ...props
         } = this.props;
 
-        let ariaLabelImage = this.props.intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
+        // Remove props that shouldn't be passed to the img element
+        const imgProps = {...props};
+        delete imgProps.onImageLoaded;
+        delete imgProps.onImageLoadFail;
+        delete imgProps.showLoader;
+        delete imgProps.handleSmallImageContainer;
+
+        let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
         }
@@ -308,7 +319,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             if (miniPreview) {
                 fallback = (
                     <div
-                        className={`image-loading__container ${this.props.className}`}
+                        className={`image-loading__container ${imgProps.className}`}
                         style={{
                             width: dimensions?.width,
                             height: dimensions?.height,
@@ -318,7 +329,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     >
                         <img
                             aria-label={ariaLabelImage}
-                            className={this.props.className}
+                            className={imgProps.className}
                             src={miniPreview}
                             tabIndex={0}
                             height={height}
@@ -329,7 +340,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             } else {
                 fallback = (
                     <div
-                        className={`image-loading__container ${this.props.className}`}
+                        className={`image-loading__container ${imgProps.className}`}
                         style={{
                             width,
                             height,
@@ -352,7 +363,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         const imageContainer = this.renderImageWithContainerIfNeeded();
 
         // Always render utility buttons outside the figure but inside file-preview__button (unless hideUtilities is true)
-        const utilityButtons = this.props.hideUtilities ? null : this.renderUtilityButtons();
+        const utilityButtons = hideUtilities ? null : this.renderUtilityButtons();
 
         return (
             <>
@@ -410,6 +421,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             intl,
             src,
             fileURL,
+            handleSmallImageContainer,
         } = this.props;
 
         // Don't render utility buttons for external small images
@@ -482,7 +494,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         );
 
         // Determine which CSS classes to use based on image type and size
-        const isSmallImage = this.props.handleSmallImageContainer && this.state.isSmallImage;
+        const isSmallImage = handleSmallImageContainer && this.state.isSmallImage;
         const hasSmallWidth = this.state.imageWidth < MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS;
 
         const containerClasses = classNames('image-preview-utility-buttons-container', {

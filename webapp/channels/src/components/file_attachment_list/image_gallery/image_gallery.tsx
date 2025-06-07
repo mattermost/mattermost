@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
 import {DownloadOutlineIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
@@ -13,6 +13,16 @@ import SingleImageView from '../../../components/single_image_view';
 import type {PropsFromRedux} from './index';
 
 import './image_gallery.scss';
+
+// Gallery configuration constants
+const GALLERY_CONFIG = {
+    MAX_HEIGHT: 216,
+    MIN_HEIGHT: 48,
+    SMALL_IMAGE_PADDING: 16,
+    MAX_WIDTH: 500,
+    ASPECT_RATIO_CLAMP: { min: 1/3, max: 3 },
+    SMALL_IMAGE_THRESHOLD: 216,
+} as const;
 
 type Props = PropsFromRedux & {
     fileInfos: FileInfo[];
@@ -47,11 +57,11 @@ const ImageGallery = (props: Props) => {
                 const imageHeight = fileInfo.height || 0;
 
                 // If it's a small image, add padding to the height for gallery calculation
-                return imageHeight < 216 ? imageHeight + 16 : imageHeight;
+                return imageHeight < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD ? imageHeight + GALLERY_CONFIG.SMALL_IMAGE_PADDING : imageHeight;
             }),
-            48, // Minimum height to ensure usability
+            GALLERY_CONFIG.MIN_HEIGHT, // Minimum height to ensure usability
         ),
-        216, // Maximum height
+        GALLERY_CONFIG.MAX_HEIGHT, // Maximum height
     );
 
     const toggleGallery = () => {
@@ -60,25 +70,39 @@ const ImageGallery = (props: Props) => {
         onToggleCollapse?.(newCollapsed);
     };
 
-    const handleDownloadAll = async () => {
+    const handleDownloadAll = useCallback(async () => {
         if (isDownloading || !canDownloadFiles) {
             return;
         }
         setIsDownloading(true);
         try {
-            fileInfos.forEach((fileInfo) => {
-                const link = document.createElement('a');
-                link.href = fileInfo.link || '';
-                link.download = fileInfo.name;
-                link.click();
+            // Create and trigger downloads with proper cleanup
+            const downloadPromises = fileInfos.map((fileInfo) => {
+                return new Promise<void>((resolve) => {
+                    const link = document.createElement('a');
+                    link.href = fileInfo.link || '';
+                    link.download = fileInfo.name;
+                    link.style.display = 'none';
+                    
+                    // Add to DOM, click, then remove
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Small delay to ensure download starts
+                    setTimeout(resolve, 50);
+                });
             });
 
+            // Wait for all downloads to be initiated
+            await Promise.all(downloadPromises);
+            
             // Add a small delay to ensure the button stays disabled long enough for testing
             await new Promise((resolve) => setTimeout(resolve, 100));
         } finally {
             setIsDownloading(false);
         }
-    };
+    }, [fileInfos, isDownloading, canDownloadFiles]);
 
     return (
         <div
@@ -137,25 +161,25 @@ const ImageGallery = (props: Props) => {
                     const aspectRatio = fileInfo.width && fileInfo.height ? fileInfo.width / fileInfo.height : 1;
 
                     // Clamp aspect ratio to avoid extremely wide or tall images
-                    const clampedAspectRatio = Math.max(1 / 3, Math.min(aspectRatio, 3)); // Clamp between 0.33 and 3
+                    const clampedAspectRatio = Math.max(GALLERY_CONFIG.ASPECT_RATIO_CLAMP.min, Math.min(aspectRatio, GALLERY_CONFIG.ASPECT_RATIO_CLAMP.max)); // Clamp between 0.33 and 3
 
                     // For small images, use their natural width but gallery height for container
                     // For larger images, calculate width based on dynamic gallery height
-                    const isSmallImage = (fileInfo.width || 0) < 216 || (fileInfo.height || 0) < 216;
+                    const isSmallImage = (fileInfo.width || 0) < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD || (fileInfo.height || 0) < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD;
                     const naturalWidth = fileInfo.width || 0;
                     const naturalHeight = fileInfo.height || 0;
 
                     // Calculate width based on aspect ratio and gallery height
-                    const calculatedWidth = Math.min(galleryHeight * clampedAspectRatio, 500);
+                    const calculatedWidth = Math.min(galleryHeight * clampedAspectRatio, GALLERY_CONFIG.MAX_WIDTH);
 
                     // For small images, use their natural width + padding, but ensure it doesn't exceed max width
                     const itemWidth = isSmallImage ?
-                        Math.min(naturalWidth + 16, 500) : // Add 16px padding for small images, but cap at 500px
+                        Math.min(naturalWidth + GALLERY_CONFIG.SMALL_IMAGE_PADDING, GALLERY_CONFIG.MAX_WIDTH) : // Add 16px padding for small images, but cap at 500px
                         calculatedWidth;
 
                     // For height: if small image and it's the tallest, use natural height + padding
                     // Otherwise, use gallery height to match other taller images
-                    const naturalHeightWithPadding = naturalHeight + 16;
+                    const naturalHeightWithPadding = naturalHeight + GALLERY_CONFIG.SMALL_IMAGE_PADDING;
                     const itemHeight = isSmallImage && naturalHeightWithPadding === galleryHeight ?
                         naturalHeightWithPadding :
                         galleryHeight;
@@ -181,7 +205,7 @@ const ImageGallery = (props: Props) => {
                                 compactDisplay={false}
                                 isInPermalink={false}
                                 disableActions={false}
-                                smallImageThreshold={216}
+                                smallImageThreshold={GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD}
                                 handleImageClick={() => {
                                     const startIndex = allFilesForPost?.findIndex((f) => f.id === fileInfo.id) ?? -1;
                                     if (startIndex >= 0 && allFilesForPost) {
