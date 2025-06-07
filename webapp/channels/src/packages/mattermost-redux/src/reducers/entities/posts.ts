@@ -282,30 +282,7 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     case ChannelTypes.RECEIVED_CHANNEL_DELETED:
     case ChannelTypes.DELETE_CHANNEL_SUCCESS:
     case ChannelTypes.LEAVE_CHANNEL: {
-        if (action.data && action.data.viewArchivedChannels) {
-            // Nothing to do since we still want to store posts in archived channels
-            return state;
-        }
-
-        const channelId = action.data.id;
-
-        let postDeleted = false;
-
-        // Remove any posts in the deleted channel
-        const nextState = {...state};
-        for (const post of Object.values(state)) {
-            if (post.channel_id === channelId) {
-                Reflect.deleteProperty(nextState, post.id);
-                postDeleted = true;
-            }
-        }
-
-        if (!postDeleted) {
-            // Nothing changed
-            return state;
-        }
-
-        return nextState;
+        return state;
     }
 
     case ThreadTypes.FOLLOW_CHANGED_THREAD: {
@@ -842,23 +819,7 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
     case ChannelTypes.RECEIVED_CHANNEL_DELETED:
     case ChannelTypes.DELETE_CHANNEL_SUCCESS:
     case ChannelTypes.LEAVE_CHANNEL: {
-        if (action.data && action.data.viewArchivedChannels) {
-            // Nothing to do since we still want to store posts in archived channels
-            return state;
-        }
-
-        const channelId = action.data.id;
-
-        if (!state[channelId]) {
-            // Nothing to do since we have no posts for this channel
-            return state;
-        }
-
-        // Remove the entry for the deleted channel
-        const nextState = {...state};
-        Reflect.deleteProperty(nextState, channelId);
-
-        return nextState;
+        return state;
     }
 
     case UserTypes.LOGOUT_SUCCESS:
@@ -1119,30 +1080,7 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
     case ChannelTypes.RECEIVED_CHANNEL_DELETED:
     case ChannelTypes.DELETE_CHANNEL_SUCCESS:
     case ChannelTypes.LEAVE_CHANNEL: {
-        if (action.data && action.data.viewArchivedChannels) {
-            // Nothing to do since we still want to store posts in archived channels
-            return state;
-        }
-
-        const channelId = action.data.id;
-
-        let postDeleted = false;
-
-        // Remove entries for any thread in the channel
-        const nextState = {...state};
-        for (const rootId of Object.keys(state)) {
-            if (prevPosts[rootId] && prevPosts[rootId].channel_id === channelId) {
-                Reflect.deleteProperty(nextState, rootId);
-                postDeleted = true;
-            }
-        }
-
-        if (!postDeleted) {
-            // Nothing was actually removed
-            return state;
-        }
-
-        return nextState;
+        return state;
     }
 
     case UserTypes.LOGOUT_SUCCESS:
@@ -1537,21 +1475,7 @@ export function limitedViews(
     case ChannelTypes.RECEIVED_CHANNEL_DELETED:
     case ChannelTypes.DELETE_CHANNEL_SUCCESS:
     case ChannelTypes.LEAVE_CHANNEL: {
-        if (action.data && action.data.viewArchivedChannels) {
-            // Nothing to do since we still want to store posts in archived channels
-            return state;
-        }
-
-        const channelId = action.data.id;
-        if (!state.channels[channelId]) {
-            return state;
-        }
-        const newState = {
-            threads: state.threads,
-            channels: {...state.channels},
-        };
-        delete newState.channels[channelId];
-        return newState;
+        return state;
     }
 
     default:
