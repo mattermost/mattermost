@@ -29,7 +29,7 @@ const LDAPCustomSetting = (props: Props) => {
     const intl = useIntl();
 
     if (!props.schema || props.setting.type !== 'custom') {
-        return (<></>);
+        return null;
     }
 
     const label = renderLabel(props.setting, props.schema, intl);

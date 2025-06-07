@@ -26,7 +26,7 @@ const LDAPFileUploadSetting = (props: Props) => {
     const intl = useIntl();
 
     if (!props.schema || props.setting.type !== 'fileupload' || !props.setting.key) {
-        return (<></>);
+        return null;
     }
 
     if (props.value) {
@@ -64,14 +64,10 @@ const LDAPFileUploadSetting = (props: Props) => {
         const successCallback = (filename: string) => {
             props.onChange(id, filename);
             props.fileUploadSetstate(props.setting.key!, filename, null);
-            if (callback && typeof callback === 'function') {
-                callback();
-            }
+            callback?.();
         };
         const errorCallback = (error: any) => {
-            if (callback && typeof callback === 'function') {
-                callback(error.message);
-            }
+            callback?.(error.message);
         };
         props.setting.upload_action(file, successCallback, errorCallback);
     };

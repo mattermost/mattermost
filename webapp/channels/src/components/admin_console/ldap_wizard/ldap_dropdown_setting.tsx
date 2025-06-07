@@ -27,7 +27,7 @@ const LDAPDropdownSetting = (props: Props) => {
     const intl = useIntl();
 
     if (!props.schema || !props.setting.key || props.setting.type !== 'dropdown') {
-        return (<></>);
+        return null;
     }
 
     const options: AdminDefinitionSettingDropdownOption[] = [];

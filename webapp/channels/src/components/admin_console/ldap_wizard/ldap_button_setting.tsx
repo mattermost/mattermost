@@ -21,7 +21,7 @@ const LDAPButtonSetting = (props: Props) => {
     const intl = useIntl();
 
     if (!props.schema || props.setting.type !== 'button') {
-        return (<></>);
+        return null;
     }
 
     const handleRequestAction = (success: () => void, error: (error: { message: string }) => void) => {
@@ -33,9 +33,7 @@ const LDAPButtonSetting = (props: Props) => {
         }
         const successCallback = () => {
             // NOTE: we don't have any settings with 'setFromMetadataField' in the LDAP wizard
-            if (success && typeof success === 'function') {
-                success();
-            }
+            success?.();
         };
 
         // NOTE: we don't use the sourceUrlKey in the LDAP wizard

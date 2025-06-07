@@ -21,7 +21,7 @@ const LDAPBooleanSetting = (props: BoolSettingProps) => {
     const intl = useIntl();
 
     if (!props.schema || !props.setting.key || props.setting.type !== 'bool') {
-        return (<></>);
+        return null;
     }
 
     const label = renderLabel(props.setting, props.schema, intl);
