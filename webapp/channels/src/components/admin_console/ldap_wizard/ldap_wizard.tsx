@@ -494,6 +494,34 @@ const LDAPWizard = (props: Props) => {
         return null;
     };
 
+    const renderSidebar = () => {
+        return (
+            <div className='ldap-wizard-sidebar'>
+                <div className='ldap-wizard-sidebar-header'>
+                    <i className='icon icon-text-box-outline'/>
+                    <FormattedMessage
+                        id='admin.ldap_wizard.sections_header'
+                        defaultMessage='Sections'
+                    />
+                </div>
+                {memoizedSections.map((section) => (
+                    <button
+                        key={section.key + '-sidebar-item'}
+                        className={`ldap-wizard-sidebar-item ${section.key === activeSectionKey ? 'ldap-wizard-sidebar-item--active' : ''}`}
+                        onClick={() => {
+                            const sectionElement = sectionRefs.current[section.key];
+                            if (sectionElement) {
+                                sectionElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+                            }
+                        }}
+                    >
+                        {section.sectionTitle || section.title}
+                    </button>
+                ))}
+            </div>
+        );
+    };
+
     const renderSettings = () => {
         const renderedSections = memoizedSections.map((section) => {
             const settingsList: React.ReactNode[] = [];
@@ -579,29 +607,7 @@ const LDAPWizard = (props: Props) => {
         >
             {renderTitle()}
             <div className='ldap-wizard-content-wrapper'>
-                <div className='ldap-wizard-sidebar'>
-                    <div className='ldap-wizard-sidebar-header'>
-                        <i className='icon icon-text-box-outline'/>
-                        <FormattedMessage
-                            id='admin.ldap_wizard.sections_header'
-                            defaultMessage='Sections'
-                        />
-                    </div>
-                    {memoizedSections.map((section) => (
-                        <button
-                            key={section.key + '-sidebar-item'}
-                            className={`ldap-wizard-sidebar-item ${section.key === activeSectionKey ? 'ldap-wizard-sidebar-item--active' : ''}`}
-                            onClick={() => {
-                                const sectionElement = sectionRefs.current[section.key];
-                                if (sectionElement) {
-                                    sectionElement.scrollIntoView({behavior: 'smooth', block: 'start'});
-                                }
-                            }}
-                        >
-                            {section.sectionTitle || section.title}
-                        </button>
-                    ))}
-                </div>
+                {renderSidebar()}
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <form
