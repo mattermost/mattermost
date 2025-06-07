@@ -17,7 +17,7 @@ export default class UserAccountMenu {
     constructor(container: Locator) {
         this.container = container;
 
-        this.setCustomStatus = container.getByRole('button', {name: 'Set custom status'});
+        this.setCustomStatus = container.getByRole('menuitem', {name: 'Set custom status'});
         this.online = container.getByRole('menuitem', {name: 'Online'});
         this.away = container.getByRole('menuitem', {name: 'Away'});
         this.dnd = container.locator('[id="userAccountMenu\\.dndMenuItem"]');
@@ -26,7 +26,15 @@ export default class UserAccountMenu {
         this.logout = container.getByRole('menuitem', {name: 'Log out'});
     }
 
-    async toBeVisible(name: string) {
-        await expect(this.container.getByRole('heading', {name})).toBeVisible();
+    async toBeVisible() {
+        await expect(this.container).toBeVisible();
+    }
+
+    getContainerId() {
+        return this.container.getAttribute('id');
+    }
+
+    username(username: string) {
+        return this.container.getByRole('menuitem', {name: '@' + username});
     }
 }
