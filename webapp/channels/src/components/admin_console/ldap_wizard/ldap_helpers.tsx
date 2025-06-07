@@ -18,9 +18,7 @@ export const LDAPHelpTextWithHover: React.FC<{
     baseIsMarkdown?: boolean;
     baseTextValues?: {[key: string]: any};
     hoverText: string | JSX.Element | MessageDescriptor;
-    hoverIsMarkdown?: boolean;
-    hoverTextValues?: {[key: string]: any};
-}> = ({baseText, baseIsMarkdown, baseTextValues, hoverText, hoverIsMarkdown, hoverTextValues}) => {
+}> = ({baseText, baseIsMarkdown, baseTextValues, hoverText}) => {
     return (
         <>
             <SchemaText
@@ -31,11 +29,7 @@ export const LDAPHelpTextWithHover: React.FC<{
             {' '}
             <WithTooltip
                 title={(
-                    <SchemaText
-                        isMarkdown={hoverIsMarkdown}
-                        text={hoverText}
-                        textValues={hoverTextValues}
-                    />
+                    <SchemaText text={hoverText}/>
                 )}
             >
                 <span
@@ -85,8 +79,6 @@ export const renderLDAPSettingHelpText = (
                 baseIsMarkdown={isMarkdown}
                 baseTextValues={helpTextValues}
                 hoverText={setting.help_text_hover}
-                hoverIsMarkdown={setting.help_text_hover_markdown}
-                hoverTextValues={setting.help_text_hover_values}
             />
         );
     }
