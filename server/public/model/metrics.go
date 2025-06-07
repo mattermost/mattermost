@@ -84,8 +84,8 @@ var (
 )
 
 type MetricSample struct {
-	Metric MetricType        `json:"metric"`
-	Value  float64           `json:"value"`
+	Metric MetricType        `json:"metric" validate:"required"`
+	Value  float64           `json:"value" validate:"required,gte=0"`
 	Labels map[string]string `json:"labels,omitempty"`
 }
 
@@ -95,13 +95,13 @@ func (s *MetricSample) GetLabelValue(name string, acceptedValues map[string]any,
 
 // PerformanceReport is a set of samples collected from a client
 type PerformanceReport struct {
-	Version    string            `json:"version"`
-	ClientID   string            `json:"client_id"`
-	Labels     map[string]string `json:"labels"`
-	Start      float64           `json:"start"`
-	End        float64           `json:"end"`
-	Counters   []*MetricSample   `json:"counters"`
-	Histograms []*MetricSample   `json:"histograms"`
+	Version    string            `json:"version" validate:"required,semver"`
+	ClientID   string            `json:"client_id" validate:"required"`
+	Labels     map[string]string `json:"labels" validate:"required"`
+	Start      float64           `json:"start" validate:"required,gte=0"`
+	End        float64           `json:"end" validate:"required,gte=0,gtfield=Start"`
+	Counters   []*MetricSample   `json:"counters" validate:"dive"`
+	Histograms []*MetricSample   `json:"histograms" validate:"dive"`
 }
 
 func (r *PerformanceReport) IsValid() error {
