@@ -240,6 +240,7 @@ export default function InviteView(props: Props) {
                     inviteType={props.inviteType}
                     setInviteAs={props.setInviteAs}
                     titleClass='InviteView__sectionTitle'
+                    canInviteGuests={props.canInviteGuests}
                 />
                 }
                 {(props.inviteType === InviteType.GUEST || (props.inviteType === InviteType.MEMBER && props.channelToInvite)) && (
