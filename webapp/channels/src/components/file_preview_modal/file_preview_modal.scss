@@ -1,9 +1,82 @@
+@use 'sass/utils/variables';
+@use 'sass/utils/mixins';
+
+@keyframes modalImageFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes modalImageFadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+@keyframes modalWrapperFadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
 .file-preview-modal {
     padding-left: 0 !important;
 
     &__body {
         height: 100vh;
         padding: 0;
+        
+        .modal-image__wrapper {
+            &.closing {
+                animation: modalWrapperFadeOut 0.2s ease-in-out forwards;
+            }
+
+            &.initial-load {
+                .file-preview-modal__main-ctr {
+                    .image_preview {
+                        display: block;
+
+                        &__image {
+                            animation: modalImageFadeIn 0.25s ease-in-out;
+                            transform-origin: center;
+                            will-change: transform, opacity;
+
+                            &.closing {
+                                animation: modalImageFadeOut 0.15s ease-in-out forwards;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .file-preview-modal__main-ctr {
+                .image_preview {
+                    display: block;
+
+                    &__image {
+                        transform-origin: center;
+                        will-change: transform, opacity;
+
+                        &.closing {
+                            animation: modalImageFadeOut 0.15s ease-in-out forwards;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     &__main-ctr {

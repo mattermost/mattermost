@@ -45,14 +45,36 @@ function verifySingleImageThumbnail({mode = null} = {}) {
 
     cy.postMessage(MESSAGES.MEDIUM);
 
-    cy.get('div.file__image').last().within(() => {
-        // *  The name of the image should not show
-        cy.contains('div', filename).should('not.exist');
+    // * Verify single image view is used in the last post
+    cy.getLastPost().within(() => {
+        cy.get('.file-view--single').should('exist');
+        cy.get('.post-image__column').should('not.exist');
 
-        // * There are arrows to collapse the preview
-        cy.get('img[src*="preview"]').should('be.visible');
-        cy.findByLabelText('Toggle Embed Visibility').should('exist').and('have.attr', 'data-expanded', 'true').click({force: true});
-        cy.findByLabelText('Toggle Embed Visibility').should('exist').and('have.attr', 'data-expanded', 'false');
-        cy.get('img[src*="preview"]').should('not.exist');
+        cy.get('.file-view--single').within(() => {
+            // *  The name of the image should not show
+            cy.contains('div', filename).should('not.exist');
+
+            // * There are arrows to collapse the preview
+            cy.get('figure.image-loaded-container img[src*="preview"]').should('be.visible');
+            cy.findByLabelText('Toggle Embed Visibility').should('exist').and('have.attr', 'data-expanded', 'true').click({force: true});
+            cy.findByLabelText('Toggle Embed Visibility').should('exist').and('have.attr', 'data-expanded', 'false');
+
+            // * The image container should be collapsed
+            cy.get('.image-container').should('have.attr', 'data-expanded', 'false');
+
+            // * The image should be hidden (removed from DOM)
+            cy.get('figure.image-loaded-container').should('not.exist');
+
+            // * Verify image name is shown when collapsed
+            cy.get('.image-name').should('be.visible');
+            cy.get('#image-name-text').should('contain', filename);
+
+            // * Verify no gallery elements exist
+            cy.get('.image-gallery__toggle').should('not.exist');
+            cy.get('.image-gallery__body').should('not.exist');
+
+            // * Verify image container is collapsed
+            cy.get('.image-container').should('have.attr', 'data-expanded', 'false');
+        });
     });
 }
