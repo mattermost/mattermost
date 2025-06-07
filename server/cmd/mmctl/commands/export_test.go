@@ -87,6 +87,33 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		s.Empty(printer.GetErrorLines())
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
 	})
+
+	s.Run("create export for a specific team", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"team_name":                 "leopards",
+				"include_attachments":       "true",
+				"include_roles_and_schemes": "true",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team", "leopards", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
