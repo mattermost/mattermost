@@ -11,7 +11,7 @@ import type {UserStatus} from '@mattermost/types/users';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
-import DateTimeInput from 'components/custom_status/date_time_input';
+import DateTimeInput from 'components/datetime_input/datetime_input';
 
 import Constants, {UserStatuses} from 'utils/constants';
 import {toUTCUnixInSeconds, relativeFormatDate} from 'utils/datetime';
