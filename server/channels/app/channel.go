@@ -2791,9 +2791,18 @@ func (a *App) ValidateUserPermissionsOnChannels(c request.CTX, userId string, ch
 			continue
 		}
 
-		if channel.Type == model.ChannelTypePrivate && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePrivateChannelMembers) {
+		allowedPrivate := false
+		if channel.Type == model.ChannelTypePrivate {
+			allowedPrivate, _ = a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePrivateChannelMembers)
+		}
+		allowedPublic := false
+		if channel.Type == model.ChannelTypeOpen {
+			allowedPublic, _ = a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePublicChannelMembers)
+		}
+
+		if allowedPrivate {
 			allowedChannelIds = append(allowedChannelIds, channelId)
-		} else if channel.Type == model.ChannelTypeOpen && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePublicChannelMembers) {
+		} else if allowedPublic {
 			allowedChannelIds = append(allowedChannelIds, channelId)
 		} else {
 			c.Logger().Info("Invite users to team - no permission to add members to that channel. UserId: " + userId + " ChannelId: " + channelId)

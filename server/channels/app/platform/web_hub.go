@@ -28,7 +28,7 @@ const (
 type SuiteIFace interface {
 	GetSession(token string) (*model.Session, *model.AppError)
 	RolesGrantPermission(roleNames []string, permissionId string) bool
-	HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool
+	HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) (bool, bool)
 	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 }
 

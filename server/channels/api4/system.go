@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -737,7 +738,9 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
-			if _, appErr := c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
+			var isMember bool
+			var appErr *model.AppError
+			if _, appErr, isMember = c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
 				c.Err = appErr
 				return
 			}
@@ -756,6 +759,13 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err2))
+			}
+
+			if !isMember {
+				auditRec := c.MakeAuditRecord("viewed_post_without_membership", audit.Success)
+				defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+				auditRec.AddMeta("reason", "push_notification_ack")
+				auditRec.AddMeta("post_id", ack.PostId)
 			}
 		}
 
