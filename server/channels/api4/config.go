@@ -19,9 +19,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
-var writeFilter func(c *Context, structField reflect.StructField) bool
-var readFilter func(c *Context, structField reflect.StructField) bool
-var permissionMap map[string]*model.Permission
+var (
+	writeFilter   func(c *Context, structField reflect.StructField) bool
+	readFilter    func(c *Context, structField reflect.StructField) bool
+	permissionMap map[string]*model.Permission
+)
 
 type filterType string
 
@@ -100,13 +102,8 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("configReload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReloadConfig) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionReloadConfig) {
 		c.SetPermissionError(model.PermissionReloadConfig)
-		return
-	}
-
-	if !c.AppContext.Session().IsUnrestricted() && *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("configReload", "api.restricted_system_admin", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -230,7 +227,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//auditRec.AddEventResultState(cfg) // TODO we can do this too but do we want to? the config object is huge
+	// auditRec.AddEventResultState(cfg) // TODO we can do this too but do we want to? the config object is huge
 	auditRec.AddEventObjectType("config")
 	auditRec.Success()
 	c.LogAudit("updateConfig")
@@ -242,7 +239,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("updateConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
-		w.Write(js)
+		if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
@@ -284,7 +283,9 @@ func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(model.StringInterfaceToJSON(envConfig)))
+	if _, err := w.Write([]byte(model.StringInterfaceToJSON(envConfig))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -389,7 +390,9 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
-		w.Write(js)
+		if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
@@ -406,12 +409,8 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 
 		tagPermissions := strings.Split(structField.Tag.Get("access"), ",")
 
-		// If there are no access tag values and the role has manage_system, no need to continue
-		// checking permissions.
-		if len(tagPermissions) == 0 {
-			if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-				return true
-			}
+		if c.AppContext.Session().IsUnrestricted() {
+			return true
 		}
 
 		// one iteration for write_restrictable value, it could be anywhere in the order of values

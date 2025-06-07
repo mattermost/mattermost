@@ -39,7 +39,7 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assert.NotEmpty(th.t, poir.TeamName)
 	assert.NotEmpty(th.t, poir.PostId)
 	assert.NotEmpty(th.t, poir.TriggerId)
-	assert.Equal(th.t, "button", poir.Type)
+	assert.Equal(th.t, model.PostActionTypeButton, poir.Type)
 	assert.Equal(th.t, "test-value", poir.Context["test-key"])
 	_, err = w.Write([]byte("{}"))
 	require.NoError(th.t, err)
@@ -47,6 +47,7 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestPostActionCookies(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -118,7 +119,7 @@ func TestPostActionCookies(t *testing.T) {
 				CreateAt:  model.GetMillis(),
 				UpdateAt:  model.GetMillis(),
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Title:     "some-title",
 							TitleLink: "https://some-url.com",
@@ -148,6 +149,7 @@ func TestPostActionCookies(t *testing.T) {
 }
 
 func TestOpenDialog(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -285,6 +287,7 @@ func TestOpenDialog(t *testing.T) {
 }
 
 func TestSubmitDialog(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client

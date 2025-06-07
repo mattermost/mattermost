@@ -14,6 +14,7 @@ import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
 import ActionsMenu from 'components/actions_menu';
 import CommentIcon from 'components/common/comment_icon';
+import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import DotMenu from 'components/dot_menu';
 import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
@@ -32,6 +33,7 @@ type Props = {
     enableEmojiPicker?: boolean;
     isReadOnly?: boolean;
     channelIsArchived?: boolean;
+    channelIsShared?: boolean;
     handleCommentClick?: (e: React.MouseEvent) => void;
     handleJumpClick?: (e: React.MouseEvent) => void;
     handleDropdownOpened?: (e: boolean) => void;
@@ -59,27 +61,35 @@ type Props = {
 };
 
 const PostOptions = (props: Props): JSX.Element => {
-    const dotMenuRef = useRef<HTMLUListElement>(null);
-
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showDotMenu, setShowDotMenu] = useState(false);
     const [showActionsMenu, setShowActionsMenu] = useState(false);
 
-    const toggleEmojiPicker = useCallback(() => {
-        setShowEmojiPicker(!showEmojiPicker);
-        props.handleDropdownOpened!(!showEmojiPicker);
-    }, [props.handleDropdownOpened, showEmojiPicker]);
+    const toggleEmojiPicker = useCallback((show: boolean) => {
+        setShowEmojiPicker(show);
+        props.handleDropdownOpened!(show);
+    }, [props.handleDropdownOpened]);
 
+    const lastEmittedFrom = useRef(props.shortcutReactToLastPostEmittedFrom);
     useEffect(() => {
+        // Confirm that lastEmittedFrom actually changed to avoid toggling the emoji picker when another dependency
+        // changes without the user pressing the hotkey again
+        if (lastEmittedFrom.current === props.shortcutReactToLastPostEmittedFrom) {
+            return;
+        }
+
+        lastEmittedFrom.current = props.shortcutReactToLastPostEmittedFrom;
+
         const locationToUse = props.location === 'RHS_COMMENT' ? Locations.RHS_ROOT : props.location;
+
         if (props.isLastPost &&
             (props.shortcutReactToLastPostEmittedFrom === locationToUse) &&
                 props.isPostHeaderVisible) {
-            toggleEmojiPicker();
             props.actions.emitShortcutReactToLastPostFrom(Locations.NO_WHERE);
+            toggleEmojiPicker(!showEmojiPicker);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isLastPost, props.shortcutReactToLastPostEmittedFrom, props.location, props.isPostHeaderVisible]);
+    }, [props.isLastPost, props.shortcutReactToLastPostEmittedFrom, props.location, props.isPostHeaderVisible, showEmojiPicker]);
 
     const {
         channelIsArchived,
@@ -107,8 +117,6 @@ const PostOptions = (props: Props): JSX.Element => {
         setShowActionsMenu(open);
         props.handleDropdownOpened!(open);
     };
-
-    const getDotMenuRef = () => dotMenuRef.current;
 
     const isPostDeleted = post && post.state === Posts.POST_DELETED;
     const hoverLocal = props.hover || showEmojiPicker || showDotMenu || showActionsMenu;
@@ -160,9 +168,8 @@ const PostOptions = (props: Props): JSX.Element => {
                     location={props.location}
                     postId={post.id}
                     teamId={props.teamId}
-                    getDotMenuRef={getDotMenuRef}
                     showEmojiPicker={showEmojiPicker}
-                    toggleEmojiPicker={toggleEmojiPicker}
+                    setShowEmojiPicker={toggleEmojiPicker}
                 />
             </li>
         );
@@ -195,7 +202,9 @@ const PostOptions = (props: Props): JSX.Element => {
     );
 
     let pluginItems: ReactNode = null;
-    if ((!isEphemeral && !post.failed && !systemMessage) && hoverLocal) {
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(post.channel_id);
+
+    if ((!isEphemeral && !post.failed && !systemMessage) && hoverLocal && pluginItemsVisible) {
         pluginItems = props.pluginActions?.
             map((item) => {
                 if (item.component) {
@@ -278,7 +287,6 @@ const PostOptions = (props: Props): JSX.Element => {
     } else if (!props.isPostBeingEdited) {
         options = (
             <ul
-                ref={dotMenuRef}
                 data-testid={`post-menu-${props.post.id}`}
                 className={classnames('col post-menu', {'post-menu--position': !hoverLocal && showCommentIcon})}
             >

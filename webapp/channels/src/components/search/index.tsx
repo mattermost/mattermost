@@ -10,7 +10,7 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {getMorePostsForSearch, getMoreFilesForSearch} from 'mattermost-redux/actions/search';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getIsCrossTeamSearchEnabled} from 'mattermost-redux/selectors/entities/general';
 
 import {autocompleteChannelsForSearch} from 'actions/channel_actions';
 import {autocompleteUsersInCurrentTeam} from 'actions/user_actions';
@@ -20,8 +20,6 @@ import {
     updateSearchTermsForShortcut,
     showSearchResults,
     showChannelFiles,
-    showMentions,
-    showFlaggedPosts,
     closeRightHandSide,
     updateRhsState,
     setRhsExpanded,
@@ -43,11 +41,11 @@ function mapStateToProps(state: GlobalState) {
     const currentChannel = getCurrentChannel(state);
     const isMobileView = getIsMobileView(state);
     const isRhsOpen = getIsRhsOpen(state);
+    const crossTeamSearchEnabled = getIsCrossTeamSearchEnabled(state);
 
     return {
         currentChannel,
         isRhsExpanded: getIsRhsExpanded(state),
-        isRhsOpen,
         isSearchingTerm: getIsSearchingTerm(state),
         searchTerms: getSearchTerms(state),
         searchTeam: getSearchTeam(state),
@@ -64,7 +62,7 @@ function mapStateToProps(state: GlobalState) {
         isPinnedPosts: rhsState === RHSStates.PIN,
         isChannelFiles: rhsState === RHSStates.CHANNEL_FILES,
         isMobileView,
-        crossTeamSearchEnabled: getFeatureFlagValue(state, 'ExperimentalCrossTeamSearch') === 'true',
+        crossTeamSearchEnabled,
     };
 }
 
@@ -81,8 +79,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateSearchType,
             showSearchResults,
             showChannelFiles,
-            showMentions,
-            showFlaggedPosts,
             setRhsExpanded,
             closeRightHandSide,
             autocompleteChannelsForSearch: autocompleteChannels,

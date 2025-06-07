@@ -753,11 +753,12 @@ function createFavoriteButton(isFavorite: boolean, toggleFavorite: () => void, c
 function createNotificationPreferencesButton(channel: Channel, currentUser: UserProfileType) {
     return (
         <ToggleModalButton
+            id='channelIntroNotificationPreferencesButton'
             modalId={ModalIdentifiers.CHANNEL_NOTIFICATIONS}
             ariaLabel={Utils.localizeMessage({id: 'intro_messages.notificationPreferences', defaultMessage: 'Notification Preferences'})}
             className={'action-button'}
             dialogType={ChannelNotificationsModal}
-            dialogProps={{channel, currentUser}}
+            dialogProps={{channel, currentUser, focusOriginElement: 'channelIntroNotificationPreferencesButton'}}
         >
             <BellRingOutlineIcon size={24}/>
             <FormattedMessage

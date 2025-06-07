@@ -35,6 +35,7 @@ func setupMetricsMock() *mocks.MetricsInterface {
 
 	return metricsMock
 }
+
 func TestSubmitMetrics(t *testing.T) {
 	t.Run("unauthenticated user should not submit metrics", func(t *testing.T) {
 		th := Setup(t)
@@ -91,7 +92,11 @@ func TestSubmitMetrics(t *testing.T) {
 
 	t.Run("metrics enabled and valid", func(t *testing.T) {
 		metricsMock := setupMetricsMock()
-		metricsMock.On("IncrementClientLongTasks", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
+		metricsMock.On("IncrementClientLongTasks",
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("float64")).Return()
 
 		platform.RegisterMetricsInterface(func(_ *platform.PlatformService, _, _ string) einterfaces.MetricsInterface {
 			return metricsMock
@@ -159,7 +164,11 @@ func TestSubmitMetrics(t *testing.T) {
 
 	t.Run("metrics recorded for API errors", func(t *testing.T) {
 		metricsMock := setupMetricsMock()
-		metricsMock.On("IncrementClientLongTasks", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
+		metricsMock.On("IncrementClientLongTasks",
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("float64")).Return()
 
 		platform.RegisterMetricsInterface(func(_ *platform.PlatformService, _, _ string) einterfaces.MetricsInterface {
 			return metricsMock
@@ -190,7 +199,11 @@ func TestSubmitMetrics(t *testing.T) {
 
 	t.Run("metrics recorded for URL length limit errors", func(t *testing.T) {
 		metricsMock := setupMetricsMock()
-		metricsMock.On("IncrementClientLongTasks", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
+		metricsMock.On("IncrementClientLongTasks",
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("float64")).Return()
 
 		platform.RegisterMetricsInterface(func(_ *platform.PlatformService, _, _ string) einterfaces.MetricsInterface {
 			return metricsMock

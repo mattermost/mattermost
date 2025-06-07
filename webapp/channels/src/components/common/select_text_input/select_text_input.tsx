@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo} from 'react';
-import type {CSSProperties, KeyboardEventHandler} from 'react';
+import type {KeyboardEventHandler} from 'react';
+import type {StylesConfig} from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 
 import './select_text_input.scss';
@@ -27,22 +28,22 @@ type Props = {
 }
 
 const styles = {
-    control: (baseStyles: CSSProperties) => ({
+    control: (baseStyles) => ({
         ...baseStyles,
         background: 'var(--center-channel-color-rgb)',
     }),
-    input: (baseStyles: CSSProperties) => ({
+    input: (baseStyles) => ({
         ...baseStyles,
         color: 'rgba(var(--center-channel-color-rgb), 0.64)',
     }),
-    multiValue: (baseStyles: CSSProperties) => ({
+    multiValue: (baseStyles) => ({
         ...baseStyles,
         borderRadius: '10px',
         background: 'rgba(var(--center-channel-color-rgb), 0.08)',
         display: 'flex',
         alignItems: 'center',
     }),
-    multiValueLabel: (baseStyles: CSSProperties) => ({
+    multiValueLabel: (baseStyles) => ({
         ...baseStyles,
         padding: '4px 6px 4px 10px',
         color: 'var(--center-channel-color)',
@@ -52,7 +53,7 @@ const styles = {
         lineHeight: '12px',
         letterSpacing: '0.2px',
     }),
-    multiValueRemove: (baseStyles: CSSProperties) => ({
+    multiValueRemove: (baseStyles) => ({
         ...baseStyles,
         borderRadius: '50%',
         background: 'rgba(var(--center-channel-color-rgb), 0.32)',
@@ -69,7 +70,7 @@ const styles = {
             color: 'white',
         },
     }),
-};
+} satisfies StylesConfig<SelectTextInputOption, true>;
 
 const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, isClearable, description}: Props) => {
     const [inputValue, setInputValue] = React.useState('');

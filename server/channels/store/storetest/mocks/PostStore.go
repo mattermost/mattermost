@@ -1037,9 +1037,9 @@ func (_m *PostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Post,
 	return r0, r1
 }
 
-// OverwriteMultiple provides a mock function with given fields: posts
-func (_m *PostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error) {
-	ret := _m.Called(posts)
+// OverwriteMultiple provides a mock function with given fields: rctx, posts
+func (_m *PostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
+	ret := _m.Called(rctx, posts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for OverwriteMultiple")
@@ -1048,25 +1048,25 @@ func (_m *PostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int,
 	var r0 []*model.Post
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func([]*model.Post) ([]*model.Post, int, error)); ok {
-		return rf(posts)
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.Post) ([]*model.Post, int, error)); ok {
+		return rf(rctx, posts)
 	}
-	if rf, ok := ret.Get(0).(func([]*model.Post) []*model.Post); ok {
-		r0 = rf(posts)
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.Post) []*model.Post); ok {
+		r0 = rf(rctx, posts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]*model.Post) int); ok {
-		r1 = rf(posts)
+	if rf, ok := ret.Get(1).(func(request.CTX, []*model.Post) int); ok {
+		r1 = rf(rctx, posts)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func([]*model.Post) error); ok {
-		r2 = rf(posts)
+	if rf, ok := ret.Get(2).(func(request.CTX, []*model.Post) error); ok {
+		r2 = rf(rctx, posts)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1239,9 +1239,9 @@ func (_m *PostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, erro
 	return r0, r1
 }
 
-// SaveMultiple provides a mock function with given fields: posts
-func (_m *PostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
-	ret := _m.Called(posts)
+// SaveMultiple provides a mock function with given fields: rctx, posts
+func (_m *PostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
+	ret := _m.Called(rctx, posts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SaveMultiple")
@@ -1250,25 +1250,25 @@ func (_m *PostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, erro
 	var r0 []*model.Post
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func([]*model.Post) ([]*model.Post, int, error)); ok {
-		return rf(posts)
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.Post) ([]*model.Post, int, error)); ok {
+		return rf(rctx, posts)
 	}
-	if rf, ok := ret.Get(0).(func([]*model.Post) []*model.Post); ok {
-		r0 = rf(posts)
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.Post) []*model.Post); ok {
+		r0 = rf(rctx, posts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]*model.Post) int); ok {
-		r1 = rf(posts)
+	if rf, ok := ret.Get(1).(func(request.CTX, []*model.Post) int); ok {
+		r1 = rf(rctx, posts)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func([]*model.Post) error); ok {
-		r2 = rf(posts)
+	if rf, ok := ret.Get(2).(func(request.CTX, []*model.Post) error); ok {
+		r2 = rf(rctx, posts)
 	} else {
 		r2 = ret.Error(2)
 	}

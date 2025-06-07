@@ -63,7 +63,7 @@ func (es SqlEmojiStore) GetByName(c request.CTX, name string, allowFromCache boo
 func (es SqlEmojiStore) GetMultipleByName(c request.CTX, names []string) ([]*model.Emoji, error) {
 	query := es.emojiSelectQuery.Where(sq.Eq{"Name": names})
 
-	var emojis []*model.Emoji
+	emojis := []*model.Emoji{}
 	if err := es.DBXFromContext(c.Context()).SelectBuilder(&emojis, query); err != nil {
 		return nil, errors.Wrapf(err, "error getting emojis by names %v", names)
 	}
@@ -72,7 +72,7 @@ func (es SqlEmojiStore) GetMultipleByName(c request.CTX, names []string) ([]*mod
 }
 
 func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji, error) {
-	var emojis []*model.Emoji
+	emojis := []*model.Emoji{}
 
 	query := es.emojiSelectQuery
 	if sort == model.EmojiSortByName {
@@ -106,7 +106,7 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 }
 
 func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error) {
-	var emojis []*model.Emoji
+	emojis := []*model.Emoji{}
 
 	name = sanitizeSearchTerm(name, "\\")
 

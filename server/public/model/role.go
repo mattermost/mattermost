@@ -109,7 +109,6 @@ func init() {
 			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleReadReportingTeamStatistics.Id: {
-			PermissionViewTeam,
 			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleWriteUserManagementUsers.Id: {
@@ -425,8 +424,8 @@ type Role struct {
 	BuiltIn       bool     `json:"built_in"`
 }
 
-func (r *Role) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (r *Role) Auditable() map[string]any {
+	return map[string]any{
 		"id":             r.Id,
 		"name":           r.Name,
 		"display_name":   r.DisplayName,
@@ -471,7 +470,7 @@ func (r *Role) MarshalYAML() (any, error) {
 	}, nil
 }
 
-func (r *Role) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (r *Role) UnmarshalYAML(unmarshal func(any) error) error {
 	out := struct {
 		Id            string   `yaml:"id"`
 		Name          string   `yaml:"name"`
@@ -522,8 +521,8 @@ type RolePatch struct {
 	Permissions *[]string `json:"permissions"`
 }
 
-func (r *RolePatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (r *RolePatch) Auditable() map[string]any {
+	return map[string]any{
 		"permissions": r.Permissions,
 	}
 }
@@ -915,6 +914,8 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionEditBookmarkPrivateChannel.Id,
 			PermissionDeleteBookmarkPrivateChannel.Id,
 			PermissionOrderBookmarkPrivateChannel.Id,
+			PermissionManagePublicChannelBanner.Id,
+			PermissionManagePrivateChannelBanner.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -1001,6 +1002,8 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionEditBookmarkPrivateChannel.Id,
 			PermissionDeleteBookmarkPrivateChannel.Id,
 			PermissionOrderBookmarkPrivateChannel.Id,
+			PermissionManagePublicChannelBanner.Id,
+			PermissionManagePrivateChannelBanner.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

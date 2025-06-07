@@ -21,7 +21,7 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import Constants, {A11yCustomEventTypes, UserStatuses} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
-import {toUTCUnix} from 'utils/datetime';
+import {toUTCUnixInSeconds} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {localizeMessage} from 'utils/utils';
 
@@ -126,9 +126,9 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
         await this.props.actions.setStatus({
             user_id: this.props.userId,
             status: UserStatuses.DND,
-            dnd_end_time: toUTCUnix(endTime),
+            dnd_end_time: toUTCUnixInSeconds(endTime),
             manual: true,
-            last_activity_at: toUTCUnix(this.props.currentDate),
+            last_activity_at: toUTCUnixInSeconds(this.props.currentDate),
         });
         this.props.onExited();
     };

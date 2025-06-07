@@ -14,6 +14,7 @@ const state: GlobalState = {
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
             customProfileAttributes: {},
+            cwsAvailability: 'pending',
         },
         users: {
             currentUserId: '',
@@ -119,6 +120,8 @@ const state: GlobalState = {
             dataRetentionCustomPolicies: {},
             dataRetentionCustomPoliciesCount: 0,
             prevTrialLicense: {},
+            accessControlPolicies: {},
+            channelsForAccessControlPolicy: {},
         },
         jobs: {
             jobs: {},

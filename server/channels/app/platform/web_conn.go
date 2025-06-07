@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 const (
@@ -61,17 +62,18 @@ type pluginWSPostedHook struct {
 }
 
 type WebConnConfig struct {
-	WebSocket     *websocket.Conn
-	Session       model.Session
-	TFunc         i18n.TranslateFunc
-	Locale        string
-	ConnectionID  string
-	Active        bool
-	ReuseCount    int
-	OriginClient  string
-	PostedAck     bool
-	RemoteAddress string
-	XForwardedFor string
+	WebSocket         *websocket.Conn
+	Session           model.Session
+	TFunc             i18n.TranslateFunc
+	Locale            string
+	ConnectionID      string
+	Active            bool
+	ReuseCount        int
+	OriginClient      string
+	PostedAck         bool
+	RemoteAddress     string
+	XForwardedFor     string
+	DisconnectErrCode string
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int64
@@ -84,19 +86,22 @@ type WebConnConfig struct {
 // It contains all the necessary state to manage sending/receiving data to/from
 // a websocket.
 type WebConn struct {
-	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
-	Platform         *PlatformService
-	Suite            SuiteIFace
-	HookRunner       HookRunner
-	WebSocket        *websocket.Conn
-	T                i18n.TranslateFunc
-	Locale           string
-	Sequence         int64
-	UserId           string
-	PostedAck        bool
+	sessionExpiresAt  int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
+	Platform          *PlatformService
+	Suite             SuiteIFace
+	HookRunner        HookRunner
+	WebSocket         *websocket.Conn
+	T                 i18n.TranslateFunc
+	Locale            string
+	Sequence          int64
+	UserId            string
+	PostedAck         bool
+	DisconnectErrCode string
 
-	lastUserActivityAt int64
-	send               chan model.WebSocketMessage
+	allChannelMembers         map[string]string
+	lastAllChannelMembersTime int64
+	lastUserActivityAt        int64
+	send                      chan model.WebSocketMessage
 	// deadQueue behaves like a queue of a finite size
 	// which is used to store all messages that are sent via the websocket.
 	// It basically acts as the user-space socket buffer, and is used
@@ -243,6 +248,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		T:                  cfg.TFunc,
 		Locale:             cfg.Locale,
 		PostedAck:          cfg.PostedAck,
+		DisconnectErrCode:  cfg.DisconnectErrCode,
 		reuseCount:         cfg.ReuseCount,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
@@ -520,7 +526,7 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEvent(reconnectFound)
+				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectFound, wc.DisconnectErrCode)
 			}
 		} else if wc.hasMsgLoss() {
 			// If the seq number is not in dead queue, but it was supposed to be,
@@ -538,11 +544,11 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEvent(reconnectNotFound)
+				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectNotFound, wc.DisconnectErrCode)
 			}
 		} else {
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEvent(reconnectLossless)
+				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectLossless, wc.DisconnectErrCode)
 			}
 		}
 	}
@@ -758,6 +764,8 @@ func (wc *WebConn) drainDeadQueue(index int) error {
 
 // InvalidateCache resets all internal data of the WebConn.
 func (wc *WebConn) InvalidateCache() {
+	wc.allChannelMembers = nil
+	wc.lastAllChannelMembersTime = 0
 	wc.SetSession(nil)
 	wc.SetSessionExpiresAt(0)
 }
@@ -938,9 +946,36 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 			return false
 		}
 
-		// We don't need to do any further checks because this is already scoped
-		// to channel members from web_hub.
-		return true
+		if *wc.Platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+			// We don't need to do any further checks because this is already scoped
+			// to channel members from web_hub.
+			return true
+		}
+
+		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
+			wc.allChannelMembers = nil
+			wc.lastAllChannelMembersTime = 0
+		}
+
+		if wc.allChannelMembers == nil {
+			result, err := wc.Platform.Store.Channel().GetAllChannelMembersForUser(
+				sqlstore.RequestContextWithMaster(request.EmptyContext(wc.Platform.logger)),
+				wc.UserId,
+				false,
+				false,
+			)
+			if err != nil {
+				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
+				return false
+			}
+			wc.allChannelMembers = result
+			wc.lastAllChannelMembersTime = model.GetMillis()
+		}
+
+		if _, ok := wc.allChannelMembers[chID]; ok {
+			return true
+		}
+		return false
 	}
 
 	// Only report events to users who are in the team for the event

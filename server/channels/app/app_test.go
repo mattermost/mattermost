@@ -40,6 +40,7 @@ func init() {
 }
 
 func TestUnitUpdateConfig(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -148,6 +149,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionEditBookmarkPrivateChannel.Id,
 			model.PermissionDeleteBookmarkPrivateChannel.Id,
 			model.PermissionOrderBookmarkPrivateChannel.Id,
+			model.PermissionManagePublicChannelBanner.Id,
+			model.PermissionManagePrivateChannelBanner.Id,
 		},
 		"team_user": {
 			model.PermissionListTeamChannels.Id,
@@ -191,6 +194,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionEditBookmarkPrivateChannel.Id,
 			model.PermissionDeleteBookmarkPrivateChannel.Id,
 			model.PermissionOrderBookmarkPrivateChannel.Id,
+			model.PermissionManagePublicChannelBanner.Id,
+			model.PermissionManagePrivateChannelBanner.Id,
 		},
 		"system_user": {
 			model.PermissionListPublicTeams.Id,
@@ -286,6 +291,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 }
 
 func TestDBHealthCheckWriteAndDelete(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
