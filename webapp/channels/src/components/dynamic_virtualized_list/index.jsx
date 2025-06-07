@@ -7,7 +7,7 @@
 import memoizeOne from 'memoize-one';
 import {createElement, PureComponent} from 'react';
 
-import ListItem, {cleanupSharedObserver} from './item_row_shared';
+import ListItem from './item_row_shared';
 
 const atBottomMargin = 10;
 
@@ -212,8 +212,6 @@ export class DynamicVirtualizedList extends PureComponent {
     }
 
     componentWillUnmount() {
-        cleanupSharedObserver();
-
         if (this._scrollByCorrection) {
             window.cancelAnimationFrame(this._scrollByCorrection);
         }

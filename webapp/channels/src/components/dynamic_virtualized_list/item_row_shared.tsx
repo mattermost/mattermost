@@ -9,11 +9,7 @@ import {ListItemSizeObserver} from './item_row_size_observer';
 
 const RESIZE_DEBOUNCE_TIME = 200; // in ms
 
-const listItemSizeObserver = new ListItemSizeObserver();
-
-export function cleanupSharedObserver(): void {
-    listItemSizeObserver.disconnect();
-}
+const listItemSizeObserver = ListItemSizeObserver.getInstance();
 
 interface Props {
     item: ReactNode;
@@ -32,7 +28,6 @@ interface Props {
 const ListItem = (props: Props) => {
     const rowRef = useRef<HTMLDivElement>(null);
 
-    const itemIdRef = useRef(props.itemId);
     const heightRef = useRef(props.height);
     const widthRef = useRef(props.width);
     const indexRef = useRef(props.index);
@@ -43,16 +38,16 @@ const ListItem = (props: Props) => {
     useEffect(() => {
         heightRef.current = props.height;
         widthRef.current = props.width;
-        itemIdRef.current = props.itemId;
         indexRef.current = props.index;
     }, [props.itemId, props.height, props.width, props.index]);
 
     // This effect is used to measure the height of the row as soon as the component mounts
     useEffect(() => {
         const newHeight = Math.ceil(rowRef?.current?.offsetHeight ?? 0);
-        props.onHeightChange(itemIdRef.current, newHeight, false);
-    }, []);
+        props.onHeightChange(props.itemId, newHeight, false);
+    }, [props.itemId]);
 
+    // This effects adds the observer which calls height change callback debounced
     useEffect(() => {
         const debouncedOnHeightChange = debounce((changedHeight: number) => {
             // If width of container has changed then scroll bar position will be out of sync
@@ -61,7 +56,7 @@ const ListItem = (props: Props) => {
 
             heightRef.current = changedHeight;
 
-            props.onHeightChange(itemIdRef.current, changedHeight, forceScrollCorrection);
+            props.onHeightChange(props.itemId, changedHeight, forceScrollCorrection);
         }, RESIZE_DEBOUNCE_TIME);
 
         function itemRowSizeObserverCallback(changedHeight: number) {
@@ -74,15 +69,21 @@ const ListItem = (props: Props) => {
             }
         }
 
+        let cleanupSizeObserver: () => void;
+
+        // We add the observer here to a row
         if (rowRef.current) {
-            listItemSizeObserver.observe(itemIdRef.current, rowRef.current, itemRowSizeObserverCallback);
+            cleanupSizeObserver = listItemSizeObserver.observe(props.itemId, rowRef.current, itemRowSizeObserverCallback);
         }
 
+        // We remove the observer here from a row
         return () => {
-            listItemSizeObserver.unobserve(itemIdRef.current);
-            props.onUnmount(itemIdRef.current, indexRef.current);
+            if (cleanupSizeObserver) {
+                cleanupSizeObserver();
+            }
+            props.onUnmount(props.itemId, indexRef.current);
         };
-    }, []);
+    }, [props.itemId]);
 
     return (
         <div

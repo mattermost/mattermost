@@ -2,57 +2,63 @@
 // See LICENSE.txt for license information.
 
 type TrackedItemCallback = (changedHeight: number) => void;
-
-type TrackedItemsMap = Map<string, {element: Element; callback: TrackedItemCallback}>;
+type TrackedItemData = {element: Element; callback: TrackedItemCallback};
+type TrackedItemsMap = Map<string, TrackedItemData>;
 
 export class ListItemSizeObserver {
     private observer: ResizeObserver;
 
     private trackedItems: TrackedItemsMap = new Map();
-    private elementToIdLookup: WeakMap<Element, string> = new WeakMap();
 
-    constructor() {
+    private static instance: ListItemSizeObserver | null = null;
+
+    private constructor() {
         this.observer = new ResizeObserver(this.handleResizeObserver);
+    }
+
+    public static getInstance(): ListItemSizeObserver {
+        if (!ListItemSizeObserver.instance) {
+            // Following class based singleton pattern to avoid multiple instances of the observer
+            ListItemSizeObserver.instance = new ListItemSizeObserver();
+        }
+        return ListItemSizeObserver.instance;
     }
 
     private handleResizeObserver = (resizeEntries: ResizeObserverEntry[]) => {
         resizeEntries.forEach((resizeEntry) => {
             const resizedElement = resizeEntry.target;
-            const itemId = this.elementToIdLookup.get(resizedElement);
 
-            if (!itemId) {
-                return;
+            let itemData: TrackedItemData | undefined;
+            for (const [, trackedItemData] of this.trackedItems.entries()) {
+                // Reverse lookup by element to get the item's data
+                if (trackedItemData.element === resizedElement) {
+                    itemData = trackedItemData;
+                    break;
+                }
             }
 
-            const item = this.trackedItems.get(itemId);
-            if (!item) {
+            if (!itemData) {
                 return;
             }
 
             const changedHeight = Math.ceil(resizeEntry.borderBoxSize[0].blockSize);
-            item.callback(changedHeight);
+            itemData.callback(changedHeight);
         });
     };
 
-    observe(itemId: string, element: Element, callback: TrackedItemCallback): void {
+    public observe(itemId: string, element: Element, callback: TrackedItemCallback): () => void {
         this.trackedItems.set(itemId, {element, callback});
-        this.elementToIdLookup.set(element, itemId);
         this.observer.observe(element);
+
+        return () => this.unobserve(itemId);
     }
 
-    unobserve(itemId: string): void {
-        const trackedItem = this.trackedItems.get(itemId);
-        if (trackedItem) {
-            this.observer.unobserve(trackedItem.element);
+    private unobserve(itemId: string): void {
+        const trackedItemToUnobserve = this.trackedItems.get(itemId);
+        if (trackedItemToUnobserve) {
+            this.observer.unobserve(trackedItemToUnobserve.element);
             this.trackedItems.delete(itemId);
-            this.elementToIdLookup.delete(trackedItem.element);
         }
-    }
-
-    disconnect(): void {
-        this.observer.disconnect();
-        this.trackedItems.clear();
-        this.elementToIdLookup = new WeakMap();
     }
 }
 
