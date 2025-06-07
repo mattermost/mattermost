@@ -611,6 +611,21 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             Menu: () => null,
                             MenuList: () => null,
                             Input,
+                            MultiValueRemove: (props) => (
+                                <components.MultiValueRemove
+                                    {...props}
+                                    innerProps={{
+                                        ...props.innerProps,
+                                        tabIndex: 0,
+                                        onKeyDown: (e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                props.innerProps.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>); // Cast needed to avoid type error for accessibility
+                                            }
+                                        },
+                                    }}
+                                />
+                            ),
                         }}
                         onChange={this.handleChangeForCustomKeysWithNotificationInput}
                         value={this.state.customKeysWithNotification}
@@ -711,6 +726,21 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             DropdownIndicator: () => null,
                             Menu: () => null,
                             MenuList: () => null,
+                            MultiValueRemove: (props) => (
+                                <components.MultiValueRemove
+                                    {...props}
+                                    innerProps={{
+                                        ...props.innerProps,
+                                        tabIndex: 0,
+                                        onKeyDown: (e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                props.innerProps.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>); // Cast needed to avoid type error for accessibility
+                                            }
+                                        },
+                                    }}
+                                />
+                            ),
                         }}
                         aria-labelledby='mentionKeysWithHighlightInput'
                         onChange={this.handleChangeForCustomKeysWithHighlightInput}
