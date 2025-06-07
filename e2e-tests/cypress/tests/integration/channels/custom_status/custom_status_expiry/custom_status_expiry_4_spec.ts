@@ -99,20 +99,23 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
     });
 
     it.skip('MM-T4066_6 should show selected date in the date input field', () => {
-        // # Click on DayPicker input field
-        cy.get('.dateTime__calendar-icon').click();
+        // # open the date picker
+        cy.get('.dateTime__date .date-time-input').click();
 
         // * Verify that DayPicker overlay is visible
         cy.get('.date-picker__popper').should('be.visible');
 
         // # Click on the date which is dateToBeSelected
         for (let i = 0; i < months; i++) {
-            cy.get('i.icon.icon-chevron-right').click();
+            cy.get('.fa-angle-right').click();
         }
         cy.get('.date-picker__popper').find(`.rdp-month button[aria-label="${dateToBeSelected.format('Do MMMM (dddd)')}"]`).click();
 
-        // * Check that the date input should have the correct value
-        cy.get('input#customStatus__calendar-input').should('have.value', dateToBeSelected.format('YYYY-MM-DD'));
+        // # close and reopen the picker
+        cy.get('.dateTime__date .date-time-input').click();
+
+        // * Check that the selected date persists
+        cy.get('.date-picker__popper').find(`.rdp-month button[aria-label="${dateToBeSelected.format('Do MMMM (dddd)')}"]`).should('have.class', 'rdp-day_selected');
     });
 
     it('MM-T4066_7 should set custom status when click on Set Status', () => {
@@ -154,7 +157,7 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
         cy.get('.statusSuggestion__row').first().click();
 
         // # open the date picker
-        cy.get('.dateTime__calendar-icon').click();
+        cy.get('.dateTime__date .date-time-input').click();
 
         // * Verify that DayPicker overlay is visible
         cy.get('.date-picker__popper').should('be.visible');
@@ -166,7 +169,7 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
         cy.get('.date-picker__popper').find(`.rdp-month button[aria-label="${dateToBeSelected.format('Do MMMM (dddd)')}"]`).click();
 
         // # reopen the date picker
-        cy.get('.dateTime__calendar-icon').click();
+        cy.get('.dateTime__date .date-time-input').click();
 
         // * Verify that date selected is still selected
         cy.get('.date-picker__popper').find(`.rdp-month button[aria-label="${dateToBeSelected.format('Do MMMM (dddd)')}"]`).should('have.class', 'rdp-day_selected');

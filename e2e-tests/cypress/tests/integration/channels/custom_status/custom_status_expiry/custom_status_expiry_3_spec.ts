@@ -101,7 +101,7 @@ describe('MM-T4065 Setting manual status clear time less than 7 days away', () =
 
     it.skip('MM-T4065_6 should show selected date in the date input field', () => {
         // # Click on DayPicker input field
-        cy.get('.dateTime__calendar-icon').click();
+        cy.get('.dateTime__date .date-time-input').click();
 
         // * Verify that DayPicker overlay is visible
         cy.get('.date-picker__popper').should('be.visible');
@@ -118,17 +118,17 @@ describe('MM-T4065 Setting manual status clear time less than 7 days away', () =
 
     it('MM-T4065_7 should show selected time in the time input field', () => {
         // * Check that the timepicker menu is not present and click to open it
-        cy.get('#custom_status_modal .dateTime__time-menu #expiryTimeMenu').should('not.exist');
-        cy.get('#custom_status_modal .dateTime__time-menu').click();
+        cy.get('#custom_status_modal .dateTime__time #expiryTimeMenu').should('not.exist');
+        cy.get('#custom_status_modal .dateTime__time .date-time-input').click();
 
         // * Check that the time picker menu is present
-        cy.get('#custom_status_modal .dateTime__time-menu #expiryTimeMenu').should('exist');
+        cy.get('#custom_status_modal .dateTime__time #expiryTimeMenu').should('exist');
 
         // # Choose the last item in the time picker menu
-        cy.get('#custom_status_modal .dateTime__time-menu #expiryTimeMenu li').last().click();
+        cy.get('#custom_status_modal .dateTime__time #expiryTimeMenu li').last().click();
 
         // * Check that the time input contains the correct time
-        cy.get('.dateTime__time-menu .dateTime__input time').should('have.text', '11:30 PM');
+        cy.get('.dateTime__time .date-time-input__value time').should('have.text', '11:30 PM');
     });
 
     it('MM-T4065_8 should set custom status when click on Set Status', () => {
