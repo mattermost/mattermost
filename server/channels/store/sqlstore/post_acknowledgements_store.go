@@ -23,7 +23,7 @@ func newSqlPostAcknowledgementStore(sqlStore *SqlStore) store.PostAcknowledgemen
 
 func (s *SqlPostAcknowledgementStore) Get(postID, userID string) (*model.PostAcknowledgement, error) {
 	query := s.getQueryBuilder().
-		Select("PostId", "UserId", "AcknowledgedAt").
+		Select("PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId").
 		From("PostAcknowledgements").
 		Where(sq.And{
 			sq.Eq{"PostId": postID},
@@ -45,16 +45,32 @@ func (s *SqlPostAcknowledgementStore) Get(postID, userID string) (*model.PostAck
 }
 
 func (s *SqlPostAcknowledgementStore) Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
-	if acknowledgedAt == 0 {
-		acknowledgedAt = model.GetMillis()
+	// Get the channelId from the post
+	postQuery := s.getQueryBuilder().
+		Select("ChannelId").
+		From("Posts").
+		Where(sq.Eq{"Id": postID})
+
+	var channelId string
+	err := s.GetReplica().GetBuilder(&channelId, postQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get channel id for post")
 	}
 
 	acknowledgement := &model.PostAcknowledgement{
 		UserId:         userID,
 		PostId:         postID,
+		ChannelId:      channelId,
 		AcknowledgedAt: acknowledgedAt,
+		RemoteId:       nil,
 	}
 
+	acknowledgement.PreSave()
+
+	return s.SaveWithModel(acknowledgement)
+}
+
+func (s *SqlPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error) {
 	if err := acknowledgement.IsValid(); err != nil {
 		return nil, err
 	}
@@ -65,10 +81,19 @@ func (s *SqlPostAcknowledgementStore) Save(postID, userID string, acknowledgedAt
 	}
 	defer finalizeTransactionX(transaction, &err)
 
+	columnsToInsert := []string{"PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId"}
+	var remoteIdValue any
+	if acknowledgement.RemoteId != nil {
+		remoteIdValue = *acknowledgement.RemoteId
+	} else {
+		remoteIdValue = nil
+	}
+	valuesToInsert := []any{acknowledgement.PostId, acknowledgement.UserId, acknowledgement.ChannelId, acknowledgement.AcknowledgedAt, remoteIdValue}
+
 	query := s.getQueryBuilder().
 		Insert("PostAcknowledgements").
-		Columns("PostId", "UserId", "AcknowledgedAt").
-		Values(acknowledgement.PostId, acknowledgement.UserId, acknowledgement.AcknowledgedAt)
+		Columns(columnsToInsert...).
+		Values(valuesToInsert...)
 
 	if s.DriverName() == model.DatabaseDriverMysql {
 		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
@@ -131,7 +156,7 @@ func (s *SqlPostAcknowledgementStore) GetForPost(postID string) ([]*model.PostAc
 	var acknowledgements []*model.PostAcknowledgement
 
 	query := s.getQueryBuilder().
-		Select("PostId", "UserId", "AcknowledgedAt").
+		Select("PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId").
 		From("PostAcknowledgements").
 		Where(sq.And{
 			sq.NotEq{"AcknowledgedAt": 0},
@@ -157,7 +182,7 @@ func (s *SqlPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.Po
 		}
 
 		query := s.getQueryBuilder().
-			Select("PostId", "UserId", "AcknowledgedAt").
+			Select("PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId").
 			From("PostAcknowledgements").
 			Where(sq.And{
 				sq.Eq{"PostId": postIds[i:j]},
@@ -176,6 +201,68 @@ func (s *SqlPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.Po
 	return acknowledgements, nil
 }
 
+func (s *SqlPostAcknowledgementStore) GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.PostAcknowledgement, error) {
+	var acknowledgements []*model.PostAcknowledgement
+
+	query := s.getQueryBuilder().
+		Select("PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId").
+		From("PostAcknowledgements").
+		Where(sq.Eq{"PostId": postID})
+
+	if !inclDeleted {
+		query = query.Where(sq.NotEq{"AcknowledgedAt": 0})
+	}
+
+	if since > 0 {
+		query = query.Where(sq.Gt{"AcknowledgedAt": since})
+	}
+
+	if excludeRemoteID != "" {
+		if s.DriverName() == model.DatabaseDriverMysql {
+			query = query.Where(sq.NotEq{"COALESCE(RemoteId, '')": excludeRemoteID})
+		} else {
+			query = query.Where(sq.NotEq{"COALESCE(RemoteId, '')": excludeRemoteID})
+		}
+	}
+
+	err := s.GetReplica().SelectBuilder(&acknowledgements, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get PostAcknowledgements for postID=%s since=%d", postID, since)
+	}
+
+	return acknowledgements, nil
+}
+
+func (s *SqlPostAcknowledgementStore) GetSingle(userID, postID, remoteID string) (*model.PostAcknowledgement, error) {
+	query := s.getQueryBuilder().
+		Select("PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId").
+		From("PostAcknowledgements").
+		Where(sq.And{
+			sq.Eq{"PostId": postID},
+			sq.Eq{"UserId": userID},
+		})
+
+	if remoteID != "" {
+		query = query.Where(sq.Eq{"RemoteId": remoteID})
+	} else {
+		query = query.Where(sq.Or{
+			sq.Eq{"RemoteId": ""},
+			sq.Eq{"RemoteId": nil},
+		})
+	}
+
+	var acknowledgement model.PostAcknowledgement
+	err := s.GetReplica().GetBuilder(&acknowledgement, query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("PostAcknowledgement", postID)
+		}
+		return nil, err
+	}
+
+	return &acknowledgement, nil
+}
+
 func updatePost(transaction *sqlxTxWrapper, postId string) error {
 	_, err := transaction.Exec(
 		`UPDATE
@@ -189,4 +276,139 @@ func updatePost(transaction *sqlxTxWrapper, postId string) error {
 	)
 
 	return err
+}
+
+func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error) {
+	if len(acknowledgements) == 0 {
+		return []*model.PostAcknowledgement{}, nil
+	}
+
+	// Populate missing ChannelId fields and validate all acknowledgements
+	for _, ack := range acknowledgements {
+		// If ChannelId is not set, look it up from the post
+		if ack.ChannelId == "" {
+			// Get the channelId from the post
+			postQuery := s.getQueryBuilder().
+				Select("ChannelId").
+				From("Posts").
+				Where(sq.Eq{"Id": ack.PostId})
+
+			var channelId string
+			err := s.GetReplica().GetBuilder(&channelId, postQuery)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to get channel id for post %s", ack.PostId)
+			}
+			ack.ChannelId = channelId
+		}
+
+		if err := ack.IsValid(); err != nil {
+			return nil, err
+		}
+	}
+
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Keep track of which posts need to be updated
+	postsToUpdate := make(map[string]bool)
+
+	// Insert all acknowledgements
+	for _, ack := range acknowledgements {
+		ack.PreSave()
+
+		columnsToInsert := []string{"PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId"}
+		var remoteIdValue any
+		if ack.RemoteId != nil {
+			remoteIdValue = *ack.RemoteId
+		} else {
+			remoteIdValue = nil
+		}
+		valuesToInsert := []any{ack.PostId, ack.UserId, ack.ChannelId, ack.AcknowledgedAt, remoteIdValue}
+
+		query := s.getQueryBuilder().
+			Insert("PostAcknowledgements").
+			Columns(columnsToInsert...).
+			Values(valuesToInsert...)
+
+		if s.DriverName() == model.DatabaseDriverMysql {
+			query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE AcknowledgedAt = ?", ack.AcknowledgedAt))
+		} else {
+			query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?", ack.AcknowledgedAt))
+		}
+
+		_, err = transaction.ExecBuilder(query)
+		if err != nil {
+			return nil, err
+		}
+
+		// Add this post to the list of posts that need their UpdateAt field updated
+		postsToUpdate[ack.PostId] = true
+	}
+
+	// Update the UpdateAt timestamp for all affected posts
+	for postID := range postsToUpdate {
+		err = updatePost(transaction, postID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = transaction.Commit()
+	if err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return acknowledgements, nil
+}
+
+func (s *SqlPostAcknowledgementStore) BatchDelete(acknowledgements []*model.PostAcknowledgement) error {
+	if len(acknowledgements) == 0 {
+		return nil
+	}
+
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Keep track of which posts need to be updated
+	postsToUpdate := make(map[string]bool)
+
+	// Set AcknowledgedAt to 0 for all acknowledgements in a single transaction
+	for _, ack := range acknowledgements {
+		query := s.getQueryBuilder().
+			Update("PostAcknowledgements").
+			Set("AcknowledgedAt", 0).
+			Where(sq.And{
+				sq.Eq{"PostId": ack.PostId},
+				sq.Eq{"UserId": ack.UserId},
+			})
+
+		_, err = transaction.ExecBuilder(query)
+		if err != nil {
+			return err
+		}
+
+		// Add this post to the list of posts that need their UpdateAt field updated
+		postsToUpdate[ack.PostId] = true
+	}
+
+	// Update the UpdateAt timestamp for all affected posts
+	for postID := range postsToUpdate {
+		err = updatePost(transaction, postID)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = transaction.Commit()
+	if err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
 }

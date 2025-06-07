@@ -39,7 +39,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import Constants, {PostListRowListIds} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import {formatWithRenderer} from 'utils/markdown';
+import {formatWithRenderer, formatWithRendererForMentions} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {allAtMentions} from 'utils/text_formatting';
 import {isMobile} from 'utils/user_agent';
@@ -796,7 +796,41 @@ export function getUserOrGroupFromMentionName(
     groups: Record<string, Group>,
     groupsDisabled?: boolean,
     getMention = getMentionDetails,
+    remoteClusters?: Array<{remote_id: string; name: string; display_name: string}>,
 ): [UserProfile?, Group?] {
+    if (mentionName.includes(':')) {
+        // First try direct lookup - remote users are stored with full username like "admin:org1"
+        const user = users[mentionName];
+        if (user?.remote_id) {
+            return [user, undefined];
+        }
+
+        // Fallback: If direct lookup fails, try matching with remoteClusters mapping
+        if (!remoteClusters?.length) {
+            return [undefined, undefined];
+        }
+
+        const [username, clusterName] = mentionName.split(':', 2);
+        if (!username || !clusterName) {
+            return [undefined, undefined];
+        }
+
+        // Create a map of remote_id to name for case-insensitive lookup
+        const remoteIdToName = new Map(
+            remoteClusters.map((cluster) => [cluster.remote_id, cluster.name.toLowerCase()]),
+        );
+
+        // Find remote user with matching base username and cluster
+        const targetClusterName = clusterName.toLowerCase();
+        for (const user of Object.values(users)) {
+            if (user.username.startsWith(`${username}:`) &&
+                user.remote_id &&
+                remoteIdToName.get(user.remote_id) === targetClusterName) {
+                return [user, undefined];
+            }
+        }
+    }
+
     const user = getMention(users, mentionName);
 
     // prioritizes user if user exists with the same name as a group.
@@ -833,7 +867,7 @@ export function makeGetUserOrGroupMentionCountFromMessage(): (state: GlobalState
         getAllGroupsForReferenceByName,
         (message, users, groups) => {
             let count = 0;
-            const markdownCleanedText = formatWithRenderer(message, new MentionableRenderer());
+            const markdownCleanedText = formatWithRendererForMentions(message, new MentionableRenderer());
             const mentions = new Set(markdownCleanedText.match(Constants.MENTIONS_REGEX) || []);
             mentions.forEach((mention) => {
                 const [user, group] = getUserOrGroupFromMentionName(mention.substring(1), users, groups);

@@ -1132,7 +1132,7 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	acknowledgement, appErr := c.App.SaveAcknowledgementForPost(c.AppContext, c.Params.PostId, c.Params.UserId)
+	acknowledgement, appErr := c.App.SaveAcknowledgementForPostByUserID(c.AppContext, c.Params.PostId, c.Params.UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1177,7 +1177,7 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr := c.App.DeleteAcknowledgementForPost(c.AppContext, c.Params.PostId, c.Params.UserId)
+	appErr := c.App.DeleteAcknowledgementForPostByUserID(c.AppContext, c.Params.PostId, c.Params.UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
