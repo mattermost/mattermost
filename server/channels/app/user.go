@@ -2196,8 +2196,20 @@ func (a *App) SearchUsersNotInGroup(groupID string, term string, options *model.
 func (a *App) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	autocomplete, err := a.Srv().Store().User().AutocompleteUsersInChannel(rctx, teamID, channelID, term, options)
+	// Check if channel has ABAC policies enabled
+	channel, err := a.GetChannel(rctx, channelID)
 	if err != nil {
+		return nil, err
+	}
+
+	// If ABAC is enabled for this channel, use ABAC-aware autocomplete
+	if channel.PolicyEnforced {
+		return a.autocompleteUsersInChannelWithABAC(rctx, teamID, channelID, term, options)
+	}
+
+	// Use existing autocomplete logic for non-ABAC channels
+	autocomplete, appErr := a.Srv().Store().User().AutocompleteUsersInChannel(rctx, teamID, channelID, term, options)
+	if appErr != nil {
 		return nil, model.NewAppError("AutocompleteUsersInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2210,6 +2222,91 @@ func (a *App) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channe
 	}
 
 	return autocomplete, nil
+}
+
+// autocompleteUsersInChannelWithABAC handles user autocomplete for ABAC-enabled channels
+func (a *App) autocompleteUsersInChannelWithABAC(rctx request.CTX, teamID, channelID, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		// Immediate fallback to regular autocomplete if ABAC service is not available
+		autocomplete, err := a.Srv().Store().User().AutocompleteUsersInChannel(rctx, teamID, channelID, term, options)
+		if err != nil {
+			return nil, model.NewAppError("autocompleteUsersInChannelWithABAC", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return autocomplete, nil
+	}
+
+	// Get all users that can potentially access this channel
+	// We'll split them into in-channel and out-of-channel later
+	filteredUsers, _, err := acs.QueryUsersForResource(rctx, channelID, "*", model.SubjectSearchOptions{
+		Term:   term,
+		TeamID: teamID,
+		Limit:  options.Limit,
+	})
+
+	if err != nil {
+		// Immediate fallback on any error
+		rctx.Logger().Warn("ABAC autocomplete failed, falling back to regular autocomplete",
+			mlog.String("channel_id", channelID),
+			mlog.Err(err))
+		autocomplete, storeErr := a.Srv().Store().User().AutocompleteUsersInChannel(rctx, teamID, channelID, term, options)
+		if storeErr != nil {
+			return nil, model.NewAppError("autocompleteUsersInChannelWithABAC", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+		return autocomplete, nil
+	}
+
+	// Split into in-channel and out-of-channel users
+	inChannelUsers, outChannelUsers := a.splitUsersInOutChannel(rctx, channelID, filteredUsers, options.Limit)
+
+	// Sanitize profiles
+	for _, user := range inChannelUsers {
+		a.SanitizeProfile(user, options.IsAdmin)
+	}
+	for _, user := range outChannelUsers {
+		a.SanitizeProfile(user, options.IsAdmin)
+	}
+
+	return &model.UserAutocompleteInChannel{
+		InChannel:    inChannelUsers,
+		OutOfChannel: outChannelUsers,
+	}, nil
+}
+
+// splitUsersInOutChannel splits users into in-channel and out-of-channel lists
+func (a *App) splitUsersInOutChannel(rctx request.CTX, channelID string, users []*model.User, limit int) ([]*model.User, []*model.User) {
+	// Get current channel members to split the users
+	channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, 0, 10000) // Get all members
+	if err != nil {
+		// If we can't get members, return all as out-of-channel
+		if len(users) > limit {
+			users = users[:limit]
+		}
+		return []*model.User{}, users
+	}
+
+	// Create a map for fast lookup
+	memberMap := make(map[string]bool)
+	for _, member := range channelMembers {
+		memberMap[member.UserId] = true
+	}
+
+	var inChannel, outChannel []*model.User
+
+	for _, user := range users {
+		if memberMap[user.Id] {
+			inChannel = append(inChannel, user)
+		} else {
+			outChannel = append(outChannel, user)
+		}
+
+		// Respect the limit (25 total)
+		if len(inChannel)+len(outChannel) >= limit {
+			break
+		}
+	}
+
+	return inChannel, outChannel
 }
 
 func (a *App) AutocompleteUsersInTeam(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
