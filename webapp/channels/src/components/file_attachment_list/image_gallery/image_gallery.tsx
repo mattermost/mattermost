@@ -20,9 +20,56 @@ const GALLERY_CONFIG = {
     MIN_HEIGHT: 48,
     SMALL_IMAGE_PADDING: 16,
     MAX_WIDTH: 500,
-    ASPECT_RATIO_CLAMP: {min: 1 / 3, max: 3},
     SMALL_IMAGE_THRESHOLD: 216,
 } as const;
+
+// Utility functions for size calculations
+const isSmallImage = (fileInfo: FileInfo): boolean => {
+    const width = fileInfo.width || 0;
+    const height = fileInfo.height || 0;
+    return width < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD || height < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD;
+};
+
+const calculateAdjustedHeight = (fileInfo: FileInfo): number => {
+    const imageHeight = fileInfo.height || 0;
+
+    // For small images, add padding to account for better spacing in the gallery
+    return isSmallImage(fileInfo) ? imageHeight + GALLERY_CONFIG.SMALL_IMAGE_PADDING : imageHeight;
+};
+
+const calculateGalleryHeight = (fileInfos: FileInfo[]): number => {
+    if (fileInfos.length === 0) {
+        return GALLERY_CONFIG.MIN_HEIGHT;
+    }
+
+    // Get the maximum height from all adjusted image heights
+    const adjustedHeights = fileInfos.map(calculateAdjustedHeight);
+    const maxHeight = Math.max(...adjustedHeights, GALLERY_CONFIG.MIN_HEIGHT);
+
+    // Ensure we don't exceed the maximum allowed height
+    return Math.min(maxHeight, GALLERY_CONFIG.MAX_HEIGHT);
+};
+
+const calculateItemDimensions = (fileInfo: FileInfo, galleryHeight: number) => {
+    const naturalWidth = fileInfo.width || 0;
+    const naturalHeight = fileInfo.height || 0;
+    const aspectRatio = naturalWidth && naturalHeight ? naturalWidth / naturalHeight : 1;
+    const isSmall = isSmallImage(fileInfo);
+
+    // Calculate width based on whether it's a small image or not
+    const calculatedWidth = Math.min(galleryHeight * aspectRatio, GALLERY_CONFIG.MAX_WIDTH);
+    const itemWidth = isSmall ? Math.min(naturalWidth + GALLERY_CONFIG.SMALL_IMAGE_PADDING, GALLERY_CONFIG.MAX_WIDTH) : calculatedWidth;
+
+    // Calculate height - use natural height with padding if it's the tallest small image
+    const naturalHeightWithPadding = naturalHeight + GALLERY_CONFIG.SMALL_IMAGE_PADDING;
+    const itemHeight = isSmall && naturalHeightWithPadding === galleryHeight ? naturalHeightWithPadding : galleryHeight;
+
+    return {
+        width: itemWidth,
+        height: itemHeight,
+        isSmall,
+    };
+};
 
 type Props = PropsFromRedux & {
     fileInfos: FileInfo[];
@@ -49,20 +96,8 @@ const ImageGallery = (props: Props) => {
     const [isDownloading, setIsDownloading] = useState(false);
     const {formatMessage} = useIntl();
 
-    // Calculate the dynamic gallery height based on the tallest image, up to 216px max
-    // For small images (< 216px), add 16px padding to their height in the calculation
-    const galleryHeight = Math.min(
-        Math.max(
-            ...fileInfos.map((fileInfo) => {
-                const imageHeight = fileInfo.height || 0;
-
-                // If it's a small image, add padding to the height for gallery calculation
-                return imageHeight < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD ? imageHeight + GALLERY_CONFIG.SMALL_IMAGE_PADDING : imageHeight;
-            }),
-            GALLERY_CONFIG.MIN_HEIGHT, // Minimum height to ensure usability
-        ),
-        GALLERY_CONFIG.MAX_HEIGHT, // Maximum height
-    );
+    // Calculate the dynamic gallery height using the extracted utility function
+    const galleryHeight = calculateGalleryHeight(fileInfos);
 
     const toggleGallery = () => {
         const newCollapsed = !isCollapsed;
@@ -157,42 +192,17 @@ const ImageGallery = (props: Props) => {
                 })}
             >
                 {!isCollapsed && fileInfos.map((fileInfo) => {
-                    // Calculate the width based on the image's aspect ratio
-                    const aspectRatio = fileInfo.width && fileInfo.height ? fileInfo.width / fileInfo.height : 1;
-
-                    // Clamp aspect ratio to avoid extremely wide or tall images
-                    const clampedAspectRatio = Math.max(GALLERY_CONFIG.ASPECT_RATIO_CLAMP.min, Math.min(aspectRatio, GALLERY_CONFIG.ASPECT_RATIO_CLAMP.max)); // Clamp between 0.33 and 3
-
-                    // For small images, use their natural width but gallery height for container
-                    // For larger images, calculate width based on dynamic gallery height
-                    const isSmallImage = (fileInfo.width || 0) < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD || (fileInfo.height || 0) < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD;
-                    const naturalWidth = fileInfo.width || 0;
-                    const naturalHeight = fileInfo.height || 0;
-
-                    // Calculate width based on aspect ratio and gallery height
-                    const calculatedWidth = Math.min(galleryHeight * clampedAspectRatio, GALLERY_CONFIG.MAX_WIDTH);
-
-                    // For small images, use their natural width + padding, but ensure it doesn't exceed max width
-                    const itemWidth = isSmallImage ?
-                        Math.min(naturalWidth + GALLERY_CONFIG.SMALL_IMAGE_PADDING, GALLERY_CONFIG.MAX_WIDTH) : // Add 16px padding for small images, but cap at 500px
-                        calculatedWidth;
-
-                    // For height: if small image and it's the tallest, use natural height + padding
-                    // Otherwise, use gallery height to match other taller images
-                    const naturalHeightWithPadding = naturalHeight + GALLERY_CONFIG.SMALL_IMAGE_PADDING;
-                    const itemHeight = isSmallImage && naturalHeightWithPadding === galleryHeight ?
-                        naturalHeightWithPadding :
-                        galleryHeight;
+                    const {width, height, isSmall} = calculateItemDimensions(fileInfo, galleryHeight);
 
                     return (
                         <div
                             key={fileInfo.id}
                             className={classNames('image-gallery__item', {
-                                'image-gallery__item--small': isSmallImage,
+                                'image-gallery__item--small': isSmall,
                             })}
                             style={{
-                                width: `${itemWidth}px`,
-                                height: `${itemHeight}px`,
+                                width: `${width}px`,
+                                height: `${height}px`,
                                 maxWidth: '500px',
                                 maxHeight: '216px',
                             }}
