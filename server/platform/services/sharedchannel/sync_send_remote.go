@@ -406,10 +406,14 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		// get mentions and users for each mention
 		mentionMap := scs.app.MentionsToTeamMembers(request.EmptyContext(scs.server.Log()), post.Message, sc.TeamId)
 
-		// Debug: Log mention map
+		// Debug: Log mention map with detailed content
+		mentionMapDetails := make([]string, 0, len(mentionMap))
+		for username, userID := range mentionMap {
+			mentionMapDetails = append(mentionMapDetails, fmt.Sprintf("%s->%s", username, userID))
+		}
 		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("SEND_MENTION_MAP_DEBUG: Post ID: %s, Message: %.100s, MentionMap: %+v",
-				post.Id, post.Message, mentionMap))
+			fmt.Sprintf("SEND_MENTION_MAP_DEBUG: Post ID: %s, Message: %.100s, MentionMap count: %d, Details: [%s]",
+				post.Id, post.Message, len(mentionMap), strings.Join(mentionMapDetails, ", ")))
 
 		// add author with post and mentionMap so transformations can be applied
 		userIDs[post.UserId] = p2mm{
@@ -424,6 +428,15 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 				mentionMap: mentionMap,
 			}
 		}
+
+		// Debug: Log userIDs state after processing this post
+		userIDList := make([]string, 0, len(userIDs))
+		for uid := range userIDs {
+			userIDList = append(userIDList, uid)
+		}
+		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
+			fmt.Sprintf("SEND_USERIDS_DEBUG: Post ID: %s, UserIDs count: %d, UserIDs: [%s]",
+				post.Id, len(userIDs), strings.Join(userIDList, ", ")))
 	}
 
 	merr := merror.New()
