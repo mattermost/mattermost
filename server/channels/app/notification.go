@@ -1538,7 +1538,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 		var remoteClusterName string
 
 		// If this is a remote user, get the cluster name
-		if profile.RemoteId != nil && *profile.RemoteId != "" {
+		if profile.IsRemote() {
 			if rc, err := a.Srv().Store().RemoteCluster().Get(*profile.RemoteId, false); err == nil {
 				remoteClusterName = rc.Name
 			}

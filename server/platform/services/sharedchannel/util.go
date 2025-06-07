@@ -36,7 +36,7 @@ func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.U
 // addClusterToLocalMention transforms @username mentions to @username:clustername format
 // Used when syncing posts to remote clusters for local users
 func addClusterToLocalMention(post *model.Post, mentionMap model.UserMentionMap, user *model.User, clusterName string) {
-	if post == nil || len(mentionMap) == 0 || user.RemoteId != nil {
+	if post == nil || len(mentionMap) == 0 || user.IsRemote() {
 		return
 	}
 

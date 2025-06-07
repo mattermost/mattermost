@@ -91,7 +91,7 @@ func (k MentionKeywords) AddUserWithRemoteClusterSupport(profile *model.User, ch
 	k = k.AddUser(profile, channelNotifyProps, status, allowChannelMentions)
 
 	// If this is a remote user, also add the @username:clustername format
-	if profile.RemoteId != nil && *profile.RemoteId != "" && remoteClusterName != "" {
+	if profile.IsRemote() && remoteClusterName != "" {
 		mentionableID := mentionableUserID(profile.Id)
 		remoteMention := "@" + strings.ToLower(profile.Username) + ":" + strings.ToLower(remoteClusterName)
 		k[remoteMention] = append(k[remoteMention], mentionableID)
