@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/api4/validation"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
@@ -19,6 +20,13 @@ func (api *API) InitBrand() {
 }
 
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Validate request
+	validator := &validation.GetBrandImageValidator{}
+	if err := validator.Validate(r); err != nil {
+		c.Err = err
+		return
+	}
+
 	// No permission check required
 
 	img, err := c.App.GetBrandImage(c.AppContext)
@@ -43,28 +51,17 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
-		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
-		return
+	// Validate request
+	validator := &validation.UploadBrandImageValidator{
+		MaxFileSize: *c.App.Config().FileSettings.MaxFileSize,
 	}
-
-	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
-		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.parse.app_error", nil, "", http.StatusBadRequest)
+	if err := validator.Validate(r); err != nil {
+		c.Err = err
 		return
 	}
 
 	m := r.MultipartForm
-
-	imageArray, ok := m.File["image"]
-	if !ok {
-		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.no_file.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if len(imageArray) <= 0 {
-		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.array.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
+	imageArray := m.File["image"]
 
 	auditRec := c.MakeAuditRecord("uploadBrandImage", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -87,6 +84,13 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Validate request
+	validator := &validation.DeleteBrandImageValidator{}
+	if err := validator.Validate(r); err != nil {
+		c.Err = err
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("deleteBrandImage", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
