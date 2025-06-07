@@ -1,46 +1,34 @@
-.. _mmctl_completion_bash:
+.. _mmctl_completion_powershell:
 
-mmctl completion bash
----------------------
+mmctl completion powershell
+---------------------------
 
-Generate the autocompletion script for bash
+Generate the autocompletion script for powershell
 
 Synopsis
 ~~~~~~~~
 
 
-Generate the autocompletion script for the bash shell.
-
-This script depends on the 'bash-completion' package.
-If it is not installed already, you can install it via your OS's package manager.
+Generate the autocompletion script for powershell.
 
 To load completions in your current shell session:
 
-	source <(mmctl completion bash)
+	mmctl completion powershell | Out-String | Invoke-Expression
 
-To load completions for every new session, execute once:
-
-#### Linux:
-
-	mmctl completion bash > /etc/bash_completion.d/mmctl
-
-#### macOS:
-
-	mmctl completion bash > $(brew --prefix)/etc/bash_completion.d/mmctl
-
-You will need to start a new shell for this setup to take effect.
+To load completions for every new session, add the output of the above command
+to your powershell profile.
 
 
 ::
 
-  mmctl completion bash
+  mmctl completion powershell [flags]
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help              help for bash
+  -h, --help              help for powershell
       --no-descriptions   disable completion descriptions
 
 Options inherited from parent commands
