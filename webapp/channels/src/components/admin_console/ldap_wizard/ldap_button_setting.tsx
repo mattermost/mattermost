@@ -4,17 +4,19 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import type {GeneralSettingProps} from './ldap_wizard';
+import type {LdapSettings} from '@mattermost/types/config';
+
+import type {GeneralSettingProps, LDAPDefinitionSettingButton} from './ldap_wizard';
 
 import RequestButton from '../request_button/request_button';
 import {descriptorOrStringToString, renderLabel, renderSettingHelpText} from '../schema_admin_settings';
-import type {AdminDefinitionSettingButton} from '../types';
 
 type Props = {
-    setting: AdminDefinitionSettingButton;
+    setting: LDAPDefinitionSettingButton;
     saveNeeded: boolean;
     onChange(id: string, value: any): void;
     disabled: boolean;
+    ldapSettingsState: LdapSettings;
 } & GeneralSettingProps
 
 const LDAPButtonSetting = (props: Props) => {
@@ -32,12 +34,10 @@ const LDAPButtonSetting = (props: Props) => {
             return;
         }
         const successCallback = () => {
-            // NOTE: we don't have any settings with 'setFromMetadataField' in the LDAP wizard
             success?.();
         };
 
-        // NOTE: we don't use the sourceUrlKey in the LDAP wizard
-        props.setting.action(successCallback, error, '');
+        props.setting.action(successCallback, error, props.ldapSettingsState);
     };
 
     const helpText = renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
@@ -52,10 +52,11 @@ const LDAPButtonSetting = (props: Props) => {
             loadingText={descriptorOrStringToString(props.setting.loading, intl)}
             buttonText={<span>{label}</span>}
             showSuccessMessage={Boolean(props.setting.success_message)}
-            includeDetailedError={true}
             disabled={props.disabled}
             errorMessage={props.setting.error_message}
             successMessage={props.setting.success_message}
+            flushLeft={true}
+            buttonType={'primary'}
         />
     );
 };

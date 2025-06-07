@@ -52,6 +52,7 @@ import type {
     AllowedIPRanges,
     AllowedIPRange,
     FetchIPResponse,
+    LdapSettings,
 } from '@mattermost/types/config';
 import type {
     DataRetentionCustomPolicies,
@@ -3312,6 +3313,13 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/ldap/test`,
             {method: 'post'},
+        );
+    };
+
+    testLdapConnection = (settings: LdapSettings) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/ldap/test_connection`,
+            {method: 'post', body: JSON.stringify(settings)},
         );
     };
 

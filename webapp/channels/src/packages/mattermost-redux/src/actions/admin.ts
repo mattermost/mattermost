@@ -9,7 +9,7 @@ import type {
     ChannelSearchOpts,
 } from '@mattermost/types/channels';
 import type {Compliance} from '@mattermost/types/compliance';
-import type {AdminConfig, AllowedIPRange} from '@mattermost/types/config';
+import type {AdminConfig, AllowedIPRange, LdapSettings} from '@mattermost/types/config';
 import type {
     CreateDataRetentionCustomPolicy,
     DataRetentionCustomPolicies,
@@ -200,6 +200,15 @@ export function getClusterStatus() {
 export function testLdap() {
     return bindClientFunc({
         clientFunc: Client4.testLdap,
+    });
+}
+
+export function testLdapConnection(settings: LdapSettings) {
+    return bindClientFunc({
+        clientFunc: Client4.testLdapConnection,
+        params: [
+            settings,
+        ],
     });
 }
 
