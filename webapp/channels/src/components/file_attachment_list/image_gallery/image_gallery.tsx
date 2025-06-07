@@ -20,7 +20,7 @@ const GALLERY_CONFIG = {
     MIN_HEIGHT: 48,
     SMALL_IMAGE_PADDING: 16,
     MAX_WIDTH: 500,
-    ASPECT_RATIO_CLAMP: { min: 1/3, max: 3 },
+    ASPECT_RATIO_CLAMP: {min: 1 / 3, max: 3},
     SMALL_IMAGE_THRESHOLD: 216,
 } as const;
 
@@ -83,12 +83,12 @@ const ImageGallery = (props: Props) => {
                     link.href = fileInfo.link || '';
                     link.download = fileInfo.name;
                     link.style.display = 'none';
-                    
+
                     // Add to DOM, click, then remove
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    
+
                     // Small delay to ensure download starts
                     setTimeout(resolve, 50);
                 });
@@ -96,7 +96,7 @@ const ImageGallery = (props: Props) => {
 
             // Wait for all downloads to be initiated
             await Promise.all(downloadPromises);
-            
+
             // Add a small delay to ensure the button stays disabled long enough for testing
             await new Promise((resolve) => setTimeout(resolve, 100));
         } finally {

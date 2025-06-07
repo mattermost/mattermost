@@ -205,19 +205,26 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             dimensions,
             src,
             intl,
+            handleSmallImageContainer,
+            className,
+            ...allOtherProps
+        } = this.props;
+
+        // Remove props that shouldn't be passed to the img element
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        const {
             hideUtilities,
             getFilePublicLink,
             smallImageThreshold,
             fileURL,
             enablePublicLink,
-            handleSmallImageContainer,
-            className,
             onImageLoaded,
             onImageLoadFail,
             showLoader,
             onClick,
             ...restProps
-        } = this.props;
+        } = allOtherProps;
+        /* eslint-enable @typescript-eslint/no-unused-vars */
 
         let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
@@ -285,22 +292,26 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         const {
             fileInfo,
             dimensions,
-            src,
             intl,
             hideUtilities,
+            ...allOtherProps
+        } = this.props;
+
+        // Remove props that shouldn't be passed to the img element
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        const {
+            src,
             getFilePublicLink,
             smallImageThreshold,
             fileURL,
             enablePublicLink,
+            onImageLoaded,
+            onImageLoadFail,
+            showLoader,
+            handleSmallImageContainer,
             ...props
-        } = this.props;
-
-        // Remove props that shouldn't be passed to the img element
-        const imgProps = {...props};
-        delete imgProps.onImageLoaded;
-        delete imgProps.onImageLoadFail;
-        delete imgProps.showLoader;
-        delete imgProps.handleSmallImageContainer;
+        } = allOtherProps;
+        /* eslint-enable @typescript-eslint/no-unused-vars */
 
         let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
@@ -319,7 +330,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             if (miniPreview) {
                 fallback = (
                     <div
-                        className={`image-loading__container ${imgProps.className}`}
+                        className={`image-loading__container ${props.className}`}
                         style={{
                             width: dimensions?.width,
                             height: dimensions?.height,
@@ -329,7 +340,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     >
                         <img
                             aria-label={ariaLabelImage}
-                            className={imgProps.className}
+                            className={props.className}
                             src={miniPreview}
                             tabIndex={0}
                             height={height}
@@ -340,7 +351,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             } else {
                 fallback = (
                     <div
-                        className={`image-loading__container ${imgProps.className}`}
+                        className={`image-loading__container ${props.className}`}
                         style={{
                             width,
                             height,
