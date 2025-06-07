@@ -3119,6 +3119,7 @@ type DataRetentionSettings struct {
 	BatchSize                      *int    `access:"compliance_data_retention_policy"`
 	TimeBetweenBatchesMilliseconds *int    `access:"compliance_data_retention_policy"`
 	RetentionIdsBatchSize          *int    `access:"compliance_data_retention_policy"`
+	PreservePinnedPosts            *bool   `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -3167,6 +3168,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 	}
 	if s.RetentionIdsBatchSize == nil {
 		s.RetentionIdsBatchSize = NewPointer(DataRetentionSettingsDefaultRetentionIdsBatchSize)
+	}
+
+	if s.PreservePinnedPosts == nil {
+		s.PreservePinnedPosts = NewPointer(false)
 	}
 }
 
