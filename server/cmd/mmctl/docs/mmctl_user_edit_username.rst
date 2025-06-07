@@ -1,33 +1,33 @@
-.. _mmctl_user_email:
+.. _mmctl_user_edit_username:
 
-mmctl user email
-----------------
+mmctl user edit username
+------------------------
 
-Change email of the user
+Edit user's username
 
 Synopsis
 ~~~~~~~~
 
 
-Change the email address associated with a user.
+Edit a user's username.
 
 ::
 
-  mmctl user email [user] [new email] [flags]
+  mmctl user edit username [user] [new username] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    user email testuser user@example.com
+  user edit username user@example.com newusername
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for email
+  -h, --help   help for username
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,5 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl user edit <mmctl_user_edit.rst>`_ 	 - Edit user properties
 
