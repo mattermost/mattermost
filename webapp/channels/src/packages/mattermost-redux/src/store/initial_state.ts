@@ -36,6 +36,7 @@ const state: GlobalState = {
             lastActivity: {},
             dndEndTimes: {},
         },
+        remoteClusters: {},
         limits: {
             serverLimits: {
                 activeUserCount: 0,
