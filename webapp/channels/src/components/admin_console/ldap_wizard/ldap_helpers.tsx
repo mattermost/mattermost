@@ -28,6 +28,7 @@ export const LDAPHelpTextWithHover: React.FC<{
             />
             {' '}
             <WithTooltip
+                className='ldap-help-text-hover-tooltip'
                 title={(
                     <SchemaText text={hoverText}/>
                 )}

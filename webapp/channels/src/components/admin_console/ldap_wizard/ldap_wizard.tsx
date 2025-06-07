@@ -25,6 +25,7 @@ import LDAPBooleanSetting from './ldap_boolean_setting';
 import LDAPButtonSetting from './ldap_button_setting';
 import LDAPCustomSetting from './ldap_custom_setting';
 import LDAPDropdownSetting from './ldap_dropdown_setting';
+import LDAPExpandableSetting from './ldap_expandable_setting';
 import LDAPFileUploadSetting from './ldap_file_upload_setting';
 import LDAPJobsTableSetting from './ldap_jobs_table_setting';
 import LDAPTextSetting from './ldap_text_setting';
@@ -47,8 +48,9 @@ export type LDAPAdminDefinitionConfigSchemaSettings = AdminDefinitionSubSectionS
     sections?: LDAPAdminDefinitionConfigSchemaSection[];
 }
 
-export type LDAPAdminDefinitionConfigSchemaSection = AdminDefinitionConfigSchemaSection & {
+export type LDAPAdminDefinitionConfigSchemaSection = Omit<AdminDefinitionConfigSchemaSection, 'settings'> & {
     sectionTitle?: string;
+    settings: LDAPDefinitionSetting[];
 }
 
 export type GeneralSettingProps = {
@@ -240,6 +242,22 @@ const LDAPWizard = (props: Props) => {
         );
     };
 
+    const buildExpandableSetting = (setting: AdminDefinitionSetting) => {
+        return (
+            <LDAPExpandableSetting
+                key={schema.id + '_expandable_' + setting.key}
+                schema={schema}
+                setting={setting}
+                buildSettingFunction={(subSetting: LDAPDefinitionSetting) => {
+                    if (buildSettingFunctions[subSetting.type] && !isHidden(subSetting as AdminDefinitionSetting)) {
+                        return buildSettingFunctions[subSetting.type](subSetting as AdminDefinitionSetting);
+                    }
+                    return null;
+                }}
+            />
+        );
+    };
+
     // To satisfy type checking
     const nullFunction = () => {
         return null;
@@ -255,6 +273,7 @@ const LDAPWizard = (props: Props) => {
         [Constants.SettingsTypes.TYPE_JOBSTABLE]: buildJobsTableSetting,
         [Constants.SettingsTypes.TYPE_FILE_UPLOAD]: buildFileUploadSetting,
         [Constants.SettingsTypes.TYPE_CUSTOM]: buildCustomSetting,
+        [Constants.SettingsTypes.TYPE_EXPANDABLE_SETTING]: buildExpandableSetting,
         [Constants.SettingsTypes.TYPE_COLOR]: nullFunction,
         [Constants.SettingsTypes.TYPE_PERMISSION]: nullFunction,
         [Constants.SettingsTypes.TYPE_RADIO]: nullFunction,
