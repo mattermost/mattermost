@@ -62,6 +62,9 @@ type FeatureFlags struct {
 	CustomProfileAttributes bool
 
 	AttributeBasedAccessControl bool
+
+	// Use Apps Form component for Interactive Dialogs
+	InteractiveDialogAppsForm bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -88,6 +91,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
+	f.InteractiveDialogAppsForm = true
 }
 
 // ToMap returns the feature flags as a map[string]string
