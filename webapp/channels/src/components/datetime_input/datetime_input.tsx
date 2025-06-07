@@ -183,7 +183,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         handlePopperOpenState={handlePopperOpenState}
                         locale={locale}
                         datePickerProps={datePickerProps}
-                        label={formatMessage({id: 'datetime_picker.date', defaultMessage: 'Date'})}
+                        label={formatMessage({
+                            id: 'datetime.date',
+                            defaultMessage: 'Date',
+                        })}
                         icon={calendarIcon}
                         value={formatDate(time)}
                     >
@@ -197,11 +200,17 @@ const DateTimeInputContainer: React.FC<Props> = ({
                     <Menu.Container
                         menuButton={{
                             id: 'time_button',
-                            'aria-label': formatMessage({id: 'datetime_picker.time', defaultMessage: 'Time'}),
+                            'aria-label': formatMessage({
+                                id: 'datetime.time',
+                                defaultMessage: 'Time',
+                            }),
                             class: isTimeMenuOpen ? 'date-time-input date-time-input--open' : 'date-time-input',
                             children: (
                                 <>
-                                    <span className='date-time-input__label'>{formatMessage({id: 'datetime_picker.time', defaultMessage: 'Time'})}</span>
+                                    <span className='date-time-input__label'>{formatMessage({
+                                        id: 'datetime.time',
+                                        defaultMessage: 'Time',
+                                    })}</span>
                                     <span className='date-time-input__icon'>{clockIcon}</span>
                                     <span className='date-time-input__value'>
                                         <Timestamp
