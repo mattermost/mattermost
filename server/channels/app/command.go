@@ -872,6 +872,12 @@ func possibleAtMentions(message string) []string {
 	return names
 }
 
+// PossibleAtMentions is a public wrapper around possibleAtMentions
+// that returns all substrings in message that look like valid @ mentions.
+func (a *App) PossibleAtMentions(message string) []string {
+	return possibleAtMentions(message)
+}
+
 // trimUsernameSpecialChar tries to remove the last character from word if it
 // is a special character for usernames (dot, dash or underscore). If not, it
 // returns the same string.
