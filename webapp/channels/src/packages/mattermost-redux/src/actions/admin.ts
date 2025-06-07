@@ -636,7 +636,7 @@ export function getDataRetentionCustomPolicy(id: string): ActionFuncAsync<DataRe
     };
 }
 
-export function deleteDataRetentionCustomPolicy(id: string): ActionFuncAsync<{ id: string }> {
+export function deleteDataRetentionCustomPolicy(id: string): ActionFuncAsync<{id: string}> {
     return async (dispatch, getState) => {
         try {
             await Client4.deleteDataRetentionCustomPolicy(id);
@@ -685,7 +685,7 @@ export function getDataRetentionCustomPolicyTeams(id: string, page = 0, perPage:
     };
 }
 
-export function getDataRetentionCustomPolicyChannels(id: string, page = 0, perPage: number = General.TEAMS_CHUNK_SIZE): ActionFuncAsync<{ channels: Channel[]; total_count: number }> {
+export function getDataRetentionCustomPolicyChannels(id: string, page = 0, perPage: number = General.TEAMS_CHUNK_SIZE): ActionFuncAsync<{channels: Channel[]; total_count: number}> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -804,7 +804,7 @@ export function addDataRetentionCustomPolicyTeams(id: string, teams: string[]) {
     });
 }
 
-export function removeDataRetentionCustomPolicyTeams(id: string, teams: string[]): ActionFuncAsync<{ teams: string[] }> {
+export function removeDataRetentionCustomPolicyTeams(id: string, teams: string[]): ActionFuncAsync<{teams: string[]}> {
     return async (dispatch, getState) => {
         try {
             await Client4.removeDataRetentionPolicyTeams(id, teams);
@@ -840,7 +840,7 @@ export function addDataRetentionCustomPolicyChannels(id: string, channels: strin
     });
 }
 
-export function removeDataRetentionCustomPolicyChannels(id: string, channels: string[]): ActionFuncAsync<{ channels: string[] }> {
+export function removeDataRetentionCustomPolicyChannels(id: string, channels: string[]): ActionFuncAsync<{channels: string[]}> {
     return async (dispatch, getState) => {
         try {
             await Client4.removeDataRetentionPolicyChannels(id, channels);
