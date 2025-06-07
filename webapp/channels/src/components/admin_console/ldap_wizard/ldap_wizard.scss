@@ -81,4 +81,13 @@
             line-height: 24px;
         }
     }
+
+    .ldap-help-text-more-info {
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--button-bg);
+        cursor: pointer;
+        text-decoration: underline;
+    }
 }
