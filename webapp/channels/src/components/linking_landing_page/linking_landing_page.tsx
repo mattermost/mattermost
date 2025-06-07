@@ -24,6 +24,7 @@ type Props = {
     siteName?: string;
     brandImageUrl?: string;
     enableCustomBrand: boolean;
+    enableDesktopLandingPage: boolean;
 }
 
 type State = {
@@ -443,7 +444,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     render() {
         const isMobile = UserAgent.isMobile();
 
-        if (this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
+        if (!this.props.enableDesktopLandingPage || this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
             this.openInBrowser();
             return null;
         }
