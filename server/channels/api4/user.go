@@ -1251,6 +1251,8 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user.SanitizeInput(c.IsSystemAdmin())
+
 	audit.AddEventParameterAuditable(auditRec, "user", &user)
 	// The user being updated in the payload must be the same one as indicated in the URL.
 	if user.Id != c.Params.UserId {
@@ -1330,6 +1332,9 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
+
+	// Sanitize input: prevent clients from setting RemoteId (system-controlled field)
+	patch.RemoteId = nil
 
 	auditRec := c.MakeAuditRecord("patchUser", audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "user_patch", &patch)

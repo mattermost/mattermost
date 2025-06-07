@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -246,12 +247,57 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 		wg.Add(1)
 		go func(mention string) {
 			defer wg.Done()
+
+			a.PostDebugToTownSquare(c,
+				fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Processing FullMention: %s", mention))
+
+			// First try to find the user by the full mention (could be username or username:remote)
 			user, nErr := a.Srv().Store().User().GetByUsername(mention)
 
 			var nfErr *store.ErrNotFound
 			if nErr != nil && !errors.As(nErr, &nfErr) {
+				a.PostDebugToTownSquare(c,
+					fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Failed to retrieve mention FullMention: %s", mention))
 				c.Logger().Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
 				return
+			}
+
+			// If not found and mention contains colon, try to find remote user
+			if nErr != nil && strings.Contains(mention, ":") {
+				parts := strings.SplitN(mention, ":", 2)
+				if len(parts) == 2 {
+					username := parts[0]
+					remoteClusterName := parts[1]
+
+					// Debug: Log remote mention lookup attempt (Scenario 2)
+					a.PostDebugToTownSquare(c,
+						fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Looking up remote mention - Username: %s, Cluster: %s, FullMention: %s",
+							username, remoteClusterName, mention))
+
+					// Look for users with this username
+					users, err := a.Srv().Store().User().GetProfilesByUsernames([]string{username}, &model.ViewUsersRestrictions{})
+					if err == nil {
+						for _, u := range users {
+							if u.RemoteId != nil && *u.RemoteId != "" {
+								// Check if this user belongs to the specified remote cluster
+								rc, rcErr := a.Srv().Store().RemoteCluster().Get(*u.RemoteId, false)
+								if rcErr == nil && strings.EqualFold(rc.Name, remoteClusterName) {
+									// Found the remote user, check team membership
+									_, tmErr := a.GetTeamMember(c, teamID, u.Id)
+									if tmErr == nil {
+										// Debug: Log successful remote mention resolution (Scenario 2)
+										a.PostDebugToTownSquare(c,
+											fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Found remote user - UserId: %s, Username: %s, RemoteCluster: %s",
+												u.Id, u.Username, rc.Name))
+
+										mentionChan <- &mentionMapItem{mention, u.Id}
+										return
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 
 			// If it's a http.StatusNotFound error, check for usernames in substrings
@@ -824,6 +870,12 @@ func possibleAtMentions(message string) []string {
 	}
 
 	return names
+}
+
+// PossibleAtMentions is a public wrapper around possibleAtMentions
+// that returns all substrings in message that look like valid @ mentions.
+func (a *App) PossibleAtMentions(message string) []string {
+	return possibleAtMentions(message)
 }
 
 // trimUsernameSpecialChar tries to remove the last character from word if it

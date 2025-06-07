@@ -7,6 +7,7 @@ import React, {useRef, useMemo, memo, useEffect} from 'react';
 import {Client4} from 'mattermost-redux/client';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
+import {useRemoteClusters} from 'components/admin_console/secure_connections/utils';
 import ProfilePopover from 'components/profile_popover';
 import UserGroupPopover from 'components/user_group_popover';
 
@@ -29,10 +30,11 @@ type Props = OwnProps & PropsFromRedux;
 
 const AtMention = (props: Props) => {
     const ref = useRef<HTMLAnchorElement>(null);
+    const [remoteClusters] = useRemoteClusters();
 
     const [user, group] = useMemo(
-        () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight),
-        [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight],
+        () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight, undefined, remoteClusters),
+        [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight, remoteClusters],
     );
 
     useEffect(() => {
@@ -53,9 +55,46 @@ const AtMention = (props: Props) => {
     };
 
     if (user) {
-        const userMentionNameSuffix = props.mentionName.substring(user.username.length);
-        const userDisplayName = displayUsername(user, props.teammateNameDisplay);
         const highlightMention = !props.disableHighlight && user.id === props.currentUserId;
+
+        // Display logic for mentions:
+        // 1. If mentionName contains ":", it's a remote mention format - display as is
+        // 2. Otherwise, use the standard display name
+        let userDisplayName: string;
+        let userMentionNameSuffix = '';
+
+        if (props.mentionName.includes(':')) {
+            // This is a remote mention format (username:clustername)
+            userDisplayName = props.mentionName;
+
+            // Debug: Log remote mention rendering
+            // eslint-disable-next-line no-console
+            console.log('[SHARED_CHANNEL_DEBUG] AtMention: Rendering remote mention', {
+                mentionName: props.mentionName,
+                userId: user.id,
+                username: user.username,
+                remote_id: user.remote_id,
+            });
+        } else {
+            // Local mention - use display name
+            userDisplayName = displayUsername(user, props.teammateNameDisplay);
+
+            // Check if there's any suffix after the username in the mention
+            if (props.mentionName.length > user.username.length) {
+                userMentionNameSuffix = props.mentionName.substring(user.username.length);
+            }
+
+            // Debug: Log local mention rendering
+            // eslint-disable-next-line no-console
+            console.log('[SHARED_CHANNEL_DEBUG] SCENARIO2_AtMention: Rendering local mention', {
+                mentionName: props.mentionName,
+                userId: user.id,
+                username: user.username,
+                displayName: userDisplayName,
+                remote_id: user.remote_id || 'local',
+                step: 'Rendering @user after fixMention transformation',
+            });
+        }
 
         return (
             <>

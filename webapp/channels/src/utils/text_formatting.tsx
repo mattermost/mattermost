@@ -17,7 +17,7 @@ import * as Emoticons from './emoticons';
 import * as Markdown from './markdown';
 
 const punctuationRegex = /[^\p{L}\d]/u;
-const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;
+export const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_:]+)/gi;
 const UNICODE_EMOJI_REGEX = emojiRegex();
 const htmlEmojiPattern = /^<p>\s*(?:<img class="emoticon"[^>]*>|<span data-emoticon[^>]*>[^<]*<\/span>\s*|<span class="emoticon emoticon--unicode">[^<]*<\/span>\s*)+<\/p>$/;
 
@@ -375,8 +375,55 @@ export function formatText(
 }
 
 // Performs most of the actual formatting work for formatText. Not intended to be called normally.
+// Global store for remote mention tokens
+const globalRemoteMentionTokens = new Map<string, string>();
+
+// Function to store a remote mention token
+export function storeRemoteMentionToken(token: string, mentionText: string): void {
+    // Debug: Log token storage
+    // eslint-disable-next-line no-console
+    console.log('[SHARED_CHANNEL_DEBUG] storeRemoteMentionToken: Storing token', {
+        token,
+        mentionText,
+        step: 'Creating token for remote mention',
+    });
+    globalRemoteMentionTokens.set(token, mentionText);
+}
+
+// Function to restore remote mention tokens back to actual mentions
+export function restoreRemoteMentionTokens(text: string): string {
+    let output = text;
+    let tokensRestored = false;
+
+    globalRemoteMentionTokens.forEach((mentionText, token) => {
+        if (text.includes(token)) {
+            tokensRestored = true;
+            // eslint-disable-next-line no-console
+            console.log('[SHARED_CHANNEL_DEBUG] restoreRemoteMentionTokens: Restoring token', {
+                token,
+                mentionText,
+                step: 'Token restoration in text formatting',
+            });
+        }
+        output = output.replace(new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), mentionText);
+    });
+
+    if (tokensRestored) {
+        // eslint-disable-next-line no-console
+        console.log('[SHARED_CHANNEL_DEBUG] restoreRemoteMentionTokens: Tokens restored', {
+            before: text,
+            after: output,
+        });
+    }
+
+    return output;
+}
+
 export function doFormatText(text: string, options: TextFormattingOptions, emojiMap: EmojiMap): string {
     let output = text;
+
+    // Restore remote mention tokens before processing
+    output = restoreRemoteMentionTokens(output);
 
     const tokens = new Tokens();
 
@@ -533,6 +580,17 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
 
         const index = tokens.size;
         const alias = `$MM_ATMENTION${index}$`;
+
+        // Debug: Log at mention tokenization
+        if (username.includes(':')) {
+            // eslint-disable-next-line no-console
+            console.log('[SHARED_CHANNEL_DEBUG] autolinkAtMentions: Tokenizing remote mention', {
+                fullMatch,
+                username,
+                alias,
+                step: 'Creating token for remote mention in text formatting',
+            });
+        }
 
         tokens.set(alias, {
             value: `<span data-mention="${username}">@${username}</span>`,
