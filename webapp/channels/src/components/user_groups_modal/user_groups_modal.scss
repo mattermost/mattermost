@@ -389,12 +389,19 @@
                 padding: 12px 32px 24px;
             }
 
-            h2 {
-                padding: 0 32px;
-                color: inherit;
-                font-size: 18px;
-                font-weight: 600;
-                line-height: 24px;
+            .group-add-people-fieldset {
+                margin-top: 20px;
+
+                legend {
+                    padding: 0 32px;
+                    border: none;
+                    margin-bottom: 10px;
+                    color: inherit;
+                    font-family: Metropolis, sans-serif;
+                    font-size: 18px;
+                    font-weight: 600;
+                    line-height: 24px;
+                }
             }
 
             .group-add-user {
