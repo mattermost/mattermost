@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"os/exec"
-	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -80,7 +78,8 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	*newConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*newConfig.LogSettings.ConsoleJson = false
 	*newConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
-	memoryStore.Set(newConfig)
+	_, _, err := memoryStore.Set(newConfig)
+	require.NoError(tb, err)
 	options = append(options, app.ConfigStore(memoryStore))
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
@@ -371,12 +370,6 @@ func TestStatic(t *testing.T) {
 func TestStaticFilesCaching(t *testing.T) {
 	th := Setup(t).InitPlugins()
 
-	wd, err := os.Getwd()
-	require.NoError(t, err)
-	cmd := exec.Command("ls", path.Join(wd, "client", "plugins"))
-	cmd.Stdout = os.Stdout
-	cmd.Run()
-
 	fakeMainBundleName := "main.1234ab.js"
 	fakeRootHTML := `<html>
 <head>
@@ -386,7 +379,7 @@ func TestStaticFilesCaching(t *testing.T) {
 	fakeMainBundle := `module.exports = 'main';`
 	fakeRemoteEntry := `module.exports = 'remote';`
 
-	err = os.WriteFile("./client/root.html", []byte(fakeRootHTML), 0600)
+	err := os.WriteFile("./client/root.html", []byte(fakeRootHTML), 0600)
 	require.NoError(t, err)
 	err = os.WriteFile("./client/"+fakeMainBundleName, []byte(fakeMainBundle), 0600)
 	require.NoError(t, err)
