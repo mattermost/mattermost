@@ -2086,7 +2086,7 @@ export default class Client4 {
         );
     };
 
-    getSharedChannelRemoteInfo = (channelId: string) => {
+    getSharedChannelRemoteInfos = (channelId: string) => {
         return this.doFetch<RemoteClusterInfo[]>(
             `${this.getBaseRoute()}/sharedchannels/${channelId}/remotes`,
             {method: 'GET'},

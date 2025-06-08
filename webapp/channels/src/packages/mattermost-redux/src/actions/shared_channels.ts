@@ -32,7 +32,7 @@ export function fetchChannelRemotes(channelId: string, forceRefresh = false): Ac
 
         let data;
         try {
-            data = await Client4.getSharedChannelRemoteInfo(channelId);
+            data = await Client4.getSharedChannelRemoteInfos(channelId);
         } catch (error) {
             // In case of failures, we just skip and don't update the remote data
             return {error};

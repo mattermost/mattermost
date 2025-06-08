@@ -61,7 +61,7 @@ describe('shared_channels actions', () => {
         ];
 
         // Mock the client response
-        (Client4.getSharedChannelRemoteInfo as jest.Mock).mockResolvedValueOnce(remotes);
+        (Client4.getSharedChannelRemoteInfos as jest.Mock).mockResolvedValueOnce(remotes);
 
         // Mock the getState function to return no existing remotes
         const getState = jest.fn().mockReturnValue({
@@ -76,7 +76,7 @@ describe('shared_channels actions', () => {
         await fetchChannelRemotes(channelId)(dispatch, getState, {});
 
         // Verify Client4 was called
-        expect(Client4.getSharedChannelRemoteInfo).toHaveBeenCalledWith(channelId);
+        expect(Client4.getSharedChannelRemoteInfos).toHaveBeenCalledWith(channelId);
 
         // Verify the action was dispatched
         expect(dispatch).toHaveBeenCalledWith({
@@ -115,7 +115,7 @@ describe('shared_channels actions', () => {
         await fetchChannelRemotes(channelId)(dispatch, getState, {});
 
         // Verify Client4 was NOT called
-        expect(Client4.getSharedChannelRemoteInfo).not.toHaveBeenCalled();
+        expect(Client4.getSharedChannelRemoteInfos).not.toHaveBeenCalled();
 
         // Verify no action was dispatched
         expect(dispatch).not.toHaveBeenCalled();
@@ -163,12 +163,12 @@ describe('shared_channels actions', () => {
         const dispatch = jest.fn();
 
         // Mock the client response to return updated remotes
-        (Client4.getSharedChannelRemoteInfo as jest.Mock).mockResolvedValueOnce(newRemotes);
+        (Client4.getSharedChannelRemoteInfos as jest.Mock).mockResolvedValueOnce(newRemotes);
 
         await fetchChannelRemotes(channelId, true)(dispatch, getState, {});
 
         // Verify Client4 was called
-        expect(Client4.getSharedChannelRemoteInfo).toHaveBeenCalledWith(channelId);
+        expect(Client4.getSharedChannelRemoteInfos).toHaveBeenCalledWith(channelId);
 
         // Verify the action was dispatched with the new remotes
         expect(dispatch).toHaveBeenCalledWith({

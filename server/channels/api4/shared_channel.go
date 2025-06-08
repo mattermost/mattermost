@@ -291,13 +291,7 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	b, jsonErr := json.Marshal(remoteInfos)
-	if jsonErr != nil {
-		c.SetJSONEncodingError(jsonErr)
-		return
-	}
-
-	if _, err := w.Write(b); err != nil {
+	if err := json.NewEncoder(w).Encode(remoteInfos); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
