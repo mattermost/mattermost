@@ -64,13 +64,15 @@ func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string
 		mlog.String("dataSource", sanitized),
 	)
 
-	for i := 0; i < attempts; i++ {
-		logger.Info("Pinging SQL")
+	for attempt := 1; attempt <= attempts; attempt++ {
+		if attempt > 1 {
+			logger.Info("Pinging SQL", mlog.Int("attempt", attempt))
+		}
 		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeout)
 		defer cancel()
 		err = db.PingContext(ctx)
 		if err != nil {
-			if i == attempts-1 {
+			if attempt == attempts {
 				return nil, err
 			}
 			logger.Error("Failed to ping DB", mlog.Float("retrying in seconds", DBConnRetrySleep.Seconds()), mlog.Err(err))

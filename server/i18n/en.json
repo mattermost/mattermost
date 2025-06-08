@@ -2317,6 +2317,10 @@
     "translation": "Unable to count total unique users."
   },
   {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "This license does not support MySQL."
+  },
+  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "No file under 'license' in request."
   },
@@ -2367,6 +2371,10 @@
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
     "translation": "Failed to apply new trial license as your workspace has already applied a trial license. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "Trial licenses are not supported for MySQL databases. Please use PostgreSQL to access trial features."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -5359,8 +5367,16 @@
     "translation": "Error occurred fetching scheduled posts."
   },
   {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Unable to create group syncable memberships."
+  },
+  {
     "id": "app.group.crud_permission",
     "translation": "Unable to perform operation for that source type."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Unable to delete invalid group syncable memberships."
   },
   {
     "id": "app.group.group_syncable_already_deleted",
@@ -9135,6 +9151,10 @@
   {
     "id": "model.config.is_valid.directory.app_error",
     "translation": "Invalid Local Storage Directory. Must be a non-empty string."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Leading or trailing whitespace detected for {{.Setting}}. Found \"{{.Value}}\"."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",

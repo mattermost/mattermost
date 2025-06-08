@@ -19,6 +19,16 @@ export function receivedChannelRemotes(channelId: string, remotes: RemoteCluster
     };
 }
 
+export function receivedRemoteClusterInfo(remoteId: string, remoteInfo: RemoteClusterInfo) {
+    return {
+        type: ActionTypes.RECEIVED_REMOTE_CLUSTER_INFO,
+        data: {
+            remoteId,
+            remoteInfo,
+        },
+    };
+}
+
 export function fetchChannelRemotes(channelId: string, forceRefresh = false): ActionFuncAsync<RemoteClusterInfo[]> {
     return async (dispatch: any, getState: () => GlobalState) => {
         // Check if we already have the data in the Redux store
@@ -40,6 +50,31 @@ export function fetchChannelRemotes(channelId: string, forceRefresh = false): Ac
 
         if (data) {
             dispatch(receivedChannelRemotes(channelId, data));
+        }
+
+        return {data};
+    };
+}
+
+export function fetchRemoteClusterInfo(remoteId: string, forceRefresh = false): ActionFuncAsync<RemoteClusterInfo> {
+    return async (dispatch: any, getState: () => GlobalState) => {
+        // Check if we already have the remote info cached
+        const state = getState();
+        const cachedRemote = state.entities?.sharedChannels?.remotesByRemoteId?.[remoteId];
+
+        if (!forceRefresh && cachedRemote) {
+            return {data: cachedRemote};
+        }
+
+        let data;
+        try {
+            data = await Client4.getRemoteClusterInfo(remoteId);
+        } catch (error) {
+            return {error};
+        }
+
+        if (data) {
+            dispatch(receivedRemoteClusterInfo(remoteId, data));
         }
 
         return {data};
