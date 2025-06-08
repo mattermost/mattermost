@@ -290,5 +290,5 @@ func (scs *Service) IsRemoteClusterDirectlyConnected(remoteId string) bool {
 		return false
 	}
 
-	return rc.IsOnline() && rc.IsConfirmed()
+	return rc.IsConfirmed()
 }

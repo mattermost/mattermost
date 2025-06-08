@@ -27,7 +27,7 @@ import {
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getDirectShowPreferences, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
-import {isConfirmed, isConnected} from 'mattermost-redux/utils/remote_cluster_utils';
+import {isConfirmed} from 'mattermost-redux/utils/remote_cluster_utils';
 import {
     displayUsername,
     filterProfilesStartingWithTerm,
@@ -893,6 +893,6 @@ export const userCanSeeOtherUser: (state: GlobalState, userId: string) => boolea
         }
 
         // A remote is directly connected if it's both confirmed and connected
-        return isConfirmed(remoteCluster) && isConnected(remoteCluster);
+        return isConfirmed(remoteCluster);
     },
 );
