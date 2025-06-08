@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fireEvent, act} from '@testing-library/react';
 import moment from 'moment-timezone';
 import React from 'react';
-import {fireEvent, act} from '@testing-library/react';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import * as timezoneUtils from 'utils/timezone';
@@ -56,7 +56,7 @@ describe('components/datetime_input/DateTimeInput', () => {
     test('should not infinitely loop on DST', () => {
         const timezone = 'Europe/Paris';
         const time = '2024-03-31T02:00:00+0100';
-        
+
         const intervals = getTimeInIntervals(moment.tz(time, timezone).startOf('day'));
         expect(intervals.length).toBeGreaterThan(0);
         expect(intervals.length).toBeLessThan(100); // Reasonable upper bound
@@ -73,7 +73,7 @@ describe('components/datetime_input/DateTimeInput', () => {
             renderWithContext(<DateTimeInput {...props}/>);
 
             const dateButton = screen.getByText('Date').closest('.date-time-input');
-            
+
             await act(async () => {
                 fireEvent.click(dateButton!);
             });
@@ -91,7 +91,7 @@ describe('components/datetime_input/DateTimeInput', () => {
             renderWithContext(<DateTimeInput {...props}/>);
 
             const timeButton = screen.getByLabelText('Time');
-            
+
             await act(async () => {
                 await userEvent.click(timeButton);
             });
@@ -110,7 +110,7 @@ describe('components/datetime_input/DateTimeInput', () => {
 
             // Open date picker first
             const dateButton = screen.getByText('Date').closest('.date-time-input');
-            
+
             await act(async () => {
                 fireEvent.click(dateButton!);
             });
@@ -132,14 +132,14 @@ describe('components/datetime_input/DateTimeInput', () => {
             renderWithContext(<DateTimeInput {...baseProps}/>);
 
             const dateButton = screen.getByText('Date').closest('.date-time-input');
-            
+
             await act(async () => {
                 fireEvent.click(dateButton!);
             });
 
             // Simulate clicking on today's date
             const todayButton = screen.getByText('8'); // June 8th
-            
+
             await act(async () => {
                 fireEvent.click(todayButton);
             });
@@ -153,14 +153,14 @@ describe('components/datetime_input/DateTimeInput', () => {
             renderWithContext(<DateTimeInput {...baseProps}/>);
 
             const dateButton = screen.getByText('Date').closest('.date-time-input');
-            
+
             await act(async () => {
                 fireEvent.click(dateButton!);
             });
 
             // Simulate clicking on a future date
             const futureButton = screen.getByText('15'); // June 15th
-            
+
             await act(async () => {
                 fireEvent.click(futureButton);
             });
