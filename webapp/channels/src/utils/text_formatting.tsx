@@ -3,13 +3,13 @@
 
 import emojiRegex from 'emoji-regex';
 import type {Renderer} from 'marked';
+import {formatWithRenderer, formatWithRendererForMentions} from 'utils/markdown';
+import MarkdownRenderer from 'utils/markdown/renderer';
 
 import type {SystemEmoji} from '@mattermost/types/emojis';
 import {isRecordOf} from '@mattermost/types/utilities';
 
 import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
-
-import {formatWithRenderer} from 'utils/markdown';
 
 import Constants from './constants';
 import type EmojiMap from './emoji_map.js';
@@ -312,7 +312,11 @@ export function formatText(
         output = doFormatText(output, options, emojiMap);
     } else if (!('markdown' in options) || options.markdown) {
         // the markdown renderer will call doFormatText as necessary
-        output = Markdown.format(output, options, emojiMap);
+        if (options.atMentions) {
+            output = formatWithRendererForMentions(output, new MarkdownRenderer({}, options, emojiMap));
+        } else {
+            output = Markdown.format(output, options, emojiMap);
+        }
         if (output.includes('class="markdown-inline-img"')) {
             const replacer = (match: string) => {
                 /*
