@@ -55,7 +55,7 @@ const EnterpriseEditionLeftPanel = ({
 }: EnterpriseEditionProps) => {
     const {formatMessage} = useIntl();
     const [unsanitizedLicense, setUnsanitizedLicense] = useState(license);
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const [openContactSales] = useOpenSalesLink();
 
     useEffect(() => {
@@ -73,11 +73,11 @@ const EnterpriseEditionLeftPanel = ({
     const skuName = getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true');
     const expirationDays = getRemainingDaysFromFutureTimestamp(parseInt(unsanitizedLicense.ExpiresAt, 10));
 
-    const viewPlansButton = (
+    const viewPlansButton = isAirGapped ? null : (
         <button
             id='enterprise_edition_view_plans'
             onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
-            className='btn btn-secondary PlanDetails__viewPlansButton'
+            className='btn btn-tertiary btn-sm PlanDetails__viewPlansButton'
         >
             {formatMessage({
                 id: 'workspace_limits.menu_limit.view_plans',
@@ -127,7 +127,7 @@ const EnterpriseEditionLeftPanel = ({
                 <div className='license-details-top'>
                     <span className='title'>{'License details'}</span>
                     <button
-                        className='add-seats-button btn btn-primary'
+                        className='btn btn-primary btn-sm add-seats-button '
                         onClick={openContactSales}
                     >
                         <FormattedMessage
@@ -163,7 +163,7 @@ const EnterpriseEditionLeftPanel = ({
                         >
                             {'here'}
                         </a>
-                        {' for “Enterprise Edition License” for details. '}
+                        {' for "Enterprise Edition License" for details. '}
                         {'See NOTICE.txt for information about open source software used in the system.'}
                     </p>
                 </> : <p>
@@ -297,7 +297,7 @@ const renderAddNewLicenseButton = (
     return (
         <>
             <button
-                className='add-new-licence-btn'
+                className='btn btn-tertiary add-new-licence-btn'
                 onClick={() => fileInputRef.current?.click()}
             >
                 <FormattedMessage

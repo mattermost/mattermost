@@ -91,6 +91,8 @@ export const Preferences = {
     CLICK_TO_REPLY: 'click_to_reply',
     CLICK_TO_REPLY_DEFAULT: 'true',
     COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT: 'off',
+    RENDER_EMOTICONS_AS_EMOJI: 'render_emoticons_as_emoji',
+    RENDER_EMOTICONS_AS_EMOJI_DEFAULT: 'true',
     LINK_PREVIEW_DISPLAY: 'link_previews',
     LINK_PREVIEW_DISPLAY_DEFAULT: 'true',
     COLLAPSE_DISPLAY: 'collapse_previews',
