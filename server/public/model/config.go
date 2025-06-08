@@ -20,7 +20,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/mattermost/ldap"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
@@ -72,6 +74,9 @@ const (
 	PermissionsSystemAdmin  = "system_admin"
 
 	FakeSetting = "********************************"
+
+	// SanitizedPassword is the placeholder used for redacting passwords in data sources
+	SanitizedPassword = "****"
 
 	RestrictEmojiCreationAll         = "all"
 	RestrictEmojiCreationAdmin       = "admin"
@@ -2480,7 +2485,8 @@ type LdapSettings struct {
 	PictureAttribute   *string `access:"authentication_ldap"`
 
 	// Synchronization
-	SyncIntervalMinutes *int `access:"authentication_ldap"`
+	SyncIntervalMinutes *int  `access:"authentication_ldap"`
+	ReAddRemovedMembers *bool `access:"authentication_ldap"`
 
 	// Advanced
 	SkipCertificateVerification *bool   `access:"authentication_ldap"`
@@ -2611,6 +2617,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.SyncIntervalMinutes == nil {
 		s.SyncIntervalMinutes = NewPointer(60)
+	}
+
+	if s.ReAddRemovedMembers == nil {
+		s.ReAddRemovedMembers = NewPointer(false)
 	}
 
 	if s.SkipCertificateVerification == nil {
@@ -4124,6 +4134,11 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.directory.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Check for leading/trailing whitespace in directory path
+	if strings.TrimSpace(*s.Directory) != *s.Directory {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.Directory", "Value": *s.Directory}, "", http.StatusBadRequest)
+	}
+
 	if *s.MaxImageDecoderConcurrency < -1 || *s.MaxImageDecoderConcurrency == 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.image_decoder_concurrency.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
 	}
@@ -4136,8 +4151,20 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.AmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
 
+	if strings.TrimSpace(*s.AmazonS3PathPrefix) != *s.AmazonS3PathPrefix {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.AmazonS3PathPrefix", "Value": *s.AmazonS3PathPrefix}, "", http.StatusBadRequest)
+	}
+
 	if *s.ExportAmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.ExportAmazonS3StorageClass) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.ExportAmazonS3StorageClass}, "", http.StatusBadRequest)
+	}
+
+	if strings.TrimSpace(*s.ExportAmazonS3PathPrefix) != *s.ExportAmazonS3PathPrefix {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.ExportAmazonS3PathPrefix", "Value": *s.ExportAmazonS3PathPrefix}, "", http.StatusBadRequest)
+	}
+
+	if strings.TrimSpace(*s.ExportDirectory) != *s.ExportDirectory {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.ExportDirectory", "Value": *s.ExportDirectory}, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -4659,6 +4686,14 @@ func (s *ImageProxySettings) isValid() *AppError {
 	return nil
 }
 
+// SanitizeOptions specifies options for the [Config.Sanitize] method.
+type SanitizeOptions struct {
+	// PartiallyRedactDataSources, when true, only redacts usernames and passwords
+	// from data sources, keeping other connection parameters visible.
+	// When false, replaces the entire data source with FakeSetting.
+	PartiallyRedactDataSources bool
+}
+
 func (o *Config) GetSanitizeOptions() map[string]bool {
 	options := map[string]bool{}
 	options["fullname"] = *o.PrivacySettings.ShowFullName
@@ -4667,7 +4702,32 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 	return options
 }
 
-func (o *Config) Sanitize(pluginManifests []*Manifest) {
+// Sanitize removes sensitive information from the configuration object.
+// It replaces sensitive fields with [FakeSetting] or sanitizes them.
+//
+// Parameters:
+//   - pluginManifests: Plugin manifests for sanitizing plugin settings.
+//   - opts: Options for controlling sanitization behavior. If nil, defaults are used. See [SanitizeOptions].
+func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
+	if opts == nil {
+		opts = &SanitizeOptions{}
+	}
+
+	var driverName string
+	if o.SqlSettings.DriverName != nil {
+		driverName = *o.SqlSettings.DriverName
+	}
+	sanitizeDataSourceField := func(dataSource string, fieldName string) string {
+		if opts.PartiallyRedactDataSources && driverName != "" {
+			sanitized, err := SanitizeDataSource(driverName, dataSource)
+			if err != nil {
+				mlog.Warn("Failed to sanitize "+fieldName+". Falling back to fully sanitizing the setting.", mlog.Err(err))
+				return FakeSetting
+			}
+			return sanitized
+		}
+		return FakeSetting
+	}
 	if o.LdapSettings.BindPassword != nil && *o.LdapSettings.BindPassword != "" {
 		*o.LdapSettings.BindPassword = FakeSetting
 	}
@@ -4701,7 +4761,7 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	}
 
 	if o.SqlSettings.DataSource != nil {
-		*o.SqlSettings.DataSource = FakeSetting
+		*o.SqlSettings.DataSource = sanitizeDataSourceField(*o.SqlSettings.DataSource, "SqlSettings.DataSource")
 	}
 
 	if o.SqlSettings.AtRestEncryptKey != nil {
@@ -4713,15 +4773,18 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	}
 
 	for i := range o.SqlSettings.DataSourceReplicas {
-		o.SqlSettings.DataSourceReplicas[i] = FakeSetting
+		o.SqlSettings.DataSourceReplicas[i] = sanitizeDataSourceField(o.SqlSettings.DataSourceReplicas[i], "SqlSettings.DataSourceReplicas")
 	}
 
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
-		o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
+		o.SqlSettings.DataSourceSearchReplicas[i] = sanitizeDataSourceField(o.SqlSettings.DataSourceSearchReplicas[i], "SqlSettings.DataSourceSearchReplicas")
 	}
 
 	for i := range o.SqlSettings.ReplicaLagSettings {
-		o.SqlSettings.ReplicaLagSettings[i].DataSource = NewPointer(FakeSetting)
+		if o.SqlSettings.ReplicaLagSettings[i].DataSource != nil {
+			sanitized := sanitizeDataSourceField(*o.SqlSettings.ReplicaLagSettings[i].DataSource, "SqlSettings.ReplicaLagSettings")
+			o.SqlSettings.ReplicaLagSettings[i].DataSource = NewPointer(sanitized)
+		}
 	}
 
 	if o.MessageExportSettings.GlobalRelaySettings != nil &&
@@ -4739,6 +4802,59 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	}
 
 	o.PluginSettings.Sanitize(pluginManifests)
+}
+
+// SanitizeDataSource redacts sensitive information (username and password) from a database
+// connection string while preserving other connection parameters.
+//
+// Parameters:
+//   - driverName: The database driver name (postgres or mysql)
+//   - dataSource: The database connection string to sanitize
+//
+// Returns:
+//   - The sanitized connection string with username/password replaced by SanitizedPassword
+//   - An error if the driverName is not supported or if parsing fails
+//
+// Examples:
+//   - PostgreSQL: "postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
+//   - MySQL: "user:pass@tcp(host:3306)/db" -> "****:****@tcp(host:3306)/db"
+func SanitizeDataSource(driverName, dataSource string) (string, error) {
+	// Handle empty data source
+	if dataSource == "" {
+		return "", nil
+	}
+
+	switch driverName {
+	case DatabaseDriverPostgres:
+		u, err := url.Parse(dataSource)
+		if err != nil {
+			return "", err
+		}
+		u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
+
+		// Remove username and password from query string
+		params := u.Query()
+		params.Del("user")
+		params.Del("password")
+		u.RawQuery = params.Encode()
+
+		// Unescape the URL to make it human-readable
+		out, err := url.QueryUnescape(u.String())
+		if err != nil {
+			return "", err
+		}
+		return out, nil
+	case DatabaseDriverMysql:
+		cfg, err := mysql.ParseDSN(dataSource)
+		if err != nil {
+			return "", err
+		}
+		cfg.User = SanitizedPassword
+		cfg.Passwd = SanitizedPassword
+		return cfg.FormatDSN(), nil
+	default:
+		return "", errors.New("invalid drivername. Not postgres or mysql.")
+	}
 }
 
 type FilterTag struct {

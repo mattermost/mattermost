@@ -157,7 +157,7 @@ button {
     &.btn-xs {
         height: 24px;
         padding: 0 10px;
-        font-size: 11px;
+        font-size: 12px;
         gap: 6px;
 
         i {
@@ -229,6 +229,19 @@ button {
             background: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), 0.32) !important;
             opacity: 1;
+        }
+
+        &.btn-success {
+            background-color: var(--online-indicator);
+            color: var(--button-color-rgb);
+
+            &:hover {
+                background-color: var(--online-indicator);
+            }
+
+            &:active {
+                background-color: var(--online-indicator);
+            }
         }
     }
 

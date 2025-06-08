@@ -16,24 +16,22 @@ type PolicyDecisionPointInterface struct {
 }
 
 // AccessEvaluation provides a mock function with given fields: rctx, accessRequest
-func (_m *PolicyDecisionPointInterface) AccessEvaluation(rctx request.CTX, accessRequest model.AccessRequest) (*model.AccessDecision, *model.AppError) {
+func (_m *PolicyDecisionPointInterface) AccessEvaluation(rctx request.CTX, accessRequest model.AccessRequest) (model.AccessDecision, *model.AppError) {
 	ret := _m.Called(rctx, accessRequest)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AccessEvaluation")
 	}
 
-	var r0 *model.AccessDecision
+	var r0 model.AccessDecision
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, model.AccessRequest) (*model.AccessDecision, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, model.AccessRequest) (model.AccessDecision, *model.AppError)); ok {
 		return rf(rctx, accessRequest)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, model.AccessRequest) *model.AccessDecision); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, model.AccessRequest) model.AccessDecision); ok {
 		r0 = rf(rctx, accessRequest)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AccessDecision)
-		}
+		r0 = ret.Get(0).(model.AccessDecision)
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, model.AccessRequest) *model.AppError); ok {
