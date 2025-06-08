@@ -650,14 +650,11 @@ func (scs *Service) resolveMentionsForSharedChannel(rctx request.CTX, message st
 				scs.app.PostDebugToTownSquare(rctx,
 					fmt.Sprintf("RECV_MENTION_RESOLVE: Found remote user %s (stored as %s) with ID %s",
 						mention, expectedUsername, user.Id))
-			} else {
-				// Fallback: check if it's a local user mention
-				user, err = scs.server.GetStore().User().GetByUsername(mention)
-				if err == nil && !user.IsRemote() {
-					scs.app.PostDebugToTownSquare(rctx,
-						fmt.Sprintf("RECV_MENTION_RESOLVE: Found local user %s with ID %s", mention, user.Id))
-				}
 			}
+			// Fix: Remove fallback to local users. A mention without colon from a remote cluster
+			// should only resolve to the intended remote user, not to local users with same name.
+			// This prevents the bug where @admin:org2 mentioned on org1 incorrectly resolves to
+			// local admin on org2 instead of the intended remote admin from org1.
 		}
 
 		if user != nil {
