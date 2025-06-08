@@ -10,7 +10,7 @@ import DateTimeInput, {getTimeInIntervals} from './datetime_input';
 
 describe('components/datetime_input/DateTimeInput', () => {
     const baseProps = {
-        time: moment(),
+        time: moment('2025-06-08T12:09:00.000Z'),
         handleChange: jest.fn(),
         timezone: 'UTC',
     };
