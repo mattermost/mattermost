@@ -120,6 +120,9 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             className="setting-list-item"
           >
             <hr />
+            <div
+              role="alert"
+            />
             <SaveButton
               disabled={false}
               onClick={[Function]}
@@ -370,6 +373,9 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             className="setting-list-item"
           >
             <hr />
+            <div
+              role="alert"
+            />
             <SaveButton
               disabled={false}
               onClick={[Function]}

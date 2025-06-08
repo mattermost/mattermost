@@ -161,8 +161,8 @@ func (schedulers *Schedulers) scheduleJob(c request.CTX, cfg *model.Config, name
 		return nil, err
 	}
 
-	lastSuccessfulJob, err2 := schedulers.jobs.GetLastSuccessfulJobByType(name)
-	if err2 != nil {
+	lastSuccessfulJob, err := schedulers.jobs.GetLastSuccessfulJobByType(name)
+	if err != nil {
 		return nil, err
 	}
 
