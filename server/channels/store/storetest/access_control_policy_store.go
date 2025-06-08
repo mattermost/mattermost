@@ -319,14 +319,14 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 	require.NoError(t, err)
 	require.NotNil(t, resourcePolicy)
 	t.Run("GetAll", func(t *testing.T) {
-		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{})
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Limit: 10})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
 		require.Len(t, policies, 3)
 	})
 
 	t.Run("GetAll by type", func(t *testing.T) {
-		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Type: model.AccessControlPolicyTypeParent, IncludeChildren: true})
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Type: model.AccessControlPolicyTypeParent, IncludeChildren: true, Limit: 10})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
 		require.Len(t, policies, 2)

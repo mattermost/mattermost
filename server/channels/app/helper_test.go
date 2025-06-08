@@ -29,12 +29,15 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
 type TestHelper struct {
 	App          *App
 	Context      *request.Context
 	Server       *Server
+	Store        store.Store
+	SQLStore     *sqlstore.SqlStore
 	BasicTeam    *model.Team
 	BasicUser    *model.User
 	BasicUser2   *model.User
@@ -54,8 +57,9 @@ type PostOptions func(*model.Post)
 
 type PostPatchOptions func(patch *model.PostPatch)
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool,
-	updateConfig func(*model.Config), options []Option, tb testing.TB) *TestHelper {
+func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettings *model.SqlSettings, searchEngine *searchengine.Broker, enterprise bool, includeCacheLayer bool,
+	updateConfig func(*model.Config), options []Option, tb testing.TB,
+) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	if err != nil {
 		panic(err)
@@ -63,7 +67,10 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	configStore := config.NewTestMemoryStore()
 	memoryConfig := configStore.Get()
-	memoryConfig.SqlSettings = *mainHelper.GetSQLSettings()
+
+	memoryConfig.SqlSettings = model.SafeDereference(sqlSettings)
+	*memoryConfig.ServiceSettings.LicenseFileLocation = filepath.Join(tempWorkspace, "license.json")
+	*memoryConfig.FileSettings.Directory = filepath.Join(tempWorkspace, "data")
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -71,6 +78,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
+	*memoryConfig.LogSettings.FileLocation = filepath.Join(tempWorkspace, "logs", "mattermost.log")
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
@@ -111,6 +119,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
 		ConfigStore:       configStore,
+		Store:             dbStore,
+		SQLStore:          sqlStore,
 	}
 
 	th.App.Srv().SetLicense(getLicense(enterprise, memoryConfig))
@@ -119,6 +129,14 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
+
+	// Support updating feature flags without resorting to os.Setenv which
+	// isn't concurrently safe.
+	if updateConfig != nil {
+		configStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(updateConfig)
+	}
+
 	serverErr := th.Server.Start()
 	if serverErr != nil {
 		panic(serverErr)
@@ -126,7 +144,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	th.App.Srv().Platform().SearchEngine = mainHelper.SearchEngine
+	th.App.Srv().Platform().SearchEngine = searchEngine
 
 	th.App.Srv().Store().MarkSystemRanUnitTests()
 
@@ -158,40 +176,57 @@ func getLicense(enterprise bool, cfg *model.Config) *model.License {
 	return nil
 }
 
+func setupStores(tb testing.TB) (store.Store, *sqlstore.SqlStore, *model.SqlSettings, *searchengine.Broker) {
+	var dbStore store.Store
+	var sqlStore *sqlstore.SqlStore
+	var dbSettings *model.SqlSettings
+	var searchEngine *searchengine.Broker
+	if mainHelper.Options.RunParallel {
+		dbStore, sqlStore, dbSettings, searchEngine = mainHelper.GetNewStores(tb)
+		tb.Cleanup(func() {
+			dbStore.Close()
+		})
+	} else {
+		dbStore = mainHelper.GetStore()
+		dbStore.DropAllTables()
+		dbStore.MarkSystemRanUnitTests()
+		mainHelper.PreloadMigrations()
+		searchEngine = mainHelper.GetSearchEngine()
+		dbSettings = mainHelper.GetSQLSettings()
+		sqlStore = mainHelper.GetSQLStore()
+	}
+
+	return dbStore, sqlStore, dbSettings, searchEngine
+}
+
 func Setup(tb testing.TB, options ...Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, false, true, nil, options, tb)
+	dbStore, sqlStore, dbSettings, searchEngine := setupStores(tb)
+
+	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, false, true, nil, options, tb)
 }
 
 func SetupEnterprise(tb testing.TB, options ...Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, true, true, nil, options, tb)
+	dbStore, sqlStore, dbSettings, searchEngine := setupStores(tb)
+
+	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, true, true, nil, options, tb)
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, false, true, updateConfig, nil, tb)
+	dbStore, sqlStore, dbSettings, searchEngine := setupStores(tb)
+
+	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, false, true, updateConfig, nil, tb)
 }
 
 func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
@@ -202,12 +237,12 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 
-	return setupTestHelper(dbStore, false, true, nil, nil, tb)
+	return setupTestHelper(dbStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, true, nil, nil, tb)
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, false, false, nil, nil, tb)
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false, nil, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -228,7 +263,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, true, false, nil, nil, tb)
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), true, false, nil, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -245,44 +280,56 @@ func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, true, true, nil, []Option{SetCluster(cluster)}, tb)
+	dbStore, sqlStore, dbSettings, searchEngine := setupStores(tb)
+
+	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, true, true, nil, []Option{SetCluster(cluster)}, tb)
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
-}
+var (
+	initBasicOnce sync.Once
+	userCache     struct {
+		SystemAdminUser *model.User
+		BasicUser       *model.User
+		BasicUser2      *model.User
+	}
+)
 
 func (th *TestHelper) InitBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
+		var err *model.AppError
+
 		th.SystemAdminUser = th.CreateUser()
 		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
+		th.SystemAdminUser, err = th.App.GetUser(th.SystemAdminUser.Id)
+		if err != nil {
+			panic(err)
+		}
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
 		th.BasicUser = th.CreateUser()
-		th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
+		th.BasicUser, err = th.App.GetUser(th.BasicUser.Id)
+		if err != nil {
+			panic(err)
+		}
 		userCache.BasicUser = th.BasicUser.DeepCopy()
 
 		th.BasicUser2 = th.CreateUser()
-		th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
+		th.BasicUser2, err = th.App.GetUser(th.BasicUser2.Id)
+		if err != nil {
+			panic(err)
+		}
 		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
 	})
+
 	// restore cached users
 	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
 	th.BasicUser = userCache.BasicUser.DeepCopy()
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
 
 	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	mainHelper.GetSQLStore().User().InsertUsers(users)
+	th.Store.User().InsertUsers(users)
 
 	th.BasicTeam = th.CreateTeam()
 
@@ -638,8 +685,8 @@ func (th *TestHelper) TearDown() {
 	}
 }
 
-func (*TestHelper) GetSqlStore() *sqlstore.SqlStore {
-	return mainHelper.GetSQLStore()
+func (th *TestHelper) GetSqlStore() *sqlstore.SqlStore {
+	return th.SQLStore
 }
 
 func (th *TestHelper) ConfigureInbucketMail() {
@@ -657,8 +704,8 @@ func (th *TestHelper) ConfigureInbucketMail() {
 	})
 }
 
-func (*TestHelper) ResetRoleMigration() {
-	sqlStore := mainHelper.GetSQLStore()
+func (th *TestHelper) ResetRoleMigration() {
+	sqlStore := th.SQLStore
 	if _, err := sqlStore.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
@@ -670,8 +717,8 @@ func (*TestHelper) ResetRoleMigration() {
 	}
 }
 
-func (*TestHelper) ResetEmojisMigration() {
-	sqlStore := mainHelper.GetSQLStore()
+func (th *TestHelper) ResetEmojisMigration() {
+	sqlStore := th.SQLStore
 	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
@@ -851,4 +898,8 @@ func decodeJSON[T any](o any, result *T) *T {
 	}
 
 	return result
+}
+
+func (th *TestHelper) Parallel(t *testing.T) {
+	mainHelper.Parallel(t)
 }
