@@ -29,7 +29,7 @@ const RenewLicenseCard: React.FC<RenewLicenseCardProps> = ({license, totalUsers,
         <div className='purchase-card'>
             <ContactUsButton
                 eventID='post_trial_contact_sales'
-                customClass='light-blue-btn'
+                customClass='btn-primary'
             />
         </div>
     );

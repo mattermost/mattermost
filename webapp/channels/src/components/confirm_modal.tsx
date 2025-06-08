@@ -84,6 +84,11 @@ type Props = {
     hideCancel?: boolean;
 
     /*
+     * Set to hide the confirm button
+     */
+    hideConfirm?: boolean;
+
+    /*
      * The element that triggered the modal
      */
     focusOriginElement?: string;
@@ -205,15 +210,17 @@ export default class ConfirmModal extends React.Component<Props, State> {
                     <div className='ConfirmModal__footer'>
                         {this.props.checkboxInFooter && checkbox}
                         {cancelButton}
-                        <button
-                            type='button'
-                            className={this.props.confirmButtonClass}
-                            onClick={this.handleConfirm}
-                            id='confirmModalButton'
-                            autoFocus={true}
-                        >
-                            {this.props.confirmButtonText}
-                        </button>
+                        {!this.props.hideConfirm && (
+                            <button
+                                type='button'
+                                className={this.props.confirmButtonClass}
+                                onClick={this.handleConfirm}
+                                id='confirmModalButton'
+                                autoFocus={true}
+                            >
+                                {this.props.confirmButtonText}
+                            </button>
+                        )}
                     </div>
                 </div>
             </GenericModal>
