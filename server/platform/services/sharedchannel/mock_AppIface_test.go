@@ -469,31 +469,6 @@ func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Cha
 	return r0
 }
 
-// PossibleAtMentions provides a mock function with given fields: message
-func (_m *MockAppIface) PossibleAtMentions(message string) []string {
-	ret := _m.Called(message)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PossibleAtMentions")
-	}
-
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(string) []string); ok {
-		r0 = rf(message)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	return r0
-}
-
-// PostDebugToTownSquare provides a mock function with given fields: c, message
-func (_m *MockAppIface) PostDebugToTownSquare(c request.CTX, message string) {
-	_m.Called(c, message)
-}
-
 // Publish provides a mock function with given fields: message
 func (_m *MockAppIface) Publish(message *model.WebSocketEvent) {
 	_m.Called(message)
