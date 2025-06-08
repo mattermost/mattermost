@@ -182,34 +182,25 @@ input::-webkit-file-upload-button {
 // Date Time layout
 .dateTime {
     display: flex;
-    margin: 24px 0 8px;
-    gap: 16px;
+    margin: 0 0 8px 0;
+    gap: 24px;
 
     &__date {
-        position: relative;
         flex: 1;
     }
 
     &__time {
-        position: relative;
         flex: 1;
         
         // Ensure Menu.Container and its button take full width
-        > div {
+        .date-time-input {
             width: 100%;
-            
-            button {
-                width: 100%;
-            }
         }
     }
 }
 
 // Modal-specific dateTime layout
-.modal,
-.date-time-picker-modal,
-.DndModal,
-.StatusModal {
+.modal {
     .dateTime {
         width: 100%;
         

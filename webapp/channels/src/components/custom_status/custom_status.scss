@@ -243,7 +243,8 @@ span.emoticon[style]:hover {
 
 .statusExpiry {
     display: inline-block;
-    margin-top: 12px;
+    margin: 12px 0 24px 0;
+    
     font-size: 14px;
 
     &__menu {
