@@ -22,6 +22,9 @@ type FeatureFlags struct {
 	// Enable DMs and GMs for shared channels.
 	EnableSharedChannelsDMs bool
 
+	// Enable plugins in shared channels.
+	EnableSharedChannelsPlugins bool
+
 	// Enable synchronization of channel members in shared channels
 	EnableSharedChannelMemberSync bool
 
@@ -70,6 +73,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableRemoteClusterService = false
 	f.EnableSharedChannelsDMs = false
 	f.EnableSharedChannelMemberSync = false
+	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.DeprecateCloudFree = false
@@ -86,8 +90,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
-	f.CustomProfileAttributes = false
-	f.AttributeBasedAccessControl = false
+	f.CustomProfileAttributes = true
+	f.AttributeBasedAccessControl = true
 }
 
 // ToMap returns the feature flags as a map[string]string

@@ -1525,6 +1525,14 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		query = query.Where(sq.NotEq{"COALESCE(Posts.RemoteId,'')": options.ExcludeRemoteId})
 	}
 
+	if options.ExcludeChannelMetadataSystemPosts {
+		query = query.Where(sq.NotEq{"Posts.Type": []string{
+			model.PostTypeHeaderChange,
+			model.PostTypeDisplaynameChange,
+			model.PostTypePurposeChange,
+		}})
+	}
+
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, cursor, errors.Wrap(err, "getpostssinceforsync_tosql")
@@ -2071,11 +2079,18 @@ func (s *SqlPostStore) buildSearchPostFilterClause(teamID string, fromUsers []st
 	}
 
 	// Sub-query builder.
-	sb := s.getSubQueryBuilder().Select("Id").From("Users, TeamMembers").Where(
-		sq.And{
-			sq.Eq{"TeamMembers.TeamId": teamID},
-			sq.Expr("Users.Id = TeamMembers.UserId"),
-		})
+	sb := s.getSubQueryBuilder().Select("Id")
+	if teamID == "" {
+		// Cross-team search: don't filter by team membership
+		sb = sb.From("Users")
+	} else {
+		// Team-scoped search: filter by team membership
+		sb = sb.From("Users, TeamMembers").Where(
+			sq.And{
+				sq.Eq{"TeamMembers.TeamId": teamID},
+				sq.Expr("Users.Id = TeamMembers.UserId"),
+			})
+	}
 	sb = s.buildSearchUserFilterClause(fromUsers, false, userByUsername, sb)
 	sb = s.buildSearchUserFilterClause(excludedUsers, true, userByUsername, sb)
 	subQuery, subQueryArgs, err := sb.ToSql()
