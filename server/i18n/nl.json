@@ -208,10 +208,6 @@
     "translation": "Een direct kanaal kan niet verlaten worden."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Je bent het laatste lid, probeer de privékanaal te verwijderen in plaats van dit te verlaten."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v heeft het kanaal verlaten."
   },
@@ -10662,5 +10658,153 @@
   {
     "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
     "translation": "Kan de waarde voor een gesynchroniseerd aangepast profielattribuutveld niet bijwerken"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Limiet kanalen ophalen is ongeldig."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Limiet velden ophalen is ongeldig."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "Gebruiker heeft niet de vereiste kenmerken om lid te worden van het kanaal."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Kanalen met afgedwongen beleid kunnen niet worden bijgewerkt."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "Er is een fout opgetreden in de OnSamlLogin hook. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Kan kanaal niet ophalen."
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Fout bij het bijwerken van groep. Gebruiker met gebruikersnaam \"{{.Username}}\" kon niet worden gevonden."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Kan toegangscontrolebeleid niet toewijzen aan kanalen."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "Kon expressie niet controleren."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Kon het toegangscontrolebeleid niet aanmaken."
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Kon het toegangscontrolebeleid niet verwijderen."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Kan toegangscontrolebeleid niet verwijderen."
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "Kon geen visuele AST uit expressie genereren."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Toegangscontrole kon niet autocomplete niet ophalen."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Kon geen toegangscontrolebeleid ophalen."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Kon geen kenmerken voor kanaal ophalen."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Kan kanaalleden niet verwijderen."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Kan het toegangscontrolebeleid niet ophalen."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "Kon geen kenmerken voor beleid ophalen."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Kan de toegangscontroledienst niet initialiseren."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "De toegangscontroleservice is niet gereed."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "Er ontbreekt een attribuut in de expressie."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "Kan beleidsexpressie niet normaliseren."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "Kon geen query uitvoeren voor expressie."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Kan toegangscontrolebeleid niet opslaan."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Kon het toegangscontrolebeleid niet doorzoeken."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Mislukte evaluatie van toegangscontrolebeleid."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Kan toegangscontrolebeleid niet weghalen van de kanalen."
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "Kon de actieve status van het toegangscontrolebeleid niet wijzigen."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Fout bij het uitvoeren van de sync taak voor toegangscontrole."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Kon het toegangscontrolebeleid niet overerven."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "De kleur van de kanaalbanner moet een geldige hexadecimale kleur zijn (bijvoorbeeld #FF0000 of #F00)"
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "Deze licentie ondersteunt MySQL niet."
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "Proeflicenties worden niet ondersteund voor MySQL databases. Gebruik PostgreSQL om toegang te krijgen tot de proeffuncties."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Spatie voor of spatie achteraan gedetecteerd voor {{.Setting}}. Gevonden \"{{.Value}}\"."
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Kan geen synchroniseerbare lidmaatschappen voor groepen maken."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Kan ongeldige synchroniseerbare lidmaatschappen van groepen niet verwijderen."
   }
 ]
