@@ -6,7 +6,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig, SingleValue} from 'react-select';
+import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, StylesConfig, SingleValue} from 'react-select';
 
 import 'components/widgets/inputs/input/input.scss';
 import './dropdown_input_hybrid.scss';
@@ -57,9 +57,9 @@ const baseStyles = {
         ...provided,
         zIndex: 99999999,
     }),
-} satisfies StylesConfig<OptionType, boolean>;
+} satisfies StylesConfig<OptionType, false>;
 
-const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerProps<T>) => (
+const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerProps<T, false>) => (
     <div className='DropdownInput__indicatorsContainer'>
         <components.IndicatorsContainer {...props}>
             <i className='icon icon-chevron-down'/>
@@ -67,20 +67,9 @@ const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerPro
     </div>
 );
 
-const Control = <T extends OptionType>(props: ControlProps<T>) => (
+const Control = <T extends OptionType>(props: ControlProps<T, false>) => (
     <div className='DropdownInput__controlContainer'>
         <components.Control {...props}/>
-    </div>
-);
-
-const Option = <T extends OptionType>(props: OptionProps<T>) => (
-    <div
-        className={classNames('DropdownInput__option', {
-            selected: props.isSelected,
-            focused: props.isFocused,
-        })}
-    >
-        <components.Option {...props}/>
     </div>
 );
 
@@ -228,14 +217,13 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         width: showInput ? `${width}px` : '100%',
                     }}
                 >
-                    <ReactSelect<T>
+                    <ReactSelect<T, false>
                         id={`DropdownInput_${name}`}
                         placeholder={focused ? '' : placeholder}
                         components={{
                             IndicatorsContainer,
-                            Option: Option as React.ComponentType<OptionProps<T, false, any>>,
                             Control,
-                        }}
+                        } as any}
                         className={classNames('Input', className, {Input__focus: showLegend})}
                         classNamePrefix={dropdownClassNamePrefix}
                         onChange={onValueChange}
