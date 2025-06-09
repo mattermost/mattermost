@@ -27,9 +27,6 @@ import (
 )
 
 func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELMEMBERSYNC", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELMEMBERSYNC")
-
 	th := setupSharedChannels(t).InitBasic()
 	defer th.TearDown()
 
@@ -1608,6 +1605,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		var mu sync.Mutex
 		var syncHandler *SelfReferentialSyncHandler
 		var testServer *httptest.Server
+		var totalSyncMessages int32
 
 		// Create users
 		user1 := th.CreateUser()
@@ -1637,6 +1635,23 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// user3 in one channel
 		th.AddUserToChannel(user3, channel3)
 
+		// First create the remote cluster with a placeholder URL
+		selfCluster := &model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			Name:        "self-cluster-multi-channel",
+			SiteURL:     "http://placeholder",
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			Token:       model.NewId(),
+			CreatorId:   th.BasicUser.Id,
+			RemoteToken: model.NewId(),
+		}
+		selfCluster, err = ss.RemoteCluster().Save(selfCluster)
+		require.NoError(t, err)
+
+		// Initialize sync handler before creating the test server
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
+
 		// Create a wrapper handler to intercept sync messages
 		testServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Intercept and track channel syncs
@@ -1661,6 +1676,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 								for _, change := range syncMsg.MembershipChanges {
 									if change.IsAdd {
 										syncedChannelUsers[channelId] = append(syncedChannelUsers[channelId], change.UserId)
+										atomic.AddInt32(&totalSyncMessages, 1)
 									}
 								}
 							}
@@ -1671,30 +1687,14 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			}
 
 			// Call the actual sync handler
-			if syncHandler != nil {
-				syncHandler.HandleRequest(w, r)
-			} else {
-				writeOKResponse(w)
-			}
+			syncHandler.HandleRequest(w, r)
 		}))
 		defer testServer.Close()
 
-		// Create remote cluster
-		selfCluster := &model.RemoteCluster{
-			RemoteId:    model.NewId(),
-			Name:        "self-cluster-multi-channel",
-			SiteURL:     testServer.URL,
-			CreateAt:    model.GetMillis(),
-			LastPingAt:  model.GetMillis(),
-			Token:       model.NewId(),
-			CreatorId:   th.BasicUser.Id,
-			RemoteToken: model.NewId(),
-		}
-		selfCluster, err = ss.RemoteCluster().Save(selfCluster)
+		// Update the cluster with the actual test server URL
+		selfCluster.SiteURL = testServer.URL
+		_, err = ss.RemoteCluster().Update(selfCluster)
 		require.NoError(t, err)
-
-		// Initialize sync handler
-		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
 
 		// Make channels shared
 		for i, channel := range []*model.Channel{channel1, channel2, channel3} {
@@ -1729,14 +1729,76 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		// Wait for syncs to complete
+		// Ensure the sync handler is ready by waiting for the first message
+		require.Eventually(t, func() bool {
+			return atomic.LoadInt32(&totalSyncMessages) > 0
+		}, 10*time.Second, 50*time.Millisecond, "Expected at least one sync message to be sent")
+
+		// Calculate expected number of sync messages
+		// channel1: user1, user2, BasicUser = 3
+		// channel2: user1, user2, BasicUser = 3
+		// channel3: user1, user3, BasicUser = 3
+		// Total: 9 sync messages (one per user per channel)
+		expectedSyncMessages := int32(9)
+
+		// Wait for all sync messages to be processed with detailed debugging
+		require.Eventually(t, func() bool {
+			currentMessages := atomic.LoadInt32(&totalSyncMessages)
+
+			mu.Lock()
+			channelCount := len(syncedChannelUsers)
+			var totalUsers int
+			for _, users := range syncedChannelUsers {
+				totalUsers += len(users)
+			}
+			mu.Unlock()
+
+			// Log progress for debugging
+			if currentMessages < expectedSyncMessages {
+				t.Logf("Waiting for sync messages: %d/%d received, %d channels synced, %d total users",
+					currentMessages, expectedSyncMessages, channelCount, totalUsers)
+			}
+
+			return currentMessages >= expectedSyncMessages
+		}, 30*time.Second, 200*time.Millisecond,
+			fmt.Sprintf("Expected %d sync messages, but got %d", expectedSyncMessages, atomic.LoadInt32(&totalSyncMessages)))
+
+		// Verify we have complete data for all channels
 		require.Eventually(t, func() bool {
 			mu.Lock()
 			defer mu.Unlock()
 
-			// We should have sync data for all 3 channels
-			return len(syncedChannelUsers) == 3
-		}, 10*time.Second, 100*time.Millisecond, "Expected sync data for all 3 channels")
+			// Verify we have sync data for all 3 channels
+			if len(syncedChannelUsers) != 3 {
+				return false
+			}
+
+			// Verify each channel has the expected number of users
+			channel1Users, ok1 := syncedChannelUsers[channel1.Id]
+			channel2Users, ok2 := syncedChannelUsers[channel2.Id]
+			channel3Users, ok3 := syncedChannelUsers[channel3.Id]
+
+			if !ok1 || !ok2 || !ok3 {
+				return false
+			}
+
+			// Count unique users per channel
+			channel1Count := len(getUniqueUsers(channel1Users))
+			channel2Count := len(getUniqueUsers(channel2Users))
+			channel3Count := len(getUniqueUsers(channel3Users))
+
+			// channel1 should have user1, user2, BasicUser = 3
+			// channel2 should have user1, user2, BasicUser = 3
+			// channel3 should have user1, user3, BasicUser = 3
+			expectedCounts := channel1Count == 3 && channel2Count == 3 && channel3Count == 3
+
+			if !expectedCounts {
+				t.Logf("Channel user counts - channel1: %d, channel2: %d, channel3: %d",
+					channel1Count, channel2Count, channel3Count)
+			}
+
+			return expectedCounts
+		}, 30*time.Second, 200*time.Millisecond, "Expected all channels to have their users synced")
 
 		// Verify each user is synced exactly once per channel they belong to
 		mu.Lock()
@@ -1772,4 +1834,13 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		assert.Equal(t, 0, userCount3[user2.Id], "User2 should not be synced for channel3")
 		assert.Equal(t, 1, userCount3[user3.Id], "User3 should be synced exactly once for channel3")
 	})
+}
+
+// Helper function to get unique users from a list
+func getUniqueUsers(users []string) map[string]bool {
+	unique := make(map[string]bool)
+	for _, user := range users {
+		unique[user] = true
+	}
+	return unique
 }
