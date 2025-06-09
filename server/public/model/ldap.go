@@ -16,7 +16,7 @@ type LdapFilterTestResult struct {
 	Success       bool              `json:"success"`
 	TotalCount    int               `json:"total_count"`
 	Message       string            `json:"message,omitempty"`
-	Error         error             `json:"error,omitempty"`
+	Error         string            `json:"error,omitempty"`
 	SampleResults []LdapSampleEntry `json:"sample_results"`
 }
 
