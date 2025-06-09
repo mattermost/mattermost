@@ -328,6 +328,9 @@ export const ActionTypes = keyMirror({
 
     SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: null,
     CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: null,
+
+    SET_READOUT: 'SET_READOUT',
+    CLEAR_READOUT: 'CLEAR_READOUT',
 });
 
 export const PostRequestTypes = keyMirror({

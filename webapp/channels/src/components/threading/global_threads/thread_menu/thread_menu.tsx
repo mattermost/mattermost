@@ -20,6 +20,7 @@ import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
+import {useReadout} from 'hooks/useReadout';
 import {getSiteURL} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
 
@@ -56,8 +57,16 @@ function ThreadMenu({
     } = useThreadRouting();
 
     const isSaved = useSelector((state: GlobalState) => isPostFlagged(state, threadId));
+    const readAloud = useReadout();
 
     const handleReadUnread = useCallback(() => {
+        readAloud(hasUnreads ? formatMessage({
+            id: 'threading.threadMenu.markedRead',
+            defaultMessage: 'Marked as read',
+        }) : formatMessage({
+            id: 'threading.threadMenu.markedUnread',
+            defaultMessage: 'Marked as unread',
+        }));
         const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
 
         dispatch(manuallyMarkThreadAsUnread(threadId, lastViewedAt));
@@ -109,7 +118,14 @@ function ThreadMenu({
                     }}
                     onClick={useCallback(() => {
                         dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
-                    }, [currentUserId, currentTeamId, threadId, isFollowing, setThreadFollow])}
+                        readAloud(isFollowing ? formatMessage({
+                            id: 'threading.threadMenu.unfollowed',
+                            defaultMessage: 'Unfollowed thread',
+                        }) : formatMessage({
+                            id: 'threading.threadMenu.followed',
+                            defaultMessage: 'Followed thread',
+                        }));
+                    }, [currentUserId, currentTeamId, threadId, isFollowing, setThreadFollow, readAloud, formatMessage])}
                 />
                 <Menu.ItemAction
                     text={formatMessage({
@@ -117,8 +133,12 @@ function ThreadMenu({
                         defaultMessage: 'Open in channel',
                     })}
                     onClick={useCallback(() => {
+                        readAloud(formatMessage({
+                            id: 'threading.threadMenu.openingChannel',
+                            defaultMessage: 'Opening channel',
+                        }));
                         goToInChannel(threadId);
-                    }, [threadId])}
+                    }, [threadId, readAloud, formatMessage])}
                 />
                 <Menu.ItemAction
                     text={hasUnreads ? formatMessage({
@@ -140,6 +160,13 @@ function ThreadMenu({
                         defaultMessage: 'Save',
                     })}
                     onClick={useCallback(() => {
+                        readAloud(isSaved ? formatMessage({
+                            id: 'threading.threadMenu.unsaved',
+                            defaultMessage: 'Unsaved',
+                        }) : formatMessage({
+                            id: 'threading.threadMenu.saved',
+                            defaultMessage: 'Saved',
+                        }));
                         dispatch(isSaved ? unsavePost(threadId) : savePost(threadId));
                     }, [threadId, isSaved])}
                 />
@@ -149,6 +176,10 @@ function ThreadMenu({
                         defaultMessage: 'Copy link',
                     })}
                     onClick={useCallback(() => {
+                        readAloud(formatMessage({
+                            id: 'threading.threadMenu.linkCopied',
+                            defaultMessage: 'Link copied',
+                        }));
                         copyToClipboard(`${getSiteURL()}/${team}/pl/${threadId}`);
                     }, [team, threadId])}
                 />

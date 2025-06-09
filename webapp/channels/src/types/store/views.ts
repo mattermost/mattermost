@@ -130,6 +130,10 @@ export type ViewsState = {
 
     lhs: LhsViewState;
 
+    readout: {
+        message: string | null;
+    };
+
     search: {
         modalSearch: string;
         popoverSearch: string;
