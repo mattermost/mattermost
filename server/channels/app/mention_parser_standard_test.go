@@ -426,40 +426,6 @@ func TestProcessText(t *testing.T) {
 				OtherPotentialMentions: []string{"systembot"},
 			},
 		},
-		"Remote mention with cluster name": {
-			Text:     "hello @user1:cluster1",
-			Keywords: map[string][]string{"@user1:cluster1": {userID1}},
-			Expected: &MentionResults{
-				Mentions: map[string]MentionType{
-					userID1: KeywordMention,
-				},
-			},
-		},
-		"Remote mention followed by punctuation": {
-			Text:     "@user1:cluster1, hello there!",
-			Keywords: map[string][]string{"@user1:cluster1": {userID1}},
-			Expected: &MentionResults{
-				Mentions: map[string]MentionType{
-					userID1: KeywordMention,
-				},
-			},
-		},
-		"Remote mention at end of sentence": {
-			Text:     "Say hello to @user1:cluster1.",
-			Keywords: map[string][]string{"@user1:cluster1": {userID1}},
-			Expected: &MentionResults{
-				Mentions: map[string]MentionType{
-					userID1: KeywordMention,
-				},
-			},
-		},
-		"Remote mention as potential mention": {
-			Text:     "@unknownuser:cluster1 is not in keywords",
-			Keywords: map[string][]string{},
-			Expected: &MentionResults{
-				OtherPotentialMentions: []string{"unknownuser:cluster1"},
-			},
-		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			p := makeStandardMentionParser(mapsToMentionKeywords(tc.Keywords, tc.Groups))
