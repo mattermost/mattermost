@@ -4,6 +4,7 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import type {LdapFilterTestResult, TestLdapFiltersResponse} from '@mattermost/types/admin';
 import type {LdapSettings} from '@mattermost/types/config';
 
 import type {GeneralSettingProps, LDAPDefinitionSettingButton} from './ldap_wizard';
@@ -17,6 +18,7 @@ type Props = {
     onChange(id: string, value: any): void;
     disabled: boolean;
     ldapSettingsState: LdapSettings;
+    onFilterTestResults?: (results: TestLdapFiltersResponse) => void;
 } & GeneralSettingProps
 
 const LDAPButtonSetting = (props: Props) => {
@@ -33,8 +35,32 @@ const LDAPButtonSetting = (props: Props) => {
             });
             return;
         }
-        const successCallback = () => {
-            success?.();
+        const successCallback = (data?: LdapFilterTestResult[]) => {
+            // If this is the filter test button and we have results, pass them to the handler
+            if (props.setting.key === 'LdapSettings.TestFilters' && props.onFilterTestResults && data) {
+                props.onFilterTestResults(data);
+
+                const allTestsPassed = Array.isArray(data) && data.every((result) => result.success === true);
+                if (allTestsPassed) {
+                    success?.();
+                } else {
+                    const failedCount = data.filter((result) => result.success === false).length;
+                    const totalCount = data.length;
+
+                    error({
+                        message: intl.formatMessage(
+                            {
+                                id: 'admin.ldap.testFiltersPartialFailure',
+                                defaultMessage: '{failedCount, number} of {totalCount, number} filter test{totalCount, plural, one {} other {s}} failed. Check the highlighted fields for details.',
+                            },
+                            {failedCount, totalCount},
+                        ),
+                    });
+                }
+            } else {
+                // For non-filter test buttons, show success normally
+                success?.();
+            }
         };
 
         props.setting.action(successCallback, error, props.ldapSettingsState);
