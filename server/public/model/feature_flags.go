@@ -72,11 +72,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
 	f.EnableSharedChannelsDMs = false
-<<<<<<< HEAD
 	f.EnableSyncAllUsersForRemoteCluster = false
-=======
 	f.EnableSharedChannelsPlugins = true
->>>>>>> master
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.DeprecateCloudFree = false

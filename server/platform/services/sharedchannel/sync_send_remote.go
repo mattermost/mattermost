@@ -707,7 +707,7 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 // Compares user's update timestamp with the remote cluster's LastGlobalUserSyncAt.
 func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteCluster) (bool, error) {
 	// Don't sync users back to the remote cluster they originated from
-	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
+	if user.IsRemote() && user.GetRemoteID() == rc.RemoteId {
 		return false, nil
 	}
 
@@ -851,8 +851,8 @@ func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize
 				return users, latestTimestamp, totalCount, true, nil
 			}
 
-			// Skip users from target remote
-			if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
+			// Skip users from target remote to avoid syncing them back
+			if user.IsRemote() && user.GetRemoteID() == rc.RemoteId {
 				continue
 			}
 
