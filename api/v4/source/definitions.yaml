@@ -1364,9 +1364,6 @@ components:
         filter_value:
           type: string
           description: The actual filter string used
-        success:
-          type: boolean
-          description: Whether the filter test succeeded
         total_count:
           type: integer
           description: Number of entries found by the filter

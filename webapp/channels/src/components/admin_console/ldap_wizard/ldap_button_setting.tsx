@@ -40,11 +40,11 @@ const LDAPButtonSetting = (props: Props) => {
             if (props.setting.key === 'LdapSettings.TestFilters' && props.onFilterTestResults && data) {
                 props.onFilterTestResults(data);
 
-                const allTestsPassed = Array.isArray(data) && data.every((result) => result.success === true);
+                const allTestsPassed = Array.isArray(data) && data.every((result) => result.error === '');
                 if (allTestsPassed) {
                     success?.();
                 } else {
-                    const failedCount = data.filter((result) => result.success === false).length;
+                    const failedCount = data.filter((result) => result.error !== '').length;
                     const totalCount = data.length;
 
                     error({

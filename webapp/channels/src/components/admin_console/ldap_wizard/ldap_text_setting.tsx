@@ -75,8 +75,8 @@ const LDAPTextSetting = (props: TextSettingProps) => {
     const showFilterIcon = hasContent && props.filterResult != null; // loose equality operator is intentional
 
     // Determine icon type and content - three states
-    const isSuccess = props.filterResult?.success === true && (props.filterResult?.total_count || 0) > 0;
-    const isWarning = props.filterResult?.success === true && (props.filterResult?.total_count || 0) === 0;
+    const isSuccess = props.filterResult?.error === '' && (props.filterResult?.total_count || 0) > 0;
+    const isWarning = props.filterResult?.error === '' && (props.filterResult?.total_count || 0) === 0;
 
     const getIconClass = () => {
         if (isSuccess) {
