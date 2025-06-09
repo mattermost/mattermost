@@ -2687,6 +2687,7 @@
   "admin.contentFlagging.reviewerSettings.commonReviewers": "Reviewers:",
   "admin.userMultiSelector.loading": "Loading users",
   "admin.userMultiSelector.noUsers": "No users found",
+  "admin.userMultiSelector.placeholder": "Start typing to search for users...",
   "admin.sidebarHeader.systemConsole": "System Console",
   "admin.site.announcementBanner": "System-wide Notifications",
   "admin.site.customization": "Customization",

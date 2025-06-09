@@ -1,0 +1,23 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.UserProfilePill {
+    background: var(--center-channel-color-08);
+    padding-inline: 6px;
+    border-radius: 12px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.Remove {
+    cursor: pointer;
+
+    svg {
+        fill: var(--center-channel-color-32);
+        margin-top: 4px;
+    }
+}

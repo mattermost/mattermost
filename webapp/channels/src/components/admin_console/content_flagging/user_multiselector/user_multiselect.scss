@@ -4,3 +4,13 @@
 .UserMultiSelector {
     width: 100%;
 }
+
+.user-multiselector__menu-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-multiselector__value-container {
+    display: flex;
+    gap: 8px;
+}

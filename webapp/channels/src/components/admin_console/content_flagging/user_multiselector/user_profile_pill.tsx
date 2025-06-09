@@ -1,0 +1,59 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+import {useSelector} from 'react-redux';
+import type {MultiValueRemoveProps} from 'react-select';
+import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
+
+import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
+import Avatar from 'components/widgets/users/avatar/avatar';
+
+import {getDisplayNameByUser, imageURLForUser} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
+
+import type {UserProfileAutocompleteOptionType} from './user_multiselector';
+
+import './user_profile_pill.scss';
+
+function Remove(props: MultiValueRemoveProps<UserProfileAutocompleteOptionType, true>) {
+    const {innerProps, children} = props;
+
+    return (
+        <div
+            className='Remove'
+            {...innerProps}
+        >
+            {children || <CloseCircleSolidIcon/>}
+        </div>
+    );
+}
+
+export function UserProfilePill(props: MultiValueProps<UserProfileAutocompleteOptionType, true>) {
+    const {data, innerProps, selectProps} = props;
+
+    const userProfile = data.raw;
+    const userDisplayName = useSelector((state: GlobalState) => getDisplayNameByUser(state, userProfile));
+
+    return (
+        <div
+            className='UserProfilePill'
+            {...innerProps}
+        >
+            <Avatar
+                size='xxs'
+                username={userProfile?.username}
+                url={imageURLForUser(data.value)}
+            />
+
+            {userDisplayName}
+
+            <Remove
+                data={data}
+                innerProps={innerProps}
+                selectProps={selectProps}
+            />
+        </div>
+    );
+}

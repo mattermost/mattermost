@@ -2,19 +2,29 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useMemo} from 'react';
+import React, {type ReactElement, useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import type {MultiValue} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {searchProfiles} from 'mattermost-redux/actions/users';
 
-import {LoadingIndicator} from 'components/admin_console/system_users/system_users_filters_popover/system_users_filter_team';
-import type {OptionType} from 'components/admin_console/system_users/system_users_filters_popover/system_users_filter_team';
+import {UserProfilePill} from './user_profile_pill';
+
+import {UserOptionComponent} from '../../content_flagging/user_multiselector/user_profile_option';
+import {LoadingIndicator} from '../../system_users/system_users_filters_popover/system_users_filter_team';
 
 import './user_multiselect.scss';
+
+export type UserProfileAutocompleteOptionType = {
+    label: string | ReactElement;
+    value: string;
+    raw?: UserProfile;
+}
 
 type Props = {
     id: string;
@@ -27,15 +37,19 @@ export function UserMultiSelector({id, className}: Props) {
     const {formatMessage} = useIntl();
     const userLoadingMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.loading', defaultMessage: 'Loading users'}), []);
     const noUsersMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.noUsers', defaultMessage: 'No users found'}), []);
+    const placeholder = formatMessage({id: 'admin.userMultiSelector.placeholder', defaultMessage: 'Start typing to search for users...'});
 
     const searchUsersFromTerm = useMemo(() => debounce(async (searchTerm: string, callback) => {
         try {
-            const response = await dispatch(searchProfiles(searchTerm, {page: 0, per_page: 50}));
+            const response = await dispatch(searchProfiles(searchTerm, {page: 0}));
             if (response && response.data && response.data.length > 0) {
-                const users = response.data.map((user) => ({
-                    value: user.id,
-                    label: user.username,
-                }));
+                const users = response.data.
+                    filter((userProfile) => !userProfile.is_bot).
+                    map((user) => ({
+                        value: user.id,
+                        label: user.username,
+                        raw: user,
+                    }));
 
                 callback(users);
             }
@@ -48,8 +62,8 @@ export function UserMultiSelector({id, className}: Props) {
         }
     }, 200), [dispatch]);
 
-    function handleOnChange(value: MultiValue<OptionType>) {
-        console.log('UserMultiSelector handleOnChange value:', value);
+    function handleOnChange(value: MultiValue<UserProfileAutocompleteOptionType>) {
+        // TODO
     }
 
     return (
@@ -63,7 +77,7 @@ export function UserMultiSelector({id, className}: Props) {
                 isClearable={false}
                 hideSelectedOptions={true}
                 cacheOptions={true}
-                placeholder=''
+                placeholder={placeholder}
                 loadingMessage={userLoadingMessage}
                 noOptionsMessage={noUsersMessage}
                 loadOptions={searchUsersFromTerm}
@@ -72,6 +86,8 @@ export function UserMultiSelector({id, className}: Props) {
                     LoadingIndicator,
                     DropdownIndicator: () => null,
                     IndicatorSeparator: () => null,
+                    Option: UserOptionComponent,
+                    MultiValue: UserProfilePill,
                 }}
             />
         </div>
