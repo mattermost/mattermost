@@ -250,7 +250,6 @@ func (a *App) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Pos
 	return savedAcks, nil
 }
 
-
 // DeleteAcknowledgementsForPost deletes all acknowledgements for a post.
 func (a *App) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError {
 	var err *model.AppError
@@ -301,7 +300,6 @@ func (a *App) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.P
 
 	return nil
 }
-
 
 func (a *App) sendAcknowledgementEvent(rctx request.CTX, event model.WebsocketEventType, acknowledgement *model.PostAcknowledgement, post *model.Post) {
 	// send out that a acknowledgement has been added/removed

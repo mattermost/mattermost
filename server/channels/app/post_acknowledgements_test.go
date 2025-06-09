@@ -190,5 +190,3 @@ func testGetAcknowledgementsForPostList(t *testing.T) {
 		require.Nil(t, acknowledgementsMap[p3.Id])
 	})
 }
-
-
