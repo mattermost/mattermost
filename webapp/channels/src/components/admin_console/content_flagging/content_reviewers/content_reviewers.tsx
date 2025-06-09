@@ -5,17 +5,19 @@ import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Label} from 'components/admin_console/boolean_setting';
+import CheckboxSetting from 'components/admin_console/checkbox_setting';
+import {UserMultiSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
 import {
     AdminSection,
     SectionContent,
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
 
-import {UserMultiSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
+import './content_reviewers.scss';
 
-export default function ContentFlaggingContentReviewers(props) {
-    console.log('ContentFlaggingContentReviewers props:', props);
+const noOp = () => null;
 
+export default function ContentFlaggingContentReviewers() {
     const [sameReviewersForAllTeams, setSameReviewersForAllTeams] = React.useState(false);
 
     const handleSameReviewersForAllTeamsChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,6 +104,52 @@ export default function ContentFlaggingContentReviewers(props) {
                             </div>
                         </div>
                     }
+
+                    <div className='content-flagging-section-setting'>
+                        <div className='setting-title'>
+                            <FormattedMessage
+                                id='admin.contentFlagging.reviewerSettings.additionalReviewers'
+                                defaultMessage='Additional reviewers'
+                            />
+                        </div>
+
+                        <div className='setting-content-wrapper'>
+                            <div className='setting-content'>
+                                <CheckboxSetting
+                                    id='notifyOnDismissal_reviewers'
+                                    label={
+                                        <FormattedMessage
+                                            id='admin.contentFlagging.reviewerSettings.additionalReviewers.systemAdmins'
+                                            defaultMessage='System Administrators'
+                                        />
+                                    }
+                                    defaultChecked={false}
+                                    onChange={noOp}
+                                    setByEnv={false}
+                                />
+
+                                <CheckboxSetting
+                                    id='notifyOnDismissal_author'
+                                    label={
+                                        <FormattedMessage
+                                            id='admin.contentFlagging.reviewerSettings.additionalReviewers.teamAdmins'
+                                            defaultMessage='Team Administrators'
+                                        />
+                                    }
+                                    defaultChecked={false}
+                                    onChange={noOp}
+                                    setByEnv={false}
+                                />
+                            </div>
+
+                            <div className='content-flagging-section-description additionalReviewerHelpText'>
+                                <FormattedMessage
+                                    id='admin.contentFlagging.reviewerSettings.additionalReviewers.helpText'
+                                    defaultMessage='If enabled, system administrators will be sent flagged posts for review from every team that they are a part of. Team administrators will only be sent flagged posts for review from their respective teams.'
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </SectionContent>
         </AdminSection>
