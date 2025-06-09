@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 )
@@ -19,53 +18,21 @@ func (s SqlSharedChannelStore) UpdateRemoteMembershipCursor(id string, syncTime 
 	query := s.getQueryBuilder().
 		Update("SharedChannelRemotes")
 
-	// Different syntax for MySQL vs PostgreSQL for conditional updates
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.
-			Set("LastMembersSyncAt", sq.Expr("GREATEST(LastMembersSyncAt, ?)", syncTime))
-	} else {
-		query = query.
-			Set("lastmemberssyncat", sq.Expr("GREATEST(lastmemberssyncat, ?)", syncTime))
-	}
+	query = query.Set("LastMembersSyncAt", sq.Expr("GREATEST(LastMembersSyncAt, ?)", syncTime))
 
 	query = query.Where(sq.Eq{"Id": id})
 
-	squery, args, err := query.ToSql()
+	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
-		mlog.Error("Failed to generate SQL query",
-			mlog.String("id", id),
-			mlog.Int("sync_time", int(syncTime)),
-			mlog.Err(err),
-		)
-		return errors.Wrap(err, "update_shared_channel_remote_membership_cursor_tosql")
-	}
-
-	result, err := s.GetMaster().Exec(squery, args...)
-	if err != nil {
-		mlog.Error("Failed to execute SQL update",
-			mlog.String("id", id),
-			mlog.Int("sync_time", int(syncTime)),
-			mlog.String("query", squery),
-			mlog.Err(err),
-		)
 		return errors.Wrap(err, "failed to update membership cursor for SharedChannelRemote")
 	}
 
 	count, err := result.RowsAffected()
 	if err != nil {
-		mlog.Error("Failed to get rows affected",
-			mlog.String("id", id),
-			mlog.Int("sync_time", int(syncTime)),
-			mlog.Err(err),
-		)
 		return errors.Wrap(err, "failed to determine rows affected")
 	}
 
 	if count == 0 {
-		mlog.Error("SQL update affected 0 rows - record not found",
-			mlog.String("id", id),
-			mlog.Int("sync_time", int(syncTime)),
-		)
 		return fmt.Errorf("id not found: %s", id)
 	}
 
