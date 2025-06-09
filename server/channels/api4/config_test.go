@@ -81,7 +81,8 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 		cfg.SupportSettings.SupportEmail = &mockSupportEmail
 	})
 
-	th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	require.NoError(t, err)
 
 	// add read sysconsole environment config
 	th.AddPermissionToRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
@@ -107,7 +108,8 @@ func TestGetConfigAnyFlagsAccess(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	require.NoError(t, err)
 	_, resp, _ := th.Client.GetConfig(context.Background())
 
 	t.Run("Check permissions error with no sysconsole read permission", func(t *testing.T) {
@@ -259,7 +261,10 @@ func TestUpdateConfig(t *testing.T) {
 
 	t.Run("Should not be able to modify ComplianceSettings.Directory in cloud", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		defer th.App.Srv().RemoveLicense()
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
 
 		cfg2 := th.App.Config().Clone()
 		*cfg2.ComplianceSettings.Directory = "hellodir"
@@ -297,7 +302,8 @@ func TestUpdateConfig(t *testing.T) {
 func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	require.NoError(t, err)
 
 	t.Run("any sysconsole read permission provides config read access", func(t *testing.T) {
 		// forbidden by default
@@ -316,7 +322,8 @@ func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
 func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	require.NoError(t, err)
 
 	// add read sysconsole integrations config
 	th.AddPermissionToRole(model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
@@ -866,11 +873,17 @@ func TestMigrateConfig(t *testing.T) {
 
 		f, err := config.NewStoreFromDSN("from.json", false, nil, false)
 		require.NoError(t, err)
-		defer f.RemoveFile("from.json")
+		defer func() {
+			err = f.RemoveFile("from.json")
+			require.NoError(t, err)
+		}()
 
 		_, err = config.NewStoreFromDSN("to.json", false, nil, true)
 		require.NoError(t, err)
-		defer f.RemoveFile("to.json")
+		defer func() {
+			err = f.RemoveFile("to.json")
+			require.NoError(t, err)
+		}()
 
 		_, err = th.LocalClient.MigrateConfig(context.Background(), "from.json", "to.json")
 		require.NoError(t, err)

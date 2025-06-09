@@ -538,6 +538,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                     <BlockableLink
                         className='btn btn-tertiary'
                         to='/admin_console/user_management/permissions'
+                        data-testid='permission-scheme-cancel-button'
                     >
                         <FormattedMessage
                             id='admin.permissions.permissionSchemes.cancel'
