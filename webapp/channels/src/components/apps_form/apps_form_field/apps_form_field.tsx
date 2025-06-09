@@ -119,8 +119,9 @@ export default class AppsFormField extends React.PureComponent<Props> {
                 inputType = 'textarea';
                 defaultMaxLength = TEXTAREA_DEFAULT_MAX_LENGTH;
             } else {
+                // field.type === AppFieldTypes.TEXT
                 inputType = (field.subtype || 'text') as InputTypes;
-                defaultMaxLength = field.subtype === 'textarea' ? TEXTAREA_DEFAULT_MAX_LENGTH : TEXT_DEFAULT_MAX_LENGTH;
+                defaultMaxLength = TEXT_DEFAULT_MAX_LENGTH;
             }
 
             const maxLength = field.max_length || defaultMaxLength;
