@@ -186,25 +186,6 @@ func (_m *MockAppIface) DeleteAcknowledgementForPostWithModel(c request.CTX, ack
 	return r0
 }
 
-// DeleteAcknowledgementsForPost provides a mock function with given fields: c, postID
-func (_m *MockAppIface) DeleteAcknowledgementsForPost(c request.CTX, postID string) *model.AppError {
-	ret := _m.Called(c, postID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteAcknowledgementsForPost")
-	}
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AppError); ok {
-		r0 = rf(c, postID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
 
 // DeleteAcknowledgementsForPostWithPost provides a mock function with given fields: c, post
 func (_m *MockAppIface) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError {
@@ -381,38 +362,6 @@ func (_m *MockAppIface) GetOrCreateDirectChannel(c request.CTX, userId string, o
 	return r0, r1
 }
 
-// GetPriorityForPost provides a mock function with given fields: postID
-func (_m *MockAppIface) GetPriorityForPost(postID string) (*model.PostPriority, *model.AppError) {
-	ret := _m.Called(postID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetPriorityForPost")
-	}
-
-	var r0 *model.PostPriority
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (*model.PostPriority, *model.AppError)); ok {
-		return rf(postID)
-	}
-	if rf, ok := ret.Get(0).(func(string) *model.PostPriority); ok {
-		r0 = rf(postID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.PostPriority)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(postID)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // GetProfileImage provides a mock function with given fields: user
 func (_m *MockAppIface) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	ret := _m.Called(user)
@@ -450,24 +399,6 @@ func (_m *MockAppIface) GetProfileImage(user *model.User) ([]byte, bool, *model.
 	}
 
 	return r0, r1, r2
-}
-
-// IsPostPriorityEnabled provides a mock function with given fields:
-func (_m *MockAppIface) IsPostPriorityEnabled() bool {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for IsPostPriorityEnabled")
-	}
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func() bool); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	return r0
 }
 
 // MentionsToTeamMembers provides a mock function with given fields: c, message, teamID
@@ -700,37 +631,6 @@ func (_m *MockAppIface) SaveAcknowledgementForPostWithPost(c request.CTX, post *
 	return r0, r1
 }
 
-// SaveAcknowledgementsForPost provides a mock function with given fields: c, postID, userIDs
-func (_m *MockAppIface) SaveAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
-	ret := _m.Called(c, postID, userIDs)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SaveAcknowledgementsForPost")
-	}
-
-	var r0 []*model.PostAcknowledgement
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) ([]*model.PostAcknowledgement, *model.AppError)); ok {
-		return rf(c, postID, userIDs)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) []*model.PostAcknowledgement); ok {
-		r0 = rf(c, postID, userIDs)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.PostAcknowledgement)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, string, []string) *model.AppError); ok {
-		r1 = rf(c, postID, userIDs)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
 
 // SaveAcknowledgementsForPostWithPost provides a mock function with given fields: c, post, userIDs
 func (_m *MockAppIface) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Post, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {

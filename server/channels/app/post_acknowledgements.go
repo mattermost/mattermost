@@ -250,19 +250,6 @@ func (a *App) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Pos
 	return savedAcks, nil
 }
 
-// SaveAcknowledgementsForPost saves multiple acknowledgements for a post.
-func (a *App) SaveAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
-	if len(userIDs) == 0 {
-		return []*model.PostAcknowledgement{}, nil
-	}
-
-	post, err := a.GetSinglePost(c, postID, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return a.SaveAcknowledgementsForPostWithPost(c, post, userIDs)
-}
 
 // DeleteAcknowledgementsForPost deletes all acknowledgements for a post.
 func (a *App) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError {
@@ -315,14 +302,6 @@ func (a *App) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.P
 	return nil
 }
 
-func (a *App) DeleteAcknowledgementsForPost(c request.CTX, postID string) *model.AppError {
-	post, err := a.GetSinglePost(c, postID, false)
-	if err != nil {
-		return err
-	}
-
-	return a.DeleteAcknowledgementsForPostWithPost(c, post)
-}
 
 func (a *App) sendAcknowledgementEvent(rctx request.CTX, event model.WebsocketEventType, acknowledgement *model.PostAcknowledgement, post *model.Post) {
 	// send out that a acknowledgement has been added/removed
