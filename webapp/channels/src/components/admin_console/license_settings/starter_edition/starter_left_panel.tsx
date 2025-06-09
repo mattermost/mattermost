@@ -36,7 +36,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
         <button
             id='starter_edition_view_plans'
             onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
-            className='btn btn-secondary PlanDetails__viewPlansButton'
+            className='btn btn-tertiary btn-sm PlanDetails__viewPlansButton'
         >
             {intl.formatMessage({
                 id: 'workspace_limits.menu_limit.view_plans',
@@ -95,7 +95,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                 </div>
                 <div className='uploadButtons'>
                     <button
-                        className='btn btn-upload light-blue-btn'
+                        className='btn btn-primary'
                         onClick={() => fileInputRef.current?.click()}
                         id='open-modal'
                     >

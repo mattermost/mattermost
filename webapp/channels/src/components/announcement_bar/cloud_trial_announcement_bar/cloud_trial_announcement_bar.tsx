@@ -88,8 +88,8 @@ class CloudTrialAnnouncementBarInternal extends React.PureComponent<PropsWithPri
     };
 
     shouldShowBanner = () => {
-        const {isFreeTrial, userIsAdmin, isCloud, isAirGapped} = this.props;
-        return isFreeTrial && userIsAdmin && isCloud && !isAirGapped;
+        const {isFreeTrial, userIsAdmin, isCloud, isAirGapped, subscription} = this.props;
+        return isFreeTrial && userIsAdmin && isCloud && !isAirGapped && !subscription?.is_cloud_preview;
     };
 
     isDismissable = () => {
