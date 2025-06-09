@@ -1,11 +1,29 @@
-ALTER TABLE PostAcknowledgements ADD COLUMN RemoteId varchar(26) DEFAULT '';
-ALTER TABLE PostAcknowledgements ADD COLUMN ChannelId varchar(26) NOT NULL DEFAULT '';
+SET @preparedStatement = (SELECT IF(
+    NOT EXISTS(
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'PostAcknowledgements'
+        AND table_schema = DATABASE()
+        AND column_name = 'RemoteId'
+    ),
+    'ALTER TABLE PostAcknowledgements ADD COLUMN RemoteId varchar(26) DEFAULT \'\';',
+    'SELECT 1;'
+));
 
-UPDATE PostAcknowledgements pa
-INNER JOIN Posts p ON pa.PostId = p.Id
-SET pa.ChannelId = p.ChannelId
-WHERE pa.ChannelId = '';
+PREPARE addColumnIfNotExists FROM @preparedStatement;
+EXECUTE addColumnIfNotExists;
+DEALLOCATE PREPARE addColumnIfNotExists;
 
-ALTER TABLE PostAcknowledgements MODIFY COLUMN ChannelId varchar(26) NOT NULL;
+SET @preparedStatement = (SELECT IF(
+    NOT EXISTS(
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'PostAcknowledgements'
+        AND table_schema = DATABASE()
+        AND column_name = 'ChannelId'
+    ),
+    'ALTER TABLE PostAcknowledgements ADD COLUMN ChannelId varchar(26) DEFAULT \'\';',
+    'SELECT 1;'
+));
 
-CREATE INDEX idx_post_acknowledgements_postid_remoteid ON PostAcknowledgements(PostId, RemoteId);
+PREPARE addColumnIfNotExists FROM @preparedStatement;
+EXECUTE addColumnIfNotExists;
+DEALLOCATE PREPARE addColumnIfNotExists;
