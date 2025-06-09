@@ -76,7 +76,7 @@ func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post
 	return savedAck, nil
 }
 
-func (a *App) SaveAcknowledgementForPostByUserID(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
+func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
 	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func (a *App) DeleteAcknowledgementForPostWithPost(c request.CTX, post *model.Po
 	return nil
 }
 
-func (a *App) DeleteAcknowledgementForPostByUserID(c request.CTX, postID, userID string) *model.AppError {
+func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError {
 	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return err
@@ -336,7 +336,7 @@ func (a *App) sendAcknowledgementEvent(rctx request.CTX, event model.WebsocketEv
 	a.Publish(message)
 }
 
-func (a *App) SaveAcknowledgementForPost(c request.CTX, acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, *model.AppError) {
+func (a *App) SaveAcknowledgementForPostWithModel(c request.CTX, acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, *model.AppError) {
 	// Get the post to verify it exists and get the channel
 	post, err := a.GetSinglePost(c, acknowledgement.PostId, false)
 	if err != nil {
@@ -349,7 +349,7 @@ func (a *App) SaveAcknowledgementForPost(c request.CTX, acknowledgement *model.P
 	}
 
 	if channel.DeleteAt > 0 {
-		return nil, model.NewAppError("SaveAcknowledgementForPost", "api.acknowledgement.save.archived_channel.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("SaveAcknowledgementForPostWithModel", "api.acknowledgement.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
 	// Make sure ChannelId is set
@@ -364,7 +364,7 @@ func (a *App) SaveAcknowledgementForPost(c request.CTX, acknowledgement *model.P
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("SaveAcknowledgementForPost", "app.acknowledgement.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return nil, model.NewAppError("SaveAcknowledgementForPostWithModel", "app.acknowledgement.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -391,7 +391,7 @@ func (a *App) SaveAcknowledgementForPost(c request.CTX, acknowledgement *model.P
 	return savedAck, nil
 }
 
-func (a *App) DeleteAcknowledgementForPost(c request.CTX, acknowledgement *model.PostAcknowledgement) *model.AppError {
+func (a *App) DeleteAcknowledgementForPostWithModel(c request.CTX, acknowledgement *model.PostAcknowledgement) *model.AppError {
 	// Get the post to verify it exists and get the channel
 	post, err := a.GetSinglePost(c, acknowledgement.PostId, false)
 	if err != nil {
@@ -404,12 +404,12 @@ func (a *App) DeleteAcknowledgementForPost(c request.CTX, acknowledgement *model
 	}
 
 	if channel.DeleteAt > 0 {
-		return model.NewAppError("DeleteAcknowledgementForPost", "api.acknowledgement.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
+		return model.NewAppError("DeleteAcknowledgementForPostWithModel", "api.acknowledgement.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
 	nErr := a.Srv().Store().PostAcknowledgement().Delete(acknowledgement)
 	if nErr != nil {
-		return model.NewAppError("DeleteAcknowledgementForPost", "app.acknowledgement.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return model.NewAppError("DeleteAcknowledgementForPostWithModel", "app.acknowledgement.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	// The post is always modified since the UpdateAt always changes

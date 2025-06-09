@@ -359,7 +359,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			UserId:    th.BasicUser2.Id,
 			ChannelId: originalPost.ChannelId,
 		}
-		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, ack)
+		_, appErr = th.App.SaveAcknowledgementForPostWithModel(th.Context, ack)
 		require.Nil(t, appErr)
 
 		// Test the self-referential sync flow:
@@ -490,7 +490,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			ChannelId:      originalPost.ChannelId,
 			AcknowledgedAt: model.GetMillis(),
 		}
-		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, ackForStep3)
+		_, appErr = th.App.SaveAcknowledgementForPostWithModel(th.Context, ackForStep3)
 		require.Nil(t, appErr)
 
 		// Step 4: Configure sync handler to capture acknowledgement updates
@@ -844,7 +844,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			ChannelId:      testChannel.Id,
 			AcknowledgedAt: model.GetMillis(),
 		}
-		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, ackFromServerB)
+		_, appErr = th.App.SaveAcknowledgementForPostWithModel(th.Context, ackFromServerB)
 		require.Nil(t, appErr)
 
 		// Verify acknowledgement was saved locally

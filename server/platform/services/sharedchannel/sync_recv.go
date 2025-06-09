@@ -643,7 +643,7 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 		}
 		acknowledgement.RemoteId = model.NewPointer(rc.RemoteId)
 		acknowledgement.ChannelId = targetChannel.Id
-		savedAcknowledgement, appErr = scs.app.SaveAcknowledgementForPost(request.EmptyContext(scs.server.Log()), acknowledgement)
+		savedAcknowledgement, appErr = scs.app.SaveAcknowledgementForPostWithModel(request.EmptyContext(scs.server.Log()), acknowledgement)
 	} else {
 		// make sure the acknowledgement being deleted is owned by the remote
 		if existingAcknowledgement.GetRemoteID() != rc.RemoteId {
@@ -651,7 +651,7 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 		}
 		if acknowledgement.AcknowledgedAt == 0 {
 			// Delete the acknowledgement
-			appErr = scs.app.DeleteAcknowledgementForPost(request.EmptyContext(scs.server.Log()), acknowledgement)
+			appErr = scs.app.DeleteAcknowledgementForPostWithModel(request.EmptyContext(scs.server.Log()), acknowledgement)
 		}
 	}
 

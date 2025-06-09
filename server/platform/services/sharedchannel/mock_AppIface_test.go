@@ -166,12 +166,12 @@ func (_m *MockAppIface) CreateUploadSession(c request.CTX, us *model.UploadSessi
 	return r0, r1
 }
 
-// DeleteAcknowledgementForPost provides a mock function with given fields: c, acknowledgement
-func (_m *MockAppIface) DeleteAcknowledgementForPost(c request.CTX, acknowledgement *model.PostAcknowledgement) *model.AppError {
+// DeleteAcknowledgementForPostWithModel provides a mock function with given fields: c, acknowledgement
+func (_m *MockAppIface) DeleteAcknowledgementForPostWithModel(c request.CTX, acknowledgement *model.PostAcknowledgement) *model.AppError {
 	ret := _m.Called(c, acknowledgement)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteAcknowledgementForPost")
+		panic("no return value specified for DeleteAcknowledgementForPostWithModel")
 	}
 
 	var r0 *model.AppError
@@ -636,12 +636,12 @@ func (_m *MockAppIface) Publish(message *model.WebSocketEvent) {
 	_m.Called(message)
 }
 
-// SaveAcknowledgementForPost provides a mock function with given fields: c, acknowledgement
-func (_m *MockAppIface) SaveAcknowledgementForPost(c request.CTX, acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, *model.AppError) {
+// SaveAcknowledgementForPostWithModel provides a mock function with given fields: c, acknowledgement
+func (_m *MockAppIface) SaveAcknowledgementForPostWithModel(c request.CTX, acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, *model.AppError) {
 	ret := _m.Called(c, acknowledgement)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SaveAcknowledgementForPost")
+		panic("no return value specified for SaveAcknowledgementForPostWithModel")
 	}
 
 	var r0 *model.PostAcknowledgement
