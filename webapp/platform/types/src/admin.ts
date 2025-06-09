@@ -161,7 +161,7 @@ export type LdapFilterTestResult = {
     success: boolean;
     total_count: number;
     message?: string;
-    error?: any;
+    error?: string;
     sample_results: LdapSampleEntry[];
 };
 
