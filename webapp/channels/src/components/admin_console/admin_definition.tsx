@@ -6379,9 +6379,8 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 help_text: defineMessage({id: 'admin.ldap.bindPwdDesc', defaultMessage: 'Password of the user given in "Bind Username".'}),
                 onConfigSave: (value: string) => {
                     // If the password is just asterisks (placeholder from server), don't send it
-                    // This allows the server to use the existing stored password
                     if (typeof value === 'string' && ASTERISK_PASSWORD_PATTERN.test(value)) {
-                        return '';
+                        return undefined;
                     }
                     return value;
                 },
