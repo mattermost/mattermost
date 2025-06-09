@@ -221,6 +221,11 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
 
         if (data.trigger_id) {
             dispatch({type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID, data: data.trigger_id});
+
+            const dialogArguments = {
+                channel_id: args.channel_id,
+            };
+            dispatch({type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS, data: dialogArguments});
         }
 
         if (hasGotoLocation) {
