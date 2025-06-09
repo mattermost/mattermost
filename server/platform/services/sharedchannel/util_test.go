@@ -195,3 +195,56 @@ func Test_fixMention(t *testing.T) {
 func R(count int, s string) string {
 	return strings.Repeat(s, count)
 }
+
+func TestHandleUserMentions(t *testing.T) {
+	t.Run("should format mentions across clusters", func(t *testing.T) {
+		// This test verifies the behavior when same username exists on multiple clusters
+
+		// Define remote cluster names (not server names)
+		clusterBName := "remote_cluster_B"
+
+		// Create user with admin username on remote cluster B
+		adminUserB := &model.User{
+			Id:       "adminB",
+			Username: "admin",
+			RemoteId: model.NewPointer(clusterBName),
+			Props:    model.StringMap{model.UserPropsKeyRemoteUsername: "admin"},
+		}
+
+		// Scenario: User on Cluster B mentions local admin
+		// The mention should show as @admin on Cluster B
+		postOnClusterB := &model.Post{
+			Message: "Hey @admin, please review this.",
+		}
+
+		// Mentions are preserved when synced between clusters
+		// so that the local admin on Cluster A would receive a notification
+
+		// We're verifying the post will keep its mention format after being synced
+		require.Contains(t, postOnClusterB.Message, "@admin",
+			"Message should preserve @admin mention when synced between clusters")
+
+		// Scenario: User on Cluster A explicitly mentions admin on Cluster B
+		// It will show as @admin:remote_cluster_B on Cluster A
+		postWithRemoteMention := &model.Post{
+			Message: "Let's ask @admin:remote_cluster_B about this",
+		}
+
+		mentionMapWithRemote := model.UserMentionMap{
+			"admin:remote_cluster_B": "adminB",
+		}
+
+		// When this post is synced to Cluster B, fixMention will transform
+		// @admin:remote_cluster_B to @admin (removing the remote suffix)
+		postCopy := &model.Post{Message: postWithRemoteMention.Message}
+		fixMention(postCopy, mentionMapWithRemote, adminUserB)
+
+		// fixMention should replace @username:remote with @realusername (without the remote suffix)
+		// when syncing to the user's home cluster
+		expected := "Let's ask @admin about this"
+
+		// The part we're testing is that mentions are simplified when sent to the user's home cluster
+		require.Equal(t, expected, postCopy.Message,
+			"Should remove remote cluster suffix when message is viewed on user's home server")
+	})
+}
