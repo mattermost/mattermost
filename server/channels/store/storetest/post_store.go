@@ -4220,7 +4220,11 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 	o3, err = ss.Post().Save(rctx, o3)
 	require.NoError(t, err)
 
-	deleted, _, err := ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, 1000, model.RetentionPolicyCursor{})
+	deleted, _, err := ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: 2000,
+		Limit:               1000,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	require.Equal(t, int64(2), deleted)
 
@@ -4254,7 +4258,11 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		}
 		cursor := model.RetentionPolicyCursor{}
 
-		deleted, cursor, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
+		deleted, cursor, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+			Now:                 0,
+			GlobalPolicyEndTime: 2,
+			Limit:               2,
+		}, cursor)
 		require.NoError(t, err)
 		require.Equal(t, int64(2), deleted)
 
@@ -4268,7 +4276,11 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		require.NoError(t, err)
 		require.Equal(t, int64(0), deleted)
 
-		deleted, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
+		deleted, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+			Now:                 0,
+			GlobalPolicyEndTime: 2,
+			Limit:               2,
+		}, cursor)
 		require.NoError(t, err)
 		require.Equal(t, int64(1), deleted)
 
@@ -4301,13 +4313,21 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		post, err2 = ss.Post().Save(rctx, post)
 		require.NoError(t, err2)
 
-		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, 1000, model.RetentionPolicyCursor{})
+		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+			Now:                 0,
+			GlobalPolicyEndTime: 2000,
+			Limit:               1000,
+		}, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err2, "global policy should have been ignored due to granular policy")
 
 		nowMillis := post.CreateAt + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
-		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
+		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+			Now:                 nowMillis,
+			GlobalPolicyEndTime: 0,
+			Limit:               1000,
+		}, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err2, "post should have been deleted by channel policy")
@@ -4326,7 +4346,11 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		require.NoError(t, err2)
 
 		nowMillis = post.CreateAt + *teamPolicy.PostDurationDays*model.DayInMilliseconds + 1
-		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
+		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+			Now:                 nowMillis,
+			GlobalPolicyEndTime: 0,
+			Limit:               1000,
+		}, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err2, "channel policy should have overridden team policy")
@@ -4338,7 +4362,11 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		err2 = ss.RetentionPolicy().Delete(channelPolicy.ID)
 		require.NoError(t, err2)
 
-		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
+		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+			Now:                 nowMillis,
+			GlobalPolicyEndTime: 0,
+			Limit:               1000,
+		}, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err2, "post should have been deleted by team policy")
@@ -4419,7 +4447,11 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		require.NoError(t, err2)
 
 		nowMillis := int64(1 + 30*model.DayInMilliseconds + 1)
-		deleted, _, err2 := ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 2, 1000, model.RetentionPolicyCursor{})
+		deleted, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+			Now:                 nowMillis,
+			GlobalPolicyEndTime: 2,
+			Limit:               1000,
+		}, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		require.Equal(t, int64(3), deleted)
 
@@ -4434,6 +4466,151 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 			require.NoError(t, err)
 			require.Equal(t, int64(0), deleted)
 		}
+	})
+
+	t.Run("with preserve pinned posts true", func(t *testing.T) {
+		p1 := &model.Post{}
+		p1.ChannelId = channel.Id
+		p1.UserId = model.NewId()
+		p1.IsPinned = false
+		p1.Message = NewTestID()
+		p1.CreateAt = 1000
+		p1, err = ss.Post().Save(rctx, p1)
+		require.NoError(t, err)
+
+		p2 := &model.Post{}
+		p2.ChannelId = channel.Id
+		p2.UserId = model.NewId()
+		p2.IsPinned = false
+		p2.Message = NewTestID()
+		p2.CreateAt = 1000
+		p2, err = ss.Post().Save(rctx, p2)
+		require.NoError(t, err)
+
+		p3 := &model.Post{}
+		p3.ChannelId = channel.Id
+		p3.UserId = model.NewId()
+		p3.IsPinned = false
+		p3.Message = NewTestID()
+		p3.CreateAt = 1000
+		p3, err = ss.Post().Save(rctx, p3)
+		require.NoError(t, err)
+
+		np3 := p3.Clone()
+		np3.IsPinned = true
+
+		np3, err = ss.Post().Update(rctx, np3, p3)
+
+		deleted, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+			Now:                 0,
+			GlobalPolicyEndTime: 2000,
+			Limit:               1000,
+			PreservePinnedPosts: true,
+		}, model.RetentionPolicyCursor{})
+		require.NoError(t, err)
+		require.Equal(t, int64(3), deleted)
+
+		_, err = ss.Post().Get(context.Background(), p1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.Error(t, err, "Should have not found post 1 after purge")
+
+		_, err = ss.Post().Get(context.Background(), p2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.Error(t, err, "Should have not found post 2 after purge")
+
+		_, err = ss.Post().Get(context.Background(), p3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.Error(t, err, "Should have not found post 3 before update after purge")
+
+		_, err = ss.Post().Get(context.Background(), np3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.NoError(t, err, "Should have found updated post 3 after purge")
+
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(rows))
+		require.Equal(t, 3, len(rows[0].Ids))
+		// Clean up retention ids table
+		deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
+		require.NoError(t, err)
+		require.Equal(t, int64(0), deleted)
+
+		// Clean up pinned post
+		_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+			Now:                 0,
+			GlobalPolicyEndTime: 2000,
+			Limit:               1000,
+			PreservePinnedPosts: false,
+		}, model.RetentionPolicyCursor{})
+		require.NoError(t, err)
+
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(rows))
+
+		// Clean up retention ids table
+		_, err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
+		require.NoError(t, err)
+	})
+
+	t.Run("with preserve pinned posts false", func(t *testing.T) {
+		p1 := &model.Post{}
+		p1.ChannelId = channel.Id
+		p1.UserId = model.NewId()
+		p1.IsPinned = false
+		p1.Message = NewTestID()
+		p1.CreateAt = 1000
+		p1, err = ss.Post().Save(rctx, p1)
+		require.NoError(t, err)
+
+		p2 := &model.Post{}
+		p2.ChannelId = channel.Id
+		p2.UserId = model.NewId()
+		p2.IsPinned = false
+		p2.Message = NewTestID()
+		p2.CreateAt = 1000
+		p2, err = ss.Post().Save(rctx, p2)
+		require.NoError(t, err)
+
+		p3 := &model.Post{}
+		p3.ChannelId = channel.Id
+		p3.UserId = model.NewId()
+		p3.IsPinned = false
+		p3.Message = NewTestID()
+		p3.CreateAt = 1000
+		p3, err = ss.Post().Save(rctx, p3)
+		require.NoError(t, err)
+
+		np3 := p3.Clone()
+		np3.IsPinned = true
+
+		np3, err = ss.Post().Update(rctx, np3, p3)
+
+		deleted, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+			Now:                 0,
+			GlobalPolicyEndTime: 2000,
+			Limit:               1000,
+			PreservePinnedPosts: false,
+		}, model.RetentionPolicyCursor{})
+		require.NoError(t, err)
+		require.Equal(t, int64(4), deleted)
+
+		_, err = ss.Post().Get(context.Background(), p1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.Error(t, err, "Should have not found post 1 after purge")
+
+		_, err = ss.Post().Get(context.Background(), p2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.Error(t, err, "Should have not found post 2 after purge")
+
+		_, err = ss.Post().Get(context.Background(), p3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.Error(t, err, "Should have not found post 3 before update after purge")
+
+		_, err = ss.Post().Get(context.Background(), np3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.Error(t, err, "Should have not found updated post 3 after purge")
+
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(rows))
+		require.Equal(t, 4, len(rows[0].Ids))
+		// Clean up retention ids table
+		deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
+		require.NoError(t, err)
+		require.Equal(t, int64(0), deleted)
 	})
 }
 
