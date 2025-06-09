@@ -90,28 +90,32 @@ export class InteractiveDialogConverter {
                 max_length: element.max_length,
             } as AppField;
 
-        case 'select':
+        case 'select': {
+            const selectBaseField = {
+                ...baseField,
+                multiselect: element.multiselect || false,
+            };
+
             if (element.data_source === 'users') {
                 return {
-                    ...baseField,
+                    ...selectBaseField,
                     type: AppFieldTypes.USER,
-                    multiselect: element.multiselect || false,
                 } as AppField;
             } else if (element.data_source === 'channels') {
                 return {
-                    ...baseField,
+                    ...selectBaseField,
                     type: AppFieldTypes.CHANNEL,
-                    multiselect: element.multiselect || false,
                 } as AppField;
             }
             return {
-                ...baseField,
+                ...selectBaseField,
                 type: AppFieldTypes.STATIC_SELECT,
                 options: element.options?.map((opt) => ({
                     label: opt.text,
                     value: opt.value,
                 })) || [],
             } as AppField;
+        }
 
         case 'bool':
             return {
