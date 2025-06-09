@@ -30,9 +30,17 @@ func (scs *Service) queueMembershipSyncTask(channelID, userID, remoteID string, 
 // HandleMembershipChange is called when users are added or removed from a shared channel.
 // It creates a task to notify all remote clusters about the membership change.
 func (scs *Service) HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string) {
+	action := "REMOVE"
+	if isAdd {
+		action = "ADD"
+	}
+
 	if !scs.isChannelMemberSyncEnabled() {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] HandleMembershipChange SKIPPED - %s user %s to channel %s (from remote %s) - feature disabled", action, userID, channelID, remoteID))
 		return
 	}
+
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] HandleMembershipChange STARTED - %s user %s to channel %s (from remote %s)", action, userID, channelID, remoteID))
 
 	// Create timestamp for consistent usage
 	changeTime := model.GetMillis()
@@ -51,18 +59,28 @@ func (scs *Service) HandleMembershipChange(channelID, userID string, isAdd bool,
 
 	// Queue the membership change task
 	scs.queueMembershipSyncTask(channelID, userID, "", syncMsg, nil)
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] HandleMembershipChange QUEUED - %s user %s to channel %s (task queued for processing)", action, userID, channelID))
 }
 
 // HandleMembershipBatchChange is called to process a batch of membership changes for a shared channel.
 // It creates a task to notify all remote clusters about the batch membership changes.
 func (scs *Service) HandleMembershipBatchChange(channelID string, userIDs []string, isAdd bool, remoteID string) {
+	action := "REMOVE"
+	if isAdd {
+		action = "ADD"
+	}
+
 	if !scs.isChannelMemberSyncEnabled() {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] HandleMembershipBatchChange SKIPPED - %s %d users to channel %s (from remote %s) - feature disabled", action, len(userIDs), channelID, remoteID))
 		return
 	}
 
 	if len(userIDs) == 0 {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] HandleMembershipBatchChange SKIPPED - %s to channel %s (from remote %s) - no users provided", action, channelID, remoteID))
 		return
 	}
+
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] HandleMembershipBatchChange STARTED - %s %d users to channel %s (from remote %s)", action, len(userIDs), channelID, remoteID))
 
 	// Create timestamp for consistent usage
 	changeTime := model.GetMillis()
@@ -84,14 +102,18 @@ func (scs *Service) HandleMembershipBatchChange(channelID string, userIDs []stri
 
 	// Queue the batch membership sync task
 	scs.queueMembershipSyncTask(channelID, "", "", syncMsg, nil)
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] HandleMembershipBatchChange QUEUED - %s %d users to channel %s (batch task queued for processing)", action, len(userIDs), channelID))
 }
 
 // SyncAllChannelMembers synchronizes all channel members to a specific remote.
 // This is typically called when a channel is first shared with a remote cluster.
 func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) error {
 	if !scs.isChannelMemberSyncEnabled() {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers SKIPPED for channel %s to remote %s - feature disabled", channelID, remoteID))
 		return nil
 	}
+
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers STARTED for channel %s to remote %s", channelID, remoteID))
 
 	// Verify the channel exists and is shared
 	if _, err := scs.server.GetStore().SharedChannel().Get(channelID); err != nil {
@@ -99,6 +121,7 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 			mlog.String("channel_id", channelID),
 			mlog.Err(err),
 		)
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers FAILED for channel %s to remote %s - channel not found: %s", channelID, remoteID, err.Error()))
 		return fmt.Errorf("failed to get shared channel %s: %w", channelID, err)
 	}
 
@@ -110,6 +133,7 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 			mlog.String("remote_id", remoteID),
 			mlog.Err(err),
 		)
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers FAILED for channel %s to remote %s - remote not found: %s", channelID, remoteID, err.Error()))
 		return fmt.Errorf("failed to get remote for channel %s: %w", channelID, err)
 	}
 
@@ -126,9 +150,9 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 			Limit:        maxPerPage,
 		}
 
-		members, err := scs.server.GetStore().Channel().GetMembers(opts)
-		if err != nil {
-			return fmt.Errorf("failed to get members for channel %s: %w", channelID, err)
+		members, err1 := scs.server.GetStore().Channel().GetMembers(opts)
+		if err1 != nil {
+			return fmt.Errorf("failed to get members for channel %s: %w", channelID, err1)
 		}
 
 		if len(members) == 0 {
@@ -168,6 +192,7 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 			mlog.String("channel_id", channelID),
 			mlog.String("remote_id", remoteID),
 		)
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers COMPLETED for channel %s to remote %s - no members to sync", channelID, remoteID))
 		return nil
 	}
 
@@ -177,16 +202,32 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 		mlog.Int("member_count", len(allMembers)),
 	)
 
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers PROCESSING %d members for channel %s to remote %s", len(allMembers), channelID, remoteID))
+
 	// Get batch size from config
 	batchSize := scs.GetMemberSyncBatchSize()
 
 	// For small channels, queue individual membership changes
 	if len(allMembers) <= batchSize {
-		return scs.syncMembersIndividually(channelID, remoteID, allMembers, remote)
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers using INDIVIDUAL sync for %d members (batch size %d)", len(allMembers), batchSize))
+		err = scs.syncMembersIndividually(channelID, remoteID, allMembers, remote)
+		if err != nil {
+			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers FAILED individual sync for channel %s to remote %s: %s", channelID, remoteID, err.Error()))
+		} else {
+			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers COMPLETED individual sync for channel %s to remote %s", channelID, remoteID))
+		}
+		return err
 	}
 
 	// For larger channels, use batch processing
-	return scs.syncMembersInBatches(channelID, remoteID, allMembers, remote)
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers using BATCH sync for %d members (batch size %d)", len(allMembers), batchSize))
+	err = scs.syncMembersInBatches(channelID, remoteID, allMembers, remote)
+	if err != nil {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers FAILED batch sync for channel %s to remote %s: %s", channelID, remoteID, err.Error()))
+	} else {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers COMPLETED batch sync for channel %s to remote %s", channelID, remoteID))
+	}
+	return err
 }
 
 // shouldSyncUser determines if a user should be synchronized to remote clusters.

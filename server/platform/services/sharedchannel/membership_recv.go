@@ -46,22 +46,28 @@ func (scs *Service) checkMembershipConflict(userID, channelID string, changeTime
 func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	// Check if feature flag is enabled
 	if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] onReceiveMembershipChanges SKIPPED from remote %s - feature disabled", rc.DisplayName))
 		return nil
 	}
 
 	if len(syncMsg.MembershipChanges) == 0 {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] onReceiveMembershipChanges FAILED from remote %s - no membership changes", rc.DisplayName))
 		return fmt.Errorf("onReceiveMembershipChanges: no membership changes")
 	}
+
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] onReceiveMembershipChanges STARTED from remote %s - processing %d changes for channel %s", rc.DisplayName, len(syncMsg.MembershipChanges), syncMsg.ChannelId))
 
 	// Get the channel to make sure it exists and is shared
 	channel, err := scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true)
 	if err != nil {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] onReceiveMembershipChanges FAILED from remote %s - channel %s not found: %s", rc.DisplayName, syncMsg.ChannelId, err.Error()))
 		return fmt.Errorf("cannot get channel for membership changes: %w", err)
 	}
 
 	// Verify this is a valid shared channel
 	_, err = scs.server.GetStore().SharedChannel().Get(syncMsg.ChannelId)
 	if err != nil {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] onReceiveMembershipChanges FAILED from remote %s - shared channel %s not found: %s", rc.DisplayName, syncMsg.ChannelId, err.Error()))
 		return fmt.Errorf("cannot get shared channel for membership changes: %w", err)
 	}
 
@@ -84,6 +90,7 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 				mlog.String("channel_id", change.ChannelId),
 				mlog.String("remote_id", rc.RemoteId),
 			)
+			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] Processing ADD user %s to channel %s from remote %s", change.UserId, change.ChannelId, rc.DisplayName))
 			processErr = scs.processMemberAdd(change, channel, rc)
 		} else {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Removing user from channel from remote cluster",
@@ -91,6 +98,7 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 				mlog.String("channel_id", change.ChannelId),
 				mlog.String("remote_id", rc.RemoteId),
 			)
+			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] Processing REMOVE user %s from channel %s from remote %s", change.UserId, change.ChannelId, rc.DisplayName))
 			processErr = scs.processMemberRemove(change, rc)
 		}
 
@@ -109,6 +117,7 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 		successCount++
 	}
 
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] onReceiveMembershipChanges COMPLETED from remote %s - processed %d changes (success: %d, skipped: %d, failed: %d)", rc.DisplayName, len(syncMsg.MembershipChanges), successCount, skipCount, failCount))
 	return nil
 }
 
