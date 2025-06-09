@@ -788,7 +788,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 					return memberErr == nil
 				}
 				return memberErr != nil
-			}, 5*time.Second, 100*time.Millisecond, 
+			}, 5*time.Second, 100*time.Millisecond,
 				"User %s membership state should be consistent after conflict resolution", userId)
 		}
 
@@ -818,7 +818,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.Eventually(t, func() bool {
 			mu.Lock()
 			defer mu.Unlock()
-			
+
 			// Check if the new user appears in any sync message
 			for _, msg := range syncMessages {
 				for _, change := range msg.MembershipChanges {
