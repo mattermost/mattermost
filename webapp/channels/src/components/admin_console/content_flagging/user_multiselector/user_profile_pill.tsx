@@ -6,6 +6,8 @@ import {useSelector} from 'react-redux';
 import type {MultiValueRemoveProps} from 'react-select';
 import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
 
+import type {UserProfile} from '@mattermost/types/src/users';
+
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import Avatar from 'components/widgets/users/avatar/avatar';
 
@@ -13,11 +15,11 @@ import {getDisplayNameByUser, imageURLForUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import type {UserProfileAutocompleteOptionType} from './user_multiselector';
+import type {AutocompleteOptionType} from './user_multiselector';
 
 import './user_profile_pill.scss';
 
-function Remove(props: MultiValueRemoveProps<UserProfileAutocompleteOptionType, true>) {
+function Remove(props: MultiValueRemoveProps<AutocompleteOptionType<UserProfile>, true>) {
     const {innerProps, children} = props;
 
     return (
@@ -30,7 +32,7 @@ function Remove(props: MultiValueRemoveProps<UserProfileAutocompleteOptionType, 
     );
 }
 
-export function UserProfilePill(props: MultiValueProps<UserProfileAutocompleteOptionType, true>) {
+export function UserProfilePill(props: MultiValueProps<AutocompleteOptionType<UserProfile>, true>) {
     const {data, innerProps, selectProps} = props;
 
     const userProfile = data.raw;

@@ -20,10 +20,10 @@ import {LoadingIndicator} from '../../system_users/system_users_filters_popover/
 
 import './user_multiselect.scss';
 
-export type UserProfileAutocompleteOptionType = {
+export type AutocompleteOptionType<T> = {
     label: string | ReactElement;
     value: string;
-    raw?: UserProfile;
+    raw?: T;
 }
 
 type Props = {
@@ -62,7 +62,7 @@ export function UserMultiSelector({id, className}: Props) {
         }
     }, 200), [dispatch]);
 
-    function handleOnChange(value: MultiValue<UserProfileAutocompleteOptionType>) {
+    function handleOnChange(value: MultiValue<AutocompleteOptionType<UserProfile>>) {
         // TODO
     }
 

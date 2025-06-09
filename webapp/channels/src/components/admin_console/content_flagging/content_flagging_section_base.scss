@@ -16,7 +16,7 @@
     margin: unset;
 }
 
-.content-flagging-section-description {
+.content-flagging-section-description, .helpText {
     font-size: 14px;
     font-style: normal;
     font-weight: 400;
@@ -41,4 +41,8 @@
         flex: 1;
         gap: 32px;
     }
+}
+
+.helpText {
+    margin-top: 8px;
 }

@@ -11,11 +11,12 @@ import {getDisplayNameByUser, imageURLForUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import type {UserProfileAutocompleteOptionType} from './user_multiselector';
-
 import './user_profile_option.scss';
+import type {AutocompleteOptionType} from './user_multiselector';
 
-export function UserOptionComponent(props: OptionProps<UserProfileAutocompleteOptionType, true>) {
+import type {UserProfile} from '@mattermost/types/users';
+
+export function UserOptionComponent(props: OptionProps<AutocompleteOptionType<UserProfile>, true>) {
     const {data, innerProps} = props;
 
     const userProfile = data.raw;

@@ -1,7 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-.additionalReviewerHelpText {
-    margin-top: 8px;
+.teamSpecificReviewerSection {
+    flex-direction: column;
+
+    .teamSearchWrapper {
+        margin-top: 16px;
+        width: 100%;
+        display: flex;
+        gap: 8px;
+
+        #teamSearchSelect {
+            flex: 1;
+        }
+
+        .selectAllTeamsButton {
+            padding: 10px 20px;
+            text-decoration: none !important;
+        }
+    }
 }
 
