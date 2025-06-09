@@ -84,6 +84,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
                 help_text: '',
                 min_length: 0,
                 max_length: 0,
+                multiselect: false,
             };
 
             const {elements, ...rest} = baseProps;
@@ -117,6 +118,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
             min_length: 0,
             max_length: 0,
             options: [],
+            multiselect: false,
         };
         const {elements, ...rest} = baseProps;
         const props = {

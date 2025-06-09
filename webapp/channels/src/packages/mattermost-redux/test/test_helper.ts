@@ -723,6 +723,7 @@ class TestHelper {
             min_length: 0,
             max_length: 0,
             data_source: '',
+            multiselect: false,
             options: [],
             ...override,
         };
