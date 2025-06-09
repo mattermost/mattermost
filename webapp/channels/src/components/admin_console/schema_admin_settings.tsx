@@ -216,7 +216,21 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 schema.sections.map((section) => section.settings).forEach((sectionSettings) => settings.push(...sectionSettings));
             }
 
-            settings.forEach((setting) => {
+            // Recursively collect settings from expandable settings
+            const collectSettingsRecursively = (settingsArray: AdminDefinitionSetting[]): AdminDefinitionSetting[] => {
+                const allSettings: AdminDefinitionSetting[] = [];
+                settingsArray.forEach((setting) => {
+                    allSettings.push(setting);
+                    if (setting.type === Constants.SettingsTypes.TYPE_EXPANDABLE_SETTING && setting.settings) {
+                        allSettings.push(...collectSettingsRecursively(setting.settings));
+                    }
+                });
+                return allSettings;
+            };
+
+            const allSettings = collectSettingsRecursively(settings);
+
+            allSettings.forEach((setting) => {
                 if (!setting.key) {
                     return;
                 }
@@ -1434,7 +1448,21 @@ export const getConfigFromState = (
             schema.sections.map((section) => section.settings).forEach((sectionSettings) => settings.push(...sectionSettings));
         }
 
-        settings.forEach((setting) => {
+        // Recursively collect settings from expandable settings
+        const collectSettingsRecursively = (settingsArray: AdminDefinitionSetting[]): AdminDefinitionSetting[] => {
+            const allSettings: AdminDefinitionSetting[] = [];
+            settingsArray.forEach((setting) => {
+                allSettings.push(setting);
+                if (setting.type === Constants.SettingsTypes.TYPE_EXPANDABLE_SETTING && setting.settings) {
+                    allSettings.push(...collectSettingsRecursively(setting.settings));
+                }
+            });
+            return allSettings;
+        };
+
+        const allSettings = collectSettingsRecursively(settings);
+
+        allSettings.forEach((setting) => {
             if (!setting.key) {
                 return;
             }
