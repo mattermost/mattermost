@@ -189,6 +189,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             className="setting-list-item"
           >
             <hr />
+            <div
+              role="alert"
+            />
             <SaveButton
               disabled={false}
               onClick={[Function]}
@@ -606,6 +609,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             className="setting-list-item"
           >
             <hr />
+            <div
+              role="alert"
+            />
             <SaveButton
               disabled={false}
               onClick={[Function]}
