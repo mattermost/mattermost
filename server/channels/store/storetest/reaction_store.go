@@ -710,7 +710,11 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss st
 		require.NoError(t, err)
 	}
 
-	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
+	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: 2000,
+		Limit:               limit,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 
 	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)

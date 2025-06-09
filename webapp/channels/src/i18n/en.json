@@ -5007,6 +5007,8 @@
   "post.ariaLabel.reaction": ", 1 reaction",
   "post.ariaLabel.reactionMultiple": ", {reactionCount} reactions",
   "post.ariaLabel.replyMessage": "At {time} {date}, {authorName} replied, {message}",
+  "post.error.access": "The post you're requesting is private or does not exist.",
+  "post.error.title": "Post Not Found",
   "post.reminder.acknowledgement": "You will be reminded at {reminderTime}, {reminderDate} about this message from {username}: {permaLink}",
   "post.reminder.systemBot": "Hi there, here's your reminder about this message from {username}: {permaLink}",
   "post.renderError.message": "An error occurred while rendering this post.",
