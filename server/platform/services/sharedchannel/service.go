@@ -81,7 +81,6 @@ type AppIface interface {
 	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
 	DeleteAcknowledgementsForPost(c request.CTX, postID string) *model.AppError
 	DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError
-	SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post, *model.AppError)
 	GetPriorityForPost(postID string) (*model.PostPriority, *model.AppError)
 	IsPostPriorityEnabled() bool
 	PreparePostForClient(c request.CTX, post *model.Post, isNewPost, includeDeleted, includePriority bool) *model.Post
