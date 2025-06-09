@@ -2364,7 +2364,7 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 		}
 
 		// Check if the other user is from a remote cluster
-		if otherUser.RemoteId != nil && *otherUser.RemoteId != "" {
+		if otherUser.IsRemote() {
 			// Check connection to the other user's remote cluster first
 			if !scs.IsRemoteClusterDirectlyConnected(*otherUser.RemoteId) {
 				return false, model.NewAppError(
@@ -2382,7 +2382,7 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 			}
 
 			// If both users are from remote clusters but different ones, they can't see each other
-			if user.RemoteId != nil && *user.RemoteId != "" && *user.RemoteId != *otherUser.RemoteId {
+			if user.IsRemote() && *user.RemoteId != *otherUser.RemoteId {
 				return false, model.NewAppError(
 					"UserCanSeeOtherUser",
 					"api.user.remote_connection_not_allowed.app_error",
