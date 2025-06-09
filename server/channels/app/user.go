@@ -236,12 +236,12 @@ func (a *App) CreateGuest(c request.CTX, user *model.User) (*model.User, *model.
 }
 
 func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*model.User, *model.AppError) {
-	exceeded, limitErr := a.isHardUserLimitExceeded()
+	atUserLimit, limitErr := a.isAtUserLimit()
 	if limitErr != nil {
 		return nil, limitErr
 	}
 
-	if exceeded {
+	if atUserLimit {
 		return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.user_limits.exceeded", nil, "", http.StatusBadRequest)
 	}
 
@@ -1013,12 +1013,12 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 
 func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
 	if active {
-		exceeded, appErr := a.isHardUserLimitExceeded()
+		atUserLimit, appErr := a.isAtUserLimit()
 		if appErr != nil {
 			return nil, appErr
 		}
 
-		if exceeded {
+		if atUserLimit {
 			return nil, model.NewAppError("UpdateActive", "app.user.update_active.user_limit.exceeded", nil, "", http.StatusBadRequest)
 		}
 	}
