@@ -7,8 +7,11 @@ import {FormattedMessage} from 'react-intl';
 import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
+
+import store from 'stores/redux_store';
 
 import PostMarkdown from 'components/post_markdown';
 import ShowMore from 'components/post_view/show_more';
@@ -36,6 +39,7 @@ type Props = {
     overflowType?: AttachmentTextOverflowType;
     maxHeight?: number; /* The max height used by the show more component */
     showPostEditedIndicator?: boolean; /* Whether or not to render the post edited indicator */
+    sharedChannelsPluginsEnabled?: boolean;
 }
 
 type State = {
@@ -142,6 +146,10 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
 
         const id = isRHS ? `rhsPostMessageText_${post.id}` : `postMessageText_${post.id}`;
 
+        // Check if channel is shared
+        const channel = getChannel(store.getState(), post.channel_id);
+        const isSharedChannel = channel?.shared || false;
+
         return (
             <ShowMore
                 checkOverflow={this.state.checkOverflow}
@@ -164,11 +172,13 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         showPostEditedIndicator={this.props.showPostEditedIndicator}
                     />
                 </div>
-                <Pluggable
-                    pluggableName='PostMessageAttachment'
-                    postId={post.id}
-                    onHeightChange={this.handleHeightReceived}
-                />
+                {(!isSharedChannel || this.props.sharedChannelsPluginsEnabled) && (
+                    <Pluggable
+                        pluggableName='PostMessageAttachment'
+                        postId={post.id}
+                        onHeightChange={this.handleHeightReceived}
+                    />
+                )}
             </ShowMore>
         );
     }
