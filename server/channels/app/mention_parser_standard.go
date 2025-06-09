@@ -62,26 +62,44 @@ func (p *StandardMentionParser) ProcessText(text string) {
 		}
 
 		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-			// No need to bother about unicode as we are looking for ASCII characters.
-			last := word[len(word)-1]
-			switch last {
-			// If the word is possibly at the end of a sentence, remove that character.
-			case '.', '-', ':':
-				word = word[:len(word)-1]
+			// Check if this is a remote mention pattern (@username:remote_cluster_name)
+			isRemoteMention := false
+			if colonIndex := strings.LastIndex(word, ":"); colonIndex > 1 && colonIndex < len(word)-1 {
+				// Has format @something:something
+				isRemoteMention = true
+			}
+
+			if !isRemoteMention {
+				// No need to bother about unicode as we are looking for ASCII characters.
+				last := word[len(word)-1]
+				switch last {
+				// If the word is possibly at the end of a sentence, remove that character.
+				case '.', '-', ':':
+					word = word[:len(word)-1]
+				}
 			}
 			p.results.OtherPotentialMentions = append(p.results.OtherPotentialMentions, word[1:])
 		} else if strings.ContainsAny(word, ".-:") {
-			// This word contains a character that may be the end of a sentence, so split further
-			splitWords := strings.FieldsFunc(word, func(c rune) bool {
-				return c == '.' || c == '-' || c == ':'
-			})
-
-			for _, splitWord := range splitWords {
-				if p.checkForMention(splitWord) {
+			// Check if this is a mention with remote cluster format
+			if strings.HasPrefix(word, "@") && strings.Contains(word, ":") {
+				// This might be a remote mention, don't split it
+				if p.checkForMention(word) {
 					continue
 				}
-				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
-					p.results.OtherPotentialMentions = append(p.results.OtherPotentialMentions, splitWord[1:])
+				p.results.OtherPotentialMentions = append(p.results.OtherPotentialMentions, word[1:])
+			} else {
+				// This word contains a character that may be the end of a sentence, so split further
+				splitWords := strings.FieldsFunc(word, func(c rune) bool {
+					return c == '.' || c == '-' || c == ':'
+				})
+
+				for _, splitWord := range splitWords {
+					if p.checkForMention(splitWord) {
+						continue
+					}
+					if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
+						p.results.OtherPotentialMentions = append(p.results.OtherPotentialMentions, splitWord[1:])
+					}
 				}
 			}
 		}

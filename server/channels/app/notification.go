@@ -1064,7 +1064,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		}
 	} else {
 		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
-		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap, groups)
+		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap, groups, channel.Id)
 
 		mentions = getExplicitMentions(post, keywords)
 
@@ -1531,15 +1531,25 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap, groups map[string]*model.Group) MentionKeywords {
+func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap, groups map[string]*model.Group, channelId string) MentionKeywords {
 	keywords := make(MentionKeywords)
 
 	for _, profile := range profiles {
-		keywords.AddUser(
+		var remoteClusterName string
+
+		// If this is a remote user, get the cluster name
+		if profile.IsRemote() {
+			if rc, err := a.Srv().Store().RemoteCluster().Get(*profile.RemoteId, false); err == nil {
+				remoteClusterName = rc.Name
+			}
+		}
+
+		keywords.AddUserWithRemoteClusterSupport(
 			profile,
 			channelMemberNotifyPropsMap[profile.Id],
 			a.GetStatusFromCache(profile.Id),
 			allowChannelMentions,
+			remoteClusterName,
 		)
 	}
 
