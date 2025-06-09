@@ -6,7 +6,6 @@ package app
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -73,11 +72,6 @@ func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post
 
 	// Trigger post updated event to ensure shared channel sync
 	a.sendPostUpdateEvent(c, post)
-
-	// Debug: Log acknowledgement creation
-	if channel.IsShared() {
-		a.postDebugToTownSquare(c, fmt.Sprintf("Acknowledgement added for shared channel post %s by user %s", post.Id, userID))
-	}
 
 	return savedAck, nil
 }
@@ -437,26 +431,11 @@ func (a *App) sendPostUpdateEvent(c request.CTX, post *model.Post) {
 		return
 	}
 
-	channel, _ := a.GetChannel(c, updatedPost.ChannelId)
-	if channel != nil && channel.IsShared() {
-		// Debug: Post the UpdateAt timestamp to Town Square
-		a.postDebugToTownSquare(c, fmt.Sprintf("Sending post update event for acknowledgement sync - post_id: %s, update_at: %d, edit_at: %d",
-			updatedPost.Id, updatedPost.UpdateAt, updatedPost.EditAt))
-	}
-
 	// Send a post edited event to trigger shared channel sync
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", updatedPost.ChannelId, "", nil, "")
 
 	// Prepare the post with metadata for the event
 	preparedPost := a.PreparePostForClient(c, updatedPost, false, true, true)
-
-	if channel != nil && channel.IsShared() {
-		// Debug: Post acknowledgements info to Town Square
-		if preparedPost.Metadata != nil && preparedPost.Metadata.Acknowledgements != nil {
-			a.postDebugToTownSquare(c, fmt.Sprintf("Post %s has %d acknowledgements in update event",
-				preparedPost.Id, len(preparedPost.Metadata.Acknowledgements)))
-		}
-	}
 
 	if appErr := a.publishWebsocketEventForPost(c, preparedPost, message); appErr != nil {
 		c.Logger().Warn("Failed to send post update event for acknowledgement sync", mlog.String("post_id", post.Id), mlog.Err(appErr))
