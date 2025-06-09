@@ -180,13 +180,13 @@ func testGetAcknowledgementsForPostList(t *testing.T) {
 		acknowledgementsMap, err := th.App.GetAcknowledgementsForPostList(postList)
 		require.Nil(t, err)
 
-		expected := map[string][]*model.PostAcknowledgement{
-			p1.Id: acks1,
-			p2.Id: acks2,
-		}
-		require.Equal(t, expected, acknowledgementsMap)
+		// Verify p1 acknowledgements (order-agnostic)
 		require.Len(t, acknowledgementsMap[p1.Id], 2)
+		require.ElementsMatch(t, acks1, acknowledgementsMap[p1.Id])
+
+		// Verify p2 acknowledgements (order-agnostic)
 		require.Len(t, acknowledgementsMap[p2.Id], 1)
+		require.ElementsMatch(t, acks2, acknowledgementsMap[p2.Id])
 		require.Nil(t, acknowledgementsMap[p3.Id])
 	})
 }

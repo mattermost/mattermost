@@ -186,7 +186,6 @@ func (_m *MockAppIface) DeleteAcknowledgementForPostWithModel(c request.CTX, ack
 	return r0
 }
 
-
 // DeleteAcknowledgementsForPostWithPost provides a mock function with given fields: c, post
 func (_m *MockAppIface) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError {
 	ret := _m.Called(c, post)
@@ -630,7 +629,6 @@ func (_m *MockAppIface) SaveAcknowledgementForPostWithPost(c request.CTX, post *
 
 	return r0, r1
 }
-
 
 // SaveAcknowledgementsForPostWithPost provides a mock function with given fields: c, post, userIDs
 func (_m *MockAppIface) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Post, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
