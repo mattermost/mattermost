@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import AsyncSelect from 'react-select/async';
 
+import type {TeamSearchOpts} from '@mattermost/types/teams';
+
 import {debounce} from 'mattermost-redux/actions/helpers';
-import {searchProfiles} from 'mattermost-redux/actions/users';
+import { getTeam, getTeams, searchTeams } from "mattermost-redux/actions/teams";
 
 import {Label} from 'components/admin_console/boolean_setting';
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
@@ -19,11 +21,11 @@ import {
 
 import './content_reviewers.scss';
 
+import type {Team} from 'utils/text_formatting';
+
+import {TeamOptionComponent} from './team_option';
+
 import {UserMultiSelector} from '../../content_flagging/user_multiselector/user_multiselector';
-import { searchTeams } from "mattermost-redux/actions/teams";
-import { TeamOptionComponent } from "components/admin_console/content_flagging/content_reviewers/team_option";
-import { Team } from "utils/text_formatting";
-import { TeamSearchOpts } from "@mattermost/types/teams";
 
 const noOp = () => null;
 
@@ -31,9 +33,31 @@ export default function ContentFlaggingContentReviewers() {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
+    // TODO: Replace with actual team IDs from your settings
     const [selectedTeamIDs, setSelectedTeamIDs] = useState<string[]>(['3fdro3m3z7rijngi7d5jweynbo', 'paxk6d4spif3pg5faai8a5hqac', 'ocujxjt68fgbfqymqh14bd3ego']);
+    const [selectedTeams, setSelectedTeams] = useState<Team[]>([]);
 
-    const [sameReviewersForAllTeams, setSameReviewersForAllTeams] = React.useState(false);
+    const [sameReviewersForAllTeams, setSameReviewersForAllTeams] = useState(false);
+
+    // Fetch teams when the component mounts
+    useEffect(() => {
+        const fetchTeams = async () => {
+            const teamPromises = selectedTeamIDs.map((teamID) => dispatch(getTeam(teamID)));
+            try {
+                const teams = await Promise.all(teamPromises);
+                const validTeams = teams.filter((team) => team && team.data && team.data.id).map((team) => team.data as Team);
+                setSelectedTeams(validTeams);
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('Error fetching teams:', error);
+            }
+        };
+
+        // only need to fetch the selected teams initially.
+        if (selectedTeams.length === 0) {
+            fetchTeams();
+        }
+    }, [dispatch, selectedTeamIDs, selectedTeams]);
 
     const handleSameReviewersForAllTeamsChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setSameReviewersForAllTeams(event.target.value === 'true');
@@ -185,18 +209,18 @@ export default function ContentFlaggingContentReviewers() {
                                     inputId='teamSearchSelect_input'
                                     classNamePrefix='team-multiselector'
                                     className='Input Input__focus'
-                                    isMulti={false}
                                     isClearable={false}
                                     hideSelectedOptions={false}
                                     cacheOptions={true}
                                     placeholder={teamSearchInputPlaceholder}
                                     loadingMessage={userLoadingMessage}
                                     noOptionsMessage={noUsersMessage}
-                                    onChange={() => {}}
                                     loadOptions={searchTeamFromTerm}
+                                    controlShouldRenderValue={false}
                                     components={{
                                         DropdownIndicator: () => null,
                                         IndicatorSeparator: () => null,
+                                        SingleValue: () => null,
                                         Option: TeamOptionComponent,
                                     }}
                                 />
@@ -209,6 +233,10 @@ export default function ContentFlaggingContentReviewers() {
                                         defaultMessage='Select all teams'
                                     />
                                 </button>
+                            </div>
+
+                            <div>
+
                             </div>
 
                         </div>
