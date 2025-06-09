@@ -3,7 +3,6 @@
 
 import classNames from 'classnames';
 import React, {useState, useEffect, useRef} from 'react';
-import type {CSSProperties} from 'react';
 import {useIntl} from 'react-intl';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
@@ -46,21 +45,13 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
         return null;
     }
 
-    const style = {
-        container: {
-            marginTop: 16,
-            height: 32,
-        } as CSSProperties,
-    };
-
     if (pluginCallComponents.length === 1) {
         const item = pluginCallComponents[0];
         const clickHandler = () => item.action?.(currentChannel, channelMember);
 
         return (
             <div
-                style={style.container}
-                className='flex-child'
+                className='flex-child call-button__wrapper'
                 onClick={clickEnabled ? clickHandler : undefined}
                 onTouchEnd={clickEnabled ? clickHandler : undefined}
             >
@@ -86,8 +77,7 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
 
     return (
         <div
-            style={style.container}
-            className='flex-child'
+            className='flex-child call-button__wrapper'
         >
             <MenuWrapper onToggle={(toggle: boolean) => setActive(toggle)}>
                 <button className={classNames('style--none call-button dropdown', {active})}>
