@@ -9,6 +9,7 @@ const url = require('url');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ImageMinimizerPlugin = require('image-minimizer-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const webpack = require('webpack');
@@ -52,7 +53,7 @@ var config = {
         publicPath,
         filename: '[name].[contenthash].js',
         chunkFilename: '[name].[contenthash].js',
-        assetModuleFilename: 'files/[contenthash][ext]',
+        assetModuleFilename: 'files/[name].[contenthash][ext]',
         clean: true,
     },
     module: {
@@ -105,7 +106,7 @@ var config = {
             },
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
-                type: 'asset/resource',
+                type: 'asset',
             },
             {
                 test: /\.apng$/,
@@ -115,6 +116,38 @@ var config = {
                 test: /\/highlight\.js\/.*\.css$/,
                 type: 'asset/resource',
             },
+        ],
+    },
+    optimization: {
+        minimizer: [
+            new ImageMinimizerPlugin({
+                minimizer: {
+                    implementation: ImageMinimizerPlugin.imageminMinify,
+                    options: {
+                        plugins: [
+                            'imagemin-gifsicle',
+                            'imagemin-mozjpeg',
+                            'imagemin-pngquant',
+                            [
+                                'svgo',
+                                {
+                                    plugins: [
+                                        {
+                                            name: 'preset-default',
+                                            params: {
+                                                overrides: {
+                                                    removeViewBox: false,
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            ],
+                        ],
+                    },
+                },
+                exclude: /fontawesome-webfont/,
+            }),
         ],
     },
     resolve: {
