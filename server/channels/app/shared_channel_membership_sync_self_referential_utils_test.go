@@ -198,6 +198,23 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 		_, _ = ss.RemoteCluster().Delete(rc.RemoteId)
 	}
 
+	// Clear all SharedChannelUsers sync state - this is critical for test isolation
+	// The SharedChannelUsers table tracks per-user sync timestamps that can interfere between tests
+	_, _ = th.SQLStore.GetMaster().Exec("DELETE FROM SharedChannelUsers WHERE 1=1")
+
+	// Clear all SharedChannelAttachments sync state
+	_, _ = th.SQLStore.GetMaster().Exec("DELETE FROM SharedChannelAttachments WHERE 1=1")
+
+	// Reset sync cursors in any remaining SharedChannelRemotes (before they get deleted)
+	// This ensures cursors don't persist if deletion fails
+	_, _ = th.SQLStore.GetMaster().Exec(`UPDATE SharedChannelRemotes SET 
+		LastPostCreateAt = 0, 
+		LastPostCreateId = '', 
+		LastPostUpdateAt = 0, 
+		LastPostId = '', 
+		LastMembersSyncAt = 0 
+		WHERE 1=1`)
+
 	// Remove all channel members from test channels (except the basic team/channel setup)
 	channels, _ := ss.Channel().GetAll(th.BasicTeam.Id)
 	for _, channel := range channels {

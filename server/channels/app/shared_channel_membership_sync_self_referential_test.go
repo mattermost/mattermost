@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -556,14 +557,12 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Initialize sync handler with callbacks
-		syncHandler = &SelfReferentialSyncHandler{
-			t:                t,
-			service:          service,
-			selfCluster:      selfCluster,
-			syncMessageCount: new(int32),
-			OnIndividualSync: func(userId string, messageNumber int32) {
-				successfulSyncs = append(successfulSyncs, userId)
-			},
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
+		syncHandler.OnBatchSync = func(userIds []string, messageNumber int32) {
+			successfulSyncs = append(successfulSyncs, userIds...)
+		}
+		syncHandler.OnIndividualSync = func(userId string, messageNumber int32) {
+			successfulSyncs = append(successfulSyncs, userId)
 		}
 
 		// Add a user to sync
@@ -619,30 +618,14 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		var cluster1, cluster2 *model.RemoteCluster
 		var syncMessageCount int32
 
-		// Create sync handler
-		syncHandler := &SelfReferentialSyncHandler{
-			t:                t,
-			service:          service,
-			selfCluster:      nil, // Will be set for each cluster
-			syncMessageCount: &syncMessageCount,
-			OnIndividualSync: func(userId string, messageNumber int32) {
-				mu.Lock()
-				defer mu.Unlock()
-				// Find the sync message for this user
-				for _, msg := range syncMessages {
-					users := GetUsersFromSyncMsg(msg)
-					for _, u := range users {
-						if u == userId {
-							return
-						}
-					}
-				}
-			},
-		}
+		// Create sync handler - we'll set selfCluster dynamically in the HTTP handler
+		syncHandler := NewSelfReferentialSyncHandler(t, service, nil)
 
 		// Create test HTTP server
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/api/v4/remotecluster/msg" {
+				currentCount := atomic.AddInt32(&syncMessageCount, 1)
+
 				// Read body once
 				bodyBytes, readErr := io.ReadAll(r.Body)
 				if readErr != nil {
@@ -666,7 +649,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 				if cluster1 != nil && cluster2 != nil {
 					// For simplicity in this test, alternate between clusters
 					// In real scenario, we'd parse the sync message to determine the remote
-					if atomic.LoadInt32(&syncMessageCount)%2 == 0 {
+					if (currentCount-1)%2 == 0 {
 						syncHandler.selfCluster = cluster1
 					} else {
 						syncHandler.selfCluster = cluster2
@@ -746,10 +729,16 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Create a user and add to channel
 		conflictUser := th.CreateUser()
+
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, conflictUser.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
+
 		_, appErr = th.App.AddUserToChannel(th.Context, conflictUser, channel, false)
 		require.Nil(t, appErr)
+
+		// Verify user is initially a member
+		_, initialErr := ss.Channel().GetMember(context.Background(), channel.Id, conflictUser.Id)
+		require.NoError(t, initialErr, "User should be initially a member")
 
 		// Sync to both clusters
 		err = service.SyncAllChannelMembers(channel.Id, cluster1.RemoteId)
@@ -770,6 +759,12 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		appErr = th.App.RemoveUserFromChannel(th.Context, conflictUser.Id, th.SystemAdminUser.Id, channel)
 		require.Nil(t, appErr)
 
+		// Wait for removal to complete and any sync operations to finish
+		require.Eventually(t, func() bool {
+			_, removedErr := ss.Channel().GetMember(context.Background(), channel.Id, conflictUser.Id)
+			return removedErr != nil // User should not be found
+		}, 3*time.Second, 100*time.Millisecond, "User should be removed from channel")
+
 		// Sync removal to cluster1 only (simulating partial sync)
 		mu.Lock()
 		previousMessageCount := len(syncMessages)
@@ -786,8 +781,25 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}, 10*time.Second, 100*time.Millisecond, "Should have removal sync message")
 
 		// Re-add user (creating conflict - user removed from cluster1 but not cluster2)
+
+		// First ensure user is still on the team
+		_, _, teamAppErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, conflictUser.Id, th.BasicUser.Id)
+		if teamAppErr != nil && !strings.Contains(teamAppErr.Error(), "team_member_exists") {
+			require.Nil(t, teamAppErr, "Failed to ensure user is on team")
+		}
+
+		// Verify user is not a member before re-adding
+		_, preAddErr := ss.Channel().GetMember(context.Background(), channel.Id, conflictUser.Id)
+		require.Error(t, preAddErr, "User should not be a member before re-adding")
+
 		_, appErr = th.App.AddUserToChannel(th.Context, conflictUser, channel, false)
 		require.Nil(t, appErr)
+
+		// Wait for add operation to complete and any sync operations to finish
+		require.Eventually(t, func() bool {
+			_, addErr := ss.Channel().GetMember(context.Background(), channel.Id, conflictUser.Id)
+			return addErr == nil // User should be found
+		}, 5*time.Second, 100*time.Millisecond, "User should be locally a member after re-adding")
 
 		// Clear previous messages
 		mu.Lock()
@@ -808,16 +820,18 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			return len(syncMessages) > 0
 		}, 10*time.Second, 100*time.Millisecond, "Should have conflict resolution sync messages")
 
-		// Verify conflict resolution
+		// Verify conflict resolution - user should still be a member after sync
 		mu.Lock()
 		messageCount := len(syncMessages)
 		mu.Unlock()
 
 		assert.Greater(t, messageCount, 0, "Should have sync messages for conflict resolution")
 
-		// Check final state - user should be member
-		_, err = ss.Channel().GetMember(context.Background(), channel.Id, conflictUser.Id)
-		assert.NoError(t, err, "User should be a member after conflict resolution")
+		// Verify user is still a member after conflict resolution sync (with eventual consistency)
+		require.Eventually(t, func() bool {
+			finalMember, finalErr := ss.Channel().GetMember(context.Background(), channel.Id, conflictUser.Id)
+			return finalErr == nil && finalMember.UserId == conflictUser.Id
+		}, 5*time.Second, 100*time.Millisecond, "User should be a member after conflict resolution")
 	})
 	t.Run("Test 6: Manual sync with cursor management", func(t *testing.T) {
 		// This test verifies manual sync using SyncAllChannelMembers with complete cursor management:
@@ -1622,9 +1636,6 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// user3 in one channel
 		th.AddUserToChannel(user3, channel3)
-
-		// Log test user IDs for debugging
-		t.Logf("Test user IDs - user1: %s, user2: %s, user3: %s", user1.Id, user2.Id, user3.Id)
 
 		// Create a wrapper handler to intercept sync messages
 		testServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
