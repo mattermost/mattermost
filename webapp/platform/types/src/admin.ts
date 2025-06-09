@@ -158,7 +158,6 @@ export type LdapSampleEntry = {
 export type LdapFilterTestResult = {
     filter_name: string;
     filter_value: string;
-    success: boolean;
     total_count: number;
     message?: string;
     error?: string;

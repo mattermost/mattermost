@@ -13,10 +13,9 @@ const (
 type LdapFilterTestResult struct {
 	FilterName    string            `json:"filter_name"`
 	FilterValue   string            `json:"filter_value"`
-	Success       bool              `json:"success"`
 	TotalCount    int               `json:"total_count"`
 	Message       string            `json:"message,omitempty"`
-	Error         string            `json:"error,omitempty"`
+	Error         string            `json:"error"`
 	SampleResults []LdapSampleEntry `json:"sample_results"`
 }
 
