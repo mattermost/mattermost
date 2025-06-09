@@ -348,7 +348,7 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.TestFilters',
                 label: defineMessage({id: 'admin.ldap.testFiltersTitle', defaultMessage: 'Test Filters'}),
                 help_text_markdown: false,
-                error_message: defineMessage({id: 'admin.ldap.testFiltersFailure', defaultMessage: 'We failed to apply some filters.'}),
+                error_message: defineMessage({id: 'admin.ldap.testFiltersFailure', defaultMessage: 'We failed to apply some filters: {error}'}),
                 success_message: defineMessage({id: 'admin.ldap.testFiltersSuccess', defaultMessage: 'Test Successful'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
