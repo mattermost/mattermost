@@ -1005,7 +1005,7 @@ describe('Selectors.Users', () => {
 
             expect(Selectors.userCanSeeOtherUser(stateWithUnconfirmedRemote, remoteUser.id)).toBe(false);
 
-            // 3. Remote user from offline cluster - should not be visible
+            // 3. Remote user from offline cluster - should still be visible (messages can be queued)
             const stateWithOfflineRemote = {
                 ...baseState,
                 entities: {
@@ -1030,7 +1030,7 @@ describe('Selectors.Users', () => {
                 },
             } as unknown as GlobalState;
 
-            expect(Selectors.userCanSeeOtherUser(stateWithOfflineRemote, remoteUser.id)).toBe(false);
+            expect(Selectors.userCanSeeOtherUser(stateWithOfflineRemote, remoteUser.id)).toBe(true);
 
             // 4. Remote user with no corresponding cluster - should not be visible
             expect(Selectors.userCanSeeOtherUser(baseState, remoteUser.id)).toBe(false);

@@ -2419,12 +2419,12 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 	nonConnectedCluster := &model.RemoteCluster{
 		RemoteId:    model.NewId(),
 		Name:        "non-connected-cluster",
-		SiteURL:     "https://example-nonconnected.com",
+		SiteURL:     model.SiteURLPending + "https://example-nonconnected.com", // Pending site URL means not confirmed
 		CreateAt:    model.GetMillis(),
-		LastPingAt:  0, // Old ping time (offline)
+		LastPingAt:  model.GetMillis(), // Can be online but still not confirmed
 		Token:       model.NewId(),
 		CreatorId:   th.BasicUser.Id,
-		RemoteToken: model.NewId(), // Has a token but is offline
+		RemoteToken: "", // No remote token
 	}
 
 	// Save remote clusters to the database
@@ -2504,21 +2504,16 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Cannot see user from offline remote", func(t *testing.T) {
+	t.Run("Cannot see user from unconfirmed remote", func(t *testing.T) {
 		// Get the shared channel service
 		scs := th.App.Srv().GetSharedChannelSyncService()
 		service, ok := scs.(*sharedchannel.Service)
 		require.True(t, ok, "Expected sharedchannel.Service type")
 
-		// Force the remote cluster to appear offline
-		nonConnectedRC.LastPingAt = 0
-		_, err := ss.RemoteCluster().Update(nonConnectedRC)
-		require.NoError(t, err)
-
-		// Verify our setup is correct
+		// Verify our setup is correct - the remote should not be confirmed
 		fetchedRemote2, err := ss.RemoteCluster().Get(nonConnectedRC.RemoteId, false)
 		require.NoError(t, err)
-		require.False(t, fetchedRemote2.IsOnline(), "Remote cluster should be offline")
+		require.False(t, fetchedRemote2.IsConfirmed(), "Remote cluster should not be confirmed")
 
 		connected := service.IsRemoteClusterDirectlyConnected(nonConnectedRC.RemoteId)
 		require.False(t, connected, "Remote cluster should not be directly connected")
