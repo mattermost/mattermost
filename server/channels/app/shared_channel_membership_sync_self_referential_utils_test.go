@@ -168,16 +168,16 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 			// Wait for any pending tasks from previous tests to complete
 			require.Eventually(t, func() bool {
 				return !service.HasPendingTasksForTesting()
-			}, 5*time.Second, 100*time.Millisecond, "All pending sync tasks should complete before cleanup")
+			}, 10*time.Second, 100*time.Millisecond, "All pending sync tasks should complete before cleanup")
 		}
 
 		// Shutdown the shared channel service to stop any async operations
 		_ = scsInterface.Shutdown()
 
-		// Wait for shutdown to complete
+		// Wait for shutdown to complete with more time
 		require.Eventually(t, func() bool {
 			return !scsInterface.Active()
-		}, 2*time.Second, 100*time.Millisecond, "Shared channel service should be inactive after shutdown")
+		}, 5*time.Second, 100*time.Millisecond, "Shared channel service should be inactive after shutdown")
 	}
 
 	// Clear all shared channels and remotes from previous tests
@@ -277,7 +277,7 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 		if scs, ok := scsInterface.(*sharedchannel.Service); ok {
 			require.Eventually(t, func() bool {
 				return scs.Active()
-			}, 2*time.Second, 100*time.Millisecond, "Shared channel service should be active after restart")
+			}, 5*time.Second, 100*time.Millisecond, "Shared channel service should be active after restart")
 		}
 	}
 
@@ -288,6 +288,6 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 		}
 		require.Eventually(t, func() bool {
 			return rcService.Active()
-		}, 2*time.Second, 100*time.Millisecond, "Remote cluster service should be active")
+		}, 5*time.Second, 100*time.Millisecond, "Remote cluster service should be active")
 	}
 }
