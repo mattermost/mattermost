@@ -271,9 +271,10 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	}()
 
 	options := model.GetPostsSinceForSyncOptions{
-		ChannelId:      sd.task.channelID,
-		IncludeDeleted: true,
-		SinceCreateAt:  true,
+		ChannelId:                         sd.task.channelID,
+		IncludeDeleted:                    true,
+		SinceCreateAt:                     true,
+		ExcludeChannelMetadataSystemPosts: true,
 	}
 	cursor := model.GetPostsSinceForSyncCursor{
 		LastPostUpdateAt: sd.scr.LastPostUpdateAt,
@@ -475,7 +476,7 @@ func (scs *Service) fetchPostAttachmentsForSync(sd *syncData) error {
 	return merr.ErrorOrNil()
 }
 
-// filterPostsforSync removes any posts that do not need to sync.
+// filterPostsForSync removes any posts that do not need to sync.
 func (scs *Service) filterPostsForSync(sd *syncData) {
 	filtered := make([]*model.Post, 0, len(sd.posts))
 

@@ -1,0 +1,347 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/access_control/channel_list should match snapshot with channels 1`] = `
+<div
+  className="AccessControlPolicyChannelsList"
+>
+  <DataGrid
+    className="customTable"
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.channel_settings.channel_list.nameHeader"
+          />,
+        },
+        Object {
+          "field": "team",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Team"
+            id="admin.channel_settings.channel_list.teamHeader"
+          />,
+        },
+        Object {
+          "field": "remove",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={2}
+    filterProps={
+      Object {
+        "keys": Array [
+          "teams",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "teams": Object {
+            "keys": Array [
+              "team_ids",
+            ],
+            "name": "Teams",
+            "type": Object {
+              "$$typeof": Symbol(react.memo),
+              "WrappedComponent": [Function],
+              "compare": null,
+              "type": [Function],
+            },
+            "values": Object {
+              "team_ids": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Teams"
+                  id="admin.team_settings.title"
+                />,
+                "value": Array [],
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={true}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    previousPage={[Function]}
+    rows={Array []}
+    startCount={1}
+    term=""
+    total={2}
+  />
+</div>
+`;
+
+exports[`components/admin_console/access_control/channel_list should match snapshot with channels to add 1`] = `
+<div
+  className="AccessControlPolicyChannelsList"
+>
+  <DataGrid
+    className="customTable"
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.channel_settings.channel_list.nameHeader"
+          />,
+        },
+        Object {
+          "field": "team",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Team"
+            id="admin.channel_settings.channel_list.teamHeader"
+          />,
+        },
+        Object {
+          "field": "remove",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={3}
+    filterProps={
+      Object {
+        "keys": Array [
+          "teams",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "teams": Object {
+            "keys": Array [
+              "team_ids",
+            ],
+            "name": "Teams",
+            "type": Object {
+              "$$typeof": Symbol(react.memo),
+              "WrappedComponent": [Function],
+              "compare": null,
+              "type": [Function],
+            },
+            "values": Object {
+              "team_ids": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Teams"
+                  id="admin.team_settings.title"
+                />,
+                "value": Array [],
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={true}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    previousPage={[Function]}
+    rows={
+      Array [
+        Object {
+          "cells": Object {
+            "id": "channel3",
+            "name": <div
+              className="ChannelList__nameColumn"
+              id="channel-name-channel3"
+            >
+              <ArchiveIcon
+                className="channel-icon"
+                data-testid="channel3-archive-icon"
+              />
+              <div
+                className="ChannelList__nameText"
+              >
+                <b
+                  id="display-name-channel-channel3"
+                >
+                  Channel 3
+                </b>
+              </div>
+            </div>,
+            "remove": <a
+              className="group-actions TeamList_editText"
+              href="#"
+              id="remove-channel-channel3"
+              onClick={[Function]}
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove"
+                id="admin.access_control.policy.edit_policy.channel_selector.remove"
+              />
+            </a>,
+            "team": "Team 1",
+          },
+        },
+      ]
+    }
+    startCount={1}
+    term=""
+    total={3}
+  />
+</div>
+`;
+
+exports[`components/admin_console/access_control/channel_list should match snapshot with channels to remove 1`] = `
+<div
+  className="AccessControlPolicyChannelsList"
+>
+  <DataGrid
+    className="customTable"
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.channel_settings.channel_list.nameHeader"
+          />,
+        },
+        Object {
+          "field": "team",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Team"
+            id="admin.channel_settings.channel_list.teamHeader"
+          />,
+        },
+        Object {
+          "field": "remove",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={2}
+    filterProps={
+      Object {
+        "keys": Array [
+          "teams",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "teams": Object {
+            "keys": Array [
+              "team_ids",
+            ],
+            "name": "Teams",
+            "type": Object {
+              "$$typeof": Symbol(react.memo),
+              "WrappedComponent": [Function],
+              "compare": null,
+              "type": [Function],
+            },
+            "values": Object {
+              "team_ids": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Teams"
+                  id="admin.team_settings.title"
+                />,
+                "value": Array [],
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={true}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    previousPage={[Function]}
+    rows={Array []}
+    startCount={1}
+    term=""
+    total={2}
+  />
+</div>
+`;
+
+exports[`components/admin_console/access_control/channel_list should match snapshot with no channels 1`] = `
+<div
+  className="AccessControlPolicyChannelsList"
+>
+  <DataGrid
+    className="customTable"
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.channel_settings.channel_list.nameHeader"
+          />,
+        },
+        Object {
+          "field": "team",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Team"
+            id="admin.channel_settings.channel_list.teamHeader"
+          />,
+        },
+        Object {
+          "field": "remove",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={0}
+    filterProps={
+      Object {
+        "keys": Array [
+          "teams",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "teams": Object {
+            "keys": Array [
+              "team_ids",
+            ],
+            "name": "Teams",
+            "type": Object {
+              "$$typeof": Symbol(react.memo),
+              "WrappedComponent": [Function],
+              "compare": null,
+              "type": [Function],
+            },
+            "values": Object {
+              "team_ids": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Teams"
+                  id="admin.team_settings.title"
+                />,
+                "value": Array [],
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={false}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    previousPage={[Function]}
+    rows={Array []}
+    startCount={1}
+    term=""
+    total={0}
+  />
+</div>
+`;

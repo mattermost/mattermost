@@ -162,7 +162,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--denim-button-bg);
+    border: 1px solid var(--button-bg);
     border-radius: 4px;
     background: var(--center-channel-bg);
     color: var(--button-bg);
@@ -170,11 +170,11 @@
     transition: all 0.15s ease-out;
 
     &:hover {
-        background: rgba(var(--denim-button-bg-rgb), 0.08);
+        background: rgba(var(--button-bg-rgb), 0.08);
     }
 
     &:active {
-        background: rgba(var(--denim-button-bg-rgb), 0.16);
+        background: rgba(var(--button-bg-rgb), 0.16);
     }
 
     &:focus {
@@ -273,7 +273,7 @@
     &:focus,
     &:focus-within {
         box-sizing: border-box;
-        border: 2px solid rgba(var(--denim-button-bg-rgb), 0.32);
+        border: 2px solid rgba(var(--button-bg-rgb), 0.32);
         box-shadow: none;
         outline: none;
     }
