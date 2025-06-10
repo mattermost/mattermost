@@ -3947,7 +3947,6 @@
   "postlist.toast.searchHint": "Dica: tente {searchShortcut} para pesquisar neste canal",
   "posts_view.loadMore": "Carregar mais mensagens",
   "posts_view.newMsg": "Novas Mensagens",
-  "pricing_modal.briefing.professional.messageBoardsIntegrationsCalls": "Acesso ilimitado a mensagens e arquivos",
   "promote_to_user_modal.desc": "Essa ação promove o convidado {username} para um membro. Isso permitirá que o usuário ingresse em canais públicos e interaja com usuários fora dos canais dos quais são membros atualmente. Tem certeza de que deseja promover o convidado {username} para o usuário?",
   "promote_to_user_modal.promote": "Promover",
   "promote_to_user_modal.title": "Promover convidado {username} para usuário",
