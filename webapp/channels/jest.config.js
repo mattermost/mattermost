@@ -12,7 +12,7 @@ const config = {
     ],
     coveragePathIgnorePatterns: [
         '/node_modules/',
-        'packages/mattermost-redux/src/selectors/create_selector',
+        'mattermost-redux/src/selectors/create_selector',
     ],
     coverageReporters: ['lcov', 'text-summary'],
     fakeTimers: {
