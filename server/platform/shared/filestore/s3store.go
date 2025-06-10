@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -63,27 +64,17 @@ const (
 )
 
 var (
-	imageExtensions = map[string]bool{".jpg": true, ".jpeg": true, ".gif": true, ".bmp": true, ".png": true, ".tiff": true, "tif": true}
-	imageMimeTypes  = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
-)
-
-var (
 	// Ensure that the ReaderAt interface is implemented.
 	_ io.ReaderAt                  = (*s3WithCancel)(nil)
 	_ FileBackendWithLinkGenerator = (*S3FileBackend)(nil)
 )
 
-func isFileExtImage(ext string) bool {
-	ext = strings.ToLower(ext)
-	return imageExtensions[ext]
-}
-
-func getImageMimeType(ext string) string {
-	ext = strings.ToLower(ext)
-	if imageMimeTypes[ext] == "" {
-		return "image"
+func getContentType(ext string) string {
+	mimeType := mime.TypeByExtension(strings.ToLower(ext))
+	if mimeType == "" {
+		mimeType = "application/octet-stream"
 	}
-	return imageMimeTypes[ext]
+	return mimeType
 }
 
 func (s *S3FileBackendAuthError) Error() string {
@@ -502,11 +493,8 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, error) {
 	var contentType string
 	path = filepath.Join(b.pathPrefix, path)
-	if ext := filepath.Ext(path); isFileExtImage(ext) {
-		contentType = getImageMimeType(ext)
-	} else {
-		contentType = "binary/octet-stream"
-	}
+	ext := filepath.Ext(path)
+	contentType = getContentType(ext)
 
 	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 
@@ -545,12 +533,7 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 		return 0, errors.Wrapf(err2, "unable to find the file %s to append the data", path)
 	}
 
-	var contentType string
-	if ext := filepath.Ext(fp); isFileExtImage(ext) {
-		contentType = getImageMimeType(ext)
-	} else {
-		contentType = "binary/octet-stream"
-	}
+	contentType := getContentType(filepath.Ext(fp))
 
 	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 	sse := options.ServerSideEncryption
