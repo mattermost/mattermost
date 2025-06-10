@@ -56,7 +56,6 @@ interface Props extends WrappedComponentProps {
 function InteractiveDialogAdapter({
     dialogRequest,
     onExited,
-    onHide,
     actions,
     intl,
 }: Props) {
@@ -157,12 +156,32 @@ function InteractiveDialogAdapter({
         /* eslint-enable @typescript-eslint/no-unused-vars */
     };
 
+    const handleHide = () => {
+        // const {url, callbackId, state, notifyOnCancel} = props;
+
+        if (dialogRequest.dialog.notify_on_cancel) {
+            const dialog: SubmitDialogRequest = {
+                type: 'dialog_submission',
+                url: dialogRequest.url,
+                callback_id: dialogRequest.dialog.callback_id,
+                state: dialogRequest.dialog.state,
+                cancelled: true,
+                user_id: '',
+                channel_id: '',
+                team_id: '',
+                submission: {},
+            };
+
+            actions.submitInteractiveDialog(dialog);
+        }
+    };
+
     // Render Apps Form with converted data and adapter actions
     return (
         <AppsForm
             form={appForm}
             onExited={onExited}
-            onHide={onHide}
+            onHide={handleHide}
             actions={adapterActions}
             intl={intl}
         />
