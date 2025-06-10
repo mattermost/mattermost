@@ -3935,7 +3935,7 @@ func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.
 	_, nErr = ss.Team().Update(team)
 	require.NoError(t, nErr)
 
-	ss.Channel().Delete(o4.Id, 30)
+	nErr = ss.Channel().Delete(o4.Id, 30)
 	require.NoError(t, nErr)
 
 	// Should return an error since team is archived and there are no results
