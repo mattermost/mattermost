@@ -10,9 +10,9 @@ const (
 )
 
 // For Diagnostic results
-type LdapFilterTestResult struct {
-	FilterName    string            `json:"filter_name"`
-	FilterValue   string            `json:"filter_value"`
+type LdapDiagnosticResult struct {
+	TestName      string            `json:"test_name"`
+	TestValue     string            `json:"test_value"`
 	TotalCount    int               `json:"total_count"`
 	Message       string            `json:"message,omitempty"`
 	Error         string            `json:"error"`

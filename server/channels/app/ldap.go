@@ -61,7 +61,7 @@ func (a *App) TestLdapConnection(rctx request.CTX, settings *model.LdapSettings)
 		"ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }
 
-func (a *App) TestLdapFilters(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapFilterTestResult, *model.AppError) {
+func (a *App) TestLdapFilters(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
 	license := a.Srv().License()
 	ldapI := a.LdapDiagnostic()
 

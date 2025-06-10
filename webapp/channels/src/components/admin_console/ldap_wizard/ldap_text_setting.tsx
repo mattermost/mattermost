@@ -5,7 +5,7 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
-import type {LdapFilterTestResult} from '@mattermost/types/admin';
+import type {LdapDiagnosticResult} from '@mattermost/types/admin';
 import type {AdminConfig} from '@mattermost/types/config';
 
 import TextSetting from 'components/admin_console/text_setting';
@@ -26,7 +26,7 @@ type TextSettingProps = {
     onChange(id: string, value: any): void;
     disabled: boolean;
     setByEnv: boolean;
-    filterResult?: LdapFilterTestResult | null;
+    filterResult?: LdapDiagnosticResult | null;
 } & GeneralSettingProps
 
 const LDAPTextSetting = (props: TextSettingProps) => {
