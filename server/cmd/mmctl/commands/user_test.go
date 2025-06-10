@@ -473,7 +473,7 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		mockError := errors.New("an error occurred on deleting a user")
 
 		var expectedErr *multierror.Error
-		expectedErr = multierror.Append(expectedErr, mockError)
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", mockUser1.Email, mockError))
 
 		s.client.
 			EXPECT().
@@ -501,7 +501,7 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		mockError := errors.New("an error occurred on deleting a user")
 
 		var expectedErr *multierror.Error
-		expectedErr = multierror.Append(expectedErr, mockError)
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", mockUser1.Email, mockError))
 
 		s.client.
 			EXPECT().
@@ -538,7 +538,8 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		printer.Clean()
 
 		var expectedErr *multierror.Error
-		expectedErr = multierror.Append(expectedErr, errors.New("failed to delete the user, id: "+userID1))
+		expectedErr = multierror.Append(expectedErr,
+			fmt.Errorf("unable to delete the profile image of the user, please delete manually, id:%s", mockUser1.Email))
 
 		s.client.
 			EXPECT().
