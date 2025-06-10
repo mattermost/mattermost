@@ -152,9 +152,11 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			return count > initialCount
 		}, 5*time.Second, 100*time.Millisecond, "Should have received sync message for user removal")
 
-		// Verify the user is no longer a member
-		_, err = ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
-		require.Error(t, err, "User should not be a member after removal")
+		// Wait for the removal to be processed
+		require.Eventually(t, func() bool {
+			_, err = ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
+			return err != nil
+		}, 5*time.Second, 100*time.Millisecond, "User should not be a member after removal")
 	})
 	t.Run("Test 2: Batch membership sync with user type filtering", func(t *testing.T) {
 		EnsureCleanState(t, th, ss)
@@ -591,13 +593,17 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for successful sync with more robust checking
 		require.Eventually(t, func() bool {
-			return len(successfulSyncs) > 0
+			for _, syncedUserId := range successfulSyncs {
+				if syncedUserId == testUser.Id {
+					return true
+				}
+			}
+			return false
 		}, 15*time.Second, 100*time.Millisecond, "Should have successful sync after recovery")
 
 		// Verify recovery
 		finalAttempts := atomic.LoadInt32(&syncAttempts)
 		assert.Greater(t, finalAttempts, initialAttempts, "Should have retried after recovery")
-		assert.Contains(t, successfulSyncs, testUser.Id, "User should be synced after recovery")
 	})
 	t.Run("Test 5: Strengthened conflict resolution", func(t *testing.T) {
 		// This test verifies robust handling of conflicting membership states between multiple clusters.
@@ -1555,8 +1561,9 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		_, err = ss.SharedChannel().SaveRemote(scr)
 		require.NoError(t, err)
 
-		// Add users to sync
-		for i := 0; i < 5; i++ {
+		// Add users to sync - use more than batch size to test batch sync
+		// Default batch size is 20, so use 25 users to ensure batch processing
+		for i := 0; i < 25; i++ {
 			user := th.CreateUser()
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
@@ -1582,8 +1589,8 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		firstCursor := scr1.LastMembersSyncAt
 		assert.Greater(t, firstCursor, int64(0), "Cursor should be set after first sync")
 
-		// Add more users
-		for i := 0; i < 3; i++ {
+		// Add more users to ensure we still have > 20 total for batch sync
+		for i := 0; i < 5; i++ {
 			user := th.CreateUser()
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
@@ -1598,12 +1605,16 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Wait for second sync attempt
 		require.Eventually(t, func() bool {
 			return atomic.LoadInt32(&syncAttempts) >= 2
-		}, 5*time.Second, 100*time.Millisecond)
+		}, 10*time.Second, 100*time.Millisecond)
 
-		// Verify cursor was not updated after failed sync
-		scr2, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
-		require.NoError(t, scrErr)
-		assert.Equal(t, firstCursor, scr2.LastMembersSyncAt, "Cursor should not update when sync fails")
+		// Wait for any cursor updates to complete and verify cursor was not updated
+		require.Never(t, func() bool {
+			scr2, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
+			if scrErr != nil {
+				return false
+			}
+			return scr2.LastMembersSyncAt > firstCursor
+		}, 3*time.Second, 100*time.Millisecond, "Cursor should not update when sync fails")
 	})
 	t.Run("Test 11: Users in Multiple Shared Channels", func(t *testing.T) {
 		// This test verifies deduplication when users belong to multiple shared channels.
