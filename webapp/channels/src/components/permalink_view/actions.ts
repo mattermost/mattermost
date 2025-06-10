@@ -52,6 +52,11 @@ function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: 
     return async (dispatch, getState) => {
         const {data} = await dispatch(getPostThread(post.root_id));
 
+        if (!data) {
+            getHistory().replace(`/error?type=${ErrorPageTypes.POST_NOT_FOUND}&returnTo=${returnTo}`);
+            return {data: false};
+        }
+
         if (data!.first_inaccessible_post_time) {
             getHistory().replace(`/error?type=${ErrorPageTypes.CLOUD_ARCHIVED}&returnTo=${returnTo}`);
             return {data: false};
