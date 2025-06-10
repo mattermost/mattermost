@@ -4063,6 +4063,10 @@
     "translation": "Can't create user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Can't create user. Server exceeds maximum licensed users. Contact your administrator with: ERROR_LICENSED_USERS_LIMITS."
+  },
+  {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "Permanent channel deletion feature is not enabled. Please contact your System Administrator."
   },
@@ -7542,7 +7546,11 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Can't activate user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Can't activate user. Server exceeds safe user limit. ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Can't activate user. Server exceeds maximum licensed users. ERROR_LICENSED_USERS_LIMITS."
   },
   {
     "id": "app.user.update_active_for_multiple_users.updating.app_error",

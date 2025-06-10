@@ -242,6 +242,10 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	}
 
 	if atUserLimit {
+		// Use different error messages based on whether server is licensed
+		if a.License() != nil {
+			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.license_user_limits.exceeded", nil, "", http.StatusBadRequest)
+		}
 		return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.user_limits.exceeded", nil, "", http.StatusBadRequest)
 	}
 
@@ -1019,6 +1023,10 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		}
 
 		if atUserLimit {
+			// Use different error messages based on whether server is licensed
+			if a.License() != nil {
+				return nil, model.NewAppError("UpdateActive", "app.user.update_active.license_user_limit.exceeded", nil, "", http.StatusBadRequest)
+			}
 			return nil, model.NewAppError("UpdateActive", "app.user.update_active.user_limit.exceeded", nil, "", http.StatusBadRequest)
 		}
 	}
