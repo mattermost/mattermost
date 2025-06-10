@@ -68,7 +68,7 @@
     background-color: functions.v(center-channel-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     -webkit-overflow-scrolling: touch;
-    overflow-x: auto;
+    overflow-x: hidden;
     overflow-y: auto;
 
     &::-webkit-scrollbar-track {
@@ -118,6 +118,7 @@
 .slash-command__info {
     margin-left: 12px;
     line-height: 1;
+    overflow: hidden;
 }
 
 .slash-command__desc {
@@ -127,6 +128,7 @@
     line-height: 1.2;
     opacity: 0.75;
     white-space: break-spaces;
+    text-overflow: ellipsis;
 }
 
 .suggestion-list__content--top {
@@ -202,7 +204,6 @@
     cursor: pointer;
     font-size: inherit;
     line-height: 20px;
-    white-space: nowrap;
 
     .modal & {
         padding: 8px 3.2rem;
