@@ -90,8 +90,6 @@ func (scs *Service) processGlobalUserSync(c request.CTX, syncMsg *model.SyncMsg,
 		}
 	}
 
-	// Final debug message
-
 	return response.SetPayload(syncResp)
 }
 
@@ -121,7 +119,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		len(syncMsg.Posts) == 0 && len(syncMsg.Reactions) == 0 &&
 		len(syncMsg.Statuses) == 0 && len(syncMsg.MembershipChanges) == 0 {
 		// Check if feature flag is enabled
-		if !scs.server.Config().FeatureFlags.EnableSyncAllUsersForRemoteCluster {
+		if !scs.isGlobalUserSyncEnabled() {
 			return nil
 		}
 		return scs.processGlobalUserSync(c, syncMsg, rc, response)

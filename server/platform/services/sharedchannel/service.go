@@ -284,17 +284,26 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 	scs.app.Publish(messageWs)
 }
 
-// tryScheduleGlobalUserSync schedules a task to sync all users with a remote cluster
-func (scs *Service) tryScheduleGlobalUserSync(rc *model.RemoteCluster) {
+// isGlobalUserSyncEnabled checks if the global user sync feature is enabled
+func (scs *Service) isGlobalUserSyncEnabled() bool {
 	cfg := scs.server.Config()
 
 	if !cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster {
-		return
+		return false
 	}
 
 	// Skip if config explicitly disables the feature
 	if cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen != nil &&
 		!*cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen {
+		return false
+	}
+
+	return true
+}
+
+// tryScheduleGlobalUserSync schedules a task to sync all users with a remote cluster
+func (scs *Service) tryScheduleGlobalUserSync(rc *model.RemoteCluster) {
+	if !scs.isGlobalUserSyncEnabled() {
 		return
 	}
 

@@ -730,7 +730,7 @@ func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteClust
 // Uses cursor-based approach with LastGlobalUserSyncAt to resume after interruptions.
 func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
 	// Check if feature is enabled
-	if !scs.server.Config().FeatureFlags.EnableSyncAllUsersForRemoteCluster {
+	if !scs.isGlobalUserSyncEnabled() {
 		return nil
 	}
 
