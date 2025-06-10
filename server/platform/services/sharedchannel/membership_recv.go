@@ -16,6 +16,8 @@ import (
 // checkMembershipConflict checks if there are newer changes that would conflict with this one
 // Returns true if this change should be skipped due to a conflict
 func (scs *Service) checkMembershipConflict(userID, channelID string, changeTime int64) (bool, error) {
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] checkMembershipConflict STARTED - user %s, channel %s, changeTime %d", userID, channelID, changeTime))
+
 	conflicts, err := scs.server.GetStore().SharedChannel().GetUserChanges(userID, channelID, changeTime)
 	if err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to check for membership change conflicts",
@@ -23,8 +25,11 @@ func (scs *Service) checkMembershipConflict(userID, channelID string, changeTime
 			mlog.String("channel_id", channelID),
 			mlog.Err(err),
 		)
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] checkMembershipConflict FAILED - user %s, channel %s: %s", userID, channelID, err.Error()))
 		return false, err
 	}
+
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] checkMembershipConflict - found %d potential conflicts for user %s, channel %s", len(conflicts), userID, channelID))
 
 	// If there are conflicting operations, the latest one wins
 	for _, conflict := range conflicts {
@@ -35,10 +40,12 @@ func (scs *Service) checkMembershipConflict(userID, channelID string, changeTime
 				mlog.Int("change_time", int(changeTime)),
 				mlog.Int("conflicting_time", int(conflict.LastSyncAt)),
 			)
+			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] checkMembershipConflict CONFLICT DETECTED - user %s, channel %s: changeTime %d < conflictTime %d, SKIPPING", userID, channelID, changeTime, conflict.LastSyncAt))
 			return true, nil
 		}
 	}
 
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] checkMembershipConflict COMPLETED - user %s, channel %s: no conflicts, proceeding", userID, channelID))
 	return false, nil
 }
 
@@ -123,36 +130,50 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 
 // processMemberAdd handles adding a user to a channel as part of batch processing
 func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel *model.Channel, rc *model.RemoteCluster) error {
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd STARTED - user %s, channel %s, remote %s", change.UserId, change.ChannelId, rc.DisplayName))
+
 	// Get the user if they exist
 	user, err := scs.server.GetStore().User().Get(request.EmptyContext(scs.server.Log()).Context(), change.UserId)
 	if err != nil {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd FAILED - user %s not found: %s", change.UserId, err.Error()))
 		return fmt.Errorf("cannot get user for channel add: %w", err)
 	}
 
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd - found user %s (%s), channel type: %s", change.UserId, user.Username, channel.Type))
+
 	// Check user permissions for private channels
 	if channel.Type == model.ChannelTypePrivate {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd - adding user %s to team %s for private channel", change.UserId, channel.TeamId))
 		// Add user to team if needed for private channel
 		rctx := request.EmptyContext(scs.server.Log())
 		appErr := scs.app.AddUserToTeamByTeamId(rctx, channel.TeamId, user)
 		if appErr != nil {
+			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd FAILED - cannot add user %s to team %s: %s", change.UserId, channel.TeamId, appErr.Error()))
 			return fmt.Errorf("cannot add user to team for private channel: %w", appErr)
 		}
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd - successfully added user %s to team %s", change.UserId, channel.TeamId))
 	}
 
 	// Use the app layer to add the user to the channel
 	// This ensures proper processing of all side effects
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd - adding user %s to channel %s", change.UserId, change.ChannelId))
 	rctx := request.EmptyContext(scs.server.Log())
 	_, appErr := scs.app.AddUserToChannel(rctx, user, channel, false)
 	if appErr != nil {
 		// Skip "already added" errors
 		if appErr.Error() != "api.channel.add_user.to_channel.failed.app_error" &&
 			!strings.Contains(appErr.Error(), "channel_member_exists") {
+			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd FAILED - cannot add user %s to channel %s: %s", change.UserId, change.ChannelId, appErr.Error()))
 			return fmt.Errorf("cannot add user to channel: %w", appErr)
 		}
 		// User is already in the channel, which is fine
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd - user %s already in channel %s (ignored)", change.UserId, change.ChannelId))
+	} else {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd - successfully added user %s to channel %s", change.UserId, change.ChannelId))
 	}
 
 	// Update the sync status
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd - updating sync status for user %s, channel %s, remote %s", change.UserId, change.ChannelId, rc.RemoteId))
 	if syncErr := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(change.UserId, change.ChannelId, rc.RemoteId); syncErr != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user LastSyncAt after batch member add",
 			mlog.String("user_id", change.UserId),
@@ -160,9 +181,13 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 			mlog.String("remote_id", rc.RemoteId),
 			mlog.Err(syncErr),
 		)
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd - failed to update sync status for user %s: %s", change.UserId, syncErr.Error()))
 		// Continue despite the error - this is not critical
+	} else {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd - successfully updated sync status for user %s", change.UserId))
 	}
 
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd COMPLETED - user %s, channel %s, remote %s", change.UserId, change.ChannelId, rc.DisplayName))
 	return nil
 }
 
