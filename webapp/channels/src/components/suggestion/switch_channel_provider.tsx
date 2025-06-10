@@ -256,23 +256,12 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, r
     }
     const showSlug = (isPartOfOnlyOneTeam || channel.type === Constants.DM_CHANNEL) && channel.type !== Constants.THREADS;
 
-    const getId = () => {
-        if (channel.type === Constants.DM_CHANNEL) {
-            if (prefix) {
-                return `quickSwitchInput_${(channel as FakeDirectChannel).userId}`;
-            }
-        }
-        return `quickSwitchInput_${channel.id}`;
-    };
-
     return (
         <SuggestionContainer
             ref={ref}
             data-testid={channel.name}
-            role='option'
             aria-labelledby={`${name.toLowerCase().replaceAll(' ', '-')}-item-name`}
             {...props}
-            id={getId()}
         >
             {icon}
             <div className='suggestion-list__ellipsis suggestion-list__flex'>
