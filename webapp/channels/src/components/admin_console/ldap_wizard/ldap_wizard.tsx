@@ -119,14 +119,14 @@ const LDAPWizard = (props: Props) => {
         if (!filterName) {
             return null;
         }
-        return filterTestResults.find((result) => result.filter_name === filterName) || null;
+        return filterTestResults.find((result) => result.test_name === filterName) || null;
     }, [filterTestResults]);
 
     const handleFilterTestResults = useCallback((results: TestLdapFiltersResponse) => {
         // Filter out test results for text settings that had no input when the test button was pressed
         const filteredResults = results.filter((result) => {
             const settingKey = Object.keys(settingKeyToFilterNameMap).find(
-                (key) => settingKeyToFilterNameMap[key] === result.filter_name,
+                (key) => settingKeyToFilterNameMap[key] === result.test_name,
             );
 
             if (!settingKey) {
@@ -446,7 +446,7 @@ const LDAPWizard = (props: Props) => {
                 if (!prevResults) {
                     return null;
                 }
-                return prevResults.filter((result) => result.filter_name !== filterName);
+                return prevResults.filter((result) => result.test_name !== filterName);
             });
         }
 

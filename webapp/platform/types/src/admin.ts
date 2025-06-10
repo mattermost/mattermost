@@ -155,13 +155,13 @@ export type LdapSampleEntry = {
     available_attributes?: Record<string, string>;
 };
 
-export type LdapFilterTestResult = {
-    filter_name: string;
-    filter_value: string;
+export type LdapDiagnosticResult = {
+    test_name: string;
+    test_value: string;
     total_count: number;
     message?: string;
     error?: string;
     sample_results: LdapSampleEntry[];
 };
 
-export type TestLdapFiltersResponse = LdapFilterTestResult[];
+export type TestLdapFiltersResponse = LdapDiagnosticResult[];

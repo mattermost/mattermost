@@ -91,23 +91,23 @@ func (_m *LdapDiagnosticInterface) RunTestConnection(rctx request.CTX, settings 
 }
 
 // RunTestFilters provides a mock function with given fields: rctx, settings
-func (_m *LdapDiagnosticInterface) RunTestFilters(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapFilterTestResult, *model.AppError) {
+func (_m *LdapDiagnosticInterface) RunTestFilters(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
 	ret := _m.Called(rctx, settings)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RunTestFilters")
 	}
 
-	var r0 []model.LdapFilterTestResult
+	var r0 []model.LdapDiagnosticResult
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) ([]model.LdapFilterTestResult, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)); ok {
 		return rf(rctx, settings)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) []model.LdapFilterTestResult); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) []model.LdapDiagnosticResult); ok {
 		r0 = rf(rctx, settings)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]model.LdapFilterTestResult)
+			r0 = ret.Get(0).([]model.LdapDiagnosticResult)
 		}
 	}
 
