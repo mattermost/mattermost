@@ -133,10 +133,13 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	fileBytesReader := bytes.NewReader(fileBytes)
 
-	// Send the zip file back to client
-	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
-	// already sets that for us
-	web.WriteFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, fileBytesReader, true, w, r)
+	// Prevent caching so support packets are always fresh
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+
+	err = web.WriteStreamResponse(w, fileBytesReader, outputZipFilename, FileMime, true)
+	if err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 // supportPacketFileName returns the ZIP file name in the format mm_support_packet_$CUSTOMER_NAME_YYYY-MM-DDTHH-MM.zip.
