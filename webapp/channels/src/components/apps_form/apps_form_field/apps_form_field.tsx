@@ -30,7 +30,7 @@ export interface Props {
     errorText?: React.ReactNode;
     teammateNameDisplay?: string;
 
-    value: AppSelectOption | AppSelectOption[] | string | boolean | number | null;
+    value: AppSelectOption | string | boolean | number | null;
     onChange: (name: string, value: any) => void;
     autoFocus?: boolean;
     listComponent?: React.ComponentProps<typeof AutocompleteSelector>['listComponent'];

@@ -331,7 +331,6 @@ type DialogElement struct {
 	MaxLength   int                  `json:"max_length"`
 	DataSource  string               `json:"data_source"`
 	Options     []*PostActionOptions `json:"options"`
-	Multiselect bool                 `json:"multiselect"`
 }
 
 type OpenDialogRequest struct {
@@ -527,7 +526,7 @@ func (e *DialogElement) IsValid() error {
 		if e.DataSource != "" && e.DataSource != "users" && e.DataSource != "channels" {
 			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users' or 'channels'", e.DataSource))
 		}
-		if e.DataSource == "" && !isDefaultInOptions(e.Default, e.Options, e.Multiselect) {
+		if e.DataSource == "" && !isDefaultInOptions(e.Default, e.Options) {
 			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
 		}
 
@@ -538,7 +537,7 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementBoolMaxLength))
 
 	case "radio":
-		if !isDefaultInOptions(e.Default, e.Options, false) {
+		if !isDefaultInOptions(e.Default, e.Options) {
 			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
 		}
 
@@ -549,34 +548,11 @@ func (e *DialogElement) IsValid() error {
 	return multiErr.ErrorOrNil()
 }
 
-func isDefaultInOptions(defaultValue string, options []*PostActionOptions, multiselect bool) bool {
+func isDefaultInOptions(defaultValue string, options []*PostActionOptions) bool {
 	if defaultValue == "" {
 		return true
 	}
 
-	if multiselect {
-		// For multiselect, default value can be comma-separated
-		defaultValues := strings.Split(defaultValue, ",")
-		for _, val := range defaultValues {
-			val = strings.TrimSpace(val)
-			if val == "" {
-				continue
-			}
-			found := false
-			for _, option := range options {
-				if option != nil && val == option.Value {
-					found = true
-					break
-				}
-			}
-			if !found {
-				return false
-			}
-		}
-		return true
-	}
-
-	// For single select, check if the default value exists in options
 	for _, option := range options {
 		if option != nil && defaultValue == option.Value {
 			return true

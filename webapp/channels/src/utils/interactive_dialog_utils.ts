@@ -36,16 +36,17 @@ export function openInteractiveDialogModal(dialogRequest: any): void {
                     },
                 },
             }));
-        }).catch((error) => {
-            console.error('Failed to load InteractiveDialogAdapter:', error);
-            // Fallback to original dialog
-            import('components/interactive_dialog').then((module) => {
-                const InteractiveDialog = module.default;
-                store.dispatch(openModal({
-                    modalId: ModalIdentifiers.INTERACTIVE_DIALOG,
-                    dialogType: InteractiveDialog,
-                }));
-            });
+
+            // }).catch((error) => {
+            //     // console.error('Failed to load InteractiveDialogAdapter:', error);
+            //     // Fallback to original dialog
+            //     import('components/interactive_dialog').then((module) => {
+            //         const InteractiveDialog = module.default;
+            //         store.dispatch(openModal({
+            //             modalId: ModalIdentifiers.INTERACTIVE_DIALOG,
+            //             dialogType: InteractiveDialog,
+            //         }));
+            //     });
         });
     } else {
         // Dynamically import and use original Interactive Dialog component
@@ -55,8 +56,9 @@ export function openInteractiveDialogModal(dialogRequest: any): void {
                 modalId: ModalIdentifiers.INTERACTIVE_DIALOG,
                 dialogType: InteractiveDialog,
             }));
-        }).catch((error) => {
-            console.error('Failed to load InteractiveDialog:', error);
+
+            // }).catch((error) => {
+            // console.error('Failed to load InteractiveDialog:', error);
         });
     }
 }

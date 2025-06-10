@@ -59,7 +59,7 @@ const baseStyles = {
     }),
 } satisfies StylesConfig<OptionType, boolean>;
 
-const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerProps<T, boolean>) => (
+const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerProps<T>) => (
     <div className='DropdownInput__indicatorsContainer'>
         <components.IndicatorsContainer {...props}>
             <i className='icon icon-chevron-down'/>
@@ -67,7 +67,7 @@ const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerPro
     </div>
 );
 
-const Control = <T extends OptionType>(props: ControlProps<T, boolean>) => (
+const Control = <T extends OptionType>(props: ControlProps<T>) => (
     <div className='DropdownInput__controlContainer'>
         <components.Control {...props}/>
     </div>

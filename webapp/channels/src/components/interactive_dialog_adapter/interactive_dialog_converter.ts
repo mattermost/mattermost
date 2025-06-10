@@ -90,25 +90,20 @@ export class InteractiveDialogConverter {
                 max_length: element.max_length,
             } as AppField;
 
-        case 'select': {
-            const selectBaseField = {
-                ...baseField,
-                multiselect: element.multiselect || false,
-            };
-
+        case 'select':
             if (element.data_source === 'users') {
                 return {
-                    ...selectBaseField,
+                    ...baseField,
                     type: AppFieldTypes.USER,
                 } as AppField;
             } else if (element.data_source === 'channels') {
                 return {
-                    ...selectBaseField,
+                    ...baseField,
                     type: AppFieldTypes.CHANNEL,
                 } as AppField;
             }
             return {
-                ...selectBaseField,
+                ...baseField,
                 type: AppFieldTypes.STATIC_SELECT,
                 options: element.options?.map((opt) => ({
                     label: opt.text,
