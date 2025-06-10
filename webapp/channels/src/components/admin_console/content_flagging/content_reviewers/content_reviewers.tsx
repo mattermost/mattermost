@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import AsyncSelect from 'react-select/async';
@@ -9,10 +9,12 @@ import AsyncSelect from 'react-select/async';
 import type {TeamSearchOpts} from '@mattermost/types/teams';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
-import { getTeam, getTeams, searchTeams } from "mattermost-redux/actions/teams";
+import {getTeam, getTeams, searchTeams} from 'mattermost-redux/actions/teams';
 
 import {Label} from 'components/admin_console/boolean_setting';
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
+import TeamReviewers
+    from 'components/admin_console/content_flagging/content_reviewers/team_reviewers_section/team_reviewers_section';
 import {
     AdminSection,
     SectionContent,
@@ -33,77 +35,78 @@ export default function ContentFlaggingContentReviewers() {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    // TODO: Replace with actual team IDs from your settings
-    const [selectedTeamIDs, setSelectedTeamIDs] = useState<string[]>(['3fdro3m3z7rijngi7d5jweynbo', 'paxk6d4spif3pg5faai8a5hqac', 'ocujxjt68fgbfqymqh14bd3ego']);
+    //
+    // // TODO: Replace with actual team IDs from your settings
+    // const [selectedTeamIDs, setSelectedTeamIDs] = useState<string[]>(['3fdro3m3z7rijngi7d5jweynbo', 'paxk6d4spif3pg5faai8a5hqac', 'ocujxjt68fgbfqymqh14bd3ego']);
     const [selectedTeams, setSelectedTeams] = useState<Team[]>([]);
 
     const [sameReviewersForAllTeams, setSameReviewersForAllTeams] = useState(false);
 
     // Fetch teams when the component mounts
-    useEffect(() => {
-        const fetchTeams = async () => {
-            const teamPromises = selectedTeamIDs.map((teamID) => dispatch(getTeam(teamID)));
-            try {
-                const teams = await Promise.all(teamPromises);
-                const validTeams = teams.filter((team) => team && team.data && team.data.id).map((team) => team.data as Team);
-                setSelectedTeams(validTeams);
-            } catch (error) {
-                // eslint-disable-next-line no-console
-                console.error('Error fetching teams:', error);
-            }
-        };
-
-        // only need to fetch the selected teams initially.
-        if (selectedTeams.length === 0) {
-            fetchTeams();
-        }
-    }, [dispatch, selectedTeamIDs, selectedTeams]);
+    // useEffect(() => {
+    //     const fetchTeams = async () => {
+    //         const teamPromises = selectedTeamIDs.map((teamID) => dispatch(getTeam(teamID)));
+    //         try {
+    //             const teams = await Promise.all(teamPromises);
+    //             const validTeams = teams.filter((team) => team && team.data && team.data.id).map((team) => team.data as Team);
+    //             setSelectedTeams(validTeams);
+    //         } catch (error) {
+    //             // eslint-disable-next-line no-console
+    //             console.error('Error fetching teams:', error);
+    //         }
+    //     };
+    //
+    //     // only need to fetch the selected teams initially.
+    //     if (selectedTeams.length === 0) {
+    //         fetchTeams();
+    //     }
+    // }, [dispatch, selectedTeamIDs, selectedTeams]);
 
     const handleSameReviewersForAllTeamsChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setSameReviewersForAllTeams(event.target.value === 'true');
     }, []);
 
-    const teamSearchInputPlaceholder = useMemo(() => {
-        return (
-            <div className='teamSearchInputPlaceholder'>
-                <span
-                    id='searchIcon'
-                    aria-hidden='true'
-                >
-                    <i className='icon icon-magnify'/>
-                </span>
-                <FormattedMessage
-                    id='admin.contentFlagging.reviewerSettings.teamReviewers.placeholder'
-                    defaultMessage='Search and select teams'
-                />
-            </div>
-        );
-    }, []);
-    const userLoadingMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.loading', defaultMessage: 'Loading users'}), []);
-    const noUsersMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.noUsers', defaultMessage: 'No users found'}), []);
-
-    const searchTeamFromTerm = useMemo(() => debounce(async (searchTerm: string, callback) => {
-        try {
-            const response = await dispatch(searchTeams(searchTerm, {page: 0, per_page: 50} as TeamSearchOpts));
-
-            if (response && response.data && response.data && response.data.teams && response.data.teams.length > 0) {
-                const teams = (response.data.teams as Team[]).
-                    map((team) => ({
-                        value: team.id,
-                        label: team.display_name,
-                        raw: team,
-                    }));
-
-                callback(teams);
-            }
-
-            callback([]);
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error(error);
-            callback([]);
-        }
-    }, 200), [dispatch]);
+    // const teamSearchInputPlaceholder = useMemo(() => {
+    //     return (
+    //         <div className='teamSearchInputPlaceholder'>
+    //             <span
+    //                 id='searchIcon'
+    //                 aria-hidden='true'
+    //             >
+    //                 <i className='icon icon-magnify'/>
+    //             </span>
+    //             <FormattedMessage
+    //                 id='admin.contentFlagging.reviewerSettings.teamReviewers.placeholder'
+    //                 defaultMessage='Search and select teams'
+    //             />
+    //         </div>
+    //     );
+    // }, []);
+    // const userLoadingMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.loading', defaultMessage: 'Loading users'}), []);
+    // const noUsersMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.noUsers', defaultMessage: 'No users found'}), []);
+    //
+    // const searchTeamFromTerm = useMemo(() => debounce(async (searchTerm: string, callback) => {
+    //     try {
+    //         const response = await dispatch(searchTeams(searchTerm, {page: 0, per_page: 50} as TeamSearchOpts));
+    //
+    //         if (response && response.data && response.data && response.data.teams && response.data.teams.length > 0) {
+    //             const teams = (response.data.teams as Team[]).
+    //                 map((team) => ({
+    //                     value: team.id,
+    //                     label: team.display_name,
+    //                     raw: team,
+    //                 }));
+    //
+    //             callback(teams);
+    //         }
+    //
+    //         callback([]);
+    //     } catch (error) {
+    //         // eslint-disable-next-line no-console
+    //         console.error(error);
+    //         callback([]);
+    //     }
+    // }, 200), [dispatch]);
 
     return (
         <AdminSection>
@@ -191,53 +194,12 @@ export default function ContentFlaggingContentReviewers() {
                         <div className='content-flagging-section-setting teamSpecificReviewerSection'>
                             <div className='setting-title'>
                                 <FormattedMessage
-                                    id='admin.contentFlagging.reviewerSettings.commonReviewers'
-                                    defaultMessage='Reviewers'
+                                    id='admin.contentFlagging.reviewerSettings.perTeamReviewers.title'
+                                    defaultMessage='Configure content flagging per team'
                                 />
                             </div>
 
-                            <div className='helpText'>
-                                <FormattedMessage
-                                    id='admin.contentFlagging.reviewerSettings.teamReviewers.helpText'
-                                    defaultMessage='Assign reviewers for the teams in which you want to enable content flagging'
-                                />
-                            </div>
-
-                            <div className='teamSearchWrapper'>
-                                <AsyncSelect
-                                    id='teamSearchSelect'
-                                    inputId='teamSearchSelect_input'
-                                    classNamePrefix='team-multiselector'
-                                    className='Input Input__focus'
-                                    isClearable={false}
-                                    hideSelectedOptions={false}
-                                    cacheOptions={true}
-                                    placeholder={teamSearchInputPlaceholder}
-                                    loadingMessage={userLoadingMessage}
-                                    noOptionsMessage={noUsersMessage}
-                                    loadOptions={searchTeamFromTerm}
-                                    controlShouldRenderValue={false}
-                                    components={{
-                                        DropdownIndicator: () => null,
-                                        IndicatorSeparator: () => null,
-                                        SingleValue: () => null,
-                                        Option: TeamOptionComponent,
-                                    }}
-                                />
-
-                                <button
-                                    className='selectAllTeamsButton btn btn-link'
-                                >
-                                    <FormattedMessage
-                                        id='admin.contentFlagging.reviewerSettings.teamReviewers.addTeam'
-                                        defaultMessage='Select all teams'
-                                    />
-                                </button>
-                            </div>
-
-                            <div>
-
-                            </div>
+                            <TeamReviewers/>
 
                         </div>
                     }

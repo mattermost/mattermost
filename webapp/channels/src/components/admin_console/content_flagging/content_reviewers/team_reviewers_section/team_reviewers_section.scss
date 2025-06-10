@@ -1,0 +1,100 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.TeamReviewers {
+    width: 100%;
+    border: 1px solid var(--center-channel-color-16);
+    border-radius: 8px;
+    margin-top: 24px;
+
+    > .DataGrid {
+        padding: 0;
+        background: none;
+
+        .DataGrid_search {
+            background: none;
+            padding: 16px;
+            height: unset;
+
+            .DataGrid_searchBar {
+                margin-left: 0;
+            }
+
+            .TeamReviewers__disable-all, .TeamReviewers__disable-all > button {
+                display: flex;
+                align-items: center;
+                margin-left: auto;
+                background: none;
+                text-decoration: none !important;
+            }
+        }
+
+        .DataGrid_rows .DataGrid_row:nth-child(odd) {
+            background: none;
+        }
+
+        .DataGrid_row {
+            display: flex;
+            gap: 32px;
+            padding: 8px 16px;
+
+            .TeamReviewers__team {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .TeamIcon {
+                background: var(--center-channel-color-08);
+            }
+
+            .DataGrid_cell {
+                margin: 0;
+                overflow: unset;
+                align-items: center !important;
+                display: flex;
+
+                .user-multiselector__control {
+                    margin-block: 2px;
+                }
+            }
+        }
+
+        .DataGrid_header {
+            background: var(--center-channel-color-04);
+            gap: 32px;
+
+            > .DataGrid_cell {
+                color: var(--center-channel-color-72);
+                font-size: 12px;
+                padding-left: 0;
+            }
+        }
+
+        .DataGrid_cell {
+            &:nth-child(1) {
+                max-width: 230px;
+            }
+
+            &:nth-child(2) {
+                max-width: 446px;
+            }
+
+            &:nth-child(3) {
+                max-width: 40px;
+            }
+        }
+
+        .DataGrid_footer {
+            width: 100%;
+            background: none;
+            padding: 8px 16px;
+
+            > .DataGrid_cell {
+                margin-left: auto;
+            }
+        }
+    }
+}
+
+

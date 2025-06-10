@@ -76,6 +76,11 @@
         height: 32px;
     }
 
+    &.TeamIcon__xxs {
+        width: 26px;
+        height: 26px;
+    }
+
     &.withImage {
         border: none;
 
@@ -92,6 +97,11 @@
         &.TeamIcon__xsm {
             width: 32px;
             height: 32px;
+        }
+
+        &.TeamIcon__xxs {
+            width: 26px;
+            height: 26px;
         }
 
         .TeamIcon__image {
