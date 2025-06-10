@@ -67,6 +67,7 @@ func AssertChannelCount(t *testing.T, a *App, channelType model.ChannelType, exp
 }
 
 func TestImportImportLine(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -115,6 +116,7 @@ func TestImportImportLine(t *testing.T) {
 }
 
 func TestStopOnError(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -145,6 +147,7 @@ func TestStopOnError(t *testing.T) {
 }
 
 func TestImportBulkImport(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -157,7 +160,7 @@ func TestImportBulkImport(t *testing.T) {
 	username3 := model.NewUsername()
 	emojiName := model.NewId()
 	testsDir, _ := fileutils.FindDir("tests")
-	testImage := filepath.Join(testsDir, "test.png")
+	testImage := "test.png"
 	teamTheme1 := `{\"awayIndicator\":\"#DBBD4E\",\"buttonBg\":\"#23A1FF\",\"buttonColor\":\"#FFFFFF\",\"centerChannelBg\":\"#ffffff\",\"centerChannelColor\":\"#333333\",\"codeTheme\":\"github\",\"image\":\"/static/files/a4a388b38b32678e83823ef1b3e17766.png\",\"linkColor\":\"#2389d7\",\"mentionBg\":\"#2389d7\",\"mentionColor\":\"#ffffff\",\"mentionHighlightBg\":\"#fff2bb\",\"mentionHighlightLink\":\"#2f81b7\",\"newMessageSeparator\":\"#FF8800\",\"onlineIndicator\":\"#7DBE00\",\"sidebarBg\":\"#fafafa\",\"sidebarHeaderBg\":\"#3481B9\",\"sidebarHeaderTextColor\":\"#ffffff\",\"sidebarText\":\"#333333\",\"sidebarTextActiveBorder\":\"#378FD2\",\"sidebarTextActiveColor\":\"#111111\",\"sidebarTextHoverBg\":\"#e6f2fa\",\"sidebarUnreadText\":\"#333333\",\"type\":\"Mattermost\"}`
 	teamTheme2 := `{\"awayIndicator\":\"#DBBD4E\",\"buttonBg\":\"#23A100\",\"buttonColor\":\"#EEEEEE\",\"centerChannelBg\":\"#ffffff\",\"centerChannelColor\":\"#333333\",\"codeTheme\":\"github\",\"image\":\"/static/files/a4a388b38b32678e83823ef1b3e17766.png\",\"linkColor\":\"#2389d7\",\"mentionBg\":\"#2389d7\",\"mentionColor\":\"#ffffff\",\"mentionHighlightBg\":\"#fff2bb\",\"mentionHighlightLink\":\"#2f81b7\",\"newMessageSeparator\":\"#FF8800\",\"onlineIndicator\":\"#7DBE00\",\"sidebarBg\":\"#fafafa\",\"sidebarHeaderBg\":\"#3481B9\",\"sidebarHeaderTextColor\":\"#ffffff\",\"sidebarText\":\"#333333\",\"sidebarTextActiveBorder\":\"#378FD2\",\"sidebarTextActiveColor\":\"#222222\",\"sidebarTextHoverBg\":\"#e6f2fa\",\"sidebarUnreadText\":\"#444444\",\"type\":\"Mattermost\"}`
 
@@ -178,13 +181,13 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `", "` + username3 + `"], "user": "` + username + `", "message": "Hello Group Channel", "create_at": 123456789015}}
 {"type": "emoji", "emoji": {"name": "` + emojiName + `", "image": "` + testImage + `"}}`
 
-	line, err := th.App.BulkImport(th.Context, strings.NewReader(data1), nil, false, 2)
+	line, err := th.App.BulkImportWithPath(th.Context, strings.NewReader(data1), nil, false, false, 2, testsDir)
 	require.Nil(t, err, "BulkImport should have succeeded")
 	require.Equal(t, 0, line, "BulkImport line should be 0")
 
 	// Run bulk import using a string that contains a line with invalid json.
 	data2 := `{"type": "version", "version": 1`
-	line, err = th.App.BulkImport(th.Context, strings.NewReader(data2), nil, false, 2)
+	line, err = th.App.BulkImportWithPath(th.Context, strings.NewReader(data2), nil, false, false, 2, testsDir)
 	require.NotNil(t, err, "Should have failed due to invalid JSON on line 1.")
 	require.Equal(t, 1, line, "Should have failed due to invalid JSON on line 1.")
 
@@ -193,7 +196,7 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
 {"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
 {"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
-	line, err = th.App.BulkImport(th.Context, strings.NewReader(data3), nil, false, 2)
+	line, err = th.App.BulkImportWithPath(th.Context, strings.NewReader(data3), nil, false, false, 2, testsDir)
 	require.NotNil(t, err, "Should have failed due to missing version line on line 1.")
 	require.Equal(t, 1, line, "Should have failed due to missing version line on line 1.")
 
@@ -231,9 +234,58 @@ func TestImportBulkImport(t *testing.T) {
 		require.Nil(t, err, "BulkImport should have succeeded")
 		require.Equal(t, 0, line, "BulkImport line should be 0")
 	})
+
+	t.Run("Invalid post attachment path", func(t *testing.T) {
+		data7 := `{"type": "version", "version": 1}
+{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+{"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
+{"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme1 + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "user", "user": {"username": "` + username2 + `", "email": "` + username2 + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme2 + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "user", "user": {"username": "` + username3 + `", "email": "` + username3 + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}], "delete_at": 123456789016}]}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012, "attachments":[{"path": "test.png"}]}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username3 + `", "message": "Hey Everyone!", "create_at": 123456789013, "attachments":[{"path": "../test.png"}]}}`
+
+		// Import should not fail for a single invalid attachment path.
+		line, err := th.App.BulkImportWithPath(th.Context, strings.NewReader(data7), nil, false, false, 2, testsDir)
+		require.Nil(t, err, "BulkImport should have succeeded")
+		require.Equal(t, 0, line, "BulkImport line should be 0")
+	})
+
+	t.Run("Invalid reply attachment path", func(t *testing.T) {
+		data8 := `{"type": "version", "version": 1}
+{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+{"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
+{"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme1 + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "user", "user": {"username": "` + username2 + `", "email": "` + username2 + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme2 + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "user", "user": {"username": "` + username3 + `", "email": "` + username3 + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}], "delete_at": 123456789016}]}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012, "attachments":[{"path": "test.png"}]}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username3 + `", "message": "Hey Everyone!", "create_at": 123456789013, "replies": [{"create_at": 123456789015, "user": "` + username + `", "message": "reply", "attachments":[{"path": "../test.png"}]}]}}`
+
+		// Import should not fail for a single invalid attachment path.
+		line, err := th.App.BulkImportWithPath(th.Context, strings.NewReader(data8), nil, false, false, 2, testsDir)
+		require.Nil(t, err, "BulkImport should have succeeded")
+		require.Equal(t, 0, line, "BulkImport line should be 0")
+	})
+
+	t.Run("Invalid direct post attachment path", func(t *testing.T) {
+		data9 := `{"type": "version", "version": 1}
+{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+{"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
+{"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme1 + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "user", "user": {"username": "` + username2 + `", "email": "` + username2 + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme2 + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "user", "user": {"username": "` + username3 + `", "email": "` + username3 + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}], "delete_at": 123456789016}]}}
+{"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username + `"]}}
+{"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username + `"], "user": "` + username + `", "message": "Hello Direct Channel to myself", "create_at": 123456789014, "attachments":[{"path": "../test.png"}]}}`
+
+		// Import should not fail for a single invalid attachment path.
+		line, err := th.App.BulkImportWithPath(th.Context, strings.NewReader(data9), nil, false, false, 2, testsDir)
+		require.Nil(t, err, "BulkImport should have succeeded")
+		require.Equal(t, 0, line, "BulkImport line should be 0")
+	})
 }
 
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
+	mainHelper.Parallel(t)
 	data := imports.LineImportData{
 		Type:    "version",
 		Version: model.NewPointer(1),
@@ -275,7 +327,135 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 	}
 }
 
+func TestProcessAttachmentPaths(t *testing.T) {
+	c := request.TestContext(t)
+
+	t.Run("nil attachments", func(t *testing.T) {
+		err := processAttachmentPaths(c, nil, "", nil)
+		require.NoError(t, err)
+	})
+
+	t.Run("missing file in map", func(t *testing.T) {
+		attachments := &[]imports.AttachmentImportData{
+			{
+				Path: model.NewPointer("file.jpg"),
+			},
+		}
+
+		filesMap := map[string]*zip.File{
+			"./import/other-file.jpg": nil,
+		}
+
+		err := processAttachmentPaths(c, attachments, "", filesMap)
+		require.Error(t, err)
+		require.EqualError(t, err, "attachment \"file.jpg\" not found in map")
+	})
+
+	t.Run("valid paths", func(t *testing.T) {
+		attachments := &[]imports.AttachmentImportData{
+			{
+				Path: model.NewPointer("file.jpg"),
+			},
+			{
+				Path: model.NewPointer("somedir/file.jpg"),
+			},
+			{
+				Path: model.NewPointer("./someotherdir/file.jpg"),
+			},
+		}
+
+		expected := &[]imports.AttachmentImportData{
+			{
+				Path: model.NewPointer("data/file.jpg"),
+			},
+			{
+				Path: model.NewPointer("data/somedir/file.jpg"),
+			},
+			{
+				Path: model.NewPointer("data/someotherdir/file.jpg"),
+			},
+		}
+
+		err := processAttachmentPaths(c, attachments, model.ExportDataDir, nil)
+		require.NoError(t, err)
+		require.Equal(t, expected, attachments)
+	})
+
+	t.Run("uncleaned paths", func(t *testing.T) {
+		attachments := &[]imports.AttachmentImportData{
+			{
+				Path: model.NewPointer("../dir/invalid.txt"),
+			},
+			{
+				Path: model.NewPointer("somedir/./normal-file.jpg"),
+			},
+		}
+
+		expected := &[]imports.AttachmentImportData{
+			{
+				Path: model.NewPointer("/path/to/import/dir/invalid.txt"),
+			},
+			{
+				Path: model.NewPointer("/path/to/import/dir/somedir/normal-file.jpg"),
+			},
+		}
+
+		err := processAttachmentPaths(c, attachments, "/path/to/import/dir", nil)
+		require.NoError(t, err)
+		require.Equal(t, expected, attachments)
+	})
+
+	t.Run("paths outside base path", func(t *testing.T) {
+		attachments := &[]imports.AttachmentImportData{
+			{
+				Path: model.NewPointer("../../invalid.txt"),
+			},
+			{
+				Path: model.NewPointer("../../../invalid.txt"),
+			},
+		}
+
+		expected := &[]imports.AttachmentImportData{
+			{
+				Path: model.NewPointer(""),
+			},
+			{
+				Path: model.NewPointer(""),
+			},
+		}
+
+		err := processAttachmentPaths(c, attachments, "data", nil)
+		require.EqualError(t, err, "invalid attachment path \"../../invalid.txt\"\ninvalid attachment path \"../../../invalid.txt\"")
+		require.Equal(t, expected, attachments)
+	})
+
+	t.Run("mix of valid and invalid paths", func(t *testing.T) {
+		attachments := &[]imports.AttachmentImportData{
+			{
+				Path: model.NewPointer("../../invalid.txt"),
+			},
+			{
+				Path: model.NewPointer("valid/path/to/file"),
+			},
+		}
+
+		expected := &[]imports.AttachmentImportData{
+			{
+				Path: model.NewPointer(""),
+			},
+			{
+				Path: model.NewPointer("data/valid/path/to/file"),
+			},
+		}
+
+		err := processAttachmentPaths(c, attachments, "data", nil)
+		require.EqualError(t, err, "invalid attachment path \"../../invalid.txt\"")
+		require.Equal(t, expected, attachments)
+	})
+}
+
 func TestProcessAttachments(t *testing.T) {
+	mainHelper.Parallel(t)
 	c := request.TestContext(t)
 
 	genAttachments := func() *[]imports.AttachmentImportData {
@@ -340,35 +520,35 @@ func TestProcessAttachments(t *testing.T) {
 	t.Run("valid path", func(t *testing.T) {
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("/tmp/file.jpg"),
+				Path: model.NewPointer("tmp/file.jpg"),
 			},
 			{
-				Path: model.NewPointer("/tmp/somedir/file.jpg"),
+				Path: model.NewPointer("tmp/somedir/file.jpg"),
 			},
 		}
 
 		t.Run("post attachments", func(t *testing.T) {
-			err := processAttachments(c, &line, "/tmp", nil)
+			err := processAttachments(c, &line, "tmp", nil)
 			require.NoError(t, err)
 			require.Equal(t, expected, line.Post.Attachments)
 		})
 
 		t.Run("direct post attachments", func(t *testing.T) {
-			err := processAttachments(c, &line2, "/tmp", nil)
+			err := processAttachments(c, &line2, "tmp", nil)
 			require.NoError(t, err)
 			require.Equal(t, expected, line2.DirectPost.Attachments)
 		})
 
 		t.Run("profile image", func(t *testing.T) {
-			expected := "/tmp/profile.jpg"
-			err := processAttachments(c, &userLine, "/tmp", nil)
+			expected := "tmp/profile.jpg"
+			err := processAttachments(c, &userLine, "tmp", nil)
 			require.NoError(t, err)
 			require.Equal(t, expected, *userLine.User.ProfileImage)
 		})
 
 		t.Run("emoji", func(t *testing.T) {
-			expected := "/tmp/emoji.png"
-			err := processAttachments(c, &emojiLine, "/tmp", nil)
+			expected := "tmp/emoji.png"
+			err := processAttachments(c, &emojiLine, "tmp", nil)
 			require.NoError(t, err)
 			require.Equal(t, expected, *emojiLine.Emoji.Image)
 		})
@@ -377,24 +557,24 @@ func TestProcessAttachments(t *testing.T) {
 	t.Run("with filesMap", func(t *testing.T) {
 		t.Run("post attachments", func(t *testing.T) {
 			filesMap := map[string]*zip.File{
-				"/tmp/file.jpg": nil,
+				"tmp/file.jpg": nil,
 			}
 			err := processAttachments(c, &line, "", filesMap)
 			require.Error(t, err)
 
-			filesMap["/tmp/somedir/file.jpg"] = nil
+			filesMap["tmp/somedir/file.jpg"] = nil
 			err = processAttachments(c, &line, "", filesMap)
 			require.NoError(t, err)
 		})
 
 		t.Run("direct post attachments", func(t *testing.T) {
 			filesMap := map[string]*zip.File{
-				"/tmp/file.jpg": nil,
+				"tmp/file.jpg": nil,
 			}
 			err := processAttachments(c, &line2, "", filesMap)
 			require.Error(t, err)
 
-			filesMap["/tmp/somedir/file.jpg"] = nil
+			filesMap["tmp/somedir/file.jpg"] = nil
 			err = processAttachments(c, &line2, "", filesMap)
 			require.NoError(t, err)
 		})
@@ -406,7 +586,7 @@ func TestProcessAttachments(t *testing.T) {
 			err := processAttachments(c, &userLine, "", filesMap)
 			require.Error(t, err)
 
-			filesMap["/tmp/profile.jpg"] = nil
+			filesMap["tmp/profile.jpg"] = nil
 			err = processAttachments(c, &userLine, "", filesMap)
 			require.NoError(t, err)
 		})
@@ -418,7 +598,7 @@ func TestProcessAttachments(t *testing.T) {
 			err := processAttachments(c, &emojiLine, "", filesMap)
 			require.Error(t, err)
 
-			filesMap["/tmp/emoji.png"] = nil
+			filesMap["tmp/emoji.png"] = nil
 			err = processAttachments(c, &emojiLine, "", filesMap)
 			require.NoError(t, err)
 		})
@@ -458,6 +638,7 @@ func BenchmarkBulkImport(b *testing.B) {
 }
 
 func TestImportBulkImportWithAttachments(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -497,4 +678,38 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 
 	files := GetAttachments(adminUser.Id, th, t)
 	require.Len(t, files, 11)
+}
+
+func TestDeleteImport(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	importDir := filepath.Join(th.tempWorkspace, "data", "import")
+	err := os.MkdirAll(importDir, os.ModePerm)
+	require.NoError(t, err)
+	f, err := os.Create(filepath.Join(importDir, "import.zip"))
+	require.NoError(t, err)
+	f.Close()
+	defer func() {
+		err = os.RemoveAll(importDir)
+		require.NoError(t, err)
+	}()
+
+	t.Run("delete import successful", func(t *testing.T) {
+		imports, err := th.App.ListImports()
+		require.Nil(t, err)
+		require.Equal(t, 1, len(imports))
+		require.Equal(t, "import.zip", imports[0])
+
+		delErr := th.App.DeleteImport("import.zip")
+		require.Nil(t, delErr)
+
+		imports, err = th.App.ListImports()
+		require.Nil(t, err)
+		require.Equal(t, 0, len(imports))
+
+		//idempotency check
+		delErr = th.App.DeleteImport("import.zip")
+		require.Nil(t, delErr)
+	})
 }

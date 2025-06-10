@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getAccessControlPolicy as fetchPolicy, createAccessControlPolicy as createPolicy, deleteAccessControlPolicy as deletePolicy, searchAccessControlPolicyChannels as searchChannels, assignChannelsToAccessControlPolicy, unassignChannelsFromAccessControlPolicy, getAccessControlFields, updateAccessControlPolicyActive} from 'mattermost-redux/actions/access_control';
+import {getAccessControlPolicy as fetchPolicy, createAccessControlPolicy as createPolicy, deleteAccessControlPolicy as deletePolicy, searchAccessControlPolicyChannels as searchChannels, assignChannelsToAccessControlPolicy, unassignChannelsFromAccessControlPolicy, getAccessControlFields, updateAccessControlPolicyActive, getVisualAST} from 'mattermost-redux/actions/access_control';
 import {createJob} from 'mattermost-redux/actions/jobs';
 import {getAccessControlPolicy as getPolicy} from 'mattermost-redux/selectors/entities/access_control';
 
@@ -45,6 +45,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getAccessControlFields,
             createJob,
             updateAccessControlPolicyActive,
+            getVisualAST,
         }, dispatch),
     };
 }
