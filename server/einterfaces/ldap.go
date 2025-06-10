@@ -29,4 +29,5 @@ type LdapDiagnosticInterface interface {
 	GetVendorNameAndVendorVersion(rctx request.CTX) (string, string, error)
 	RunTestConnection(rctx request.CTX, settings *model.LdapSettings) *model.AppError
 	RunTestFilters(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)
+	RunTestAttributes(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)
 }
