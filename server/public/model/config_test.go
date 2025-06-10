@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"reflect"
 	"testing"
@@ -1580,29 +1581,20 @@ func TestPluginSettingsSanitize(t *testing.T) {
 	}{
 		"nil list of manifests": {
 			manifests: nil,
-			expected: map[string]map[string]any{
-				"plugin.id": {
-					"somesetting":  FakeSetting,
-					"secrettext":   FakeSetting,
-					"secretnumber": FakeSetting,
-				},
-				"another.plugin": {
-					"somesetting": FakeSetting,
-				},
-			},
+			expected:  map[string]map[string]any{},
 		},
 		"empty list of manifests": {
 			manifests: []*Manifest{},
-			expected: map[string]map[string]any{
-				"plugin.id": {
-					"somesetting":  FakeSetting,
-					"secrettext":   FakeSetting,
-					"secretnumber": FakeSetting,
-				},
-				"another.plugin": {
-					"somesetting": FakeSetting,
+			expected:  map[string]map[string]any{},
+		},
+		"one plugin installed without settings schema": {
+			manifests: []*Manifest{
+				{
+					Id:             "plugin.id",
+					SettingsSchema: nil,
 				},
 			},
+			expected: map[string]map[string]any{},
 		},
 		"one plugin installed": {
 			manifests: []*Manifest{
@@ -1687,13 +1679,9 @@ func TestPluginSettingsSanitize(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			if name != "one plugin installed" {
-				return
-			}
-
 			c := PluginSettings{}
 			c.SetDefaults(*NewLogSettings())
-			c.Plugins = plugins
+			maps.Copy(c.Plugins, plugins)
 
 			c.Sanitize(tc.manifests)
 
