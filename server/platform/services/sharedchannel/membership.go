@@ -19,27 +19,19 @@ func (scs *Service) isChannelMemberSyncEnabled() bool {
 	featureFlagEnabled := scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync
 	remoteClusterService := scs.server.GetRemoteClusterService()
 
-	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Checking channel member sync enabled status",
-		mlog.Bool("feature_flag_enabled", featureFlagEnabled),
-		mlog.Bool("remote_cluster_service_available", remoteClusterService != nil),
-	)
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG CONFIG] Checking channel member sync enabled status - feature_flag=%t, remote_service_available=%t", featureFlagEnabled, remoteClusterService != nil))
 
 	enabled := featureFlagEnabled && remoteClusterService != nil
 
 	if !enabled {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Channel member sync disabled",
-			mlog.Bool("feature_flag_enabled", featureFlagEnabled),
-			mlog.Bool("remote_cluster_service_available", remoteClusterService != nil),
-			mlog.String("reason", func() string {
-				if !featureFlagEnabled {
-					return "feature flag disabled"
-				}
-				if remoteClusterService == nil {
-					return "remote cluster service unavailable"
-				}
-				return "unknown"
-			}()),
-		)
+		reason := "unknown"
+		if !featureFlagEnabled {
+			reason = "feature flag disabled"
+		} else if remoteClusterService == nil {
+			reason = "remote cluster service unavailable"
+		}
+
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG CONFIG] Channel member sync disabled - feature_flag=%t, remote_service_available=%t, reason=%s", featureFlagEnabled, remoteClusterService != nil, reason))
 	}
 
 	return enabled
