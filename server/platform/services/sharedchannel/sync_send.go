@@ -378,7 +378,7 @@ func (scs *Service) processTask(task syncTask) error {
 	// Check if this is a membership change task
 	if task.existingMsg != nil && len(task.existingMsg.MembershipChanges) > 0 {
 		// Check if feature flag is enabled
-		if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
+		if !scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync {
 			return nil
 		}
 		scs.processMembershipChange(task.existingMsg)

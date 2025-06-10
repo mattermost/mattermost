@@ -16,7 +16,7 @@ import (
 
 // isChannelMemberSyncEnabled checks if the feature flag is enabled and remote cluster service is available
 func (scs *Service) isChannelMemberSyncEnabled() bool {
-	featureFlagEnabled := scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync
+	featureFlagEnabled := scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync
 	remoteClusterService := scs.server.GetRemoteClusterService()
 
 	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG CONFIG] Checking channel member sync enabled status - feature_flag=%t, remote_service_available=%t", featureFlagEnabled, remoteClusterService != nil))

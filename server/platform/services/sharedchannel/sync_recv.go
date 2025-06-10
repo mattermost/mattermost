@@ -62,7 +62,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 	// Check if this is a membership change message
 	if len(syncMsg.MembershipChanges) > 0 {
 		// Check if feature flag is enabled
-		if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
+		if !scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync {
 			return nil
 		}
 		return scs.onReceiveMembershipChanges(syncMsg, rc, response)
