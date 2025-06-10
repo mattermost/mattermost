@@ -3413,14 +3413,10 @@ func TestCreateChannelWithCategorySorting(t *testing.T) {
 			TeamId:      th.BasicTeam.Id,
 		}
 
-		channel, appErr := th.App.CreateChannel(th.Context, channel, false)
+		channel, appErr := th.App.CreateChannelWithUser(th.Context, channel, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "Channel Name", channel.DisplayName)
 		require.Equal(t, "Category", channel.DefaultCategoryName)
-
-		// Add user to channel
-		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
-		require.Nil(t, appErr)
 
 		// Verify channel is in default category
 		categories, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
@@ -3435,6 +3431,24 @@ func TestCreateChannelWithCategorySorting(t *testing.T) {
 			}
 		}
 		assert.True(t, foundCategory, "Category 'Category' not found in sidebar categories")
+
+		// Add user to channel
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
+		require.Nil(t, appErr)
+
+		// Verify channel is in default category
+		categories2, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser2.Id, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+
+		foundCategory2 := false
+		for _, category := range categories2.Categories {
+			if category.DisplayName == "Category" {
+				foundCategory2 = true
+				assert.Contains(t, category.Channels, channel.Id)
+				break
+			}
+		}
+		assert.True(t, foundCategory2, "Category 'Category' not found in sidebar categories")
 	})
 
 	t.Run("should not set category when feature is disabled", func(t *testing.T) {

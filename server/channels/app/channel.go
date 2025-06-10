@@ -186,6 +186,8 @@ func (a *App) CreateChannelWithUser(c request.CTX, channel *model.Channel, userI
 		return nil, err
 	}
 
+	a.addChannelToDefaultCategory(c, user, channel)
+
 	if err = a.postJoinChannelMessage(c, user, channel); err != nil {
 		return nil, err
 	}

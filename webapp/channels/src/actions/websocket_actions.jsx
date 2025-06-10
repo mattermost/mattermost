@@ -25,7 +25,7 @@ import {
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder, addChannelToDefaultCategory} from 'mattermost-redux/actions/channel_categories';
+import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
     getMyChannelMember,
@@ -693,11 +693,6 @@ export function handleChannelUpdatedEvent(msg) {
         }
 
         doDispatch(batchActions(actions));
-
-        // // Handle default category name
-        // if (channel.default_category_name && getConfig(state).ExperimentalChannelCategorySorting === 'true') {
-        //     dispatch(addChannelToDefaultCategory(channel));
-        // }
 
         if (channel.id === getCurrentChannelId(state)) {
             // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.
