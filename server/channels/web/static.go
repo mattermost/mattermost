@@ -89,7 +89,13 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	
+	defaultLocale := *c.App.Srv().Config().LocalizationSettings.DefaultServerLocale
+	contents = bytes.ReplaceAll(
+		contents,
+		[]byte(`<html lang="en">`),
+		[]byte(fmt.Sprintf(`<html lang="%s">`, defaultLocale)),
+	)
 	titleTemplate := "<title>%s</title>"
 	originalHTML := fmt.Sprintf(titleTemplate, html.EscapeString(model.TeamSettingsDefaultSiteName))
 	modifiedHTML := getOpenGraphMetaTags(c)
