@@ -16,7 +16,33 @@ import (
 
 // isChannelMemberSyncEnabled checks if the feature flag is enabled and remote cluster service is available
 func (scs *Service) isChannelMemberSyncEnabled() bool {
-	return scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync && scs.server.GetRemoteClusterService() != nil
+	featureFlagEnabled := scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync
+	remoteClusterService := scs.server.GetRemoteClusterService()
+
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Checking channel member sync enabled status",
+		mlog.Bool("feature_flag_enabled", featureFlagEnabled),
+		mlog.Bool("remote_cluster_service_available", remoteClusterService != nil),
+	)
+
+	enabled := featureFlagEnabled && remoteClusterService != nil
+
+	if !enabled {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Channel member sync disabled",
+			mlog.Bool("feature_flag_enabled", featureFlagEnabled),
+			mlog.Bool("remote_cluster_service_available", remoteClusterService != nil),
+			mlog.String("reason", func() string {
+				if !featureFlagEnabled {
+					return "feature flag disabled"
+				}
+				if remoteClusterService == nil {
+					return "remote cluster service unavailable"
+				}
+				return "unknown"
+			}()),
+		)
+	}
+
+	return enabled
 }
 
 // queueMembershipSyncTask creates and queues a task to synchronize channel membership changes
