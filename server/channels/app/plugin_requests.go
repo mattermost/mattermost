@@ -256,11 +256,12 @@ func (ch *Channels) validateCSRFForPluginRequest(rctx request.CTX, r *http.Reque
 		if *ch.cfgSvc.Config().ServiceSettings.StrictCSRFEnforcement {
 			rctx.Logger().Warn(csrfErrorMessage, mlog.String("session_id", session.Id))
 			return false
-		} else {
-			// Allow XMLHttpRequest for backward compatibility when not strict
-			rctx.Logger().Debug(csrfErrorMessage, mlog.String("session_id", session.Id))
-			return true
 		}
+
+		// Allow XMLHttpRequest for backward compatibility when not strict
+		rctx.Logger().Debug(csrfErrorMessage, mlog.String("session_id", session.Id))
+		return true
+
 	}
 
 	return false
