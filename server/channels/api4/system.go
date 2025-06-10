@@ -136,8 +136,10 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Prevent caching so support packets are always fresh
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
-	// Send the zip file back to client
-	web.WriteStreamResponse(w, fileBytesReader, outputZipFilename, FileMime, true)
+	err = web.WriteStreamResponse(w, fileBytesReader, outputZipFilename, FileMime, true)
+	if err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 // supportPacketFileName returns the ZIP file name in the format mm_support_packet_$CUSTOMER_NAME_YYYY-MM-DDTHH-MM.zip.
