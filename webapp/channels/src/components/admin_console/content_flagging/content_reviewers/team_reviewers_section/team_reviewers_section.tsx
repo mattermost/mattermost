@@ -179,6 +179,7 @@ export default function TeamReviewers(): JSX.Element {
                 total={total}
                 onSearch={setSearchTerm}
                 extraComponent={disableAllBtn}
+                term={teamSearchTerm}
             />
         </div>
     );
