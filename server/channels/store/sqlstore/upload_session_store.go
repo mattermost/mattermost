@@ -26,7 +26,19 @@ func newSqlUploadSessionStore(sqlStore *SqlStore) store.UploadSessionStore {
 	}
 
 	s.uploadSessionQuery = s.getQueryBuilder().
-		Select("Id", "Type", "CreateAt", "UserId", "ChannelId", "Filename", "Path", "FileSize", "FileOffset", "RemoteId", "ReqFileId").
+		Select(
+			"Id",
+			"Type",
+			"CreateAt",
+			"UserId",
+			"ChannelId",
+			"Filename",
+			"Path",
+			"FileSize",
+			"FileOffset",
+			"RemoteId",
+			"ReqFileId",
+		).
 		From("UploadSessions")
 
 	return s
