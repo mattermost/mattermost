@@ -22,3 +22,34 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/imports/{import_name}":
+    delete:
+      tags:
+        - imports
+      summary: Delete an import file
+      description: |
+        Deletes an import file.
+
+
+        __Minimum server version__: 5.31
+
+        ##### Permissions
+
+        Must have `manage_system` permissions.
+      operationId: DeleteImport
+      parameters:
+        - name: import_name
+          in: path
+          description: The name of the import file to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
