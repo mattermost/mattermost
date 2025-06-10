@@ -358,8 +358,11 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 	tableDataTruncated := false
 	for !tableDataTruncated {
 		var count int64
-		count, _, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-			0, model.GetMillis(), 1000, model.RetentionPolicyCursor{})
+		count, _, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+			Now:                 0,
+			GlobalPolicyEndTime: model.GetMillis(),
+			Limit:               1000,
+		}, model.RetentionPolicyCursor{})
 		require.NoError(t, err, "Failed to truncate ChannelMemberHistory contents")
 		tableDataTruncated = count == int64(0)
 	}
@@ -493,8 +496,11 @@ func testPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Len(t, channelMembers, 2)
 
 	// the permanent delete should delete at least one record
-	rowsDeleted, _, err := ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-		0, leaveTime+1, math.MaxInt64, model.RetentionPolicyCursor{})
+	rowsDeleted, _, err := ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: leaveTime + 1,
+		Limit:               math.MaxInt64,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	assert.NotEqual(t, int64(0), rowsDeleted)
 
@@ -540,8 +546,11 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx request.CTX
 	require.NoError(t, err)
 
 	nowMillis := leaveTime + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
-	_, _, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-		nowMillis, 0, limit, model.RetentionPolicyCursor{})
+	_, _, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 nowMillis,
+		GlobalPolicyEndTime: 0,
+		Limit:               limit,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	result, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime, leaveTime, []string{channel.Id})
 	require.NoError(t, err)
