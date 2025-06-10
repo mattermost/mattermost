@@ -10,6 +10,7 @@ import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import {
     ldapTest,
+    ldapTestAttributes,
     ldapTestConnection,
     ldapTestFilters,
     removePrivateLdapCertificate,
@@ -507,6 +508,22 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 label: defineMessage({id: 'admin.ldap.pictureAttrTitle', defaultMessage: 'Profile Picture Attribute:'}),
                 placeholder: defineMessage({id: 'admin.ldap.pictureAttrEx', defaultMessage: 'E.g.: "thumbnailPhoto" or "jpegPhoto"'}),
                 help_text: defineMessage({id: 'admin.ldap.pictureAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the profile picture in Mattermost.'}),
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                    it.all(
+                        it.stateIsFalse('LdapSettings.Enable'),
+                        it.stateIsFalse('LdapSettings.EnableSync'),
+                    ),
+                ),
+            },
+            {
+                type: 'button',
+                action: ldapTestAttributes,
+                key: 'LdapSettings.TestAttributes',
+                label: defineMessage({id: 'admin.ldap.testAttributesTitle', defaultMessage: 'Test Attributes'}),
+                help_text_markdown: false,
+                error_message: defineMessage({id: 'admin.ldap.testAttributesFailure', defaultMessage: 'We failed to find some attributes: {error}'}),
+                success_message: defineMessage({id: 'admin.ldap.testAttributesSuccess', defaultMessage: 'Test Successful'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(

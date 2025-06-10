@@ -93,7 +93,7 @@
 
         ##### Permissions
 
-        Must have `manage_system` permission.
+        Must have `sysconsole_read_authentication_ldap` or `manage_system` permission.
       operationId: TestLdapFilters
       requestBody:
         description: LDAP settings to test filters with
@@ -110,7 +110,47 @@
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/LdapFilterTestResult"
+                  $ref: "#/components/schemas/LdapDiagnosticResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/ldap/test_attributes:
+    post:
+      tags:
+        - LDAP
+      summary: Test LDAP attribute mappings with specific settings
+      description: >
+        Test the LDAP attribute mappings using the provided settings to validate
+        that configured attributes are available in the LDAP directory and see
+        sample results without modifying the current server configuration.
+
+        ##### Permissions
+
+        Must have `sysconsole_read_authentication_ldap` or `manage_system` permission.
+      operationId: TestLdapAttributes
+      requestBody:
+        description: LDAP settings to test attribute mappings with
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LdapSettings"
+      responses:
+        "200":
+          description: LDAP attribute test results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LdapDiagnosticResult"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
