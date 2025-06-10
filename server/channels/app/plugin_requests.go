@@ -218,6 +218,8 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	if ch.validateCSRFForPluginRequest(rctx, r, session, cookieAuth) {
 		r.Header.Set("Mattermost-User-Id", session.UserId)
 		context.SessionId = session.Id
+	} else {
+		rctx.Logger().Debug("CSRF request failed. Treating the request as unauthenticated.")
 	}
 
 	handler(context, w, r)
