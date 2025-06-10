@@ -15,6 +15,7 @@ import {getSuggestionsSplitBy, getSuggestionsSplitByMultiple} from 'mattermost-r
 import store from 'stores/redux_store';
 
 import {Constants} from 'utils/constants';
+import * as TextFormatting from 'utils/text_formatting';
 
 import type {GlobalState} from 'types/store';
 
@@ -24,6 +25,9 @@ import Provider from '../provider';
 
 const profilesInChannelOptions = {active: true};
 const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;
+
+// Global token index for remote mentions
+let tokenIndex = 0;
 
 type UserProfileWithLastViewAt = UserProfile & {last_viewed_at?: number};
 
@@ -371,7 +375,27 @@ export default class AtMentionProvider extends Provider {
         // Add the textboxId for each suggestions
         const modifiedItems = items.map((item) => {
             if (item.username) {
-                mentions.push('@' + item.username);
+                const mentionText = '@' + item.username;
+
+                // Check if this is a remote user mention (contains colon)
+                if (item.remote_id && item.username.includes(':')) {
+                    // Create a protected token for remote mentions to bypass markdown parsing
+                    const token = `$MM_ATMENTION_REMOTE${tokenIndex++}$`;
+                    TextFormatting.storeRemoteMentionToken(token, mentionText);
+                    mentions.push(token);
+
+                    // Debug: Log remote mention tokenization (Scenario 2)
+                    // eslint-disable-next-line no-console
+                    console.log('[SHARED_CHANNEL_DEBUG] SCENARIO2_AtMentionProvider: Tokenizing remote mention', {
+                        username: item.username,
+                        mentionText,
+                        token,
+                        remote_id: item.remote_id,
+                        step: 'Creating protection token for @user:serverB',
+                    });
+                } else {
+                    mentions.push(mentionText);
+                }
             } else if (item.name) {
                 mentions.push('@' + item.name);
             } else {
@@ -393,6 +417,17 @@ export default class AtMentionProvider extends Provider {
         if (!captured) {
             return false;
         }
+
+        // Debug: Log mention being typed
+        const isRemoteMention = captured[1].includes(':');
+        const scenario = isRemoteMention ? 'SCENARIO2' : 'SCENARIO1';
+        // eslint-disable-next-line no-console
+        console.log(`[SHARED_CHANNEL_DEBUG] ${scenario}_AtMentionProvider: User typing mention`, {
+            pretext,
+            captured: captured[0],
+            prefix: captured[1],
+            isRemoteMention,
+        });
 
         if (this.lastCompletedWord && captured[0].trim().startsWith(this.lastCompletedWord.trim())) {
             // It appears we're still matching a channel handle that we already completed

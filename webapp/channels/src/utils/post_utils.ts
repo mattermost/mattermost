@@ -41,7 +41,7 @@ import Constants, {PostListRowListIds} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
-import {allAtMentions} from 'utils/text_formatting';
+import {allAtMentions, AT_MENTION_PATTERN} from 'utils/text_formatting';
 import {isMobile} from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
@@ -442,10 +442,23 @@ export function makeGetMentionsFromMessage(): (state: GlobalState, post: Post) =
         (state: GlobalState) => getUsersByUsername(state),
         (post, users) => {
             const mentions: Record<string, UserProfile> = {};
-            const mentionsArray = post.message.match(Constants.MENTIONS_REGEX) || [];
-            for (let i = 0; i < mentionsArray.length; i++) {
-                const mention = mentionsArray[i];
-                const user = getMentionDetails(users, mention.substring(1)) as UserProfile | '';
+
+            // Use AT_MENTION_PATTERN to get ALL mentions (including remote ones)
+            const allMentionsArray = post.message.match(AT_MENTION_PATTERN) || [];
+
+            for (let i = 0; i < allMentionsArray.length; i++) {
+                const mention = allMentionsArray[i];
+                const mentionName = mention.substring(1);
+
+                let user: UserProfile | undefined;
+
+                if (mentionName.includes(':')) {
+                    // Remote user - use enhanced lookup
+                    [user] = getUserOrGroupFromMentionName(mentionName, users, {});
+                } else {
+                    // Local user - use existing logic
+                    user = getMentionDetails(users, mentionName) as UserProfile | undefined;
+                }
 
                 if (user) {
                     mentions[mention] = user;
@@ -796,7 +809,43 @@ export function getUserOrGroupFromMentionName(
     groups: Record<string, Group>,
     groupsDisabled?: boolean,
     getMention = getMentionDetails,
+    remoteClusters?: Array<{remote_id: string; name: string; display_name: string}>,
 ): [UserProfile?, Group?] {
+    // Handle special case for remote user mentions in the format username:clustername
+    if (mentionName.includes(':')) {
+        // First try direct lookup - remote users are stored with full username like "admin:org1"
+        const user = users[mentionName];
+        if (user?.remote_id) {
+            return [user, undefined];
+        }
+
+        // Fallback: If direct lookup fails, try matching with remoteClusters mapping
+        if (!remoteClusters?.length) {
+            return [undefined, undefined];
+        }
+
+        const [username, clusterName] = mentionName.split(':', 2);
+        if (!username || !clusterName) {
+            return [undefined, undefined];
+        }
+
+        // Create a map of remote_id to name for case-insensitive lookup
+        const remoteIdToName = new Map(
+            remoteClusters.map((cluster) => [cluster.remote_id, cluster.name.toLowerCase()]),
+        );
+
+        // Find remote user with matching base username and cluster
+        const targetClusterName = clusterName.toLowerCase();
+        for (const user of Object.values(users)) {
+            if (user.username.startsWith(`${username}:`) &&
+                user.remote_id &&
+                remoteIdToName.get(user.remote_id) === targetClusterName) {
+                return [user, undefined];
+            }
+        }
+    }
+
+    // Continue with normal user/group lookup
     const user = getMention(users, mentionName);
 
     // prioritizes user if user exists with the same name as a group.

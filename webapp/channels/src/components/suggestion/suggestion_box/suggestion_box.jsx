@@ -8,6 +8,7 @@ import QuickInput from 'components/quick_input';
 
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+import * as TextFormatting from 'utils/text_formatting';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
@@ -447,6 +448,20 @@ export default class SuggestionBox extends React.PureComponent {
             fixedTerm = term.substring(0, term.length - OPEN_COMMAND_IN_MODAL_ITEM_ID.length);
             finish = true;
             openCommandInModal = true;
+        }
+
+        // Restore remote mention tokens to actual mentions in the textbox
+        const beforeRestore = fixedTerm;
+        fixedTerm = TextFormatting.restoreRemoteMentionTokens(fixedTerm);
+
+        // Debug: Log token restoration for Scenario 2
+        if (beforeRestore !== fixedTerm && beforeRestore.includes('$MM_ATMENTION_REMOTE')) {
+            // eslint-disable-next-line no-console
+            console.log('[SHARED_CHANNEL_DEBUG] SCENARIO2_SuggestionBox: Token restoration', {
+                before: beforeRestore,
+                after: fixedTerm,
+                step: 'Restoring remote mention token to actual mention',
+            });
         }
 
         if (!finish) {

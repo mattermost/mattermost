@@ -14,6 +14,7 @@ import './redux-persist_mock';
 import './react-intl_mock';
 import './react-router-dom_mock';
 import './react-tippy_mock';
+import './secure_connections_mock';
 
 module.exports = async () => {
     // eslint-disable-next-line no-process-env
