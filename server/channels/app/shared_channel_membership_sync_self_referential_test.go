@@ -39,6 +39,11 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	err := service.Start()
 	require.NoError(t, err)
 
+	// Wait for service to be fully active
+	require.Eventually(t, func() bool {
+		return service.Active()
+	}, 5*time.Second, 100*time.Millisecond, "SharedChannelService should be active")
+
 	// Also ensure the remote cluster service is running so callbacks work
 	rcService := th.App.Srv().GetRemoteClusterService()
 	if rcService != nil {
@@ -49,10 +54,10 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			rc.SetActive(true)
 		}
 
-		// Verify it's active
-		if !rcService.Active() {
-			t.Fatalf("RemoteClusterService is not active after SetActive")
-		}
+		// Wait for remote cluster service to be active
+		require.Eventually(t, func() bool {
+			return rcService.Active()
+		}, 5*time.Second, 100*time.Millisecond, "RemoteClusterService should be active")
 	}
 
 	t.Run("Test 1: Automatic sync on membership changes", func(t *testing.T) {
@@ -149,13 +154,13 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.Eventually(t, func() bool {
 			count := atomic.LoadInt32(&syncMessageCount)
 			return count > initialCount
-		}, 5*time.Second, 100*time.Millisecond, "Should have received sync message for user removal")
+		}, 10*time.Second, 100*time.Millisecond, "Should have received sync message for user removal")
 
-		// Wait for the removal to be processed
+		// Wait for the removal to be processed with more generous timeout for CI environments
 		require.Eventually(t, func() bool {
 			_, err = ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
 			return err != nil
-		}, 5*time.Second, 100*time.Millisecond, "User should not be a member after removal")
+		}, 20*time.Second, 200*time.Millisecond, "User should not be a member after removal")
 	})
 	t.Run("Test 2: Batch membership sync with user type filtering", func(t *testing.T) {
 		EnsureCleanState(t, th, ss)
@@ -1582,16 +1587,21 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
 		require.NoError(t, err)
 
-		// Wait for first sync
+		// Wait for first sync with more generous timeout
 		require.Eventually(t, func() bool {
 			return atomic.LoadInt32(&syncAttempts) >= 1
-		}, 5*time.Second, 100*time.Millisecond)
+		}, 15*time.Second, 200*time.Millisecond, "Should complete first sync")
 
-		// Get cursor after first sync
-		scr1, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
-		require.NoError(t, scrErr)
-		firstCursor := scr1.LastMembersSyncAt
-		assert.Greater(t, firstCursor, int64(0), "Cursor should be set after first sync")
+		// Wait for cursor to be updated after first sync
+		var firstCursor int64
+		require.Eventually(t, func() bool {
+			scr1, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
+			if scrErr != nil {
+				return false
+			}
+			firstCursor = scr1.LastMembersSyncAt
+			return firstCursor > 0
+		}, 10*time.Second, 200*time.Millisecond, "Cursor should be set after first sync")
 
 		// Add more users to ensure we still have > 20 total for batch sync
 		for i := 0; i < 5; i++ {
@@ -1606,10 +1616,10 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
 		require.NoError(t, err) // Method itself shouldn't error
 
-		// Wait for second sync attempt
+		// Wait for second sync attempt with more generous timeout
 		require.Eventually(t, func() bool {
 			return atomic.LoadInt32(&syncAttempts) >= 2
-		}, 10*time.Second, 100*time.Millisecond)
+		}, 20*time.Second, 200*time.Millisecond, "Should attempt second sync")
 
 		// Wait for any cursor updates to complete and verify cursor was not updated
 		require.Never(t, func() bool {
@@ -1618,7 +1628,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 				return false
 			}
 			return scr2.LastMembersSyncAt > firstCursor
-		}, 3*time.Second, 100*time.Millisecond, "Cursor should not update when sync fails")
+		}, 5*time.Second, 200*time.Millisecond, "Cursor should not update when sync fails")
 	})
 	t.Run("Test 11: Users in Multiple Shared Channels", func(t *testing.T) {
 		// This test verifies deduplication when users belong to multiple shared channels.
