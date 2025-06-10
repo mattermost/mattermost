@@ -1136,13 +1136,11 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, opts *model.C
 func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error) {
 	query := s.getQueryBuilder().
 		Select(channelSliceColumns(true, "Channels")...).
-		From("Channels, ChannelMembers, Teams").
+		From("Channels").
+		InnerJoin("ChannelMembers ON (Channels.Id = ChannelMembers.ChannelId)").
+		LeftJoin("Teams ON (Channels.TeamId = Teams.Id)").
 		Where(
-			sq.And{
-				sq.Expr("Channels.Id = ChannelMembers.ChannelId"),
-				sq.Expr("Channels.TeamId = Teams.Id"),
-				sq.Eq{"ChannelMembers.UserId": userId},
-			},
+			sq.Eq{"ChannelMembers.UserId": userId},
 		).
 		OrderBy("Channels.Id ASC")
 
@@ -1163,6 +1161,7 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 					sq.GtOrEq{"Channels.DeleteAt": lastDeleteAt},
 				},
 				sq.Or{
+					sq.Eq{"Teams.Id": nil},
 					sq.Eq{"Teams.DeleteAt": 0},
 					sq.GtOrEq{"Teams.DeleteAt": lastDeleteAt},
 				},
@@ -1173,7 +1172,10 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 		// Don't include archived channels or channels from deleted teams
 		query = query.Where(sq.And{
 			sq.Eq{"Channels.DeleteAt": 0},
-			sq.Eq{"Teams.DeleteAt": 0},
+			sq.Or{
+				sq.Eq{"Teams.DeleteAt": 0},
+				sq.Eq{"Teams.Id": nil},
+			},
 		})
 	}
 
