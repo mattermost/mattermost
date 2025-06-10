@@ -373,211 +373,11 @@ func (scs *Service) processMembershipChange(syncMsg *model.SyncMsg) {
 		return
 	}
 
-	// Process batch if multiple changes, otherwise process single change
-	if len(syncMsg.MembershipChanges) == 1 {
-		change := syncMsg.MembershipChanges[0]
-		// Sync to all remotes except the one that initiated this change
-		for _, remote := range remotes {
-			// Skip the remote that initiated this change to prevent loops
-			if remote.RemoteId == change.RemoteId {
-				continue
-			}
-
-			// Create a task for each remote
-			scs.syncMembershipToRemote(syncMsg.ChannelId, change.UserId, change.IsAdd, remote, change.ChangeTime)
-		}
-	} else {
-		// Batch processing - send all changes at once
-		scs.syncMembershipBatchToRemotes(syncMsg, remotes)
-	}
+	// Always use batch processing for consistency (works for single or multiple changes)
+	scs.syncMembershipBatchToRemotes(syncMsg, remotes)
 }
 
-// syncMembershipToRemote synchronizes a channel membership change with a remote cluster.
-func (scs *Service) syncMembershipToRemote(channelID, userID string, isAdd bool, remote *model.SharedChannelRemote, changeTime int64) {
-	// Get the remote cluster
-	rc, err := scs.server.GetStore().RemoteCluster().Get(remote.RemoteId, false)
-	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to get remote cluster for membership sync",
-			mlog.String("remote_id", remote.RemoteId),
-			mlog.String("channel_id", channelID),
-			mlog.Err(err),
-		)
-		return
-	}
-
-	// Get the user and check if they should be synced in one operation
-	user, err := scs.server.GetStore().User().Get(context.Background(), userID)
-	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to get user for membership sync",
-			mlog.String("user_id", userID),
-			mlog.String("channel_id", channelID),
-			mlog.String("remote_id", remote.RemoteId),
-			mlog.Err(err),
-		)
-		return
-	}
-
-	// Check if user profile needs to be synced to the remote
-	// We only need the first return value (doSync)
-	doSync, _, err := scs.shouldUserSync(user, channelID, rc)
-	if err == nil && doSync {
-		// Queue user profile sync using the existing task system
-		userMsg := model.NewSyncMsg(channelID)
-		userMsg.Users = map[string]*model.User{user.Id: user}
-
-		scs.queueMembershipSyncTask(channelID, user.Id, remote.RemoteId, userMsg, nil)
-	} else if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to check if user should be synced",
-			mlog.String("user_id", userID),
-			mlog.String("channel_id", channelID),
-			mlog.String("remote_id", remote.RemoteId),
-			mlog.Err(err),
-		)
-		// Continue anyway since we're more concerned with the membership change
-	}
-
-	// Create the membership change message with a slightly future timestamp
-	// to ensure it's greater than any existing timestamp
-	membershipMsg := model.NewSyncMsg(channelID)
-
-	// Use a high enough timestamp to ensure cursor updates
-	currentTime := model.GetMillis()
-	if currentTime <= changeTime {
-		currentTime = changeTime + 1
-	}
-
-	membershipMsg.MembershipChanges = []*model.MembershipChangeMsg{
-		{
-			ChannelId:  channelID,
-			UserId:     userID,
-			IsAdd:      isAdd,
-			RemoteId:   scs.getMyClusterId(),
-			ChangeTime: currentTime,
-		},
-	}
-
-	// Send message using the existing remote cluster framework
-	payload, err := json.Marshal(membershipMsg)
-	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to marshal membership message",
-			mlog.String("remote_id", remote.RemoteId),
-			mlog.String("channel_id", channelID),
-			mlog.String("user_id", userID),
-			mlog.Err(err),
-		)
-		return
-	}
-
-	msg := model.RemoteClusterMsg{
-		Id:       model.NewId(),
-		Topic:    TopicChannelMembership,
-		CreateAt: model.GetMillis(),
-		Payload:  payload,
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
-	defer cancel()
-
-	// Define a callback function with better response handling
-	callback := func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
-		if err != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error sending membership change to remote",
-				mlog.String("remote", remote.RemoteId),
-				mlog.String("channel_id", channelID),
-				mlog.String("user_id", userID),
-				mlog.Bool("is_add", isAdd),
-				mlog.Int("change_time", int(changeTime)),
-				mlog.Err(err),
-			)
-
-			// Will retry when remote comes back online
-			return
-		}
-
-		if resp != nil && resp.Err != "" {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Remote error when processing membership change",
-				mlog.String("remote", remote.RemoteId),
-				mlog.String("channel_id", channelID),
-				mlog.String("user_id", userID),
-				mlog.Bool("is_add", isAdd),
-				mlog.Int("change_time", int(changeTime)),
-				mlog.String("remote_error", resp.Err),
-			)
-			return
-		}
-
-		// Parse the response payload
-		var syncResp model.SyncResponse
-		syncSuccess := false
-
-		if resp != nil && len(resp.Payload) > 0 {
-			if jsonErr := json.Unmarshal(resp.Payload, &syncResp); jsonErr != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to parse membership sync response",
-					mlog.String("remote_id", remote.RemoteId),
-					mlog.String("channel_id", channelID),
-					mlog.String("user_id", userID),
-					mlog.Int("change_time", int(changeTime)),
-					mlog.Err(jsonErr),
-				)
-			} else {
-				// Check if this specific user was successfully synced
-				for _, syncedID := range syncResp.UsersSyncd {
-					if syncedID == userID {
-						syncSuccess = true
-						break
-					}
-				}
-			}
-		} else {
-			// For backward compatibility, assume success if no detailed response
-			syncSuccess = true
-		}
-
-		if syncSuccess {
-			// Record successful sync
-			err = scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(userID, channelID, remote.RemoteId)
-			if err != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user sync timestamp",
-					mlog.String("user_id", userID),
-					mlog.Err(err),
-				)
-			}
-
-			// Update the cursor only on success
-			if err := scs.updateMembershipSyncCursor(channelID, remote.RemoteId, changeTime, true); err != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor",
-					mlog.String("remote_id", remote.RemoteId),
-					mlog.String("channel_id", channelID),
-					mlog.String("user_id", userID),
-					mlog.Int("change_time", int(changeTime)),
-					mlog.Err(err),
-				)
-			}
-		} else {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "User not included in synced users list",
-				mlog.String("remote_id", remote.RemoteId),
-				mlog.String("channel_id", channelID),
-				mlog.String("user_id", userID),
-				mlog.Int("change_time", int(changeTime)),
-			)
-		}
-	}
-	err = scs.server.GetRemoteClusterService().SendMsg(ctx, msg, rc, callback)
-
-	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to send membership change to remote",
-			mlog.String("remote_id", remote.RemoteId),
-			mlog.String("channel_id", channelID),
-			mlog.String("user_id", userID),
-			mlog.Bool("is_add", isAdd),
-			mlog.Err(err),
-		)
-
-		// Will retry when remote comes back online
-	}
-}
-
-// syncMembershipBatchToRemotes synchronizes a batch of membership changes with remote clusters.
+// syncMembershipBatchToRemotes synchronizes membership changes (single or batch) with remote clusters.
 func (scs *Service) syncMembershipBatchToRemotes(syncMsg *model.SyncMsg, remotes []*model.SharedChannelRemote) {
 	if len(syncMsg.MembershipChanges) == 0 {
 		return
@@ -607,8 +407,38 @@ func (scs *Service) syncMembershipBatchToRemotes(syncMsg *model.SyncMsg, remotes
 			continue
 		}
 
+		// Create a copy of the sync message to potentially add user profiles
+		enrichedSyncMsg := &model.SyncMsg{
+			Id:                syncMsg.Id,
+			ChannelId:         syncMsg.ChannelId,
+			MembershipChanges: syncMsg.MembershipChanges,
+			Users:             make(map[string]*model.User),
+		}
+
+		// Add user profiles for all users being added
+		for _, change := range syncMsg.MembershipChanges {
+			if change.IsAdd {
+				user, pErr := scs.server.GetStore().User().Get(context.Background(), change.UserId)
+				if pErr != nil {
+					scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Failed to get user for batch membership sync",
+						mlog.String("user_id", change.UserId),
+						mlog.String("channel_id", syncMsg.ChannelId),
+						mlog.String("remote_id", remote.RemoteId),
+						mlog.Err(pErr),
+					)
+					continue
+				}
+
+				// Check if user profile needs to be synced
+				doSync, _, sErr := scs.shouldUserSync(user, syncMsg.ChannelId, rc)
+				if sErr == nil && doSync {
+					enrichedSyncMsg.Users[user.Id] = user
+				}
+			}
+		}
+
 		// Send message using the existing remote cluster framework
-		payload, err := json.Marshal(syncMsg)
+		payload, err := json.Marshal(enrichedSyncMsg)
 		if err != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to marshal batch membership message",
 				mlog.String("remote_id", remote.RemoteId),

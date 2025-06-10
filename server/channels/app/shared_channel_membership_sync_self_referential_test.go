@@ -135,7 +135,7 @@ package app
 // 			return count > initialCount
 // 		}, 10*time.Second, 100*time.Millisecond, "Should have received sync message for user removal")
 
-// 		// Wait for the removal to be processed with more generous timeout for CI environments
+// 		// Wait for the removal to be processed
 // 		require.Eventually(t, func() bool {
 // 			_, err = ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
 // 			return err != nil

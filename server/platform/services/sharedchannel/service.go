@@ -235,12 +235,6 @@ func (scs *Service) pause() {
 	scs.server.Log().Debug("Shared Channel Service inactive")
 }
 
-// getMyClusterId returns the ID of this cluster
-func (scs *Service) getMyClusterId() string {
-	// Get the cluster ID from the server interface
-	return scs.server.GetClusterId()
-}
-
 // GetMemberSyncBatchSize returns the configured batch size for member synchronization
 func (scs *Service) GetMemberSyncBatchSize() int {
 	if scs.server.Config().ConnectedWorkspacesSettings.MemberSyncBatchSize != nil {
