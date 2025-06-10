@@ -134,7 +134,7 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 			updatedUser, appErr := th.App.UpdateActive(th.Context, user, true)
 			require.NotNil(t, appErr)
 			require.Nil(t, updatedUser)
-			require.Equal(t, "app.user.update_active.user_limit.exceeded", appErr.Id)
+			require.Equal(t, "app.user.update_active.license_user_limit.exceeded", appErr.Id)
 		})
 
 		t.Run("reactivation blocked above limit", func(t *testing.T) {
@@ -164,7 +164,7 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 			updatedUser, appErr := th.App.UpdateActive(th.Context, user, true)
 			require.NotNil(t, appErr)
 			require.Nil(t, updatedUser)
-			require.Equal(t, "app.user.update_active.user_limit.exceeded", appErr.Id)
+			require.Equal(t, "app.user.update_active.license_user_limit.exceeded", appErr.Id)
 		})
 	})
 
@@ -302,7 +302,7 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
 		require.NotNil(t, appErr)
 		require.Nil(t, createdUser)
-		require.Equal(t, "api.user.create_user.user_limits.exceeded", appErr.Id)
+		require.Equal(t, "api.user.create_user.license_user_limits.exceeded", appErr.Id)
 	})
 
 	t.Run("seat count enforced - blocks user creation when over limit", func(t *testing.T) {
@@ -339,7 +339,7 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
 		require.NotNil(t, appErr)
 		require.Nil(t, createdUser)
-		require.Equal(t, "api.user.create_user.user_limits.exceeded", appErr.Id)
+		require.Equal(t, "api.user.create_user.license_user_limits.exceeded", appErr.Id)
 	})
 
 	t.Run("seat count not enforced - allows user creation even when over limit", func(t *testing.T) {
@@ -439,7 +439,7 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, true)
 		require.NotNil(t, appErr)
 		require.Nil(t, createdUser)
-		require.Equal(t, "api.user.create_user.user_limits.exceeded", appErr.Id)
+		require.Equal(t, "api.user.create_user.license_user_limits.exceeded", appErr.Id)
 	})
 
 	t.Run("guest creation with seat count enforcement - allows when under limit", func(t *testing.T) {
