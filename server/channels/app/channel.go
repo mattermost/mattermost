@@ -888,6 +888,12 @@ func (a *App) PatchChannel(c request.CTX, channel *model.Channel, patch *model.C
 		return nil, err
 	}
 
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	a.addChannelToDefaultCategory(c, user, channel)
+
 	if oldChannelDisplayName != channel.DisplayName {
 		if err = a.PostUpdateChannelDisplayNameMessage(c, userID, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
 			c.Logger().Warn(err.Error())
@@ -1684,6 +1690,24 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 		return nil, err
 	}
 
+	a.addChannelToDefaultCategory(c, user, channel)
+
+	// We are sending separate websocket events to the user added and to the channel
+	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
+	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", map[string]bool{user.Id: true}, "")
+	message.Add("user_id", user.Id)
+	message.Add("team_id", channel.TeamId)
+	a.Publish(message)
+
+	userMessage := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, user.Id, nil, "")
+	userMessage.Add("user_id", user.Id)
+	userMessage.Add("team_id", channel.TeamId)
+	a.Publish(userMessage)
+
+	return newMember, nil
+}
+
+func (a *App) addChannelToDefaultCategory(c request.CTX, user *model.User, channel *model.Channel) {
 	// Add channel to default category if specified
 	if channel.DefaultCategoryName != "" && *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting {
 		mlog.Info("Adding channel to default category", mlog.String("user_id", user.Id), mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.String("category_name", channel.DefaultCategoryName))
@@ -1732,20 +1756,6 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 			}
 		}
 	}
-
-	// We are sending separate websocket events to the user added and to the channel
-	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
-	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", map[string]bool{user.Id: true}, "")
-	message.Add("user_id", user.Id)
-	message.Add("team_id", channel.TeamId)
-	a.Publish(message)
-
-	userMessage := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, user.Id, nil, "")
-	userMessage.Add("user_id", user.Id)
-	userMessage.Add("team_id", channel.TeamId)
-	a.Publish(userMessage)
-
-	return newMember, nil
 }
 
 type ChannelMemberOpts struct {
