@@ -18,23 +18,7 @@ import (
 func (scs *Service) isChannelMemberSyncEnabled() bool {
 	featureFlagEnabled := scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync
 	remoteClusterService := scs.server.GetRemoteClusterService()
-
-	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG CONFIG] Checking channel member sync enabled status - feature_flag=%t, remote_service_available=%t", featureFlagEnabled, remoteClusterService != nil))
-
-	enabled := featureFlagEnabled && remoteClusterService != nil
-
-	if !enabled {
-		reason := "unknown"
-		if !featureFlagEnabled {
-			reason = "feature flag disabled"
-		} else if remoteClusterService == nil {
-			reason = "remote cluster service unavailable"
-		}
-
-		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG CONFIG] Channel member sync disabled - feature_flag=%t, remote_service_available=%t, reason=%s", featureFlagEnabled, remoteClusterService != nil, reason))
-	}
-
-	return enabled
+	return featureFlagEnabled && remoteClusterService != nil
 }
 
 // queueMembershipSyncTask creates and queues a task to synchronize channel membership changes
