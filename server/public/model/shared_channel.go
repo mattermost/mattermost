@@ -319,13 +319,6 @@ type SyncResponse struct {
 	StatusErrors []string `json:"status_errors"` // user IDs for which the status sync failed
 }
 
-// MembershipChange represents a channel membership change that needs to be synchronized
-type MembershipChange struct {
-	UserId     string `json:"user_id"`
-	IsAdd      bool   `json:"is_add"` // true for add, false for remove
-	ChangeTime int64  `json:"change_time"`
-}
-
 // RegisterPluginOpts is passed by plugins to the `RegisterPluginForSharedChannels` plugin API
 // to provide options for registering as a shared channels remote.
 type RegisterPluginOpts struct {
