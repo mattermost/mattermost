@@ -15,7 +15,7 @@ type Props = {
 function ModalHeader({id, title, subtitle, handleClose}: Props) {
     const intl = useIntl();
     return (
-        <header className='mm-modal-header'>
+        <div className='mm-modal-header'>
             <h2
                 id={`mm-modal-header-${id}`}
                 className='mm-modal-header__title'
@@ -33,7 +33,7 @@ function ModalHeader({id, title, subtitle, handleClose}: Props) {
                     </button>
                 </div>}
             </h2>
-        </header>
+        </div>
     );
 }
 export default ModalHeader;
