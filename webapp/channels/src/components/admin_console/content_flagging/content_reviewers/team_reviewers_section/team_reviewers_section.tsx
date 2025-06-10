@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useMemo} from 'react';
+import React, { useCallback, useEffect, useMemo } from "react";
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import type {Team} from '@mattermost/types/teams';
+import type { Team, TeamSearchOpts, TeamsWithCount } from "@mattermost/types/teams";
 
-import {getTeams} from 'mattermost-redux/actions/teams';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import { getTeams, searchTeams } from "mattermost-redux/actions/teams";
+import type { ActionFuncAsync, ActionResult } from "mattermost-redux/types/actions";
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import Toggle from 'components/toggle';
@@ -20,27 +20,69 @@ import {UserMultiSelector} from '../../user_multiselector/user_multiselector';
 
 import './team_reviewers_section.scss';
 
+const GET_TEAMS_PAGE_SIZE = 10;
+
 export default function TeamReviewers(): JSX.Element {
     const intl = useIntl();
     const dispatch = useDispatch();
 
+    const [page, setPage] = React.useState(0);
+    const [total, setTotal] = React.useState(0);
+    const [startCount, setStartCount] = React.useState(1);
+    const [endCount, setEndCount] = React.useState(100);
+
+    const [teamSearchTerm, setTeamSearchTerm] = React.useState<string>('');
+
     const [teams, setTeams] = React.useState<Team[]>([]);
 
-    useEffect(() => {
-        const fetchTeams = async () => {
-            try {
-                const teamsResponse = await dispatch(getTeams(0, 10, true, false)) as ActionResult<{teams: Team[]}>;
+    const setPaginationValues = useCallback((page: number, total: number) => {
+        const startCount = (page * GET_TEAMS_PAGE_SIZE) + 1;
+        const endCount = Math.min((page + 1) * GET_TEAMS_PAGE_SIZE, total);
 
-                if (teamsResponse && teamsResponse.data && teamsResponse.data.teams && teamsResponse.data.teams.length > 0) {
-                    setTeams(teamsResponse.data.teams);
+        setStartCount(startCount);
+        setEndCount(endCount);
+    }, []);
+
+    useEffect(() => {
+        const fetchTeams = async (term: string) => {
+            try {
+                // const teamsResponse = await dispatch(getTeams(page, GET_TEAMS_PAGE_SIZE, true, false)) as ActionResult<{teams: Team[]; total_count: number}>;
+                const teamsResponse = await dispatch(searchTeams(term || '', {page, per_page: GET_TEAMS_PAGE_SIZE} as TeamSearchOpts));
+
+                if (teamsResponse && teamsResponse.data) {
+                    setTotal(teamsResponse.data.total_count);
+
+                    if (teamsResponse.data.teams.length > 0) {
+                        setTeams(teamsResponse.data.teams);
+                    }
+
+                    setPaginationValues(page, teamsResponse.data.total_count);
                 }
             } catch (error) {
                 console.error(error);
             }
         };
 
-        fetchTeams();
-    }, [dispatch]);
+        // const searchTeams = async (term: string) => {
+        //     try {
+        //         const teamsResponse = await dispatch(searchTeam(page, GET_TEAMS_PAGE_SIZE, true, false)) as ActionResult<{teams: Team[]; total_count: number}>;
+        //
+        //         if (teamsResponse && teamsResponse.data) {
+        //             setTotal(teamsResponse.data.total_count);
+        //
+        //             if (teamsResponse.data.teams.length > 0) {
+        //                 setTeams(teamsResponse.data.teams);
+        //             }
+        //
+        //             setPaginationValues(page, teamsResponse.data.total_count);
+        //         }
+        //     } catch (error) {
+        //         console.error(error);
+        //     }
+        // };
+
+        fetchTeams(teamSearchTerm);
+    }, [dispatch, page, setPaginationValues, teamSearchTerm]);
 
     const columns = useMemo(() => {
         return [
@@ -94,6 +136,23 @@ export default function TeamReviewers(): JSX.Element {
         }));
     }, [intl, teams]);
 
+    const nextPage = useCallback(() => {
+        if ((page * GET_TEAMS_PAGE_SIZE) + GET_TEAMS_PAGE_SIZE < total) {
+            setPage((prevPage) => prevPage + 1);
+        }
+    }, [page, total]);
+
+    const previousPage = useCallback(() => {
+        if (page > 0) {
+            setPage((prevPage) => prevPage - 1);
+        }
+    }, [page]);
+
+    const setSearchTerm = useCallback((term: string) => {
+        setTeamSearchTerm(term);
+        setPage(0); // Reset to first page on new search
+    }, []);
+
     const disableAllBtn = useMemo(() => (
         <div className='TeamReviewers__disable-all'>
             <button
@@ -111,14 +170,14 @@ export default function TeamReviewers(): JSX.Element {
             <DataGrid
                 rows={rows}
                 columns={columns}
-                page={0}
-                startCount={1}
-                endCount={100}
+                page={page}
+                startCount={startCount}
+                endCount={endCount}
                 loading={false}
-                nextPage={() => {}}
-                previousPage={() => {}}
-                total={200}
-                onSearch={() => {}}
+                nextPage={nextPage}
+                previousPage={previousPage}
+                total={total}
+                onSearch={setSearchTerm}
                 extraComponent={disableAllBtn}
             />
         </div>
