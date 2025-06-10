@@ -36,6 +36,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
 		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
+		*cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen = true
 		// Set default batch size - EnsureCleanState will reset to this value
 		// Individual tests can override as needed (e.g., Test 3 sets it to 4)
 		defaultBatchSize := 20

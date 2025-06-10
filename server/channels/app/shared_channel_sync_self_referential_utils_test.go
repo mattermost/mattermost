@@ -93,27 +93,6 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 				if unmarshalErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); unmarshalErr == nil {
 					syncResp := &model.SyncResponse{}
 
-					// Handle membership sync using unified field
-					if len(syncMsg.MembershipChanges) > 0 {
-						batch := make([]string, 0)
-						for _, change := range syncMsg.MembershipChanges {
-							if change.IsAdd {
-								syncResp.UsersSyncd = append(syncResp.UsersSyncd, change.UserId)
-								batch = append(batch, change.UserId)
-							}
-						}
-
-						// Call appropriate callback
-						if len(batch) > 0 {
-							if h.OnBatchSync != nil {
-								h.OnBatchSync(batch, currentCall)
-							}
-							if len(batch) == 1 && h.OnIndividualSync != nil {
-								h.OnIndividualSync(batch[0], currentCall)
-							}
-						}
-					}
-
 					// Handle global user sync
 					if len(syncMsg.Users) > 0 {
 						userIds := make([]string, 0, len(syncMsg.Users))
@@ -160,9 +139,9 @@ func (h *SelfReferentialSyncHandler) GetSyncMessageCount() int32 {
 func GetUsersFromSyncMsg(msg model.SyncMsg) []string {
 	var userIds []string
 
-	// Extract from unified membership changes field
-	for _, change := range msg.MembershipChanges {
-		userIds = append(userIds, change.UserId)
+	// Extract from users field
+	for userId := range msg.Users {
+		userIds = append(userIds, userId)
 	}
 
 	return userIds

@@ -925,7 +925,7 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 	topic := TopicSync
 	if msg.ChannelId == "" && len(msg.Users) > 0 &&
 		len(msg.Posts) == 0 && len(msg.Reactions) == 0 &&
-		len(msg.Statuses) == 0 && len(msg.MembershipChanges) == 0 {
+		len(msg.Statuses) == 0 {
 		topic = TopicGlobalUserSync
 	}
 	rcMsg := model.NewRemoteClusterMsg(topic, b)

@@ -270,25 +270,15 @@ type SharedChannelRemoteFilterOpts struct {
 	IncludeDeleted     bool
 }
 
-// MembershipChangeMsg represents a change in channel membership
-type MembershipChangeMsg struct {
-	ChannelId  string `json:"channel_id"`
-	UserId     string `json:"user_id"`
-	IsAdd      bool   `json:"is_add"`
-	RemoteId   string `json:"remote_id"`
-	ChangeTime int64  `json:"change_time"`
-}
-
 // SyncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
 // It is sent to remote clusters as the payload of a `RemoteClusterMsg`.
 type SyncMsg struct {
-	Id                string                 `json:"id"`
-	ChannelId         string                 `json:"channel_id"`
-	Users             map[string]*User       `json:"users,omitempty"`
-	Posts             []*Post                `json:"posts,omitempty"`
-	Reactions         []*Reaction            `json:"reactions,omitempty"`
-	Statuses          []*Status              `json:"statuses,omitempty"`
-	MembershipChanges []*MembershipChangeMsg `json:"membership_changes,omitempty"`
+	Id        string           `json:"id"`
+	ChannelId string           `json:"channel_id"`
+	Users     map[string]*User `json:"users,omitempty"`
+	Posts     []*Post          `json:"posts,omitempty"`
+	Reactions []*Reaction      `json:"reactions,omitempty"`
+	Statuses  []*Status        `json:"statuses,omitempty"`
 }
 
 func NewSyncMsg(channelID string) *SyncMsg {

@@ -117,7 +117,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 	// Check if this is a global user sync message (no channel ID and only users)
 	if syncMsg.ChannelId == "" && len(syncMsg.Users) > 0 &&
 		len(syncMsg.Posts) == 0 && len(syncMsg.Reactions) == 0 &&
-		len(syncMsg.Statuses) == 0 && len(syncMsg.MembershipChanges) == 0 {
+		len(syncMsg.Statuses) == 0 {
 		// Check if feature flag is enabled
 		if !scs.isGlobalUserSyncEnabled() {
 			return nil
