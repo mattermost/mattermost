@@ -118,6 +118,8 @@ import ContentFlaggingContentReviewers
     from "components/admin_console/content_flagging/content_reviewers/content_reviewers";
 import ContentFlaggingNotificationSettingsSection
     from "components/admin_console/content_flagging/notificatin_settings/notification_settings";
+import ContentFlaggingAdditionalSettingsSection
+    from "components/admin_console/content_flagging/additional_settings/additional_settings";
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';
@@ -3336,6 +3338,11 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'custom',
                             key: 'ContentFlaggingSettings.NotificationSettings',
                             component: ContentFlaggingNotificationSettingsSection,
+                        },
+                        {
+                            type: 'custom',
+                            key: 'ContentFlaggingSettings.AdditionalSettings',
+                            component: ContentFlaggingAdditionalSettingsSection,
                         },
                     ],
                 },
