@@ -126,15 +126,17 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 }
 
 func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
-	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
 		IPAddress:      utils.GetIPAddress(r, ch.cfgSvc.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
 	}
-	cookieAuth := false
 
+	pluginID := mux.Vars(r)["plugin_id"]
+
+	var cookieAuth bool
+	var token string
 	authHeader := r.Header.Get(model.HeaderAuth)
 	if strings.HasPrefix(strings.ToUpper(authHeader), model.HeaderBearer+" ") {
 		token = authHeader[len(model.HeaderBearer)+1:]
@@ -165,14 +167,12 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	}
 	r.Header.Del("Referer")
 
-	params := mux.Vars(r)
-
-	subpath, _ := utils.GetSubpathFromConfig(ch.cfgSvc.Config())
-
 	newQuery := r.URL.Query()
 	newQuery.Del("access_token")
 	r.URL.RawQuery = newQuery.Encode()
-	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", params["plugin_id"]))
+
+	subpath, _ := utils.GetSubpathFromConfig(ch.cfgSvc.Config())
+	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", pluginID))
 
 	// Short path for un-authenticated requests
 	if token == "" {
@@ -180,79 +180,82 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		return
 	}
 
-	// If MFA is required and user has not activated it, we wipe the token.
 	app := New(ServerConnector(ch))
-	rctx := request.EmptyContext(ch.srv.Log()).WithPath(r.URL.Path)
+	rctx := request.EmptyContext(
+		ch.srv.Log().With(
+			mlog.String("plugin_id", pluginID),
+			mlog.String("path", r.URL.Path),
+			mlog.String("method", r.Method),
+			mlog.String("request_id", context.RequestId),
+			mlog.String("ip_addr", utils.GetIPAddress(r, app.Config().ServiceSettings.TrustedProxyIPHeader)),
+		),
+	).WithPath(r.URL.Path)
 
-	// The appErr is later used at L176 and L226.
 	session, appErr := app.GetSession(token)
-	if session != nil {
-		rctx = rctx.WithSession(session)
+	if appErr != nil {
+		rctx.Logger().Debug("Token in plugin request is invalid. Treating request as unauthenticated",
+			mlog.Err(appErr),
+		)
+		handler(context, w, r)
+		return
 	}
 
-	if mfaAppErr := app.MFARequired(rctx); mfaAppErr != nil {
-		pluginID := params["plugin_id"]
+	rctx = rctx.
+		WithLogger(rctx.Logger().With(
+			mlog.String("user_id", session.UserId),
+		)).
+		WithSession(session)
+
+	// If MFA is required and user has not activated it, we wipe the token.
+	if appErr := app.MFARequired(rctx); appErr != nil {
 		ch.srv.Log().Warn("Treating session as unauthenticated since MFA required",
-			mlog.String("plugin_id", pluginID),
-			mlog.String("url", r.URL.Path),
-			mlog.Err(mfaAppErr),
+			mlog.Err(appErr),
 		)
 		handler(context, w, r)
 		return
 	}
 
 	csrfCheckPassed := false
-	if (session != nil && session.Id != "") && appErr == nil && cookieAuth && r.Method != "GET" {
-		sentToken := ""
+	if !cookieAuth || r.Method == http.MethodGet {
+		csrfCheckPassed = true
+	} else {
+		csrfTokenFromClient := r.Header.Get(model.HeaderCsrfToken)
 
-		if r.Header.Get(model.HeaderCsrfToken) == "" {
-			bodyBytes, _ := io.ReadAll(r.Body)
+		if csrfTokenFromClient == "" {
+			bodyBytes, err := io.ReadAll(r.Body)
+			if err != nil {
+				rctx.Logger().Warn("Failed to read request body for plugin request", mlog.Err(err))
+			}
 			r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 			if err := r.ParseForm(); err != nil {
-				mlog.Warn("Failed to parse form data for plugin request", mlog.Err(err))
+				rctx.Logger().Warn("Failed to parse form data for plugin request", mlog.Err(err))
 			}
-			sentToken = r.FormValue("csrf")
+			csrfTokenFromClient = r.FormValue("csrf")
 			r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-		} else {
-			sentToken = r.Header.Get(model.HeaderCsrfToken)
 		}
 
 		expectedToken := session.GetCSRF()
-
-		if sentToken == expectedToken {
+		if csrfTokenFromClient == expectedToken {
 			csrfCheckPassed = true
 		}
 
 		// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
 		if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML && !csrfCheckPassed {
-			csrfErrorMessage := "CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated"
-			sid := ""
-			userID := ""
-
-			if session.Id != "" {
-				sid = session.Id
-				userID = session.UserId
-			}
-
-			fields := []mlog.Field{
-				mlog.String("path", r.URL.Path),
-				mlog.String("ip", r.RemoteAddr),
-				mlog.String("session_id", sid),
-				mlog.String("user_id", userID),
-			}
-
+			var logFn func(string, ...mlog.Field)
 			if *ch.cfgSvc.Config().ServiceSettings.StrictCSRFEnforcement {
-				mlog.Warn(csrfErrorMessage, fields...)
+				logFn = rctx.Logger().Warn
 			} else {
-				mlog.Debug(csrfErrorMessage, fields...)
+				logFn = rctx.Logger().Debug
 				csrfCheckPassed = true
 			}
+			logFn(
+				"CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated",
+				mlog.String("session_id", session.Id),
+			)
 		}
-	} else {
-		csrfCheckPassed = true
 	}
 
-	if (session != nil && session.Id != "") && appErr == nil && csrfCheckPassed {
+	if csrfCheckPassed {
 		r.Header.Set("Mattermost-User-Id", session.UserId)
 		context.SessionId = session.Id
 	}
