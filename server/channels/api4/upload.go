@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitUpload() {
@@ -40,9 +39,9 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	us.RemoteId = ""
 	us.ReqFileId = ""
 
-	auditRec := c.MakeAuditRecord("createUpload", audit.Fail)
+	auditRec := c.MakeAuditRecord("createUpload", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "upload", &us)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "upload", &us)
 
 	if us.Type == model.UploadTypeImport {
 		if !c.IsSystemAdmin() {
@@ -119,9 +118,9 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("uploadData", audit.Fail)
+	auditRec := c.MakeAuditRecord("uploadData", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "upload_id", c.Params.UploadId)
+	model.AddEventParameterToAuditRec(auditRec, "upload_id", c.Params.UploadId)
 
 	c.AppContext = c.AppContext.With(app.RequestContextWithMaster)
 	us, err := c.App.GetUploadSession(c.AppContext, c.Params.UploadId)

@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -71,9 +70,9 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	scheduledPost.UserId = c.AppContext.Session().UserId
 	scheduledPost.SanitizeInput()
 
-	auditRec := c.MakeAuditRecord("createSchedulePost", audit.Fail)
+	auditRec := c.MakeAuditRecord("createSchedulePost", model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	audit.AddEventParameterAuditable(auditRec, "scheduledPost", &scheduledPost)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduledPost", &scheduledPost)
 
 	scheduledPostChecks("Api4.createSchedulePost", c, &scheduledPost)
 	if c.Err != nil {
@@ -166,9 +165,9 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateScheduledPost", audit.Fail)
+	auditRec := c.MakeAuditRecord("updateScheduledPost", model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	audit.AddEventParameterAuditable(auditRec, "scheduledPost", &scheduledPost)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduledPost", &scheduledPost)
 
 	scheduledPostChecks("Api4.updateScheduledPost", c, &scheduledPost)
 	if c.Err != nil {
@@ -205,9 +204,9 @@ func deleteScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteScheduledPost", audit.Fail)
+	auditRec := c.MakeAuditRecord("deleteScheduledPost", model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	audit.AddEventParameter(auditRec, "scheduledPostId", scheduledPostId)
+	model.AddEventParameterToAuditRec(auditRec, "scheduledPostId", scheduledPostId)
 
 	userId := c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)

@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitCommandLocal() {
@@ -29,8 +28,8 @@ func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localCreateCommand", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
+	auditRec := c.MakeAuditRecord("localCreateCommand", model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
