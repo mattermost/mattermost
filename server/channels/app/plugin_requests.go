@@ -208,7 +208,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 
 	// If MFA is required and user has not activated it, we wipe the token.
 	if appErr := app.MFARequired(rctx); appErr != nil {
-		ch.srv.Log().Warn("Treating session as unauthenticated since MFA required",
+		rctx.Logger().Warn("Treating session as unauthenticated since MFA required",
 			mlog.Err(appErr),
 		)
 		handler(context, w, r)
