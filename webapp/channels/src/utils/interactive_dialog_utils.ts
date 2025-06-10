@@ -1,14 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {submitInteractiveDialog} from 'actions/integration_actions';
 import {openModal} from 'actions/views/modals';
 import store from 'stores/redux_store';
 
-import InteractiveDialog from 'components/interactive_dialog';
-import InteractiveDialogAdapter from 'components/interactive_dialog_adapter';
+// Lazy imports to avoid circular dependencies
+const InteractiveDialog = React.lazy(() => import('components/interactive_dialog'));
+const InteractiveDialogAdapter = React.lazy(() => import('components/interactive_dialog_adapter'));
 
 import {ModalIdentifiers} from 'utils/constants';
 

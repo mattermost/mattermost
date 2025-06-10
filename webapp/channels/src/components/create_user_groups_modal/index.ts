@@ -9,7 +9,7 @@ import {createGroupWithUserIds} from 'mattermost-redux/actions/groups';
 
 import {openModal} from 'actions/views/modals';
 
-import CreateUserGroupsModalIntl from './create_user_groups_modal';
+import CreateUserGroupsModal from './create_user_groups_modal';
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
@@ -20,4 +20,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(null, mapDispatchToProps)(CreateUserGroupsModalIntl);
+export default connect(null, mapDispatchToProps)(CreateUserGroupsModal);

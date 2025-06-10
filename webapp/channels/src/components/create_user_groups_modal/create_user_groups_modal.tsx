@@ -43,7 +43,7 @@ type State = {
     saving: boolean;
 }
 
-class CreateUserGroupsModal extends React.PureComponent<Props, State> {
+export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -320,7 +320,4 @@ class CreateUserGroupsModal extends React.PureComponent<Props, State> {
     }
 }
 
-const CreateUserGroupsModalIntl = injectIntl(CreateUserGroupsModal);
-
-export {CreateUserGroupsModal};
-export default CreateUserGroupsModalIntl;
+export default injectIntl(CreateUserGroupsModal);
