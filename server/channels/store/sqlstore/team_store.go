@@ -207,31 +207,35 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
+func teamSliceColumns() []string {
+	return []string{
+		"Teams.Id",
+		"Teams.CreateAt",
+		"Teams.UpdateAt",
+		"Teams.DeleteAt",
+		"Teams.DisplayName",
+		"Teams.Name",
+		"Teams.Description",
+		"Teams.Email",
+		"Teams.Type",
+		"Teams.CompanyName",
+		"Teams.AllowedDomains",
+		"Teams.InviteId",
+		"Teams.AllowOpenInvite",
+		"Teams.LastTeamIconUpdate",
+		"Teams.SchemeId",
+		"Teams.GroupConstrained",
+		"Teams.CloudLimitsArchived",
+	}
+}
+
 func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 	s := &SqlTeamStore{
 		SqlStore: sqlStore,
 	}
 
 	s.teamsQuery = s.getQueryBuilder().
-		Select(
-			"Teams.Id",
-			"Teams.CreateAt",
-			"Teams.UpdateAt",
-			"Teams.DeleteAt",
-			"Teams.DisplayName",
-			"Teams.Name",
-			"Teams.Description",
-			"Teams.Email",
-			"Teams.Type",
-			"Teams.CompanyName",
-			"Teams.AllowedDomains",
-			"Teams.InviteId",
-			"Teams.AllowOpenInvite",
-			"Teams.LastTeamIconUpdate",
-			"Teams.SchemeId",
-			"Teams.GroupConstrained",
-			"Teams.CloudLimitsArchived",
-		).
+		Select(teamSliceColumns()...).
 		From("Teams")
 
 	s.teamMembersQuery = s.getQueryBuilder().
@@ -1472,7 +1476,8 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, er
 func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, error) {
 	data := []*model.TeamForExport{}
 	query, args, err := s.getQueryBuilder().
-		Select("Teams.*", "Schemes.Name as SchemeName").
+		Select(teamSliceColumns()...).
+		Column("Schemes.Name as SchemeName").
 		From("Teams").
 		LeftJoin("Schemes ON Teams.SchemeId = Schemes.Id").
 		Where(sq.Gt{"Teams.Id": afterId}).
