@@ -18,4 +18,5 @@ concurrency:
 jobs:
   pr-ci:
     uses: ./.github/workflows/webapp-ci-template.yml
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
