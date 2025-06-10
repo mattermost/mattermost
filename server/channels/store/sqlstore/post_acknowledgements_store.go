@@ -88,26 +88,7 @@ func (s *SqlPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostA
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	columnsToInsert := []string{"PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId"}
-	var remoteIdValue any
-	if acknowledgement.RemoteId != nil {
-		remoteIdValue = *acknowledgement.RemoteId
-	} else {
-		remoteIdValue = nil
-	}
-	valuesToInsert := []any{acknowledgement.PostId, acknowledgement.UserId, acknowledgement.ChannelId, acknowledgement.AcknowledgedAt, remoteIdValue}
-
-	query := s.getQueryBuilder().
-		Insert("PostAcknowledgements").
-		Columns(columnsToInsert...).
-		Values(valuesToInsert...)
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
-	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
-	}
-
+	query := s.buildUpsertQuery(acknowledgement)
 	_, err = transaction.ExecBuilder(query)
 	if err != nil {
 		return nil, err
@@ -225,11 +206,7 @@ func (s *SqlPostAcknowledgementStore) GetForPostSince(postID string, since int64
 	}
 
 	if excludeRemoteID != "" {
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = query.Where(sq.NotEq{"COALESCE(RemoteId, '')": excludeRemoteID})
-		} else {
-			query = query.Where(sq.NotEq{"COALESCE(RemoteId, '')": excludeRemoteID})
-		}
+		query = query.Where(sq.NotEq{"COALESCE(RemoteId, '')": excludeRemoteID})
 	}
 
 	err := s.GetReplica().SelectBuilder(&acknowledgements, query)
@@ -270,6 +247,31 @@ func (s *SqlPostAcknowledgementStore) GetSingle(userID, postID, remoteID string)
 	return &acknowledgement, nil
 }
 
+// buildUpsertQuery creates an upsert query for a PostAcknowledgement
+func (s *SqlPostAcknowledgementStore) buildUpsertQuery(acknowledgement *model.PostAcknowledgement) sq.InsertBuilder {
+	columnsToInsert := []string{"PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId"}
+	var remoteIdValue any
+	if acknowledgement.RemoteId != nil {
+		remoteIdValue = *acknowledgement.RemoteId
+	} else {
+		remoteIdValue = nil
+	}
+	valuesToInsert := []any{acknowledgement.PostId, acknowledgement.UserId, acknowledgement.ChannelId, acknowledgement.AcknowledgedAt, remoteIdValue}
+
+	query := s.getQueryBuilder().
+		Insert("PostAcknowledgements").
+		Columns(columnsToInsert...).
+		Values(valuesToInsert...)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
+	} else {
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
+	}
+
+	return query
+}
+
 func updatePost(transaction *sqlxTxWrapper, postId string) error {
 	_, err := transaction.Exec(
 		`UPDATE
@@ -294,7 +296,6 @@ func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAc
 	for _, ack := range acknowledgements {
 		// If ChannelId is not set, look it up from the post
 		if ack.ChannelId == "" {
-			// Get the channelId from the post
 			postQuery := s.getQueryBuilder().
 				Select("ChannelId").
 				From("Posts").
@@ -326,32 +327,12 @@ func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAc
 	for _, ack := range acknowledgements {
 		ack.PreSave()
 
-		columnsToInsert := []string{"PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId"}
-		var remoteIdValue any
-		if ack.RemoteId != nil {
-			remoteIdValue = *ack.RemoteId
-		} else {
-			remoteIdValue = nil
-		}
-		valuesToInsert := []any{ack.PostId, ack.UserId, ack.ChannelId, ack.AcknowledgedAt, remoteIdValue}
-
-		query := s.getQueryBuilder().
-			Insert("PostAcknowledgements").
-			Columns(columnsToInsert...).
-			Values(valuesToInsert...)
-
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE AcknowledgedAt = ?", ack.AcknowledgedAt))
-		} else {
-			query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?", ack.AcknowledgedAt))
-		}
-
+		query := s.buildUpsertQuery(ack)
 		_, err = transaction.ExecBuilder(query)
 		if err != nil {
 			return nil, err
 		}
 
-		// Add this post to the list of posts that need their UpdateAt field updated
 		postsToUpdate[ack.PostId] = true
 	}
 
@@ -385,7 +366,7 @@ func (s *SqlPostAcknowledgementStore) BatchDelete(acknowledgements []*model.Post
 	// Keep track of which posts need to be updated
 	postsToUpdate := make(map[string]bool)
 
-	// Set AcknowledgedAt to 0 for all acknowledgements in a single transaction
+	// Set AcknowledgedAt to 0 for all acknowledgements
 	for _, ack := range acknowledgements {
 		query := s.getQueryBuilder().
 			Update("PostAcknowledgements").
@@ -400,7 +381,6 @@ func (s *SqlPostAcknowledgementStore) BatchDelete(acknowledgements []*model.Post
 			return err
 		}
 
-		// Add this post to the list of posts that need their UpdateAt field updated
 		postsToUpdate[ack.PostId] = true
 	}
 
