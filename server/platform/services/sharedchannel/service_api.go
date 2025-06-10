@@ -176,15 +176,6 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 			map[string]any{"Name": rc.DisplayName, "Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Sync all channel members to the remote
-	if err := scs.SyncAllChannelMembers(channelID, remoteID); err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync channel members when inviting remote",
-			mlog.String("channel_id", channelID),
-			mlog.String("remote_id", remoteID),
-			mlog.Err(err),
-		)
-	}
-
 	return nil
 }
 

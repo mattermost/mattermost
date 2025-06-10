@@ -163,6 +163,15 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 
 		scs.NotifyChannelChanged(sc.ChannelId)
 		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
+
+		// Sync all channel members to the remote now that the remote entry exists
+		if syncErr := scs.SyncAllChannelMembers(sc.ChannelId, rc.RemoteId); syncErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync channel members after invite confirmation",
+				mlog.String("channel_id", sc.ChannelId),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(syncErr),
+			)
+		}
 	}
 
 	if rc.IsPlugin() {

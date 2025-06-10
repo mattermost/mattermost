@@ -378,7 +378,7 @@ func (scs *Service) processMembershipChange(syncMsg *model.SyncMsg) {
 	}
 
 	// Get all remotes for this channel
-	remotes, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 1000, model.SharedChannelRemoteFilterOpts{
+	remotes, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 999999, model.SharedChannelRemoteFilterOpts{
 		ChannelId: syncMsg.ChannelId,
 	})
 	if err != nil {

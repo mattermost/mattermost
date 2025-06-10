@@ -184,7 +184,7 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 	allSharedChannels, _ := ss.SharedChannel().GetAll(0, 1000, model.SharedChannelFilterOpts{})
 	for _, sc := range allSharedChannels {
 		// Delete all remotes for this channel
-		remotes, _ := ss.SharedChannel().GetRemotes(0, 100, model.SharedChannelRemoteFilterOpts{ChannelId: sc.ChannelId})
+		remotes, _ := ss.SharedChannel().GetRemotes(0, 999999, model.SharedChannelRemoteFilterOpts{ChannelId: sc.ChannelId})
 		for _, remote := range remotes {
 			_, _ = ss.SharedChannel().DeleteRemote(remote.Id)
 		}
