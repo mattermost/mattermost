@@ -20,7 +20,6 @@ describe('at mention suggestion', () => {
         last_name: 'b',
         nickname: 'c',
         isCurrentUser: true,
-        textboxId: 'post_textbox',
     } as Item;
 
     const userid2 = {
@@ -29,7 +28,6 @@ describe('at mention suggestion', () => {
         first_name: 'a',
         last_name: 'b',
         nickname: 'c',
-        textboxId: 'post_textbox',
     } as Item;
 
     const baseProps = {
