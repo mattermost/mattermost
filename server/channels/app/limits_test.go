@@ -203,6 +203,33 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(0), serverLimits.MaxUsersLimit)
 		require.Equal(t, int64(0), serverLimits.MaxUsersHardLimit)
 	})
+
+	t.Run("handles license being set to nil gracefully", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// First set a license with seat count enforcement
+		userLimit := 100
+		license := model.NewTestLicense("")
+		license.IsSeatCountEnforced = true
+		license.Features.Users = &userLimit
+		th.App.Srv().SetLicense(license)
+
+		// Verify license limits are applied
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+		require.Equal(t, int64(100), serverLimits.MaxUsersLimit)
+
+		// Now set license to nil - should fall back to hard-coded limits
+		th.App.Srv().SetLicense(nil)
+
+		serverLimits, appErr = th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		// Should now show unlicensed server limits
+		require.Equal(t, int64(2500), serverLimits.MaxUsersLimit)
+		require.Equal(t, int64(5000), serverLimits.MaxUsersHardLimit)
+	})
 }
 
 func TestIsAtUserLimit(t *testing.T) {

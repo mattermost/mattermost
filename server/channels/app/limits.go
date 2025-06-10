@@ -22,7 +22,7 @@ func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
 		// Enforce hard-coded limits for unlicensed servers.
 		limits.MaxUsersLimit = maxUsersLimit
 		limits.MaxUsersHardLimit = maxUsersHardLimit
-	} else if license.IsSeatCountEnforced && license.Features != nil && license.Features.Users != nil {
+	} else if license != nil && license.IsSeatCountEnforced && license.Features != nil && license.Features.Users != nil {
 		// Enforce license limits as required by the license.
 		limits.MaxUsersLimit = int64(*license.Features.Users)
 		limits.MaxUsersHardLimit = int64(*license.Features.Users)
