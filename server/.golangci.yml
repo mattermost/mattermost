@@ -86,32 +86,9 @@ linters:
           - errcheck
         path: "\
           channels/api4/apitestlib.go|\
-          channels/api4/bot_test.go|\
           channels/api4/channel_test.go|\
-          channels/api4/cloud.go|\
-          channels/api4/cloud_test.go|\
-          channels/api4/cluster.go|\
-          channels/api4/command.go|\
-          channels/api4/command_test.go|\
-          channels/api4/compliance.go|\
-          channels/api4/config.go|\
-          channels/api4/config_local.go|\
-          channels/api4/config_test.go|\
-          channels/api4/data_retention.go|\
-          channels/api4/preference_test.go|\
-          channels/api4/reaction_test.go|\
-          channels/api4/role.go|\
-          channels/api4/saml.go|\
-          channels/api4/scheme.go|\
-          channels/api4/shared_channel.go|\
-          channels/api4/system.go|\
-          channels/api4/system_local.go|\
-          channels/api4/team_local.go|\
-          channels/api4/websocket_test.go|\
-          channels/app/bot_test.go|\
           channels/app/file_test.go|\
           channels/app/helper_test.go|\
-          channels/app/permissions_test.go|\
           channels/app/platform/helper_test.go|\
           channels/store/localcachelayer/channel_layer.go|\
           channels/store/localcachelayer/channel_layer_test.go|\
@@ -158,7 +135,6 @@ linters:
           channels/store/storetest/team_store.go|\
           channels/store/storetest/thread_store.go|\
           channels/store/storetest/user_store.go|\
-          channels/web/web_test.go|\
           cmd/mattermost/commands/cmdtestlib.go|\
           cmd/mattermost/commands/db.go|\
           cmd/mattermost/commands/export.go|\
