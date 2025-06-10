@@ -71,53 +71,64 @@ func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPr
 	}
 	defer finalizeTransactionX(tx, &err)
 
-	// Replace existing priority with new one (delete + insert)
-	if _, err := tx.Exec("DELETE FROM PostsPriority WHERE PostId = ?", priority.PostId); err != nil {
+	// Delete existing priority
+	deleteQuery := s.getQueryBuilder().
+		Delete("PostsPriority").
+		Where(sq.Eq{"PostId": priority.PostId})
+
+	if _, err := tx.ExecBuilder(deleteQuery); err != nil {
 		return nil, errors.Wrap(err, "delete_existing_priority")
 	}
 
-	if _, err := tx.Exec(
-		`INSERT INTO PostsPriority 
-			(PostId, ChannelId, Priority, RequestedAck, PersistentNotifications) 
-		VALUES 
-			(?, ?, ?, ?, ?)`,
-		priority.PostId,
-		priority.ChannelId,
-		priority.Priority,
-		priority.RequestedAck,
-		priority.PersistentNotifications,
-	); err != nil {
+	// Insert new priority
+	insertQuery := s.getQueryBuilder().
+		Insert("PostsPriority").
+		Columns("PostId", "ChannelId", "Priority", "RequestedAck", "PersistentNotifications").
+		Values(priority.PostId, priority.ChannelId, priority.Priority, priority.RequestedAck, priority.PersistentNotifications)
+
+	if _, err := tx.ExecBuilder(insertQuery); err != nil {
 		return nil, errors.Wrap(err, "insert_priority")
 	}
 
 	// Handle persistent notifications - always delete first, then insert if enabled
-	if _, err := tx.Exec("DELETE FROM PersistentNotifications WHERE PostId = ?", priority.PostId); err != nil {
+	deletePersistentQuery := s.getQueryBuilder().
+		Delete("PersistentNotifications").
+		Where(sq.Eq{"PostId": priority.PostId})
+
+	if _, err := tx.ExecBuilder(deletePersistentQuery); err != nil {
 		return nil, errors.Wrap(err, "delete_persistent_notification")
 	}
 
 	if priority.PersistentNotifications != nil && *priority.PersistentNotifications {
-		if _, err := tx.Exec(
-			"INSERT INTO PersistentNotifications (PostId, CreateAt, LastSentAt, DeleteAt, SentCount) VALUES (?, ?, 0, 0, 0)",
-			priority.PostId,
-			model.GetMillis(),
-		); err != nil {
+		insertPersistentQuery := s.getQueryBuilder().
+			Insert("PersistentNotifications").
+			Columns("PostId", "CreateAt", "LastSentAt", "DeleteAt", "SentCount").
+			Values(priority.PostId, model.GetMillis(), 0, 0, 0)
+
+		if _, err := tx.ExecBuilder(insertPersistentQuery); err != nil {
 			return nil, errors.Wrap(err, "insert_persistent_notification")
 		}
 	}
 
 	// Clear acknowledgements if not requested
 	if priority.RequestedAck == nil || !*priority.RequestedAck {
-		if _, err := tx.Exec("UPDATE PostAcknowledgements SET AcknowledgedAt = 0 WHERE PostId = ?", priority.PostId); err != nil {
+		clearAckQuery := s.getQueryBuilder().
+			Update("PostAcknowledgements").
+			Set("AcknowledgedAt", 0).
+			Where(sq.Eq{"PostId": priority.PostId})
+
+		if _, err := tx.ExecBuilder(clearAckQuery); err != nil {
 			return nil, errors.Wrap(err, "clear_acknowledgements")
 		}
 	}
 
 	// Update the post's UpdateAt to trigger clients to refresh
-	if _, err := tx.Exec(
-		"UPDATE Posts SET UpdateAt = ? WHERE Id = ?",
-		model.GetMillis(),
-		priority.PostId,
-	); err != nil {
+	updatePostQuery := s.getQueryBuilder().
+		Update("Posts").
+		Set("UpdateAt", model.GetMillis()).
+		Where(sq.Eq{"Id": priority.PostId})
+
+	if _, err := tx.ExecBuilder(updatePostQuery); err != nil {
 		return nil, errors.Wrap(err, "update_post")
 	}
 
@@ -135,20 +146,41 @@ func (s *SqlPostPriorityStore) Delete(postId string) error {
 	}
 	defer finalizeTransactionX(tx, &err)
 
-	// Delete from all related tables in a single transaction
-	if _, err := tx.Exec("DELETE FROM PostsPriority WHERE PostId = ?", postId); err != nil {
+	// Delete from PostsPriority
+	deletePriorityQuery := s.getQueryBuilder().
+		Delete("PostsPriority").
+		Where(sq.Eq{"PostId": postId})
+
+	if _, err := tx.ExecBuilder(deletePriorityQuery); err != nil {
 		return errors.Wrap(err, "delete_priority")
 	}
 
-	if _, err := tx.Exec("DELETE FROM PersistentNotifications WHERE PostId = ?", postId); err != nil {
+	// Delete from PersistentNotifications
+	deletePersistentQuery := s.getQueryBuilder().
+		Delete("PersistentNotifications").
+		Where(sq.Eq{"PostId": postId})
+
+	if _, err := tx.ExecBuilder(deletePersistentQuery); err != nil {
 		return errors.Wrap(err, "delete_persistent_notification")
 	}
 
-	if _, err := tx.Exec("UPDATE PostAcknowledgements SET AcknowledgedAt = 0 WHERE PostId = ?", postId); err != nil {
+	// Clear acknowledgements
+	clearAckQuery := s.getQueryBuilder().
+		Update("PostAcknowledgements").
+		Set("AcknowledgedAt", 0).
+		Where(sq.Eq{"PostId": postId})
+
+	if _, err := tx.ExecBuilder(clearAckQuery); err != nil {
 		return errors.Wrap(err, "clear_acknowledgements")
 	}
 
-	if _, err := tx.Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", model.GetMillis(), postId); err != nil {
+	// Update post
+	updatePostQuery := s.getQueryBuilder().
+		Update("Posts").
+		Set("UpdateAt", model.GetMillis()).
+		Where(sq.Eq{"Id": postId})
+
+	if _, err := tx.ExecBuilder(updatePostQuery); err != nil {
 		return errors.Wrap(err, "update_post")
 	}
 

@@ -6949,10 +6949,10 @@ func (s *TimerLayerPostAcknowledgementStore) GetSingle(userID string, postID str
 	return result, err
 }
 
-func (s *TimerLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+func (s *TimerLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64, channelID ...string) (*model.PostAcknowledgement, error) {
 	start := time.Now()
 
-	result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt)
+	result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt, channelID...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

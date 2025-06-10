@@ -230,9 +230,16 @@ func (_m *PostAcknowledgementStore) GetSingle(userID string, postID string, remo
 	return r0, r1
 }
 
-// Save provides a mock function with given fields: postID, userID, acknowledgedAt
-func (_m *PostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
-	ret := _m.Called(postID, userID, acknowledgedAt)
+// Save provides a mock function with given fields: postID, userID, acknowledgedAt, channelID
+func (_m *PostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64, channelID ...string) (*model.PostAcknowledgement, error) {
+	_va := make([]interface{}, len(channelID))
+	for _i := range channelID {
+		_va[_i] = channelID[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, postID, userID, acknowledgedAt)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Save")
@@ -240,19 +247,19 @@ func (_m *PostAcknowledgementStore) Save(postID string, userID string, acknowled
 
 	var r0 *model.PostAcknowledgement
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, int64) (*model.PostAcknowledgement, error)); ok {
-		return rf(postID, userID, acknowledgedAt)
+	if rf, ok := ret.Get(0).(func(string, string, int64, ...string) (*model.PostAcknowledgement, error)); ok {
+		return rf(postID, userID, acknowledgedAt, channelID...)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, int64) *model.PostAcknowledgement); ok {
-		r0 = rf(postID, userID, acknowledgedAt)
+	if rf, ok := ret.Get(0).(func(string, string, int64, ...string) *model.PostAcknowledgement); ok {
+		r0 = rf(postID, userID, acknowledgedAt, channelID...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostAcknowledgement)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
-		r1 = rf(postID, userID, acknowledgedAt)
+	if rf, ok := ret.Get(1).(func(string, string, int64, ...string) error); ok {
+		r1 = rf(postID, userID, acknowledgedAt, channelID...)
 	} else {
 		r1 = ret.Error(1)
 	}

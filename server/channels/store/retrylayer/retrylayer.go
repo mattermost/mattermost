@@ -8738,11 +8738,11 @@ func (s *RetryLayerPostAcknowledgementStore) GetSingle(userID string, postID str
 
 }
 
-func (s *RetryLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+func (s *RetryLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64, channelID ...string) (*model.PostAcknowledgement, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt)
+		result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt, channelID...)
 		if err == nil {
 			return result, nil
 		}
