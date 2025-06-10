@@ -201,7 +201,7 @@ func TestUnauthRequestsMFAWarningFix(t *testing.T) {
 		if e.Msg == "Treating session as unauthenticated since MFA required" {
 			assert.Fail(t, "MFA warning should not be logged for unauthenticated requests")
 		}
-		if e.Msg == "Error while creating session for user access token" {
+		if e.Msg == "Token in plugin request is invalid. Treating request as unauthenticated" {
 			assert.Fail(t, "MFA warning should not be logged for unauthenticated requests")
 		}
 	}
