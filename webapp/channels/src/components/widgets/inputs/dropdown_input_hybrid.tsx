@@ -101,7 +101,8 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
         defaultValue,
         dropdownClassNamePrefix,
         inputId,
-        components: _components,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        components: unusedComponents,
         ...otherProps
     } = props;
 
