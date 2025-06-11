@@ -42,6 +42,7 @@ const useEditorEmojiPicker = (
     const enableGifPicker = useSelector((state: GlobalState) => getConfig(state).EnableGifPicker === 'true');
 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [emojiSelected, setEmojiSelected] = useState(false);
 
     const toggleEmojiPicker = useCallback((e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e?.stopPropagation();
@@ -78,6 +79,7 @@ const useEditorEmojiPicker = (
             message: newMessage,
         });
 
+        setEmojiSelected(true);
         setShowEmojiPicker(false);
     }, [draft, caretPosition, handleDraftChange, setCaretPosition]);
 
@@ -102,13 +104,15 @@ const useEditorEmojiPicker = (
 
     // Focus textbox when the emoji picker closes
     useDidUpdate(() => {
-        if (!showEmojiPicker) {
+        if (!showEmojiPicker && emojiSelected) {
+            setEmojiSelected(false);
+
             // Wait a frame to let the emoji picker's focus trap disappear before changing focus
             requestAnimationFrame(() => {
                 focusTextbox();
             });
         }
-    }, [showEmojiPicker]);
+    }, [showEmojiPicker, emojiSelected]);
 
     const {
         emojiPicker,
