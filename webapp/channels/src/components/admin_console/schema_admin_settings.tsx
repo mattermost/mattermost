@@ -46,7 +46,7 @@ import './schema_admin_settings.scss';
 
 const emptyList: string[] = [];
 
-export type SystemConsoleCustomSettingChangeHandler = (id: string, value: any, confirm: boolean, doSubmit: boolean, warning: boolean) => void;
+export type SystemConsoleCustomSettingChangeHandler = (id: string, value: any, confirm?: boolean, doSubmit?: boolean, warning?: boolean) => void;
 
 export type SystemConsoleCustomSettingsComponentProps = {
     id: string;

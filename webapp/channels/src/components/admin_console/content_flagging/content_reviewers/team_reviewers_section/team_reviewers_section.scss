@@ -64,6 +64,10 @@
                 .user-multiselector__control {
                     margin-block: 2px;
                 }
+
+                &:has(.UserMultiSelector) {
+                    overflow: unset;
+                }
             }
         }
 

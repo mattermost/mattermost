@@ -986,6 +986,19 @@ export type ContentFlaggingNotificationSettings = {
     EventTargetMapping: Record<ContentFlaggingEvent, NotificationTarget[]>;
 }
 
+export type TeamReviewerSetting = {
+    Enabled: boolean;
+    ReviewerIds: string[];
+}
+
+export type ContentFlaggingReviewerSetting = {
+    CommonReviewers: boolean;
+    CommonReviewerIds: string[];
+    TeamReviewersSetting: Record<string, TeamReviewerSetting>;
+    SystemAdminsAsReviewers: boolean;
+    TeamAdminsAsReviewers: boolean;
+}
+
 export type ContentFlaggingSettings = {
     NotificationSettings: ContentFlaggingNotificationSettings;
 }

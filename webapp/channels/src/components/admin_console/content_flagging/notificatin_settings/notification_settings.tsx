@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {FormattedMessage} from 'react-intl';
 
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
@@ -18,8 +18,7 @@ import { ContentFlaggingNotificationSettings } from "@mattermost/types/lib/confi
 const noOp = () => null;
 
 export default function ContentFlaggingNotificationSettingsSection(props: SystemConsoleCustomSettingsComponentProps) {
-    const [notificationSettings, setNotificationSettings] = React.useState<ContentFlaggingNotificationSettings>(props.value);
-
+    const [notificationSettings, setNotificationSettings] = useState<ContentFlaggingNotificationSettings>(props.value);
 
     return (
         <AdminSection>

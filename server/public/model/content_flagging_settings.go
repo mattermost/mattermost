@@ -46,17 +46,62 @@ func (cfs *ContentFlaggingNotificationSettings) SetDefault() {
 	}
 }
 
+type TeamReviewerSetting struct {
+	Enabled     *bool
+	ReviewerIds *[]string
+}
+
+type ReviewerSettings struct {
+	CommonReviewers         *bool
+	CommonReviewerIds       *[]string
+	TeamReviewersSetting    *map[string]TeamReviewerSetting
+	SystemAdminsAsReviewers *bool
+	TeamAdminsAsReviewers   *bool
+}
+
+func (rs *ReviewerSettings) SetDefault() {
+	if rs.CommonReviewers == nil {
+		rs.CommonReviewers = NewPointer(true)
+	}
+
+	if rs.CommonReviewerIds == nil {
+		rs.CommonReviewerIds = &[]string{}
+	}
+
+	if rs.TeamReviewersSetting == nil {
+		rs.TeamReviewersSetting = &map[string]TeamReviewerSetting{}
+	}
+
+	if rs.SystemAdminsAsReviewers == nil {
+		rs.SystemAdminsAsReviewers = NewPointer(false)
+	}
+
+	if rs.TeamAdminsAsReviewers == nil {
+		rs.TeamAdminsAsReviewers = NewPointer(false)
+	}
+}
+
 type ContentFlaggingSettings struct {
-	EnableContentFlagging bool
+	EnableContentFlagging *bool
 	NotificationSettings  *ContentFlaggingNotificationSettings
+	ReviewerSettings      *ReviewerSettings
 }
 
 func (cfs *ContentFlaggingSettings) SetDefault() {
+	if cfs.EnableContentFlagging == nil {
+		cfs.EnableContentFlagging = NewPointer(false)
+	}
+
 	if cfs.NotificationSettings == nil {
 		cfs.NotificationSettings = &ContentFlaggingNotificationSettings{
 			EventTargetMapping: make(map[ContentFlaggingEvent][]NotificationTarget),
 		}
 	}
 
+	if cfs.ReviewerSettings == nil {
+		cfs.ReviewerSettings = &ReviewerSettings{}
+	}
+
 	cfs.NotificationSettings.SetDefault()
+	cfs.ReviewerSettings.SetDefault()
 }

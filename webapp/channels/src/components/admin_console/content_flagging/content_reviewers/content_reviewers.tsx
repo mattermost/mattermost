@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, { useCallback, useEffect, useState } from "react";
 import {FormattedMessage} from 'react-intl';
 
 import {Label} from 'components/admin_console/boolean_setting';
@@ -18,14 +18,66 @@ import './content_reviewers.scss';
 
 import {UserMultiSelector} from '../../content_flagging/user_multiselector/user_multiselector';
 
+import type { ContentFlaggingReviewerSetting, TeamReviewerSetting } from "@mattermost/types/config";
+
+import type {SystemConsoleCustomSettingsComponentProps} from '../../schema_admin_settings';
+
 const noOp = () => null;
 
-export default function ContentFlaggingContentReviewers() {
-    const [sameReviewersForAllTeams, setSameReviewersForAllTeams] = useState(false);
+export default function ContentFlaggingContentReviewers(props: SystemConsoleCustomSettingsComponentProps) {
+    const [reviewerSetting, setReviewerSetting] = useState<ContentFlaggingReviewerSetting>(props.value as ContentFlaggingReviewerSetting);
 
     const handleSameReviewersForAllTeamsChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        setSameReviewersForAllTeams(event.target.value === 'true');
-    }, []);
+        const updatedSetting: ContentFlaggingReviewerSetting = {
+            ...reviewerSetting,
+            CommonReviewers: event.target.value === 'true',
+        };
+
+        setReviewerSetting(updatedSetting);
+        props.onChange(props.id, updatedSetting);
+    }, [props, reviewerSetting]);
+
+    const handleSystemAdminReviewerChange = useCallback((_: string, value: boolean) => {
+        const updatedSetting: ContentFlaggingReviewerSetting = {
+            ...reviewerSetting,
+            SystemAdminsAsReviewers: value,
+        };
+
+        setReviewerSetting(updatedSetting);
+        props.onChange(props.id, updatedSetting);
+    }, [props, reviewerSetting]);
+
+    const handleTeamAdminReviewerChange = useCallback((_: string, value: boolean) => {
+        const updatedSetting: ContentFlaggingReviewerSetting = {
+            ...reviewerSetting,
+            TeamAdminsAsReviewers: value,
+        };
+
+        setReviewerSetting(updatedSetting);
+        props.onChange(props.id, updatedSetting);
+    }, [props, reviewerSetting]);
+
+    const handleCommonReviewersChange = useCallback((selectedUserIds: string[]) => {
+        const updatedSetting: ContentFlaggingReviewerSetting = {
+            ...reviewerSetting,
+            CommonReviewerIds: selectedUserIds,
+        };
+
+        setReviewerSetting(updatedSetting);
+        props.onChange(props.id, updatedSetting);
+    }, [props, reviewerSetting]);
+
+    const handleTeamReviewerSettingsChange = useCallback((updatedTeamSettings: Record<string, TeamReviewerSetting>) => {
+        console.log('BBB', {updatedTeamSettings});
+
+        const updatedSetting: ContentFlaggingReviewerSetting = {
+            ...reviewerSetting,
+            TeamReviewersSetting: updatedTeamSettings,
+        };
+
+        setReviewerSetting(updatedSetting);
+        props.onChange(props.id, updatedSetting);
+    }, [props, reviewerSetting]);
 
     return (
         <AdminSection>
@@ -64,7 +116,7 @@ export default function ContentFlaggingContentReviewers() {
                                     id='sameReviewersForAllTeams_true'
                                     type='radio'
                                     value='true'
-                                    checked={sameReviewersForAllTeams}
+                                    checked={reviewerSetting.CommonReviewers}
                                     onChange={handleSameReviewersForAllTeamsChange}
                                 />
                                 <FormattedMessage
@@ -79,7 +131,7 @@ export default function ContentFlaggingContentReviewers() {
                                     id='sameReviewersForAllTeams_false'
                                     type='radio'
                                     value='false'
-                                    checked={!sameReviewersForAllTeams}
+                                    checked={!reviewerSetting.CommonReviewers}
                                     onChange={handleSameReviewersForAllTeamsChange}
                                 />
                                 <FormattedMessage
@@ -91,7 +143,7 @@ export default function ContentFlaggingContentReviewers() {
                     </div>
 
                     {
-                        sameReviewersForAllTeams &&
+                        reviewerSetting.CommonReviewers &&
                         <div className='content-flagging-section-setting'>
                             <div className='setting-title'>
                                 <FormattedMessage
@@ -103,13 +155,15 @@ export default function ContentFlaggingContentReviewers() {
                             <div className='setting-content'>
                                 <UserMultiSelector
                                     id='content_reviewers_common_reviewers'
+                                    initialValue={reviewerSetting.CommonReviewerIds}
+                                    onChange={handleCommonReviewersChange}
                                 />
                             </div>
                         </div>
                     }
 
                     {
-                        !sameReviewersForAllTeams &&
+                        !reviewerSetting.CommonReviewers &&
                         <div className='content-flagging-section-setting teamSpecificReviewerSection'>
                             <div className='setting-title'>
                                 <FormattedMessage
@@ -118,7 +172,10 @@ export default function ContentFlaggingContentReviewers() {
                                 />
                             </div>
 
-                            <TeamReviewers/>
+                            <TeamReviewers
+                                teamReviewersSetting={reviewerSetting.TeamReviewersSetting}
+                                onChange={handleTeamReviewerSettingsChange}
+                            />
 
                         </div>
                     }
@@ -141,8 +198,8 @@ export default function ContentFlaggingContentReviewers() {
                                             defaultMessage='System Administrators'
                                         />
                                     }
-                                    defaultChecked={false}
-                                    onChange={noOp}
+                                    defaultChecked={reviewerSetting.SystemAdminsAsReviewers}
+                                    onChange={handleSystemAdminReviewerChange}
                                     setByEnv={false}
                                 />
 
@@ -154,8 +211,8 @@ export default function ContentFlaggingContentReviewers() {
                                             defaultMessage='Team Administrators'
                                         />
                                     }
-                                    defaultChecked={false}
-                                    onChange={noOp}
+                                    defaultChecked={reviewerSetting.TeamAdminsAsReviewers}
+                                    onChange={handleTeamAdminReviewerChange}
                                     setByEnv={false}
                                 />
                             </div>

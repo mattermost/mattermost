@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import type { Team, TeamSearchOpts, TeamsWithCount } from "@mattermost/types/teams";
+import type {TeamReviewerSetting} from '@mattermost/types/config';
+import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
 
-import { getTeams, searchTeams } from "mattermost-redux/actions/teams";
-import type { ActionFuncAsync, ActionResult } from "mattermost-redux/types/actions";
+import {searchTeams} from 'mattermost-redux/actions/teams';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import Toggle from 'components/toggle';
@@ -22,7 +22,12 @@ import './team_reviewers_section.scss';
 
 const GET_TEAMS_PAGE_SIZE = 10;
 
-export default function TeamReviewers(): JSX.Element {
+type Props = {
+    teamReviewersSetting: Record<string, TeamReviewerSetting>;
+    onChange: (updatedTeamSettings: Record<string, TeamReviewerSetting>) => void;
+}
+
+export default function TeamReviewers({teamReviewersSetting, onChange}: Props): JSX.Element {
     const intl = useIntl();
     const dispatch = useDispatch();
 
@@ -30,9 +35,7 @@ export default function TeamReviewers(): JSX.Element {
     const [total, setTotal] = React.useState(0);
     const [startCount, setStartCount] = React.useState(1);
     const [endCount, setEndCount] = React.useState(100);
-
     const [teamSearchTerm, setTeamSearchTerm] = React.useState<string>('');
-
     const [teams, setTeams] = React.useState<Team[]>([]);
 
     const setPaginationValues = useCallback((page: number, total: number) => {
@@ -63,26 +66,38 @@ export default function TeamReviewers(): JSX.Element {
             }
         };
 
-        // const searchTeams = async (term: string) => {
-        //     try {
-        //         const teamsResponse = await dispatch(searchTeam(page, GET_TEAMS_PAGE_SIZE, true, false)) as ActionResult<{teams: Team[]; total_count: number}>;
-        //
-        //         if (teamsResponse && teamsResponse.data) {
-        //             setTotal(teamsResponse.data.total_count);
-        //
-        //             if (teamsResponse.data.teams.length > 0) {
-        //                 setTeams(teamsResponse.data.teams);
-        //             }
-        //
-        //             setPaginationValues(page, teamsResponse.data.total_count);
-        //         }
-        //     } catch (error) {
-        //         console.error(error);
-        //     }
-        // };
-
         fetchTeams(teamSearchTerm);
     }, [dispatch, page, setPaginationValues, teamSearchTerm]);
+
+    const getHandleToggle = useCallback((teamId: string) => {
+        return () => {
+            const updatedTeamSettings = {...teamReviewersSetting};
+            if (!updatedTeamSettings[teamId]) {
+                updatedTeamSettings[teamId] = {Enabled: false, ReviewerIds: []};
+            }
+
+            updatedTeamSettings[teamId] = {
+                ...updatedTeamSettings[teamId],
+                Enabled: updatedTeamSettings[teamId].Enabled ? !updatedTeamSettings[teamId].Enabled : true,
+            };
+
+            onChange(updatedTeamSettings);
+        };
+    }, [onChange, teamReviewersSetting]);
+
+    const getHandleReviewersChange = useCallback((teamId: string) => {
+        return (reviewerIDs: string[]) => {
+            console.log('AAA', {teamId, reviewerIDs});
+
+            const updatedTeamSettings = {...teamReviewersSetting};
+            if (!updatedTeamSettings[teamId]) {
+                updatedTeamSettings[teamId] = {Enabled: false, ReviewerIds: []};
+            }
+
+            updatedTeamSettings[teamId].ReviewerIds = reviewerIDs;
+            onChange(updatedTeamSettings);
+        };
+    }, [onChange, teamReviewersSetting]);
 
     const columns = useMemo(() => {
         return [
@@ -122,6 +137,8 @@ export default function TeamReviewers(): JSX.Element {
                 reviewers: (
                     <UserMultiSelector
                         id={`team_content_reviewer_${team.id}`}
+                        initialValue={teamReviewersSetting[team.id]?.ReviewerIds || []}
+                        onChange={getHandleReviewersChange(team.id)}
                     />
                 ),
                 enabled: (
@@ -129,12 +146,13 @@ export default function TeamReviewers(): JSX.Element {
                         id={`team_content_reviewer_toggle_${team.id}`}
                         ariaLabel={intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.toggle', defaultMessage: 'Enable or disable content reviewers for this team'})}
                         size='btn-md'
-                        onToggle={() => {}}
+                        onToggle={getHandleToggle(team.id)}
+                        toggled={teamReviewersSetting[team.id]?.Enabled || false}
                     />
                 ),
             },
         }));
-    }, [intl, teams]);
+    }, [getHandleReviewersChange, getHandleToggle, intl, teamReviewersSetting, teams]);
 
     const nextPage = useCallback(() => {
         if ((page * GET_TEAMS_PAGE_SIZE) + GET_TEAMS_PAGE_SIZE < total) {

@@ -2,16 +2,17 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {type ReactElement, useCallback, useMemo} from 'react';
+import React, {type ReactElement, useCallback, useEffect, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import type {MultiValue} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import type {UserProfile} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
-import {searchProfiles} from 'mattermost-redux/actions/users';
+import {getMissingProfilesByIds, searchProfiles} from 'mattermost-redux/actions/users';
+import {getUsersByIDs} from 'mattermost-redux/selectors/entities/users';
 
 import {UserProfilePill} from './user_profile_pill';
 
@@ -19,6 +20,8 @@ import {UserOptionComponent} from '../../content_flagging/user_multiselector/use
 import {LoadingIndicator} from '../../system_users/system_users_filters_popover/system_users_filter_team';
 
 import './user_multiselect.scss';
+
+import type {GlobalState} from 'types/store';
 
 export type AutocompleteOptionType<T> = {
     label: string | ReactElement;
@@ -29,17 +32,40 @@ export type AutocompleteOptionType<T> = {
 type Props = {
     id: string;
     className?: string;
+    onChange: (selectedUserIds: string[]) => void;
+    initialValue?: string[];
 }
 
-export function UserMultiSelector({id, className}: Props) {
+export function UserMultiSelector({id, className, onChange, initialValue}: Props) {
     const dispatch = useDispatch();
-
     const {formatMessage} = useIntl();
-    const userLoadingMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.loading', defaultMessage: 'Loading users'}), []);
-    const noUsersMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.noUsers', defaultMessage: 'No users found'}), []);
+    const initialDataLoaded = useRef<boolean>(false);
+
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            await dispatch(getMissingProfilesByIds(initialValue || []));
+            initialDataLoaded.current = true;
+        };
+
+        if (initialValue && !initialDataLoaded.current) {
+            fetchInitialData();
+        }
+    }, [dispatch, initialValue]);
+
+    const initialUsers = useSelector((state: GlobalState) => getUsersByIDs(state, initialValue || []));
+    const selectInitialValue = initialUsers.
+        filter((userProfile) => Boolean(userProfile)).
+        map((userProfile: UserProfile) => ({
+            value: userProfile.id,
+            label: userProfile.username,
+            raw: userProfile,
+        } as AutocompleteOptionType<UserProfile>));
+
+    const userLoadingMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.loading', defaultMessage: 'Loading users'}), [formatMessage]);
+    const noUsersMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.noUsers', defaultMessage: 'No users found'}), [formatMessage]);
     const placeholder = formatMessage({id: 'admin.userMultiSelector.placeholder', defaultMessage: 'Start typing to search for users...'});
 
-    const searchUsersFromTerm = useMemo(() => debounce(async (searchTerm: string, callback) => {
+    const searchUsers = useMemo(() => debounce(async (searchTerm: string, callback) => {
         try {
             const response = await dispatch(searchProfiles(searchTerm, {page: 0}));
             if (response && response.data && response.data.length > 0) {
@@ -63,7 +89,11 @@ export function UserMultiSelector({id, className}: Props) {
     }, 200), [dispatch]);
 
     function handleOnChange(value: MultiValue<AutocompleteOptionType<UserProfile>>) {
-        // TODO
+        const selectedUserIds = value.map((option) => option.value);
+
+        console.log({id, selectedUserIds});
+
+        onChange?.(selectedUserIds);
     }
 
     return (
@@ -80,8 +110,9 @@ export function UserMultiSelector({id, className}: Props) {
                 placeholder={placeholder}
                 loadingMessage={userLoadingMessage}
                 noOptionsMessage={noUsersMessage}
-                loadOptions={searchUsersFromTerm}
+                loadOptions={searchUsers}
                 onChange={handleOnChange}
+                value={selectInitialValue}
                 components={{
                     LoadingIndicator,
                     DropdownIndicator: () => null,
