@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import type {ReactComponentLike} from 'prop-types';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -85,131 +85,149 @@ export type Props = {
 
 // A component that can be used to make controlled inputs that function properly in certain
 // environments (ie. IE11) where typing quickly would sometimes miss inputs
-export class QuickInput extends React.PureComponent<Props> {
-    private input?: HTMLInputElement | HTMLTextAreaElement;
+const QuickInput = React.memo(({
+    delayInputUpdate = false,
+    value = '',
+    clearable = false,
+    autoFocus,
+    forwardedRef,
+    inputComponent,
+    clearClassName,
+    clearableWithoutValue,
+    ...props
+}: Props) => {
+    /**
+     * Refs are the equivalent of instance properties in a class.
+     * https://legacy.reactjs.org/docs/hooks-faq.html#is-there-something-like-instance-variables
+     */
+    const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | undefined>();
 
-    static defaultProps = {
-        delayInputUpdate: false,
-        value: '',
-        clearable: false,
-    };
+    /*
+        Using a ref here so the useEffect runs only once when the component
+        mounts instead of passing the 'autoFocus' prop to the effect which
+        will run it every time the autoFocus prop changes since 'autoFocus'
+        prop will have to be passed as a dependency.
+    */
+    const autoFocusRef = useRef(autoFocus);
 
-    componentDidMount() {
-        if (this.props.autoFocus) {
+    useEffect(() => {
+        if (autoFocusRef.current) {
             requestAnimationFrame(() => {
-                this.input?.focus();
+                inputRef.current?.focus();
             });
         }
-    }
+    }, []);
 
-    componentDidUpdate(prevProps: Props) {
-        if (prevProps.value !== this.props.value) {
-            if (this.props.delayInputUpdate) {
-                requestAnimationFrame(this.updateInputFromProps);
+    /*
+        Storing this value in a ref so it's not required as dependency
+        in the 'useEffect' that runs when 'value' changes, otherwise,
+        'delayInputUpdate' changing would re-run the effect.
+
+        A separate 'useEffect' updates the ref so it gets the latest
+        value whenever delayInputUpdateRef changes.
+    */
+    const delayInputUpdateRef = useRef(delayInputUpdate);
+
+    useEffect(() => {
+        delayInputUpdateRef.current = delayInputUpdate;
+    }, [delayInputUpdate]);
+
+    useEffect(() => {
+        const updateInputFromProps = () => {
+            if (!inputRef.current || inputRef.current.value === value) {
+                return;
+            }
+
+            inputRef.current.value = value;
+        };
+
+        if (delayInputUpdateRef.current) {
+            requestAnimationFrame(updateInputFromProps);
+        } else {
+            updateInputFromProps();
+        }
+    }, [value]);
+
+    const setInputRef = (input: HTMLInputElement) => {
+        if (forwardedRef) {
+            if (typeof forwardedRef === 'function') {
+                forwardedRef(input);
             } else {
-                this.updateInputFromProps();
+                forwardedRef.current = input;
             }
         }
-    }
 
-    private updateInputFromProps = () => {
-        if (!this.input || this.input.value === this.props.value) {
-            return;
-        }
-
-        this.input.value = this.props.value;
+        inputRef.current = input;
     };
 
-    private setInputRef = (input: HTMLInputElement) => {
-        if (this.props.forwardedRef) {
-            if (typeof this.props.forwardedRef === 'function') {
-                this.props.forwardedRef(input);
-            } else {
-                this.props.forwardedRef.current = input;
-            }
-        }
-
-        this.input = input;
-    };
-
-    private onClear = (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent) => {
+    const onClear = (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
-        if (this.props.onClear) {
-            this.props.onClear();
+        if (props.onClear) {
+            props.onClear();
         }
 
-        this.input?.focus();
+        inputRef.current?.focus();
     };
 
-    render() {
-        let clearableTooltipText = this.props.clearableTooltipText || '';
-        if (!clearableTooltipText) {
-            clearableTooltipText = (
-                <FormattedMessage
-                    id={'input.clear'}
-                    defaultMessage='Clear'
-                />
-            );
-        }
+    let clearableTooltipText = props.clearableTooltipText || '';
 
-        const {
-            value,
-            inputComponent,
-            clearable,
-            clearClassName,
-            clearableWithoutValue,
-            ...props
-        } = this.props;
-
-        Reflect.deleteProperty(props, 'delayInputUpdate');
-        Reflect.deleteProperty(props, 'onClear');
-        Reflect.deleteProperty(props, 'clearableTooltipText');
-        Reflect.deleteProperty(props, 'channelId');
-        Reflect.deleteProperty(props, 'clearClassName');
-        Reflect.deleteProperty(props, 'tooltipPosition');
-        Reflect.deleteProperty(props, 'forwardedRef');
-
-        if (inputComponent !== AutosizeTextarea) {
-            Reflect.deleteProperty(props, 'onHeightChange');
-            Reflect.deleteProperty(props, 'onWidthChange');
-        }
-
-        const inputElement = React.createElement(
-            inputComponent || 'input',
-            {
-                ...props,
-                ref: this.setInputRef,
-                defaultValue: value, // Only set the defaultValue since the real one will be updated using componentDidUpdate
-            },
-        );
-
-        const showClearButton = this.props.onClear && (clearableWithoutValue || (clearable && value));
-
-        return (
-            <div className='input-wrapper'>
-                {inputElement}
-                {showClearButton && (
-                    <WithTooltip title={clearableTooltipText}>
-                        <button
-                            data-testid='input-clear'
-                            className={classNames(clearClassName, 'input-clear visible')}
-                            onClick={this.onClear}
-                        >
-                            <span
-                                className='input-clear-x'
-                                aria-hidden='true'
-                            >
-                                <i className='icon icon-close-circle'/>
-                            </span>
-                        </button>
-                    </WithTooltip>
-                )}
-            </div>
+    if (!clearableTooltipText) {
+        clearableTooltipText = (
+            <FormattedMessage
+                id={'input.clear'}
+                defaultMessage='Clear'
+            />
         );
     }
-}
+
+    Reflect.deleteProperty(props, 'delayInputUpdate');
+    Reflect.deleteProperty(props, 'onClear');
+    Reflect.deleteProperty(props, 'clearableTooltipText');
+    Reflect.deleteProperty(props, 'channelId');
+    Reflect.deleteProperty(props, 'clearClassName');
+    Reflect.deleteProperty(props, 'tooltipPosition');
+    Reflect.deleteProperty(props, 'forwardedRef');
+
+    if (inputComponent !== AutosizeTextarea) {
+        Reflect.deleteProperty(props, 'onHeightChange');
+        Reflect.deleteProperty(props, 'onWidthChange');
+    }
+
+    const inputElement = React.createElement(
+        inputComponent || 'input',
+        {
+            ...props,
+            ref: setInputRef,
+            defaultValue: value, // Only set the defaultValue since the real one will be updated using componentDidUpdate
+        },
+    );
+
+    const showClearButton = props.onClear && (clearableWithoutValue || (clearable && value));
+
+    return (
+        <div className='input-wrapper'>
+            {inputElement}
+            {showClearButton && (
+                <WithTooltip title={clearableTooltipText}>
+                    <button
+                        data-testid='input-clear'
+                        className={classNames(clearClassName, 'input-clear visible')}
+                        onClick={onClear}
+                    >
+                        <span
+                            className='input-clear-x'
+                            aria-hidden='true'
+                        >
+                            <i className='icon icon-close-circle'/>
+                        </span>
+                    </button>
+                </WithTooltip>
+            )}
+        </div>
+    );
+});
 
 type ForwardedProps = Omit<React.ComponentPropsWithoutRef<typeof QuickInput>, 'forwardedRef'>;
 
