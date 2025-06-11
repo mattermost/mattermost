@@ -159,6 +159,7 @@ export type LdapDiagnosticResult = {
     test_name: string;
     test_value: string;
     total_count: number;
+    entries_with_value: number;
     message?: string;
     error?: string;
     sample_results: LdapSampleEntry[];
