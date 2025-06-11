@@ -140,7 +140,7 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 	}
 
 	// Use cursor-based pagination to handle channels with many members
-	maxPerPage := 200 // Process in reasonable batches
+	maxPerPage := scs.GetMemberSyncBatchSize()
 	var allMembers model.ChannelMembers
 	lastSyncAt := remote.LastMembersSyncAt
 
@@ -232,42 +232,18 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 	return err
 }
 
-// shouldSyncUser determines if a user should be synchronized to remote clusters.
-// Returns true for all valid users including bots and system admins.
-//
-// All users are synced to remote clusters, but their roles are normalized to
-// system_user when they arrive at the destination cluster. This ensures that
-// elevated permissions (like system admin) are not replicated to remote instances,
-// while still allowing all users to participate in shared channels.
-func (scs *Service) shouldSyncUser(channelID string, userID string) (*model.User, bool) {
-	user, err := scs.server.GetStore().User().Get(context.Background(), userID)
-	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Failed to get user during channel member sync",
-			mlog.String("channel_id", channelID),
-			mlog.String("user_id", userID),
-			mlog.Err(err),
-		)
-		return nil, false
-	}
-
-	return user, true
-}
-
 // syncMembersIndividually processes each member individually
 // This is more efficient for small channels
 func (scs *Service) syncMembersIndividually(channelID, remoteID string, members model.ChannelMembers, remote *model.SharedChannelRemote) error {
-	// Get valid members that should be synchronized
-	syncedMembers := scs.filterSyncableMembers(channelID, members)
-
 	// Queue individual membership changes for each member
-	for _, userID := range syncedMembers {
+	for _, member := range members {
 		// Queue membership change for this user (isAdd=true)
-		scs.HandleMembershipChange(channelID, userID, true, "")
+		scs.HandleMembershipChange(channelID, member.UserId, true, "")
 
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Queued channel member sync",
 			mlog.String("channel_id", channelID),
 			mlog.String("remote_id", remoteID),
-			mlog.String("user_id", userID),
+			mlog.String("user_id", member.UserId),
 			mlog.Int("timestamp", int(model.GetMillis())), // Add timestamp for better tracking
 		)
 	}
@@ -275,50 +251,39 @@ func (scs *Service) syncMembersIndividually(channelID, remoteID string, members 
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Channel member sync queued successfully",
 		mlog.String("channel_id", channelID),
 		mlog.String("remote_id", remoteID),
-		mlog.Int("member_count", len(syncedMembers)),
+		mlog.Int("member_count", len(members)),
 		mlog.Int("timestamp", int(model.GetMillis())),
 	)
 
 	return nil
 }
 
-// filterSyncableMembers returns a list of user IDs that should be synchronized
-func (scs *Service) filterSyncableMembers(channelID string, members model.ChannelMembers) []string {
-	validMembers := make([]string, 0, len(members))
-
-	for _, member := range members {
-		_, shouldSync := scs.shouldSyncUser(channelID, member.UserId)
-		if shouldSync {
-			validMembers = append(validMembers, member.UserId)
-		}
-	}
-
-	return validMembers
-}
-
 // syncMembersInBatches processes members in batches for greater efficiency
 // This is better for channels with many members
 func (scs *Service) syncMembersInBatches(channelID, remoteID string, members model.ChannelMembers, remote *model.SharedChannelRemote) error {
-	// Get valid members that should be synchronized
-	validMembers := scs.filterSyncableMembers(channelID, members)
-
 	// Get batch size from config
 	batchSize := scs.GetMemberSyncBatchSize()
 
 	// Process in batches of the configured size
-	totalBatches := (len(validMembers) + batchSize - 1) / batchSize
+	totalBatches := (len(members) + batchSize - 1) / batchSize
 
-	for i := 0; i < len(validMembers); i += batchSize {
+	for i := 0; i < len(members); i += batchSize {
 		end := i + batchSize
-		if end > len(validMembers) {
-			end = len(validMembers)
+		if end > len(members) {
+			end = len(members)
 		}
 
 		// Create a batch of members
-		batchMembers := validMembers[i:end]
+		batchMembers := members[i:end]
+
+		// Extract user IDs from the batch
+		userIDs := make([]string, len(batchMembers))
+		for j, member := range batchMembers {
+			userIDs[j] = member.UserId
+		}
 
 		// Use the batch handling function to queue the changes
-		scs.HandleMembershipBatchChange(channelID, batchMembers, true, "")
+		scs.HandleMembershipBatchChange(channelID, userIDs, true, "")
 
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Queued membership batch",
 			mlog.String("channel_id", channelID),
@@ -333,7 +298,7 @@ func (scs *Service) syncMembersInBatches(channelID, remoteID string, members mod
 		mlog.String("channel_id", channelID),
 		mlog.String("remote_id", remoteID),
 		mlog.Int("total_batches", totalBatches),
-		mlog.Int("member_count", len(validMembers)),
+		mlog.Int("member_count", len(members)),
 		mlog.Int("timestamp", int(model.GetMillis())),
 	)
 

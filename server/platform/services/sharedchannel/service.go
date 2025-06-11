@@ -31,7 +31,7 @@ const (
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
-	// Default value for MaxMembersPerBatch is now defined in config.go as ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
+	// Default value for MaxMembersPerBatch is defined in config.go as ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
