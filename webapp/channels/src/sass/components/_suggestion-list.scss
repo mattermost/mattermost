@@ -116,9 +116,9 @@
 }
 
 .slash-command__info {
+    overflow: hidden;
     margin-left: 12px;
     line-height: 1;
-    overflow: hidden;
 }
 
 .slash-command__desc {
@@ -127,8 +127,8 @@
     font-size: 12px;
     line-height: 1.2;
     opacity: 0.75;
-    white-space: break-spaces;
     text-overflow: ellipsis;
+    white-space: break-spaces;
 }
 
 .suggestion-list__content--top {
