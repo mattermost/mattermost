@@ -43,6 +43,7 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
     clearable?: boolean;
     clearableTooltipText?: string;
     onClear?: () => void;
+    validate?: (value: React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>['value']) => CustomMessageInputType | undefined;
 }
 
 const Input = React.forwardRef((
@@ -75,6 +76,7 @@ const Input = React.forwardRef((
         onBlur,
         onChange,
         onClear,
+        validate,
         ...otherProps
     }: InputProps,
     ref?: React.Ref<HTMLInputElement | HTMLTextAreaElement>,
@@ -151,6 +153,13 @@ const Input = React.forwardRef((
     };
 
     const validateInput = () => {
+        if (validate) {
+            const validationError = validate(value);
+            if (validationError) {
+                setCustomInputLabel(validationError);
+            }
+        }
+
         // Only check for required field validation on blur
         // Length validation is handled through derived values in the render function
         if (required && (value === null || value === '')) {
