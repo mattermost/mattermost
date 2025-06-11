@@ -4,12 +4,24 @@
 import React, {useCallback, useState} from 'react';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import SuggestionBox from './suggestion_box';
 
+import AtMentionProvider from '../at_mention_provider';
 import type {ResultsCallback} from '../provider';
 import Provider from '../provider';
 import SuggestionList from '../suggestion_list';
+
+jest.mock('utils/utils', () => ({
+    ...jest.requireActual('utils/utils'),
+    getSuggestionBoxAlgn() {
+        return {
+            pixelsToMoveX: 0,
+            pixelsToMoveY: 0,
+        };
+    },
+}));
 
 function TestWrapper(props: React.ComponentPropsWithoutRef<typeof SuggestionBox>) {
     // eslint-disable-next-line react/prop-types
@@ -240,5 +252,91 @@ describe('SuggestionBox', () => {
 
         // expect(onSuggestionsReceived).toHaveBeenCalledTimes(1);
         expect(screen.getByPlaceholderText('test input')).toHaveValue('@use@use This is important');
+    });
+
+    test('keyboard support and ARIA', async () => {
+        const channelId = 'channelId';
+        const userA = TestHelper.getUserMock({id: 'userA', username: 'apple'});
+        const userB = TestHelper.getUserMock({id: 'userB', username: 'banana'});
+
+        const provider = new AtMentionProvider({
+            autocompleteGroups: null,
+            autocompleteUsersInChannel: jest.fn().mockResolvedValue({data: []}),
+            priorityProfiles: [],
+            channelId: 'channelId',
+            currentUserId: 'currentUserId',
+            searchAssociatedGroupsForReference: jest.fn().mockResolvedValue({data: []}),
+            useChannelMentions: false,
+        });
+
+        renderWithContext(
+            <TestWrapper
+                {...makeBaseProps()}
+                providers={[provider]}
+            />,
+            {
+                entities: {
+                    users: {
+                        profilesInChannel: {
+                            [channelId]: new Set([userA.id, userB.id]),
+                        },
+                        profiles: {
+                            [userA.id]: userA,
+                            [userB.id]: userB,
+                        },
+                    },
+                },
+            },
+        );
+
+        const input = screen.getByPlaceholderText('test input');
+        userEvent.click(input);
+
+        // Start without showing the autocomplete list
+        expect(input).toHaveAttribute('aria-autocomplete', 'list');
+        expect(input).toHaveAttribute('aria-expanded', 'false');
+        expect(document.getElementById(input.getAttribute('aria-controls')!)).not.toBeInTheDocument();
+
+        // Type something that shouldn't trigger the autocomplete
+        await userEvent.keyboard('Test ');
+
+        // The autocomplete still shouldn't be visible
+        expect(input).toHaveAttribute('aria-autocomplete', 'list');
+        expect(input).toHaveAttribute('aria-expanded', 'false');
+        expect(document.getElementById(input.getAttribute('aria-controls')!)).not.toBeInTheDocument();
+
+        // Type an at sign to trigger the user autocomplete
+        await userEvent.keyboard('@');
+
+        await waitFor(() => {
+            expect(input).toHaveAttribute('aria-expanded', 'true');
+        });
+
+        // Ensure that the input is correctly linked to the suggestion list
+        expect(document.getElementById(input.getAttribute('aria-controls')!)).toBe(screen.getByRole('listbox'));
+        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByRole('listbox').firstElementChild);
+
+        // The number of results should also be read out
+        expect(screen.getByRole('status')).toHaveTextContent('2 suggestions available');
+
+        // Pressing the down arrow should change the selection to the second user
+        await userEvent.keyboard('{arrowdown}');
+
+        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByRole('listbox').lastElementChild);
+
+        // Pressing the up arrow should change the selection back to the first user
+        await userEvent.keyboard('{arrowup}');
+
+        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByRole('listbox').firstElementChild);
+
+        // Pressing enter should complete the result and close the suggestions
+        await userEvent.keyboard('{enter}');
+
+        expect(input).toHaveValue('Test @apple ');
+
+        expect(input).toHaveAttribute('aria-expanded', 'false');
+        expect(document.getElementById(input.getAttribute('aria-controls')!)).not.toBeInTheDocument();
+        expect(input).not.toHaveAttribute('aria-activedescendant');
+        expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
 });

@@ -3,16 +3,13 @@
 
 import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
-import ReactDOM from 'react-dom';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
-import {isEmptyObject} from 'utils/utils';
 
 export interface Props {
-    ariaLiveRef?: React.RefObject<HTMLDivElement>;
     inputRef?: React.RefObject<HTMLDivElement>;
     open: boolean;
     position?: 'top' | 'bottom';
@@ -46,9 +43,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
     };
     contentRef: React.RefObject<HTMLUListElement>;
     wrapperRef: React.RefObject<HTMLDivElement>;
-    itemRefs: Map<string, any>;
-    currentLabel: string | null;
-    currentItem: any;
+    itemRefs: Map<string, HTMLElement>;
     maxHeight: number;
 
     constructor(props: Props) {
@@ -57,8 +52,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
         this.contentRef = React.createRef();
         this.wrapperRef = React.createRef();
         this.itemRefs = new Map();
-        this.currentLabel = '';
-        this.currentItem = {};
         this.maxHeight = 0;
     }
 
@@ -71,17 +64,9 @@ export default class SuggestionList extends React.PureComponent<Props> {
             this.scrollToItem(this.props.selection);
         }
 
-        if (!isEmptyObject(this.currentItem)) {
-            this.generateLabel(this.currentItem);
-        }
-
         if (this.props.items.length > 0 && prevProps.items.length === 0) {
             this.updateMaxHeight();
         }
-    }
-
-    componentWillUnmount() {
-        this.removeLabel();
     }
 
     updateMaxHeight = () => {
@@ -101,42 +86,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
         }
     };
 
-    announceLabel() {
-        const suggestionReadOut = this.props.ariaLiveRef?.current;
-        if (suggestionReadOut) {
-            suggestionReadOut.textContent = this.currentLabel;
-        }
-    }
-
-    removeLabel() {
-        const suggestionReadOut = this.props.ariaLiveRef?.current;
-        if (suggestionReadOut) {
-            suggestionReadOut.textContent = '';
-        }
-    }
-
-    generateLabel(item: any) {
-        if (item.username) {
-            this.currentLabel = item.username;
-            if ((item.first_name || item.last_name) && item.nickname) {
-                this.currentLabel += ` ${item.first_name} ${item.last_name} ${item.nickname}`;
-            } else if (item.nickname) {
-                this.currentLabel += ` ${item.nickname}`;
-            } else if (item.first_name || item.last_name) {
-                this.currentLabel += ` ${item.first_name} ${item.last_name}`;
-            }
-        } else if (item.type === 'mention.channels') {
-            this.currentLabel = item.channel.display_name;
-        } else if (item.emoji) {
-            this.currentLabel = item.name;
-        }
-
-        if (this.currentLabel) {
-            this.currentLabel = this.currentLabel.toLowerCase();
-        }
-        this.announceLabel();
-    }
-
     getContent = () => {
         return this.contentRef.current;
     };
@@ -155,7 +104,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             const contentTopPadding = this.getComputedCssProperty(content, 'paddingTop');
             const contentBottomPadding = this.getComputedCssProperty(content, 'paddingTop');
 
-            const item = ReactDOM.findDOMNode(this.itemRefs.get(term));
+            const item = this.itemRefs.get(term);
             if (!item) {
                 return;
             }
@@ -272,14 +221,11 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 continue;
             }
 
-            if (isSelection) {
-                this.currentItem = item;
-            }
-
             items.push(
                 <Component
                     key={term}
                     ref={(ref: any) => this.itemRefs.set(term, ref)}
+                    id={`suggestionList_item_${term}`}
                     item={this.props.items[i]}
                     term={term}
                     matchedPretext={this.props.matchedPretext[i]}
@@ -297,7 +243,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 ref={this.wrapperRef}
                 className={mainClass}
             >
-                <ul
+                <SuggestionListList
                     id='suggestionList'
                     data-testid='suggestionList'
                     role='listbox'
@@ -310,8 +256,46 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     onMouseDown={this.props.preventClose}
                 >
                     {items}
-                </ul>
+                </SuggestionListList>
+                <SuggestionListStatus items={this.props.items}/>
             </div>
         );
     }
+}
+
+const SuggestionListList = React.forwardRef<HTMLUListElement, React.HTMLAttributes<HTMLUListElement>>((props, ref) => {
+    const {formatMessage} = useIntl();
+
+    return (
+        <ul
+            ref={ref}
+            aria-label={formatMessage({id: 'suggestionList.label', defaultMessage: 'Suggestions'})}
+            {...props}
+        />
+    );
+});
+
+function SuggestionListStatus({items}: Pick<Props, 'items'>) {
+    const {formatMessage} = useIntl();
+
+    const statusText = formatMessage(
+        {
+            id: 'suggestionList.suggestionsAvailable',
+            defaultMessage: '{count, number} {count, plural, one {suggestion} other {suggestions}} available',
+        },
+        {
+            count: items.length,
+        },
+    );
+
+    return (
+        <div
+            className='sr-only'
+            aria-atomic={true}
+            aria-live='polite'
+            role='status'
+        >
+            {statusText}
+        </div>
+    );
 }
