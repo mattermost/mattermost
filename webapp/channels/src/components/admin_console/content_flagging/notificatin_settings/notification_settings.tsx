@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useCallback, useState } from "react";
+import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
@@ -12,13 +12,48 @@ import {
 } from 'components/admin_console/system_properties/controls';
 
 import '../content_flagging_section_base.scss';
-import { SystemConsoleCustomSettingsComponentProps } from "components/admin_console/schema_admin_settings";
-import { ContentFlaggingNotificationSettings } from "@mattermost/types/lib/config";
+import type {SystemConsoleCustomSettingsComponentProps} from 'components/admin_console/schema_admin_settings';
 
-const noOp = () => null;
+import type {ContentFlaggingNotificationSettings} from '@mattermost/types/lib/config';
+import type { NotificationTarget } from "@mattermost/types/lib/content_flagging";
 
-export default function ContentFlaggingNotificationSettingsSection(props: SystemConsoleCustomSettingsComponentProps) {
-    const [notificationSettings, setNotificationSettings] = useState<ContentFlaggingNotificationSettings>(props.value);
+export default function ContentFlaggingNotificationSettingsSection({id, value, onChange}: SystemConsoleCustomSettingsComponentProps) {
+    const [notificationSettings, setNotificationSettings] = useState<ContentFlaggingNotificationSettings>(value);
+
+    const handleChange = useCallback((inputId: string, value: boolean) => {
+        const [action, target] = inputId.split('_');
+        if (!action || !target) {
+            return;
+        }
+
+        const updatedSettings = {...notificationSettings};
+        if (!updatedSettings.EventTargetMapping) {
+            updatedSettings.EventTargetMapping = {
+                flagged: [],
+                assigned: [],
+                removed: [],
+                dismissed: [],
+            };
+        }
+
+        if (!updatedSettings.EventTargetMapping[action]) {
+            updatedSettings.EventTargetMapping[action] = [];
+        }
+
+        if (value) {
+            // Add target to the action's list if not already present
+            if (!updatedSettings.EventTargetMapping[action].includes(target)) {
+                updatedSettings.EventTargetMapping[action].push(target);
+            }
+        } else {
+            // Remove target from the action's list if present
+            updatedSettings.EventTargetMapping[action] = updatedSettings.EventTargetMapping[action].filter((t: NotificationTarget) => t !== target);
+        }
+
+        setNotificationSettings(updatedSettings);
+
+        onChange(id, updatedSettings);
+    }, [id, notificationSettings, onChange]);
 
     return (
         <AdminSection>
@@ -52,7 +87,7 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
 
                         <div className='setting-content'>
                             <CheckboxSetting
-                                id='notifyOnFlag_reviewers'
+                                id='flagged_reviewers'
                                 label={
                                     <FormattedMessage
                                         id='admin.contentFlagging.notificationSettings.reviewers'
@@ -60,13 +95,13 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
                                     />
                                 }
                                 defaultChecked={notificationSettings.EventTargetMapping.flagged.includes('reviewers')}
-                                onChange={noOp}
+                                onChange={handleChange}
                                 setByEnv={false}
                                 disabled={true}
                             />
 
                             <CheckboxSetting
-                                id='notifyOnFlag_authors'
+                                id='flagged_authors'
                                 label={
                                     <FormattedMessage
                                         id='admin.contentFlagging.notificationSettings.author'
@@ -74,7 +109,7 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
                                     />
                                 }
                                 defaultChecked={notificationSettings.EventTargetMapping.flagged.includes('author')}
-                                onChange={noOp}
+                                onChange={handleChange}
                                 setByEnv={false}
                             />
                         </div>
@@ -91,7 +126,7 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
 
                         <div className='setting-content'>
                             <CheckboxSetting
-                                id='notifyOnReviewerAssigned_reviewers'
+                                id='assigned_reviewers'
                                 label={
                                     <FormattedMessage
                                         id='admin.contentFlagging.notificationSettings.reviewers'
@@ -99,7 +134,7 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
                                     />
                                 }
                                 defaultChecked={notificationSettings.EventTargetMapping.assigned.includes('reviewers')}
-                                onChange={noOp}
+                                onChange={handleChange}
                                 setByEnv={false}
                             />
                         </div>
@@ -116,7 +151,7 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
 
                         <div className='setting-content'>
                             <CheckboxSetting
-                                id='notifyOnRemoval_reviewers'
+                                id='removed_reviewers'
                                 label={
                                     <FormattedMessage
                                         id='admin.contentFlagging.notificationSettings.reviewers'
@@ -124,12 +159,12 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
                                     />
                                 }
                                 defaultChecked={notificationSettings.EventTargetMapping.removed.includes('reviewers')}
-                                onChange={noOp}
+                                onChange={handleChange}
                                 setByEnv={false}
                             />
 
                             <CheckboxSetting
-                                id='notifyOnRemoval_author'
+                                id='removed_author'
                                 label={
                                     <FormattedMessage
                                         id='admin.contentFlagging.notificationSettings.author'
@@ -137,12 +172,12 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
                                     />
                                 }
                                 defaultChecked={notificationSettings.EventTargetMapping.removed.includes('author')}
-                                onChange={noOp}
+                                onChange={handleChange}
                                 setByEnv={false}
                             />
 
                             <CheckboxSetting
-                                id='notifyOnRemoval_reporter'
+                                id='removed_reporter'
                                 label={
                                     <FormattedMessage
                                         id='admin.contentFlagging.notificationSettings.reporter'
@@ -150,7 +185,7 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
                                     />
                                 }
                                 defaultChecked={notificationSettings.EventTargetMapping.removed.includes('reporter')}
-                                onChange={noOp}
+                                onChange={handleChange}
                                 setByEnv={false}
                             />
                         </div>
@@ -167,7 +202,7 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
 
                         <div className='setting-content'>
                             <CheckboxSetting
-                                id='notifyOnDismissal_reviewers'
+                                id='dismissed_reviewers'
                                 label={
                                     <FormattedMessage
                                         id='admin.contentFlagging.notificationSettings.reviewers'
@@ -175,12 +210,12 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
                                     />
                                 }
                                 defaultChecked={notificationSettings.EventTargetMapping.dismissed.includes('reviewers')}
-                                onChange={noOp}
+                                onChange={handleChange}
                                 setByEnv={false}
                             />
 
                             <CheckboxSetting
-                                id='notifyOnDismissal_author'
+                                id='dismissed_author'
                                 label={
                                     <FormattedMessage
                                         id='admin.contentFlagging.notificationSettings.author'
@@ -188,12 +223,12 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
                                     />
                                 }
                                 defaultChecked={notificationSettings.EventTargetMapping.dismissed.includes('author')}
-                                onChange={noOp}
+                                onChange={handleChange}
                                 setByEnv={false}
                             />
 
                             <CheckboxSetting
-                                id='notifyOnDismissal_reporter'
+                                id='dismissed_reporter'
                                 label={
                                     <FormattedMessage
                                         id='admin.contentFlagging.notificationSettings.reporter'
@@ -201,7 +236,7 @@ export default function ContentFlaggingNotificationSettingsSection(props: System
                                     />
                                 }
                                 defaultChecked={notificationSettings.EventTargetMapping.dismissed.includes('reporter')}
-                                onChange={noOp}
+                                onChange={handleChange}
                                 setByEnv={false}
                             />
                         </div>
