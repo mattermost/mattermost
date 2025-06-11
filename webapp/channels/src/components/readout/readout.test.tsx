@@ -1,34 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, act} from '@testing-library/react';
+import {screen, act} from '@testing-library/react';
 import React from 'react';
-import {Provider} from 'react-redux';
-import configureStore from 'redux-mock-store';
 
-import {ActionTypes} from 'utils/constants';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import Readout from './readout';
 
 describe('Readout', () => {
-    const mockStore = configureStore([]);
-
     it('should render message and clear it after timeout', async () => {
         jest.useFakeTimers();
 
-        const store = mockStore({
+        renderWithContext(<Readout/>, {
             views: {
                 readout: {
                     message: 'Test message',
                 },
             },
         });
-
-        render(
-            <Provider store={store}>
-                <Readout/>
-            </Provider>,
-        );
 
         // Message should be visible
         expect(screen.getByText('Test message')).toBeInTheDocument();
@@ -39,11 +29,7 @@ describe('Readout', () => {
         });
 
         // Message should be cleared
-        expect(store.getActions()).toEqual([
-            {
-                type: ActionTypes.CLEAR_READOUT,
-            },
-        ]);
+        expect(screen.queryByText('Test message')).not.toBeInTheDocument();
 
         jest.useRealTimers();
     });

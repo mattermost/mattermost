@@ -133,11 +133,11 @@ function ThreadMenu({
                         defaultMessage: 'Open in channel',
                     })}
                     onClick={useCallback(() => {
+                        goToInChannel(threadId);
                         readAloud(formatMessage({
                             id: 'threading.threadMenu.openingChannel',
                             defaultMessage: 'Opening channel',
                         }));
-                        goToInChannel(threadId);
                     }, [threadId, readAloud, formatMessage])}
                 />
                 <Menu.ItemAction
@@ -160,6 +160,7 @@ function ThreadMenu({
                         defaultMessage: 'Save',
                     })}
                     onClick={useCallback(() => {
+                        dispatch(isSaved ? unsavePost(threadId) : savePost(threadId));
                         readAloud(isSaved ? formatMessage({
                             id: 'threading.threadMenu.unsaved',
                             defaultMessage: 'Unsaved',
@@ -167,7 +168,6 @@ function ThreadMenu({
                             id: 'threading.threadMenu.saved',
                             defaultMessage: 'Saved',
                         }));
-                        dispatch(isSaved ? unsavePost(threadId) : savePost(threadId));
                     }, [threadId, isSaved])}
                 />
                 <Menu.ItemAction
@@ -176,11 +176,11 @@ function ThreadMenu({
                         defaultMessage: 'Copy link',
                     })}
                     onClick={useCallback(() => {
+                        copyToClipboard(`${getSiteURL()}/${team}/pl/${threadId}`);
                         readAloud(formatMessage({
                             id: 'threading.threadMenu.linkCopied',
                             defaultMessage: 'Link copied',
                         }));
-                        copyToClipboard(`${getSiteURL()}/${team}/pl/${threadId}`);
                     }, [team, threadId])}
                 />
             </Menu>

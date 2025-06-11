@@ -8,7 +8,7 @@ import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 import en from 'i18n/en.json';
 import {ActionTypes} from 'utils/constants';
 
-import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'types/store';
+import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 import type {Translations} from 'types/store/i18n';
 
 const pluginTranslationSources: Record<string, TranslationPluginFunction> = {};
@@ -67,12 +67,9 @@ export function loadTranslations(locale: string, url: string): ActionFuncAsync {
     };
 }
 
-export function setReadout(message: string): ActionFunc {
-    return (dispatch) => {
-        dispatch({
-            type: ActionTypes.SET_READOUT,
-            data: message,
-        });
-        return {data: true};
+export function setReadout(message: string) {
+    return {
+        type: ActionTypes.SET_READOUT,
+        data: message,
     };
 }
