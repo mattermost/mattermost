@@ -22,18 +22,18 @@ type dbSelecter interface {
 	Select(i any, query string, args ...any) error
 }
 
-func (s SqlChannelStore) CreateInitialSidebarCategories(c request.CTX, userId string, opts *store.SidebarCategorySearchOpts) (_ *model.OrderedSidebarCategories, err error) {
+func (s SqlChannelStore) CreateInitialSidebarCategories(c request.CTX, userId string, teamID string) (_ *model.OrderedSidebarCategories, err error) {
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	if err = s.createInitialSidebarCategoriesT(transaction, userId, opts.TeamID); err != nil {
+	if err = s.createInitialSidebarCategoriesT(transaction, userId, teamID); err != nil {
 		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: createInitialSidebarCategoriesT")
 	}
 
-	oc, err := s.getSidebarCategoriesT(transaction, userId, opts.TeamID)
+	oc, err := s.getSidebarCategoriesT(transaction, userId, teamID)
 	if err != nil {
 		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: getSidebarCategoriesT")
 	}
@@ -524,8 +524,8 @@ func (s SqlChannelStore) GetSidebarCategoriesForTeamForUser(userId, teamId strin
 	return s.getSidebarCategoriesT(s.GetReplica(), userId, teamId)
 }
 
-func (s SqlChannelStore) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
-	return s.getSidebarCategoriesT(s.GetReplica(), userID, opts.TeamID)
+func (s SqlChannelStore) GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+	return s.getSidebarCategoriesT(s.GetReplica(), userID, teamID)
 }
 
 func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]string, error) {

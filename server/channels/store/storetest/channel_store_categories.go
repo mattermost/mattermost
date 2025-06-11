@@ -63,11 +63,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 
 		team := setupTeam(t, rctx, ss, userID)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		assert.NoError(t, nErr)
 		require.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
@@ -85,14 +81,11 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 
 		team := setupTeam(t, rctx, ss, userID, userID2)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		res, nErr = ss.Channel().CreateInitialSidebarCategories(rctx, userID2, opts)
+		res, nErr = ss.Channel().CreateInitialSidebarCategories(rctx, userID2, team.Id)
 		assert.NoError(t, nErr)
 		assert.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
@@ -110,17 +103,11 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		team := setupTeam(t, rctx, ss, userID)
 		team2 := setupTeam(t, rctx, ss, userID)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		opts = &store.SidebarCategorySearchOpts{
-			TeamID: team2.Id,
-		}
-		res, nErr = ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr = ss.Channel().CreateInitialSidebarCategories(rctx, userID, team2.Id)
 		assert.NoError(t, nErr)
 		assert.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
@@ -137,10 +124,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 
 		team := setupTeam(t, rctx, ss, userID)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -149,7 +133,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		require.Equal(t, res, initialCategories)
 
 		// Calling CreateInitialSidebarCategories a second time shouldn't create any new categories
-		res, nErr = ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr = ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		assert.NoError(t, nErr)
 		assert.NotEmpty(t, res)
 
@@ -171,10 +155,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 			go func() {
 				defer wg.Done()
 
-				opts := &store.SidebarCategorySearchOpts{
-					TeamID: team.Id,
-				}
-				_, _ = ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+				_, _ = ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 			}()
 		}
 
@@ -228,10 +209,8 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		require.NoError(t, nErr)
 
 		// Create the categories
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		categories, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the categories
+		categories, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.Len(t, categories.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
@@ -296,10 +275,8 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		require.NoError(t, nErr)
 
 		// Create the categories
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		categories, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the categories
+		categories, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.Len(t, categories.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
@@ -363,10 +340,8 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		require.NoError(t, err)
 
 		// Create the categories
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		categories, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the categories
+		categories, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.Len(t, categories.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
@@ -411,10 +386,8 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		require.NoError(t, nErr)
 
 		// Create the categories
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		categories, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the categories
+		categories, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.Len(t, categories.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
@@ -451,10 +424,7 @@ func testCreateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		team := setupTeam(t, rctx, ss, userID)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -480,10 +450,7 @@ func testCreateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		team := setupTeam(t, rctx, ss, userID)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -520,10 +487,7 @@ func testCreateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		userID := model.NewId()
 		team := setupTeam(t, rctx, ss, userID)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -561,10 +525,7 @@ func testCreateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		userID := model.NewId()
 		team := setupTeam(t, rctx, ss, userID)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -625,10 +586,7 @@ func testCreateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		team := setupTeam(t, rctx, ss, userID)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 		// Create the category
@@ -661,10 +619,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		channelID2 := model.NewId()
 		channelID3 := model.NewId()
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -694,10 +649,8 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		team := setupTeam(t, rctx, ss, userID)
 
 		// Create the initial categories and find the channels category
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the initial categories and find the channels category
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -761,10 +714,8 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		team := setupTeam(t, rctx, ss, userID)
 
 		// Create the initial categories and find the channels category
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the initial categories and find the channels category
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -802,11 +753,8 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		userID := model.NewId()
 		team := setupTeam(t, rctx, ss, userID)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
 		// Create the initial categories and find the channels category
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -869,10 +817,8 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		team := setupTeam(t, rctx, ss, userID)
 
 		// Create the initial categories and find the DMs category
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the initial categories and find the DMs category
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -913,10 +859,8 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		team := setupTeam(t, rctx, ss, userID)
 
 		// Create the initial categories and find the DMs category
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the initial categories and find the DMs category
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -954,10 +898,8 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		team := setupTeam(t, rctx, ss, userID)
 
 		// Create the initial categories and find the DMs category
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the initial categories and find the DMs category
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -987,10 +929,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 
 		// Create another team and assign the DM to a custom category on that team
 		otherTeam := setupTeam(t, rctx, ss, userID)
-		opts = &store.SidebarCategorySearchOpts{
-			TeamID: otherTeam.Id,
-		}
-		res, nErr = ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr = ss.Channel().CreateInitialSidebarCategories(rctx, userID, otherTeam.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1017,10 +956,7 @@ func testGetSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store) {
 		userID := model.NewId()
 		team := setupTeam(t, rctx, ss, userID)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1058,10 +994,8 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		team := setupTeam(t, rctx, ss, userID)
 
 		// Create the initial categories
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the initial categories
+		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, err)
 		require.NotEmpty(t, res)
 
@@ -1095,10 +1029,8 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		team := setupTeam(t, rctx, ss, userID)
 
 		// Create the initial categories
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the initial categories
+		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, err)
 		require.NotEmpty(t, res)
 
@@ -1125,10 +1057,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		userID := model.NewId()
 		team := setupTeam(t, rctx, ss, userID)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1195,10 +1124,8 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		team := setupTeam(t, rctx, ss, userID)
 
 		// Create the initial categories and find the favorites category
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the initial categories and find the favorites category
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1259,10 +1186,8 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		team := setupTeam(t, rctx, ss, userID)
 
 		// Create the initial categories and find the favorites category
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the initial categories and find the favorites category
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1329,10 +1254,8 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		team2 := setupTeam(t, rctx, ss, userID)
 
 		// Create the initial categories and find the favorites categories in each team
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the initial categories and find the favorites categories in each team
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1342,10 +1265,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		favoritesCategory := categories.Categories[0]
 		require.Equal(t, model.SidebarCategoryFavorites, favoritesCategory.Type)
 
-		opts = &store.SidebarCategorySearchOpts{
-			TeamID: team2.Id,
-		}
-		res, nErr = ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr = ss.Channel().CreateInitialSidebarCategories(rctx, userID, team2.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1436,10 +1356,8 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		team := setupTeam(t, rctx, ss, userID, userID2)
 
 		// Create the initial categories and find the favorites category
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// Create the initial categories and find the favorites category
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1452,7 +1370,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
 		// Create the other users' categories
-		res, nErr = ss.Channel().CreateInitialSidebarCategories(rctx, userID2, opts)
+		res, nErr = ss.Channel().CreateInitialSidebarCategories(rctx, userID2, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1609,10 +1527,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		)
 		require.NoError(t, nErr)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1667,10 +1582,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		)
 		require.NoError(t, nErr)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1758,10 +1670,8 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, err)
 
 		// And then create the initial categories so that it includes the channel
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// And then create the initial categories so that it includes the channel
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1825,10 +1735,8 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, err)
 
 		// And then create the initial categories so that Channels includes the channel
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team.Id,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		// And then create the initial categories so that Channels includes the channel
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -1886,10 +1794,7 @@ func setupInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store.Stor
 	userID := model.NewId()
 	team := setupTeam(t, rctx, ss, userID)
 
-	opts := &store.SidebarCategorySearchOpts{
-		TeamID: team.Id,
-	}
-	res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+	res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 	require.NoError(t, nErr)
 	require.NotEmpty(t, res)
 
@@ -2012,10 +1917,7 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		// Create a second team and set up the sidebar categories for it
 		team2 := setupTeam(t, rctx, ss, userID)
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: team2.Id,
-		}
-		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team2.Id)
 		require.NoError(t, err)
 		require.NotEmpty(t, res)
 
@@ -2202,10 +2104,7 @@ func testUpdateSidebarChannelsByPreferences(t *testing.T, rctx request.CTX, ss s
 		userID := model.NewId()
 		teamID := model.NewId()
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: teamID,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, teamID)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -2230,10 +2129,7 @@ func testUpdateSidebarChannelsByPreferences(t *testing.T, rctx request.CTX, ss s
 		userID := model.NewId()
 		teamID := model.NewId()
 
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID: teamID,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, teamID)
 		assert.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -2271,10 +2167,8 @@ func testSidebarCategoryDeadlock(t *testing.T, rctx request.CTX, ss store.Store)
 	require.NoError(t, err)
 
 	// And then create the initial categories so that it includes the channel
-	opts := &store.SidebarCategorySearchOpts{
-		TeamID: team.Id,
-	}
-	res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+	// And then create the initial categories so that it includes the channel
+	res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 	require.NoError(t, err)
 	require.NotEmpty(t, res)
 
@@ -2381,10 +2275,8 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 	}
 
 	// Create the initial categories
-	opts := &store.SidebarCategorySearchOpts{
-		TeamID: team.Id,
-	}
-	res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, opts)
+	// Create the initial categories
+	res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
 	require.NoError(t, nErr)
 	require.NotEmpty(t, res)
 
