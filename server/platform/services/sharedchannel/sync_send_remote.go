@@ -180,9 +180,9 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	}
 
 	// fetch acknowledgements for posts
-	if err := scs.fetchAcknowledgementsForSync(sd); err != nil {
-		return fmt.Errorf("cannot fetch acknowledgements for sync %v: %w", sd, err)
-	}
+	// if err := scs.fetchAcknowledgementsForSync(sd); err != nil {
+	//	return fmt.Errorf("cannot fetch acknowledgements for sync %v: %w", sd, err)
+	// }
 
 	// fetch users associated with posts & reactions
 	if err := scs.fetchPostUsersForSync(sd); err != nil {
@@ -391,27 +391,27 @@ func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 	return merr.ErrorOrNil()
 }
 
-// fetchAcknowledgementsForSync populates the sync data with any new acknowledgements since the last sync.
-func (scs *Service) fetchAcknowledgementsForSync(sd *syncData) error {
-	start := time.Now()
-	defer func() {
-		if metrics := scs.server.GetMetrics(); metrics != nil {
-			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Acknowledgements", time.Since(start).Seconds())
-		}
-	}()
+// // fetchAcknowledgementsForSync populates the sync data with any new acknowledgements since the last sync.
+// func (scs *Service) fetchAcknowledgementsForSync(sd *syncData) error {
+// 	start := time.Now()
+// 	defer func() {
+// 		if metrics := scs.server.GetMetrics(); metrics != nil {
+// 			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Acknowledgements", time.Since(start).Seconds())
+// 		}
+// 	}()
 
-	merr := merror.New()
-	for _, post := range sd.posts {
-		// any acknowledgements originating from the remote cluster are filtered out
-		acknowledgements, err := scs.server.GetStore().PostAcknowledgement().GetForPostSince(post.Id, sd.scr.LastPostUpdateAt, sd.rc.RemoteId, true)
-		if err != nil {
-			merr.Append(fmt.Errorf("could not get acknowledgements for post %s: %w", post.Id, err))
-			continue
-		}
-		sd.acknowledgements = append(sd.acknowledgements, acknowledgements...)
-	}
-	return merr.ErrorOrNil()
-}
+// 	merr := merror.New()
+// 	for _, post := range sd.posts {
+// 		// any acknowledgements originating from the remote cluster are filtered out
+// 		acknowledgements, err := scs.server.GetStore().PostAcknowledgement().GetForPostSince(post.Id, sd.scr.LastPostUpdateAt, sd.rc.RemoteId, true)
+// 		if err != nil {
+// 			merr.Append(fmt.Errorf("could not get acknowledgements for post %s: %w", post.Id, err))
+// 			continue
+// 		}
+// 		sd.acknowledgements = append(sd.acknowledgements, acknowledgements...)
+// 	}
+// 	return merr.ErrorOrNil()
+// }
 
 // fetchPostUsersForSync populates the sync data with all users associated with posts.
 func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
@@ -596,11 +596,11 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 	}
 
 	// send acknowledgements
-	if len(sd.acknowledgements) != 0 {
-		if err := scs.sendAcknowledgementSyncData(sd); err != nil {
-			merr.Append(fmt.Errorf("cannot send acknowledgement sync data: %w", err))
-		}
-	}
+	// if len(sd.acknowledgements) != 0 {
+	//	if err := scs.sendAcknowledgementSyncData(sd); err != nil {
+	//		merr.Append(fmt.Errorf("cannot send acknowledgement sync data: %w", err))
+	//	}
+	// }
 
 	// send reactions
 	if len(sd.reactions) != 0 {
@@ -724,28 +724,28 @@ func (scs *Service) sendReactionSyncData(sd *syncData) error {
 	})
 }
 
-// sendAcknowledgementSyncData sends the collected acknowledgement updates to the remote cluster.
-func (scs *Service) sendAcknowledgementSyncData(sd *syncData) error {
-	start := time.Now()
-	defer func() {
-		if metrics := scs.server.GetMetrics(); metrics != nil {
-			metrics.ObserveSharedChannelsSyncSendStepDuration(sd.rc.RemoteId, "Acknowledgements", time.Since(start).Seconds())
-		}
-	}()
+// // sendAcknowledgementSyncData sends the collected acknowledgement updates to the remote cluster.
+// func (scs *Service) sendAcknowledgementSyncData(sd *syncData) error {
+// 	start := time.Now()
+// 	defer func() {
+// 		if metrics := scs.server.GetMetrics(); metrics != nil {
+// 			metrics.ObserveSharedChannelsSyncSendStepDuration(sd.rc.RemoteId, "Acknowledgements", time.Since(start).Seconds())
+// 		}
+// 	}()
 
-	msg := model.NewSyncMsg(sd.task.channelID)
-	msg.Acknowledgements = sd.acknowledgements
+// 	msg := model.NewSyncMsg(sd.task.channelID)
+// 	msg.Acknowledgements = sd.acknowledgements
 
-	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
-		if len(syncResp.AcknowledgementErrors) != 0 {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for acknowledgement(s) sync",
-				mlog.String("channel_id", sd.task.channelID),
-				mlog.String("remote_id", sd.rc.RemoteId),
-				mlog.Array("acknowledgement_posts", syncResp.AcknowledgementErrors),
-			)
-		}
-	})
-}
+// 	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+// 		if len(syncResp.AcknowledgementErrors) != 0 {
+// 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for acknowledgement(s) sync",
+// 				mlog.String("channel_id", sd.task.channelID),
+// 				mlog.String("remote_id", sd.rc.RemoteId),
+// 				mlog.Array("acknowledgement_posts", syncResp.AcknowledgementErrors),
+// 			)
+// 		}
+// 	})
+// }
 
 // sendStatusSyncData sends the collected status updates to the remote cluster.
 func (scs *Service) sendStatusSyncData(sd *syncData) error {
