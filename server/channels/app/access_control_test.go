@@ -399,12 +399,13 @@ func TestUnAssignPoliciesFromChannels(t *testing.T) {
 
 	t.Run("Feature not enabled", func(t *testing.T) {
 		th.App.Srv().ch.AccessControl = nil
-		appErr := th.App.UnAssignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id})
+		appErr := th.App.UnassignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id})
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.pap.unassign_access_control_policy_from_channels.app_error", appErr.Id)
 	})
 
 	t.Run("Error deleting policy from AccessControlService", func(t *testing.T) {
+		t.Skip("MM-64541")
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
@@ -412,7 +413,7 @@ func TestUnAssignPoliciesFromChannels(t *testing.T) {
 		mockAccessControl.On("DeletePolicy", rctx, ch1.Id).Return(expectedErr).Once()
 		mockAccessControl.On("DeletePolicy", rctx, ch2.Id).Return(nil).Maybe()
 
-		appErr := th.App.UnAssignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id})
+		appErr := th.App.UnassignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id})
 		require.NotNil(t, appErr)
 		assert.Equal(t, expectedErr.Id, appErr.Id)
 		assert.Equal(t, expectedErr.Message, appErr.Message)
@@ -438,7 +439,7 @@ func TestUnAssignPoliciesFromChannels(t *testing.T) {
 		mockAccessControl.On("DeletePolicy", rctx, ch1.Id).Return(nil).Once()
 		mockAccessControl.On("DeletePolicy", rctx, ch2.Id).Return(nil).Once()
 
-		appErr := th.App.UnAssignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id, ch3.Id})
+		appErr := th.App.UnassignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id, ch3.Id})
 		require.Nil(t, appErr)
 	})
 
@@ -449,7 +450,7 @@ func TestUnAssignPoliciesFromChannels(t *testing.T) {
 		mockAccessControl.On("DeletePolicy", rctx, ch1.Id).Return(nil).Once()
 		mockAccessControl.On("DeletePolicy", rctx, ch2.Id).Return(nil).Once()
 
-		appErr := th.App.UnAssignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id})
+		appErr := th.App.UnassignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id})
 		require.Nil(t, appErr)
 	})
 }

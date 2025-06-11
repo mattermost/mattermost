@@ -30,6 +30,7 @@ import (
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
+	mainHelper.Parallel(t)
 	filename1 := model.NewId() + "/" + model.NewRandomString(16) + ".txt"
 	filename2 := model.NewId() + "/" + model.NewRandomString(16) + ".txt"
 	salt1 := model.NewRandomString(32)
@@ -48,6 +49,7 @@ func TestGeneratePublicLinkHash(t *testing.T) {
 }
 
 func TestDoUploadFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -119,6 +121,7 @@ func TestDoUploadFile(t *testing.T) {
 }
 
 func TestUploadFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -149,6 +152,7 @@ func TestUploadFile(t *testing.T) {
 }
 
 func TestParseOldFilenames(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -246,6 +250,7 @@ func TestParseOldFilenames(t *testing.T) {
 }
 
 func TestGetInfoForFilename(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -257,6 +262,7 @@ func TestGetInfoForFilename(t *testing.T) {
 }
 
 func TestFindTeamIdForFilename(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -271,6 +277,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 }
 
 func TestMigrateFilenamesToFileInfos(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -305,6 +312,7 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 }
 
 func TestCreateZipFileAndAddFiles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -361,6 +369,7 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 }
 
 func TestCopyFileInfos(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -394,6 +403,7 @@ func TestCopyFileInfos(t *testing.T) {
 }
 
 func TestGenerateThumbnailImage(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("test generating thumbnail image", func(t *testing.T) {
 		// given
 		th := Setup(t)
@@ -423,6 +433,7 @@ func createDummyImage() *image.RGBA {
 }
 
 func TestSearchFilesInTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	perPage := 5
 	searchTerm := "searchTerm"
 
@@ -616,6 +627,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 }
 
 func TestExtractContentFromFileInfo(t *testing.T) {
+	mainHelper.Parallel(t)
 	app := &App{}
 	fi := &model.FileInfo{
 		MimeType: "image/jpeg",
@@ -626,6 +638,7 @@ func TestExtractContentFromFileInfo(t *testing.T) {
 }
 
 func TestGetLastAccessibleFileTime(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -659,6 +672,7 @@ func TestGetLastAccessibleFileTime(t *testing.T) {
 }
 
 func TestComputeLastAccessibleFileTime(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Updates the time, if cloud limit is applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
@@ -718,6 +732,7 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 }
 
 func TestSetFileSearchableContent(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -746,6 +761,7 @@ func TestSetFileSearchableContent(t *testing.T) {
 }
 
 func TestPermanentDeleteFilesByPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
