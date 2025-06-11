@@ -126,7 +126,6 @@ exports[`components/threading/global_threads/thread_item should report total num
         id="threading.threadItem.timestamp"
       />
       <MockTimestamp
-        className="alt-hidden"
         day="numeric"
         units={
           Array [
@@ -279,7 +278,6 @@ exports[`components/threading/global_threads/thread_item should report unread me
         id="threading.threadItem.timestamp"
       />
       <MockTimestamp
-        className="alt-hidden"
         day="numeric"
         units={
           Array [
@@ -430,7 +428,6 @@ exports[`components/threading/global_threads/thread_item should report unread me
         id="threading.threadItem.timestamp"
       />
       <MockTimestamp
-        className="alt-hidden"
         day="numeric"
         units={
           Array [
