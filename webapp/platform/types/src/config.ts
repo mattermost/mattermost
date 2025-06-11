@@ -641,7 +641,6 @@ export type SupportSettings = {
     CustomTermsOfServiceEnabled: boolean;
     CustomTermsOfServiceReAcceptancePeriod: number;
     EnableAskCommunityLink: boolean;
-    DeleteAccountLink: string;
 };
 
 export type AnnouncementSettings = {
