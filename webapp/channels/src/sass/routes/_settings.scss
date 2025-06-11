@@ -210,9 +210,15 @@
 
             .security-links {
                 margin-right: 20px;
+                text-decoration: none;
 
                 .fa {
                     margin-right: 6px;
+                }
+
+                &.danger {
+                    color: variables.$red;
+                    font-weight: 600;
                 }
             }
 
