@@ -80,7 +80,7 @@ export default class ScheduleMessageModal {
 
     async selectTime(optionIndex: number = 0) {
         await this.timeButton.click();
-        const timeButton = this.container.getByTestId(`time_option_${optionIndex}`);
+        const timeButton = this.container.page().getByTestId(`time_option_${optionIndex}`);
         await expect(timeButton).toBeVisible();
         await timeButton.click();
 
