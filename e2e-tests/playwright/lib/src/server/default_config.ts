@@ -608,6 +608,7 @@ const defaultServerConfig: AdminConfig = {
         DisableWakeUpReconnectHandler: false,
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
+        ExperimentalChannelCategorySorting: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
