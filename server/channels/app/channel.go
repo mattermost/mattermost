@@ -181,12 +181,12 @@ func (a *App) CreateChannelWithUser(c request.CTX, channel *model.Channel, userI
 		return nil, err
 	}
 
+	a.addChannelToDefaultCategory(c, userID, channel)
+
 	var user *model.User
 	if user, err = a.GetUser(userID); err != nil {
 		return nil, err
 	}
-
-	a.addChannelToDefaultCategory(c, user, channel)
 
 	if err = a.postJoinChannelMessage(c, user, channel); err != nil {
 		return nil, err
@@ -228,14 +228,7 @@ func (a *App) RenameChannel(c request.CTX, channel *model.Channel, newChannelNam
 }
 
 func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
-	if *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting {
-		// Handle category names in channel name
-		if strings.Contains(channel.DisplayName, "/") {
-			parts := strings.Split(channel.DisplayName, "/")
-			channel.DisplayName = strings.Join(parts[1:], "/")
-			channel.DefaultCategoryName = strings.TrimSpace(parts[0])
-		}
-	}
+	a.handleChannelCategoryName(channel)
 
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
 	sc, nErr := a.Srv().Store().Channel().Save(c, channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
@@ -878,23 +871,14 @@ func (a *App) PatchChannel(c request.CTX, channel *model.Channel, patch *model.C
 	oldChannelHeader := channel.Header
 	oldChannelPurpose := channel.Purpose
 
-	if *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting && strings.Contains(*patch.DisplayName, "/") {
-		parts := strings.Split(*patch.DisplayName, "/")
-		*patch.DisplayName = strings.Join(parts[1:], "/")
-		channel.DefaultCategoryName = strings.TrimSpace(parts[0])
-	}
-
 	channel.Patch(patch)
+	a.handleChannelCategoryName(channel)
 	channel, err := a.UpdateChannel(c, channel)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := a.GetUser(userID)
-	if err != nil {
-		return nil, err
-	}
-	a.addChannelToDefaultCategory(c, user, channel)
+	a.addChannelToDefaultCategory(c, userID, channel)
 
 	if oldChannelDisplayName != channel.DisplayName {
 		if err = a.PostUpdateChannelDisplayNameMessage(c, userID, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
@@ -1692,7 +1676,7 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 		return nil, err
 	}
 
-	a.addChannelToDefaultCategory(c, user, channel)
+	a.addChannelToDefaultCategory(c, user.Id, channel)
 
 	// We are sending separate websocket events to the user added and to the channel
 	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
@@ -1707,57 +1691,6 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 	a.Publish(userMessage)
 
 	return newMember, nil
-}
-
-func (a *App) addChannelToDefaultCategory(c request.CTX, user *model.User, channel *model.Channel) {
-	// Add channel to default category if specified
-	if channel.DefaultCategoryName != "" && *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting {
-		mlog.Info("Adding channel to default category", mlog.String("user_id", user.Id), mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.String("category_name", channel.DefaultCategoryName))
-		// Get user's categories for this team
-		categories, err := a.GetSidebarCategoriesForTeamForUser(c, user.Id, channel.TeamId)
-		if err != nil {
-			mlog.Error("Failed to get sidebar categories", mlog.String("user_id", user.Id), mlog.String("team_id", channel.TeamId), mlog.Err(err))
-			c.Logger().Warn("Failed to get sidebar categories", mlog.String("user_id", user.Id), mlog.String("team_id", channel.TeamId), mlog.Err(err))
-		} else {
-			mlog.Info("Got sidebar categories", mlog.String("user_id", user.Id), mlog.String("team_id", channel.TeamId), mlog.Int("num_categories", len(categories.Categories)))
-			// Find or create the category
-			var targetCategory *model.SidebarCategoryWithChannels
-			for _, category := range categories.Categories {
-				if category.Type == model.SidebarCategoryCustom && strings.EqualFold(category.DisplayName, channel.DefaultCategoryName) {
-					targetCategory = category
-					break
-				}
-			}
-
-			if targetCategory == nil {
-				mlog.Info("Creating new category", mlog.String("user_id", user.Id), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName))
-				// Create new category if it doesn't exist
-				targetCategory = &model.SidebarCategoryWithChannels{
-					SidebarCategory: model.SidebarCategory{
-						UserId:      user.Id,
-						TeamId:      channel.TeamId,
-						Type:        model.SidebarCategoryCustom,
-						DisplayName: channel.DefaultCategoryName,
-						Sorting:     model.SidebarCategorySortDefault,
-					},
-					Channels: []string{channel.Id},
-				}
-				_, err = a.CreateSidebarCategory(c, user.Id, channel.TeamId, targetCategory)
-				if err != nil {
-					mlog.Error("Failed to create default category", mlog.String("user_id", user.Id), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
-					c.Logger().Warn("Failed to create default category", mlog.String("user_id", user.Id), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
-				}
-			} else {
-				// Add channel to existing category
-				targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
-				_, err = a.UpdateSidebarCategories(c, user.Id, channel.TeamId, []*model.SidebarCategoryWithChannels{targetCategory})
-				if err != nil {
-					mlog.Error("Failed to update default category", mlog.String("user_id", user.Id), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
-					c.Logger().Warn("Failed to update default category", mlog.String("user_id", user.Id), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
-				}
-			}
-		}
-	}
 }
 
 type ChannelMemberOpts struct {
@@ -3957,4 +3890,60 @@ func (a *App) ChannelAccessControlled(c request.CTX, channelID string) (bool, *m
 	}
 
 	return true, nil
+}
+
+func (a *App) handleChannelCategoryName(channel *model.Channel) {
+	if *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting && strings.Contains(channel.DisplayName, "/") {
+		parts := strings.Split(channel.DisplayName, "/")
+		channel.DisplayName = strings.TrimSpace(strings.Join(parts[1:], "/"))
+		channel.DefaultCategoryName = strings.TrimSpace(parts[0])
+	}
+}
+
+func (a *App) addChannelToDefaultCategory(c request.CTX, userID string, channel *model.Channel) {
+	// Add channel to default category if specified
+	if channel.DefaultCategoryName != "" && *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting {
+		// Get user's categories for this team
+		categories, err := a.GetSidebarCategoriesForTeamForUser(c, userID, channel.TeamId)
+		if err != nil {
+			mlog.Error("Failed to get sidebar categories", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.Err(err))
+			return
+		} else {
+			// Find or create the category
+			var targetCategory *model.SidebarCategoryWithChannels
+			for _, category := range categories.Categories {
+				if category.Type == model.SidebarCategoryCustom && strings.EqualFold(category.DisplayName, channel.DefaultCategoryName) {
+					targetCategory = category
+					break
+				}
+			}
+
+			if targetCategory == nil {
+				// Create new category if it doesn't exist
+				targetCategory = &model.SidebarCategoryWithChannels{
+					SidebarCategory: model.SidebarCategory{
+						UserId:      userID,
+						TeamId:      channel.TeamId,
+						Type:        model.SidebarCategoryCustom,
+						DisplayName: channel.DefaultCategoryName,
+						Sorting:     model.SidebarCategorySortDefault,
+					},
+					Channels: []string{channel.Id},
+				}
+				_, err = a.CreateSidebarCategory(c, userID, channel.TeamId, targetCategory)
+				if err != nil {
+					mlog.Error("Failed to create default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+					return
+				}
+			} else {
+				// Add channel to existing category
+				targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
+				_, err = a.UpdateSidebarCategories(c, userID, channel.TeamId, []*model.SidebarCategoryWithChannels{targetCategory})
+				if err != nil {
+					mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+					return
+				}
+			}
+		}
+	}
 }
