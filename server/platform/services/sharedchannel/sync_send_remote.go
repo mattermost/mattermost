@@ -791,11 +791,6 @@ func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
 	return nil
 }
 
-// GetUserSyncBatchSizeForTesting returns the configured batch size for user syncing (exported for testing)
-func (scs *Service) GetUserSyncBatchSizeForTesting() int {
-	return scs.getGlobalUserSyncBatchSize()
-}
-
 // getGlobalUserSyncBatchSize returns the configured batch size for user syncing
 func (scs *Service) getGlobalUserSyncBatchSize() int {
 	batchSize := MaxUsersPerSync
@@ -967,11 +962,6 @@ func (scs *Service) sendSyncMsgToPlugin(msg *model.SyncMsg, rc *model.RemoteClus
 	}
 
 	return errResp
-}
-
-// HandleSyncAllUsersForTesting exposes handleGlobalUserSyncTask for testing
-func (scs *Service) HandleSyncAllUsersForTesting(rc *model.RemoteCluster) error {
-	return scs.syncAllUsers(rc)
 }
 
 func sanitizeSyncData(sd *syncData) {

@@ -316,3 +316,18 @@ func (scs *Service) tryScheduleGlobalUserSync(rc *model.RemoteCluster) {
 		scs.addTask(task)
 	}()
 }
+
+// OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing
+func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	return scs.onReceiveSyncMessage(msg, rc, response)
+}
+
+// GetUserSyncBatchSizeForTesting returns the configured batch size for user syncing (exported for testing)
+func (scs *Service) GetUserSyncBatchSizeForTesting() int {
+	return scs.getGlobalUserSyncBatchSize()
+}
+
+// HandleSyncAllUsersForTesting exposes syncAllUsers for testing
+func (scs *Service) HandleSyncAllUsersForTesting(rc *model.RemoteCluster) error {
+	return scs.syncAllUsers(rc)
+}

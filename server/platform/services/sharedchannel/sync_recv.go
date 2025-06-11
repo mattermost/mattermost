@@ -47,11 +47,6 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 	return scs.processSyncMessage(request.EmptyContext(scs.server.Log()), &sm, rc, response)
 }
 
-// OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing
-func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	return scs.onReceiveSyncMessage(msg, rc, response)
-}
-
 func (scs *Service) processGlobalUserSync(c request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	syncResp := model.SyncResponse{
 		UserErrors: make([]string, 0),
