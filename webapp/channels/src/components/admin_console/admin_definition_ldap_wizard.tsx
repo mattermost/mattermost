@@ -569,8 +569,9 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 type: 'text',
                 key: 'LdapSettings.GroupIdAttribute',
                 label: defineMessage({id: 'admin.ldap.groupIdAttributeTitle', defaultMessage: 'Group ID Attribute:'}),
-                help_text: defineMessage({id: 'admin.ldap.groupIdAttributeDesc', defaultMessage: 'The attribute in the AD/LDAP server used as a unique identifier for Groups. This should be a AD/LDAP attribute with a value that does not change such as `entryUUID` for LDAP or `objectGUID` for Active Directory.'}),
-                help_text_markdown: true,
+                help_text: defineMessage({id: 'admin.ldap.groupIdAttributeDesc', defaultMessage: 'The attribute in the AD/LDAP server used as a unique identifier for Groups.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.groupIdAttributeDescHover', defaultMessage: 'This should be a AD/LDAP attribute with a value that does not change such as entryUUID for LDAP or objectGUID for Active Directory.'}),
+                help_text_markdown: false,
                 placeholder: defineMessage({id: 'admin.ldap.groupIdAttributeEx', defaultMessage: 'E.g.: "objectGUID" or "entryUUID"'}),
                 isHidden: it.not(it.licensedForFeature('LDAPGroups')),
                 isDisabled: it.any(

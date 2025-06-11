@@ -76,6 +76,7 @@ const LDAPTextSetting = (props: TextSettingProps) => {
 
     // Determine icon type and content - three states
     const isFilter = isFilterTest(props.filterResult);
+    const isGroupAttribute = isGroupAttributeTest(props.filterResult);
     const countReturned = (isFilter ? props.filterResult?.total_count : props.filterResult?.entries_with_value) || 0;
     const isSuccess = props.filterResult?.error === '' && countReturned > 0;
     const isWarning = props.filterResult?.error === '' && countReturned === 0;
@@ -108,11 +109,27 @@ const LDAPTextSetting = (props: TextSettingProps) => {
         const totalCount = props.filterResult.total_count || 0;
 
         if (isSuccess) {
-            return intl.formatMessage(isFilter ? ldapTestMessages.filterTestSuccess : ldapTestMessages.attributeTestSuccess, {countReturned, totalCount});
+            let messageKey;
+            if (isFilter) {
+                messageKey = ldapTestMessages.filterTestSuccess;
+            } else if (isGroupAttribute) {
+                messageKey = ldapTestMessages.groupAttributeTestSuccess;
+            } else {
+                messageKey = ldapTestMessages.attributeTestSuccess;
+            }
+            return intl.formatMessage(messageKey, {countReturned, totalCount});
         }
 
         if (isWarning) {
-            return intl.formatMessage(isFilter ? ldapTestMessages.filterTestWarning : ldapTestMessages.attributeTestWarning, {totalCount});
+            let messageKey;
+            if (isFilter) {
+                messageKey = ldapTestMessages.filterTestWarning;
+            } else if (isGroupAttribute) {
+                messageKey = ldapTestMessages.groupAttributeTestWarning;
+            } else {
+                messageKey = ldapTestMessages.attributeTestWarning;
+            }
+            return intl.formatMessage(messageKey, {totalCount});
         }
 
         // For failed tests, combine message and error if both are available
@@ -123,7 +140,15 @@ const LDAPTextSetting = (props: TextSettingProps) => {
             return `${message}: ${error}`;
         }
 
-        const fallbackMessage = intl.formatMessage(isFilter ? ldapTestMessages.filterTestFailed : ldapTestMessages.attributeTestFailed);
+        let messageKey;
+        if (isFilter) {
+            messageKey = ldapTestMessages.filterTestFailed;
+        } else if (isGroupAttribute) {
+            messageKey = ldapTestMessages.groupAttributeTestFailed;
+        } else {
+            messageKey = ldapTestMessages.attributeTestFailed;
+        }
+        const fallbackMessage = intl.formatMessage(messageKey);
 
         return message || error || fallbackMessage;
     };
@@ -164,13 +189,21 @@ function sanitizeValue(value: any): string {
     return String(value);
 }
 
-// Helper to determine test type from test result
+// Helper functions to determine test type from test result
 function isFilterTest(testResult: LdapDiagnosticResult | null) {
     if (!testResult) {
         return false;
     }
     const filterTestNames = new Set(['BaseDN', 'UserFilter', 'GroupFilter', 'GuestFilter', 'AdminFilter']);
     return filterTestNames.has(testResult.test_name);
+}
+
+function isGroupAttributeTest(testResult: LdapDiagnosticResult | null) {
+    if (!testResult) {
+        return false;
+    }
+    const groupAttributeTestNames = new Set(['GroupDisplayNameAttribute', 'GroupIdAttribute']);
+    return groupAttributeTestNames.has(testResult.test_name);
 }
 
 const ldapTestMessages = defineMessages({
@@ -197,6 +230,18 @@ const ldapTestMessages = defineMessages({
     attributeTestFailed: {
         id: 'admin.ldap.attributeTestFailed',
         defaultMessage: 'Attribute test failed',
+    },
+    groupAttributeTestSuccess: {
+        id: 'admin.ldap.groupAttributeTestSuccess',
+        defaultMessage: 'Group attribute test successful: {countReturned, number} result{countReturned, plural, one {} other {s}} found out of {totalCount} group{totalCount, plural, one {} other {s}} returned by the group filter',
+    },
+    groupAttributeTestWarning: {
+        id: 'admin.ldap.groupAttributeTestWarning',
+        defaultMessage: 'The group attribute exists in the LDAP schema, but was not found in any of the {totalCount} group{totalCount, plural, one {} other {s}} returned by the group filter',
+    },
+    groupAttributeTestFailed: {
+        id: 'admin.ldap.groupAttributeTestFailed',
+        defaultMessage: 'Group attribute test failed',
     },
 });
 
