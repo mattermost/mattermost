@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable react/prop-types */
 /* eslint-disable no-underscore-dangle */
+/* eslint-disable react/prop-types */
 
 import memoizeOne from 'memoize-one';
 import {createElement, PureComponent} from 'react';
 
-import ItemMeasurer from './item_measurer';
+import ListItem from './item_row_shared';
 
 const atBottomMargin = 10;
 
@@ -612,11 +612,9 @@ export class DynamicVirtualizedList extends PureComponent {
     };
 
     _renderItems = () => {
-        const {children, direction, itemData, loaderId, visibleId} =
-            this.props;
         const width = this.innerRefWidth;
         const [startIndex, stopIndex] = this._getRangeToRender();
-        const itemCount = itemData.length;
+        const itemCount = this.props.itemData.length;
         const items = [];
         if (itemCount > 0) {
             for (let index = itemCount - 1; index >= 0; index--) {
@@ -636,9 +634,9 @@ export class DynamicVirtualizedList extends PureComponent {
                     index < localOlderPostsToRenderStopIndex + 1 &&
                     localOlderPostsToRenderStartIndex === stopIndex + 1;
 
-                const isLoader = itemData[index] === loaderId;
-                const isVisible = itemData[index] === visibleId;
-                const itemId = itemData[index];
+                const isLoader = this.props.itemData[index] === this.props.loaderId;
+                const isVisible = this.props.itemData[index] === this.props.visibleId;
+                const itemId = this.props.itemData[index];
 
                 // It's important to read style after fetching item metadata.
                 // getItemMetadata() will clear stale styles.
@@ -649,24 +647,22 @@ export class DynamicVirtualizedList extends PureComponent {
                     isLoader ||
                     isVisible
                 ) {
-                    const item = createElement(children, {
-                        data: itemData,
+                    const item = createElement(this.props.children, {
+                        data: this.props.itemData,
                         itemId,
                     });
 
-                    // Always wrap children in a ItemMeasurer to detect changes in size.
+                    // Always wrap children in a ItemRow to detect changes in size.
                     items.push(
-                        createElement(ItemMeasurer, {
-                            direction,
-                            handleNewMeasurements: this._handleNewMeasurements,
+                        createElement(ListItem, {
+                            key: itemId,
                             index,
                             item,
-                            key: itemId,
-                            size,
                             itemId,
+                            height: size,
                             width,
+                            onHeightChange: this._handleNewMeasurements,
                             onUnmount: this._onItemRowUnmount,
-                            itemCount,
                         }),
                     );
                 } else {
@@ -718,6 +714,7 @@ export class DynamicVirtualizedList extends PureComponent {
                 {
                     ref: innerRef,
                     role: 'list',
+                    className: 'innerList',
                     style: innerListStyle,
                 },
                 items,
