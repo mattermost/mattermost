@@ -107,7 +107,7 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 			require.Equal(t, int64(0), updatedUser.DeleteAt)
 		})
 
-		t.Run("reactivation blocked at limit", func(t *testing.T) {
+		t.Run("reactivation blocked at grace limit", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
 			defer th.TearDown()
 
@@ -117,9 +117,9 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 			license.Features.Users = &userLimit
 			th.App.Srv().SetLicense(license)
 
-			// Mock user count at seat limit
+			// Mock user count at grace limit (105 = 100 + 5% grace period)
 			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(100), nil) // At limit
+			mockUserStore.On("Count", mock.Anything).Return(int64(105), nil) // At grace limit
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -137,7 +137,31 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 			require.Equal(t, "app.user.update_active.license_user_limit.exceeded", appErr.Id)
 		})
 
-		t.Run("reactivation blocked above limit", func(t *testing.T) {
+		t.Run("reactivation allowed at base limit but below grace limit", func(t *testing.T) {
+			th := Setup(t).InitBasic()
+			defer th.TearDown()
+
+			userLimit := 5 // Grace limit will be 6 (5 + 1 minimum)
+			license := model.NewTestLicense("")
+			license.IsSeatCountEnforced = true
+			license.Features.Users = &userLimit
+			th.App.Srv().SetLicense(license)
+
+			// InitBasic creates 3 users, create 2 more to reach base limit of 5
+			th.CreateUser()
+			th.CreateUser()
+
+			// Deactivate a user
+			_, appErr := th.App.UpdateActive(th.Context, th.BasicUser, false)
+			require.Nil(t, appErr)
+
+			// Reactivate user (should succeed - we're at base limit 5 but below grace limit 6)
+			updatedUser, appErr := th.App.UpdateActive(th.Context, th.BasicUser, true)
+			require.Nil(t, appErr)
+			require.Equal(t, int64(0), updatedUser.DeleteAt)
+		})
+
+		t.Run("reactivation blocked above grace limit", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
 			defer th.TearDown()
 
@@ -147,9 +171,9 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 			license.Features.Users = &userLimit
 			th.App.Srv().SetLicense(license)
 
-			// Mock user count above seat limit
+			// Mock user count above grace limit (106 > 105 grace limit)
 			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(150), nil) // Above limit
+			mockUserStore.On("Count", mock.Anything).Return(int64(106), nil) // Above grace limit
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
