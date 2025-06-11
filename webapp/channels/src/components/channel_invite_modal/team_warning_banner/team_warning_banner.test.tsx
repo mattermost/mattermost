@@ -23,10 +23,6 @@ jest.mock('utils/utils', () => {
     };
 });
 
-jest.mock('components/admin_console/secure_connections/utils', () => ({
-    useRemoteClusters: jest.fn(() => [[]]),
-}));
-
 function createUsers(count: number): UserProfileValue[] {
     const users: UserProfileValue[] = [];
     for (let x = 0; x < count; x++) {

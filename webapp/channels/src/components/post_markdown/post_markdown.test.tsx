@@ -13,10 +13,6 @@ import {TestHelper} from 'utils/test_helper';
 
 import PostMarkdown from './post_markdown';
 
-jest.mock('components/admin_console/secure_connections/utils', () => ({
-    useRemoteClusters: jest.fn(() => [[]]),
-}));
-
 describe('components/PostMarkdown', () => {
     const baseProps: ComponentProps<typeof PostMarkdown> = {
         imageProps: {} as Record<string, unknown>,

@@ -796,41 +796,7 @@ export function getUserOrGroupFromMentionName(
     groups: Record<string, Group>,
     groupsDisabled?: boolean,
     getMention = getMentionDetails,
-    remoteClusters?: Array<{remote_id: string; name: string; display_name: string}>, // eslint-disable-line @typescript-eslint/no-unused-vars
 ): [UserProfile?, Group?] {
-    // if (mentionName.includes(':')) {
-    //     // First try direct lookup - remote users are stored with full username like "admin:org1"
-    //     const user = users[mentionName];
-    //     if (user?.remote_id) {
-    //         return [user, undefined];
-    //     }
-
-    //     // Fallback: If direct lookup fails, try matching with remoteClusters mapping
-    //     if (!remoteClusters?.length) {
-    //         return [undefined, undefined];
-    //     }
-
-    //     const [username, clusterName] = mentionName.split(':', 2);
-    //     if (!username || !clusterName) {
-    //         return [undefined, undefined];
-    //     }
-
-    //     // Create a map of remote_id to name for case-insensitive lookup
-    //     const remoteIdToName = new Map(
-    //         remoteClusters.map((cluster) => [cluster.remote_id, cluster.name.toLowerCase()]),
-    //     );
-
-    //     // Find remote user with matching base username and cluster
-    //     const targetClusterName = clusterName.toLowerCase();
-    //     for (const user of Object.values(users)) {
-    //         if (user.username.startsWith(`${username}:`) &&
-    //             user.remote_id &&
-    //             remoteIdToName.get(user.remote_id) === targetClusterName) {
-    //             return [user, undefined];
-    //         }
-    //     }
-    // }
-
     const user = getMention(users, mentionName);
 
     // prioritizes user if user exists with the same name as a group.

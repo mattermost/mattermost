@@ -10,10 +10,6 @@ import {TestHelper} from 'utils/test_helper';
 
 import LastUsers from './last_users';
 
-jest.mock('components/admin_console/secure_connections/utils', () => ({
-    useRemoteClusters: jest.fn(() => [[]]),
-}));
-
 describe('components/post_view/combined_system_message/LastUsers', () => {
     const formatOptions = {
         atMentions: true,

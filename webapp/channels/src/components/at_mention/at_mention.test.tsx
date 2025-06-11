@@ -13,10 +13,6 @@ import {TestHelper} from 'utils/test_helper';
 
 /* eslint-disable global-require */
 
-jest.mock('components/admin_console/secure_connections/utils', () => ({
-    useRemoteClusters: jest.fn(() => [[]]),
-}));
-
 describe('components/AtMention', () => {
     const baseProps = {
         currentUserId: 'abc1',
@@ -260,90 +256,6 @@ describe('components/AtMention', () => {
             );
 
             expect(baseProps.getMissingMentionedUsers).not.toHaveBeenCalledWith('someuser');
-        });
-    });
-
-    describe('remote user mentions', () => {
-        const {useRemoteClusters} = require('components/admin_console/secure_connections/utils');
-
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
-        test('should match snapshot when mentioning remote user', () => {
-            const remoteUser = TestHelper.getUserMock({
-                id: 'remote1',
-                username: 'admin:org1',
-                first_name: 'Remote',
-                last_name: 'Admin',
-                remote_id: 'remote_id_1',
-            });
-
-            const wrapper = shallow(
-                <AtMention
-                    {...baseProps}
-                    usersByUsername={{
-                        ...baseProps.usersByUsername,
-                        'admin:org1': remoteUser,
-                    }}
-                    mentionName='admin:org1'
-                >
-                    {'(at)-admin:org1'}
-                </AtMention>,
-            );
-
-            expect(wrapper).toMatchSnapshot();
-        });
-
-        test('should use remote clusters for user lookup', () => {
-            const remoteClusters = [
-                {remote_id: 'remote_id_1', name: 'org1', display_name: 'Organization 1'},
-            ];
-            useRemoteClusters.mockReturnValue([remoteClusters]);
-
-            const remoteUser = TestHelper.getUserMock({
-                id: 'remote1',
-                username: 'admin:different',
-                remote_id: 'remote_id_1',
-            });
-
-            render(
-                <AtMention
-                    {...baseProps}
-                    usersByUsername={{
-                        ...baseProps.usersByUsername,
-                        'admin:different': remoteUser,
-                    }}
-                    mentionName='admin:org1'
-                >
-                    {'(at)-admin:org1'}
-                </AtMention>,
-            );
-
-            expect(useRemoteClusters).toHaveBeenCalled();
-        });
-
-        test('should handle remote user mention with punctuation', () => {
-            const remoteUser = TestHelper.getUserMock({
-                id: 'remote1',
-                username: 'user:cluster',
-                remote_id: 'remote_id_1',
-            });
-
-            const wrapper = shallow(
-                <AtMention
-                    {...baseProps}
-                    usersByUsername={{
-                        ...baseProps.usersByUsername,
-                        'user:cluster': remoteUser,
-                    }}
-                    mentionName='user:cluster.'
-                >
-                    {'(at)-user:cluster.'}
-                </AtMention>,
-            );
-
-            expect(wrapper).toMatchSnapshot();
         });
     });
 });
