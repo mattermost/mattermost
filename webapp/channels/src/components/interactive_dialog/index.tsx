@@ -7,19 +7,15 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {interactiveDialogAppsFormEnabled} from 'mattermost-redux/selectors/entities/interactive_dialog';
-
 import {submitInteractiveDialog} from 'actions/integration_actions';
 import {getEmojiMap} from 'selectors/emojis';
 
 import type {GlobalState} from 'types/store';
 
-import InteractiveDialog from './interactive_dialog';
-import InteractiveDialogAdapter from './interactive_dialog_adapter';
+import DialogRouter from 'components/dialog_router';
 
 function mapStateToProps(state: GlobalState) {
     const data = state.entities.integrations.dialog;
-    const useAppsForm = interactiveDialogAppsFormEnabled(state);
     if (!data || !data.dialog) {
         return {
             url: '',
@@ -32,7 +28,6 @@ function mapStateToProps(state: GlobalState) {
             notifyOnCancel: undefined,
             state: undefined,
             emojiMap: getEmojiMap(state),
-            useAppsForm,
         };
     }
 
@@ -47,7 +42,6 @@ function mapStateToProps(state: GlobalState) {
         notifyOnCancel: data.dialog.notify_on_cancel,
         state: data.dialog.state,
         emojiMap: getEmojiMap(state),
-        useAppsForm,
     };
 }
 
@@ -63,12 +57,9 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-// Component selector that returns the appropriate implementation
+// Use DialogRouter which dynamically selects the appropriate implementation
 function InteractiveDialogContainer(props: PropsFromRedux & {onExited?: () => void}) {
-    if (props.useAppsForm && props.url) {
-        return <InteractiveDialogAdapter {...props}/>;
-    }
-    return <InteractiveDialog {...props}/>;
+    return <DialogRouter {...props}/>;
 }
 
 export default connector(InteractiveDialogContainer);
