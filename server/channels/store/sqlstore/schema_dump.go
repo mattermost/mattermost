@@ -137,7 +137,7 @@ func (ss *SqlStore) getTableOptions() (map[string]map[string]string, error) {
 		From("pg_class c").
 		Join("pg_namespace n ON n.oid = c.relnamespace").
 		Where(sq.And{
-			sq.Eq{"n.nspname": "public"},
+			sq.Expr("n.nspname = current_schema()"),
 			sq.Eq{"c.relkind": "r"},
 			sq.NotEq{"c.reloptions": nil},
 		})
@@ -201,7 +201,7 @@ func (ss *SqlStore) getTableSchemaInformation() (map[string]*model.DatabaseTable
 	).
 		From("information_schema.tables t").
 		LeftJoin("information_schema.columns c ON t.table_name = c.table_name AND t.table_schema = c.table_schema").
-		Where(sq.Eq{"t.table_schema": "public"}).
+		Where(sq.Expr("t.table_schema = current_schema()")).
 		OrderBy("t.table_name", "c.ordinal_position")
 
 	schemaSql, schemaArgs, err := schemaQuery.PlaceholderFormat(sq.Dollar).ToSql()
@@ -273,7 +273,7 @@ func (ss *SqlStore) getTableIndexes() (map[string][]model.DatabaseIndex, error) 
 		"indexdef",
 	).
 		From("pg_indexes").
-		Where(sq.Eq{"schemaname": "public"})
+		Where(sq.Expr("schemaname = current_schema()"))
 
 	indexSql, indexArgs, err := indexQuery.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
