@@ -228,6 +228,17 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 action: ldapTestConnection,
                 key: 'LdapSettings.TestConnection',
                 label: defineMessage({id: 'admin.ldap.testConnectionTitle', defaultMessage: 'Test Connection'}),
+                help_text: defineMessage({id: 'admin.ldap.testHelpText', defaultMessage: 'Tests if the Mattermost server can connect to the AD/LDAP server specified. Please review "System Console > Logs" and <link>documentation</link> to troubleshoot errors.'}),
+                help_text_values: {
+                    link: (msg: string) => (
+                        <ExternalLink
+                            location='admin_console'
+                            href={DocLinks.CONFIGURE_AD_LDAP_QUERY_TIMEOUT}
+                        >
+                            {msg}
+                        </ExternalLink>
+                    ),
+                },
                 help_text_markdown: false,
                 error_message: defineMessage({id: 'admin.ldap.testConnectionFailure', defaultMessage: 'Test Connection Failure: {error}'}),
                 success_message: defineMessage({id: 'admin.ldap.testConnectionSuccess', defaultMessage: 'Test Connection Successful'}),
@@ -607,33 +618,6 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 label: defineMessage({id: 'admin.ldap.queryTitle', defaultMessage: 'Query Timeout (seconds):'}),
                 placeholder: defineMessage({id: 'admin.ldap.queryEx', defaultMessage: 'E.g.: "60"'}),
                 help_text: defineMessage({id: 'admin.ldap.queryDesc', defaultMessage: 'The timeout value for queries to the AD/LDAP server. Increase if you are getting timeout errors caused by a slow AD/LDAP server.'}),
-                isDisabled: it.any(
-                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                    it.all(
-                        it.stateIsFalse('LdapSettings.Enable'),
-                        it.stateIsFalse('LdapSettings.EnableSync'),
-                    ),
-                ),
-            },
-            {
-                type: 'button',
-                action: ldapTest,
-                key: 'LdapSettings.LdapTest',
-                label: defineMessage({id: 'admin.ldap.ldap_test_button', defaultMessage: 'AD/LDAP Test'}),
-                help_text: defineMessage({id: 'admin.ldap.testHelpText', defaultMessage: 'Tests if the Mattermost server can connect to the AD/LDAP server specified. Please review "System Console > Logs" and <link>documentation</link> to troubleshoot errors.'}),
-                help_text_values: {
-                    link: (msg: string) => (
-                        <ExternalLink
-                            location='admin_console'
-                            href={DocLinks.CONFIGURE_AD_LDAP_QUERY_TIMEOUT}
-                        >
-                            {msg}
-                        </ExternalLink>
-                    ),
-                },
-                help_text_markdown: false,
-                error_message: defineMessage({id: 'admin.ldap.testFailure', defaultMessage: 'AD/LDAP Test Failure: {error}'}),
-                success_message: defineMessage({id: 'admin.ldap.testSuccess', defaultMessage: 'AD/LDAP Test Successful'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
