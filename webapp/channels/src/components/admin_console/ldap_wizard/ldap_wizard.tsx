@@ -113,14 +113,6 @@ const LDAPWizard = (props: Props) => {
     // Combined test results - both filter and attribute test results in one array
     const [testResults, setTestResults] = useState<TestLdapFiltersResponse | null>(null);
 
-    // Helper functions to categorize test types
-    const filterTestNames = new Set(['BaseDN', 'UserFilter', 'GroupFilter', 'GuestFilter', 'AdminFilter']);
-    const attributeTestNames = new Set(['IdAttribute', 'LoginIdAttribute', 'UsernameAttribute', 'EmailAttribute', 'FirstNameAttribute', 'LastNameAttribute', 'NicknameAttribute', 'PositionAttribute', 'PictureAttribute']);
-    const groupAttributeTestNames = new Set(['GroupDisplayNameAttribute', 'GroupIdAttribute']);
-    const isFilterTestName = (testName: string) => filterTestNames.has(testName);
-    const isAttributeTestName = (testName: string) => attributeTestNames.has(testName);
-    const isGroupAttributeTestName = (testName: string) => groupAttributeTestNames.has(testName);
-
     const getTestResult = useCallback((settingKey: string) => {
         const testName = settingKeyToTestNameMap[settingKey];
         if (!testName || !testResults) {
@@ -157,13 +149,12 @@ const LDAPWizard = (props: Props) => {
             const isCurrentTestType = testTypeFunctions[testType] || (() => false);
 
             // Keep existing results from other test types, replace results from current test type
-            const existingResultsFromOtherTypes = prevResults ?
-                prevResults.filter((result) => !isCurrentTestType(result.test_name)) : [];
+            const existingResultsFromOtherTypes = prevResults ? prevResults.filter((result) => !isCurrentTestType(result.test_name)) : [];
 
             // Combine with new results
             return [...existingResultsFromOtherTypes, ...filteredResults];
         });
-    }, [isAttributeTestName, isFilterTestName, isGroupAttributeTestName, state]);
+    }, [state]);
 
     const memoizedSections = useMemo(() => {
         return (schema && 'sections' in schema && schema.sections) ? schema.sections : [];
@@ -775,5 +766,14 @@ const settingKeyToTestNameMap: Record<string, string> = {
     'LdapSettings.GroupDisplayNameAttribute': 'GroupDisplayNameAttribute',
     'LdapSettings.GroupIdAttribute': 'GroupIdAttribute',
 };
+
+// Helper functions to categorize test types
+const filterTestNames = new Set(['BaseDN', 'UserFilter', 'GroupFilter', 'GuestFilter', 'AdminFilter']);
+const attributeTestNames = new Set(['IdAttribute', 'LoginIdAttribute', 'UsernameAttribute', 'EmailAttribute', 'FirstNameAttribute', 'LastNameAttribute', 'NicknameAttribute', 'PositionAttribute', 'PictureAttribute']);
+const groupAttributeTestNames = new Set(['GroupDisplayNameAttribute', 'GroupIdAttribute']);
+
+const isFilterTestName = (testName: string) => filterTestNames.has(testName);
+const isAttributeTestName = (testName: string) => attributeTestNames.has(testName);
+const isGroupAttributeTestName = (testName: string) => groupAttributeTestNames.has(testName);
 
 export default LDAPWizard;
