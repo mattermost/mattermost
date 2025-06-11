@@ -183,18 +183,6 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 	scs.app.SendEphemeralPost(request.EmptyContext(scs.server.Log()), userId, ephemeral)
 }
 
-// OnReceiveSyncMessageForTesting is an exported wrapper for testing the sync message handling flow
-func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	return scs.onReceiveSyncMessage(msg, rc, response)
-}
-
-// HasPendingTasksForTesting returns true if there are pending sync tasks in the queue
-func (scs *Service) HasPendingTasksForTesting() bool {
-	scs.mux.RLock()
-	defer scs.mux.RUnlock()
-	return len(scs.tasks) > 0
-}
-
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (scs *Service) onClusterLeaderChange() {
 	if scs.server.IsLeader() {
@@ -359,4 +347,16 @@ func (scs *Service) postMembershipSyncDebugMessage(message string) {
 	if appErr != nil {
 		scs.server.Log().Warn("Failed to post membership sync debug message", mlog.String("channel_id", townSquareChannel.Id), mlog.Err(appErr))
 	}
+}
+
+// OnReceiveSyncMessageForTesting is an exported wrapper for testing the sync message handling flow
+func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	return scs.onReceiveSyncMessage(msg, rc, response)
+}
+
+// HasPendingTasksForTesting returns true if there are pending sync tasks in the queue
+func (scs *Service) HasPendingTasksForTesting() bool {
+	scs.mux.RLock()
+	defer scs.mux.RUnlock()
+	return len(scs.tasks) > 0
 }

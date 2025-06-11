@@ -462,7 +462,7 @@ func (scs *Service) syncMembershipBatchToRemotes(syncMsg *model.SyncMsg, remotes
 				}
 			}
 
-			if err := scs.updateMembershipSyncCursor(syncMsg.ChannelId, remote.RemoteId, maxChangeTime, true); err != nil {
+			if err := scs.updateMembershipSyncCursor(syncMsg.ChannelId, remote.RemoteId, maxChangeTime); err != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor for batch",
 					mlog.String("remote_id", remote.RemoteId),
 					mlog.String("channel_id", syncMsg.ChannelId),

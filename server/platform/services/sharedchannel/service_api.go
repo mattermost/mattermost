@@ -281,17 +281,7 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 
 // updateMembershipSyncCursor updates the LastMembersSyncAt value for the shared channel remote
 // This provides centralized and consistent cursor management
-func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string, newTimestamp int64, success bool) error {
-	// Don't update cursor on failure
-	if !success {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Skipping cursor update because success=false",
-			mlog.String("channel_id", channelID),
-			mlog.String("remote_id", remoteID),
-			mlog.Int("timestamp", int(newTimestamp)),
-		)
-		return nil
-	}
-
+func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string, newTimestamp int64) error {
 	// Get the remote record
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
 	if err != nil {
