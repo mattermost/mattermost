@@ -70,9 +70,8 @@ const LDAPTextSetting = (props: TextSettingProps) => {
     const label = renderLabel(props.setting, props.schema, intl);
     const helpText = renderLDAPSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
 
-    // Show icon only when input has content and there's a filter result
-    const hasContent = value.trim() !== '';
-    const showFilterIcon = hasContent && props.filterResult != null; // loose equality operator is intentional
+    // Show icon if there was a test_value, even if there's no user input (to show effect of default settings)
+    const showFilterIcon = props.filterResult != null && props.filterResult.test_value !== ''; // loose equality operator is intentional
 
     // Determine icon type and content - three states
     const isFilter = isFilterTest(props.filterResult);
@@ -107,8 +106,11 @@ const LDAPTextSetting = (props: TextSettingProps) => {
         }
 
         const totalCount = props.filterResult.total_count || 0;
+        const defaultDetails = showFilterIcon && value === '' ? `. Default value was used: ${props.filterResult.test_value}` : '';
 
         if (isSuccess) {
+            // If the filter has a testValue, but no userInput, the defaultValue
+            // was used. We need to tell the user what that value was.
             let messageKey;
             if (isFilter) {
                 messageKey = ldapTestMessages.filterTestSuccess;
@@ -117,7 +119,7 @@ const LDAPTextSetting = (props: TextSettingProps) => {
             } else {
                 messageKey = ldapTestMessages.attributeTestSuccess;
             }
-            return intl.formatMessage(messageKey, {countReturned, totalCount});
+            return intl.formatMessage(messageKey, {countReturned, totalCount, defaultDetails});
         }
 
         if (isWarning) {
@@ -129,7 +131,7 @@ const LDAPTextSetting = (props: TextSettingProps) => {
             } else {
                 messageKey = ldapTestMessages.attributeTestWarning;
             }
-            return intl.formatMessage(messageKey, {totalCount});
+            return intl.formatMessage(messageKey, {totalCount, defaultDetails});
         }
 
         // For failed tests, combine message and error if both are available
@@ -209,7 +211,7 @@ function isGroupAttributeTest(testResult: LdapDiagnosticResult | null) {
 const ldapTestMessages = defineMessages({
     filterTestSuccess: {
         id: 'admin.ldap.filterTestSuccess',
-        defaultMessage: 'Filter test successful: {countReturned, number} result{countReturned, plural, one {} other {s}} found',
+        defaultMessage: 'Filter test successful: {countReturned, number} result{countReturned, plural, one {} other {s}} found{defaultDetails}',
     },
     attributeTestSuccess: {
         id: 'admin.ldap.attributeTestSuccess',
@@ -217,7 +219,7 @@ const ldapTestMessages = defineMessages({
     },
     filterTestWarning: {
         id: 'admin.ldap.filterTestWarning',
-        defaultMessage: 'Filter test successful but no results found. Your filter may be too restrictive.',
+        defaultMessage: 'Filter test successful but no results found. Your filter may be too restrictive.{defaultDetails}',
     },
     attributeTestWarning: {
         id: 'admin.ldap.attributeTestWarning',

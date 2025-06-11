@@ -123,20 +123,7 @@ const LDAPWizard = (props: Props) => {
     }, [testResults]);
 
     const handleTestResults = useCallback((results: TestLdapFiltersResponse, testType: 'filter' | 'attribute' | 'groupAttribute') => {
-        // Filter out test results for text settings that had no input when the test button was pressed
-        const filteredResults = results.filter((result) => {
-            const settingKey = Object.keys(settingKeyToTestNameMap).find(
-                (key) => settingKeyToTestNameMap[key] === result.test_name,
-            );
-
-            if (!settingKey) {
-                // If we can't find a corresponding setting key, default include the result
-                return true;
-            }
-
-            const currentValue = state[settingKey];
-            return currentValue && currentValue !== '';
-        });
+        const filteredResults = results.filter((result) => result.test_value !== '');
 
         setTestResults((prevResults) => {
             // Object lookup for test type functions - cleaner than a switch statement
@@ -154,7 +141,7 @@ const LDAPWizard = (props: Props) => {
             // Combine with new results
             return [...existingResultsFromOtherTypes, ...filteredResults];
         });
-    }, [state]);
+    }, []);
 
     const memoizedSections = useMemo(() => {
         return (schema && 'sections' in schema && schema.sections) ? schema.sections : [];
