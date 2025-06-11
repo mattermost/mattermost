@@ -1163,6 +1163,7 @@ type ExperimentalSettings struct {
 	DisableWakeUpReconnectHandler                         *bool   `access:"experimental_features"`
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64  `access:"experimental_features"`
 	YoutubeReferrerPolicy                                 *bool   `access:"experimental_features"`
+	ExperimentalChannelCategorySorting                    *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1212,6 +1213,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.YoutubeReferrerPolicy == nil {
 		s.YoutubeReferrerPolicy = NewPointer(false)
+	}
+
+	if s.ExperimentalChannelCategorySorting == nil {
+		s.ExperimentalChannelCategorySorting = NewPointer(false)
 	}
 }
 
