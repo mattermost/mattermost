@@ -71,7 +71,9 @@ const LDAPTextSetting = (props: TextSettingProps) => {
     const helpText = renderLDAPSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
 
     // Show icon if there was a test_value, even if there's no user input (to show effect of default settings)
-    const showFilterIcon = props.filterResult != null && props.filterResult.test_value !== ''; // loose equality operator is intentional
+    // loose equality operator is intentional
+    const showFilterIcon = props.filterResult != null &&
+        (props.filterResult.test_value !== '' || props.filterResult?.error !== '');
 
     // Determine icon type and content - three states
     const isFilter = isFilterTest(props.filterResult);

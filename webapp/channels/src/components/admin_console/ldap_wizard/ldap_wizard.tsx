@@ -123,7 +123,7 @@ const LDAPWizard = (props: Props) => {
     }, [testResults]);
 
     const handleTestResults = useCallback((results: TestLdapFiltersResponse, testType: 'filter' | 'attribute' | 'groupAttribute') => {
-        const filteredResults = results.filter((result) => result.test_value !== '');
+        const filteredResults = results.filter((result) => result.test_value !== '' || result?.error !== '');
 
         setTestResults((prevResults) => {
             // Object lookup for test type functions - cleaner than a switch statement
