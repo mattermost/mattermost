@@ -96,9 +96,7 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	defaultEnglishHtmlTag  := fmt.Sprintf(htmlTagWithLangTemplate, "en")
 	if bytes.Contains(contents, []byte(defaultEnglishHtmlTag )) {
 		contents = bytes.ReplaceAll(contents, []byte(defaultEnglishHtmlTag ), []byte(localizedHtmlTag))
-	} else if bytes.Contains(contents, []byte("<html>")) {
-		contents = bytes.ReplaceAll(contents, []byte("<html>"), []byte(localizedHtmlTag))
-	}
+	} 
 
 	titleTemplate := "<title>%s</title>"
 	originalHTML := fmt.Sprintf(titleTemplate, html.EscapeString(model.TeamSettingsDefaultSiteName))
