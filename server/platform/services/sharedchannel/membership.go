@@ -139,17 +139,20 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 		return fmt.Errorf("failed to get remote for channel %s: %w", channelID, err)
 	}
 
-	// Use cursor-based pagination to handle channels with many members
+	// Use offset-based pagination to handle channels with many members
+	// This ensures we don't skip members when multiple members have the same LastUpdateAt timestamp
 	maxPerPage := scs.GetMemberSyncBatchSize()
 	var allMembers model.ChannelMembers
 	lastSyncAt := remote.LastMembersSyncAt
+	offset := 0
 
-	// Process members incrementally with cursor-based pagination
+	// Process members incrementally with offset-based pagination
 	for {
 		opts := model.ChannelMembersGetOptions{
 			ChannelID:    channelID,
 			UpdatedAfter: lastSyncAt,
 			Limit:        maxPerPage,
+			Offset:       offset,
 		}
 
 		members, err1 := scs.server.GetStore().Channel().GetMembers(opts)
@@ -164,14 +167,6 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 		// Add to our collection
 		allMembers = append(allMembers, members...)
 
-		// Update cursor for next page - find max timestamp
-		var maxTimestamp int64
-		for _, member := range members {
-			if member.LastUpdateAt > maxTimestamp {
-				maxTimestamp = member.LastUpdateAt
-			}
-		}
-
 		// Log progress when processing large channels
 		if len(allMembers)%1000 == 0 {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing channel members in batches",
@@ -185,8 +180,8 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 			break // Last page
 		}
 
-		// Move cursor forward for next batch fetch
-		lastSyncAt = maxTimestamp
+		// Move to next page
+		offset += maxPerPage
 	}
 
 	if len(allMembers) == 0 {

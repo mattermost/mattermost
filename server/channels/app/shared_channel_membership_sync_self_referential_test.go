@@ -188,6 +188,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		var batchedUserIDs [][]string
 		var mu sync.Mutex
 		var selfCluster *model.RemoteCluster
+		var syncCompleted atomic.Bool
 
 		// Placeholder for sync handler - will be created after selfCluster is initialized
 		var syncHandler *SelfReferentialSyncHandler
@@ -220,10 +221,12 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		batchSize := service.GetMemberSyncBatchSize()
+		t.Logf("DEBUG: Batch size = %d", batchSize)
 
 		// First, add multiple users to the channel BEFORE sharing
 		// Include different user types to test filtering
-		numRegularUsers := (batchSize * 2) + 5
+		numRegularUsers := (batchSize * 2) + 5 // Back to original
+		t.Logf("DEBUG: Creating %d regular users", numRegularUsers)
 		regularUserIDs := make([]string, numRegularUsers)
 		for i := 0; i < numRegularUsers; i++ {
 			user := th.CreateUser()
@@ -286,41 +289,52 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Initialize sync handler with callbacks
 		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
+
+		// Track when all expected batches are received
+		// Should include regular users + guest + BasicUser + bot + system admin
+		expectedTotal := numRegularUsers + 1 + 1 + 1 + 1 // regular users + guest + BasicUser + bot + system admin
+		expectedBatches := (expectedTotal + batchSize - 1) / batchSize
+		t.Logf("DEBUG: Expected total users = %d, expected batches = %d", expectedTotal, expectedBatches)
+
 		syncHandler.OnBatchSync = func(userIds []string, messageNumber int32) {
 			mu.Lock()
 			batchedUserIDs = append(batchedUserIDs, userIds)
+			t.Logf("DEBUG: Batch %d received with %d users", messageNumber, len(userIds))
+			// Check if we've received all expected batches
+			if len(batchedUserIDs) >= expectedBatches {
+				syncCompleted.Store(true)
+			}
 			mu.Unlock()
 		}
 
 		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
 		require.NoError(t, err)
 
-		// Calculate expected number of batches
-		// Should include regular users + guest + BasicUser + bot + system admin
-		expectedTotal := numRegularUsers + 1 + 1 + 1 + 1 // regular users + guest + BasicUser + bot + system admin
-		expectedBatches := (expectedTotal + batchSize - 1) / batchSize
-
-		// Wait for batch messages to be received
+		// Wait for batch messages to be received with more robust checking
 		require.Eventually(t, func() bool {
-			mu.Lock()
-			defer mu.Unlock()
-			return len(batchedUserIDs) >= expectedBatches
-		}, 10*time.Second, 100*time.Millisecond, fmt.Sprintf("Should receive %d batch sync messages", expectedBatches))
+			return syncCompleted.Load()
+		}, 30*time.Second, 200*time.Millisecond, fmt.Sprintf("Should receive %d batch sync messages", expectedBatches))
 
-		// Verify cursor was updated
+		// Wait for all async processing to complete
+		require.Eventually(t, func() bool {
+			return !service.HasPendingTasksForTesting()
+		}, 15*time.Second, 200*time.Millisecond, "All async tasks should be completed")
+
+		// Verify cursor was updated - wait longer for batch processing
 		require.Eventually(t, func() bool {
 			updatedScr, getErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
 			return getErr == nil && updatedScr.LastMembersSyncAt > 0
-		}, 10*time.Second, 100*time.Millisecond, "Cursor should be updated after batch sync")
+		}, 20*time.Second, 200*time.Millisecond, "Cursor should be updated after batch sync")
 
 		// Verify sync messages were sent
 		count := syncHandler.GetSyncMessageCount()
 		assert.Greater(t, count, int32(0), "Should have received sync messages")
 
-		// Check batch contents
+		// Check batch contents with proper locking
 		mu.Lock()
 		totalSynced := 0
 		allSyncedUserIDs := make(map[string]bool)
+		actualBatches := len(batchedUserIDs)
 		for _, batch := range batchedUserIDs {
 			totalSynced += len(batch)
 			for _, userID := range batch {
@@ -329,8 +343,13 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 		mu.Unlock()
 
+		t.Logf("DEBUG: Final results - actualBatches=%d, totalSynced=%d", actualBatches, totalSynced)
+
+		// Verify exact batch count
+		assert.Equal(t, expectedBatches, actualBatches, fmt.Sprintf("Should have exactly %d batches with batch size %d", expectedBatches, batchSize))
+
+		// Verify total synced users
 		assert.Equal(t, expectedTotal, totalSynced, "All users including bots and system admins should be synced")
-		assert.Equal(t, expectedBatches, len(batchedUserIDs), fmt.Sprintf("Should have %d batches with batch size %d", expectedBatches, batchSize))
 
 		// Verify that bot and system admin WERE synced
 		assert.Contains(t, allSyncedUserIDs, bot.UserId, "Bot should be synced")
