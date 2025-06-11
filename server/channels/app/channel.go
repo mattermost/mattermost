@@ -3908,41 +3908,38 @@ func (a *App) addChannelToDefaultCategory(c request.CTX, userID string, channel 
 		if err != nil {
 			mlog.Error("Failed to get sidebar categories", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.Err(err))
 			return
-		} else {
-			// Find or create the category
-			var targetCategory *model.SidebarCategoryWithChannels
-			for _, category := range categories.Categories {
-				if category.Type == model.SidebarCategoryCustom && strings.EqualFold(category.DisplayName, channel.DefaultCategoryName) {
-					targetCategory = category
-					break
-				}
+		}
+		// Find or create the category
+		var targetCategory *model.SidebarCategoryWithChannels
+		for _, category := range categories.Categories {
+			if category.Type == model.SidebarCategoryCustom && strings.EqualFold(category.DisplayName, channel.DefaultCategoryName) {
+				targetCategory = category
+				break
 			}
+		}
 
-			if targetCategory == nil {
-				// Create new category if it doesn't exist
-				targetCategory = &model.SidebarCategoryWithChannels{
-					SidebarCategory: model.SidebarCategory{
-						UserId:      userID,
-						TeamId:      channel.TeamId,
-						Type:        model.SidebarCategoryCustom,
-						DisplayName: channel.DefaultCategoryName,
-						Sorting:     model.SidebarCategorySortDefault,
-					},
-					Channels: []string{channel.Id},
-				}
-				_, err = a.CreateSidebarCategory(c, userID, channel.TeamId, targetCategory)
-				if err != nil {
-					mlog.Error("Failed to create default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
-					return
-				}
-			} else {
-				// Add channel to existing category
-				targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
-				_, err = a.UpdateSidebarCategories(c, userID, channel.TeamId, []*model.SidebarCategoryWithChannels{targetCategory})
-				if err != nil {
-					mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
-					return
-				}
+		if targetCategory == nil {
+			// Create new category if it doesn't exist
+			targetCategory = &model.SidebarCategoryWithChannels{
+				SidebarCategory: model.SidebarCategory{
+					UserId:      userID,
+					TeamId:      channel.TeamId,
+					Type:        model.SidebarCategoryCustom,
+					DisplayName: channel.DefaultCategoryName,
+					Sorting:     model.SidebarCategorySortDefault,
+				},
+				Channels: []string{channel.Id},
+			}
+			_, err = a.CreateSidebarCategory(c, userID, channel.TeamId, targetCategory)
+			if err != nil {
+				mlog.Error("Failed to create default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+			}
+		} else {
+			// Add channel to existing category
+			targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
+			_, err = a.UpdateSidebarCategories(c, userID, channel.TeamId, []*model.SidebarCategoryWithChannels{targetCategory})
+			if err != nil {
+				mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
 			}
 		}
 	}
