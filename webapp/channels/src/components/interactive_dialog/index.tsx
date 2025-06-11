@@ -10,9 +10,9 @@ import type {Dispatch} from 'redux';
 import {submitInteractiveDialog} from 'actions/integration_actions';
 import {getEmojiMap} from 'selectors/emojis';
 
-import type {GlobalState} from 'types/store';
-
 import DialogRouter from 'components/dialog_router';
+
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const data = state.entities.integrations.dialog;

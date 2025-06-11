@@ -13,14 +13,14 @@ type Props = Record<string, any>;
 const DialogRouter: React.FC<Props> = (props) => {
     const [Component, setComponent] = useState<React.ComponentType<any> | null>(null);
     const [loading, setLoading] = useState(true);
-    
+
     const isAppsFormEnabled = useSelector((state: GlobalState) => interactiveDialogAppsFormEnabled(state));
     const hasUrl = Boolean(props.url);
 
     useEffect(() => {
         const loadComponent = async () => {
             setLoading(true);
-            
+
             if (isAppsFormEnabled && hasUrl) {
                 // Use AppsForm-based adapter for dialogs with URLs when feature flag is enabled
                 const {default: InteractiveDialogAdapter} = await import('./interactive_dialog_adapter');
@@ -30,7 +30,7 @@ const DialogRouter: React.FC<Props> = (props) => {
                 const {default: InteractiveDialog} = await import('components/interactive_dialog/interactive_dialog');
                 setComponent(() => InteractiveDialog);
             }
-            
+
             setLoading(false);
         };
 
@@ -41,7 +41,7 @@ const DialogRouter: React.FC<Props> = (props) => {
         return null; // Could add a loading spinner here if needed
     }
 
-    return <Component {...props} />;
+    return <Component {...props}/>;
 };
 
 export default DialogRouter;

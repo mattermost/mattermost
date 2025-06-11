@@ -234,7 +234,7 @@ const DynamicAppsFormContainer: React.FC<any> = (props) => {
         return null; // Loading state
     }
 
-    return <AppsFormContainer {...props} />;
+    return <AppsFormContainer {...props}/>;
 };
 
 export default injectIntl(InteractiveDialogAdapter);
