@@ -113,6 +113,7 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 	subpath, err := utils.GetSubpathFromConfig(ch.cfgSvc.Config())
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 
 	publicFilePath := path.Clean(r.URL.Path)
@@ -126,6 +127,11 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 }
 
 func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
+	handleInternalServerError := func(rctx request.CTX, logMsg string, err error) {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		rctx.Logger().Error("Internal server error during MFA validation", mlog.Err(err))
+	}
+
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
 		IPAddress:      utils.GetIPAddress(r, ch.cfgSvc.Config().ServiceSettings.TrustedProxyIPHeader),
@@ -171,15 +177,6 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	newQuery.Del("access_token")
 	r.URL.RawQuery = newQuery.Encode()
 
-	subpath, _ := utils.GetSubpathFromConfig(ch.cfgSvc.Config())
-	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", pluginID))
-
-	// Short path for un-authenticated requests
-	if token == "" {
-		handler(context, w, r)
-		return
-	}
-
 	app := New(ServerConnector(ch))
 	rctx := request.EmptyContext(
 		ch.srv.Log().With(
@@ -191,8 +188,25 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		),
 	).WithPath(r.URL.Path)
 
+	subpath, err := utils.GetSubpathFromConfig(ch.cfgSvc.Config())
+	if err != nil {
+		handleInternalServerError(rctx, "Failed to get subpath for plugin request", err)
+		return
+	}
+	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", pluginID))
+
+	// Short path for un-authenticated requests
+	if token == "" {
+		handler(context, w, r)
+		return
+	}
+
 	session, appErr := app.GetSession(token)
 	if appErr != nil {
+		if appErr.StatusCode == http.StatusInternalServerError {
+			handleInternalServerError(rctx, "Internal server error while loading session", err)
+			return
+		}
 		rctx.Logger().Debug("Token in plugin request is invalid. Treating request as unauthenticated",
 			mlog.Err(appErr),
 		)
@@ -208,6 +222,10 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 
 	// If MFA is required and user has not activated it, we wipe the token.
 	if appErr := app.MFARequired(rctx); appErr != nil {
+		if appErr.StatusCode == http.StatusInternalServerError {
+			handleInternalServerError(rctx, "Internal server error during MFA validation", err)
+			return
+		}
 		rctx.Logger().Warn("Treating session as unauthenticated since MFA required",
 			mlog.Err(appErr),
 		)
