@@ -361,7 +361,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                 <div className='buttons'>
                     <Button
                         disabled={isSubmitDisabled}
-                        className='confirm-btn'
+                        className='btn btn-primary'
                         onClick={requestLicense}
                     >
                         {btnText(status)}

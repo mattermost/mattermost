@@ -33,28 +33,6 @@
 .PlanDetails__viewPlansButton {
     display: block;
     margin-left: auto;
-
-    &.btn {
-        padding: 11px 16px;
-        border-radius: 4px;
-        background: variables.$primary-color;
-        color: variables.$white;
-        font-size: 12px;
-        font-weight: bold;
-        line-height: 9.5px;
-
-        &:focus,
-        &:active,
-        &:focus:active {
-            border-color: transparent;
-            outline: none;
-        }
-
-        &.btn-secondary {
-            background: rgba(var(--button-bg-rgb), 0.08);
-            color: var(--button-bg);
-        }
-    }
 }
 
 .PlanDetails__planName {
