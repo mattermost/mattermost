@@ -10,8 +10,6 @@ import type {DialogElement, DialogSubmission} from '@mattermost/types/integratio
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
-import AppsFormContainer from 'components/apps_form/apps_form_container';
-
 import {createCallContext} from 'utils/apps';
 import type EmojiMap from 'utils/emoji_map';
 
@@ -202,8 +200,9 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             'interactive_dialog', // location
         );
 
+        // Dynamic import of AppsFormContainer to avoid circular dependency
         return (
-            <AppsFormContainer
+            <DynamicAppsFormContainer
                 form={appForm}
                 context={context}
                 onExited={this.props.onExited || (() => {})}
@@ -218,5 +217,24 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         );
     }
 }
+
+// Dynamic wrapper component for AppsFormContainer to avoid circular dependency
+const DynamicAppsFormContainer: React.FC<any> = (props) => {
+    const [AppsFormContainer, setAppsFormContainer] = React.useState<React.ComponentType<any> | null>(null);
+
+    React.useEffect(() => {
+        const loadComponent = async () => {
+            const {default: Component} = await import('components/apps_form/apps_form_container');
+            setAppsFormContainer(() => Component);
+        };
+        loadComponent();
+    }, []);
+
+    if (!AppsFormContainer) {
+        return null; // Loading state
+    }
+
+    return <AppsFormContainer {...props} />;
+};
 
 export default injectIntl(InteractiveDialogAdapter);
