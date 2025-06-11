@@ -37,6 +37,12 @@ import SchemaText from '../schema_text';
 import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess} from '../types';
 import './ldap_wizard.scss';
 
+const SECTION_OBSERVER_OPTIONS: IntersectionObserverInit = {
+    root: null, // Use viewport as root
+    rootMargin: '-40% 0px -40% 0px', // Active when in the middle 20% of the viewport
+    threshold: 0.01, // At least 1% of element in this zone
+};
+
 export type LDAPDefinitionSettingButton = AdminDefinitionSettingButton & {
     action: (success: () => void, error: (error: { message: string }) => void, settings?: Record<string, any>) => void;
 }
@@ -150,13 +156,7 @@ const LDAPWizard = (props: Props) => {
         return memoizedSections.map((section) => section.key);
     }, [memoizedSections]);
 
-    const {activeSectionKey, sectionRefs} = useSectionNavigation(memoizedSectionKeys,
-        {
-            root: null, // Use viewport as root
-            rootMargin: '-40% 0px -40% 0px', // Active when in the middle 20% of the viewport
-            threshold: 0.01, // At least 1% of element in this zone
-        },
-    );
+    const {activeSectionKey, sectionRefs} = useSectionNavigation(memoizedSectionKeys, SECTION_OBSERVER_OPTIONS);
 
     const buildTextSetting = (setting: AdminDefinitionSetting) => {
         const testResult = getTestResult(setting.key || '');
@@ -659,12 +659,12 @@ const LDAPWizard = (props: Props) => {
                 <div
                     className={'config-section'}
                     key={section.key}
+                    data-section-key={section.key}
                     ref={(el) => {
                         if (sectionRefs.current) {
                             sectionRefs.current[section.key] = el;
                         }
                     }}
-                    data-section-key={section.key}
                 >
                     <SettingsGroup
                         show={true}
@@ -700,7 +700,6 @@ const LDAPWizard = (props: Props) => {
                     <div className='admin-console__content'>
                         <form
                             className='form-horizontal'
-                            role='form'
                             onSubmit={handleSubmit}
                         >
                             {renderSettings()}
