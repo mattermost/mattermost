@@ -203,7 +203,6 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(0), serverLimits.MaxUsersLimit)
 		require.Equal(t, int64(0), serverLimits.MaxUsersHardLimit)
 	})
-
 }
 
 func TestIsAtUserLimit(t *testing.T) {
