@@ -85,7 +85,7 @@ export type Props = {
 
 // A component that can be used to make controlled inputs that function properly in certain
 // environments (ie. IE11) where typing quickly would sometimes miss inputs
-const QuickInput = React.memo(({
+export const QuickInput = React.memo(({
     delayInputUpdate = false,
     value = '',
     clearable = false,
@@ -124,7 +124,7 @@ const QuickInput = React.memo(({
         'delayInputUpdate' changing would re-run the effect.
 
         A separate 'useEffect' updates the ref so it gets the latest
-        value whenever delayInputUpdateRef changes.
+        value whenever delayInputUpdate changes.
     */
     const delayInputUpdateRef = useRef(delayInputUpdate);
 
