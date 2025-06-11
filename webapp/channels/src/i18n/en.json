@@ -1033,6 +1033,8 @@
   "admin.experimental.allowCustomThemes.title": "Allow Custom Themes:",
   "admin.experimental.allowedEmailDomain.desc": "(Optional) When set, users must have an email ending in this domain to move threads. Multiple domains can be specified by separating them with commas.",
   "admin.experimental.allowedEmailDomain.title": "Allowed Email Domain",
+  "admin.experimental.channelCategorySorting.desc": "When true, channels will be automatically sorted into categories based on their names using a \"/\" delimiter.",
+  "admin.experimental.channelCategorySorting.title": "Channel Category Sorting:",
   "admin.experimental.clientSideCertCheck.desc": "When **primary**, after the client side certificate is verified, user’s email is retrieved from the certificate and is used to log in without a password. When **secondary**, after the client side certificate is verified, user’s email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials.",
   "admin.experimental.clientSideCertCheck.options.primary": "primary",
   "admin.experimental.clientSideCertCheck.options.secondary": "secondary",

@@ -100,6 +100,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DisableRefetchingOnBrowserFocus"] = strconv.FormatBool(*c.ExperimentalSettings.DisableRefetchingOnBrowserFocus)
 	props["DisableWakeUpReconnectHandler"] = strconv.FormatBool(*c.ExperimentalSettings.DisableWakeUpReconnectHandler)
 	props["UsersStatusAndProfileFetchingPollIntervalMilliseconds"] = strconv.FormatInt(*c.ExperimentalSettings.UsersStatusAndProfileFetchingPollIntervalMilliseconds, 10)
+	props["ExperimentalChannelCategorySorting"] = strconv.FormatBool(*c.ExperimentalSettings.ExperimentalChannelCategorySorting)
 
 	// Here we set the new option, but we also send the old FeatureFlag property for backwards compatibility on mobile < 2.27
 	props["EnableCrossTeamSearch"] = strconv.FormatBool(*c.ServiceSettings.EnableCrossTeamSearch)
