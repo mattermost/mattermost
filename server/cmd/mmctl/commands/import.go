@@ -37,6 +37,14 @@ var ImportUploadCmd = &cobra.Command{
 	RunE:    withClient(importUploadCmdF),
 }
 
+var ImportDeleteCmd = &cobra.Command{
+	Use:     "delete [importname]",
+	Short:   "Delete an import file",
+	Example: "  import delete import_file.zip",
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(importDeleteCmdF),
+}
+
 var ImportListCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
@@ -130,6 +138,7 @@ func init() {
 		ImportProcessCmd,
 		ImportJobCmd,
 		ImportValidateCmd,
+		ImportDeleteCmd,
 	)
 	RootCmd.AddCommand(ImportCmd)
 }
@@ -247,6 +256,17 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 
 	printer.PrintT("Import file successfully uploaded, name: {{.Id}}", finfo)
 
+	return nil
+}
+
+func importDeleteCmdF(c client.Client, command *cobra.Command, args []string) error {
+	importName := args[0]
+
+	if _, err := c.DeleteImport(context.TODO(), importName); err != nil {
+		return fmt.Errorf("failed to delete import: %w", err)
+	}
+
+	printer.Print(fmt.Sprintf("Import file %q has been deleted", importName))
 	return nil
 }
 

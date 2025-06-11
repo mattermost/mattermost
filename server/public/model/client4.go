@@ -574,6 +574,10 @@ func (c *Client4) exportRoute(name string) string {
 	return fmt.Sprintf(c.exportsRoute()+"/%v", name)
 }
 
+func (c *Client4) importRoute(name string) string {
+	return fmt.Sprintf(c.importsRoute()+"/%v", name)
+}
+
 func (c *Client4) remoteClusterRoute() string {
 	return "/remotecluster"
 }
@@ -627,7 +631,7 @@ func (c *Client4) accessControlPoliciesRoute() string {
 }
 
 func (c *Client4) celRoute() string {
-	return fmt.Sprintf(c.accessControlPoliciesRoute() + "/cel")
+	return c.accessControlPoliciesRoute() + "/cel"
 }
 
 func (c *Client4) accessControlPolicyRoute(policyID string) string {
@@ -2934,7 +2938,6 @@ func (c *Client4) InviteGuestsToTeam(ctx context.Context, teamId string, userEma
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeamGracefully(ctx context.Context, teamId string, userEmails []string) ([]*EmailInviteWithError, *Response, error) {
 	r, err := c.DoAPIPost(ctx, c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), ArrayToJSON(userEmails))
-
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8798,6 +8801,15 @@ func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) 
 	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
+func (c *Client4) DeleteImport(ctx context.Context, name string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.importRoute(name))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.exportsRoute(), "")
 	if err != nil {
@@ -9341,7 +9353,6 @@ func (c *Client4) AddUserToGroupSyncables(ctx context.Context, userID string) (*
 
 func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Response, error) {
 	r, err := c.DoAPIGet(ctx, c.cloudRoute()+"/healthz", "")
-
 	if err != nil {
 		return BuildResponse(r), err
 	}
