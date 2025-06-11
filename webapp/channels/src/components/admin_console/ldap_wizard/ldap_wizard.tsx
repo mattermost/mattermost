@@ -109,24 +109,29 @@ const LDAPWizard = (props: Props) => {
     }, [props.config, props.roles, schema]);
 
     const [saveActions, setSaveActions] = useState<Array<() => Promise<{ error?: { message?: string } }>>>([]);
-    const [filterTestResults, setFilterTestResults] = useState<TestLdapFiltersResponse | null>(null);
 
-    const getFilterResult = useCallback((settingKey: string) => {
-        if (!filterTestResults) {
+    // Combined test results - both filter and attribute test results in one array
+    const [testResults, setTestResults] = useState<TestLdapFiltersResponse | null>(null);
+
+    // Helper functions to categorize test types
+    const filterTestNames = new Set(['BaseDN', 'UserFilter', 'GroupFilter', 'GuestFilter', 'AdminFilter']);
+    const isFilterTestName = (testName: string) => filterTestNames.has(testName);
+    const isAttributeTestName = (testName: string) => !isFilterTestName(testName);
+
+    const getTestResult = useCallback((settingKey: string) => {
+        const testName = settingKeyToTestNameMap[settingKey];
+        if (!testName || !testResults) {
             return null;
         }
-        const filterName = settingKeyToFilterNameMap[settingKey];
-        if (!filterName) {
-            return null;
-        }
-        return filterTestResults.find((result) => result.test_name === filterName) || null;
-    }, [filterTestResults]);
 
-    const handleFilterTestResults = useCallback((results: TestLdapFiltersResponse) => {
+        return testResults.find((result) => result.test_name === testName) || null;
+    }, [testResults]);
+
+    const handleTestResults = useCallback((results: TestLdapFiltersResponse, isAttributeTest: boolean) => {
         // Filter out test results for text settings that had no input when the test button was pressed
         const filteredResults = results.filter((result) => {
-            const settingKey = Object.keys(settingKeyToFilterNameMap).find(
-                (key) => settingKeyToFilterNameMap[key] === result.test_name,
+            const settingKey = Object.keys(settingKeyToTestNameMap).find(
+                (key) => settingKeyToTestNameMap[key] === result.test_name,
             );
 
             if (!settingKey) {
@@ -138,7 +143,16 @@ const LDAPWizard = (props: Props) => {
             return currentValue && currentValue !== '';
         });
 
-        setFilterTestResults(filteredResults);
+        setTestResults((prevResults) => {
+            // Start with existing results from the OTHER test type
+            const existingResultsFromOtherType = prevResults ?
+                prevResults.filter((result) =>
+                    (isAttributeTest ? isFilterTestName(result.test_name) : isAttributeTestName(result.test_name)),
+                ) : [];
+
+            // Combine with new results
+            return [...existingResultsFromOtherType, ...filteredResults];
+        });
     }, [state]);
 
     const memoizedSections = useMemo(() => {
@@ -157,6 +171,7 @@ const LDAPWizard = (props: Props) => {
     );
 
     const buildTextSetting = (setting: AdminDefinitionSetting) => {
+        const testResult = getTestResult(setting.key || '');
         return (
             <LDAPTextSetting
                 config={props.config}
@@ -167,7 +182,7 @@ const LDAPWizard = (props: Props) => {
                 disabled={isDisabled(setting)}
                 setByEnv={isSetByEnv(setting.key!, props.environmentConfig)}
                 setting={setting}
-                filterResult={getFilterResult(setting.key || '')}
+                filterResult={testResult}
             />
         );
     };
@@ -206,7 +221,12 @@ const LDAPWizard = (props: Props) => {
     const buildButtonSetting = (setting: AdminDefinitionSetting | LDAPDefinitionSettingButton) => {
         let config = JSON.parse(JSON.stringify(props.config));
         config = getConfigFromState(config, state, schema, isDisabled);
-        const filterTestResultsHandler = setting.key === 'LdapSettings.TestFilters' ? handleFilterTestResults : undefined;
+        var testResultsHandler;
+        if (setting.key === 'LdapSettings.TestFilters') {
+            testResultsHandler = (results: TestLdapFiltersResponse) => handleTestResults(results, false);
+        } else if (setting.key === 'LdapSettings.TestAttributes') {
+            testResultsHandler = (results: TestLdapFiltersResponse) => handleTestResults(results, true);
+        }
 
         return (
             <LDAPButtonSetting
@@ -217,7 +237,7 @@ const LDAPWizard = (props: Props) => {
                 disabled={isDisabled(setting)}
                 setting={setting as LDAPDefinitionSettingButton}
                 ldapSettingsState={config.LdapSettings}
-                onFilterTestResults={filterTestResultsHandler}
+                onFilterTestResults={testResultsHandler}
             />
         );
     };
@@ -439,14 +459,15 @@ const LDAPWizard = (props: Props) => {
             [id]: value,
         }));
 
-        // Clear filter test results when user starts typing in filter fields
-        if (id in settingKeyToFilterNameMap) {
-            const filterName = settingKeyToFilterNameMap[id];
-            setFilterTestResults((prevResults) => {
+        // Clear test results when user starts typing in test fields
+        if (id in settingKeyToTestNameMap) {
+            const testName = settingKeyToTestNameMap[id];
+
+            setTestResults((prevResults) => {
                 if (!prevResults) {
                     return null;
                 }
-                return prevResults.filter((result) => result.test_name !== filterName);
+                return prevResults.filter((result) => result.test_name !== testName);
             });
         }
 
@@ -723,13 +744,22 @@ const LDAPWizard = (props: Props) => {
     );
 };
 
-// Helper functions for filter test results
-const settingKeyToFilterNameMap: Record<string, string> = {
+// Helper functions for filter and attribute test results
+const settingKeyToTestNameMap: Record<string, string> = {
     'LdapSettings.BaseDN': 'BaseDN',
     'LdapSettings.UserFilter': 'UserFilter',
     'LdapSettings.GroupFilter': 'GroupFilter',
     'LdapSettings.GuestFilter': 'GuestFilter',
     'LdapSettings.AdminFilter': 'AdminFilter',
+    'LdapSettings.IdAttribute': 'IdAttribute',
+    'LdapSettings.LoginIdAttribute': 'LoginIdAttribute',
+    'LdapSettings.UsernameAttribute': 'UsernameAttribute',
+    'LdapSettings.EmailAttribute': 'EmailAttribute',
+    'LdapSettings.FirstNameAttribute': 'FirstNameAttribute',
+    'LdapSettings.LastNameAttribute': 'LastNameAttribute',
+    'LdapSettings.NicknameAttribute': 'NicknameAttribute',
+    'LdapSettings.PositionAttribute': 'PositionAttribute',
+    'LdapSettings.PictureAttribute': 'PictureAttribute',
 };
 
 export default LDAPWizard;
