@@ -287,11 +287,13 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		license.Features.Users = &userLimit
 		th.App.Srv().SetLicense(license)
 
-		// Create 2 additional users to reach the limit of 5 (3 from InitBasic + 2)
+		// Create 3 additional users to reach the grace limit of 6 (3 from InitBasic + 3)
+		// Grace limit for 5 users is 6 (5% grace period)
+		th.CreateUser()
 		th.CreateUser()
 		th.CreateUser()
 
-		// Now at limit - attempting to create another user should fail
+		// Now at grace limit - attempting to create another user should fail
 		user := &model.User{
 			Email:         "TestSeatCount@example.com",
 			Username:      "seat_test_user",
@@ -424,11 +426,13 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		license.Features.Users = &userLimit
 		th.App.Srv().SetLicense(license)
 
-		// Create 2 additional users to reach the limit of 5 (3 from InitBasic + 2)
+		// Create 3 additional users to reach the grace limit of 6 (3 from InitBasic + 3)
+		// Grace limit for 5 users is 6 (5% grace period)
+		th.CreateUser()
 		th.CreateUser()
 		th.CreateUser()
 
-		// Now at limit - attempting to create a guest should fail
+		// Now at grace limit - attempting to create a guest should fail
 		user := &model.User{
 			Email:         "TestSeatCountGuest@example.com",
 			Username:      "seat_test_guest",
