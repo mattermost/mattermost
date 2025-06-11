@@ -246,7 +246,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 <SuggestionListList
                     id='suggestionList'
                     data-testid='suggestionList'
-                    role='listbox'
                     ref={this.contentRef}
                     style={{
                         maxHeight: this.maxHeight,
