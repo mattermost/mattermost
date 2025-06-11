@@ -33,6 +33,7 @@ export type AppsFormProps = {
     form: AppForm;
     isEmbedded?: boolean;
     onExited: () => void;
+    onHide?: () => void;
     actions: {
         submit: (submission: {
             values: AppFormValues;
@@ -289,6 +290,9 @@ export class AppsForm extends React.PureComponent<Props, State> {
     };
 
     onHide = () => {
+        if (this.props.onHide) {
+            this.props.onHide();
+        }
         this.handleHide(false);
     };
 
