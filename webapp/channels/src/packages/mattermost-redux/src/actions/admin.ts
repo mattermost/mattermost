@@ -230,6 +230,15 @@ export function testLdapAttributes(settings: LdapSettings) {
     });
 }
 
+export function testLdapGroupAttributes(settings: LdapSettings) {
+    return bindClientFunc({
+        clientFunc: Client4.testLdapGroupAttributes,
+        params: [
+            settings,
+        ],
+    });
+}
+
 export function syncLdap() {
     return bindClientFunc({
         clientFunc: Client4.syncLdap,

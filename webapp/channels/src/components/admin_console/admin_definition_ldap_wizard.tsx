@@ -9,10 +9,10 @@ import type {Job} from '@mattermost/types/jobs';
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import {
-    ldapTest,
     ldapTestAttributes,
     ldapTestConnection,
     ldapTestFilters,
+    ldapTestGroupAttributes,
     removePrivateLdapCertificate,
     removePublicLdapCertificate,
     uploadPrivateLdapCertificate,
@@ -576,6 +576,22 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.stateIsFalse('LdapSettings.EnableSync'),
+                ),
+            },
+            {
+                type: 'button',
+                action: ldapTestGroupAttributes,
+                key: 'LdapSettings.TestGroupAttributes',
+                label: defineMessage({id: 'admin.ldap.testGroupAttributesTitle', defaultMessage: 'Test Group Attributes'}),
+                help_text_markdown: false,
+                error_message: defineMessage({id: 'admin.ldap.testGroupAttributesFailure', defaultMessage: 'We failed to find some attributes: {error}'}),
+                success_message: defineMessage({id: 'admin.ldap.testGroupAttributesSuccess', defaultMessage: 'Test Successful'}),
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                    it.all(
+                        it.stateIsFalse('LdapSettings.Enable'),
+                        it.stateIsFalse('LdapSettings.EnableSync'),
+                    ),
                 ),
             },
         ],

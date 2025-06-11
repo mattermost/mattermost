@@ -30,4 +30,5 @@ type LdapDiagnosticInterface interface {
 	RunTestConnection(rctx request.CTX, settings *model.LdapSettings) *model.AppError
 	RunTestFilters(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)
 	RunTestAttributes(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)
+	RunTestGroupAttributes(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)
 }
