@@ -1614,7 +1614,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 				}
 			}
 		} else if appErr != nil {
-			c.Logger().Error("Error checking access control policy for channel", mlog.Err(appErr))
+			return nil, appErr
 		}
 	}
 

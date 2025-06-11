@@ -27,6 +27,7 @@ import (
 )
 
 func TestPermanentDeleteChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -84,6 +85,7 @@ func TestPermanentDeleteChannel(t *testing.T) {
 }
 
 func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	var appErr *model.AppError
@@ -120,6 +122,7 @@ func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 }
 
 func TestMoveChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("should move channels between teams", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -302,6 +305,7 @@ func TestMoveChannel(t *testing.T) {
 }
 
 func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -343,6 +347,7 @@ func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
 }
 
 func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -375,6 +380,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 }
 
 func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -407,6 +413,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 }
 
 func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -433,6 +440,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 }
 
 func TestJoinDefaultChannelsExperimentalDefaultChannelsMissing(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -463,6 +471,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannelsMissing(t *testing.T) {
 }
 
 func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -478,6 +487,7 @@ func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -493,6 +503,7 @@ func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -506,6 +517,7 @@ func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 }
 
 func TestUpdateChannelPrivacy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -519,6 +531,7 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 }
 
 func TestGetOrCreateDirectChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -573,6 +586,7 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 }
 
 func TestCreateGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -596,6 +610,7 @@ func TestCreateGroupChannel(t *testing.T) {
 }
 
 func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -626,6 +641,7 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -652,6 +668,7 @@ func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -680,6 +697,7 @@ func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 
@@ -710,6 +728,7 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 
@@ -792,6 +811,7 @@ func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 }
 
 func TestLeaveDefaultChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -851,6 +871,7 @@ func TestLeaveDefaultChannel(t *testing.T) {
 }
 
 func TestLeaveChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -910,6 +931,7 @@ func TestLeaveChannel(t *testing.T) {
 }
 
 func TestLeaveLastChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -939,6 +961,7 @@ func TestLeaveLastChannel(t *testing.T) {
 }
 
 func TestAddChannelMemberNoUserRequestor(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -980,6 +1003,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 }
 
 func TestAddChannelMemberDeletedUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -996,6 +1020,7 @@ func TestAddChannelMemberDeletedUser(t *testing.T) {
 }
 
 func TestAppUpdateChannelScheme(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1012,6 +1037,7 @@ func TestAppUpdateChannelScheme(t *testing.T) {
 }
 
 func TestSetChannelsMuted(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("should mute and unmute the given channels", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -1063,6 +1089,7 @@ func TestSetChannelsMuted(t *testing.T) {
 }
 
 func TestFillInChannelProps(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1283,6 +1310,7 @@ func TestFillInChannelProps(t *testing.T) {
 }
 
 func TestRenameChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1350,6 +1378,7 @@ func TestRenameChannel(t *testing.T) {
 }
 
 func TestGetChannelMembersTimezones(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1393,6 +1422,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 }
 
 func TestGetChannelsForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	channel := &model.Channel{
 		DisplayName: "Public",
@@ -1437,6 +1467,7 @@ func TestGetChannelsForUser(t *testing.T) {
 }
 
 func TestGetPublicChannelsForTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	team := th.CreateTeam()
 	defer th.TearDown()
@@ -1484,6 +1515,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 }
 
 func TestGetPrivateChannelsForTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	team := th.CreateTeam()
 	defer th.TearDown()
@@ -1520,6 +1552,7 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 }
 
 func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1598,6 +1631,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 }
 
 func TestDefaultChannelNames(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1615,6 +1649,7 @@ func TestDefaultChannelNames(t *testing.T) {
 }
 
 func TestSearchChannelsForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1672,6 +1707,7 @@ func TestSearchChannelsForUser(t *testing.T) {
 }
 
 func TestMarkChannelAsUnreadFromPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1828,6 +1864,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 }
 
 func TestAddUserToChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1922,6 +1959,7 @@ func TestAddUserToChannel(t *testing.T) {
 }
 
 func TestRemoveUserFromChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1981,6 +2019,7 @@ func TestRemoveUserFromChannel(t *testing.T) {
 }
 
 func TestPatchChannelModerationsForChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2460,6 +2499,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 }
 
 func TestClearChannelMembersCache(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -2484,6 +2524,7 @@ func TestClearChannelMembersCache(t *testing.T) {
 }
 
 func TestGetMemberCountsByGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -2506,6 +2547,7 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 }
 
 func TestGetChannelsMemberCount(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -2524,6 +2566,7 @@ func TestGetChannelsMemberCount(t *testing.T) {
 }
 
 func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2602,6 +2645,7 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 }
 
 func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
+	mainHelper.Parallel(t)
 	// Enable CRT
 
 	th := Setup(t).InitBasic()
@@ -2689,6 +2733,7 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 }
 
 func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2729,6 +2774,7 @@ func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {
 }
 
 func TestIsCRTEnabledForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	type preference struct {
 		val string
 		err error
@@ -2808,6 +2854,7 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 }
 
 func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -2874,6 +2921,7 @@ func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
 }
 
 func TestConvertGroupMessageToChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -3022,6 +3070,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 }
 
 func TestPatchChannelMembersNotifyProps(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

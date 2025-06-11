@@ -36,8 +36,8 @@ describe('RemoveUserPropertyFieldModal', () => {
             />,
         );
 
-        expect(screen.getByText('Delete Test Field property')).toBeInTheDocument();
-        expect(screen.getByText('Deleting this property will remove all user-defined values associated with it.')).toBeInTheDocument();
+        expect(screen.getByText('Delete Test Field attribute')).toBeInTheDocument();
+        expect(screen.getByText('Deleting this attribute will remove all user-defined values associated with it.')).toBeInTheDocument();
         expect(screen.getByText('Delete')).toBeInTheDocument();
     });
 
