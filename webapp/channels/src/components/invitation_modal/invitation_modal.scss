@@ -21,4 +21,13 @@
     &__footer {
         padding-right: 0 !important;
     }
+
+    @media screen and (max-width: 768px) {
+        max-height: 100%;
+        display: flex;
+
+        .modal-body {
+            overflow-y: auto !important;
+        }
+    }
 }
