@@ -110,8 +110,6 @@ export class InteractiveDialogConverter {
                     value: opt.value,
                 })) || [],
             } as AppField;
-        }
-
         case 'bool':
             return {
                 ...baseField,
@@ -187,10 +185,11 @@ export class InteractiveDialogConverter {
                 break;
 
             case 'select':
-                if (element.multiselect && Array.isArray(value)) {
-                    // Handle multiselect - extract array of values
-                    submission[element.name] = value.map((item: AppSelectOption) => item.value);
-                } else if (element.data_source === 'users' || element.data_source === 'channels') {
+                // if (element.multiselect && Array.isArray(value)) {
+                //     // Handle multiselect - extract array of values
+                //     submission[element.name] = value.map((item: AppSelectOption) => item.value);
+                // } else if (element.data_source === 'users' || element.data_source === 'channels') {
+                if (element.data_source === 'users' || element.data_source === 'channels') {
                     // Extract value from single AppSelectOption
                     submission[element.name] = typeof value === 'object' && value !== null ?
                         (value as AppSelectOption).value :
