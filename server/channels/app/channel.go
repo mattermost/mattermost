@@ -1650,9 +1650,11 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 	a.invalidateCacheForChannelMembers(channel.Id)
 
 	// Synchronize membership change for shared channels
-	if _, pErr := a.GetSharedChannel(channel.Id); pErr == nil {
-		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-			scs.HandleMembershipChange(channel.Id, user.Id, true, "")
+	if a.Config().FeatureFlags.EnableSharedChannelsMemberSync {
+		if _, pErr := a.GetSharedChannel(channel.Id); pErr == nil {
+			if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+				scs.HandleMembershipChange(channel.Id, user.Id, true, "")
+			}
 		}
 	}
 
@@ -2691,10 +2693,12 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	a.Publish(userMsg)
 
 	// Synchronize membership change for shared channels
-	if _, pErr := a.GetSharedChannel(channel.Id); pErr == nil {
-		// isAdd=false, empty remoteId means locally initiated
-		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-			scs.HandleMembershipChange(channel.Id, userIDToRemove, false, "")
+	if a.Config().FeatureFlags.EnableSharedChannelsMemberSync {
+		if _, pErr := a.GetSharedChannel(channel.Id); pErr == nil {
+			// isAdd=false, empty remoteId means locally initiated
+			if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+				scs.HandleMembershipChange(channel.Id, userIDToRemove, false, "")
+			}
 		}
 	}
 
