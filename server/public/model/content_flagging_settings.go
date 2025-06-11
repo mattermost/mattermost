@@ -47,7 +47,8 @@ func (cfs *ContentFlaggingNotificationSettings) SetDefault() {
 }
 
 type ContentFlaggingSettings struct {
-	NotificationSettings *ContentFlaggingNotificationSettings
+	EnableContentFlagging bool
+	NotificationSettings  *ContentFlaggingNotificationSettings
 }
 
 func (cfs *ContentFlaggingSettings) SetDefault() {

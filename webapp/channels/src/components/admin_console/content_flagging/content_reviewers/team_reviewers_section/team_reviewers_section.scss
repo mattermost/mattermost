@@ -42,6 +42,14 @@
                 display: flex;
                 align-items: center;
                 gap: 8px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+                .TeamReviewers__team-name {
+                    flex: 1;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
             }
 
             .TeamIcon {
@@ -50,7 +58,6 @@
 
             .DataGrid_cell {
                 margin: 0;
-                overflow: unset;
                 align-items: center !important;
                 display: flex;
 
@@ -63,6 +70,7 @@
         .DataGrid_header {
             background: var(--center-channel-color-04);
             gap: 32px;
+            padding-inline: 18px;
 
             > .DataGrid_cell {
                 color: var(--center-channel-color-72);
@@ -81,7 +89,7 @@
             }
 
             &:nth-child(3) {
-                max-width: 40px;
+                max-width: 44px;
             }
         }
 
