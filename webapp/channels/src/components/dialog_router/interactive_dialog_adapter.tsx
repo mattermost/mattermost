@@ -297,6 +297,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                     code: 'INVALID_FORMAT',
                 });
             }
+
             // Validate max_length for select fields (server limit is 3000)
             if (element.max_length !== undefined && element.max_length > 3000) {
                 errors.push({
