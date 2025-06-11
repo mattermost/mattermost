@@ -8,11 +8,11 @@ import Action from './action';
 
 describe('components/drafts/draft_actions/action', () => {
     const baseProps = {
-        icon: '',
-        id: '',
-        name: '',
+        icon: 'some-icon',
+        id: 'some-id',
+        name: 'some-name',
         onClick: jest.fn(),
-        tooltipText: '',
+        tooltipText: 'some-tooltip-text',
     };
 
     it('should match snapshot', () => {
