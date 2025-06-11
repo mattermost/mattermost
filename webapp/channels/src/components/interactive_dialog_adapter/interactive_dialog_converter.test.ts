@@ -78,7 +78,6 @@ describe('InteractiveDialogConverter', () => {
                 max_length: 100,
                 default: 'default@example.com',
                 data_source: '',
-                multiselect: false,
                 options: [],
             };
 
@@ -105,7 +104,6 @@ describe('InteractiveDialogConverter', () => {
                 min_length: 10,
                 max_length: 500,
                 data_source: '',
-                multiselect: false,
                 options: [],
             };
 
@@ -128,7 +126,6 @@ describe('InteractiveDialogConverter', () => {
                 min_length: 0,
                 max_length: 0,
                 data_source: '',
-                multiselect: false,
                 options: [
                     {text: 'Low', value: 'low'},
                     {text: 'High', value: 'high'},
@@ -157,7 +154,6 @@ describe('InteractiveDialogConverter', () => {
                 min_length: 0,
                 max_length: 0,
                 data_source: '',
-                multiselect: true,
                 options: [
                     {text: 'Option 1', value: 'opt1'},
                     {text: 'Option 2', value: 'opt2'},
@@ -189,7 +185,6 @@ describe('InteractiveDialogConverter', () => {
                 min_length: 0,
                 max_length: 0,
                 data_source: 'users',
-                multiselect: true,
                 options: [],
             };
 
@@ -212,7 +207,6 @@ describe('InteractiveDialogConverter', () => {
                 min_length: 0,
                 max_length: 0,
                 data_source: 'channels',
-                multiselect: true,
                 options: [],
             };
 
@@ -235,7 +229,6 @@ describe('InteractiveDialogConverter', () => {
                 min_length: 0,
                 max_length: 0,
                 data_source: '',
-                multiselect: false,
                 options: [],
             };
 
@@ -256,7 +249,6 @@ describe('InteractiveDialogConverter', () => {
                 min_length: 1,
                 max_length: 10,
                 data_source: '',
-                multiselect: false,
                 options: [],
                 default: '42',
             };
@@ -302,7 +294,6 @@ describe('InteractiveDialogConverter', () => {
                     min_length: 0,
                     max_length: 0,
                     data_source: '',
-                    multiselect: false,
                     options: [],
                 });
             }).toThrow('Dialog element name too long');
@@ -314,11 +305,11 @@ describe('InteractiveDialogConverter', () => {
             callback_id: 'test',
             title: 'Test',
             elements: [
-                {name: 'text_field', display_name: 'Text', type: 'text', subtype: '', default: '', placeholder: '', help_text: '', optional: false, min_length: 0, max_length: 0, data_source: '', multiselect: false, options: []},
-                {name: 'number_field', display_name: 'Number', type: 'text', subtype: 'number', default: '', placeholder: '', help_text: '', optional: false, min_length: 0, max_length: 0, data_source: '', multiselect: false, options: []},
-                {name: 'bool_field', display_name: 'Bool', type: 'bool', subtype: '', default: '', placeholder: '', help_text: '', optional: false, min_length: 0, max_length: 0, data_source: '', multiselect: false, options: []},
-                {name: 'radio_field', display_name: 'Radio', type: 'radio', subtype: '', default: '', placeholder: '', help_text: '', optional: false, min_length: 0, max_length: 0, data_source: '', multiselect: false, options: []},
-                {name: 'multi_select_field', display_name: 'Multi Select', type: 'select', subtype: '', default: '', placeholder: '', help_text: '', optional: false, min_length: 0, max_length: 0, data_source: '', multiselect: true, options: []},
+                {name: 'text_field', display_name: 'Text', type: 'text', subtype: '', default: '', placeholder: '', help_text: '', optional: false, min_length: 0, max_length: 0, data_source: '', options: []},
+                {name: 'number_field', display_name: 'Number', type: 'text', subtype: 'number', default: '', placeholder: '', help_text: '', optional: false, min_length: 0, max_length: 0, data_source: '', options: []},
+                {name: 'bool_field', display_name: 'Bool', type: 'bool', subtype: '', default: '', placeholder: '', help_text: '', optional: false, min_length: 0, max_length: 0, data_source: '', options: []},
+                {name: 'radio_field', display_name: 'Radio', type: 'radio', subtype: '', default: '', placeholder: '', help_text: '', optional: false, min_length: 0, max_length: 0, data_source: '', options: []},
+                {name: 'multi_select_field', display_name: 'Multi Select', type: 'select', subtype: '', default: '', placeholder: '', help_text: '', optional: false, min_length: 0, max_length: 0, data_source: '', options: []},
             ],
         };
 
@@ -445,7 +436,7 @@ describe('InteractiveDialogConverter', () => {
                 callback_id: 'test',
                 title: 'Test',
                 elements: [
-                    {name: 'a'.repeat(70), display_name: 'Long Name', type: 'text', subtype: '', default: '', placeholder: '', help_text: '', optional: false, min_length: 0, max_length: 0, data_source: '', multiselect: false, options: []}, // Over 64 char limit
+                    {name: 'a'.repeat(70), display_name: 'Long Name', type: 'text', subtype: '', default: '', placeholder: '', help_text: '', optional: false, min_length: 0, max_length: 0, data_source: '', options: []}, // Over 64 char limit
                 ],
             };
 

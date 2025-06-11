@@ -47,20 +47,21 @@ export class InteractiveDialogConverter {
         }
         let value: AppFormValue = element.default || null;
         if (element.default && element.options && element.type === 'select') {
-            if (element.multiselect) {
-                // Handle multiselect defaults (comma-separated values)
-                const defaultValues = element.default.split(',').map((v) => v.trim());
-                const matchedOptions = element.options.filter(
-                    (option) => defaultValues.includes(option.value),
-                ).map((option) => ({label: option.text, value: option.value}));
-                value = matchedOptions.length > 0 ? matchedOptions : null;
-            } else {
-                // Handle single select defaults
-                const defaultOption = element.options.find(
-                    (option) => option.value === element.default,
-                );
-                value = defaultOption ? {label: defaultOption.text, value: defaultOption.value} : null;
-            }
+            // if (element.multiselect) {
+            //     // Handle multiselect defaults (comma-separated values)
+            //     const defaultValues = element.default.split(',').map((v) => v.trim());
+            //     const matchedOptions = element.options.filter(
+            //         (option) => defaultValues.includes(option.value),
+            //     ).map((option) => ({label: option.text, value: option.value}));
+            //     value = matchedOptions.length > 0 ? matchedOptions : null;
+            // } else {
+            // Handle single select defaults
+            const defaultOption = element.options.find(
+                (option) => option.value === element.default,
+            );
+            value = defaultOption ? {label: defaultOption.text, value: defaultOption.value} : null;
+
+            // }
         }
 
         const baseField: Partial<AppField> = {

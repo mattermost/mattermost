@@ -382,7 +382,7 @@ function isAppForm(v: unknown): v is AppForm {
     return true;
 }
 
-export type AppFormValue = string | AppSelectOption | AppSelectOption[] | boolean | null;
+export type AppFormValue = string | AppSelectOption | number | boolean | null;
 
 function isAppFormValue(v: unknown): v is AppFormValue {
     if (typeof v === 'string') {
