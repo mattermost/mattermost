@@ -200,6 +200,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                     <Menu.Container
                         menuButton={{
                             id: 'time_button',
+                            dataTestId: 'time_button',
                             'aria-label': formatMessage({
                                 id: 'datetime.time',
                                 defaultMessage: 'Time',
@@ -234,6 +235,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                             <Menu.Item
                                 key={index}
                                 id={`time_option_${index}`}
+                                data-testid={`time_option_${index}`}
                                 labels={
                                     <span>
                                         <Timestamp
