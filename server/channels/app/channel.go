@@ -549,7 +549,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 	}
 	channelIsShared := len(remoteIDs) > 0
 
-	if channelIsShared && !a.Config().FeatureFlags.EnableSharedChannelsDMs  {
+	if channelIsShared && !a.Config().FeatureFlags.EnableSharedChannelsDMs {
 		for _, user := range users {
 			if user.IsRemote() {
 				return nil, model.NewAppError("createGroupChannel", "api.channel.create_group.remote_restricted.app_error", nil, "", http.StatusForbidden)

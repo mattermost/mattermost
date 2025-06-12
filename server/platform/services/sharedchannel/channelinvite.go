@@ -499,7 +499,6 @@ func (scs *Service) createGroupChannel(invite channelInviteMsg, rc *model.Remote
 
 	participantsMap := invite.DirectParticipantsMap()
 
-	users := []*model.User{}
 	remoteIDMap := map[string]bool{}
 	hasLocalUsers := false
 	for _, participantID := range invite.DirectParticipantIDs {
@@ -507,7 +506,6 @@ func (scs *Service) createGroupChannel(invite channelInviteMsg, rc *model.Remote
 		if err != nil {
 			return nil, false, fmt.Errorf("cannot create group channel `%s` from invite: %w", invite.ChannelId, err)
 		}
-		users = append(users, user)
 
 		// we keep track of the origin of the users to check if the
 		// invite is valid
