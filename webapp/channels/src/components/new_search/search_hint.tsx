@@ -103,7 +103,10 @@ const SearchHints = ({onSelectFilter, searchType, searchTerms, searchTeam, hasSe
 
     return (
         <SearchHintsContainer id='searchHints'>
-            <i className='icon icon-lightbulb-outline'/>
+            <i
+                className='icon icon-lightbulb-outline'
+                aria-hidden='true'
+            />
             <h2>
                 <FormattedMessage
                     id='search_hint.filter'

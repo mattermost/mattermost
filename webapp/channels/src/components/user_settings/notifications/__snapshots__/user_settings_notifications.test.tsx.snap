@@ -103,6 +103,7 @@ Object {
                 id="desktopAndMobileEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -138,6 +139,7 @@ Object {
                 id="desktopNotificationSoundEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -173,6 +175,7 @@ Object {
                 id="emailEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -208,6 +211,7 @@ Object {
                 id="keywordsAndMentionsEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -243,6 +247,7 @@ Object {
                 id="keywordsAndHighlightEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -409,6 +414,7 @@ Object {
               id="desktopAndMobileEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -444,6 +450,7 @@ Object {
               id="desktopNotificationSoundEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -479,6 +486,7 @@ Object {
               id="emailEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -514,6 +522,7 @@ Object {
               id="keywordsAndMentionsEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -549,6 +558,7 @@ Object {
               id="keywordsAndHighlightEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -774,6 +784,7 @@ Object {
                 id="desktopAndMobileEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -809,6 +820,7 @@ Object {
                 id="desktopNotificationSoundEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -844,6 +856,7 @@ Object {
                 id="emailEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -879,6 +892,7 @@ Object {
                 id="keywordsAndMentionsEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1083,6 +1097,7 @@ Object {
               id="desktopAndMobileEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1118,6 +1133,7 @@ Object {
               id="desktopNotificationSoundEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1153,6 +1169,7 @@ Object {
               id="emailEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1188,6 +1205,7 @@ Object {
               id="keywordsAndMentionsEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1451,6 +1469,7 @@ Object {
                 id="desktopAndMobileEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1486,6 +1505,7 @@ Object {
                 id="desktopNotificationSoundEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1521,6 +1541,7 @@ Object {
                 id="emailEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1556,6 +1577,7 @@ Object {
                 id="keywordsAndMentionsEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1722,6 +1744,7 @@ Object {
               id="desktopAndMobileEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1757,6 +1780,7 @@ Object {
               id="desktopNotificationSoundEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1792,6 +1816,7 @@ Object {
               id="emailEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1827,6 +1852,7 @@ Object {
               id="keywordsAndMentionsEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />

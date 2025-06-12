@@ -16,12 +16,32 @@ import (
 
 type SqlUploadSessionStore struct {
 	*SqlStore
+
+	uploadSessionQuery sq.SelectBuilder
 }
 
 func newSqlUploadSessionStore(sqlStore *SqlStore) store.UploadSessionStore {
-	return &SqlUploadSessionStore{
+	s := &SqlUploadSessionStore{
 		SqlStore: sqlStore,
 	}
+
+	s.uploadSessionQuery = s.getQueryBuilder().
+		Select(
+			"Id",
+			"Type",
+			"CreateAt",
+			"UserId",
+			"ChannelId",
+			"Filename",
+			"Path",
+			"FileSize",
+			"FileOffset",
+			"RemoteId",
+			"ReqFileId",
+		).
+		From("UploadSessions")
+
+	return s
 }
 
 func (us SqlUploadSessionStore) Save(session *model.UploadSession) (*model.UploadSession, error) {
@@ -83,9 +103,7 @@ func (us SqlUploadSessionStore) Get(c request.CTX, id string) (*model.UploadSess
 	if !model.IsValidId(id) {
 		return nil, errors.New("SqlUploadSessionStore.Get: id is not valid")
 	}
-	query, args, err := us.getQueryBuilder().
-		Select("*").
-		From("UploadSessions").
+	query, args, err := us.uploadSessionQuery.
 		Where(sq.Eq{"Id": id}).
 		ToSql()
 	if err != nil {
@@ -102,9 +120,7 @@ func (us SqlUploadSessionStore) Get(c request.CTX, id string) (*model.UploadSess
 }
 
 func (us SqlUploadSessionStore) GetForUser(userId string) ([]*model.UploadSession, error) {
-	query, args, err := us.getQueryBuilder().
-		Select("*").
-		From("UploadSessions").
+	query, args, err := us.uploadSessionQuery.
 		Where(sq.Eq{"UserId": userId}).
 		OrderBy("CreateAt ASC").
 		ToSql()

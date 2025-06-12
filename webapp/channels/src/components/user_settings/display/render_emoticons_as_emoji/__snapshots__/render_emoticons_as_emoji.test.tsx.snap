@@ -68,6 +68,9 @@ exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoti
           class="setting-list-item"
         >
           <hr />
+          <div
+            role="alert"
+          />
           <button
             class="btn btn-primary "
             data-testid="saveSetting"

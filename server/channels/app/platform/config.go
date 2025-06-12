@@ -42,7 +42,7 @@ func (ps *PlatformService) Config() *model.Config {
 }
 
 // getSanitizedConfig gets the configuration without any secrets.
-func (ps *PlatformService) getSanitizedConfig(rctx request.CTX) *model.Config {
+func (ps *PlatformService) getSanitizedConfig(rctx request.CTX, opts *model.SanitizeOptions) *model.Config {
 	cfg := ps.Config().Clone()
 
 	manifests, err := ps.getPluginManifests()
@@ -50,9 +50,9 @@ func (ps *PlatformService) getSanitizedConfig(rctx request.CTX) *model.Config {
 		// getPluginManifests might error, e.g. when plugins are disabled.
 		// Sanitize all plugin settings in this case.
 		rctx.Logger().Warn("Failed to get plugin manifests for config sanitization. Will sanitize all plugin settings.", mlog.Err(err))
-		cfg.Sanitize(nil)
+		cfg.Sanitize(nil, opts)
 	} else {
-		cfg.Sanitize(manifests)
+		cfg.Sanitize(manifests, opts)
 	}
 
 	return cfg
@@ -309,7 +309,7 @@ func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
 	case "P-256":
 		curve = elliptic.P256()
 	default:
-		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
+		return fmt.Errorf("unknown curve: %s", key.ECDSAKey.Curve)
 	}
 	ps.asymmetricSigningKey.Store(&ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{

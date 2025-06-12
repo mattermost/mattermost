@@ -71,7 +71,7 @@ describe('Collapsed Reply Threads', () => {
         cy.uiGetPostThreadFooter(rootPost.id).should('not.exist');
 
         // # Post a reply post as current user
-        cy.postMessageAs({sender: testUser, message: 'reply!', channelId: testChannel.id, rootId: rootPost.id});
+        cy.postMessageAs({sender: testUser, message: 'reply to root post', channelId: testChannel.id, rootId: rootPost.id});
 
         // # Get thread footer of last post
         cy.uiGetPostThreadFooter(rootPost.id).within(() => {

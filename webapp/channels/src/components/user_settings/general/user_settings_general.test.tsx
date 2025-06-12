@@ -141,8 +141,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 <UserSettingsGeneral {...props}/>
             </Provider>,
         );
-        expect(wrapper.find('#position').length).toBe(1);
-        expect(wrapper.find('#position').is('input')).toBeTruthy();
+        expect(wrapper.find('#position').length).toBe(2);
+        expect(wrapper.find('#position.Input').is('input')).toBeTruthy();
 
         props.ldapPositionAttributeSet = true;
         props.samlPositionAttributeSet = false;
@@ -767,7 +767,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
         userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'ftp://invalid-scheme');
-        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        userEvent.tab();
 
         expect(await screen.findByText('Please enter a valid url.')).toBeInTheDocument();
         expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
@@ -804,7 +804,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
         userEvent.type(screen.getByRole('textbox', {name: emailAttribute.name}), 'invalid-email');
-        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        userEvent.tab();
 
         expect(await screen.findByText('Please enter a valid email address.')).toBeInTheDocument();
         expect(saveCustomProfileAttribute).not.toHaveBeenCalled();

@@ -65,19 +65,19 @@ func (cd ConfigDiffs) Sanitize() ConfigDiffs {
 
 		cfgPtr, ok := cd[0].BaseVal.(*model.Config)
 		if ok {
-			cfgPtr.Sanitize(pluginManifests)
+			cfgPtr.Sanitize(pluginManifests, nil)
 		}
 		cfgPtr, ok = cd[0].ActualVal.(*model.Config)
 		if ok {
-			cfgPtr.Sanitize(pluginManifests)
+			cfgPtr.Sanitize(pluginManifests, nil)
 		}
 		cfgVal, ok := cd[0].BaseVal.(model.Config)
 		if ok {
-			cfgVal.Sanitize(pluginManifests)
+			cfgVal.Sanitize(pluginManifests, nil)
 		}
 		cfgVal, ok = cd[0].ActualVal.(model.Config)
 		if ok {
-			cfgVal.Sanitize(pluginManifests)
+			cfgVal.Sanitize(pluginManifests, nil)
 		}
 	}
 

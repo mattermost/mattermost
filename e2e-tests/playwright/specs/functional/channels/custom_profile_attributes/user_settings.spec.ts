@@ -346,13 +346,13 @@ test('MM-T5772 URL Validation in Custom Profile Attributes @custom_profile_attri
     await profileModal.container.locator(`#customAttribute_${fieldId}`).scrollIntoViewIfNeeded();
     await profileModal.container.locator(`#customAttribute_${fieldId}`).clear();
     await profileModal.container.locator(`#customAttribute_${fieldId}`).fill(TEST_INVALID_URL);
-
-    // 4. Try to save the changes
-    await profileModal.saveButton.click();
+    await profileModal.container.locator(`#customAttribute_${fieldId}`).blur();
 
     // * Save button doesn't complete the operation with invalid URL
-    await expect(profileModal.errorText).toBeVisible();
-    await expect(profileModal.errorText).toHaveText('Please enter a valid url.');
+    await expect(profileModal.container.locator(`#error_customAttribute_${fieldId}`)).toBeVisible();
+    await expect(profileModal.container.locator(`#error_customAttribute_${fieldId}`)).toHaveText(
+        'Please enter a valid url.',
+    );
 
     // 5. Edit Website field and enter a valid URL
     await profileModal.container.locator(`#customAttribute_${fieldId}`).clear();
@@ -362,6 +362,6 @@ test('MM-T5772 URL Validation in Custom Profile Attributes @custom_profile_attri
     await profileModal.saveButton.click();
 
     // * Valid URL saves successfully with no error message
-    await expect(profileModal.errorText).not.toBeVisible();
+    await expect(profileModal.container.locator(`#error_customAttribute_${fieldId}`)).not.toBeVisible();
     await expect(profileModal.container).toContainText(TEST_VALID_URL);
 });
