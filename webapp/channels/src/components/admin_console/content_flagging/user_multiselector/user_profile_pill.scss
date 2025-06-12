@@ -2,22 +2,22 @@
 // See LICENSE.txt for license information.
 
 .UserProfilePill {
-    background: var(--center-channel-color-08);
-    padding-inline: 6px;
-    border-radius: 12px;
     display: flex;
-    gap: 5px;
     align-items: center;
+    border-radius: 12px;
+    background: var(--center-channel-color-08);
     color: var(--center-channel-color);
     font-size: 12px;
     font-weight: 600;
+    gap: 5px;
+    padding-inline: 6px;
 }
 
 .Remove {
     cursor: pointer;
 
     svg {
-        fill: var(--center-channel-color-32);
         margin-top: 4px;
+        fill: var(--center-channel-color-32);
     }
 }

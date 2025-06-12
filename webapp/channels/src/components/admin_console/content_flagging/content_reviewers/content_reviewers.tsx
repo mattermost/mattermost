@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {ContentFlaggingReviewerSetting, TeamReviewerSetting} from '@mattermost/types/config';
 
 import {Label} from 'components/admin_console/boolean_setting';
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
@@ -14,15 +16,10 @@ import {
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
 
-import './content_reviewers.scss';
-
 import {UserMultiSelector} from '../../content_flagging/user_multiselector/user_multiselector';
-
-import type { ContentFlaggingReviewerSetting, TeamReviewerSetting } from "@mattermost/types/config";
-
 import type {SystemConsoleCustomSettingsComponentProps} from '../../schema_admin_settings';
 
-const noOp = () => null;
+import './content_reviewers.scss';
 
 export default function ContentFlaggingContentReviewers(props: SystemConsoleCustomSettingsComponentProps) {
     const [reviewerSetting, setReviewerSetting] = useState<ContentFlaggingReviewerSetting>(props.value as ContentFlaggingReviewerSetting);

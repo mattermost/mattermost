@@ -4,10 +4,10 @@
 .ReasonOption {
     display: flex;
     align-items: center;
-    gap: 5px;
-    background: var(--center-channel-color-08);
-    border-radius: 12px;
-    padding-left: 12px;
     padding-right: 4px;
+    padding-left: 12px;
+    border-radius: 12px;
+    background: var(--center-channel-color-08);
     cursor: pointer;
+    gap: 5px;
 }

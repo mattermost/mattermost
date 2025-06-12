@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {useSelector} from 'react-redux';
-import type {MultiValueRemoveProps} from 'react-select';
 import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
 
 import type {UserProfile} from '@mattermost/types/src/users';

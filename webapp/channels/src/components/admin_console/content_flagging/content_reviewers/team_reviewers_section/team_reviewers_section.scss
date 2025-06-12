@@ -12,9 +12,9 @@
         background: none;
 
         .DataGrid_search {
-            background: none;
-            padding: 16px;
             height: unset;
+            padding: 16px;
+            background: none;
 
             .DataGrid_searchBar {
                 margin-left: 0;
@@ -35,19 +35,19 @@
 
         .DataGrid_row {
             display: flex;
-            gap: 32px;
             padding: 8px 16px;
+            gap: 32px;
 
             .TeamReviewers__team {
                 display: flex;
+                overflow: hidden;
                 align-items: center;
                 gap: 8px;
-                overflow: hidden;
                 text-overflow: ellipsis;
 
                 .TeamReviewers__team-name {
-                    flex: 1;
                     overflow: hidden;
+                    flex: 1;
                     text-overflow: ellipsis;
                 }
             }
@@ -57,9 +57,9 @@
             }
 
             .DataGrid_cell {
-                margin: 0;
-                align-items: center !important;
                 display: flex;
+                align-items: center !important;
+                margin: 0;
 
                 .user-multiselector__control {
                     margin-block: 2px;
@@ -77,9 +77,9 @@
             padding-inline: 18px;
 
             > .DataGrid_cell {
+                padding-left: 0;
                 color: var(--center-channel-color-72);
                 font-size: 12px;
-                padding-left: 0;
             }
         }
 
@@ -99,8 +99,8 @@
 
         .DataGrid_footer {
             width: 100%;
-            background: none;
             padding: 8px 16px;
+            background: none;
 
             > .DataGrid_cell {
                 margin-left: auto;

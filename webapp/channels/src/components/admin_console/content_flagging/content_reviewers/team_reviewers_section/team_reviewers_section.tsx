@@ -62,6 +62,7 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                     setPaginationValues(page, teamsResponse.data.total_count);
                 }
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error(error);
             }
         };
@@ -87,7 +88,6 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
 
     const getHandleReviewersChange = useCallback((teamId: string) => {
         return (reviewerIDs: string[]) => {
-            console.log('XX');
             const updatedTeamSettings = {...teamReviewersSetting};
             if (!updatedTeamSettings[teamId]) {
                 updatedTeamSettings[teamId] = {Enabled: false, ReviewerIds: []};

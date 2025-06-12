@@ -9638,11 +9638,11 @@
   },
   {
     "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
-    "translation": "Common reviewers must be set when \"Same reviewers for all teams\" is enabled."
+    "translation": "Common reviewers or additional reviewers must be set when \"Same reviewers for all teams\" is enabled."
   },
   {
     "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
-    "translation": "Team reviewers or additional reviewers must be set when setting \"Enabled\" for a team"
+    "translation": "Team reviewers or additional reviewers must be set when setting \"Enabled\" for a team."
   },
   {
     "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",

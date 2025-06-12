@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {MultiValueRemoveProps} from 'react-select';
 import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
 
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';

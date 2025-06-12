@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 import type {OptionProps} from 'react-select';
 
 import type {Team} from '@mattermost/types/teams';
@@ -13,7 +14,6 @@ import * as Utils from 'utils/utils';
 import type {AutocompleteOptionType} from '../user_multiselector/user_multiselector';
 
 import './team_option.scss';
-import {useIntl} from 'react-intl';
 
 export function TeamOptionComponent(props: OptionProps<AutocompleteOptionType<Team>, true>) {
     const {data, innerProps} = props;

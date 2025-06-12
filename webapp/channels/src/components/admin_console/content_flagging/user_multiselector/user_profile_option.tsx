@@ -5,16 +5,17 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import type {OptionProps} from 'react-select';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import Avatar from 'components/widgets/users/avatar';
 
 import {getDisplayNameByUser, imageURLForUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import './user_profile_option.scss';
 import type {AutocompleteOptionType} from './user_multiselector';
 
-import type {UserProfile} from '@mattermost/types/users';
+import './user_profile_option.scss';
 
 export function UserOptionComponent(props: OptionProps<AutocompleteOptionType<UserProfile>, true>) {
     const {data, innerProps} = props;

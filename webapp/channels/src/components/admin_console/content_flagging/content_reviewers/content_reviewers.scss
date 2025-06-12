@@ -5,9 +5,9 @@
     flex-direction: column;
 
     .teamSearchWrapper {
-        margin-top: 16px;
-        width: 100%;
         display: flex;
+        width: 100%;
+        margin-top: 16px;
         gap: 8px;
 
         #teamSearchSelect {

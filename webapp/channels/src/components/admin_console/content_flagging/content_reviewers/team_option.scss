@@ -3,9 +3,9 @@
 
 .TeamOptionComponent {
     display: flex;
-    gap: 8px;
-    padding: 12px;
     align-items: center;
+    padding: 12px;
+    gap: 8px;
 
     .TeamIcon {
         background: var(--center-channel-color-08);

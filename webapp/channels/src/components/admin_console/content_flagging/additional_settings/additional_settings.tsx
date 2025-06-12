@@ -33,7 +33,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
         };
         setAdditionalSettings(updatedSettings);
         onChange(id, updatedSettings);
-    }, [ additionalSettings, id, onChange]);
+    }, [additionalSettings, id, onChange]);
 
     const handleRequireReporterCommentChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         const updatedSettings: ContentFlaggingAdditionalSettings = {
@@ -107,7 +107,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 isClearable={false}
                                 isMulti={true}
                                 value={reasonOptions}
-                                placeholder={'TODO placeholder'}
+                                placeholder={'Type and press Tab to add a reason'}
                                 onChange={handleReasonsChange}
                                 components={{
                                     DropdownIndicator: () => null,

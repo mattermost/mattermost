@@ -14,14 +14,14 @@ import {debounce} from 'mattermost-redux/actions/helpers';
 import {getMissingProfilesByIds, searchProfiles} from 'mattermost-redux/actions/users';
 import {getUsersByIDs} from 'mattermost-redux/selectors/entities/users';
 
+import type {GlobalState} from 'types/store';
+
 import {UserProfilePill} from './user_profile_pill';
 
 import {UserOptionComponent} from '../../content_flagging/user_multiselector/user_profile_option';
 import {LoadingIndicator} from '../../system_users/system_users_filters_popover/system_users_filter_team';
 
 import './user_multiselect.scss';
-
-import type {GlobalState} from 'types/store';
 
 export type AutocompleteOptionType<T> = {
     label: string | ReactElement;
@@ -90,7 +90,6 @@ export function UserMultiSelector({id, className, onChange, initialValue, hasErr
     }, 200), [dispatch]);
 
     function handleOnChange(value: MultiValue<AutocompleteOptionType<UserProfile>>) {
-        console.log({value});
         const selectedUserIds = value.map((option) => option.value);
         onChange?.(selectedUserIds);
     }
