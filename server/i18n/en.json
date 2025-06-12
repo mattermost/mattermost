@@ -4511,12 +4511,20 @@
     "translation": "Unable to delete acknowledgement."
   },
   {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Cannot delete acknowledgement for missing post"
+  },
+  {
     "id": "app.acknowledgement.get.app_error",
     "translation": "Unable to get acknowledgement."
   },
   {
     "id": "app.acknowledgement.getforpost.get.app_error",
     "translation": "Unable to get acknowledgement for post."
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Cannot save acknowledgement for missing post"
   },
   {
     "id": "app.acknowledgement.save.save.app_error",
@@ -6705,10 +6713,6 @@
   {
     "id": "app.post.save.thread_membership.app_error",
     "translation": "Unable to save thread membership for post."
-  },
-  {
-    "id": "app.post.save_priority.store_error",
-    "translation": "Unable to save priority data to the metadata priority store"
   },
   {
     "id": "app.post.search.app_error",
