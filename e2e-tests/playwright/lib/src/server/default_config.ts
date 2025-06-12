@@ -202,6 +202,7 @@ const defaultServerConfig: AdminConfig = {
         ScheduledPosts: true,
         EnableWebHubChannelIteration: false,
         FrameAncestors: '',
+        DeleteAccountLink: '',
     },
     TeamSettings: {
         SiteName: 'Mattermost',

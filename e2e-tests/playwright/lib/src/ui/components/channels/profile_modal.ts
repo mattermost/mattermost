@@ -16,8 +16,6 @@ export default class ProfileModal {
     readonly saveButton;
     readonly cancelButton;
 
-    readonly errorText;
-
     constructor(container: Locator) {
         this.container = container;
 
@@ -30,8 +28,6 @@ export default class ProfileModal {
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.saveButton = container.locator('button:has-text("Save")');
         this.cancelButton = container.locator('button:has-text("Cancel")');
-
-        this.errorText = container.locator('#clientError');
     }
 
     async toBeVisible() {
