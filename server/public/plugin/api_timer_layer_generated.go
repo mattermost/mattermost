@@ -1497,3 +1497,150 @@ func (api *apiTimerLayer) DeleteGroupConstrainedMemberships() *model.AppError {
 	api.recordTime(startTime, "DeleteGroupConstrainedMemberships", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreatePropertyField(field)
+	api.recordTime(startTime, "CreatePropertyField", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPropertyField(groupID, fieldID string) (*model.PropertyField, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyField(groupID, fieldID)
+	api.recordTime(startTime, "GetPropertyField", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyFields(groupID, ids)
+	api.recordTime(startTime, "GetPropertyFields", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePropertyField(groupID, field)
+	api.recordTime(startTime, "UpdatePropertyField", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeletePropertyField(groupID, fieldID string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyField(groupID, fieldID)
+	api.recordTime(startTime, "DeletePropertyField", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.SearchPropertyFields(groupID, targetID, opts)
+	api.recordTime(startTime, "SearchPropertyFields", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreatePropertyValue(value)
+	api.recordTime(startTime, "CreatePropertyValue", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPropertyValue(groupID, valueID string) (*model.PropertyValue, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyValue(groupID, valueID)
+	api.recordTime(startTime, "GetPropertyValue", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyValues(groupID, ids)
+	api.recordTime(startTime, "GetPropertyValues", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePropertyValue(groupID, value)
+	api.recordTime(startTime, "UpdatePropertyValue", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpsertPropertyValue(value)
+	api.recordTime(startTime, "UpsertPropertyValue", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeletePropertyValue(groupID, valueID string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyValue(groupID, valueID)
+	api.recordTime(startTime, "DeletePropertyValue", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.SearchPropertyValues(groupID, targetID, opts)
+	api.recordTime(startTime, "SearchPropertyValues", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.RegisterPropertyGroup(name)
+	api.recordTime(startTime, "RegisterPropertyGroup", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyGroup(name)
+	api.recordTime(startTime, "GetPropertyGroup", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyFieldByName(groupID, targetID, name)
+	api.recordTime(startTime, "GetPropertyFieldByName", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePropertyFields(groupID, fields)
+	api.recordTime(startTime, "UpdatePropertyFields", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePropertyValues(groupID, values)
+	api.recordTime(startTime, "UpdatePropertyValues", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpsertPropertyValues(values)
+	api.recordTime(startTime, "UpsertPropertyValues", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeletePropertyValuesForTarget(groupID, targetType, targetID string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyValuesForTarget(groupID, targetType, targetID)
+	api.recordTime(startTime, "DeletePropertyValuesForTarget", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) DeletePropertyValuesForField(groupID, fieldID string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyValuesForField(groupID, fieldID)
+	api.recordTime(startTime, "DeletePropertyValuesForField", _returnsA == nil)
+	return _returnsA
+}
