@@ -14,11 +14,20 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string) (*model.PostAcknowledgement, *model.AppError) {
-	// Retrieve the current post to ensure we have the latest version
-	post, err := a.GetSinglePost(c, post.Id, false)
-	if err != nil {
-		return nil, err
+func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
+	return a.SaveAcknowledgementForPostWithPost(c, nil, userID, postID)
+}
+
+func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string, postID ...string) (*model.PostAcknowledgement, *model.AppError) {
+	if post == nil {
+		if len(postID) == 0 {
+			return nil, model.NewAppError("SaveAcknowledgementForPost", "app.acknowledgement.save.missing_post.app_error", nil, "", http.StatusBadRequest)
+		}
+		var err *model.AppError
+		post, err = a.GetSinglePost(c, postID[0], false)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	channel, err := a.GetChannel(c, post.ChannelId)
@@ -71,20 +80,20 @@ func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post
 	return savedAck, nil
 }
 
-func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
-	post, err := a.GetSinglePost(c, postID, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return a.SaveAcknowledgementForPostWithPost(c, post, userID)
+func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError {
+	return a.DeleteAcknowledgementForPostWithPost(c, nil, userID, postID)
 }
 
-func (a *App) DeleteAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string) *model.AppError {
-	// Retrieve the current post to ensure we have the latest version
-	post, err := a.GetSinglePost(c, post.Id, false)
-	if err != nil {
-		return err
+func (a *App) DeleteAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string, postID ...string) *model.AppError {
+	if post == nil {
+		if len(postID) == 0 {
+			return model.NewAppError("DeleteAcknowledgementForPost", "app.acknowledgement.delete.missing_post.app_error", nil, "", http.StatusBadRequest)
+		}
+		var err *model.AppError
+		post, err = a.GetSinglePost(c, postID[0], false)
+		if err != nil {
+			return err
+		}
 	}
 
 	channel, err := a.GetChannel(c, post.ChannelId)
@@ -128,15 +137,6 @@ func (a *App) DeleteAcknowledgementForPostWithPost(c request.CTX, post *model.Po
 	return nil
 }
 
-func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError {
-	post, err := a.GetSinglePost(c, postID, false)
-	if err != nil {
-		return err
-	}
-
-	return a.DeleteAcknowledgementForPostWithPost(c, post, userID)
-}
-
 func (a *App) GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError) {
 	acknowledgements, nErr := a.Srv().Store().PostAcknowledgement().GetForPost(postID)
 	if nErr != nil {
@@ -166,12 +166,6 @@ func (a *App) GetAcknowledgementsForPostList(postList *model.PostList) (map[stri
 func (a *App) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Post, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
 	if len(userIDs) == 0 {
 		return []*model.PostAcknowledgement{}, nil
-	}
-
-	// Retrieve the current post to ensure we have the latest version
-	post, err := a.GetSinglePost(c, post.Id, false)
-	if err != nil {
-		return nil, err
 	}
 
 	channel, err := a.GetChannel(c, post.ChannelId)
@@ -239,12 +233,6 @@ func (a *App) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Pos
 
 // DeleteAcknowledgementsForPost deletes all acknowledgements for a post.
 func (a *App) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError {
-	// Retrieve the current post to ensure we have the latest version
-	post, err := a.GetSinglePost(c, post.Id, false)
-	if err != nil {
-		return err
-	}
-
 	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
 		return err
