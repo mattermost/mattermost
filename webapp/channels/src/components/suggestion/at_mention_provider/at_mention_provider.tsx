@@ -45,7 +45,6 @@ type Results = {
 type ResultsCallback = (results: Results) => void;
 
 export type Props = {
-    textboxId?: string;
     currentUserId: string;
     channelId: string;
     autocompleteUsersInChannel: (prefix: string) => Promise<ActionResult>;
@@ -59,7 +58,6 @@ export type Props = {
 // users in the channel and users not in the channel. It mixes together results from the local
 // store with results fetched from the server.
 export default class AtMentionProvider extends Provider {
-    public textboxId?: string;
     public currentUserId: string;
     public channelId: string;
     public autocompleteUsersInChannel: (prefix: string) => Promise<ActionResult>;
@@ -77,9 +75,8 @@ export default class AtMentionProvider extends Provider {
     constructor(props: Props) {
         super();
 
-        const {currentUserId, channelId, autocompleteUsersInChannel, useChannelMentions, autocompleteGroups, searchAssociatedGroupsForReference, priorityProfiles, textboxId} = props;
+        const {currentUserId, channelId, autocompleteUsersInChannel, useChannelMentions, autocompleteGroups, searchAssociatedGroupsForReference, priorityProfiles} = props;
 
-        this.textboxId = textboxId;
         this.currentUserId = currentUserId;
         this.channelId = channelId;
         this.autocompleteUsersInChannel = autocompleteUsersInChannel;
@@ -96,8 +93,7 @@ export default class AtMentionProvider extends Provider {
         this.addLastViewAtToProfiles = makeAddLastViewAtToProfiles();
     }
 
-    setProps({currentUserId, channelId, autocompleteUsersInChannel, useChannelMentions, autocompleteGroups, searchAssociatedGroupsForReference, priorityProfiles, textboxId}: Props) {
-        this.textboxId = textboxId;
+    setProps({currentUserId, channelId, autocompleteUsersInChannel, useChannelMentions, autocompleteGroups, searchAssociatedGroupsForReference, priorityProfiles}: Props) {
         this.currentUserId = currentUserId;
         this.channelId = channelId;
         this.autocompleteUsersInChannel = autocompleteUsersInChannel;
@@ -366,24 +362,19 @@ export default class AtMentionProvider extends Provider {
         } else if (this.lastPrefixWithNoResults === this.latestPrefix) {
             this.lastPrefixWithNoResults = '';
         }
-        const mentions: string[] = [];
-
-        // Add the textboxId for each suggestions
-        const modifiedItems = items.map((item) => {
+        const mentions = items.map((item) => {
             if (item.username) {
-                mentions.push('@' + item.username);
+                return '@' + item.username;
             } else if (item.name) {
-                mentions.push('@' + item.name);
-            } else {
-                mentions.push('');
+                return '@' + item.name;
             }
-            return {...item, textboxId: this.textboxId};
+            return '';
         });
 
         resultCallback({
             matchedPretext: `@${this.latestPrefix}`,
             terms: mentions,
-            items: modifiedItems,
+            items,
             component: AtMentionSuggestion,
         });
     }

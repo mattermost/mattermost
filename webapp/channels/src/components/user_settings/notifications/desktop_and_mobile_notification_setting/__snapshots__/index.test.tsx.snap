@@ -211,6 +211,7 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
         id="desktopAndMobileEdit"
       >
         <i
+          aria-hidden="true"
           class="icon-pencil-outline"
           title="Edit Icon"
         />

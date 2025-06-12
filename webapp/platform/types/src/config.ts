@@ -112,6 +112,7 @@ export type ClientConfig = {
     EnableUserDeactivation: string;
     EnableUserTypingMessages: string;
     EnforceMultifactorAuthentication: string;
+    ExperimentalChannelCategorySorting: string;
     ExperimentalClientSideCertCheck: string;
     ExperimentalClientSideCertEnable: string;
     ExperimentalEnableAuthenticationTransfer: string;
@@ -221,6 +222,7 @@ export type ClientConfig = {
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: string;
     YoutubeReferrerPolicy: 'true' | 'false';
     ScheduledPosts: string;
+    DeleteAccountLink: string;
 };
 
 export type License = {
@@ -409,6 +411,7 @@ export type ServiceSettings = {
     ScheduledPosts: boolean;
     EnableWebHubChannelIteration: boolean;
     FrameAncestors: string;
+    DeleteAccountLink: string;
 };
 
 export type TeamSettings = {
@@ -822,6 +825,7 @@ export type ExperimentalSettings = {
     DisableWakeUpReconnectHandler: boolean;
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: number;
     YoutubeReferrerPolicy: boolean;
+    ExperimentalChannelCategorySorting: boolean;
 };
 
 export type AnalyticsSettings = {
