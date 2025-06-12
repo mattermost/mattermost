@@ -7,7 +7,6 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import store from 'stores/redux_store';
 
-import Constants from 'utils/constants';
 import type EmojiMap from 'utils/emoji_map';
 import RemoveMarkdown from 'utils/markdown/remove_markdown';
 import {convertEntityToCharacter} from 'utils/text_formatting';
@@ -33,41 +32,6 @@ export function formatWithRenderer(text: string, renderer: marked.Renderer) {
     };
 
     return marked(text, markdownOptions).trim();
-}
-
-export function formatWithRendererForMentions(text: string, renderer: marked.Renderer) {
-    const config = getConfig(store.getState());
-
-    // Protect remote mentions (containing colons) from being split by marked
-    const remoteMentions: Map<string, string> = new Map();
-    let counter = 0;
-
-    const protectedText = text.replace(Constants.MENTIONS_REGEX, (match) => {
-        if (match.includes(':')) {
-            const placeholder = `REMOTE_MENTION_${counter++}_END`;
-            remoteMentions.set(placeholder, match);
-            return placeholder;
-        }
-        return match;
-    });
-
-    const markdownOptions = {
-        renderer,
-        sanitize: true,
-        gfm: true,
-        tables: true,
-        mangle: false,
-        inlinelatex: config.EnableLatex === 'true' && config.EnableInlineLatex === 'true',
-    };
-
-    let result = marked(protectedText, markdownOptions).trim();
-
-    // Restore protected mentions
-    remoteMentions.forEach((mention, placeholder) => {
-        result = result.replace(new RegExp(placeholder, 'g'), mention);
-    });
-
-    return result;
 }
 
 export function stripMarkdown(text: string) {
