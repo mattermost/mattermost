@@ -70,8 +70,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/awsmeter"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
-	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine/indexer"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
@@ -1498,12 +1496,6 @@ func (s *Server) initJobs() {
 		builder := jobsLdapSyncInterface(New(ServerConnector(s.Channels())))
 		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
 	}
-
-	s.Jobs.RegisterJobType(
-		model.JobTypeBlevePostIndexing,
-		indexer.MakeWorker(s.Jobs, s.platform.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
-		nil,
-	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeMigrations,

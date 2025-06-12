@@ -17,6 +17,8 @@ concurrency:
 # always kept getting canceled.
 
 jobs:
-  pr-ci:
+  pr-ci-fips:
     uses: ./.github/workflows/server-ci-template.yml
     secrets: inherit
+    with:
+      fips-enabled: true
