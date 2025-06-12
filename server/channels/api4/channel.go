@@ -1398,7 +1398,12 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		if *c.App.Config().ServiceSettings.EnableAPIChannelDeletion {
 			err = c.App.PermanentDeleteChannel(c.AppContext, channel)
 		} else {
-			err = model.NewAppError("deleteChannel", "api.user.delete_channel.not_enabled.app_error", nil, "channelId="+c.Params.ChannelId, http.StatusUnauthorized)
+			key := "api.user.delete_channel.not_enabled.app_error"
+			user, usrErr := c.App.GetUser(c.AppContext.Session().UserId)
+			if usrErr == nil && user != nil && model.IsInRole(user.Roles, model.SystemAdminRoleId) {
+				key = "api.user.delete_channel.not_enabled.for_admin.app_error"
+			}
+			err = model.NewAppError("deleteChannel", key, nil, "channelId="+c.Params.ChannelId, http.StatusUnauthorized)
 		}
 	} else {
 		err = c.App.DeleteChannel(c.AppContext, channel, c.AppContext.Session().UserId)
