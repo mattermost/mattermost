@@ -1162,7 +1162,7 @@ func TestCreatePost(t *testing.T) {
 		user1 := th.CreateUser()
 		user2 := th.CreateUser()
 		user3 := th.CreateUser()
-		gm, appErr := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id})
+		gm, appErr := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, gm)
 
@@ -2423,7 +2423,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user2 := th.BasicUser2
 		user3 := th.SystemAdminUser
 
-		channel, err := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id})
+		channel, err := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 		require.Nil(t, err)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
