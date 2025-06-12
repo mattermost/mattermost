@@ -1,10 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import React, {type ChangeEvent, useCallback, useMemo} from 'react';
+import {FormattedMessage} from 'react-intl';
+import type {OnChangeValue} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
+import type {ContentFlaggingAdditionalSettings} from '@mattermost/types/config';
+
+import {Label} from 'components/admin_console/boolean_setting';
+
+import {ReasonOption} from './reason_option';
+
+import {CreatableReactSelectInput} from '../../../user_settings/notifications/user_settings_notifications';
+import type {SystemConsoleCustomSettingsComponentProps} from '../../schema_admin_settings';
 import {
     AdminSection,
     SectionContent,
@@ -14,48 +23,51 @@ import {
 import '../content_flagging_section_base.scss';
 import './additional_settings.scss';
 
-import {ReasonOption} from './reason_option';
+export default function ContentFlaggingAdditionalSettingsSection({id, onChange, value}: SystemConsoleCustomSettingsComponentProps) {
+    const [additionalSettings, setAdditionalSettings] = React.useState<ContentFlaggingAdditionalSettings>(value as ContentFlaggingAdditionalSettings);
 
-import {CreatableReactSelectInput} from '../../../user_settings/notifications/user_settings_notifications';
-import { Label } from "components/admin_console/boolean_setting";
+    const handleReasonsChange = useCallback((newValues: OnChangeValue<{ value: string }, true>) => {
+        const updatedSettings: ContentFlaggingAdditionalSettings = {
+            ...additionalSettings,
+            Reasons: newValues.map((v) => v.value),
+        };
+        setAdditionalSettings(updatedSettings);
+        onChange(id, updatedSettings);
+    }, [ additionalSettings, id, onChange]);
 
-export default function ContentFlaggingAdditionalSettingsSection() {
-    const {formatMessage} = useIntl();
+    const handleRequireReporterCommentChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        const updatedSettings: ContentFlaggingAdditionalSettings = {
+            ...additionalSettings,
+            ReporterCommentRequired: e.target.value === 'true',
+        };
+        setAdditionalSettings(updatedSettings);
+        onChange(id, updatedSettings);
+    }, [additionalSettings, id, onChange]);
 
-    const [requireReporterComment, setRequireReporterComment] = React.useState(true);
-    const [requireReviewerComment, setRequireReviewerComment] = React.useState(true);
-    const [hideFlaggedPosts, setHideFlaggedPosts] = React.useState(true);
+    const handleRequireReviewerCommentChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        const updatedSettings: ContentFlaggingAdditionalSettings = {
+            ...additionalSettings,
+            ReviewerCommentRequired: e.target.value === 'true',
+        };
+        setAdditionalSettings(updatedSettings);
+        onChange(id, updatedSettings);
+    }, [additionalSettings, id, onChange]);
 
-    const defaultFlaggingReasons = useMemo(() => {
-        return [
-            {
-                value: 'spam',
-                label: formatMessage({id: 'admin.contentFlagging.additionalSettings.reasonInappropriateContent', defaultMessage: 'Inappropriate Content'}),
-            },
-            {
-                value: 'abuse',
-                label: formatMessage({id: 'admin.contentFlagging.additionalSettings.reasonSensitiveData', defaultMessage: 'Sensitive data'}),
-            },
-            {
-                value: 'inappropriate',
-                label: formatMessage({id: 'admin.contentFlagging.additionalSettings.reasonSecurityConcern', defaultMessage: 'Security concern'}),
-            },
-            {
-                value: 'inappropriate',
-                label: formatMessage({id: 'admin.contentFlagging.additionalSettings.reasonHarassment', defaultMessage: 'Harassment or abuse'}),
-            },
-            {
-                value: 'inappropriate',
-                label: formatMessage({id: 'admin.contentFlagging.additionalSettings.reasonSpamPhishing', defaultMessage: 'Spam or phishing'}),
-            },
-        ];
-    }, [formatMessage]);
+    const handleHideFlaggedPosts = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        const updatedSettings: ContentFlaggingAdditionalSettings = {
+            ...additionalSettings,
+            HideFlaggedContent: e.target.value === 'true',
+        };
+        setAdditionalSettings(updatedSettings);
+        onChange(id, updatedSettings);
+    }, [additionalSettings, id, onChange]);
 
-    const [reasons, setReasons] = React.useState(defaultFlaggingReasons);
-
-    const handleReasonsChange = useCallback((newValues) => {
-        setReasons(newValues);
-    }, []);
+    const reasonOptions = useMemo(() => {
+        return additionalSettings.Reasons.map((reason) => ({
+            label: reason,
+            value: reason,
+        }));
+    }, [additionalSettings.Reasons]);
 
     return (
         <AdminSection>
@@ -94,7 +106,7 @@ export default function ContentFlaggingAdditionalSettingsSection() {
                                 inputId='contentFlaggingReasons'
                                 isClearable={false}
                                 isMulti={true}
-                                value={reasons}
+                                value={reasonOptions}
                                 placeholder={'TODO placeholder'}
                                 onChange={handleReasonsChange}
                                 components={{
@@ -124,8 +136,8 @@ export default function ContentFlaggingAdditionalSettingsSection() {
                                     id='requireReporterComment_true'
                                     type='radio'
                                     value='true'
-                                    checked={requireReporterComment}
-                                    onChange={() => setRequireReporterComment(true)}
+                                    checked={additionalSettings.ReporterCommentRequired}
+                                    onChange={handleRequireReporterCommentChange}
                                 />
                                 <FormattedMessage
                                     id='admin.true'
@@ -139,8 +151,8 @@ export default function ContentFlaggingAdditionalSettingsSection() {
                                     id='requireReporterComment_false'
                                     type='radio'
                                     value='false'
-                                    checked={!requireReporterComment}
-                                    onChange={() => setRequireReporterComment(false)}
+                                    checked={!additionalSettings.ReporterCommentRequired}
+                                    onChange={handleRequireReporterCommentChange}
                                 />
                                 <FormattedMessage
                                     id='admin.false'
@@ -165,8 +177,8 @@ export default function ContentFlaggingAdditionalSettingsSection() {
                                     id='requireReviewerComment_true'
                                     type='radio'
                                     value='true'
-                                    checked={requireReviewerComment}
-                                    onChange={() => setRequireReviewerComment(true)}
+                                    checked={additionalSettings.ReviewerCommentRequired}
+                                    onChange={handleRequireReviewerCommentChange}
                                 />
                                 <FormattedMessage
                                     id='admin.true'
@@ -180,8 +192,8 @@ export default function ContentFlaggingAdditionalSettingsSection() {
                                     id='requireReviewerComment_false'
                                     type='radio'
                                     value='false'
-                                    checked={!requireReviewerComment}
-                                    onChange={() => setRequireReviewerComment(false)}
+                                    checked={!additionalSettings.ReviewerCommentRequired}
+                                    onChange={handleRequireReviewerCommentChange}
                                 />
                                 <FormattedMessage
                                     id='admin.false'
@@ -206,8 +218,8 @@ export default function ContentFlaggingAdditionalSettingsSection() {
                                     id='hideFlaggedPosts_true'
                                     type='radio'
                                     value='true'
-                                    checked={hideFlaggedPosts}
-                                    onChange={() => setHideFlaggedPosts(true)}
+                                    checked={additionalSettings.HideFlaggedContent}
+                                    onChange={handleHideFlaggedPosts}
                                 />
                                 <FormattedMessage
                                     id='admin.true'
@@ -221,8 +233,8 @@ export default function ContentFlaggingAdditionalSettingsSection() {
                                     id='setHideFlaggedPosts_false'
                                     type='radio'
                                     value='false'
-                                    checked={!hideFlaggedPosts}
-                                    onChange={() => setHideFlaggedPosts(false)}
+                                    checked={!additionalSettings.HideFlaggedContent}
+                                    onChange={handleHideFlaggedPosts}
                                 />
                                 <FormattedMessage
                                     id='admin.false'

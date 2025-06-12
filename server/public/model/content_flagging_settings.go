@@ -81,10 +81,42 @@ func (rs *ReviewerSettings) SetDefault() {
 	}
 }
 
+type AdditionalContentFlaggingSettings struct {
+	Reasons                 *[]string
+	ReporterCommentRequired *bool
+	ReviewerCommentRequired *bool
+	HideFlaggedContent      *bool
+}
+
+func (acfs *AdditionalContentFlaggingSettings) SetDefault() {
+	if acfs.Reasons == nil {
+		acfs.Reasons = &[]string{
+			"Inappropriate content",
+			"Sensitive data",
+			"Security concern",
+			"Harassment or abuse",
+			"Spam or phishing",
+		}
+	}
+
+	if acfs.ReporterCommentRequired == nil {
+		acfs.ReporterCommentRequired = NewPointer(true)
+	}
+
+	if acfs.ReviewerCommentRequired == nil {
+		acfs.ReviewerCommentRequired = NewPointer(true)
+	}
+
+	if acfs.HideFlaggedContent == nil {
+		acfs.HideFlaggedContent = NewPointer(true)
+	}
+}
+
 type ContentFlaggingSettings struct {
 	EnableContentFlagging *bool
 	NotificationSettings  *ContentFlaggingNotificationSettings
 	ReviewerSettings      *ReviewerSettings
+	AdditionalSettings    *AdditionalContentFlaggingSettings
 }
 
 func (cfs *ContentFlaggingSettings) SetDefault() {
@@ -102,6 +134,11 @@ func (cfs *ContentFlaggingSettings) SetDefault() {
 		cfs.ReviewerSettings = &ReviewerSettings{}
 	}
 
+	if cfs.AdditionalSettings == nil {
+		cfs.AdditionalSettings = &AdditionalContentFlaggingSettings{}
+	}
+
 	cfs.NotificationSettings.SetDefault()
 	cfs.ReviewerSettings.SetDefault()
+	cfs.AdditionalSettings.SetDefault()
 }

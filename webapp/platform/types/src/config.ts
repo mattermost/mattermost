@@ -999,6 +999,13 @@ export type ContentFlaggingReviewerSetting = {
     TeamAdminsAsReviewers: boolean;
 }
 
+export type ContentFlaggingAdditionalSettings = {
+    Reasons: string[];
+    ReporterCommentRequired: boolean;
+    ReviewerCommentRequired: boolean;
+    HideFlaggedContent: boolean;
+}
+
 export type ContentFlaggingSettings = {
     NotificationSettings: ContentFlaggingNotificationSettings;
 }

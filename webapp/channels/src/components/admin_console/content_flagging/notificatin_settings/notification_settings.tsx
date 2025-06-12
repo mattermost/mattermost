@@ -43,11 +43,19 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
         if (value) {
             // Add target to the action's list if not already present
             if (!updatedSettings.EventTargetMapping[action].includes(target)) {
-                updatedSettings.EventTargetMapping[action].push(target);
+                // updatedSettings.EventTargetMapping[action] = [...updatedSettings.EventTargetMapping[action], target];
+                updatedSettings.EventTargetMapping = {
+                    ...updatedSettings.EventTargetMapping,
+                    [action]: [...updatedSettings.EventTargetMapping[action], target],
+                };
             }
         } else {
             // Remove target from the action's list if present
-            updatedSettings.EventTargetMapping[action] = updatedSettings.EventTargetMapping[action].filter((t: NotificationTarget) => t !== target);
+            // updatedSettings.EventTargetMapping[action] = updatedSettings.EventTargetMapping[action].filter((t: NotificationTarget) => t !== target);
+            updatedSettings.EventTargetMapping = {
+                ...updatedSettings.EventTargetMapping,
+                [action]: updatedSettings.EventTargetMapping[action].filter((t: NotificationTarget) => t !== target),
+            };
         }
 
         setNotificationSettings(updatedSettings);
