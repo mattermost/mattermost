@@ -87,6 +87,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	// Empty channelID indicates a global user sync task
 	// Normal syncTasks always include a valid channelID
 	if task.channelID == "" {
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] Processing GLOBAL USER SYNC TASK for remote %s", rc.DisplayName))
 		return scs.syncAllUsers(rc)
 	}
 
@@ -730,12 +731,17 @@ func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteClust
 // This is called when a connection with a remote cluster is established or when handling a global user sync task.
 // Uses cursor-based approach with LastGlobalUserSyncAt to resume after interruptions.
 func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
+	// DEBUG: Post instrumentation message about starting sync
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] syncAllUsers STARTED for remote %s", rc.DisplayName))
+
 	// Check if feature is enabled
-	if !scs.isGlobalUserSyncEnabled() {
+	if !scs.server.Config().FeatureFlags.EnableSyncAllUsersForRemoteCluster {
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] syncAllUsers SKIPPED for remote %s - feature flag disabled", rc.DisplayName))
 		return nil
 	}
 
 	if !rc.IsOnline() {
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] syncAllUsers FAILED for remote %s - remote not online", rc.DisplayName))
 		return fmt.Errorf("remote cluster %s is not online", rc.RemoteId)
 	}
 
@@ -760,15 +766,21 @@ func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
 	}
 
 	// Collect users to sync
-	users, latestTimestamp, _, hasMore, err := scs.collectUsersForGlobalSync(rc, batchSize)
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync STARTING for remote %s with batch size %d", rc.DisplayName, batchSize))
+	users, latestTimestamp, totalCount, hasMore, err := scs.collectUsersForGlobalSync(rc, batchSize)
 	if err != nil {
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync FAILED for remote %s: %s", rc.DisplayName, err.Error()))
 		return err
 	}
+
+	userNames := scs.extractUserNames(users)
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync COMPLETED for remote %s - found %d users to sync out of %d total. Users: [%s]", rc.DisplayName, len(users), totalCount, userNames))
 
 	// Exit early if no users to sync
 	if len(users) == 0 {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "No users to sync for remote cluster",
 			mlog.String("remote_id", rc.RemoteId))
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] syncAllUsers COMPLETED for remote %s - no users to sync", rc.DisplayName))
 		return nil
 	}
 
@@ -777,17 +789,24 @@ func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
 	sd.GlobalUserSyncLastTimestamp = latestTimestamp
 
 	// Send the collected users to remote
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] sendUserSyncData STARTING for remote %s with %d users: [%s]", rc.DisplayName, len(users), userNames))
 	if err := scs.sendUserSyncData(sd); err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error sending user batch during sync",
 			mlog.String("remote_id", rc.RemoteId),
 			mlog.Err(err),
 		)
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] sendUserSyncData FAILED for remote %s: %s", rc.DisplayName, err.Error()))
 		return fmt.Errorf("error sending user batch during sync: %w", err)
 	}
 
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] sendUserSyncData COMPLETED for remote %s - successfully sent users: [%s]", rc.DisplayName, userNames))
+
 	// Schedule next batch if needed
 	if hasMore {
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] Scheduling NEXT BATCH for remote %s", rc.DisplayName))
 		scs.scheduleNextUserSyncBatch(rc, latestTimestamp, batchSize, len(users))
+	} else {
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] syncAllUsers FULLY COMPLETED for remote %s - no more batches needed", rc.DisplayName))
 	}
 
 	return nil
@@ -964,6 +983,25 @@ func (scs *Service) sendSyncMsgToPlugin(msg *model.SyncMsg, rc *model.RemoteClus
 	}
 
 	return errResp
+}
+
+// extractUserNames creates a comma-separated list of usernames from a map of users
+func (scs *Service) extractUserNames(users map[string]*model.User) string {
+	if len(users) == 0 {
+		return "none"
+	}
+
+	userNames := make([]string, 0, len(users))
+	for _, user := range users {
+		userNames = append(userNames, user.Username)
+	}
+
+	// Limit to first 10 usernames to avoid overly long debug messages
+	if len(userNames) > 10 {
+		return fmt.Sprintf("%s and %d more", strings.Join(userNames[:10], ", "), len(userNames)-10)
+	}
+
+	return strings.Join(userNames, ", ")
 }
 
 func sanitizeSyncData(sd *syncData) {

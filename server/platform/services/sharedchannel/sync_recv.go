@@ -53,10 +53,17 @@ func (scs *Service) processGlobalUserSync(c request.CTX, syncMsg *model.SyncMsg,
 		UsersSyncd: make([]string, 0),
 	}
 
+	// Convert map to slice for extractUserNamesFromSlice
+	users := make([]*model.User, 0, len(syncMsg.Users))
+	for _, user := range syncMsg.Users {
+		users = append(users, user)
+	}
+	userNames := scs.extractUserNamesFromSlice(users)
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing global user sync",
 		mlog.String("remote", rc.Name),
 		mlog.Int("user_count", len(syncMsg.Users)),
 	)
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Processing global user sync from remote %s - received %d users: [%s]", rc.DisplayName, len(syncMsg.Users), userNames))
 
 	// Process all users in the sync message
 	for _, user := range syncMsg.Users {
@@ -84,6 +91,11 @@ func (scs *Service) processGlobalUserSync(c request.CTX, syncMsg *model.SyncMsg,
 			)
 		}
 	}
+
+	// Final debug message
+	successfulUserNames := scs.extractUserNamesFromIds(syncResp.UsersSyncd, users)
+	errorUserNames := scs.extractUserNamesFromIds(syncResp.UserErrors, users)
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Global user sync completed from remote %s - successfully processed: [%s], errors: [%s]", rc.DisplayName, successfulUserNames, errorUserNames))
 
 	return response.SetPayload(syncResp)
 }
@@ -530,4 +542,52 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 		retErr = errors.New(appErr.Error())
 	}
 	return savedReaction, retErr
+}
+
+// extractUserNamesFromSlice creates a comma-separated list of usernames from a slice of users
+func (scs *Service) extractUserNamesFromSlice(users []*model.User) string {
+	if len(users) == 0 {
+		return "none"
+	}
+
+	userNames := make([]string, 0, len(users))
+	for _, user := range users {
+		userNames = append(userNames, user.Username)
+	}
+
+	// Limit to first 10 usernames to avoid overly long debug messages
+	if len(userNames) > 10 {
+		return fmt.Sprintf("%s and %d more", strings.Join(userNames[:10], ", "), len(userNames)-10)
+	}
+
+	return strings.Join(userNames, ", ")
+}
+
+// extractUserNamesFromIds creates a comma-separated list of usernames from user IDs by looking them up in the provided users slice
+func (scs *Service) extractUserNamesFromIds(userIds []string, users []*model.User) string {
+	if len(userIds) == 0 {
+		return "none"
+	}
+
+	// Create a map for quick lookup
+	userMap := make(map[string]*model.User)
+	for _, user := range users {
+		userMap[user.Id] = user
+	}
+
+	userNames := make([]string, 0, len(userIds))
+	for _, id := range userIds {
+		if user, found := userMap[id]; found {
+			userNames = append(userNames, user.Username)
+		} else {
+			userNames = append(userNames, fmt.Sprintf("unknown(%s)", id))
+		}
+	}
+
+	// Limit to first 10 usernames to avoid overly long debug messages
+	if len(userNames) > 10 {
+		return fmt.Sprintf("%s and %d more", strings.Join(userNames[:10], ", "), len(userNames)-10)
+	}
+
+	return strings.Join(userNames, ", ")
 }
