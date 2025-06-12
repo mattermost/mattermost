@@ -1,6 +1,7 @@
 dn: ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: organizationalunit
+ou: testusers
 
 # generic test users
 dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com
@@ -8,6 +9,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: test.one
 sn: User
 cn: Test1
 title: Test1 Title
@@ -27,6 +29,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: test.two
 sn: User
 cn: Test2
 title: Test2 Title
@@ -46,6 +49,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: test.three
 sn: User
 cn: Test3
 title: Test3 Title
@@ -65,6 +69,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: test.four
 sn: User
 cn: Test4
 title: Test4 Title
@@ -84,6 +89,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: test.five
 sn: User
 cn: Test5
 # No title to allow testing that path
@@ -104,6 +110,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: dev-ops.one
 sn: User
 cn: Dev3
 title: DevOps Engineer
@@ -123,6 +130,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: dev.one
 sn: User
 cn: Dev1
 title: Senior Software Design Engineer
@@ -142,6 +150,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: dev.two
 sn: User
 cn: Dev2
 title: Software Design Engineer ||
@@ -161,6 +170,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: dev.three
 sn: User
 cn: Dev3
 title: Software Design Engineer
@@ -180,6 +190,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: dev.four
 sn: User
 cn: Dev4
 title: Staff Software Design Engineer
@@ -200,6 +211,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: exec.one
 sn: User
 cn: Exec1
 title: CEO
@@ -219,6 +231,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: exec.two
 sn: User
 cn: Exec2
 title: CTO
@@ -239,6 +252,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: board.one
 sn: User
 cn: Board1
 title: Director
@@ -258,6 +272,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: board.two
 sn: User
 cn: Board2
 title: Inside Director
@@ -277,6 +292,7 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+uid: board.three
 sn: User
 cn: Board3
 title: Outside Director
