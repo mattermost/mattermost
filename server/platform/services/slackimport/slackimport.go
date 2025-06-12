@@ -764,7 +764,7 @@ func (si *SlackImporter) oldImportChannel(rctx request.CTX, channel *model.Chann
 		if creator == nil {
 			return nil
 		}
-		sc, err := si.actions.CreateGroupChannel(rctx, members, creator.Id)
+		sc, err := si.actions.CreateGroupChannel(rctx, members, "")
 		if err != nil {
 			return nil
 		}
