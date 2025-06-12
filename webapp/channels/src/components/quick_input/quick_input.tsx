@@ -182,6 +182,8 @@ export const QuickInput = React.memo(({
         );
     }
 
+    const showClearButton = props.onClear && (clearableWithoutValue || (clearable && value));
+
     Reflect.deleteProperty(props, 'delayInputUpdate');
     Reflect.deleteProperty(props, 'onClear');
     Reflect.deleteProperty(props, 'clearableTooltipText');
@@ -200,11 +202,9 @@ export const QuickInput = React.memo(({
         {
             ...props,
             ref: setInputRef,
-            defaultValue: value, // Only set the defaultValue since the real one will be updated using componentDidUpdate
+            defaultValue: value, // Only set the defaultValue since the real one will be updated using the 'useEffect' above
         },
     );
-
-    const showClearButton = props.onClear && (clearableWithoutValue || (clearable && value));
 
     return (
         <div className='input-wrapper'>
