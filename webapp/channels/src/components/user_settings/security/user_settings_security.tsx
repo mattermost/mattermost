@@ -70,6 +70,7 @@ type Props = {
     militaryTime: boolean;
     actions: Actions;
     intl: IntlShape;
+    deleteAccountLink?: string;
 };
 
 type State = {
@@ -1077,7 +1078,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         id='viewAccessHistory'
                     >
                         <i
-                            className='fa fa-clock-o'
+                            className='icon icon-clock-outline'
                             title={this.props.intl.formatMessage({
                                 id: 'user.settings.security.viewHistory.icon',
                                 defaultMessage: 'Access History Icon',
@@ -1096,7 +1097,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         id='viewAndLogOutOfActiveSessions'
                     >
                         <i
-                            className='fa fa-clock-o'
+                            className='icon icon-clock-outline'
                             title={this.props.intl.formatMessage({
                                 id: 'user.settings.security.logoutActiveSessions.icon',
                                 defaultMessage: 'Active Sessions Icon',
@@ -1108,6 +1109,30 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                             defaultMessage='View and Log Out of Active Sessions'
                         />
                     </ToggleModalButton>
+                    {this.props.deleteAccountLink && (
+                        <>
+                            <p/>
+                            <ExternalLink
+                                className='security-links color--link mt-2 danger'
+                                href={this.props.deleteAccountLink}
+                                id='deleteAccountLink'
+                                location={window.location.href}
+                            >
+                                <i
+                                    className='icon icon-trash-can-outline'
+                                    title={this.props.intl.formatMessage({
+                                        id: 'user.settings.security.deleteAccountLink.icon',
+                                        defaultMessage: 'Delete Account Icon',
+                                    })}
+                                    aria-hidden='true'
+                                />
+                                <FormattedMessage
+                                    id='user.settings.security.deleteAccountLink'
+                                    defaultMessage='Delete Your Account'
+                                />
+                            </ExternalLink>
+                        </>
+                    )}
                 </div>
             </div>
         );
