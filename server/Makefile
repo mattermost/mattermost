@@ -300,11 +300,10 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GOBIN)/golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
+	go tool golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
 else
-	$(GOBIN)/golangci-lint run ./... ./public/...
+	go tool golangci-lint run ./... ./public/...
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
@@ -317,16 +316,13 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
 store-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config channels/store/.mockery.yaml
+	go tool mockery --config channels/store/.mockery.yaml
 
 cache-mocks:
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config platform/services/cache/.mockery.yaml
+	go tool mockery --config platform/services/cache/.mockery.yaml
 
 telemetry-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config platform/services/telemetry/.mockery.yaml
+	go tool mockery --config platform/services/telemetry/.mockery.yaml
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./channels/store
@@ -340,44 +336,34 @@ new-migration: ## Creates a new migration. Run with make new-migration name=<>
 	$(GOBIN)/morph new script $(name) --driver postgres --dir channels/db/migrations --sequence
 
 filestore-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config platform/shared/filestore/.mockery.yaml
+	go tool mockery --config platform/shared/filestore/.mockery.yaml
 
 ldap-mocks: ## Creates mock files for ldap.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --dir $(BUILD_ENTERPRISE_DIR)/ldap --all --inpackage --note 'Regenerate this file using `make ldap-mocks`.'
+	go tool mockery --dir $(BUILD_ENTERPRISE_DIR)/ldap --all --inpackage --note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config public/plugin/.mockery.yaml
+	go tool mockery --config public/plugin/.mockery.yaml
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config einterfaces/.mockery.yaml
+	go tool mockery --config einterfaces/.mockery.yaml
 
 searchengine-mocks: ## Creates mock files for searchengines.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config platform/services/searchengine/.mockery.yaml
+	go tool mockery --config platform/services/searchengine/.mockery.yaml
 
 sharedchannel-mocks: ## Creates mock files for shared channels.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config platform/services/sharedchannel/.mockery.yaml
+	go tool mockery --config platform/services/sharedchannel/.mockery.yaml
 
 misc-mocks: ## Creates mocks for misc interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config channels/utils/.mockery.yaml
+	go tool mockery --config channels/utils/.mockery.yaml
 
 email-mocks: ## Creates mocks for misc interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config channels/app/email/.mockery.yaml
+	go tool mockery --config channels/app/email/.mockery.yaml
 
 platform-mocks: ## Creates mocks for platform interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config channels/app/platform/.mockery.yaml
+	go tool mockery --config channels/app/platform/.mockery.yaml
 
 mmctl-mocks: ## Creates mocks for mmctl
-	$(GO) install github.com/golang/mock/mockgen@v1.6.0
-	$(GOBIN)/mockgen -destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost/server/v8/cmd/mmctl/client Client
+	go tool mockgen -destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost/server/v8/cmd/mmctl/client Client
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
@@ -408,10 +394,7 @@ endif
 
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
-gotestsum:
-	$(GO) install gotest.tools/gotestsum@v1.11.0
-
-test-compile: gotestsum ## Compile tests.
+test-compile: ## Compile tests.
 	@echo COMPILE TESTS
 
 	for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
@@ -424,7 +407,7 @@ modules-tidy: ## Tidy Go modules
 	-cd public && $(GO) mod tidy
 	mv enterprise/external_imports.go.orig enterprise/external_imports.go
 
-test-server-pre: check-prereqs-enterprise start-docker gotestsum golang-versions ## Runs tests.
+test-server-pre: check-prereqs-enterprise start-docker golang-versions ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
@@ -436,9 +419,9 @@ test-server-race: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server-race: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-race: test-server-pre
 ifeq ($(IS_CI),true)
-	GOMAXPROCS=4 $(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+	GOMAXPROCS=4 go tool gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
 else
-	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+	go tool gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
 endif
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
@@ -453,7 +436,7 @@ test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
-	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m $(COVERAGE_FLAG)
+	go tool gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m $(COVERAGE_FLAG)
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -466,9 +449,9 @@ endif
 test-server-ee: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server-ee: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server-ee: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
-test-server-ee: check-prereqs-enterprise start-docker gotestsum ## Runs EE tests.
+test-server-ee: check-prereqs-enterprise start-docker ## Runs EE tests.
 	@echo Running only EE tests
-	$(GOBIN)/gotestsum --packages="$(EE_PACKAGES)" -- $(GOFLAGS) -timeout=20m
+	go tool gotestsum --packages="$(EE_PACKAGES)" -- $(GOFLAGS) -timeout=20m
 
 test-server-quick: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server-quick: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
@@ -476,10 +459,10 @@ test-server-quick: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
-	$(GOBIN)/gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -short
+	go tool gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -short
 else
 	@echo Running only TE tests
-	$(GOBIN)/gotestsum --packages="$(TE_PACKAGES)" -- $(GOFLAGS) -short
+	go tool gotestsum --packages="$(TE_PACKAGES)" -- $(GOFLAGS) -short
 endif
 
 internal-test-web-client: ## Runs web client tests.
@@ -521,30 +504,30 @@ inject-test-data: # add test data to the local instance.
 test-mmctl-unit: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-unit: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-unit: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
-test-mmctl-unit: gotestsum
+test-mmctl-unit:
 	@echo Running mmctl unit tests
-	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
+	go tool gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl-e2e: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-e2e: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-e2e: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
-test-mmctl-e2e: gotestsum start-docker
+test-mmctl-e2e: start-docker
 	@echo Running mmctl e2e tests
-	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
+	go tool gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
-test-mmctl: gotestsum start-docker
+test-mmctl: start-docker
 	@echo Running all mmctl tests
-	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
+	go tool gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl-coverage: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-coverage: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-coverage: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
-test-mmctl-coverage: gotestsum start-docker
+test-mmctl-coverage: start-docker
 	@echo Running all mmctl tests with coverage
-	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_TESTFLAGS)
+	go tool gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_TESTFLAGS)
 	$(GO) tool cover -html=mmctlcover.out
 
 validate-go-version: ## Validates the installed version of go against Mattermost's minimum requirement.
@@ -762,11 +745,10 @@ endif
 vet: ## Run mattermost go vet specific checks
 	## Note that it is pinned to a specific commit, rather than a branch. This is to prevent
 	## having to backport the fix to multiple release branches for any new change.
-	$(GO) install github.com/mattermost/mattermost-govet/v2@8e4d46e3fad88497dbfe073788a87e75bbae717c
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
+	$(GO) vet -vettool=$$(go tool -n mattermost-govet) -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
  ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
+	$(GO) vet -vettool=$$(go tool -n mattermost-govet) -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
 
@@ -774,7 +756,6 @@ vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
-	$(GO) install github.com/mattermost/mattermost-govet/v2@8e4d46e3fad88497dbfe073788a87e75bbae717c
 	make -C ../api build
 	./scripts/vet-api-check.sh
 
@@ -787,20 +768,19 @@ gen-serialized: ## Generates serialization methods for hot structs
 	# identifiers will be resolved. An alternative to remove the warnings
 	# would be to temporarily move all the structs to the same file,
 	# but that involves a lot of manual work.
-	$(GO) install github.com/tinylib/msgp@v1.1.6
-	$(GOBIN)/msgp -file=./public/model/utils.go -tests=false -o=./public/model/utils_serial_gen.go
+	go tool msgp -file=./public/model/utils.go -tests=false -o=./public/model/utils_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
 	@cat ./public/model/utils_serial_gen.go >> tmp.go
 	@mv tmp.go ./public/model/utils_serial_gen.go
-	$(GOBIN)/msgp -file=./public/model/session.go -tests=false -o=./public/model/session_serial_gen.go
+	go tool msgp -file=./public/model/session.go -tests=false -o=./public/model/session_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
 	@cat ./public/model/session_serial_gen.go >> tmp.go
 	@mv tmp.go ./public/model/session_serial_gen.go
-	$(GOBIN)/msgp -file=./public/model/user.go -tests=false -o=./public/model/user_serial_gen.go
+	go tool msgp -file=./public/model/user.go -tests=false -o=./public/model/user_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
 	@cat ./public/model/user_serial_gen.go >> tmp.go
 	@mv tmp.go ./public/model/user_serial_gen.go
-	$(GOBIN)/msgp -file=./public/model/team_member.go -tests=false -o=./public/model/team_member_serial_gen.go
+	go tool msgp -file=./public/model/team_member.go -tests=false -o=./public/model/team_member_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
 	@cat ./public/model/team_member_serial_gen.go >> tmp.go
 	@mv tmp.go ./public/model/team_member_serial_gen.go
