@@ -19,13 +19,14 @@ import type {AutocompleteOptionType} from './user_multiselector';
 
 import './user_profile_pill.scss';
 
-function Remove(props: MultiValueRemoveProps<AutocompleteOptionType<UserProfile>, true>) {
+function Remove(props: any) {
     const {innerProps, children} = props;
 
     return (
         <div
             className='Remove'
             {...innerProps}
+            onClick={props.onClick}
         >
             {children || <CloseCircleSolidIcon/>}
         </div>
@@ -33,7 +34,7 @@ function Remove(props: MultiValueRemoveProps<AutocompleteOptionType<UserProfile>
 }
 
 export function UserProfilePill(props: MultiValueProps<AutocompleteOptionType<UserProfile>, true>) {
-    const {data, innerProps, selectProps} = props;
+    const {data, innerProps, selectProps, removeProps} = props;
 
     const userProfile = data.raw;
     const userDisplayName = useSelector((state: GlobalState) => getDisplayNameByUser(state, userProfile));
@@ -55,6 +56,7 @@ export function UserProfilePill(props: MultiValueProps<AutocompleteOptionType<Us
                 data={data}
                 innerProps={innerProps}
                 selectProps={selectProps}
+                {...removeProps}
             />
         </div>
     );

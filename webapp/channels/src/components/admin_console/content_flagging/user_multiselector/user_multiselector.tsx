@@ -34,9 +34,10 @@ type Props = {
     className?: string;
     onChange: (selectedUserIds: string[]) => void;
     initialValue?: string[];
+    hasError?: boolean;
 }
 
-export function UserMultiSelector({id, className, onChange, initialValue}: Props) {
+export function UserMultiSelector({id, className, onChange, initialValue, hasError}: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const initialDataLoaded = useRef<boolean>(false);
@@ -89,10 +90,8 @@ export function UserMultiSelector({id, className, onChange, initialValue}: Props
     }, 200), [dispatch]);
 
     function handleOnChange(value: MultiValue<AutocompleteOptionType<UserProfile>>) {
+        console.log({value});
         const selectedUserIds = value.map((option) => option.value);
-
-        console.log({id, selectedUserIds});
-
         onChange?.(selectedUserIds);
     }
 
@@ -102,7 +101,7 @@ export function UserMultiSelector({id, className, onChange, initialValue}: Props
                 id={id}
                 inputId={`${id}_input`}
                 classNamePrefix='user-multiselector'
-                className={classNames('Input Input__focus', className)}
+                className={classNames('Input Input__focus', className, {error: hasError})}
                 isMulti={true}
                 isClearable={false}
                 hideSelectedOptions={true}

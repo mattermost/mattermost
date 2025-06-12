@@ -68,8 +68,6 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
     }, [props, reviewerSetting]);
 
     const handleTeamReviewerSettingsChange = useCallback((updatedTeamSettings: Record<string, TeamReviewerSetting>) => {
-        console.log('BBB', {updatedTeamSettings});
-
         const updatedSetting: ContentFlaggingReviewerSetting = {
             ...reviewerSetting,
             TeamReviewersSetting: updatedTeamSettings,

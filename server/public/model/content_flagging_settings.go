@@ -3,6 +3,8 @@
 
 package model
 
+import "net/http"
+
 type ContentFlaggingEvent string
 
 const (
@@ -46,6 +48,26 @@ func (cfs *ContentFlaggingNotificationSettings) SetDefault() {
 	}
 }
 
+func (cfs *ContentFlaggingNotificationSettings) IsValid() *AppError {
+	if cfs.EventTargetMapping[EventFlagged] == nil || len(cfs.EventTargetMapping[EventFlagged]) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled", nil, "", http.StatusBadRequest)
+	}
+
+	reviewerFound := false
+	for _, target := range cfs.EventTargetMapping[EventFlagged] {
+		if target == TargetReviewers {
+			reviewerFound = true
+			break
+		}
+	}
+
+	if !reviewerFound {
+		return NewAppError("Config.IsValid", "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 type TeamReviewerSetting struct {
 	Enabled     *bool
 	ReviewerIds *[]string
@@ -77,8 +99,30 @@ func (rs *ReviewerSettings) SetDefault() {
 	}
 
 	if rs.TeamAdminsAsReviewers == nil {
-		rs.TeamAdminsAsReviewers = NewPointer(false)
+		rs.TeamAdminsAsReviewers = NewPointer(true)
 	}
+}
+
+func (rs *ReviewerSettings) IsValid() *AppError {
+	additionalReviewersEnabled := *rs.SystemAdminsAsReviewers || *rs.TeamAdminsAsReviewers
+
+	// If common reviewers are enabled, there must be at least one specified reviewer, or additional viewers be specified
+	if *rs.CommonReviewers && (rs.CommonReviewerIds == nil || len(*rs.CommonReviewerIds) == 0) && !additionalReviewersEnabled {
+		return NewAppError("Config.IsValid", "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// if additional reviewers are specified, no extra validation is needed in team specific settings as
+	// settings team reviewers keeping team feature disabled is valid, as well as
+	// enabling team feature and not specified reviews is fine as well (since additional reviewers are set)
+	if !additionalReviewersEnabled {
+		for _, setting := range *rs.TeamReviewersSetting {
+			if *setting.Enabled && (setting.ReviewerIds == nil || len(*setting.ReviewerIds) == 0) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+	}
+
+	return nil
 }
 
 type AdditionalContentFlaggingSettings struct {
@@ -112,10 +156,18 @@ func (acfs *AdditionalContentFlaggingSettings) SetDefault() {
 	}
 }
 
+func (acfx *AdditionalContentFlaggingSettings) IsValid() *AppError {
+	if acfx.Reasons == nil || len(*acfx.Reasons) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.content_flagging.reasons_not_set.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 type ContentFlaggingSettings struct {
 	EnableContentFlagging *bool
-	NotificationSettings  *ContentFlaggingNotificationSettings
 	ReviewerSettings      *ReviewerSettings
+	NotificationSettings  *ContentFlaggingNotificationSettings
 	AdditionalSettings    *AdditionalContentFlaggingSettings
 }
 
@@ -141,4 +193,20 @@ func (cfs *ContentFlaggingSettings) SetDefault() {
 	cfs.NotificationSettings.SetDefault()
 	cfs.ReviewerSettings.SetDefault()
 	cfs.AdditionalSettings.SetDefault()
+}
+
+func (cfs *ContentFlaggingSettings) IsValid() *AppError {
+	if err := cfs.NotificationSettings.IsValid(); err != nil {
+		return err
+	}
+
+	if err := cfs.ReviewerSettings.IsValid(); err != nil {
+		return err
+	}
+
+	if err := cfs.AdditionalSettings.IsValid(); err != nil {
+		return err
+	}
+
+	return nil
 }

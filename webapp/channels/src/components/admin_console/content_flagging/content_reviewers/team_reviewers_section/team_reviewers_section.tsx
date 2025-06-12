@@ -87,14 +87,17 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
 
     const getHandleReviewersChange = useCallback((teamId: string) => {
         return (reviewerIDs: string[]) => {
-            console.log('AAA', {teamId, reviewerIDs});
-
+            console.log('XX');
             const updatedTeamSettings = {...teamReviewersSetting};
             if (!updatedTeamSettings[teamId]) {
                 updatedTeamSettings[teamId] = {Enabled: false, ReviewerIds: []};
             }
 
-            updatedTeamSettings[teamId].ReviewerIds = reviewerIDs;
+            // updatedTeamSettings[teamId].ReviewerIds = reviewerIDs;
+            updatedTeamSettings[teamId] = {
+                ...updatedTeamSettings[teamId],
+                ReviewerIds: reviewerIDs,
+            };
             onChange(updatedTeamSettings);
         };
     }, [onChange, teamReviewersSetting]);

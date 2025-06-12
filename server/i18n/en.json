@@ -9637,6 +9637,22 @@
     "translation": "Invalid value for write timeout."
   },
   {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Common reviewers must be set when \"Same reviewers for all teams\" is enabled."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Team reviewers or additional reviewers must be set when setting \"Enabled\" for a team"
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Notifications for new flagged post cannot be disabled for reviewers."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Reasons for flagging cannot be empty."
+  },
+  {
     "id": "model.draft.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },

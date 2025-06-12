@@ -9,13 +9,14 @@ import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_ic
 
 import './reason_option.scss';
 
-function Remove(props: MultiValueRemoveProps<{label: string; value: string}, true>) {
+function Remove(props: any) {
     const {innerProps, children} = props;
 
     return (
         <div
             className='Remove'
             {...innerProps}
+            onClick={props.onClick}
         >
             {children || <CloseCircleSolidIcon/>}
         </div>
@@ -23,7 +24,7 @@ function Remove(props: MultiValueRemoveProps<{label: string; value: string}, tru
 }
 
 export function ReasonOption(props: MultiValueProps<{label: string; value: string}, true>) {
-    const {data, innerProps, selectProps} = props;
+    const {data, innerProps, selectProps, removeProps} = props;
 
     return (
         <div
@@ -36,6 +37,7 @@ export function ReasonOption(props: MultiValueProps<{label: string; value: strin
                 data={data}
                 innerProps={innerProps}
                 selectProps={selectProps}
+                {...removeProps}
             />
         </div>
     );

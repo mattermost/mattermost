@@ -4050,6 +4050,10 @@ func (o *Config) IsValid() *AppError {
 		}
 	}
 
+	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
 	return nil
 }
 
