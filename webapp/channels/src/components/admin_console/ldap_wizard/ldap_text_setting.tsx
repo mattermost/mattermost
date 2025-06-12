@@ -108,7 +108,10 @@ const LDAPTextSetting = (props: TextSettingProps) => {
         }
 
         const totalCount = props.filterResult.total_count || 0;
-        const defaultDetails = showFilterIcon && value === '' ? `. Default value was used: ${props.filterResult.test_value}` : '';
+        const showDefaultDetails = showFilterIcon &&
+            (value === '' || props.filterResult.test_name === 'UserFilter' || props.filterResult.test_name === 'GroupFilter');
+        const testValue = showDefaultDetails ? props.filterResult.test_value : '';
+        const showTestValue = showDefaultDetails;
 
         if (isSuccess) {
             // If the filter has a testValue, but no userInput, the defaultValue
@@ -121,7 +124,7 @@ const LDAPTextSetting = (props: TextSettingProps) => {
             } else {
                 messageKey = ldapTestMessages.attributeTestSuccess;
             }
-            return intl.formatMessage(messageKey, {countReturned, totalCount, defaultDetails});
+            return intl.formatMessage(messageKey, {countReturned, totalCount, testValue, showTestValue});
         }
 
         if (isWarning) {
@@ -133,17 +136,10 @@ const LDAPTextSetting = (props: TextSettingProps) => {
             } else {
                 messageKey = ldapTestMessages.attributeTestWarning;
             }
-            return intl.formatMessage(messageKey, {totalCount, defaultDetails});
+            return intl.formatMessage(messageKey, {totalCount, testValue, showTestValue});
         }
 
-        // For failed tests, combine message and error if both are available
-        const message = props.filterResult.message;
-        const error = props.filterResult.error;
-
-        if (message && error) {
-            return `${message}: ${error}`;
-        }
-
+        // For failed tests, use translated message with error included
         let messageKey;
         if (isFilter) {
             messageKey = ldapTestMessages.filterTestFailed;
@@ -152,9 +148,10 @@ const LDAPTextSetting = (props: TextSettingProps) => {
         } else {
             messageKey = ldapTestMessages.attributeTestFailed;
         }
-        const fallbackMessage = intl.formatMessage(messageKey);
 
-        return message || error || fallbackMessage;
+        const error = props.filterResult.error || '';
+        const showError = Boolean(props.filterResult.error);
+        return intl.formatMessage(messageKey, {testValue, showTestValue, error, showError});
     };
 
     return (
@@ -213,7 +210,7 @@ function isGroupAttributeTest(testResult: LdapDiagnosticResult | null) {
 const ldapTestMessages = defineMessages({
     filterTestSuccess: {
         id: 'admin.ldap.filterTestSuccess',
-        defaultMessage: 'Filter test successful: {countReturned, number} result{countReturned, plural, one {} other {s}} found{defaultDetails}',
+        defaultMessage: 'Filter test successful: {countReturned, number} result{countReturned, plural, one {} other {s}} found{showTestValue, select, true {. Value used: {testValue}} other {}}',
     },
     attributeTestSuccess: {
         id: 'admin.ldap.attributeTestSuccess',
@@ -221,7 +218,7 @@ const ldapTestMessages = defineMessages({
     },
     filterTestWarning: {
         id: 'admin.ldap.filterTestWarning',
-        defaultMessage: 'Filter test successful but no results found. Your filter may be too restrictive.{defaultDetails}',
+        defaultMessage: 'Filter test successful but no results found. Your filter may be too restrictive.{showTestValue, select, true { Value used: {testValue}} other {}}',
     },
     attributeTestWarning: {
         id: 'admin.ldap.attributeTestWarning',
@@ -229,11 +226,11 @@ const ldapTestMessages = defineMessages({
     },
     filterTestFailed: {
         id: 'admin.ldap.filterTestFailed',
-        defaultMessage: 'Filter test failed',
+        defaultMessage: 'Filter test failed{showTestValue, select, true {. Value used: {testValue}} other {}}{showError, select, true {: {error}} other {}}',
     },
     attributeTestFailed: {
         id: 'admin.ldap.attributeTestFailed',
-        defaultMessage: 'Attribute test failed',
+        defaultMessage: 'Attribute test failed{showError, select, true {: {error}} other {}}',
     },
     groupAttributeTestSuccess: {
         id: 'admin.ldap.groupAttributeTestSuccess',
@@ -245,7 +242,7 @@ const ldapTestMessages = defineMessages({
     },
     groupAttributeTestFailed: {
         id: 'admin.ldap.groupAttributeTestFailed',
-        defaultMessage: 'Group attribute test failed',
+        defaultMessage: 'Group attribute test failed{showError, select, true {: {error}} other {}}',
     },
 });
 
