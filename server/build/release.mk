@@ -47,6 +47,7 @@ endif
 
 build-cmd-linux:
 	@echo Build CMD Linux amd64
+	$(GO) version
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
 else
