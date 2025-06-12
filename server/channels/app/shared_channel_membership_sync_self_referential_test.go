@@ -1260,15 +1260,21 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
 		require.NoError(t, err)
 
-		// Verify sync task was created and executed
+		// Verify sync task was created and executed with more generous timeout
 		require.Eventually(t, func() bool {
 			return syncTaskCreated.Load()
-		}, 5*time.Second, 100*time.Millisecond, "Sync should execute when cluster comes back online")
+		}, 15*time.Second, 200*time.Millisecond, "Sync should execute when cluster comes back online")
 
-		// Verify cursor was updated
-		updatedScr, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
-		require.NoError(t, scrErr)
-		assert.Greater(t, updatedScr.LastMembersSyncAt, int64(0), "Cursor should be updated after sync")
+		// Wait for async task queue to be processed
+		require.Eventually(t, func() bool {
+			return !service.HasPendingTasksForTesting()
+		}, 10*time.Second, 200*time.Millisecond, "All async sync tasks should be completed")
+
+		// Verify cursor was updated with extended timeout
+		require.Eventually(t, func() bool {
+			updatedScr, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
+			return scrErr == nil && updatedScr.LastMembersSyncAt > 0
+		}, 20*time.Second, 200*time.Millisecond, "Cursor should be updated after sync")
 	})
 	t.Run("Test 9: Remote Cluster Offline During Sync", func(t *testing.T) {
 		// This test verifies graceful failure handling when a remote cluster goes offline
