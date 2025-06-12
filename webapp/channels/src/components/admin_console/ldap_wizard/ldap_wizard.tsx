@@ -406,7 +406,7 @@ const LDAPWizard = (props: Props) => {
 
         const hasSaveActionError = await Promise.all(results).then((values) => values.some(((value) => value.error && value.error.message)));
 
-        const hasError = state.serverError || hasSaveActionError;
+        const hasError = error || hasSaveActionError;
         if (hasError) {
             setState((prev) => ({
                 ...prev,
@@ -422,6 +422,7 @@ const LDAPWizard = (props: Props) => {
                 clientWarning: '',
                 serverError: null,
             }));
+            props.setNavigationBlocked(false);
         }
     };
 
