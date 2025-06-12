@@ -146,23 +146,28 @@
     white-space: pre-line; // Preserve line breaks in help text
 }
 
-.ldap-text-setting__filter-icon {
-    position: absolute;
-    top: 10px;
-    right: 36px;
-    cursor: pointer;
-    font-size: 16px;
-    pointer-events: all;
 
-    &--success {
-        color: rgba(var(--semantic-color-success), 1);
-    }
+.ldap-text-setting {
+    position: relative;
 
-    &--warning {
-        color: rgba(var(--semantic-color-warning), 1);
-    }
+    .filter-icon {
+        position: absolute;
+        top: 10px;
+        right: 36px;
+        cursor: pointer;
+        font-size: 16px;
+        pointer-events: all;
 
-    &--error {
-        color: rgba(var(--semantic-color-danger), 1);
+        &success {
+            color: rgba(var(--semantic-color-success), 1);
+        }
+
+        &warning {
+            color: rgba(var(--semantic-color-warning), 1);
+        }
+
+        &error {
+            color: rgba(var(--semantic-color-danger), 1);
+        }
     }
 }

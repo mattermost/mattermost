@@ -91,12 +91,12 @@ const LDAPTextSetting = (props: TextSettingProps) => {
 
     const getIconCssClass = () => {
         if (isSuccess) {
-            return 'ldap-text-setting__filter-icon--success';
+            return 'success';
         }
         if (isWarning) {
-            return 'ldap-text-setting__filter-icon--warning';
+            return 'warning';
         }
-        return 'ldap-text-setting__filter-icon--error';
+        return 'error';
     };
 
     const iconClass = getIconClass();
@@ -158,7 +158,7 @@ const LDAPTextSetting = (props: TextSettingProps) => {
     };
 
     return (
-        <div style={{position: 'relative'}}>
+        <div className='ldap-text-setting'>
             <TextSetting
                 key={props.schema.id + '_text_' + props.setting.key}
                 id={props.setting.key}
@@ -179,7 +179,7 @@ const LDAPTextSetting = (props: TextSettingProps) => {
                     title={getTooltipContent()}
                     forcedPlacement='top'
                 >
-                    <i className={`${iconClass} ldap-text-setting__filter-icon ${iconCssClass}`}/>
+                    <i className={`${iconClass} filter-icon ${iconCssClass}`}/>
                 </WithTooltip>
             )}
         </div>
