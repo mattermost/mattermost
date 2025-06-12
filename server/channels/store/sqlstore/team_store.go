@@ -72,6 +72,7 @@ type teamMemberWithSchemeRolesList []teamMemberWithSchemeRoles
 func teamMemberSliceColumns() []string {
 	return []string{"TeamId", "UserId", "Roles", "DeleteAt", "SchemeUser", "SchemeAdmin", "SchemeGuest", "CreateAt"}
 }
+
 func teamMemberToSlice(member *model.TeamMember) []any {
 	resultSlice := []any{}
 	resultSlice = append(resultSlice, member.TeamId)
@@ -207,31 +208,35 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
+func teamSliceColumns() []string {
+	return []string{
+		"Teams.Id",
+		"Teams.CreateAt",
+		"Teams.UpdateAt",
+		"Teams.DeleteAt",
+		"Teams.DisplayName",
+		"Teams.Name",
+		"Teams.Description",
+		"Teams.Email",
+		"Teams.Type",
+		"Teams.CompanyName",
+		"Teams.AllowedDomains",
+		"Teams.InviteId",
+		"Teams.AllowOpenInvite",
+		"Teams.LastTeamIconUpdate",
+		"Teams.SchemeId",
+		"Teams.GroupConstrained",
+		"Teams.CloudLimitsArchived",
+	}
+}
+
 func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 	s := &SqlTeamStore{
 		SqlStore: sqlStore,
 	}
 
 	s.teamsQuery = s.getQueryBuilder().
-		Select(
-			"Teams.Id",
-			"Teams.CreateAt",
-			"Teams.UpdateAt",
-			"Teams.DeleteAt",
-			"Teams.DisplayName",
-			"Teams.Name",
-			"Teams.Description",
-			"Teams.Email",
-			"Teams.Type",
-			"Teams.CompanyName",
-			"Teams.AllowedDomains",
-			"Teams.InviteId",
-			"Teams.AllowOpenInvite",
-			"Teams.LastTeamIconUpdate",
-			"Teams.SchemeId",
-			"Teams.GroupConstrained",
-			"Teams.CloudLimitsArchived",
-		).
+		Select(teamSliceColumns()...).
 		From("Teams")
 
 	s.teamMembersQuery = s.getQueryBuilder().
@@ -415,7 +420,6 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, error) {
 	uniqueNames := utils.RemoveDuplicatesFromStringArray(names)
 
 	query, args, err := s.teamsQuery.Where(sq.Eq{"Name": uniqueNames}).ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
@@ -597,7 +601,6 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, error) {
 	teams := []*model.Team{}
 
 	query, args, err := s.teamsQuery.OrderBy("DisplayName").ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
@@ -639,7 +642,6 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) 
 	}
 
 	query, args, err := builder.ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
@@ -721,7 +723,6 @@ func (s SqlTeamStore) AnalyticsTeamCount(opts *model.TeamSearch) (int64, error) 
 
 	var c int64
 	err = s.GetReplica().Get(&c, queryString, args...)
-
 	if err != nil {
 		return int64(0), errors.Wrap(err, "failed to count Teams")
 	}
@@ -1170,13 +1171,11 @@ func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string)
 		Join("ChannelMembers ON Id = ChannelId").
 		Where(sq.Eq{"UserId": userId, "DeleteAt": 0}).
 		Where(sq.NotEq{"TeamId": excludeTeamId}).ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 	data := []*model.ChannelUnread{}
 	err = s.GetReplica().Select(&data, query, args...)
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with userId=%s and teamId!=%s", userId, excludeTeamId)
 	}
@@ -1191,14 +1190,12 @@ func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.
 		From("Channels").
 		Join("ChannelMembers ON Id = ChannelId").
 		Where(sq.Eq{"UserId": userId, "TeamId": teamId, "DeleteAt": 0}).ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
 	channels := []*model.ChannelUnread{}
 	err = s.GetReplica().Select(&channels, query, args...)
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with teamId=%s and userId=%s", teamId, userId)
 	}
@@ -1283,7 +1280,6 @@ func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) (
 		OrderBy("DisplayName").
 		Limit(uint64(limit)).
 		Offset(uint64(offset)).ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
@@ -1454,7 +1450,6 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, er
 		Select("count(*)").
 		From("Teams").
 		Where(sq.Eq{"SchemeId": schemeId, "DeleteAt": 0}).ToSql()
-
 	if err != nil {
 		return 0, errors.Wrap(err, "team_tosql")
 	}
@@ -1472,13 +1467,13 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, er
 func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, error) {
 	data := []*model.TeamForExport{}
 	query, args, err := s.getQueryBuilder().
-		Select("Teams.*", "Schemes.Name as SchemeName").
+		Select(teamSliceColumns()...).
+		Column("Schemes.Name as SchemeName").
 		From("Teams").
 		LeftJoin("Schemes ON Teams.SchemeId = Schemes.Id").
 		Where(sq.Gt{"Teams.Id": afterId}).
 		OrderBy("Id").
 		Limit(uint64(limit)).ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
@@ -1499,7 +1494,6 @@ func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]stri
 		From("TeamMembers").
 		Join("Teams ON TeamMembers.TeamId = Teams.Id").
 		Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0, "Teams.DeleteAt": 0}).ToSql()
-
 	if err != nil {
 		return []string{}, errors.Wrap(err, "team_tosql")
 	}
@@ -1589,7 +1583,6 @@ func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMembe
 		From("TeamMembers").
 		Join("Teams ON TeamMembers.TeamId = Teams.Id").
 		Where(sq.Eq{"TeamMembers.UserId": userId, "Teams.DeleteAt": 0}).ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
