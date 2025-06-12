@@ -8,6 +8,8 @@ import type {Team} from '@mattermost/types/teams';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
+import Input from 'components/widgets/inputs/input/input';
+
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
@@ -32,15 +34,11 @@ type Props = {
 
 type State = {
     teamDisplayName: string;
-    nameError?: React.ReactNode;
 }
 
 export default class TeamSignupDisplayNamePage extends React.PureComponent<Props, State> {
-    teamNameInput: React.RefObject<HTMLInputElement>;
-
     constructor(props: Props) {
         super(props);
-        this.teamNameInput = React.createRef();
 
         this.state = {
             teamDisplayName: this.props.state.team?.display_name || '',
@@ -51,33 +49,18 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
         trackEvent('signup', 'signup_team_01_name');
     }
 
+    isValidTeamName = (): boolean => {
+        return this.state.teamDisplayName.length >= Constants.MIN_TEAMNAME_LENGTH && this.state.teamDisplayName.length <= Constants.MAX_TEAMNAME_LENGTH;
+    };
+
     submitNext = (e: React.MouseEvent): void => {
+        if (!this.isValidTeamName()) {
+            return;
+        }
+
         e.preventDefault();
         trackEvent('display_name', 'click_next');
         const displayName = this.state.teamDisplayName.trim();
-        if (!displayName) {
-            this.setState({nameError: (
-                <FormattedMessage
-                    id='create_team.display_name.required'
-                    defaultMessage='This field is required'
-                />),
-            });
-            this.teamNameInput.current?.focus();
-            return;
-        } else if (displayName.length < Constants.MIN_TEAMNAME_LENGTH || displayName.length > Constants.MAX_TEAMNAME_LENGTH) {
-            this.setState({nameError: (
-                <FormattedMessage
-                    id='create_team.display_name.charLength'
-                    defaultMessage='Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description later.'
-                    values={{
-                        min: Constants.MIN_TEAMNAME_LENGTH,
-                        max: Constants.MAX_TEAMNAME_LENGTH,
-                    }}
-                />),
-            });
-            this.teamNameInput.current?.focus();
-            return;
-        }
 
         const newState = this.props.state;
         newState.wizard = 'team_url';
@@ -86,31 +69,11 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
         this.props.updateParent(newState);
     };
 
-    handleFocus = (e: React.FocusEvent<HTMLInputElement>): void => {
-        e.preventDefault();
-        e.currentTarget.select();
-    };
-
     handleDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({teamDisplayName: e.target.value});
     };
 
     render(): React.ReactNode {
-        let nameError = null;
-        let nameDivClass = 'form-group';
-        if (this.state.nameError) {
-            nameError = (
-                <label
-                    role='alert'
-                    className='control-label'
-                    id='teamNameInputError'
-                >
-                    {this.state.nameError}
-                </label>
-            );
-            nameDivClass += ' has-error';
-        }
-
         return (
             <div>
                 <form>
@@ -126,26 +89,23 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
                             defaultMessage='Team Name'
                         />
                     </label>
-                    <div className={nameDivClass}>
+                    <div className='form-group'>
                         <div className='row'>
                             <div className='col-sm-9'>
-                                <input
+                                <Input
                                     id='teamNameInput'
+                                    name='teamNameInput'
                                     type='text'
-                                    ref={this.teamNameInput}
-                                    className='form-control'
-                                    placeholder=''
-                                    maxLength={128}
                                     value={this.state.teamDisplayName}
                                     autoFocus={true}
-                                    onFocus={this.handleFocus}
                                     onChange={this.handleDisplayNameChange}
+                                    required={true}
+                                    maxLength={Constants.MAX_TEAMNAME_LENGTH}
+                                    minLength={Constants.MIN_TEAMNAME_LENGTH}
                                     spellCheck='false'
-                                    aria-describedby='teamNameInputError'
                                 />
                             </div>
                         </div>
-                        {nameError}
                     </div>
                     <div>
                         <FormattedMessage
@@ -158,6 +118,7 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
                         type='submit'
                         className='btn btn-primary mt-8'
                         onClick={this.submitNext}
+                        disabled={!this.isValidTeamName()}
                     >
                         <FormattedMessage
                             id='create_team.display_name.next'
