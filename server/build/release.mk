@@ -49,6 +49,7 @@ build-cmd-linux: build-cmd-linux-amd64 build-cmd-linux-arm64
 
 build-cmd-linux-amd64:
 	@echo Build CMD Linux amd64
+	$(GO) version
 	$(GO) build -o $(GOBIN) $(GOFLAGS) -buildvcs=false -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
 
 build-cmd-linux-arm64:
