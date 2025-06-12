@@ -4087,6 +4087,10 @@
     "translation": "Permanent user deletion feature is not enabled. Please contact your System Administrator."
   },
   {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Permanent user deletion feature is not enabled. ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information."
+  },
+  {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
     "translation": "Unable to convert the user to guest because is already a guest."
   },
