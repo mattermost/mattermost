@@ -11,8 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
@@ -99,7 +97,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Could be a pre-overhaul job. Try the old method:
 		fileName = job.Id + ".zip"
 		filePath := filepath.Join(oldFilePath, fileName)
-		var fileReader filestore.ReadCloseSeeker
+		var fileReader model.ReadCloseSeeker
 		fileReader, err = c.App.ExportFileReader(filePath)
 		if err != nil {
 			c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,

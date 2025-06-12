@@ -20,8 +20,8 @@ import (
 	"github.com/golang/freetype/truetype"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/filestore"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	xfont "golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
@@ -58,10 +58,10 @@ func (us *UserService) GetProfileImage(user *model.User) ([]byte, bool, error) {
 	return data, false, nil
 }
 
-func (us *UserService) FileBackend() (filestore.FileBackend, error) {
+func (us *UserService) FileBackend() (model.FileBackend, error) {
 	license := us.license()
 	insecure := us.config().ServiceSettings.EnableInsecureOutgoingConnections
-	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&us.config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+	backend, err := filestore.NewFileBackend(model.NewFileBackendSettingsFromConfig(&us.config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
 		return nil, err
 	}

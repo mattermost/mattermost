@@ -23,7 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/filestore"
 )
 
 func TestImportImportScheme(t *testing.T) {

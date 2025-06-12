@@ -95,7 +95,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 // managedPluginFileName is the file name of the flag file that marks
@@ -130,7 +129,7 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 	}
 	defer bundle.Close()
 
-	var signature filestore.ReadCloseSeeker
+	var signature model.ReadCloseSeeker
 	if *ch.cfgSvc.Config().PluginSettings.RequirePluginSignature {
 		signature, appErr = ch.srv.fileReader(plugin.signaturePath)
 		if appErr != nil {

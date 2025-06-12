@@ -11,11 +11,10 @@ import (
 	elastic "github.com/elastic/go-elasticsearch/v8"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/mattermost/mattermost/server/public/filestore/mocks"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
 type ElasticsearchInterfaceTestSuite struct {
@@ -24,7 +23,7 @@ type ElasticsearchInterfaceTestSuite struct {
 	th          *api4.TestHelper
 	client      *elastic.TypedClient
 	ctx         context.Context
-	fileBackend filestore.FileBackend
+	fileBackend model.FileBackend
 }
 
 func TestElasticsearchInterfaceTestSuite(t *testing.T) {

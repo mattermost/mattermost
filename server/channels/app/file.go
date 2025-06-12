@@ -32,7 +32,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/docextractor"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/filestore"
 
 	"github.com/pkg/errors"
 )
@@ -48,20 +48,20 @@ const (
 	maxContentExtractionSize   = 1024 * 1024 // 1MB
 )
 
-func (a *App) FileBackend() filestore.FileBackend {
+func (a *App) FileBackend() model.FileBackend {
 	return a.ch.filestore
 }
 
-func (a *App) ExportFileBackend() filestore.FileBackend {
+func (a *App) ExportFileBackend() model.FileBackend {
 	return a.ch.exportFilestore
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	var fileBackendSettings filestore.FileBackendSettings
+	var fileBackendSettings model.FileBackendSettings
 	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
-		fileBackendSettings = filestore.NewExportFileBackendSettingsFromConfig(settings, false, false)
+		fileBackendSettings = model.NewExportFileBackendSettingsFromConfig(settings, false, false)
 	} else {
-		fileBackendSettings = filestore.NewFileBackendSettingsFromConfig(settings, false, false)
+		fileBackendSettings = model.NewFileBackendSettingsFromConfig(settings, false, false)
 	}
 
 	err := fileBackendSettings.CheckMandatoryS3Fields()
@@ -93,14 +93,14 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
-	var backend filestore.FileBackend
+	var backend model.FileBackend
 	var err error
 	complianceEnabled := license != nil && *license.Features.Compliance
 	if license.IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
 		allowInsecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
-		backend, err = filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(cfg, complianceEnabled && license.IsCloud(), allowInsecure))
+		backend, err = filestore.NewFileBackend(model.NewExportFileBackendSettingsFromConfig(cfg, complianceEnabled && license.IsCloud(), allowInsecure))
 	} else {
-		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, insecure != nil && *insecure))
+		backend, err = filestore.NewFileBackend(model.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, insecure != nil && *insecure))
 	}
 	if err != nil {
 		return model.NewAppError("FileAttachmentBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -116,7 +116,7 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 	return a.ch.srv.ReadFile(path)
 }
 
-func fileReader(backend filestore.FileBackend, path string) (filestore.ReadCloseSeeker, *model.AppError) {
+func fileReader(backend model.FileBackend, path string) (model.ReadCloseSeeker, *model.AppError) {
 	result, nErr := backend.Reader(path)
 	if nErr != nil {
 		return nil, model.NewAppError("FileReader", "api.file.file_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -124,7 +124,7 @@ func fileReader(backend filestore.FileBackend, path string) (filestore.ReadClose
 	return result, nil
 }
 
-func zipReader(backend filestore.FileBackend, path string, deflate bool) (io.ReadCloser, *model.AppError) {
+func zipReader(backend model.FileBackend, path string, deflate bool) (io.ReadCloser, *model.AppError) {
 	result, err := backend.ZipReader(path, deflate)
 	if err != nil {
 		return nil, model.NewAppError("ZipReader", "api.file.zip_file_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -132,7 +132,7 @@ func zipReader(backend filestore.FileBackend, path string, deflate bool) (io.Rea
 	return result, nil
 }
 
-func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+func (s *Server) fileReader(path string) (model.ReadCloseSeeker, *model.AppError) {
 	return fileReader(s.FileBackend(), path)
 }
 
@@ -140,7 +140,7 @@ func (s *Server) zipReader(path string, deflate bool) (io.ReadCloser, *model.App
 	return zipReader(s.FileBackend(), path, deflate)
 }
 
-func (s *Server) exportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+func (s *Server) exportFileReader(path string) (model.ReadCloseSeeker, *model.AppError) {
 	return fileReader(s.ExportFileBackend(), path)
 }
 
@@ -151,7 +151,7 @@ func (s *Server) exportZipReader(path string, deflate bool) (io.ReadCloser, *mod
 // FileReader returns a ReadCloseSeeker for path from the FileBackend.
 //
 // The caller is responsible for closing the returned ReadCloseSeeker.
-func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+func (a *App) FileReader(path string) (model.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().fileReader(path)
 }
 
@@ -165,7 +165,7 @@ func (a *App) ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppErr
 // ExportFileReader returns a ReadCloseSeeker for path from the ExportFileBackend.
 //
 // The caller is responsible for closing the returned ReadCloseSeeker.
-func (a *App) ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+func (a *App) ExportFileReader(path string) (model.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().exportFileReader(path)
 }
 
@@ -189,7 +189,7 @@ func (s *Server) fileExists(path string) (bool, *model.AppError) {
 	return fileExists(s.FileBackend(), path)
 }
 
-func fileExists(backend filestore.FileBackend, path string) (bool, *model.AppError) {
+func fileExists(backend model.FileBackend, path string) (bool, *model.AppError) {
 	result, nErr := backend.FileExists(path)
 	if nErr != nil {
 		return false, model.NewAppError("FileExists", "api.file.file_exists.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -209,7 +209,7 @@ func (a *App) FileSize(path string) (int64, *model.AppError) {
 	return size, nil
 }
 
-func fileModTime(backend filestore.FileBackend, path string) (time.Time, *model.AppError) {
+func fileModTime(backend model.FileBackend, path string) (time.Time, *model.AppError) {
 	modTime, nErr := backend.FileModTime(path)
 	if nErr != nil {
 		return time.Time{}, model.NewAppError("FileModTime", "api.file.file_mod_time.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -242,7 +242,7 @@ func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 	return a.Srv().writeFile(fr, path)
 }
 
-func writeFile(backend filestore.FileBackend, fr io.Reader, path string) (int64, *model.AppError) {
+func writeFile(backend model.FileBackend, fr io.Reader, path string) (int64, *model.AppError) {
 	result, nErr := backend.WriteFile(fr, path)
 	if nErr != nil {
 		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -266,7 +266,7 @@ func (a *App) WriteExportFile(fr io.Reader, path string) (int64, *model.AppError
 	return a.Srv().writeExportFile(fr, path)
 }
 
-func writeFileContext(ctx context.Context, backend filestore.FileBackend, fr io.Reader, path string) (int64, *model.AppError) {
+func writeFileContext(ctx context.Context, backend model.FileBackend, fr io.Reader, path string) (int64, *model.AppError) {
 	// Check if we can provide a custom context, otherwise just use the default method.
 	written, err := filestore.TryWriteFileContext(ctx, backend, fr, path)
 	if err != nil {
@@ -300,7 +300,7 @@ func (a *App) RemoveExportFile(path string) *model.AppError {
 	return a.Srv().removeExportFile(path)
 }
 
-func removeFile(backend filestore.FileBackend, path string) *model.AppError {
+func removeFile(backend model.FileBackend, path string) *model.AppError {
 	nErr := backend.RemoveFile(path)
 	if nErr != nil {
 		return model.NewAppError("RemoveFile", "api.file.remove_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -332,7 +332,7 @@ func (s *Server) listDirectory(path string, recursion bool) ([]string, *model.Ap
 	return listDirectory(s.FileBackend(), path, recursion)
 }
 
-func listDirectory(backend filestore.FileBackend, path string, recursion bool) ([]string, *model.AppError) {
+func listDirectory(backend model.FileBackend, path string, recursion bool) ([]string, *model.AppError) {
 	var paths []string
 	var nErr error
 
@@ -1407,7 +1407,7 @@ func (a *App) CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) (
 
 // This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
 // Ensure the zip file name ends with a .zip
-func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
+func (a *App) CreateZipFileAndAddFiles(fileBackend model.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
 	// Create Zip File (temporarily stored on disk)
 	conglomerateZipFile, err := os.Create(zipFileName)
 	if err != nil {

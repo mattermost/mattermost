@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 const (
@@ -44,7 +43,7 @@ type ElasticsearchAggregatorWorker struct {
 	jobs        chan model.Job
 	jobServer   *jobs.JobServer
 	logger      mlog.LoggerIFace
-	fileBackend filestore.FileBackend
+	fileBackend model.FileBackend
 
 	client  *elasticsearch.TypedClient
 	license func() *model.License

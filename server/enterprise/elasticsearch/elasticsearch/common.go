@@ -13,10 +13,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
-func createTypedClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend filestore.FileBackend, debugLogging bool) (*elasticsearch.TypedClient, *model.AppError) {
+func createTypedClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend model.FileBackend, debugLogging bool) (*elasticsearch.TypedClient, *model.AppError) {
 	esCfg, appErr := createClientConfig(logger, cfg, fileBackend, debugLogging)
 	if appErr != nil {
 		return nil, appErr
@@ -30,7 +29,7 @@ func createTypedClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend f
 	return client, nil
 }
 
-func createUntypedClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend filestore.FileBackend) (*elasticsearch.Client, *model.AppError) {
+func createUntypedClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend model.FileBackend) (*elasticsearch.Client, *model.AppError) {
 	esCfg, appErr := createClientConfig(logger, cfg, fileBackend, true)
 	if appErr != nil {
 		return nil, appErr
@@ -44,7 +43,7 @@ func createUntypedClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend
 	return client, nil
 }
 
-func createClientConfig(logger mlog.LoggerIFace, cfg *model.Config, fileBackend filestore.FileBackend, debugLogging bool) (*elasticsearch.Config, *model.AppError) {
+func createClientConfig(logger mlog.LoggerIFace, cfg *model.Config, fileBackend model.FileBackend, debugLogging bool) (*elasticsearch.Config, *model.AppError) {
 	tp := http.DefaultTransport.(*http.Transport).Clone()
 	tp.TLSClientConfig = &tls.Config{
 		InsecureSkipVerify: *cfg.ElasticsearchSettings.SkipTLSVerification,
@@ -96,7 +95,7 @@ func createClientConfig(logger mlog.LoggerIFace, cfg *model.Config, fileBackend 
 	return esCfg, nil
 }
 
-func configureCA(esCfg *elasticsearch.Config, cfg *model.Config, fb filestore.FileBackend) *model.AppError {
+func configureCA(esCfg *elasticsearch.Config, cfg *model.Config, fb model.FileBackend) *model.AppError {
 	// read the certificate authority (CA) file
 	clientCA, err := common.ReadFileSafely(fb, *cfg.ElasticsearchSettings.CA)
 	if err != nil {
@@ -108,7 +107,7 @@ func configureCA(esCfg *elasticsearch.Config, cfg *model.Config, fb filestore.Fi
 	return nil
 }
 
-func configureClientCertificate(tlsConfig *tls.Config, cfg *model.Config, fb filestore.FileBackend) *model.AppError {
+func configureClientCertificate(tlsConfig *tls.Config, cfg *model.Config, fb model.FileBackend) *model.AppError {
 	// read the client certificate file
 	clientCert, err := common.ReadFileSafely(fb, *cfg.ElasticsearchSettings.ClientCert)
 	if err != nil {

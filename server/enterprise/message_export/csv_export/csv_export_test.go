@@ -17,11 +17,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/public/filestore"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 func TestPostToRow(t *testing.T) {
@@ -304,7 +304,7 @@ func TestCsvExport(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		fileBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  exportTempDir,
 		})
@@ -321,7 +321,7 @@ func TestCsvExport(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		exportBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  exportTempDir,
 		})
@@ -334,7 +334,7 @@ func TestCsvExport(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		attachmentBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  attachmentTempDir,
 		})
@@ -343,7 +343,7 @@ func TestCsvExport(t *testing.T) {
 	})
 }
 
-func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
+func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend model.FileBackend, attachmentBackend model.FileBackend) {
 	rctx := request.TestContext(t)
 
 	header := "Post Creation Time,Post Update Time,Post Update Type,Team Id,Team Name,Team Display Name,Channel Id,Channel Name,Channel Display Name,Channel Type,User Id,User Email,Username,Post Id,Edited By Post Id,Replied to Post Id,Post Message,Post Type,User Type,Previews Post Id\n"
@@ -853,7 +853,7 @@ func TestWriteExportWarnings(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	config := filestore.FileBackendSettings{
+	config := model.FileBackendSettings{
 		DriverName: model.ImageDriverLocal,
 		Directory:  tempDir,
 	}

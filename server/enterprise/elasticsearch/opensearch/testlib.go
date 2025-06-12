@@ -10,12 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/filestore/mocks"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
-func createTestClient(t *testing.T, rctx request.CTX, cfg *model.Config, fileStore filestore.FileBackend) *opensearchapi.Client {
+
+func createTestClient(t *testing.T, rctx request.CTX, cfg *model.Config, fileStore model.FileBackend) *opensearchapi.Client {
 	t.Helper()
 
 	if fileStore == nil {

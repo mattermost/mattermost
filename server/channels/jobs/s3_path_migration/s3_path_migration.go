@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/filestore"
 )
 
 const (
@@ -33,7 +33,7 @@ type S3PathMigrationWorker struct {
 	jobs    chan model.Job
 }
 
-func MakeWorker(jobServer *jobs.JobServer, store store.Store, fileBackend filestore.FileBackend) *S3PathMigrationWorker {
+func MakeWorker(jobServer *jobs.JobServer, store store.Store, fileBackend model.FileBackend) *S3PathMigrationWorker {
 	// If the type cast fails, it will be nil
 	// which is checked later.
 	s3Backend, _ := fileBackend.(*filestore.S3FileBackend)

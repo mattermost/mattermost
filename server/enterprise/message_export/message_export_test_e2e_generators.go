@@ -20,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	st "github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 type MessageExport struct {
@@ -197,7 +196,7 @@ type JobResults struct {
 }
 
 func generateActianceBatchTest1(t *testing.T, th *api4.TestHelper, attachmentDir, exportDir string,
-	attachmentBackend filestore.FileBackend) JobResults {
+	attachmentBackend model.FileBackend) JobResults {
 	now := model.GetMillis()
 	jobStart := now - 1
 
@@ -338,7 +337,7 @@ func generateActianceBatchTest2(t *testing.T, th *api4.TestHelper, attachmentDir
 }
 
 func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
-	attachmentBackend, exportBackend filestore.FileBackend, testStopping bool) JobResults {
+	attachmentBackend, exportBackend model.FileBackend, testStopping bool) JobResults {
 	// This tests (reading the files exported and testing the actual exported data):
 	//  - job system exports the complete time from beginning to end; i.e., it doesn't use the post updateAt values as the bounds, it uses the start time and end time of the job.
 	//  - job system uses previous job's end time as the start for the next batch
@@ -660,7 +659,7 @@ func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, 
 }
 
 func generateE2ETestType2Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
-	attachmentBackend, exportBackend filestore.FileBackend) JobResults {
+	attachmentBackend, exportBackend model.FileBackend) JobResults {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.MessageExportSettings.EnableExport = true
 		*cfg.MessageExportSettings.ExportFromTimestamp = 0
@@ -818,7 +817,7 @@ type Type3Results struct {
 }
 
 func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
-	attachmentBackend, exportBackend filestore.FileBackend) (JobResults, Type3Results) {
+	attachmentBackend, exportBackend model.FileBackend) (JobResults, Type3Results) {
 	// This tests (reading the files exported and testing the exported xml):
 	//  - post create at field is set
 	//  - post deleted fields are set
@@ -1055,7 +1054,7 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 }
 
 func generateE2ETestType4Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
-	attachmentBackend, exportBackend filestore.FileBackend) JobResults {
+	attachmentBackend, exportBackend model.FileBackend) JobResults {
 	start := model.GetMillis()
 
 	// Users:
@@ -1212,7 +1211,7 @@ type Type5Results struct {
 
 // generateE2ETestType5Results does 4 jobs, returns an array of each job's data to use in testing
 func generateE2ETestType5Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
-	attachmentBackend, exportBackend filestore.FileBackend) ([]JobResults, []Type5Results) {
+	attachmentBackend, exportBackend model.FileBackend) ([]JobResults, []Type5Results) {
 	// This tests (reading the files exported and testing the exported file):
 	//  - post deleted in current job: shows created post, then deleted post
 	//  - post deleted in current job but different batch: shows created post (in second batch), then deleted post

@@ -11,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 type Option func(s *Server) error
@@ -60,7 +59,7 @@ func ConfigStore(configStore *config.Store) Option {
 	}
 }
 
-func SetFileStore(filestore filestore.FileBackend) Option {
+func SetFileStore(filestore model.FileBackend) Option {
 	return func(s *Server) error {
 		s.platformOptions = append(s.platformOptions, platform.SetFileStore(filestore))
 		return nil

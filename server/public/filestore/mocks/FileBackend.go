@@ -7,8 +7,7 @@ package mocks
 import (
 	io "io"
 
-	filestore "github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
-
+	"github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 
 	time "time"
@@ -276,23 +275,23 @@ func (_m *FileBackend) ReadFile(path string) ([]byte, error) {
 }
 
 // Reader provides a mock function with given fields: path
-func (_m *FileBackend) Reader(path string) (filestore.ReadCloseSeeker, error) {
+func (_m *FileBackend) Reader(path string) (model.ReadCloseSeeker, error) {
 	ret := _m.Called(path)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Reader")
 	}
 
-	var r0 filestore.ReadCloseSeeker
+	var r0 model.ReadCloseSeeker
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (filestore.ReadCloseSeeker, error)); ok {
+	if rf, ok := ret.Get(0).(func(string) (model.ReadCloseSeeker, error)); ok {
 		return rf(path)
 	}
-	if rf, ok := ret.Get(0).(func(string) filestore.ReadCloseSeeker); ok {
+	if rf, ok := ret.Get(0).(func(string) model.ReadCloseSeeker); ok {
 		r0 = rf(path)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(filestore.ReadCloseSeeker)
+			r0 = ret.Get(0).(model.ReadCloseSeeker)
 		}
 	}
 

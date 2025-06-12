@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/public/filestore"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
@@ -28,7 +29,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/actiance_export"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/global_relay_export"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 //go:embed testdata/actianceXMLHeader.tmpl
@@ -177,7 +177,7 @@ func TestRunExportByType(t *testing.T) {
 		exportTempDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 
-		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		fileBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  exportTempDir,
 		})
@@ -190,7 +190,7 @@ func TestRunExportByType(t *testing.T) {
 		exportTempDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 
-		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		exportBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  exportTempDir,
 		})
@@ -199,7 +199,7 @@ func TestRunExportByType(t *testing.T) {
 		attachmentTempDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 
-		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		attachmentBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  attachmentTempDir,
 		})
@@ -209,7 +209,7 @@ func TestRunExportByType(t *testing.T) {
 	})
 }
 
-func testRunExportByType(t *testing.T, exportBackend filestore.FileBackend, exportDir string, attachmentBackend filestore.FileBackend, attachmentDir string) {
+func testRunExportByType(t *testing.T, exportBackend model.FileBackend, exportDir string, attachmentBackend model.FileBackend, attachmentDir string) {
 	rctx := request.TestContext(t)
 
 	chanTypeDirect := model.ChannelTypeDirect
@@ -297,7 +297,7 @@ func TestRunExportJobE2EByType(t *testing.T) {
 		exportTempDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 
-		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		fileBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  exportTempDir,
 		})
@@ -310,7 +310,7 @@ func TestRunExportJobE2EByType(t *testing.T) {
 		exportTempDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 
-		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		exportBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  exportTempDir,
 		})
@@ -319,7 +319,7 @@ func TestRunExportJobE2EByType(t *testing.T) {
 		attachmentTempDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 
-		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		attachmentBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  attachmentTempDir,
 		})
@@ -329,8 +329,8 @@ func TestRunExportJobE2EByType(t *testing.T) {
 	})
 }
 
-func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, exportDir string,
-	attachmentBackend filestore.FileBackend, attachmentDir string) {
+func testRunExportJobE2E(t *testing.T, exportBackend model.FileBackend, exportDir string,
+	attachmentBackend model.FileBackend, attachmentDir string) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
@@ -2536,7 +2536,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 	})
 }
 
-func openZipAndReadFile(t *testing.T, backend filestore.FileBackend, path string, filename string) string {
+func openZipAndReadFile(t *testing.T, backend model.FileBackend, path string, filename string) string {
 	zipBytes, err := backend.ReadFile(path)
 	require.NoError(t, err)
 	return readFileFromZip(t, zipBytes, filename)
@@ -2556,13 +2556,13 @@ func readFileFromZip(t *testing.T, zipBytes []byte, filename string) string {
 	return string(contents)
 }
 
-func openZipAndReadFileNum(t *testing.T, backend filestore.FileBackend, path string, fileNum int) string {
+func openZipAndReadFileNum(t *testing.T, backend model.FileBackend, path string, fileNum int) string {
 	zipBytes, err := backend.ReadFile(path)
 	require.NoError(t, err)
 	return readFilenumFromZip(t, zipBytes, fileNum)
 }
 
-func openZipAndReadFileStartingWith(t *testing.T, backend filestore.FileBackend, path string, startsWith string) string {
+func openZipAndReadFileStartingWith(t *testing.T, backend model.FileBackend, path string, startsWith string) string {
 	zipBytes, err := backend.ReadFile(path)
 	require.NoError(t, err)
 

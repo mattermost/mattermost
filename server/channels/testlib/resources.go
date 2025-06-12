@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/filestore"
 )
 
 const (
@@ -112,7 +112,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 }
 
 func CopyFile(src, dst string) error {
-	fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{DriverName: "local", Directory: ""})
+	fileBackend, err := filestore.NewFileBackend(model.FileBackendSettings{DriverName: "local", Directory: ""})
 	if err != nil {
 		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
 	}

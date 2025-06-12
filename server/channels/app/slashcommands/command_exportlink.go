@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 type ExportLinkProvider struct {
@@ -42,7 +41,7 @@ func (*ExportLinkProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.C
 	}
 
 	b := a.ExportFileBackend()
-	_, ok := b.(filestore.FileBackendWithLinkGenerator)
+	_, ok := b.(model.FileBackendWithLinkGenerator)
 	if !ok {
 		return nil
 	}
@@ -64,7 +63,7 @@ func (*ExportLinkProvider) DoCommand(a *app.App, c request.CTX, args *model.Comm
 	}
 
 	b := a.ExportFileBackend()
-	_, ok := b.(filestore.FileBackendWithLinkGenerator)
+	_, ok := b.(model.FileBackendWithLinkGenerator)
 	if !ok {
 		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.driver.app_error")}
 	}

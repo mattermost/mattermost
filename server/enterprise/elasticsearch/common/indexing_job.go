@@ -13,13 +13,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -40,7 +38,7 @@ func NewIndexerWorker(name string,
 	backend string,
 	jobServer *jobs.JobServer,
 	logger mlog.LoggerIFace,
-	fileBackend filestore.FileBackend,
+	fileBackend model.FileBackend,
 	licenseFn func() *model.License,
 	createBulkProcessorFn func() error,
 	addItemToBulkProcessorFn func(indexName string, indexOp string, docID string, body io.ReadSeeker) error,
@@ -74,7 +72,7 @@ type IndexerWorker struct {
 	jobs        chan model.Job
 	jobServer   *jobs.JobServer
 	logger      mlog.LoggerIFace
-	fileBackend filestore.FileBackend
+	fileBackend model.FileBackend
 
 	license func() *model.License
 

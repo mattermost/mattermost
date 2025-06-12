@@ -26,7 +26,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
-	filesStoreMocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
+	filesStoreMocks "github.com/mattermost/mattermost/server/public/filestore/mocks"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {

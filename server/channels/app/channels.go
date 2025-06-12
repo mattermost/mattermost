@@ -22,7 +22,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 type configService interface {
@@ -37,8 +36,8 @@ type configService interface {
 type Channels struct {
 	srv             *Server
 	cfgSvc          configService
-	filestore       filestore.FileBackend
-	exportFilestore filestore.FileBackend
+	filestore       model.FileBackend
+	exportFilestore model.FileBackend
 
 	postActionCookieSecret []byte
 

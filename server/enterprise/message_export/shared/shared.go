@@ -12,7 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -229,8 +229,8 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 type BackendParams struct {
 	Config                *model.Config
 	Store                 MessageExportStore
-	FileAttachmentBackend filestore.FileBackend
-	ExportBackend         filestore.FileBackend
+	FileAttachmentBackend model.FileBackend
+	ExportBackend         model.FileBackend
 	HtmlTemplates         *templates.Container
 }
 
@@ -245,8 +245,8 @@ type ExportParams struct {
 	BatchEndTime           int64
 	Config                 *model.Config
 	Db                     MessageExportStore
-	FileAttachmentBackend  filestore.FileBackend
-	ExportBackend          filestore.FileBackend
+	FileAttachmentBackend  model.FileBackend
+	ExportBackend          model.FileBackend
 	Templates              *templates.Container
 }
 
@@ -560,13 +560,13 @@ func GetBatchPath(exportDir string, prevPostUpdateAt int64, lastPostUpdateAt int
 }
 
 // GetExportBackend returns the file backend where the export will be created.
-func GetExportBackend(rctx request.CTX, config *model.Config) (filestore.FileBackend, error) {
+func GetExportBackend(rctx request.CTX, config *model.Config) (model.FileBackend, error) {
 	insecure := config.ServiceSettings.EnableInsecureOutgoingConnections
 	skipVerify := insecure != nil && *insecure
 
 	if config.FileSettings.DedicatedExportStore != nil && *config.FileSettings.DedicatedExportStore {
 		rctx.Logger().Debug("Worker: using dedicated export filestore", mlog.String("driver_name", *config.FileSettings.ExportDriverName))
-		backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&config.FileSettings, true, skipVerify))
+		backend, errFileBack := filestore.NewExportFileBackend(model.NewExportFileBackendSettingsFromConfig(&config.FileSettings, true, skipVerify))
 		if errFileBack != nil {
 			return nil, errFileBack
 		}
@@ -574,7 +574,7 @@ func GetExportBackend(rctx request.CTX, config *model.Config) (filestore.FileBac
 		return backend, nil
 	}
 
-	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, skipVerify))
+	backend, err := filestore.NewFileBackend(model.NewFileBackendSettingsFromConfig(&config.FileSettings, true, skipVerify))
 	if err != nil {
 		return nil, err
 	}
@@ -584,10 +584,10 @@ func GetExportBackend(rctx request.CTX, config *model.Config) (filestore.FileBac
 // GetFileAttachmentBackend returns the file backend where file attachments are
 // located for messages that will be exported. This may be the same backend
 // where the export will be created.
-func GetFileAttachmentBackend(rctx request.CTX, config *model.Config) (filestore.FileBackend, error) {
+func GetFileAttachmentBackend(rctx request.CTX, config *model.Config) (model.FileBackend, error) {
 	insecure := config.ServiceSettings.EnableInsecureOutgoingConnections
 
-	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, insecure != nil && *insecure))
+	backend, err := filestore.NewFileBackend(model.NewFileBackendSettingsFromConfig(&config.FileSettings, true, insecure != nil && *insecure))
 	if err != nil {
 		return nil, err
 	}

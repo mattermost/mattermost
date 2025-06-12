@@ -75,7 +75,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
@@ -1455,11 +1455,11 @@ func (s *Server) SendRemoveExpiredLicenseEmail(email, ctaText, ctaLink, locale, 
 	return nil
 }
 
-func (s *Server) FileBackend() filestore.FileBackend {
+func (s *Server) FileBackend() model.FileBackend {
 	return s.platform.FileBackend()
 }
 
-func (s *Server) ExportFileBackend() filestore.FileBackend {
+func (s *Server) ExportFileBackend() model.FileBackend {
 	return s.platform.ExportFileBackend()
 }
 

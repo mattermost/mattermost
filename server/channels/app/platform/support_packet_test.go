@@ -21,7 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
-	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
+	fmocks "github.com/mattermost/mattermost/server/public/filestore/mocks"
 )
 
 func TestGenerateSupportPacket(t *testing.T) {

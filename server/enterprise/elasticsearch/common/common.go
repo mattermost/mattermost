@@ -15,7 +15,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 const (
@@ -299,7 +298,7 @@ func NumIndexWorkers() int {
 // used to limit file size of ClientCert, ClientKey and CA.
 const maxCertFileSizeBytes = 1_000_000 // 1MB
 
-func ReadFileSafely(fb filestore.FileBackend, path string) ([]byte, error) {
+func ReadFileSafely(fb model.FileBackend, path string) ([]byte, error) {
 	rd, err := fb.Reader(path)
 	if err != nil {
 		return nil, err

@@ -17,12 +17,12 @@ import (
 	"github.com/jaytaylor/html2text"
 	gomail "gopkg.in/mail.v2"
 
+	"github.com/mattermost/mattermost/server/public/filestore"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
@@ -251,7 +251,7 @@ func getParticipants(channelExport *ChannelExport, joinEvents []shared.JoinExpor
 	return participants
 }
 
-func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend, channelExport *ChannelExport, templates *templates.Container, w io.Writer) (int, error) {
+func generateEmail(rctx request.CTX, fileAttachmentBackend model.FileBackend, channelExport *ChannelExport, templates *templates.Container, w io.Writer) (int, error) {
 	var warningCount int
 	participantEmailAddresses := getParticipantEmails(channelExport)
 
@@ -299,7 +299,7 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 		path := fileInfo.Path
 
 		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
-			var reader filestore.ReadCloseSeeker
+			var reader model.ReadCloseSeeker
 			reader, err = fileAttachmentBackend.Reader(path)
 			if err != nil {
 				rctx.Logger().Warn("File not found for export", mlog.String("filename", path))

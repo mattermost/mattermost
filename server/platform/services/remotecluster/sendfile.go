@@ -15,7 +15,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 type SendFileResultFunc func(us *model.UploadSession, rc *model.RemoteCluster, resp *Response, err error)
@@ -29,7 +28,7 @@ type sendFileTask struct {
 }
 
 type ReaderProvider interface {
-	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
+	FileReader(path string) (model.ReadCloseSeeker, *model.AppError)
 }
 
 // SendFile asynchronously sends a file to a remote cluster.

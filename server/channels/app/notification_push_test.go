@@ -23,7 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
-	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
+	fmocks "github.com/mattermost/mattermost/server/public/filestore/mocks"
 )
 
 func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {

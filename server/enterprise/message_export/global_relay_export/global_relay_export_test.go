@@ -17,13 +17,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/public/filestore"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
@@ -44,7 +44,7 @@ func TestGlobalRelayExport(t *testing.T) {
 
 	rctx := request.TestContext(t)
 
-	config := filestore.FileBackendSettings{
+	config := model.FileBackendSettings{
 		DriverName: model.ImageDriverLocal,
 		Directory:  tempDir,
 	}
@@ -3089,7 +3089,7 @@ func TestGlobalRelayExport(t *testing.T) {
 	}
 }
 
-func openZipAndReadFileStartingWith(t *testing.T, backend filestore.FileBackend, path string, startsWith string) string {
+func openZipAndReadFileStartingWith(t *testing.T, backend model.FileBackend, path string, startsWith string) string {
 	zipBytes, err := backend.ReadFile(path)
 	require.NoError(t, err)
 
@@ -3115,7 +3115,7 @@ func openZipAndReadFileStartingWith(t *testing.T, backend filestore.FileBackend,
 	return ""
 }
 
-func openZipAndAssertNumEmls(t *testing.T, backend filestore.FileBackend, path string, numEmls int) {
+func openZipAndAssertNumEmls(t *testing.T, backend model.FileBackend, path string, numEmls int) {
 	zipBytes, err := backend.ReadFile(path)
 	require.NoError(t, err)
 

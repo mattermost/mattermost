@@ -20,7 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/filestore"
 )
 
 const (
@@ -260,7 +260,7 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 	return results, err
 }
 
-func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (res shared.WriteExportResult, err error) {
+func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportBackend model.FileBackend, fileAttachmentBackend model.FileBackend, batchPath string) (res shared.WriteExportResult, err error) {
 	start := time.Now()
 	// marshal the export object to xml
 	xmlData := &bytes.Buffer{}

@@ -17,7 +17,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 const (
@@ -65,7 +64,7 @@ type AppIface interface {
 	SaveAndBroadcastStatus(status *model.Status)
 	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
-	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
+	FileReader(path string) (model.ReadCloseSeeker, *model.AppError)
 	MentionsToTeamMembers(c request.CTX, message, teamID string) model.UserMentionMap
 	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
 	NotifySharedChannelUserUpdate(user *model.User)

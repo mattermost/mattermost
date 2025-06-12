@@ -13,11 +13,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost/server/public/filestore"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/config"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/morph"
 	"github.com/mattermost/morph/models"
 )
@@ -322,14 +322,14 @@ func dbVersionCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func ConfigToFileBackendSettings(s *model.FileSettings, enableComplianceFeature bool, skipVerify bool) filestore.FileBackendSettings {
+func ConfigToFileBackendSettings(s *model.FileSettings, enableComplianceFeature bool, skipVerify bool) model.FileBackendSettings {
 	if *s.DriverName == model.ImageDriverLocal {
-		return filestore.FileBackendSettings{
+		return model.FileBackendSettings{
 			DriverName: *s.DriverName,
 			Directory:  *s.Directory,
 		}
 	}
-	return filestore.FileBackendSettings{
+	return model.FileBackendSettings{
 		DriverName:                         *s.DriverName,
 		AmazonS3AccessKeyId:                *s.AmazonS3AccessKeyId,
 		AmazonS3SecretAccessKey:            *s.AmazonS3SecretAccessKey,

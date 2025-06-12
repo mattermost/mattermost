@@ -5,7 +5,6 @@
 package sharedchannel
 
 import (
-	filestore "github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	mock "github.com/stretchr/testify/mock"
 
 	model "github.com/mattermost/mattermost/server/public/model"
@@ -219,23 +218,23 @@ func (_m *MockAppIface) DeleteReactionForPost(c request.CTX, reaction *model.Rea
 }
 
 // FileReader provides a mock function with given fields: path
-func (_m *MockAppIface) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+func (_m *MockAppIface) FileReader(path string) (model.ReadCloseSeeker, *model.AppError) {
 	ret := _m.Called(path)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FileReader")
 	}
 
-	var r0 filestore.ReadCloseSeeker
+	var r0 model.ReadCloseSeeker
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (filestore.ReadCloseSeeker, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(string) (model.ReadCloseSeeker, *model.AppError)); ok {
 		return rf(path)
 	}
-	if rf, ok := ret.Get(0).(func(string) filestore.ReadCloseSeeker); ok {
+	if rf, ok := ret.Get(0).(func(string) model.ReadCloseSeeker); ok {
 		r0 = rf(path)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(filestore.ReadCloseSeeker)
+			r0 = ret.Get(0).(model.ReadCloseSeeker)
 		}
 	}
 

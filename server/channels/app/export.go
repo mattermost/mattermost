@@ -24,7 +24,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 const warningsFilename = "warnings.txt"
@@ -1270,7 +1269,7 @@ func (a *App) GeneratePresignURLForExport(name string) (*model.PresignURLRespons
 	}
 
 	b := a.ExportFileBackend()
-	backend, ok := b.(filestore.FileBackendWithLinkGenerator)
+	backend, ok := b.(model.FileBackendWithLinkGenerator)
 	if !ok {
 		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.driver.app_error", nil, "", http.StatusInternalServerError)
 	}

@@ -20,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 type AppIface interface {
@@ -28,7 +27,7 @@ type AppIface interface {
 	RemoveFile(path string) *model.AppError
 	FileExists(path string) (bool, *model.AppError)
 	FileSize(path string) (int64, *model.AppError)
-	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
+	FileReader(path string) (model.ReadCloseSeeker, *model.AppError)
 	BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError)
 	Log() *mlog.Logger
 }
@@ -50,7 +49,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 
 		var importFilePath string
 		var importFileSize int64
-		var importFile filestore.ReadCloseSeeker
+		var importFile model.ReadCloseSeeker
 		if job.Data["local_mode"] == "true" {
 			// We simply read the file from the local filesystem.
 			info, err := os.Stat(importFileName)

@@ -12,11 +12,10 @@ import (
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/mattermost/mattermost/server/public/filestore/mocks"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
 type OpensearchInterfaceTestSuite struct {
@@ -25,7 +24,7 @@ type OpensearchInterfaceTestSuite struct {
 	th          *api4.TestHelper
 	client      *opensearchapi.Client
 	ctx         context.Context
-	fileBackend filestore.FileBackend
+	fileBackend model.FileBackend
 }
 
 func TestOpensearchInterfaceTestSuite(t *testing.T) {
