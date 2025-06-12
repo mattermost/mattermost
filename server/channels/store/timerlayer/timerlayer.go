@@ -9381,6 +9381,22 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteMembershipCursor(id string, s
 	return err
 }
 
+func (s *TimerLayerSharedChannelStore) UpdateUserLastMembershipSyncAt(userID string, channelID string, remoteID string, syncTime int64) error {
+	start := time.Now()
+
+	err := s.SharedChannelStore.UpdateUserLastMembershipSyncAt(userID, channelID, remoteID, syncTime)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateUserLastMembershipSyncAt", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
 	start := time.Now()
 
@@ -9393,22 +9409,6 @@ func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, chann
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateUserLastSyncAt", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAtWithTime(userID string, channelID string, remoteID string, syncTime int64) error {
-	start := time.Now()
-
-	err := s.SharedChannelStore.UpdateUserLastSyncAtWithTime(userID, channelID, remoteID, syncTime)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateUserLastSyncAtWithTime", success, elapsed)
 	}
 	return err
 }

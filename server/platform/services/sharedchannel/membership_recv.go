@@ -33,14 +33,14 @@ func (scs *Service) checkMembershipConflict(userID, channelID string, changeTime
 
 	// If there are conflicting operations, the latest one wins
 	for _, conflict := range conflicts {
-		if conflict.LastSyncAt > changeTime {
+		if conflict.LastMembershipSyncAt > changeTime {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Ignoring older membership change due to conflict",
 				mlog.String("user_id", userID),
 				mlog.String("channel_id", channelID),
 				mlog.Int("change_time", int(changeTime)),
-				mlog.Int("conflicting_time", int(conflict.LastSyncAt)),
+				mlog.Int("conflicting_time", int(conflict.LastMembershipSyncAt)),
 			)
-			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] checkMembershipConflict CONFLICT DETECTED - user %s, channel %s: changeTime %d < conflictTime %d, SKIPPING", userID, channelID, changeTime, conflict.LastSyncAt))
+			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] checkMembershipConflict CONFLICT DETECTED - user %s, channel %s: changeTime %d < conflictTime %d, SKIPPING", userID, channelID, changeTime, conflict.LastMembershipSyncAt))
 			return true, nil
 		}
 	}
@@ -78,6 +78,16 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 		return fmt.Errorf("cannot get shared channel for membership changes: %w", err)
 	}
 
+	// Calculate the maximum ChangeTime from all changes in the batch
+	var maxChangeTime int64
+	for _, change := range syncMsg.MembershipChanges {
+		if change.ChangeTime > maxChangeTime {
+			maxChangeTime = change.ChangeTime
+		}
+	}
+
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] onReceiveMembershipChanges - computed maxChangeTime %d from %d changes", maxChangeTime, len(syncMsg.MembershipChanges)))
+
 	// Process each change
 	var successCount, skipCount, failCount int
 
@@ -98,7 +108,7 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 				mlog.String("remote_id", rc.RemoteId),
 			)
 			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] Processing ADD user %s to channel %s from remote %s", change.UserId, change.ChannelId, rc.DisplayName))
-			processErr = scs.processMemberAdd(change, channel, rc)
+			processErr = scs.processMemberAdd(change, channel, rc, maxChangeTime)
 		} else {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Removing user from channel from remote cluster",
 				mlog.String("user_id", change.UserId),
@@ -106,7 +116,7 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 				mlog.String("remote_id", rc.RemoteId),
 			)
 			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] Processing REMOVE user %s from channel %s from remote %s", change.UserId, change.ChannelId, rc.DisplayName))
-			processErr = scs.processMemberRemove(change, rc)
+			processErr = scs.processMemberRemove(change, rc, maxChangeTime)
 		}
 
 		if processErr != nil {
@@ -129,7 +139,7 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 }
 
 // processMemberAdd handles adding a user to a channel as part of batch processing
-func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel *model.Channel, rc *model.RemoteCluster) error {
+func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel *model.Channel, rc *model.RemoteCluster, maxChangeTime int64) error {
 	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd STARTED - user %s, channel %s, remote %s", change.UserId, change.ChannelId, rc.DisplayName))
 
 	// Get the user if they exist
@@ -173,9 +183,9 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 	}
 
 	// Update the sync status
-	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd - updating sync status for user %s, channel %s, remote %s", change.UserId, change.ChannelId, rc.RemoteId))
-	if syncErr := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(change.UserId, change.ChannelId, rc.RemoteId); syncErr != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user LastSyncAt after batch member add",
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECV] processMemberAdd - updating sync status for user %s, channel %s, remote %s with maxChangeTime %d", change.UserId, change.ChannelId, rc.RemoteId, maxChangeTime))
+	if syncErr := scs.server.GetStore().SharedChannel().UpdateUserLastMembershipSyncAt(change.UserId, change.ChannelId, rc.RemoteId, maxChangeTime); syncErr != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user LastMembershipSyncAt after batch member add",
 			mlog.String("user_id", change.UserId),
 			mlog.String("channel_id", change.ChannelId),
 			mlog.String("remote_id", rc.RemoteId),
@@ -192,7 +202,7 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 }
 
 // processMemberRemove handles removing a user from a channel as part of batch processing
-func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *model.RemoteCluster) error {
+func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *model.RemoteCluster, maxChangeTime int64) error {
 	// Get channel so we can use app layer methods properly
 	channel, err := scs.server.GetStore().Channel().Get(change.ChannelId, true)
 	if err != nil {
@@ -225,8 +235,8 @@ func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *m
 	}
 
 	// Update the sync status
-	if syncErr := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(change.UserId, change.ChannelId, rc.RemoteId); syncErr != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user LastSyncAt after batch member remove",
+	if syncErr := scs.server.GetStore().SharedChannel().UpdateUserLastMembershipSyncAt(change.UserId, change.ChannelId, rc.RemoteId, maxChangeTime); syncErr != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user LastMembershipSyncAt after batch member remove",
 			mlog.String("user_id", change.UserId),
 			mlog.String("channel_id", change.ChannelId),
 			mlog.String("remote_id", rc.RemoteId),

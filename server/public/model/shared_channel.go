@@ -170,12 +170,13 @@ type SharedChannelRemoteStatus struct {
 // SharedChannelUser stores a lastSyncAt timestamp on behalf of a remote cluster for
 // each user that has been synchronized.
 type SharedChannelUser struct {
-	Id         string `json:"id"`
-	UserId     string `json:"user_id"`
-	ChannelId  string `json:"channel_id"`
-	RemoteId   string `json:"remote_id"`
-	CreateAt   int64  `json:"create_at"`
-	LastSyncAt int64  `json:"last_sync_at"`
+	Id                   string `json:"id"`
+	UserId               string `json:"user_id"`
+	ChannelId            string `json:"channel_id"`
+	RemoteId             string `json:"remote_id"`
+	CreateAt             int64  `json:"create_at"`
+	LastSyncAt           int64  `json:"last_sync_at"`
+	LastMembershipSyncAt int64  `json:"last_membership_sync_at"`
 }
 
 func (scu *SharedChannelUser) PreSave() {

@@ -221,12 +221,10 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		batchSize := service.GetMemberSyncBatchSize()
-		t.Logf("DEBUG: Batch size = %d", batchSize)
 
 		// First, add multiple users to the channel BEFORE sharing
 		// Include different user types to test filtering
 		numRegularUsers := (batchSize * 2) + 5 // Back to original
-		t.Logf("DEBUG: Creating %d regular users", numRegularUsers)
 		regularUserIDs := make([]string, numRegularUsers)
 		for i := 0; i < numRegularUsers; i++ {
 			user := th.CreateUser()
@@ -294,12 +292,10 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Should include regular users + guest + BasicUser + bot + system admin
 		expectedTotal := numRegularUsers + 1 + 1 + 1 + 1 // regular users + guest + BasicUser + bot + system admin
 		expectedBatches := (expectedTotal + batchSize - 1) / batchSize
-		t.Logf("DEBUG: Expected total users = %d, expected batches = %d", expectedTotal, expectedBatches)
 
 		syncHandler.OnBatchSync = func(userIds []string, messageNumber int32) {
 			mu.Lock()
 			batchedUserIDs = append(batchedUserIDs, userIds)
-			t.Logf("DEBUG: Batch %d received with %d users", messageNumber, len(userIds))
 			// Check if we've received all expected batches
 			if len(batchedUserIDs) >= expectedBatches {
 				syncCompleted.Store(true)
@@ -342,8 +338,6 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			}
 		}
 		mu.Unlock()
-
-		t.Logf("DEBUG: Final results - actualBatches=%d, totalSynced=%d", actualBatches, totalSynced)
 
 		// Verify exact batch count
 		assert.Equal(t, expectedBatches, actualBatches, fmt.Sprintf("Should have exactly %d batches with batch size %d", expectedBatches, batchSize))
@@ -1667,6 +1661,269 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		assert.Equal(t, 0, userCount3[user2.Id], "User2 should not be synced for channel3")
 		assert.Equal(t, 1, userCount3[user3.Id], "User3 should be synced exactly once for channel3")
 	})
+	// t.Run("Test 11: Strengthened conflict resolution", func(t *testing.T) {
+	// 	// This test verifies robust handling of conflicting membership states between multiple clusters.
+	// 	// Strengthened conflict scenarios tested:
+	// 	// 1. Basic conflict: user removed from one cluster but not another
+	// 	// 2. Re-addition after partial sync: user re-added after being synced to only one cluster
+	// 	// 3. Cursor consistency: verify sync cursors are properly updated across conflict resolution
+	// 	// 4. Post-conflict operations: ensure system works correctly after resolving conflicts
+	// 	// The test ensures the system correctly resolves conflicts and maintains data consistency
+	// 	EnsureCleanState(t, th, ss)
+	// 	var syncMessages []model.SyncMsg
+	// 	var mu sync.Mutex
+	// 	var syncMessageCount int32
+	// 	var selfCluster *model.RemoteCluster
+
+	// 	// Create sync handler
+	// 	syncHandler := NewSelfReferentialSyncHandler(t, service, nil)
+
+	// 	// Create test HTTP server that tracks sync messages
+	// 	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 		if r.URL.Path == "/api/v4/remotecluster/msg" {
+	// 			atomic.AddInt32(&syncMessageCount, 1)
+
+	// 			// Read body once
+	// 			bodyBytes, readErr := io.ReadAll(r.Body)
+	// 			if readErr != nil {
+	// 				writeOKResponse(w)
+	// 				return
+	// 			}
+	// 			r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+
+	// 			// Capture all sync messages - parse as RemoteClusterFrame
+	// 			var frame model.RemoteClusterFrame
+	// 			if unmarshalErr := json.Unmarshal(bodyBytes, &frame); unmarshalErr == nil {
+	// 				var syncMsg model.SyncMsg
+	// 				if payloadErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); payloadErr == nil {
+	// 					mu.Lock()
+	// 					syncMessages = append(syncMessages, syncMsg)
+	// 					mu.Unlock()
+	// 				}
+	// 			}
+
+	// 			// Handle with sync handler for proper response
+	// 			if selfCluster != nil {
+	// 				syncHandler.selfCluster = selfCluster
+	// 				syncHandler.HandleRequest(w, r)
+	// 				return
+	// 			}
+	// 		}
+	// 		writeOKResponse(w)
+	// 	}))
+	// 	defer testServer.Close()
+
+	// 	// Create and share channel
+	// 	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	// 	sc := &model.SharedChannel{
+	// 		ChannelId: channel.Id,
+	// 		TeamId:    th.BasicTeam.Id,
+	// 		Home:      true,
+	// 		ShareName: "strengthened-conflict-test",
+	// 		CreatorId: th.BasicUser.Id,
+	// 		RemoteId:  "",
+	// 	}
+	// 	_, shareErr := th.App.ShareChannel(th.Context, sc)
+	// 	require.NoError(t, shareErr)
+
+	// 	// Create self-referential remote cluster
+	// 	selfCluster = &model.RemoteCluster{
+	// 		RemoteId:    model.NewId(),
+	// 		Name:        "self-cluster-strengthened-conflict",
+	// 		SiteURL:     testServer.URL,
+	// 		CreateAt:    model.GetMillis(),
+	// 		LastPingAt:  model.GetMillis(),
+	// 		Token:       model.NewId(),
+	// 		CreatorId:   th.BasicUser.Id,
+	// 		RemoteToken: model.NewId(),
+	// 	}
+	// 	selfCluster, err = ss.RemoteCluster().Save(selfCluster)
+	// 	require.NoError(t, err)
+
+	// 	// Share channel with self
+	// 	scr := &model.SharedChannelRemote{
+	// 		Id:                model.NewId(),
+	// 		ChannelId:         channel.Id,
+	// 		CreatorId:         th.BasicUser.Id,
+	// 		RemoteId:          selfCluster.RemoteId,
+	// 		IsInviteAccepted:  true,
+	// 		IsInviteConfirmed: true,
+	// 		LastMembersSyncAt: 0,
+	// 	}
+	// 	_, err = ss.SharedChannel().SaveRemote(scr)
+	// 	require.NoError(t, err)
+
+	// 	// Phase 1: Create users for conflict scenarios
+	// 	conflictUser1 := th.CreateUser()
+	// 	conflictUser2 := th.CreateUser()
+
+	// 	// Add users to team
+	// 	for _, user := range []*model.User{conflictUser1, conflictUser2} {
+	// 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
+	// 		require.Nil(t, appErr)
+	// 	}
+
+	// 	// Add users to channel initially
+	// 	for _, user := range []*model.User{conflictUser1, conflictUser2} {
+	// 		_, appErr := th.App.AddUserToChannel(th.Context, user, channel, false)
+	// 		require.Nil(t, appErr)
+	// 	}
+
+	// 	// Verify users are initially members
+	// 	for _, user := range []*model.User{conflictUser1, conflictUser2} {
+	// 		_, initialErr := ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
+	// 		require.NoError(t, initialErr, "User should be initially a member")
+	// 	}
+
+	// 	// Phase 2: Initial sync
+	// 	err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+	// 	require.NoError(t, err)
+
+	// 	// Wait for initial sync to complete
+	// 	require.Eventually(t, func() bool {
+	// 		count := atomic.LoadInt32(&syncMessageCount)
+	// 		return count > 0
+	// 	}, 15*time.Second, 200*time.Millisecond, "Should have initial sync messages")
+
+	// 	// Get initial cursor
+	// 	initialScr, scrErr := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
+	// 	require.NoError(t, scrErr)
+	// 	initialCursor := initialScr.LastMembersSyncAt
+
+	// 	// Phase 3: Create conflict by removing user locally
+	// 	// Temporarily disable automatic sync to prevent interference with manual operations
+	// 	th.App.UpdateConfig(func(cfg *model.Config) {
+	// 		cfg.FeatureFlags.EnableSharedChannelsMemberSync = false
+	// 	})
+	// 	rErr := th.App.ReloadConfig()
+	// 	require.NoError(t, rErr)
+
+	// 	// Remove conflictUser1 locally
+	// 	appErr := th.App.RemoveUserFromChannel(th.Context, conflictUser1.Id, th.SystemAdminUser.Id, channel)
+	// 	require.Nil(t, appErr, "Failed to remove conflictUser1")
+
+	// 	// Wait for removal to complete
+	// 	require.Eventually(t, func() bool {
+	// 		_, err1 := ss.Channel().GetMember(context.Background(), channel.Id, conflictUser1.Id)
+	// 		return err1 != nil // User should not be found
+	// 	}, 15*time.Second, 200*time.Millisecond, "User should be removed from channel")
+
+	// 	// Phase 4: Re-add user (creating conflict state)
+	// 	// Re-add conflictUser1 (simulating conflict between local state and remote state)
+	// 	_, appErr = th.App.AddUserToChannel(th.Context, conflictUser1, channel, false)
+	// 	require.Nil(t, appErr)
+
+	// 	// Re-enable automatic sync for the conflict resolution phase
+	// 	th.App.UpdateConfig(func(cfg *model.Config) {
+	// 		cfg.FeatureFlags.EnableSharedChannelsMemberSync = true
+	// 	})
+	// 	rErr = th.App.ReloadConfig()
+	// 	require.NoError(t, rErr)
+
+	// 	// Wait for local operation to complete
+	// 	require.Eventually(t, func() bool {
+	// 		_, err1 := ss.Channel().GetMember(context.Background(), channel.Id, conflictUser1.Id)
+	// 		return err1 == nil // User should be found
+	// 	}, 10*time.Second, 200*time.Millisecond, "User should be locally a member after re-adding")
+
+	// 	// Phase 5: Conflict resolution sync
+	// 	// Reset message tracking for conflict resolution phase
+	// 	atomic.StoreInt32(&syncMessageCount, 0)
+	// 	mu.Lock()
+	// 	syncMessages = []model.SyncMsg{}
+	// 	mu.Unlock()
+
+	// 	err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+	// 	require.NoError(t, err)
+
+	// 	// Wait for conflict resolution sync to complete
+	// 	require.Eventually(t, func() bool {
+	// 		count := atomic.LoadInt32(&syncMessageCount)
+	// 		return count > 0
+	// 	}, 20*time.Second, 200*time.Millisecond, "Should receive conflict resolution sync messages")
+
+	// 	// Phase 6: Verification of conflict resolution
+	// 	mu.Lock()
+	// 	totalMessages := len(syncMessages)
+	// 	mu.Unlock()
+
+	// 	// Verify we received sync messages for conflict resolution
+	// 	assert.Greater(t, totalMessages, 0, "Should have sync messages for conflict resolution")
+
+	// 	// Verify final membership state is consistent
+	// 	expectedMembers := map[string]bool{
+	// 		conflictUser1.Id: true, // Re-added, should be member
+	// 		conflictUser2.Id: true, // Never removed, should be member
+	// 		th.BasicUser.Id:  true, // Basic user, should be member
+	// 	}
+
+	// 	for userId, shouldBeMember := range expectedMembers {
+	// 		require.Eventually(t, func() bool {
+	// 			_, memberErr := ss.Channel().GetMember(context.Background(), channel.Id, userId)
+	// 			if shouldBeMember {
+	// 				return memberErr == nil
+	// 			}
+	// 			return memberErr != nil
+	// 		}, 10*time.Second, 200*time.Millisecond,
+	// 			"User %s membership state should be consistent after conflict resolution", userId)
+	// 	}
+
+	// 	// Phase 7: Verify cursor updates
+	// 	require.Eventually(t, func() bool {
+	// 		scrUpdated, err1 := ss.SharedChannel().GetRemoteByIds(channel.Id, selfCluster.RemoteId)
+	// 		return err1 == nil && scrUpdated.LastMembersSyncAt > initialCursor
+	// 	}, 15*time.Second, 200*time.Millisecond, "Cluster should have updated sync cursor")
+
+	// 	// Phase 8: Test that new operations after conflict resolution work correctly
+	// 	newUser := th.CreateUser()
+	// 	_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, newUser.Id, th.BasicUser.Id)
+	// 	require.Nil(t, appErr)
+	// 	_, appErr = th.App.AddUserToChannel(th.Context, newUser, channel, false)
+	// 	require.Nil(t, appErr)
+
+	// 	// Reset and sync this new user
+	// 	atomic.StoreInt32(&syncMessageCount, 0)
+	// 	mu.Lock()
+	// 	syncMessages = []model.SyncMsg{}
+	// 	mu.Unlock()
+
+	// 	err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+	// 	require.NoError(t, err)
+
+	// 	// Verify the new user is synced correctly
+	// 	require.Eventually(t, func() bool {
+	// 		mu.Lock()
+	// 		defer mu.Unlock()
+
+	// 		// Check if the new user appears in any sync message
+	// 		for _, msg := range syncMessages {
+	// 			for _, change := range msg.MembershipChanges {
+	// 				if change.UserId == newUser.Id && change.IsAdd {
+	// 					return true
+	// 				}
+	// 			}
+	// 		}
+	// 		return false
+	// 	}, 15*time.Second, 200*time.Millisecond, "New user should be synced correctly after conflict resolution")
+
+	// 	// Phase 9: Verify efficiency - no redundant syncs for existing members
+	// 	atomic.StoreInt32(&syncMessageCount, 0)
+	// 	mu.Lock()
+	// 	syncMessages = []model.SyncMsg{}
+	// 	mu.Unlock()
+
+	// 	// Trigger another sync - should not send messages for already-synced members
+	// 	err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+	// 	require.NoError(t, err)
+
+	// 	// Wait for sync completion and verify minimal activity
+	// 	// Give time for any sync to complete, then check the final count
+	// 	require.Eventually(t, func() bool {
+	// 		finalCount := atomic.LoadInt32(&syncMessageCount)
+	// 		// Should have minimal activity since all members are already synced
+	// 		return finalCount <= 1
+	// 	}, 10*time.Second, 200*time.Millisecond, "Should have minimal sync activity for already-synced members")
+	// })
 }
 
 // Helper function to get unique users from a list

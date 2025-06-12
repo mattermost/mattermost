@@ -693,6 +693,7 @@ func sharedChannelUserFields(prefix string) []string {
 		prefix + "RemoteId",
 		prefix + "CreateAt",
 		prefix + "LastSyncAt",
+		prefix + "LastMembershipSyncAt",
 	}
 }
 
@@ -705,7 +706,7 @@ func (s SqlSharedChannelStore) SaveUser(scUser *model.SharedChannelUser) (*model
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannelUsers").
 		Columns(sharedChannelUserFields("")...).
-		Values(scUser.Id, scUser.UserId, scUser.ChannelId, scUser.RemoteId, scUser.CreateAt, scUser.LastSyncAt).
+		Values(scUser.Id, scUser.UserId, scUser.ChannelId, scUser.RemoteId, scUser.CreateAt, scUser.LastSyncAt, scUser.LastMembershipSyncAt).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "savesharedchanneluser_tosql")
@@ -808,12 +809,6 @@ func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilte
 
 // UpdateUserLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelUser.
 func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
-	// Use the current time as the sync time
-	return s.UpdateUserLastSyncAtWithTime(userID, channelID, remoteID, model.GetMillis())
-}
-
-// UpdateUserLastSyncAtWithTime updates the LastSyncAt timestamp for the specified SharedChannelUser using the provided sync time.
-func (s SqlSharedChannelStore) UpdateUserLastSyncAtWithTime(userID string, channelID string, remoteID string, syncTime int64) error {
 	// fetching the user first creates a minor race condition. This is mitigated by ensuring that the
 	// LastUpdateAt is only ever increased. Doing it this way avoids the update with join that has differing
 	// syntax between MySQL and Postgres which Squirrel cannot handle.  It also allows us to return
@@ -839,6 +834,25 @@ func (s SqlSharedChannelStore) UpdateUserLastSyncAtWithTime(userID string, chann
 	_, err = s.GetMaster().ExecBuilder(query)
 	if err != nil {
 		return fmt.Errorf("failed to update LastSyncAt for SharedChannelUser with userId=%s, channelId=%s, remoteId=%s: %w",
+			userID, channelID, remoteID, err)
+	}
+	return nil
+}
+
+// UpdateUserLastMembershipSyncAt updates the LastMembershipSyncAt timestamp for the specified SharedChannelUser using the provided sync time.
+func (s SqlSharedChannelStore) UpdateUserLastMembershipSyncAt(userID string, channelID string, remoteID string, syncTime int64) error {
+	query := s.getQueryBuilder().
+		Update("SharedChannelUsers AS scu").
+		Set("LastMembershipSyncAt", sq.Expr("GREATEST(scu.LastMembershipSyncAt, ?)", syncTime)).
+		Where(sq.Eq{
+			"scu.UserId":    userID,
+			"scu.ChannelId": channelID,
+			"scu.RemoteId":  remoteID,
+		})
+
+	_, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return fmt.Errorf("failed to update LastMembershipSyncAt for SharedChannelUser with userId=%s, channelId=%s, remoteId=%s: %w",
 			userID, channelID, remoteID, err)
 	}
 	return nil

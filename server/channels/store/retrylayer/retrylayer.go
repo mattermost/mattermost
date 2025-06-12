@@ -11915,11 +11915,11 @@ func (s *RetryLayerSharedChannelStore) UpdateRemoteMembershipCursor(id string, s
 
 }
 
-func (s *RetryLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
+func (s *RetryLayerSharedChannelStore) UpdateUserLastMembershipSyncAt(userID string, channelID string, remoteID string, syncTime int64) error {
 
 	tries := 0
 	for {
-		err := s.SharedChannelStore.UpdateUserLastSyncAt(userID, channelID, remoteID)
+		err := s.SharedChannelStore.UpdateUserLastMembershipSyncAt(userID, channelID, remoteID, syncTime)
 		if err == nil {
 			return nil
 		}
@@ -11936,11 +11936,11 @@ func (s *RetryLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, chann
 
 }
 
-func (s *RetryLayerSharedChannelStore) UpdateUserLastSyncAtWithTime(userID string, channelID string, remoteID string, syncTime int64) error {
+func (s *RetryLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
 
 	tries := 0
 	for {
-		err := s.SharedChannelStore.UpdateUserLastSyncAtWithTime(userID, channelID, remoteID, syncTime)
+		err := s.SharedChannelStore.UpdateUserLastSyncAt(userID, channelID, remoteID)
 		if err == nil {
 			return nil
 		}

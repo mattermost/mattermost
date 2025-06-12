@@ -441,8 +441,8 @@ func (scs *Service) syncMembershipBatchToRemotes(syncMsg *model.SyncMsg, remotes
 
 			// Update sync timestamps
 			for _, change := range syncMsg.MembershipChanges {
-				if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(change.UserId, change.ChannelId, remote.RemoteId); err != nil {
-					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user sync timestamp in batch",
+				if err := scs.server.GetStore().SharedChannel().UpdateUserLastMembershipSyncAt(change.UserId, change.ChannelId, remote.RemoteId, change.ChangeTime); err != nil {
+					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user membership sync timestamp in batch",
 						mlog.String("user_id", change.UserId),
 						mlog.Err(err),
 					)
