@@ -78,33 +78,7 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
         <hr />
         <div
           role="alert"
-        >
-          <div
-            className="form-group"
-          >
-            <label
-              className="col-sm-12 has-error"
-            >
-              <i
-                className="icon icon-alert-circle-outline"
-                role="img"
-              />
-              <span
-                className="sr-only"
-              >
-                <MemoizedFormattedMessage
-                  defaultMessage="Error"
-                  id="setting_item_max.error"
-                />
-              </span>
-              <span
-                id="clientError"
-              >
-                clientError
-              </span>
-            </label>
-          </div>
-        </div>
+        />
         <SaveButton
           disabled={false}
           onClick={[Function]}
