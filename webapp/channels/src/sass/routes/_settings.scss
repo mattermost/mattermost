@@ -296,6 +296,19 @@
                             margin-block-start: 24px;
                         }
                     }
+
+                    .Input_fieldset {
+                        background: var(--center-channel-bg);
+
+                        .Input_wrapper {
+                            padding: 0 12px;
+
+                            .Input {
+                                height: 28px;
+                                border: none;
+                            }
+                        }
+                    }
                 }
 
                 .timezone-container {

@@ -335,7 +335,6 @@ function ThreadItem({
                     />
                     <Timestamp
                         {...THREADING_TIME}
-                        className='alt-hidden'
                         value={lastReplyAt}
                     />
                 </span>
