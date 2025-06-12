@@ -598,9 +598,16 @@ func (_m *MockAppIface) SaveAcknowledgementForPostWithModel(c request.CTX, ackno
 	return r0, r1
 }
 
-// SaveAcknowledgementForPostWithPost provides a mock function with given fields: c, post, userID
-func (_m *MockAppIface) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string) (*model.PostAcknowledgement, *model.AppError) {
-	ret := _m.Called(c, post, userID)
+// SaveAcknowledgementForPostWithPost provides a mock function with given fields: c, post, userID, postID
+func (_m *MockAppIface) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string, postID ...string) (*model.PostAcknowledgement, *model.AppError) {
+	_va := make([]interface{}, len(postID))
+	for _i := range postID {
+		_va[_i] = postID[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, c, post, userID)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SaveAcknowledgementForPostWithPost")
@@ -608,19 +615,19 @@ func (_m *MockAppIface) SaveAcknowledgementForPostWithPost(c request.CTX, post *
 
 	var r0 *model.PostAcknowledgement
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, string) (*model.PostAcknowledgement, *model.AppError)); ok {
-		return rf(c, post, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, string, ...string) (*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(c, post, userID, postID...)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, string) *model.PostAcknowledgement); ok {
-		r0 = rf(c, post, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, string, ...string) *model.PostAcknowledgement); ok {
+		r0 = rf(c, post, userID, postID...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostAcknowledgement)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, string) *model.AppError); ok {
-		r1 = rf(c, post, userID)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, string, ...string) *model.AppError); ok {
+		r1 = rf(c, post, userID, postID...)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
