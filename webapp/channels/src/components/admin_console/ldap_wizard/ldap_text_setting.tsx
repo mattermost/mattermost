@@ -225,7 +225,7 @@ const ldapTestMessages = defineMessages({
     },
     attributeTestWarning: {
         id: 'admin.ldap.attributeTestWarning',
-        defaultMessage: 'The attribute exists in the LDAP schema, but was not found in any of the {totalCount} user{totalCount, plural, one {} other {s}} returned by the user filter',
+        defaultMessage: 'The attribute was not found in any of the {totalCount} user{totalCount, plural, one {} other {s}} returned by the user filter',
     },
     filterTestFailed: {
         id: 'admin.ldap.filterTestFailed',
@@ -241,7 +241,7 @@ const ldapTestMessages = defineMessages({
     },
     groupAttributeTestWarning: {
         id: 'admin.ldap.groupAttributeTestWarning',
-        defaultMessage: 'The group attribute exists in the LDAP schema, but was not found in any of the {totalCount} group{totalCount, plural, one {} other {s}} returned by the group filter',
+        defaultMessage: 'The group attribute was not found in any of the {totalCount} group{totalCount, plural, one {} other {s}} returned by the group filter',
     },
     groupAttributeTestFailed: {
         id: 'admin.ldap.groupAttributeTestFailed',
