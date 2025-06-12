@@ -15,14 +15,10 @@ import (
 )
 
 func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string) (*model.PostAcknowledgement, *model.AppError) {
-	var err *model.AppError
-
-	if post.CreateAt == 0 {
-		// Retrieve the current post to ensure we have the latest version
-		post, err = a.GetSinglePost(c, post.Id, false)
-		if err != nil {
-			return nil, err
-		}
+	// Retrieve the current post to ensure we have the latest version
+	post, err := a.GetSinglePost(c, post.Id, false)
+	if err != nil {
+		return nil, err
 	}
 
 	channel, err := a.GetChannel(c, post.ChannelId)
@@ -85,14 +81,10 @@ func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (
 }
 
 func (a *App) DeleteAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string) *model.AppError {
-	var err *model.AppError
-
-	if post.CreateAt == 0 {
-		// Retrieve the current post to ensure we have the latest version
-		post, err = a.GetSinglePost(c, post.Id, false)
-		if err != nil {
-			return err
-		}
+	// Retrieve the current post to ensure we have the latest version
+	post, err := a.GetSinglePost(c, post.Id, false)
+	if err != nil {
+		return err
 	}
 
 	channel, err := a.GetChannel(c, post.ChannelId)
@@ -176,14 +168,10 @@ func (a *App) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Pos
 		return []*model.PostAcknowledgement{}, nil
 	}
 
-	var err *model.AppError
-
-	if post.CreateAt == 0 {
-		// Retrieve the current post to ensure we have the latest version
-		post, err = a.GetSinglePost(c, post.Id, false)
-		if err != nil {
-			return nil, err
-		}
+	// Retrieve the current post to ensure we have the latest version
+	post, err := a.GetSinglePost(c, post.Id, false)
+	if err != nil {
+		return nil, err
 	}
 
 	channel, err := a.GetChannel(c, post.ChannelId)
@@ -251,14 +239,10 @@ func (a *App) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Pos
 
 // DeleteAcknowledgementsForPost deletes all acknowledgements for a post.
 func (a *App) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError {
-	var err *model.AppError
-
-	if post.CreateAt == 0 {
-		// Retrieve the current post to ensure we have the latest version
-		post, err = a.GetSinglePost(c, post.Id, false)
-		if err != nil {
-			return err
-		}
+	// Retrieve the current post to ensure we have the latest version
+	post, err := a.GetSinglePost(c, post.Id, false)
+	if err != nil {
+		return err
 	}
 
 	channel, err := a.GetChannel(c, post.ChannelId)
@@ -400,18 +384,16 @@ func (a *App) DeleteAcknowledgementForPostWithModel(c request.CTX, acknowledgeme
 }
 
 func (a *App) sendPostUpdateEvent(c request.CTX, post *model.Post) {
-	// Fetch the latest version of the post to ensure we have the updated timestamp
-	updatedPost, err := a.GetSinglePost(c, post.Id, false)
-	if err != nil {
-		c.Logger().Warn("Failed to get updated post for acknowledgement sync", mlog.String("post_id", post.Id), mlog.Err(err))
+	if post == nil {
+		c.Logger().Warn("sendPostUpdateEvent called with nil post")
 		return
 	}
 
 	// Send a post edited event to trigger shared channel sync
-	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", updatedPost.ChannelId, "", nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, "", nil, "")
 
 	// Prepare the post with metadata for the event
-	preparedPost := a.PreparePostForClient(c, updatedPost, false, true, true)
+	preparedPost := a.PreparePostForClient(c, post, false, true, true)
 
 	if appErr := a.publishWebsocketEventForPost(c, preparedPost, message); appErr != nil {
 		c.Logger().Warn("Failed to send post update event for acknowledgement sync", mlog.String("post_id", post.Id), mlog.Err(appErr))
