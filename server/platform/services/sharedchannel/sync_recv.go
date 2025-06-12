@@ -260,21 +260,56 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
 
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Entering upsertSyncUser",
+		mlog.String("user_id", user.Id),
+		mlog.String("username", user.Username),
+		mlog.String("remote", rc.Name),
+	)
+
 	// Check if user already exists
 	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Error checking if user exists",
+				mlog.String("user_id", user.Id),
+				mlog.String("remote", rc.Name),
+				mlog.Err(err),
+			)
 			return nil, fmt.Errorf("error checking sync user: %w", err)
 		}
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: User not found, will create new user",
+			mlog.String("user_id", user.Id),
+			mlog.String("remote", rc.Name),
+		)
+	} else {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Existing user found, will update",
+			mlog.String("user_id", user.Id),
+			mlog.String("existing_remote_id", euser.GetRemoteID()),
+			mlog.String("remote", rc.Name),
+		)
 	}
 
 	var userSaved *model.User
 	if euser == nil {
 		// new user.  Make sure the remoteID is correct and insert the record
 		user.RemoteId = model.NewPointer(rc.RemoteId)
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Calling insertSyncUser for new user",
+			mlog.String("user_id", user.Id),
+			mlog.String("remote", rc.Name),
+		)
 		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: insertSyncUser failed",
+				mlog.String("user_id", user.Id),
+				mlog.String("remote", rc.Name),
+				mlog.Err(err),
+			)
 			return nil, err
 		}
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: insertSyncUser succeeded",
+			mlog.String("user_id", user.Id),
+			mlog.String("saved_user_id", userSaved.Id),
+			mlog.String("remote", rc.Name),
+		)
 	} else {
 		// existing user. Make sure user belongs to the remote that issued the update
 		if euser.GetRemoteID() != rc.RemoteId {
@@ -300,9 +335,23 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
 		}
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Calling updateSyncUser for existing user",
+			mlog.String("user_id", user.Id),
+			mlog.String("remote", rc.Name),
+		)
 		if userSaved, err = scs.updateSyncUser(c, patch, euser, channel, rc); err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: updateSyncUser failed",
+				mlog.String("user_id", user.Id),
+				mlog.String("remote", rc.Name),
+				mlog.Err(err),
+			)
 			return nil, err
 		}
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: updateSyncUser succeeded",
+			mlog.String("user_id", user.Id),
+			mlog.String("saved_user_id", userSaved.Id),
+			mlog.String("remote", rc.Name),
+		)
 	}
 
 	// Add user to team and channel. We do this here regardless of whether the user was
@@ -313,15 +362,56 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	// added and exit quickly.  Not needed for DMs where teamId is empty.
 	if channel.TeamId != "" {
 		// add user to team
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Adding user to team",
+			mlog.String("user_id", userSaved.Id),
+			mlog.String("team_id", channel.TeamId),
+			mlog.String("remote", rc.Name),
+		)
 		if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Failed to add user to team",
+				mlog.String("user_id", userSaved.Id),
+				mlog.String("team_id", channel.TeamId),
+				mlog.String("remote", rc.Name),
+				mlog.Err(err),
+			)
 			return nil, fmt.Errorf("error adding sync user to Team: %w", err)
 		}
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Successfully added user to team",
+			mlog.String("user_id", userSaved.Id),
+			mlog.String("team_id", channel.TeamId),
+			mlog.String("remote", rc.Name),
+		)
 		// add user to channel
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Adding user to channel",
+			mlog.String("user_id", userSaved.Id),
+			mlog.String("channel_id", channel.Id),
+			mlog.String("remote", rc.Name),
+		)
 		if _, err := scs.app.AddUserToChannel(c, userSaved, channel, false); err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Failed to add user to channel",
+				mlog.String("user_id", userSaved.Id),
+				mlog.String("channel_id", channel.Id),
+				mlog.String("remote", rc.Name),
+				mlog.Err(err),
+			)
 			return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
 		}
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Successfully added user to channel",
+			mlog.String("user_id", userSaved.Id),
+			mlog.String("channel_id", channel.Id),
+			mlog.String("remote", rc.Name),
+		)
+	} else {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Skipping team/channel addition (DM channel)",
+			mlog.String("user_id", userSaved.Id),
+			mlog.String("remote", rc.Name),
+		)
 	}
 
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: upsertSyncUser completed successfully",
+		mlog.String("user_id", userSaved.Id),
+		mlog.String("remote", rc.Name),
+	)
 	return userSaved, nil
 }
 
@@ -329,6 +419,12 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 	var err error
 	var userSaved *model.User
 	var suffix string
+
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Entering insertSyncUser",
+		mlog.String("user_id", user.Id),
+		mlog.String("username", user.Username),
+		mlog.String("remote", rc.Name),
+	)
 
 	// ensure the new user is created with system_user role and random password.
 	user = sanitizeUserForSync(user)
@@ -349,7 +445,21 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
 		user.Email = model.NewId()
 
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Attempting to save user",
+			mlog.String("user_id", user.Id),
+			mlog.String("username", user.Username),
+			mlog.String("remote", rc.Name),
+			mlog.Int("attempt", i),
+		)
+
 		if userSaved, err = scs.server.GetStore().User().Save(rctx, user); err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: User save failed",
+				mlog.String("user_id", user.Id),
+				mlog.String("username", user.Username),
+				mlog.String("remote", rc.Name),
+				mlog.Int("attempt", i),
+				mlog.Err(err),
+			)
 			field, ok := isConflictError(err)
 			if !ok {
 				break
@@ -365,10 +475,22 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 				)
 			}
 		} else {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: User save succeeded",
+				mlog.String("user_id", user.Id),
+				mlog.String("saved_user_id", userSaved.Id),
+				mlog.String("username", user.Username),
+				mlog.String("remote", rc.Name),
+				mlog.Int("attempt", i),
+			)
 			scs.app.NotifySharedChannelUserUpdate(userSaved)
 			return userSaved, nil
 		}
 	}
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: insertSyncUser failed after all retries",
+		mlog.String("user_id", user.Id),
+		mlog.String("remote", rc.Name),
+		mlog.Err(err),
+	)
 	return nil, fmt.Errorf("error inserting sync user %s: %w", user.Id, err)
 }
 
@@ -376,6 +498,12 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 	var err error
 	var update *model.UserUpdate
 	var suffix string
+
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Entering updateSyncUser",
+		mlog.String("user_id", user.Id),
+		mlog.String("username", user.Username),
+		mlog.String("remote", rc.Name),
+	)
 
 	// preserve existing real username/email since Patch will over-write them;
 	// the real username/email in props can be updated if they don't contain colons,
@@ -403,7 +531,21 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
 		user.Email = model.NewId()
 
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: Attempting to update user",
+			mlog.String("user_id", user.Id),
+			mlog.String("username", user.Username),
+			mlog.String("remote", rc.Name),
+			mlog.Int("attempt", i),
+		)
+
 		if update, err = scs.server.GetStore().User().Update(rctx, user, false); err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: User update failed",
+				mlog.String("user_id", user.Id),
+				mlog.String("username", user.Username),
+				mlog.String("remote", rc.Name),
+				mlog.Int("attempt", i),
+				mlog.Err(err),
+			)
 			field, ok := isConflictError(err)
 			if !ok {
 				break
@@ -419,11 +561,23 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 				)
 			}
 		} else {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: User update succeeded",
+				mlog.String("user_id", user.Id),
+				mlog.String("updated_user_id", update.New.Id),
+				mlog.String("username", user.Username),
+				mlog.String("remote", rc.Name),
+				mlog.Int("attempt", i),
+			)
 			scs.platform.InvalidateCacheForUser(update.New.Id)
 			scs.app.NotifySharedChannelUserUpdate(update.New)
 			return update.New, nil
 		}
 	}
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "[DEBUG] RECEIVER: updateSyncUser failed after all retries",
+		mlog.String("user_id", user.Id),
+		mlog.String("remote", rc.Name),
+		mlog.Err(err),
+	)
 	return nil, fmt.Errorf("error updating sync user %s: %w", user.Id, err)
 }
 
