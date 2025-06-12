@@ -174,7 +174,11 @@ test(
         await channelsPage.goto();
 
         // * Verify indicator shows the updated scheduled time
-        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, newSelectedDate, newSelectedTime);
+        await verifyScheduledPostIndicator(
+            channelsPage.centerView.scheduledPostIndicator,
+            newSelectedDate,
+            newSelectedTime,
+        );
     },
 );
 
@@ -310,10 +314,16 @@ test(
         await channelsPage.centerView.scheduledPostIndicator.toBeVisible();
         if (pw.isOutsideRemoteUserHour(otherUser.timezone)) {
             // Special case for timezone - expect generic message
-            await expect(channelsPage.centerView.scheduledPostIndicator.messageText).toContainText('You have one scheduled message.');
+            await expect(channelsPage.centerView.scheduledPostIndicator.messageText).toContainText(
+                'You have one scheduled message.',
+            );
         } else {
             // Normal case - verify the scheduled indicator
-            await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, selectedDate, selectedTime);
+            await verifyScheduledPostIndicator(
+                channelsPage.centerView.scheduledPostIndicator,
+                selectedDate,
+                selectedTime,
+            );
         }
 
         // # Navigate to scheduled posts page using appropriate link
@@ -525,29 +535,33 @@ test(
 /**
  * Verifies that the scheduled post indicator shows the correct date and time.
  */
-async function verifyScheduledPostIndicator(scheduledPostIndicator: ScheduledPostIndicator, selectedDate: string, selectedTime: string | null) {
+async function verifyScheduledPostIndicator(
+    scheduledPostIndicator: ScheduledPostIndicator,
+    selectedDate: string,
+    selectedTime: string | null,
+) {
     await scheduledPostIndicator.toBeVisible();
     await expect(scheduledPostIndicator.icon).toBeVisible();
-    
+
     if (!selectedTime) {
         throw new Error('selectedTime is required');
     }
-    
+
     // Verify the indicator contains both the time and a valid date
     const messageText = await scheduledPostIndicator.messageText.textContent();
     await expect(scheduledPostIndicator.messageText).toContainText(selectedTime);
     const datePatterns = [
-        selectedDate, // Original date  
+        selectedDate, // Original date
         'Today',
         'Tomorrow',
     ];
-    
-    const hasValidDate = datePatterns.some(pattern => 
-        messageText?.toLowerCase().includes(pattern.toLowerCase())
-    );
-    
+
+    const hasValidDate = datePatterns.some((pattern) => messageText?.toLowerCase().includes(pattern.toLowerCase()));
+
     if (!hasValidDate) {
-        throw new Error(`Indicator text "${messageText}" does not contain any expected date pattern: ${datePatterns.join(', ')}`);
+        throw new Error(
+            `Indicator text "${messageText}" does not contain any expected date pattern: ${datePatterns.join(', ')}`,
+        );
     }
 }
 
@@ -587,13 +601,13 @@ async function verifyScheduledPost(
         'Today',
         'Tomorrow',
     ];
-    
-    const hasValidDate = datePatterns.some(pattern => 
-        headerText?.toLowerCase().includes(pattern.toLowerCase())
-    );
-    
+
+    const hasValidDate = datePatterns.some((pattern) => headerText?.toLowerCase().includes(pattern.toLowerCase()));
+
     if (!hasValidDate) {
-        throw new Error(`Header "${headerText}" does not contain any expected date pattern: ${datePatterns.join(', ')}`);
+        throw new Error(
+            `Header "${headerText}" does not contain any expected date pattern: ${datePatterns.join(', ')}`,
+        );
     }
 
     return scheduledPost;

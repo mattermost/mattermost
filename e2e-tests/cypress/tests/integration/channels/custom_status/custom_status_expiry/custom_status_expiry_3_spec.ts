@@ -119,7 +119,7 @@ describe('MM-T4065 Setting manual status clear time less than 7 days away', () =
     it('MM-T4065_7 should show selected time in the time input field', () => {
         // * Check that the timepicker menu is not present and click to open it
         cy.get('#expiryTimeMenu').should('not.exist');
-        
+
         // # Click the time button
         cy.get('#custom_status_modal #time_button').click();
 
