@@ -297,17 +297,8 @@ func (scs *Service) isGlobalUserSyncEnabled() bool {
 
 // scheduleGlobalUserSync schedules a task to sync all users with a remote cluster
 func (scs *Service) scheduleGlobalUserSync(rc *model.RemoteCluster) {
-	cfg := scs.server.Config()
-
-	if !cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster {
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] Global user sync SKIPPED for remote %s - feature flag disabled", rc.DisplayName))
-		return
-	}
-
-	// Skip if config explicitly disables the feature
-	if cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen != nil &&
-		!*cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen {
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] Global user sync SKIPPED for remote %s - config disabled", rc.DisplayName))
+	if !scs.isGlobalUserSyncEnabled() {
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] Global user sync SKIPPED for remote %s - global user sync disabled", rc.DisplayName))
 		return
 	}
 
