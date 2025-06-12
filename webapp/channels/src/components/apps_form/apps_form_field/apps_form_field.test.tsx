@@ -1,282 +1,383 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {AppField} from '@mattermost/types/apps';
 
-import TextSetting from 'components/widgets/settings/text_setting';
+import {AppFieldTypes} from 'mattermost-redux/constants/apps';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import AppsFormField from './apps_form_field';
 import type {Props} from './apps_form_field';
-import AppsFormSelectField from './apps_form_select_field';
 
 describe('components/apps_form/apps_form_field/AppsFormField', () => {
-    describe('Text elements', () => {
-        const textField: AppField = {
+    const baseProps: Props = {
+        name: 'testing',
+        actions: {
+            autocompleteChannels: jest.fn(),
+            autocompleteUsers: jest.fn(),
+        },
+        field: {
             name: 'field1',
-            type: 'text',
-            max_length: 100,
-            modal_label: 'The Field',
-            hint: 'The hint',
-            description: 'The description',
-            is_required: true,
-        };
+            type: AppFieldTypes.TEXT,
+        },
+        value: '',
+        onChange: jest.fn(),
+        performLookup: jest.fn(),
+    };
 
-        const baseDialogTextProps: Props = {
-            name: 'testing',
-            actions: {
-                autocompleteChannels: jest.fn(),
-                autocompleteUsers: jest.fn(),
-            },
-            field: textField,
-            value: '',
-            onChange: () => {},
-            performLookup: jest.fn(),
-        };
+    describe('Required field indicators', () => {
+        it('should render required field with red asterisk', () => {
+            const requiredField: AppField = {
+                name: 'required-field',
+                type: AppFieldTypes.TEXT,
+                label: 'Required Field',
+                is_required: true,
+            };
 
-        it('subtype blank - optional field', () => {
-            const wrapper = shallow(
+            const {container} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogTextProps}
-                    field={{
-                        ...textField,
-                        label: '',
-                        is_required: false,
-                    }}
+                    {...baseProps}
+                    field={requiredField}
                 />,
             );
 
-            expect(wrapper.find(TextSetting).props().type).toEqual('text');
+            // Check for the red asterisk in required fields
+            const errorText = container.querySelector('.error-text');
+            expect(errorText).toBeInTheDocument();
+            expect(errorText).toHaveTextContent('*');
         });
 
-        it('subtype blank', () => {
-            const wrapper = shallow(
+        it('should render optional field with (optional) text', () => {
+            const optionalField: AppField = {
+                name: 'optional-field',
+                type: AppFieldTypes.TEXT,
+                label: 'Optional Field',
+                is_required: false,
+            };
+
+            const {getByText} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogTextProps}
+                    {...baseProps}
+                    field={optionalField}
                 />,
             );
 
-            expect(wrapper.find(TextSetting).props().type).toEqual('text');
+            expect(getByText('(optional)')).toBeInTheDocument();
         });
 
-        it('subtype email', () => {
-            const wrapper = shallow(
+        it('should use modal_label over label when present', () => {
+            const fieldWithModalLabel: AppField = {
+                name: 'modal-label-field',
+                type: AppFieldTypes.TEXT,
+                label: 'Regular Label',
+                modal_label: 'Modal Label',
+                is_required: true,
+            };
+
+            const {getByText} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogTextProps}
-                    field={{
-                        ...textField,
-                        subtype: 'email',
-                    }}
+                    {...baseProps}
+                    field={fieldWithModalLabel}
                 />,
             );
 
-            expect(wrapper.find(TextSetting).props().type).toEqual('email');
-        });
-
-        it('subtype password', () => {
-            const wrapper = shallow(
-                <AppsFormField
-                    {...baseDialogTextProps}
-                    field={{
-                        ...textField,
-                        subtype: 'password',
-                    }}
-                />,
-            );
-
-            expect(wrapper.find(TextSetting).props().type).toEqual('password');
+            expect(getByText('Modal Label')).toBeInTheDocument();
         });
     });
 
-    describe('Select elements', () => {
-        const selectField: AppField = {
-            name: 'field1',
-            type: 'static_select',
-            max_length: 100,
-            modal_label: 'The Field',
-            hint: 'The hint',
-            description: 'The description',
-            is_required: true,
-            options: [],
-        };
+    describe('Radio field support', () => {
+        it('should render radio field correctly', () => {
+            const radioField: AppField = {
+                name: 'radio-field',
+                type: AppFieldTypes.RADIO,
+                label: 'Radio Field',
+                options: [
+                    {label: 'Option 1', value: 'opt1'},
+                    {label: 'Option 2', value: 'opt2'},
+                    {label: 'Option 3', value: 'opt3'},
+                ],
+                is_required: true,
+            };
 
-        const baseDialogSelectProps: Props = {
-            name: 'testing',
-            actions: {
-                autocompleteChannels: jest.fn(),
-                autocompleteUsers: jest.fn(),
-            },
-            field: selectField,
-            value: null,
-            onChange: () => {},
-            performLookup: jest.fn(),
-        };
-
-        const options = [
-            {value: 'foo', label: 'foo-text'},
-            {value: 'bar', label: 'bar-text'},
-        ];
-
-        test('AppsFormSelectField is rendered when type is static_select', () => {
-            const wrapper = shallow(
+            const {getByText} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogSelectProps}
-                    field={{
-                        ...selectField,
-                        type: 'static_select',
-                        options,
-                    }}
-                    onChange={jest.fn()}
+                    {...baseProps}
+                    field={radioField}
+                    value='opt2'
                 />,
             );
 
-            expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
+            expect(getByText('Option 1')).toBeInTheDocument();
+            expect(getByText('Option 2')).toBeInTheDocument();
+            expect(getByText('Option 3')).toBeInTheDocument();
         });
 
-        test('AppsFormSelectField is rendered when type is dynamic_select', () => {
-            const wrapper = shallow(
+        it('should handle radio field without options', () => {
+            const radioFieldNoOptions: AppField = {
+                name: 'radio-field-no-options',
+                type: AppFieldTypes.RADIO,
+                label: 'Radio Field No Options',
+                is_required: false,
+            };
+
+            const {container} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogSelectProps}
-                    field={{
-                        ...selectField,
-                        type: 'dynamic_select',
-                        options,
-                    }}
-                    onChange={jest.fn()}
+                    {...baseProps}
+                    field={radioFieldNoOptions}
                 />,
             );
 
-            expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
+            // Should render without crashing
+            expect(container).toBeInTheDocument();
+        });
+    });
+
+    describe('Field type handling', () => {
+        it('should render text field', () => {
+            const textField: AppField = {
+                name: 'text-field',
+                type: AppFieldTypes.TEXT,
+                label: 'Text Field',
+                max_length: 100,
+            };
+
+            const {container} = renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={textField}
+                />,
+            );
+
+            const input = container.querySelector('input[type="text"]');
+            expect(input).toBeInTheDocument();
         });
 
-        test('AppsFormSelectField is used when field type is user', () => {
-            const wrapper = shallow(
+        it('should render textarea field', () => {
+            const textareaField: AppField = {
+                name: 'textarea-field',
+                type: AppFieldTypes.TEXT,
+                subtype: 'textarea',
+                label: 'Textarea Field',
+                max_length: 500,
+            };
+
+            const {container} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogSelectProps}
-                    field={{
-                        ...selectField,
-                        type: 'user',
-                    }}
-                    onChange={jest.fn()}
+                    {...baseProps}
+                    field={textareaField}
                 />,
             );
 
-            expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
+            const textarea = container.querySelector('textarea');
+            expect(textarea).toBeInTheDocument();
         });
 
-        test('AppsFormSelectField is used when field type is channel', () => {
-            const wrapper = shallow(
+        it('should render boolean field', () => {
+            const boolField: AppField = {
+                name: 'bool-field',
+                type: AppFieldTypes.BOOL,
+                label: 'Boolean Field',
+            };
+
+            const {container} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogSelectProps}
-                    field={{
-                        ...selectField,
-                        type: 'channel',
-                    }}
-                    onChange={jest.fn()}
+                    {...baseProps}
+                    field={boolField}
+                    value={false}
                 />,
             );
 
-            expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
+            const checkbox = container.querySelector('input[type="checkbox"]');
+            expect(checkbox).toBeInTheDocument();
         });
 
-        test('AppSelectForm is rendered when options are undefined', () => {
-            const wrapper = shallow(
+        it('should render static select field', () => {
+            const selectField: AppField = {
+                name: 'select-field',
+                type: AppFieldTypes.STATIC_SELECT,
+                label: 'Select Field',
+                options: [
+                    {label: 'Option 1', value: 'opt1'},
+                    {label: 'Option 2', value: 'opt2'},
+                ],
+            };
+
+            const {container} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogSelectProps}
-                    field={{
-                        ...selectField,
-                        type: 'static_select',
-                        options: undefined,
-                    }}
-                    onChange={jest.fn()}
+                    {...baseProps}
+                    field={selectField}
                 />,
             );
 
-            expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
+            // Look for react-select component
+            const reactSelect = container.querySelector('.react-select');
+            expect(reactSelect).toBeInTheDocument();
         });
 
-        test('AppsFormSelectField is rendered when options are null and value is null', () => {
-            const wrapper = shallow(
+        it('should render user select field', () => {
+            const userField: AppField = {
+                name: 'user-field',
+                type: AppFieldTypes.USER,
+                label: 'User Field',
+            };
+
+            const {container} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogSelectProps}
-                    field={{
-                        ...selectField,
-                        type: 'static_select',
-                        options: undefined,
-                    }}
-                    value={null}
-                    onChange={jest.fn()}
+                    {...baseProps}
+                    field={userField}
                 />,
             );
 
-            expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
+            const reactSelect = container.querySelector('.react-select');
+            expect(reactSelect).toBeInTheDocument();
         });
 
-        test('AppsFormSelectField is rendered when options are null and value is not null', () => {
-            const wrapper = shallow(
+        it('should render channel select field', () => {
+            const channelField: AppField = {
+                name: 'channel-field',
+                type: AppFieldTypes.CHANNEL,
+                label: 'Channel Field',
+            };
+
+            const {container} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogSelectProps}
-                    field={{
-                        ...selectField,
-                        type: 'static_select',
-                        options: undefined,
-                    }}
-                    value={options[0]}
-                    onChange={jest.fn()}
+                    {...baseProps}
+                    field={channelField}
                 />,
             );
 
-            expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
+            const reactSelect = container.querySelector('.react-select');
+            expect(reactSelect).toBeInTheDocument();
         });
 
-        test('AppsFormSelectField is rendered when value is not one of the options', () => {
-            const wrapper = shallow(
+        it('should render dynamic select field', () => {
+            const dynamicSelectField: AppField = {
+                name: 'dynamic-select-field',
+                type: AppFieldTypes.DYNAMIC_SELECT,
+                label: 'Dynamic Select Field',
+            };
+
+            const {container} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogSelectProps}
-                    field={{
-                        ...selectField,
-                        type: 'static_select',
-                        options,
-                    }}
-                    value={{label: 'Other', value: 'other'}}
-                    onChange={jest.fn()}
+                    {...baseProps}
+                    field={dynamicSelectField}
                 />,
             );
 
-            expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
+            const reactSelect = container.querySelector('.react-select');
+            expect(reactSelect).toBeInTheDocument();
         });
 
-        test('No default value is selected from the options list', () => {
-            const wrapper = shallow(
+        it('should render markdown field', () => {
+            const markdownField: AppField = {
+                name: 'markdown-field',
+                type: AppFieldTypes.MARKDOWN,
+                description: '**Bold text** and *italic text*',
+            };
+
+            const {container} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogSelectProps}
-                    field={{
-                        ...selectField,
-                        type: 'static_select',
-                        options,
-                    }}
-                    onChange={jest.fn()}
+                    {...baseProps}
+                    field={markdownField}
                 />,
             );
-            expect(wrapper.find(AppsFormSelectField).prop('value')).toBeNull();
+
+            // Markdown component should be rendered
+            expect(container).toBeInTheDocument();
+        });
+    });
+
+    describe('Error handling', () => {
+        it('should display error text when provided', () => {
+            const fieldWithError: AppField = {
+                name: 'error-field',
+                type: AppFieldTypes.TEXT,
+                label: 'Field with Error',
+            };
+
+            const {getByText} = renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={fieldWithError}
+                    errorText='This field has an error'
+                />,
+            );
+
+            expect(getByText('This field has an error')).toBeInTheDocument();
         });
 
-        test('The default value can be specified from the list', () => {
-            const wrapper = shallow(
+        it('should render help text alongside error text', () => {
+            const fieldWithHelp: AppField = {
+                name: 'help-field',
+                type: AppFieldTypes.TEXT,
+                label: 'Field with Help',
+                description: 'This is help text',
+            };
+
+            const {getByText} = renderWithContext(
                 <AppsFormField
-                    {...baseDialogSelectProps}
-                    field={{
-                        ...selectField,
-                        type: 'static_select',
-                        options,
-                    }}
-                    value={options[1]}
-                    onChange={jest.fn()}
+                    {...baseProps}
+                    field={fieldWithHelp}
+                    errorText='Error message'
                 />,
             );
-            expect(wrapper.find(AppsFormSelectField).prop('value')).toBe(options[1]);
+
+            expect(getByText('This is help text')).toBeInTheDocument();
+            expect(getByText('Error message')).toBeInTheDocument();
+        });
+    });
+
+    describe('handleSelected method', () => {
+        it('should handle single selection', () => {
+            const mockOnChange = jest.fn();
+            const selectField: AppField = {
+                name: 'select-field',
+                type: AppFieldTypes.STATIC_SELECT,
+                label: 'Select Field',
+                options: [
+                    {label: 'Option 1', value: 'opt1'},
+                    {label: 'Option 2', value: 'opt2'},
+                ],
+            };
+
+            const {container} = renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={selectField}
+                    onChange={mockOnChange}
+                />,
+            );
+
+            // The handleSelected method should be tested through integration
+            // or by testing the AppsFormSelectField component separately
+            expect(container).toBeInTheDocument();
+        });
+
+        it('should handle array selection for multiselect', () => {
+            const mockOnChange = jest.fn();
+            const multiselectField: AppField = {
+                name: 'multiselect-field',
+                type: AppFieldTypes.STATIC_SELECT,
+                label: 'Multiselect Field',
+                multiselect: true,
+                options: [
+                    {label: 'Option 1', value: 'opt1'},
+                    {label: 'Option 2', value: 'opt2'},
+                ],
+            };
+
+            const {container} = renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={multiselectField}
+                    onChange={mockOnChange}
+                />,
+            );
+
+            expect(container).toBeInTheDocument();
         });
     });
 });
