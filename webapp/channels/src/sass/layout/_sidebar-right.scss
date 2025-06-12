@@ -273,12 +273,12 @@
     height: 48px;
     align-items: center;
     justify-content: center;
+    border: none;
+    background: transparent;
     cursor: pointer;
     text-align: center;
     transform: translateX(0);
     transition: all 0.2s linear;
-    background: transparent;
-    border: none;
 
     .fa {
         position: relative;

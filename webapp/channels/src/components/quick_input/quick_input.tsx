@@ -81,6 +81,7 @@ export type Props = {
     id?: string;
     onInput?: (e?: React.FormEvent<HTMLInputElement>) => void;
     tabIndex?: number;
+    role?: string;
 }
 
 // A component that can be used to make controlled inputs that function properly in certain
