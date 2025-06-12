@@ -110,9 +110,16 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 	)
 
 	// Check if this is a global user sync message (no channel ID and only users)
-	if syncMsg.ChannelId == "" && len(syncMsg.Users) > 0 &&
-		len(syncMsg.Posts) == 0 && len(syncMsg.Reactions) == 0 &&
-		len(syncMsg.Statuses) == 0 {
+	if syncMsg.ChannelId == "" {
+		if len(syncMsg.Posts) != 0 ||
+			len(syncMsg.Reactions) != 0 ||
+			len(syncMsg.Statuses) != 0 {
+			return fmt.Errorf("global user sync message should not contain posts, reactions or statuses")
+		}
+
+		if len(syncMsg.Users) == 0 {
+			return nil
+		}
 		// Check if feature flag is enabled
 		if !scs.isGlobalUserSyncEnabled() {
 			return nil
@@ -121,20 +128,18 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 	}
 
 	// For regular sync messages, we need a specific channel
-	if syncMsg.ChannelId != "" {
-		if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
-			// if the channel doesn't exist then none of these sync items are going to work.
-			return fmt.Errorf("channel not found processing sync message: %w", err)
-		}
+	if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
+		// if the channel doesn't exist then none of these sync items are going to work.
+		return fmt.Errorf("channel not found processing sync message: %w", err)
+	}
 
-		// make sure target channel is shared with the remote
-		exists, err := scs.server.GetStore().SharedChannel().HasRemote(targetChannel.Id, rc.RemoteId)
-		if err != nil {
-			return fmt.Errorf("cannot check channel share state for sync message: %w", err)
-		}
-		if !exists {
-			return fmt.Errorf("cannot process sync message; channel not shared with remote: %w", ErrRemoteIDMismatch)
-		}
+	// make sure target channel is shared with the remote
+	exists, err := scs.server.GetStore().SharedChannel().HasRemote(targetChannel.Id, rc.RemoteId)
+	if err != nil {
+		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
+	}
+	if !exists {
+		return fmt.Errorf("cannot process sync message; channel not shared with remote: %w", ErrRemoteIDMismatch)
 	}
 
 	// add/update users before posts

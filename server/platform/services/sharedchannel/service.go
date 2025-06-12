@@ -252,7 +252,7 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 		scs.ForceSyncForRemote(rc)
 
 		// Schedule global user sync if feature is enabled
-		scs.tryScheduleGlobalUserSync(rc)
+		scs.scheduleGlobalUserSync(rc)
 	}
 
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
@@ -288,33 +288,21 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 func (scs *Service) isGlobalUserSyncEnabled() bool {
 	cfg := scs.server.Config()
 
-	if !cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster {
-		return false
-	}
-
-	// Skip if config explicitly disables the feature
-	if cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen != nil &&
-		!*cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen {
-		return false
-	}
-
-	return true
+	return cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster ||
+		(cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen != nil && *cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen)
 }
 
-// tryScheduleGlobalUserSync schedules a task to sync all users with a remote cluster
-func (scs *Service) tryScheduleGlobalUserSync(rc *model.RemoteCluster) {
+// scheduleGlobalUserSync schedules a task to sync all users with a remote cluster
+func (scs *Service) scheduleGlobalUserSync(rc *model.RemoteCluster) {
 	if !scs.isGlobalUserSyncEnabled() {
 		return
 	}
 
-	// Schedule the sync task
-	go func() {
-		// Create a special sync task with empty channelID
-		// This empty channelID is a deliberate marker for a global user sync task
-		task := newSyncTask("", "", rc.RemoteId, nil, nil)
-		task.schedule = time.Now().Add(NotifyMinimumDelay)
-		scs.addTask(task)
-	}()
+	// Create a special sync task with empty channelID
+	// This empty channelID is a deliberate marker for a global user sync task
+	task := newSyncTask("", "", rc.RemoteId, nil, nil)
+	task.schedule = time.Now().Add(NotifyMinimumDelay)
+	scs.addTask(task)
 }
 
 // OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing

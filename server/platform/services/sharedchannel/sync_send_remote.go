@@ -39,8 +39,9 @@ type syncData struct {
 	statuses      []*model.Status
 	attachments   []attachment
 
-	resultRepeat     bool
-	resultNextCursor model.GetPostsSinceForSyncCursor
+	resultRepeat                bool
+	resultNextCursor            model.GetPostsSinceForSyncCursor
+	GlobalUserSyncLastTimestamp int64
 }
 
 func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChannelRemote) *syncData {
@@ -531,7 +532,7 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 
 	// send users
 	if len(sd.users) != 0 {
-		if err := scs.sendUserSyncData(sd, 0); err != nil {
+		if err := scs.sendUserSyncData(sd); err != nil {
 			merr.Append(fmt.Errorf("cannot send user sync data: %w", err))
 		}
 	}
@@ -573,7 +574,7 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 }
 
 // sendUserSyncData sends the collected user updates to the remote cluster.
-func (scs *Service) sendUserSyncData(sd *syncData, latestTimestamp int64) error {
+func (scs *Service) sendUserSyncData(sd *syncData) error {
 	start := time.Now()
 	defer func() {
 		if metrics := scs.server.GetMetrics(); metrics != nil {
@@ -586,8 +587,8 @@ func (scs *Service) sendUserSyncData(sd *syncData, latestTimestamp int64) error 
 
 	err := scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
 		// Only update cursor on successful sync
-		if errResp == nil && latestTimestamp > 0 {
-			scs.updateGlobalSyncCursor(sd.rc, latestTimestamp)
+		if errResp == nil && sd.GlobalUserSyncLastTimestamp > 0 {
+			scs.updateGlobalSyncCursor(sd.rc, sd.GlobalUserSyncLastTimestamp)
 		}
 
 		for _, userID := range syncResp.UsersSyncd {
@@ -773,9 +774,10 @@ func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
 
 	// Add users to sync data
 	sd.users = users
+	sd.GlobalUserSyncLastTimestamp = latestTimestamp
 
 	// Send the collected users to remote
-	if err := scs.sendUserSyncData(sd, latestTimestamp); err != nil {
+	if err := scs.sendUserSyncData(sd); err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error sending user batch during sync",
 			mlog.String("remote_id", rc.RemoteId),
 			mlog.Err(err),
@@ -846,8 +848,8 @@ func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize
 				return users, latestTimestamp, totalCount, true, nil
 			}
 
-			// Skip users from target remote to avoid syncing them back
-			if user.IsRemote() && user.GetRemoteID() == rc.RemoteId {
+			// Skip users from remotes
+			if user.IsRemote() {
 				continue
 			}
 

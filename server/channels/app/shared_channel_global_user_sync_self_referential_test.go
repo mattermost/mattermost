@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -29,9 +28,6 @@ import (
 // It uses a self-referential approach where a server syncs with itself, providing real HTTP communication
 // without mocks or invalid URLs. We test calling SyncAllUsersForRemoteCluster directly.
 func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ENABLESYNCALLUSERSFORREMOTECLUSTER", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLESYNCALLUSERSFORREMOTECLUSTER")
-
 	// Setup with default batch size
 	th := SetupConfig(t, func(cfg *model.Config) {
 		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
@@ -41,6 +37,8 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// Individual tests can override as needed (e.g., Test 3 sets it to 4)
 		defaultBatchSize := 20
 		cfg.ConnectedWorkspacesSettings.GlobalUserSyncBatchSize = &defaultBatchSize
+		// Enable the feature flag for global user sync
+		cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster = true
 	}).InitBasic()
 	defer th.TearDown()
 
@@ -96,12 +94,13 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create a self-referential remote cluster
+		now := model.GetMillis()
 		selfCluster := &model.RemoteCluster{
 			RemoteId:             model.NewId(),
 			Name:                 "self-cluster",
 			SiteURL:              testServer.URL,
-			CreateAt:             model.GetMillis(),
-			LastPingAt:           model.GetMillis(),
+			CreateAt:             now,
+			LastPingAt:           now, // Ensure it's considered online
 			LastGlobalUserSyncAt: 0,
 			Token:                model.NewId(),
 			CreatorId:            th.BasicUser.Id,
@@ -133,6 +132,8 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// Wait for sync to complete
 		require.Eventually(t, func() bool {
 			count := syncHandler.GetSyncMessageCount()
+			mu.Lock()
+			defer mu.Unlock()
 			return count > 0
 		}, 5*time.Second, 100*time.Millisecond, "Should have received at least one sync message")
 
@@ -248,7 +249,6 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		syncHandler.OnGlobalUserSync = func(userIds []string, messageNumber int32) {
 			mu.Lock()
 			batchedUserIDs = append(batchedUserIDs, userIds)
-
 			mu.Unlock()
 		}
 
@@ -419,9 +419,8 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// Wait for syncs to complete
 		require.Eventually(t, func() bool {
 			// Each cluster should receive sync messages
-			for name, countPtr := range syncMessagesPerCluster {
+			for _, countPtr := range syncMessagesPerCluster {
 				if atomic.LoadInt32(countPtr) == 0 {
-					t.Logf("Cluster %s has not received sync messages yet", name)
 					return false
 				}
 			}
@@ -615,7 +614,11 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		}
 
 		// Test 1: Sync with feature flag disabled
-		os.Setenv("MM_FEATUREFLAGS_ENABLESYNCALLUSERSFORREMOTECLUSTER", "false")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster = false
+			// Also disable SyncUsersOnConnectionOpen to ensure sync is completely disabled
+			*cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen = false
+		})
 		err = th.App.ReloadConfig()
 		require.NoError(t, err)
 
@@ -634,7 +637,11 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		assert.Equal(t, int64(0), cluster1.LastGlobalUserSyncAt, "Cursor should not update when flag is disabled")
 
 		// Test 2: Sync with feature flag enabled
-		os.Setenv("MM_FEATUREFLAGS_ENABLESYNCALLUSERSFORREMOTECLUSTER", "true")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster = true
+			// Re-enable SyncUsersOnConnectionOpen as well
+			*cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen = true
+		})
 		err = th.App.ReloadConfig()
 		require.NoError(t, err)
 
@@ -976,7 +983,6 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 			mu.Lock()
 			syncedUserIds = append(syncedUserIds, userIds...)
 			mu.Unlock()
-			t.Logf("Received sync batch %d with %d users", messageNumber, len(userIds))
 		}
 
 		// Create users
@@ -1058,13 +1064,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// user3 in one channel
 		th.AddUserToChannel(user3, channel3)
 
-		// Check initial cursor
-		initialCluster, pErr := ss.RemoteCluster().Get(selfCluster.RemoteId, true)
-		require.NoError(t, pErr)
-		t.Logf("Initial cursor: %d", initialCluster.LastGlobalUserSyncAt)
-
 		// Start the sync - this will trigger the first batch
-		t.Logf("Starting sync...")
 		err = service.HandleSyncAllUsersForTesting(selfCluster)
 		require.NoError(t, err)
 
