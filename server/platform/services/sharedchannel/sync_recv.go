@@ -148,10 +148,8 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 				mlog.String("remote", rc.Name),
 				mlog.Err(err),
 			)
-		} else {
-			if syncResp.PostsLastUpdateAt < rpost.UpdateAt {
-				syncResp.PostsLastUpdateAt = rpost.UpdateAt
-			}
+		} else if syncResp.PostsLastUpdateAt < rpost.UpdateAt {
+			syncResp.PostsLastUpdateAt = rpost.UpdateAt
 		}
 	}
 
