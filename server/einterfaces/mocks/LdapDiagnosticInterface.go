@@ -71,7 +71,7 @@ func (_m *LdapDiagnosticInterface) RunTest(rctx request.CTX) *model.AppError {
 }
 
 // RunTestAttributes provides a mock function with given fields: rctx, settings
-func (_m *LdapDiagnosticInterface) RunTestAttributes(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
+func (_m *LdapDiagnosticInterface) RunTestAttributes(rctx request.CTX, settings model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
 	ret := _m.Called(rctx, settings)
 
 	if len(ret) == 0 {
@@ -80,10 +80,10 @@ func (_m *LdapDiagnosticInterface) RunTestAttributes(rctx request.CTX, settings 
 
 	var r0 []model.LdapDiagnosticResult
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)); ok {
 		return rf(rctx, settings)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) []model.LdapDiagnosticResult); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, model.LdapSettings) []model.LdapDiagnosticResult); ok {
 		r0 = rf(rctx, settings)
 	} else {
 		if ret.Get(0) != nil {
@@ -91,7 +91,7 @@ func (_m *LdapDiagnosticInterface) RunTestAttributes(rctx request.CTX, settings 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.LdapSettings) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, model.LdapSettings) *model.AppError); ok {
 		r1 = rf(rctx, settings)
 	} else {
 		if ret.Get(1) != nil {
@@ -103,7 +103,7 @@ func (_m *LdapDiagnosticInterface) RunTestAttributes(rctx request.CTX, settings 
 }
 
 // RunTestConnection provides a mock function with given fields: rctx, settings
-func (_m *LdapDiagnosticInterface) RunTestConnection(rctx request.CTX, settings *model.LdapSettings) *model.AppError {
+func (_m *LdapDiagnosticInterface) RunTestConnection(rctx request.CTX, settings model.LdapSettings) *model.AppError {
 	ret := _m.Called(rctx, settings)
 
 	if len(ret) == 0 {
@@ -111,7 +111,7 @@ func (_m *LdapDiagnosticInterface) RunTestConnection(rctx request.CTX, settings 
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, model.LdapSettings) *model.AppError); ok {
 		r0 = rf(rctx, settings)
 	} else {
 		if ret.Get(0) != nil {
@@ -123,7 +123,7 @@ func (_m *LdapDiagnosticInterface) RunTestConnection(rctx request.CTX, settings 
 }
 
 // RunTestFilters provides a mock function with given fields: rctx, settings
-func (_m *LdapDiagnosticInterface) RunTestFilters(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
+func (_m *LdapDiagnosticInterface) RunTestFilters(rctx request.CTX, settings model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
 	ret := _m.Called(rctx, settings)
 
 	if len(ret) == 0 {
@@ -132,10 +132,10 @@ func (_m *LdapDiagnosticInterface) RunTestFilters(rctx request.CTX, settings *mo
 
 	var r0 []model.LdapDiagnosticResult
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)); ok {
 		return rf(rctx, settings)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) []model.LdapDiagnosticResult); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, model.LdapSettings) []model.LdapDiagnosticResult); ok {
 		r0 = rf(rctx, settings)
 	} else {
 		if ret.Get(0) != nil {
@@ -143,7 +143,7 @@ func (_m *LdapDiagnosticInterface) RunTestFilters(rctx request.CTX, settings *mo
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.LdapSettings) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, model.LdapSettings) *model.AppError); ok {
 		r1 = rf(rctx, settings)
 	} else {
 		if ret.Get(1) != nil {
@@ -155,7 +155,7 @@ func (_m *LdapDiagnosticInterface) RunTestFilters(rctx request.CTX, settings *mo
 }
 
 // RunTestGroupAttributes provides a mock function with given fields: rctx, settings
-func (_m *LdapDiagnosticInterface) RunTestGroupAttributes(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
+func (_m *LdapDiagnosticInterface) RunTestGroupAttributes(rctx request.CTX, settings model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
 	ret := _m.Called(rctx, settings)
 
 	if len(ret) == 0 {
@@ -164,10 +164,10 @@ func (_m *LdapDiagnosticInterface) RunTestGroupAttributes(rctx request.CTX, sett
 
 	var r0 []model.LdapDiagnosticResult
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)); ok {
 		return rf(rctx, settings)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings) []model.LdapDiagnosticResult); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, model.LdapSettings) []model.LdapDiagnosticResult); ok {
 		r0 = rf(rctx, settings)
 	} else {
 		if ret.Get(0) != nil {
@@ -175,7 +175,7 @@ func (_m *LdapDiagnosticInterface) RunTestGroupAttributes(rctx request.CTX, sett
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.LdapSettings) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, model.LdapSettings) *model.AppError); ok {
 		r1 = rf(rctx, settings)
 	} else {
 		if ret.Get(1) != nil {

@@ -112,7 +112,7 @@ func testLdapConnection(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.TestLdapConnection(c.AppContext, &settings); err != nil {
+	if err := c.App.TestLdapConnection(c.AppContext, settings); err != nil {
 		c.Err = err
 		return
 	}
@@ -137,7 +137,7 @@ func testLdapFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, appErr := c.App.TestLdapFilters(c.AppContext, &settings)
+	res, appErr := c.App.TestLdapFilters(c.AppContext, settings)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -165,7 +165,7 @@ func testLdapAttributes(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, appErr := c.App.TestLdapAttributes(c.AppContext, &settings)
+	res, appErr := c.App.TestLdapAttributes(c.AppContext, settings)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -193,7 +193,7 @@ func testLdapGroupAttributes(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	res, appErr := c.App.TestLdapGroupAttributes(c.AppContext, &settings)
+	res, appErr := c.App.TestLdapGroupAttributes(c.AppContext, settings)
 	if appErr != nil {
 		c.Err = appErr
 		return
