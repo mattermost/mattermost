@@ -8738,27 +8738,6 @@ func (s *RetryLayerPostAcknowledgementStore) GetSingle(userID string, postID str
 
 }
 
-func (s *RetryLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64, channelID ...string) (*model.PostAcknowledgement, error) {
-
-	tries := 0
-	for {
-		result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt, channelID...)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error) {
 
 	tries := 0

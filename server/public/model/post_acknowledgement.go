@@ -41,6 +41,3 @@ func (o *PostAcknowledgement) PreSave() {
 		o.AcknowledgedAt = GetMillis()
 	}
 }
-
-func (o *PostAcknowledgement) PreUpdate() {
-}

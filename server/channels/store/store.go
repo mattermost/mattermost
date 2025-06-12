@@ -1053,7 +1053,6 @@ type PostAcknowledgementStore interface {
 	GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error)
 	GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.PostAcknowledgement, error)
 	GetSingle(userID, postID, remoteID string) (*model.PostAcknowledgement, error)
-	Save(postID, userID string, acknowledgedAt int64, channelID ...string) (*model.PostAcknowledgement, error)
 	SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error)
 	BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error

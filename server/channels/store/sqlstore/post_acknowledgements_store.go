@@ -44,39 +44,6 @@ func (s *SqlPostAcknowledgementStore) Get(postID, userID string) (*model.PostAck
 	return &acknowledgement, nil
 }
 
-func (s *SqlPostAcknowledgementStore) Save(postID, userID string, acknowledgedAt int64, channelID ...string) (*model.PostAcknowledgement, error) {
-	var channelId string
-	var err error
-
-	if len(channelID) > 0 && channelID[0] != "" {
-		// Use the provided channelId
-		channelId = channelID[0]
-	} else {
-		// Get the channelId from the post
-		postQuery := s.getQueryBuilder().
-			Select("ChannelId").
-			From("Posts").
-			Where(sq.Eq{"Id": postID})
-
-		err = s.GetReplica().GetBuilder(&channelId, postQuery)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to get channel id for post")
-		}
-	}
-
-	acknowledgement := &model.PostAcknowledgement{
-		UserId:         userID,
-		PostId:         postID,
-		ChannelId:      channelId,
-		AcknowledgedAt: acknowledgedAt,
-		RemoteId:       nil,
-	}
-
-	acknowledgement.PreSave()
-
-	return s.SaveWithModel(acknowledgement)
-}
-
 func (s *SqlPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error) {
 	if err := acknowledgement.IsValid(); err != nil {
 		return nil, err

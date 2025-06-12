@@ -109,7 +109,13 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 	})
 
 	t.Run("delete acknowledgment for post after 5 min after acknowledged should not delete", func(t *testing.T) {
-		_, nErr := th.App.Srv().Store().PostAcknowledgement().Save(post.Id, th.BasicUser.Id, model.GetMillis()-int64(6*60*1000), post.ChannelId)
+		acknowledgement := &model.PostAcknowledgement{
+			PostId:         post.Id,
+			UserId:         th.BasicUser.Id,
+			AcknowledgedAt: model.GetMillis() - int64(6*60*1000),
+			ChannelId:      post.ChannelId,
+		}
+		_, nErr := th.App.Srv().Store().PostAcknowledgement().SaveWithModel(acknowledgement)
 		require.NoError(t, nErr)
 
 		acknowledgments, err := th.App.GetAcknowledgementsForPost(post.Id)

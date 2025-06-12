@@ -39,13 +39,16 @@ func testPostAcknowledgementsStoreSave(t *testing.T, rctx request.CTX, ss store.
 	require.NoError(t, err)
 
 	t.Run("consecutive saves should just update the acknowledged at", func(t *testing.T) {
-		_, err := ss.PostAcknowledgement().Save(post.Id, userID1, 0, post.ChannelId)
+		ack := &model.PostAcknowledgement{PostId: post.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		_, err := ss.PostAcknowledgement().SaveWithModel(ack)
 		require.NoError(t, err)
 
-		_, err = ss.PostAcknowledgement().Save(post.Id, userID1, 0, post.ChannelId)
+		ack = &model.PostAcknowledgement{PostId: post.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		_, err = ss.PostAcknowledgement().SaveWithModel(ack)
 		require.NoError(t, err)
 
-		ack1, err := ss.PostAcknowledgement().Save(post.Id, userID1, 0, post.ChannelId)
+		ack1 := &model.PostAcknowledgement{PostId: post.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		ack1, err = ss.PostAcknowledgement().SaveWithModel(ack1)
 		require.NoError(t, err)
 
 		acknowledgements, err := ss.PostAcknowledgement().GetForPost(post.Id)
@@ -55,7 +58,8 @@ func testPostAcknowledgementsStoreSave(t *testing.T, rctx request.CTX, ss store.
 
 	t.Run("saving should update the update at of the post", func(t *testing.T) {
 		oldUpdateAt := post.UpdateAt
-		_, err := ss.PostAcknowledgement().Save(post.Id, userID1, 0, post.ChannelId)
+		ack := &model.PostAcknowledgement{PostId: post.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		_, err := ss.PostAcknowledgement().SaveWithModel(ack)
 		require.NoError(t, err)
 
 		post, err = ss.Post().GetSingle(rctx, post.Id, false)
@@ -84,11 +88,14 @@ func testPostAcknowledgementsStoreGetForPost(t *testing.T, rctx request.CTX, ss 
 	require.NoError(t, err)
 
 	t.Run("get acknowledgements for post", func(t *testing.T) {
-		ack1, err := ss.PostAcknowledgement().Save(p1.Id, userID1, 0, p1.ChannelId)
+		ack1 := &model.PostAcknowledgement{PostId: p1.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: p1.ChannelId}
+		ack1, err := ss.PostAcknowledgement().SaveWithModel(ack1)
 		require.NoError(t, err)
-		ack2, err := ss.PostAcknowledgement().Save(p1.Id, userID2, 0, p1.ChannelId)
+		ack2 := &model.PostAcknowledgement{PostId: p1.Id, UserId: userID2, AcknowledgedAt: 0, ChannelId: p1.ChannelId}
+		ack2, err = ss.PostAcknowledgement().SaveWithModel(ack2)
 		require.NoError(t, err)
-		ack3, err := ss.PostAcknowledgement().Save(p1.Id, userID3, 0, p1.ChannelId)
+		ack3 := &model.PostAcknowledgement{PostId: p1.Id, UserId: userID3, AcknowledgedAt: 0, ChannelId: p1.ChannelId}
+		ack3, err = ss.PostAcknowledgement().SaveWithModel(ack3)
 		require.NoError(t, err)
 
 		acknowledgements, err := ss.PostAcknowledgement().GetForPost(p1.Id)
@@ -147,13 +154,17 @@ func testPostAcknowledgementsStoreGetForPosts(t *testing.T, rctx request.CTX, ss
 	require.Equal(t, -1, errIdx)
 
 	t.Run("get acknowledgements for post", func(t *testing.T) {
-		ack1, err := ss.PostAcknowledgement().Save(p1.Id, userID1, 0, p1.ChannelId)
+		ack1 := &model.PostAcknowledgement{PostId: p1.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: p1.ChannelId}
+		ack1, err := ss.PostAcknowledgement().SaveWithModel(ack1)
 		require.NoError(t, err)
-		ack2, err := ss.PostAcknowledgement().Save(p1.Id, userID2, 0, p1.ChannelId)
+		ack2 := &model.PostAcknowledgement{PostId: p1.Id, UserId: userID2, AcknowledgedAt: 0, ChannelId: p1.ChannelId}
+		ack2, err = ss.PostAcknowledgement().SaveWithModel(ack2)
 		require.NoError(t, err)
-		ack3, err := ss.PostAcknowledgement().Save(p2.Id, userID2, 0, p2.ChannelId)
+		ack3 := &model.PostAcknowledgement{PostId: p2.Id, UserId: userID2, AcknowledgedAt: 0, ChannelId: p2.ChannelId}
+		ack3, err = ss.PostAcknowledgement().SaveWithModel(ack3)
 		require.NoError(t, err)
-		ack4, err := ss.PostAcknowledgement().Save(p2.Id, userID3, 0, p2.ChannelId)
+		ack4 := &model.PostAcknowledgement{PostId: p2.Id, UserId: userID3, AcknowledgedAt: 0, ChannelId: p2.ChannelId}
+		ack4, err = ss.PostAcknowledgement().SaveWithModel(ack4)
 		require.NoError(t, err)
 
 		acknowledgements, err := ss.PostAcknowledgement().GetForPosts([]string{p1.Id})
@@ -270,7 +281,8 @@ func testPostAcknowledgementsStoreBatchSave(t *testing.T, rctx request.CTX, ss s
 		}
 
 		// Create initial acknowledgement
-		ack, err := ss.PostAcknowledgement().Save(post.Id, userID1, model.GetMillis(), post.ChannelId)
+		ack := &model.PostAcknowledgement{PostId: post.Id, UserId: userID1, AcknowledgedAt: model.GetMillis(), ChannelId: post.ChannelId}
+		ack, err = ss.PostAcknowledgement().SaveWithModel(ack)
 		require.NoError(t, err)
 
 		initialAckTime := ack.AcknowledgedAt
@@ -339,16 +351,19 @@ func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss
 
 	t.Run("batch delete all acknowledgements for a post", func(t *testing.T) {
 		// Create multiple acknowledgements
-		ack1, err := ss.PostAcknowledgement().Save(post.Id, userID1, 0, post.ChannelId)
+		ack1 := &model.PostAcknowledgement{PostId: post.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		ack1, err = ss.PostAcknowledgement().SaveWithModel(ack1)
 		require.NoError(t, err)
-		ack2, err := ss.PostAcknowledgement().Save(post.Id, userID2, 0, post.ChannelId)
+		ack2 := &model.PostAcknowledgement{PostId: post.Id, UserId: userID2, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		ack2, err = ss.PostAcknowledgement().SaveWithModel(ack2)
 		require.NoError(t, err)
-		ack3, err := ss.PostAcknowledgement().Save(post.Id, userID3, 0, post.ChannelId)
+		ack3 := &model.PostAcknowledgement{PostId: post.Id, UserId: userID3, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		ack3, err = ss.PostAcknowledgement().SaveWithModel(ack3)
 		require.NoError(t, err)
 
 		// Verify acknowledgements were created
-		acks, err := ss.PostAcknowledgement().GetForPost(post.Id)
-		require.NoError(t, err)
+		acks, pErr := ss.PostAcknowledgement().GetForPost(post.Id)
+		require.NoError(t, pErr)
 		require.Len(t, acks, 3)
 
 		// Delete all acknowledgements in batch
@@ -363,9 +378,11 @@ func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss
 
 	t.Run("batch delete should update post's update_at", func(t *testing.T) {
 		// Create acknowledgements
-		ack1, err := ss.PostAcknowledgement().Save(post.Id, userID1, 0, post.ChannelId)
+		ack1 := &model.PostAcknowledgement{PostId: post.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		ack1, err = ss.PostAcknowledgement().SaveWithModel(ack1)
 		require.NoError(t, err)
-		ack2, err := ss.PostAcknowledgement().Save(post.Id, userID2, 0, post.ChannelId)
+		ack2 := &model.PostAcknowledgement{PostId: post.Id, UserId: userID2, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		ack2, err = ss.PostAcknowledgement().SaveWithModel(ack2)
 		require.NoError(t, err)
 
 		// Get current post update timestamp

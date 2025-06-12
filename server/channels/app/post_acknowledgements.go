@@ -40,7 +40,6 @@ func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post
 		UserId:    userID,
 		ChannelId: post.ChannelId,
 	}
-	acknowledgement.PreSave()
 
 	savedAck, nErr := a.Srv().Store().PostAcknowledgement().SaveWithModel(acknowledgement)
 	if nErr != nil {
