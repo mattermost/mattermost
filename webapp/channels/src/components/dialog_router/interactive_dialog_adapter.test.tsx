@@ -686,20 +686,21 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
     describe('Enhanced Type Safety and Default Values', () => {
         test('should handle boolean conversion correctly', async () => {
             const booleanTests = [
-                {default: true, expected: true},
-                {default: false, expected: false},
-                {default: 'true', expected: true},
-                {default: 'false', expected: false},
-                {default: '1', expected: true},
-                {default: '0', expected: false},
-                {default: 'yes', expected: true},
-                {default: 'no', expected: false},
-                {default: 'invalid', expected: false},
+                {default: true, expected: true, name: 'true'},
+                {default: false, expected: false, name: 'false'},
+                {default: 'true', expected: true, name: 'string-true'},
+                {default: 'false', expected: false, name: 'string-false'},
+                {default: '1', expected: true, name: 'one'},
+                {default: '0', expected: false, name: 'zero'},
+                {default: 'yes', expected: true, name: 'yes'},
+                {default: 'no', expected: false, name: 'no'},
+                {default: 'invalid', expected: false, name: 'invalid'},
             ];
 
-            for (const test of booleanTests) {
+            // Test all boolean conversions in parallel to avoid await-in-loop
+            const testPromises = booleanTests.map(async (test) => {
                 const boolElement: DialogElement = {
-                    name: `test-bool-${test.default}`,
+                    name: `test-bool-${test.name}`,
                     type: 'bool',
                     display_name: 'Test Boolean',
                     help_text: '',
@@ -724,9 +725,11 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 );
 
                 await waitFor(() => {
-                    expect(getByTestId(`field-value-test-bool-${test.default}`)).toHaveTextContent(String(test.expected));
+                    expect(getByTestId(`field-value-test-bool-${test.name}`)).toHaveTextContent(String(test.expected));
                 });
-            }
+            });
+
+            await Promise.all(testPromises);
         });
 
         test('should handle numeric subtype conversion', async () => {
