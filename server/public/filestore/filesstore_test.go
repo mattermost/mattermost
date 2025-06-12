@@ -33,8 +33,8 @@ func randomString() string {
 type FileBackendTestSuite struct {
 	suite.Suite
 
-	settings FileBackendSettings
-	backend  FileBackend
+	settings model.FileBackendSettings
+	backend  model.FileBackend
 }
 
 func TestLocalFileBackendTestSuite(t *testing.T) {
@@ -74,8 +74,8 @@ func TestLocalFileBackendTestSuite(t *testing.T) {
 	}
 
 	suite.Run(t, &FileBackendTestSuite{
-		settings: FileBackendSettings{
-			DriverName: driverLocal,
+		settings: model.FileBackendSettings{
+			DriverName: model.FileStoreDriverLocal,
 			Directory:  dir,
 		},
 	})
@@ -103,8 +103,8 @@ func runBackendTest(t *testing.T, encrypt bool) {
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
 	suite.Run(t, &FileBackendTestSuite{
-		settings: FileBackendSettings{
-			DriverName:                         driverS3,
+		settings: model.FileBackendSettings{
+			DriverName:                         model.FileStoreDriverS3,
 			AmazonS3AccessKeyId:                "minioaccesskey",
 			AmazonS3SecretAccessKey:            "miniosecretkey",
 			AmazonS3Bucket:                     "mattermost-test",
@@ -392,7 +392,7 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	s.Len(paths, 1)
 	s.Equal(path2, (paths)[0])
 
-	if s.settings.DriverName == driverLocal {
+	if s.settings.DriverName == model.FileStoreDriverLocal {
 		paths, err = s.backend.ListDirectory("19800102")
 		s.NoError(err)
 		s.Len(paths, 0)
@@ -448,7 +448,7 @@ func (s *FileBackendTestSuite) TestListDirectoryRecursively() {
 	s.Len(paths, 1)
 	s.Equal(path2, (paths)[0])
 
-	if s.settings.DriverName == driverLocal {
+	if s.settings.DriverName == model.FileStoreDriverLocal {
 		paths, err = s.backend.ListDirectory("19800102")
 		s.NoError(err)
 		s.Len(paths, 1)
@@ -470,7 +470,7 @@ func (s *FileBackendTestSuite) TestListDirectoryRecursively() {
 	}
 	s.True(found1)
 	s.True(found2)
-	if s.settings.DriverName == driverLocal {
+	if s.settings.DriverName == model.FileStoreDriverLocal {
 		s.False(found3)
 	}
 
@@ -613,7 +613,7 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 }
 
 type FileStoreBenchmarkSuite struct {
-	backend     FileBackend
+	backend     model.FileBackend
 	name        string
 	description string
 }
@@ -641,8 +641,8 @@ func BenchmarkFileStore(b *testing.B) {
 	defer os.RemoveAll(dir)
 
 	// Setup local backend
-	localBackend, err := NewFileBackend(FileBackendSettings{
-		DriverName: driverLocal,
+	localBackend, err := NewFileBackend(model.FileBackendSettings{
+		DriverName: model.FileStoreDriverLocal,
 		Directory:  dir,
 	})
 	require.NoError(b, err)
@@ -660,8 +660,8 @@ func BenchmarkFileStore(b *testing.B) {
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
-	s3Settings := FileBackendSettings{
-		DriverName:                         driverS3,
+	s3Settings := model.FileBackendSettings{
+		DriverName:                         model.FileStoreDriverS3,
 		AmazonS3AccessKeyId:                "minioaccesskey",
 		AmazonS3SecretAccessKey:            "miniosecretkey",
 		AmazonS3Bucket:                     "mattermost-test",
@@ -734,7 +734,7 @@ func BenchmarkFileStore(b *testing.B) {
 }
 
 // benchmarkWriteFile benchmarks writing a file of the given size
-func benchmarkWriteFile(b *testing.B, backend FileBackend, tcName string, size int) {
+func benchmarkWriteFile(b *testing.B, backend model.FileBackend, tcName string, size int) {
 	b.Run("Write_"+tcName, func(b *testing.B) {
 		bufferSize := 1024 * 1024 * 4 // 4 MB
 		buffer := make([]byte, bufferSize)
@@ -766,7 +766,7 @@ func benchmarkWriteFile(b *testing.B, backend FileBackend, tcName string, size i
 }
 
 // benchmarkReadFile benchmarks reading a file of the given size
-func benchmarkReadFile(b *testing.B, backend FileBackend, tcName string, size int) {
+func benchmarkReadFile(b *testing.B, backend model.FileBackend, tcName string, size int) {
 	b.Run("Read_"+tcName, func(b *testing.B) {
 		bufferSize := 1024 * 1024 * 4 // 4 MB
 		buffer := make([]byte, bufferSize)
@@ -811,8 +811,8 @@ func BenchmarkS3WriteFile(b *testing.B) {
 		1024 * 1024 * 200, // 200MB
 	}
 
-	defaultSettings := FileBackendSettings{
-		DriverName:                         driverS3,
+	defaultSettings := model.FileBackendSettings{
+		DriverName:                         model.FileStoreDriverS3,
 		AmazonS3AccessKeyId:                "minioaccesskey",
 		AmazonS3SecretAccessKey:            "miniosecretkey",
 		AmazonS3Bucket:                     "mattermost-test",
@@ -845,7 +845,7 @@ func BenchmarkS3WriteFile(b *testing.B) {
 		defaultSettings.AmazonS3Trace = true
 	}
 
-	backendMap := make(map[int64]FileBackend, len(partSizes))
+	backendMap := make(map[int64]model.FileBackend, len(partSizes))
 	for _, partSize := range partSizes {
 		settings := defaultSettings
 		settings.AmazonS3UploadPartSizeBytes = partSize
@@ -903,8 +903,8 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 		skipVerify := false
 		enableComplianceFeature := false
 
-		expected := FileBackendSettings{
-			DriverName:                         driverLocal,
+		expected := model.FileBackendSettings{
+			DriverName:                         model.FileStoreDriverLocal,
 			Directory:                          "directory",
 			AmazonS3AccessKeyId:                "",
 			AmazonS3SecretAccessKey:            "",
@@ -921,8 +921,8 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 			AmazonS3PresignExpiresSeconds:      0,
 		}
 
-		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
-			ExportDriverName: model.NewPointer(driverLocal),
+		actual := model.NewExportFileBackendSettingsFromConfig(&model.FileSettings{
+			ExportDriverName: model.NewPointer(model.FileStoreDriverLocal),
 			ExportDirectory:  model.NewPointer("directory"),
 		}, enableComplianceFeature, skipVerify)
 
@@ -933,8 +933,8 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 		skipVerify := true
 		enableComplianceFeature := false
 
-		expected := FileBackendSettings{
-			DriverName:                         driverS3,
+		expected := model.FileBackendSettings{
+			DriverName:                         model.FileStoreDriverS3,
 			Directory:                          "",
 			AmazonS3AccessKeyId:                "minioaccesskey",
 			AmazonS3SecretAccessKey:            "miniosecretkey",
@@ -952,8 +952,8 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 			AmazonS3UploadPartSizeBytes:        model.FileSettingsDefaultS3ExportUploadPartSizeBytes,
 		}
 
-		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
-			ExportDriverName:                         model.NewPointer(driverS3),
+		actual := model.NewExportFileBackendSettingsFromConfig(&model.FileSettings{
+			ExportDriverName:                         model.NewPointer(model.FileStoreDriverS3),
 			ExportAmazonS3AccessKeyId:                model.NewPointer("minioaccesskey"),
 			ExportAmazonS3SecretAccessKey:            model.NewPointer("miniosecretkey"),
 			ExportAmazonS3Bucket:                     model.NewPointer("mattermost-test"),
@@ -977,8 +977,8 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 		skipVerify := true
 		enableComplianceFeature := true
 
-		expected := FileBackendSettings{
-			DriverName:                         driverS3,
+		expected := model.FileBackendSettings{
+			DriverName:                         model.FileStoreDriverS3,
 			Directory:                          "",
 			AmazonS3AccessKeyId:                "minioaccesskey",
 			AmazonS3SecretAccessKey:            "miniosecretkey",
@@ -997,8 +997,8 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 			AmazonS3StorageClass:               "",
 		}
 
-		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
-			ExportDriverName:                         model.NewPointer(driverS3),
+		actual := model.NewExportFileBackendSettingsFromConfig(&model.FileSettings{
+			ExportDriverName:                         model.NewPointer(model.FileStoreDriverS3),
 			ExportAmazonS3AccessKeyId:                model.NewPointer("minioaccesskey"),
 			ExportAmazonS3SecretAccessKey:            model.NewPointer("miniosecretkey"),
 			ExportAmazonS3Bucket:                     model.NewPointer("mattermost-test"),
@@ -1218,7 +1218,7 @@ func (s *FileBackendTestSuite) TestZipReaderDirectoryCompressed() {
 func (s *FileBackendTestSuite) TestZipReaderErrors() {
 	// Test non-existent path
 	reader, err := s.backend.ZipReader("path/to/nonexistent.txt", false)
-	if s.settings.DriverName == driverLocal {
+	if s.settings.DriverName == model.FileStoreDriverLocal {
 		// Only local will return the error immediately.
 		s.Error(err)
 		s.Nil(reader)
@@ -1248,7 +1248,7 @@ func (s *FileBackendTestSuite) TestZipReaderErrors() {
 func (s *FileBackendTestSuite) TestZipReaderErrorsCompressed() {
 	// Test non-existent path with compression
 	reader, err := s.backend.ZipReader("path/to/nonexistent.txt", true)
-	if s.settings.DriverName == driverLocal {
+	if s.settings.DriverName == model.FileStoreDriverLocal {
 		// Only local will return the error immediately.
 		s.Error(err)
 		s.Nil(reader)

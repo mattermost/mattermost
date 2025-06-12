@@ -27,7 +27,7 @@ import (
 )
 
 func TestCheckMandatoryS3Fields(t *testing.T) {
-	cfg := FileBackendSettings{}
+	cfg := model.FileBackendSettings{}
 
 	err := cfg.CheckMandatoryS3Fields()
 	require.Error(t, err)
@@ -65,7 +65,7 @@ func TestMakeBucket(t *testing.T) {
 	bucketName = strings.Replace(bucketName, "+", "", -1)
 	bucketName = strings.Replace(bucketName, "/", "", -1)
 
-	cfg := FileBackendSettings{
+	cfg := model.FileBackendSettings{
 		DriverName:                         model.ImageDriverS3,
 		AmazonS3AccessKeyId:                model.MinioAccessKey,
 		AmazonS3SecretAccessKey:            model.MinioSecretKey,
@@ -106,7 +106,7 @@ func TestTimeout(t *testing.T) {
 	bucketName = strings.Replace(bucketName, "+", "", -1)
 	bucketName = strings.Replace(bucketName, "/", "", -1)
 
-	cfg := FileBackendSettings{
+	cfg := model.FileBackendSettings{
 		DriverName:                         model.ImageDriverS3,
 		AmazonS3AccessKeyId:                model.MinioAccessKey,
 		AmazonS3SecretAccessKey:            model.MinioSecretKey,
@@ -188,7 +188,7 @@ func TestInsecureMakeBucket(t *testing.T) {
 			bucketName = strings.Replace(bucketName, "+", "", -1)
 			bucketName = strings.Replace(bucketName, "/", "", -1)
 
-			cfg := FileBackendSettings{
+			cfg := model.FileBackendSettings{
 				DriverName:                         model.ImageDriverS3,
 				AmazonS3AccessKeyId:                model.MinioAccessKey,
 				AmazonS3SecretAccessKey:            model.MinioSecretKey,
@@ -337,8 +337,8 @@ func TestListDirectory(t *testing.T) {
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
-	cfg := FileBackendSettings{
-		DriverName:                         driverS3,
+	cfg := model.FileBackendSettings{
+		DriverName:                         model.FileStoreDriverS3,
 		AmazonS3AccessKeyId:                "minioaccesskey",
 		AmazonS3SecretAccessKey:            "miniosecretkey",
 		AmazonS3Bucket:                     "mattermost-test-1",
@@ -401,7 +401,7 @@ func TestWriteFileVideoMimeTypes(t *testing.T) {
 	bucketName = strings.Replace(bucketName, "+", "", -1)
 	bucketName = strings.Replace(bucketName, "/", "", -1)
 
-	cfg := FileBackendSettings{
+	cfg := model.FileBackendSettings{
 		DriverName:                         model.ImageDriverS3,
 		AmazonS3AccessKeyId:                model.MinioAccessKey,
 		AmazonS3SecretAccessKey:            model.MinioSecretKey,

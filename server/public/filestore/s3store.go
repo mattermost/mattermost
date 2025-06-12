@@ -25,6 +25,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/s3utils"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
@@ -65,8 +66,8 @@ const (
 
 var (
 	// Ensure that the ReaderAt interface is implemented.
-	_ io.ReaderAt                  = (*s3WithCancel)(nil)
-	_ FileBackendWithLinkGenerator = (*S3FileBackend)(nil)
+	_ io.ReaderAt                        = (*s3WithCancel)(nil)
+	_ model.FileBackendWithLinkGenerator = (*S3FileBackend)(nil)
 )
 
 func getContentType(ext string) string {
@@ -86,16 +87,16 @@ func (s *S3FileBackendNoBucketError) Error() string {
 }
 
 // NewS3FileBackend returns an instance of an S3FileBackend and determine if we are in Mattermost cloud or not.
-func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
+func NewS3FileBackend(settings model.FileBackendSettings) (*S3FileBackend, error) {
 	return newS3FileBackend(settings, os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != "")
 }
 
 // NewS3FileBackendWithoutBifrost returns an instance of an S3FileBackend that will not use bifrost.
-func NewS3FileBackendWithoutBifrost(settings FileBackendSettings) (*S3FileBackend, error) {
+func NewS3FileBackendWithoutBifrost(settings model.FileBackendSettings) (*S3FileBackend, error) {
 	return newS3FileBackend(settings, false)
 }
 
-func newS3FileBackend(settings FileBackendSettings, isCloud bool) (*S3FileBackend, error) {
+func newS3FileBackend(settings model.FileBackendSettings, isCloud bool) (*S3FileBackend, error) {
 	timeout := time.Duration(settings.AmazonS3RequestTimeoutMilliseconds) * time.Millisecond
 	backend := &S3FileBackend{
 		endpoint:       settings.AmazonS3Endpoint,
@@ -192,7 +193,7 @@ func (b *S3FileBackend) s3New(isCloud bool) (*s3.Client, error) {
 }
 
 func (b *S3FileBackend) DriverName() string {
-	return driverS3
+	return model.FileStoreDriverS3
 }
 
 func (b *S3FileBackend) TestConnection() error {
@@ -261,7 +262,7 @@ func (sc *s3WithCancel) CancelTimeout() bool {
 }
 
 // Caller must close the first return value
-func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
+func (b *S3FileBackend) Reader(path string) (model.ReadCloseSeeker, error) {
 	path, err := b.prefixedPath(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to prefix path %s", path)
