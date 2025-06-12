@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -270,9 +271,10 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	}()
 
 	options := model.GetPostsSinceForSyncOptions{
-		ChannelId:      sd.task.channelID,
-		IncludeDeleted: true,
-		SinceCreateAt:  true,
+		ChannelId:                         sd.task.channelID,
+		IncludeDeleted:                    true,
+		SinceCreateAt:                     true,
+		ExcludeChannelMetadataSystemPosts: true,
 	}
 	cursor := model.GetPostsSinceForSyncCursor{
 		LastPostUpdateAt: sd.scr.LastPostUpdateAt,
@@ -397,7 +399,19 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 		// get mentions and users for each mention
 		mentionMap := scs.app.MentionsToTeamMembers(request.EmptyContext(scs.server.Log()), post.Message, sc.TeamId)
-		for _, userID := range mentionMap {
+
+		// Skip notifications for remote users unless mentioned with @username:remote format
+		for mention, userID := range mentionMap {
+			user, err := scs.server.GetStore().User().Get(context.Background(), userID)
+			if err != nil {
+				continue
+			}
+
+			// Skip remote users unless mention contains a colon (@username:remote)
+			if user.RemoteId != nil && !strings.Contains(mention, ":") {
+				continue
+			}
+
 			userIDs[userID] = p2mm{
 				post:       post,
 				mentionMap: mentionMap,
@@ -428,8 +442,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			sd.profileImages[user.Id] = user
 		}
 
-		// if this was a mention then put the real username in place of the username+remotename, but only
-		// when sending to the remote that the user belongs to.
+		// Transform @username:remote to @username when sending to a user's home cluster
 		if v.post != nil && user.RemoteId != nil && *user.RemoteId == sd.rc.RemoteId {
 			fixMention(v.post, v.mentionMap, user)
 		}
@@ -463,7 +476,7 @@ func (scs *Service) fetchPostAttachmentsForSync(sd *syncData) error {
 	return merr.ErrorOrNil()
 }
 
-// filterPostsforSync removes any posts that do not need to sync.
+// filterPostsForSync removes any posts that do not need to sync.
 func (scs *Service) filterPostsForSync(sd *syncData) {
 	filtered := make([]*model.Post, 0, len(sd.posts))
 

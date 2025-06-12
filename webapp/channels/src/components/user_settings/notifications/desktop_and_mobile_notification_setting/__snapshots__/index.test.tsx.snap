@@ -163,6 +163,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           class="setting-list-item"
         >
           <hr />
+          <div
+            role="alert"
+          />
           <button
             class="btn btn-primary "
             data-testid="saveSetting"
@@ -208,6 +211,7 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
         id="desktopAndMobileEdit"
       >
         <i
+          aria-hidden="true"
           class="icon-pencil-outline"
           title="Edit Icon"
         />
@@ -376,6 +380,9 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           class="setting-list-item"
         >
           <hr />
+          <div
+            role="alert"
+          />
           <button
             class="btn btn-primary "
             data-testid="saveSetting"
