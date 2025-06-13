@@ -53,17 +53,10 @@ func (scs *Service) processGlobalUserSync(c request.CTX, syncMsg *model.SyncMsg,
 		UsersSyncd: make([]string, 0),
 	}
 
-	// Convert map to slice for extractUserNamesFromSlice
-	users := make([]*model.User, 0, len(syncMsg.Users))
-	for _, user := range syncMsg.Users {
-		users = append(users, user)
-	}
-	userNames := scs.extractUserNamesFromSlice(users)
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing global user sync",
 		mlog.String("remote", rc.Name),
 		mlog.Int("user_count", len(syncMsg.Users)),
 	)
-	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Processing global user sync from remote %s - received %d users: [%s]", rc.DisplayName, len(syncMsg.Users), userNames))
 
 	// Process all users in the sync message
 	for _, user := range syncMsg.Users {
@@ -80,11 +73,6 @@ func (scs *Service) processGlobalUserSync(c request.CTX, syncMsg *model.SyncMsg,
 			)
 		}
 	}
-
-	// Final debug message
-	successfulUserNames := scs.extractUserNamesFromIds(syncResp.UsersSyncd, users)
-	errorUserNames := scs.extractUserNamesFromIds(syncResp.UserErrors, users)
-	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Global user sync completed from remote %s - successfully processed: [%s], errors: [%s]", rc.DisplayName, successfulUserNames, errorUserNames))
 
 	return response.SetPayload(syncResp)
 }
@@ -249,30 +237,21 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
 
-	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Entering upsertSyncUser - user_id: %s, username: %s, remote: %s", user.Id, user.Username, rc.Name))
-
 	// Check if user already exists
 	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
-			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Error checking if user exists - user_id: %s, remote: %s, error: %v", user.Id, rc.Name, err))
 			return nil, fmt.Errorf("error checking sync user: %w", err)
 		}
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: User not found, will create new user - user_id: %s, remote: %s", user.Id, rc.Name))
-	} else {
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Existing user found, will update - user_id: %s, existing_remote_id: %s, remote: %s", user.Id, euser.GetRemoteID(), rc.Name))
 	}
 
 	var userSaved *model.User
 	if euser == nil {
 		// new user.  Make sure the remoteID is correct and insert the record
 		user.RemoteId = model.NewPointer(rc.RemoteId)
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Calling insertSyncUser for new user - user_id: %s, remote: %s", user.Id, rc.Name))
 		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
-			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: insertSyncUser failed - user_id: %s, remote: %s, error: %v", user.Id, rc.Name, err))
 			return nil, err
 		}
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: insertSyncUser succeeded - user_id: %s, saved_user_id: %s, remote: %s", user.Id, userSaved.Id, rc.Name))
 	} else {
 		// existing user. Make sure user belongs to the remote that issued the update
 		if euser.GetRemoteID() != rc.RemoteId {
@@ -298,12 +277,9 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
 		}
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Calling updateSyncUser for existing user - user_id: %s, remote: %s", user.Id, rc.Name))
 		if userSaved, err = scs.updateSyncUser(c, patch, euser, channel, rc); err != nil {
-			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: updateSyncUser failed - user_id: %s, remote: %s, error: %v", user.Id, rc.Name, err))
 			return nil, err
 		}
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: updateSyncUser succeeded - user_id: %s, saved_user_id: %s, remote: %s", user.Id, userSaved.Id, rc.Name))
 	}
 
 	// Add user to team and channel. We do this here regardless of whether the user was
@@ -314,24 +290,15 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	// added and exit quickly.  Not needed for DMs where teamId is empty.
 	if channel != nil && channel.TeamId != "" {
 		// add user to team
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Adding user to team - user_id: %s, team_id: %s, remote: %s", userSaved.Id, channel.TeamId, rc.Name))
 		if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
-			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Failed to add user to team - user_id: %s, team_id: %s, remote: %s, error: %v", userSaved.Id, channel.TeamId, rc.Name, err))
 			return nil, fmt.Errorf("error adding sync user to Team: %w", err)
 		}
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Successfully added user to team - user_id: %s, team_id: %s, remote: %s", userSaved.Id, channel.TeamId, rc.Name))
 		// add user to channel
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Adding user to channel - user_id: %s, channel_id: %s, remote: %s", userSaved.Id, channel.Id, rc.Name))
 		if _, err := scs.app.AddUserToChannel(c, userSaved, channel, false); err != nil {
-			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Failed to add user to channel - user_id: %s, channel_id: %s, remote: %s, error: %v", userSaved.Id, channel.Id, rc.Name, err))
 			return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
 		}
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Successfully added user to channel - user_id: %s, channel_id: %s, remote: %s", userSaved.Id, channel.Id, rc.Name))
-	} else {
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Skipping team/channel addition (DM channel) - user_id: %s, remote: %s", userSaved.Id, rc.Name))
 	}
 
-	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: upsertSyncUser completed successfully - user_id: %s, remote: %s", userSaved.Id, rc.Name))
 	return userSaved, nil
 }
 
@@ -360,7 +327,6 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 		user.Email = model.NewId()
 
 		if userSaved, err = scs.server.GetStore().User().Save(rctx, user); err != nil {
-			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: User save failed - user_id: %s, username: %s, remote: %s, attempt: %d, error: %v", user.Id, user.Username, rc.Name, i, err))
 			field, ok := isConflictError(err)
 			if !ok {
 				break
@@ -380,7 +346,6 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 			return userSaved, nil
 		}
 	}
-	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: insertSyncUser failed after all retries - user_id: %s, remote: %s, error: %v", user.Id, rc.Name, err))
 	return nil, fmt.Errorf("error inserting sync user %s: %w", user.Id, err)
 }
 
@@ -388,8 +353,6 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 	var err error
 	var update *model.UserUpdate
 	var suffix string
-
-	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Entering updateSyncUser - user_id: %s, username: %s, remote: %s", user.Id, user.Username, rc.Name))
 
 	// preserve existing real username/email since Patch will over-write them;
 	// the real username/email in props can be updated if they don't contain colons,
@@ -417,10 +380,7 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
 		user.Email = model.NewId()
 
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Attempting to update user - user_id: %s, username: %s, remote: %s, attempt: %d", user.Id, user.Username, rc.Name, i))
-
 		if update, err = scs.server.GetStore().User().Update(rctx, user, false); err != nil {
-			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: User update failed - user_id: %s, username: %s, remote: %s, attempt: %d, error: %v", user.Id, user.Username, rc.Name, i, err))
 			field, ok := isConflictError(err)
 			if !ok {
 				break
@@ -436,13 +396,11 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 				)
 			}
 		} else {
-			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: User update succeeded - user_id: %s, updated_user_id: %s, username: %s, remote: %s, attempt: %d", user.Id, update.New.Id, user.Username, rc.Name, i))
 			scs.platform.InvalidateCacheForUser(update.New.Id)
 			scs.app.NotifySharedChannelUserUpdate(update.New)
 			return update.New, nil
 		}
 	}
-	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: updateSyncUser failed after all retries - user_id: %s, remote: %s, error: %v", user.Id, rc.Name, err))
 	return nil, fmt.Errorf("error updating sync user %s: %w", user.Id, err)
 }
 
@@ -561,52 +519,4 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 		retErr = errors.New(appErr.Error())
 	}
 	return savedReaction, retErr
-}
-
-// extractUserNamesFromSlice creates a comma-separated list of usernames from a slice of users
-func (scs *Service) extractUserNamesFromSlice(users []*model.User) string {
-	if len(users) == 0 {
-		return "none"
-	}
-
-	userNames := make([]string, 0, len(users))
-	for _, user := range users {
-		userNames = append(userNames, user.Username)
-	}
-
-	// Limit to first 10 usernames to avoid overly long debug messages
-	if len(userNames) > 10 {
-		return fmt.Sprintf("%s and %d more", strings.Join(userNames[:10], ", "), len(userNames)-10)
-	}
-
-	return strings.Join(userNames, ", ")
-}
-
-// extractUserNamesFromIds creates a comma-separated list of usernames from user IDs by looking them up in the provided users slice
-func (scs *Service) extractUserNamesFromIds(userIds []string, users []*model.User) string {
-	if len(userIds) == 0 {
-		return "none"
-	}
-
-	// Create a map for quick lookup
-	userMap := make(map[string]*model.User)
-	for _, user := range users {
-		userMap[user.Id] = user
-	}
-
-	userNames := make([]string, 0, len(userIds))
-	for _, id := range userIds {
-		if user, found := userMap[id]; found {
-			userNames = append(userNames, user.Username)
-		} else {
-			userNames = append(userNames, fmt.Sprintf("unknown(%s)", id))
-		}
-	}
-
-	// Limit to first 10 usernames to avoid overly long debug messages
-	if len(userNames) > 10 {
-		return fmt.Sprintf("%s and %d more", strings.Join(userNames[:10], ", "), len(userNames)-10)
-	}
-
-	return strings.Join(userNames, ", ")
 }
