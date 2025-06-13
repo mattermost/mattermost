@@ -14,6 +14,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-plugin v1.6.3
 	github.com/lib/pq v1.10.9
+	github.com/magefile/mage v1.15.0
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gosaml2 v0.9.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
