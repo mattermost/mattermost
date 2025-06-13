@@ -188,7 +188,7 @@ type TeamStore interface {
 }
 
 type ChannelStore interface {
-	Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error)
+	Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error)
 	CreateDirectChannel(ctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error)
 	SaveDirectChannel(ctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
 	Update(ctx request.CTX, channel *model.Channel) (*model.Channel, error)
@@ -562,6 +562,7 @@ type RemoteClusterStore interface {
 	GetAll(offset, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
 	UpdateTopics(remoteClusterID string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterID string) error
+	UpdateLastGlobalUserSyncAt(remoteID string, syncAt int64) error
 }
 
 type ComplianceStore interface {
