@@ -40,12 +40,12 @@ type LdapDiagnosticResult struct {
 }
 
 type LdapSampleEntry struct {
-	DN             string            `json:"dn"`
-	Username       string            `json:"username,omitempty"`
-	Email          string            `json:"email,omitempty"`
-	FirstName      string            `json:"first_name,omitempty"`
-	LastName       string            `json:"last_name,omitempty"`
-	ID             string            `json:"id,omitempty"`
-	DisplayName    string            `json:"display_name,omitempty"` // For groups
-	AvailableAttrs map[string]string `json:"available_attributes,omitempty"`
+	DN                  string            `json:"dn"`
+	Username            string            `json:"username,omitempty"`
+	Email               string            `json:"email,omitempty"`
+	FirstName           string            `json:"first_name,omitempty"`
+	LastName            string            `json:"last_name,omitempty"`
+	ID                  string            `json:"id,omitempty"`
+	DisplayName         string            `json:"display_name,omitempty"` // For groups
+	AvailableAttributes map[string]string `json:"available_attributes,omitempty"`
 }
