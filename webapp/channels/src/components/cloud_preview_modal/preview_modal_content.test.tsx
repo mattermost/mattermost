@@ -53,7 +53,7 @@ describe('PreviewModalContent', () => {
     it('should not render SKU label when not provided', () => {
         const contentWithoutSku = {
             ...baseContent,
-            skuLabel: undefined,
+            skuLabel: "",
         };
 
         render(<PreviewModalContent content={contentWithoutSku}/>);
