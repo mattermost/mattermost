@@ -2858,11 +2858,11 @@ func (s *RetryLayerChannelStore) Restore(channelID string, timestamp int64) erro
 
 }
 
-func (s *RetryLayerChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
+func (s *RetryLayerChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam)
+		result, err := s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam, channelOptions...)
 		if err == nil {
 			return result, nil
 		}
