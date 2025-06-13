@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -503,8 +504,8 @@ func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.
 	return channel, nil
 }
 
-func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId string) (*model.Channel, *model.AppError) {
-	channel, err := a.createGroupChannel(c, userIDs)
+func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	channel, err := a.createGroupChannel(c, userIDs, creatorId, channelOptions...)
 	if err != nil {
 		if err.Id == store.ChannelExistsError {
 			return channel, nil
@@ -524,7 +525,11 @@ func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId stri
 	return channel, nil
 }
 
-func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channel, *model.AppError) {
+// creatorId is used to determine if the group channel should have a
+// shared channel record attached. It can be empty if the caller
+// doesn't know who the creator is (e.g. the import process) and the
+// resulting group channel will not be shared
+func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	if len(userIDs) > model.ChannelGroupMaxUsers || len(userIDs) < model.ChannelGroupMinUsers {
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -538,7 +543,21 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJSON(userIDs), http.StatusBadRequest)
 	}
 
-	if !a.Config().FeatureFlags.EnableSharedChannelsDMs {
+	// extracts the creator and the remotes involved in the GM to
+	// decide how to handle the shared part of the creation
+	var creator *model.User
+	remoteIDs := map[string]bool{}
+	for _, user := range users {
+		if user.Id == creatorID {
+			creator = user
+		}
+		if user.IsRemote() {
+			remoteIDs[*user.RemoteId] = true
+		}
+	}
+	channelIsShared := len(remoteIDs) > 0
+
+	if channelIsShared && !a.Config().FeatureFlags.EnableSharedChannelsDMs {
 		for _, user := range users {
 			if user.IsRemote() {
 				return nil, model.NewAppError("createGroupChannel", "api.channel.create_group.remote_restricted.app_error", nil, "", http.StatusForbidden)
@@ -550,9 +569,10 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		Name:        model.GetGroupNameFromUserIds(userIDs),
 		DisplayName: model.GetGroupDisplayNameFromUsers(users, true),
 		Type:        model.ChannelTypeGroup,
+		Shared:      model.NewPointer(channelIsShared),
 	}
 
-	channel, nErr := a.Srv().Store().Channel().Save(c, group, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	channel, nErr := a.Srv().Store().Channel().Save(c, group, *a.Config().TeamSettings.MaxChannelsPerTeam, channelOptions...)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		var cErr *store.ErrConflict
@@ -605,6 +625,48 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		}
 		if err := a.Srv().Store().ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
 			return nil, model.NewAppError("createGroupChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	// When the newly created channel is shared, the creator is local
+	// and one of the participants is remote create a local shared
+	// channel record
+	if channel.IsShared() && creator != nil && !creator.IsRemote() {
+		sc := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ReadOnly:         false,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			SharePurpose:     channel.Purpose,
+			ShareHeader:      channel.Header,
+			CreatorId:        creatorID,
+			Type:             channel.Type,
+		}
+
+		if _, err := a.ShareChannel(c, sc); err != nil {
+			c.Logger().Error("Failed to share newly created group channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+		} else {
+			// if we could successfully share the channel, we invite
+			// the remotes involved to it
+			if sc, _ := a.getSharedChannelsService(); sc != nil {
+				for remoteID := range remoteIDs {
+					rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
+					if err != nil {
+						c.Logger().Error("Failed to send invite to group message channel, can't retrieve remote cluster", mlog.String("channel_id", channel.Id), mlog.String("remote_id", remoteID), mlog.Err(err))
+						continue
+					}
+
+					opts := []sharedchannel.InviteOption{sharedchannel.WithCreator(creatorID)}
+					for _, user := range users {
+						opts = append(opts, sharedchannel.WithDirectParticipant(user, remoteID))
+					}
+					if err := sc.SendChannelInvite(channel, creatorID, rc, opts...); err != nil {
+						c.Logger().Error("Failed to send invite to group message channel, error sending the invite", mlog.String("channel_id", channel.Id), mlog.String("remote_id", remoteID), mlog.Err(err))
+					}
+				}
+			}
 		}
 	}
 
