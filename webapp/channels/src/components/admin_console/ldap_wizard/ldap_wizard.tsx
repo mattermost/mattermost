@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useState, useMemo} from 'react';
 import type {MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
@@ -13,6 +13,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SettingsGroup from 'components/admin_console/settings_group';
+import {useSectionNavigation} from 'components/common/hooks/useSectionNavigation';
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -31,7 +32,16 @@ import LDAPTextSetting from './ldap_text_setting';
 import {ldapWizardAdminDefinition} from '../admin_definition';
 import {getConfigFromState, isSetByEnv, SchemaAdminSettings} from '../schema_admin_settings';
 import SchemaText from '../schema_text';
-import type {AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess} from '../types';
+import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess} from '../types';
+import './ldap_wizard.scss';
+
+export type LDAPAdminDefinitionConfigSchemaSettings = AdminDefinitionSubSectionSchema & {
+    sections?: LDAPAdminDefinitionConfigSchemaSection[];
+}
+
+export type LDAPAdminDefinitionConfigSchemaSection = AdminDefinitionConfigSchemaSection & {
+    sectionTitle?: string;
+}
 
 export type GeneralSettingProps = {
     setting: AdminDefinitionSetting;
@@ -88,6 +98,21 @@ const LDAPWizard = (props: Props) => {
     }, [props.config, props.roles, schema]);
 
     const [saveActions, setSaveActions] = useState<Array<() => Promise<{error?: {message?: string}}>>>([]);
+
+    const memoizedSections = useMemo(() => {
+        return (schema && 'sections' in schema && schema.sections) ? schema.sections : [];
+    }, [schema]);
+    const memoizedSectionKeys = useMemo(() => {
+        return memoizedSections.map((section) => section.key);
+    }, [memoizedSections]);
+
+    const {activeSectionKey, sectionRefs} = useSectionNavigation(memoizedSectionKeys,
+        {
+            root: null, // Use viewport as root
+            rootMargin: '-40% 0px -40% 0px', // Active when in the middle 20% of the viewport
+            threshold: 0.01, // At least 1% of element in this zone
+        },
+    );
 
     const buildTextSetting = (setting: AdminDefinitionSetting) => {
         return (
@@ -469,15 +494,36 @@ const LDAPWizard = (props: Props) => {
         return null;
     };
 
+    const renderSidebar = () => {
+        return (
+            <div className='ldap-wizard-sidebar'>
+                <div className='ldap-wizard-sidebar-header'>
+                    <i className='icon icon-text-box-outline'/>
+                    <FormattedMessage
+                        id='admin.ldap_wizard.sections_header'
+                        defaultMessage='Sections'
+                    />
+                </div>
+                {memoizedSections.map((section) => (
+                    <button
+                        key={section.key + '-sidebar-item'}
+                        className={`ldap-wizard-sidebar-item ${section.key === activeSectionKey ? 'ldap-wizard-sidebar-item--active' : ''}`}
+                        onClick={() => {
+                            const sectionElement = sectionRefs.current[section.key];
+                            if (sectionElement) {
+                                sectionElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+                            }
+                        }}
+                    >
+                        {section.sectionTitle || section.title}
+                    </button>
+                ))}
+            </div>
+        );
+    };
+
     const renderSettings = () => {
-        // For type checking
-        if (!('sections' in schema && schema.sections)) {
-            return null;
-        }
-
-        const sections: React.ReactNode[] = [];
-
-        schema.sections.forEach((section) => {
+        const renderedSections = memoizedSections.map((section) => {
             const settingsList: React.ReactNode[] = [];
             if (section.settings) {
                 section.settings.forEach((setting) => {
@@ -489,13 +535,12 @@ const LDAPWizard = (props: Props) => {
 
             if (section.component) {
                 const CustomComponent = section.component;
-                sections.push((
+                return (
                     <CustomComponent
                         settingsList={settingsList}
                         key={section.key}
                     />
-                ));
-                return;
+                );
             }
 
             let header;
@@ -522,10 +567,16 @@ const LDAPWizard = (props: Props) => {
                 );
             }
 
-            sections.push(
+            return (
                 <div
                     className={'config-section'}
                     key={section.key}
+                    ref={(el) => {
+                        if (sectionRefs.current) {
+                            sectionRefs.current[section.key] = el;
+                        }
+                    }}
+                    data-section-key={section.key}
                 >
                     <SettingsGroup
                         show={true}
@@ -538,33 +589,36 @@ const LDAPWizard = (props: Props) => {
                             {footer}
                         </div>
                     </SettingsGroup>
-                </div>,
+                </div>
             );
         });
 
         return (
             <div>
-                {sections}
+                {renderedSections}
             </div>
         );
     };
 
     return (
         <div
-            className={'wrapper--fixed'}
+            className={'wrapper--fixed ldap-wizard-wrapper'}
             data-testid={`sysconsole_section_${schema?.id}`}
         >
             {renderTitle()}
-            <div className='admin-console__wrapper'>
-                <div className='admin-console__content'>
-                    <form
-                        className='form-horizontal'
-                        role='form'
-                        onSubmit={handleSubmit}
-                    >
-                        {renderSettings()}
-                    </form>
-                    {hybridSchemaAndComponent()}
+            <div className='ldap-wizard-content-wrapper'>
+                {renderSidebar()}
+                <div className='admin-console__wrapper'>
+                    <div className='admin-console__content'>
+                        <form
+                            className='form-horizontal'
+                            role='form'
+                            onSubmit={handleSubmit}
+                        >
+                            {renderSettings()}
+                        </form>
+                        {hybridSchemaAndComponent()}
+                    </div>
                 </div>
             </div>
             <div className='admin-console-save'>
@@ -574,9 +628,7 @@ const LDAPWizard = (props: Props) => {
                     onClick={handleSubmit}
                     savingMessage={props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                 />
-                <WithTooltip
-                    title={state?.serverError ?? ''}
-                >
+                <WithTooltip title={state?.serverError ?? ''}>
                     <div
                         className='error-message'
                         data-testid='errorMessage'
