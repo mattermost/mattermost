@@ -47,7 +47,7 @@ func (a *App) TestLdap(rctx request.CTX) *model.AppError {
 		"ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }
 
-func (a *App) TestLdapConnection(rctx request.CTX, settings *model.LdapSettings) *model.AppError {
+func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) *model.AppError {
 	license := a.Srv().License()
 	ldapI := a.LdapDiagnostic()
 
@@ -61,43 +61,17 @@ func (a *App) TestLdapConnection(rctx request.CTX, settings *model.LdapSettings)
 		"ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }
 
-func (a *App) TestLdapFilters(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
+func (a *App) TestLdapDiagnostics(rctx request.CTX, testType model.LdapDiagnosticTestType, settings model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
 	license := a.Srv().License()
 	ldapI := a.LdapDiagnostic()
 
 	// NOTE: normally we would test (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync),
 	// but we want to allow sysadmins to test the connection without enabling and saving the config first.
 	if ldapI != nil && license != nil && *license.Features.LDAP {
-		return ldapI.RunTestFilters(rctx, settings)
+		return ldapI.RunTestDiagnostics(rctx, testType, settings)
 	}
 
-	return nil, model.NewAppError("TestLdapFilters", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
-}
-
-func (a *App) TestLdapAttributes(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
-	license := a.Srv().License()
-	ldapI := a.LdapDiagnostic()
-
-	// NOTE: normally we would test (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync),
-	// but we want to allow sysadmins to test the connection without enabling and saving the config first.
-	if ldapI != nil && license != nil && *license.Features.LDAP {
-		return ldapI.RunTestAttributes(rctx, settings)
-	}
-
-	return nil, model.NewAppError("TestLdapAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
-}
-
-func (a *App) TestLdapGroupAttributes(rctx request.CTX, settings *model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
-	license := a.Srv().License()
-	ldapI := a.LdapDiagnostic()
-
-	// NOTE: normally we would test (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync),
-	// but we want to allow sysadmins to test the connection without enabling and saving the config first.
-	if ldapI != nil && license != nil && *license.Features.LDAP {
-		return ldapI.RunTestGroupAttributes(rctx, settings)
-	}
-
-	return nil, model.NewAppError("TestLdapGroupAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+	return nil, model.NewAppError("TestLdapDiagnostics", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }
 
 // GetLdapGroup retrieves a single LDAP group by the given LDAP group id.

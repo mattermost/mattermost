@@ -39,8 +39,9 @@ const LDAPButtonSetting = (props: Props) => {
             // If this is the filter test button or attribute test button and we have results, pass them to the handler
             const isAttributeTest = props.setting.key === 'LdapSettings.TestAttributes';
             const isFiltersTest = props.setting.key === 'LdapSettings.TestFilters';
+            const isGroupAttributeTest = props.setting.key === 'LdapSettings.TestGroupAttributes';
 
-            if ((isFiltersTest || isAttributeTest) && props.onFilterTestResults && data) {
+            if ((isFiltersTest || isAttributeTest || isGroupAttributeTest) && props.onFilterTestResults && data) {
                 props.onFilterTestResults(data);
 
                 const allTestsPassed = Array.isArray(data) && data.every((result) => result.error === '');
@@ -50,11 +51,17 @@ const LDAPButtonSetting = (props: Props) => {
                     const failedCount = data.filter((result) => result.error !== '').length;
                     const totalCount = data.length;
 
+                    let messageKey;
+                    if (isGroupAttributeTest) {
+                        messageKey = ldapButtonMessages.testGroupAttributesPartialFailure;
+                    } else if (isAttributeTest) {
+                        messageKey = ldapButtonMessages.testAttributesPartialFailure;
+                    } else {
+                        messageKey = ldapButtonMessages.testFiltersPartialFailure;
+                    }
+
                     error({
-                        message: intl.formatMessage(
-                            isAttributeTest ? ldapButtonMessages.testAttributesPartialFailure : ldapButtonMessages.testFiltersPartialFailure,
-                            {failedCount, totalCount},
-                        ),
+                        message: intl.formatMessage(messageKey, {failedCount, totalCount}),
                     });
                 }
             } else {
@@ -95,6 +102,10 @@ const ldapButtonMessages = defineMessages({
     testAttributesPartialFailure: {
         id: 'admin.ldap.testAttributesPartialFailure',
         defaultMessage: '{failedCount, number} of {totalCount, number} attribute test{totalCount, plural, one {} other {s}} failed. Check the highlighted fields for details.',
+    },
+    testGroupAttributesPartialFailure: {
+        id: 'admin.ldap.testGroupAttributesPartialFailure',
+        defaultMessage: '{failedCount, number} of {totalCount, number} group attribute test{totalCount, plural, one {} other {s}} failed. Check the highlighted fields for details.',
     },
 });
 

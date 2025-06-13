@@ -9,6 +9,25 @@ const (
 	LdapPrivateKeyName        = "ldap-private.key"
 )
 
+// LdapDiagnosticTestType represents the type of LDAP diagnostic test to run
+type LdapDiagnosticTestType string
+
+const (
+	LdapDiagnosticTestTypeFilters         LdapDiagnosticTestType = "filters"
+	LdapDiagnosticTestTypeAttributes      LdapDiagnosticTestType = "attributes"
+	LdapDiagnosticTestTypeGroupAttributes LdapDiagnosticTestType = "group_attributes"
+)
+
+// IsValid checks if the LdapDiagnosticTestType is valid
+func (t LdapDiagnosticTestType) IsValid() bool {
+	switch t {
+	case LdapDiagnosticTestTypeFilters, LdapDiagnosticTestTypeAttributes, LdapDiagnosticTestTypeGroupAttributes:
+		return true
+	default:
+		return false
+	}
+}
+
 // For Diagnostic results
 type LdapDiagnosticResult struct {
 	TestName         string            `json:"test_name"`
