@@ -763,6 +763,70 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             });
         });
 
+        test('should handle empty default values correctly', async () => {
+            const emptyDefaultElement: DialogElement = {
+                name: 'test-empty-default',
+                type: 'text',
+                display_name: 'Test Empty Default',
+                help_text: '',
+                placeholder: '',
+                default: '', // Empty default value
+                optional: true,
+                max_length: 0,
+                min_length: 0,
+                subtype: '',
+                data_source: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [emptyDefaultElement],
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                // Should preserve empty string as-is
+                expect(getByTestId('field-value-test-empty-default')).toHaveTextContent('""');
+            });
+        });
+
+        test('should handle null default values correctly', async () => {
+            const nullDefaultElement: DialogElement = {
+                name: 'test-null-default',
+                type: 'text',
+                display_name: 'Test Null Default',
+                help_text: '',
+                placeholder: '',
+                default: null, // Null default value
+                optional: true,
+                max_length: 0,
+                min_length: 0,
+                subtype: '',
+                data_source: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [nullDefaultElement],
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                // Should be null (matches original dialog behavior)
+                expect(getByTestId('field-value-test-null-default')).toHaveTextContent('null');
+            });
+        });
+
         test('should handle missing default values in select options', async () => {
             const selectElement: DialogElement = {
                 name: 'test-select',

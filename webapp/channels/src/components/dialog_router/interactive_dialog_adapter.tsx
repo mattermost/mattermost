@@ -450,12 +450,9 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
 
             case 'text':
             case 'textarea':
-                // Handle numeric subtypes specially
-                if (element.subtype === 'number') {
-                    const numValue = Number(element.default);
-                    return isNaN(numValue) ? this.sanitizeString(element.default) : String(numValue);
-                }
-                return this.sanitizeString(element.default);
+                // Match original interactive dialog: e.default ?? null
+                const defaultValue = element.default ?? null;
+                return defaultValue === null ? null : this.sanitizeString(defaultValue);
 
             default:
                 return this.sanitizeString(element.default);
@@ -619,34 +616,29 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             // Type-safe value conversion with validation
             switch (element.type) {
             case 'text':
-            case 'textarea':
-                if (element.subtype === 'number') {
-                    // Handle numeric inputs
-                    const numValue = Number(value);
-                    submission[element.name] = isNaN(numValue) ? this.sanitizeString(value) : numValue;
-                } else {
-                    const stringValue = this.sanitizeString(value);
+            case 'textarea': {
+                const stringValue = this.sanitizeString(value);
 
-                    // Validate length constraints
-                    if (this.conversionContext.validateInputs) {
-                        if (element.min_length !== undefined && stringValue.length < element.min_length) {
-                            this.logWarn('Field value too short', {
-                                fieldName: element.name,
-                                actualLength: stringValue.length,
-                                minLength: element.min_length,
-                            });
-                        }
-                        if (element.max_length !== undefined && stringValue.length > element.max_length) {
-                            this.logWarn('Field value too long', {
-                                fieldName: element.name,
-                                actualLength: stringValue.length,
-                                maxLength: element.max_length,
-                            });
-                        }
+                // Validate length constraints
+                if (this.conversionContext.validateInputs) {
+                    if (element.min_length !== undefined && stringValue.length < element.min_length) {
+                        this.logWarn('Field value too short', {
+                            fieldName: element.name,
+                            actualLength: stringValue.length,
+                            minLength: element.min_length,
+                        });
                     }
-                    submission[element.name] = stringValue;
+                    if (element.max_length !== undefined && stringValue.length > element.max_length) {
+                        this.logWarn('Field value too long', {
+                            fieldName: element.name,
+                            actualLength: stringValue.length,
+                            maxLength: element.max_length,
+                        });
+                    }
                 }
+                submission[element.name] = stringValue;
                 break;
+            }
 
             case 'bool':
                 submission[element.name] = Boolean(value);
