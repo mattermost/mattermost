@@ -336,7 +336,13 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                     note: 'These are warnings - processing will continue for backwards compatibility',
                 });
                 if (this.conversionContext.strictMode) {
-                    throw new Error(`Dialog validation failed: ${validationErrors.map((e) => e.message).join(', ')}`);
+                    const errorMessage = this.props.intl.formatMessage({
+                        id: 'interactive_dialog.validation_failed',
+                        defaultMessage: 'Dialog validation failed: {errors}',
+                    }, {
+                        errors: validationErrors.map((e) => e.message).join(', '),
+                    });
+                    throw new Error(errorMessage);
                 }
             }
         }
@@ -361,7 +367,13 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         if (this.conversionContext.validateInputs) {
             const errors = this.validateDialogElement(element, 0);
             if (errors.length > 0 && this.conversionContext.strictMode) {
-                throw new Error(`Element validation failed: ${errors.map((e) => e.message).join(', ')}`);
+                const errorMessage = this.props.intl.formatMessage({
+                    id: 'interactive_dialog.element_validation_failed',
+                    defaultMessage: 'Element validation failed: {errors}',
+                }, {
+                    errors: errors.map((e) => e.message).join(', '),
+                });
+                throw new Error(errorMessage);
             }
         }
 
@@ -535,7 +547,10 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 return {
                     error: {
                         type: 'error' as const,
-                        text: result.data.error || 'Submission failed with validation errors',
+                        text: result.data.error || this.props.intl.formatMessage({
+                            id: 'interactive_dialog.submission_failed_validation',
+                            defaultMessage: 'Submission failed with validation errors',
+                        }),
                         data: {
                             errors: result.data.errors || {},
                         },
@@ -548,7 +563,10 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 return {
                     error: {
                         type: 'error' as const,
-                        text: 'Submission failed',
+                        text: this.props.intl.formatMessage({
+                            id: 'interactive_dialog.submission_failed',
+                            defaultMessage: 'Submission failed',
+                        }),
                         data: {
                             errors: {},
                         },
@@ -572,7 +590,10 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             return {
                 error: {
                     type: 'error' as const,
-                    text: error instanceof Error ? error.message : 'Submission failed',
+                    text: error instanceof Error ? error.message : this.props.intl.formatMessage({
+                        id: 'interactive_dialog.submission_failed',
+                        defaultMessage: 'Submission failed',
+                    }),
                     data: {
                         errors: {
                             form: String(error),

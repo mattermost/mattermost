@@ -7069,6 +7069,22 @@
     "translation": "Encountered an error reading response body from interactive dialog submission."
   },
   {
+    "id": "interactive_dialog.element_validation_failed",
+    "translation": "Element validation failed: {errors}"
+  },
+  {
+    "id": "interactive_dialog.submission_failed",
+    "translation": "Submission failed"
+  },
+  {
+    "id": "interactive_dialog.submission_failed_validation",
+    "translation": "Submission failed with validation errors"
+  },
+  {
+    "id": "interactive_dialog.validation_failed",
+    "translation": "Dialog validation failed: {errors}"
+  },
+  {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Failed to decode the complete onboarding request."
   },
