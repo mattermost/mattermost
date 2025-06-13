@@ -6,33 +6,15 @@ import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import type {AppForm, AppField, AppCallRequest, AppFormValue, AppSelectOption, AppFormValues} from '@mattermost/types/apps';
-import type {DialogElement, DialogSubmission} from '@mattermost/types/integrations';
+import type {DialogElement, DialogSubmission, SubmitDialogResponse} from '@mattermost/types/integrations';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {createCallContext} from 'utils/apps';
 import type EmojiMap from 'utils/emoji_map';
 
 import type {DoAppCallResult} from 'types/apps';
-
-// Enhanced TypeScript interfaces for better type safety
-// type ExtendedDialog = {
-//     title?: string;
-//     introduction_text?: string;
-//     icon_url?: string;
-//     submit_label?: string;
-//     notify_on_cancel?: boolean;
-//     state?: string;
-//     elements?: DialogElement[];
-//     callback_id: string; // Make callback_id required
-//     url?: string; // Optional webhook URL for submission
-//     trigger_id?: string; // Optional dialog trigger tracking
-// };
-
-type SubmitDialogResponse = {
-    error?: string;
-    errors?: Record<string, string>;
-};
 
 type ValidationError = {
     field: string;
@@ -63,7 +45,7 @@ interface Props extends WrappedComponentProps {
     emojiMap?: EmojiMap;
     onExited?: () => void;
     actions: {
-        submitInteractiveDialog: (submission: DialogSubmission) => Promise<SubmitDialogResponse>;
+        submitInteractiveDialog: (submission: DialogSubmission) => Promise<ActionResult<SubmitDialogResponse>>;
     };
 
     // Enhanced configuration options
@@ -449,10 +431,11 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             }
 
             case 'text':
-            case 'textarea':
+            case 'textarea': {
                 // Match original interactive dialog: e.default ?? null
                 const defaultValue = element.default ?? null;
                 return defaultValue === null ? null : this.sanitizeString(defaultValue);
+            }
 
             default:
                 return this.sanitizeString(element.default);
@@ -547,14 +530,27 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
 
             const result = await this.props.actions.submitInteractiveDialog(legacySubmission);
 
-            // Enhanced response handling with better type safety
-            if (result?.error || result?.errors) {
+            // Handle server-side validation errors from the response data (like original dialog)
+            if (result?.data?.error || result?.data?.errors) {
                 return {
                     error: {
                         type: 'error' as const,
-                        text: result.error || 'Submission failed with validation errors',
+                        text: result.data.error || 'Submission failed with validation errors',
                         data: {
-                            errors: result.errors || {},
+                            errors: result.data.errors || {},
+                        },
+                    },
+                };
+            }
+
+            // Handle network/action-level errors
+            if (result?.error) {
+                return {
+                    error: {
+                        type: 'error' as const,
+                        text: 'Submission failed',
+                        data: {
+                            errors: {},
                         },
                     },
                 };
@@ -616,30 +612,34 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             // Type-safe value conversion with validation
             switch (element.type) {
             case 'text':
-            case 'textarea': {
-                const stringValue = this.sanitizeString(value);
+            case 'textarea':
+                if (element.subtype === 'number') {
+                    // Handle numeric inputs
+                    const numValue = Number(value);
+                    submission[element.name] = isNaN(numValue) ? this.sanitizeString(value) : numValue;
+                } else {
+                    const stringValue = this.sanitizeString(value);
 
-                // Validate length constraints
-                if (this.conversionContext.validateInputs) {
-                    if (element.min_length !== undefined && stringValue.length < element.min_length) {
-                        this.logWarn('Field value too short', {
-                            fieldName: element.name,
-                            actualLength: stringValue.length,
-                            minLength: element.min_length,
-                        });
+                    // Validate length constraints
+                    if (this.conversionContext.validateInputs) {
+                        if (element.min_length !== undefined && stringValue.length < element.min_length) {
+                            this.logWarn('Field value too short', {
+                                fieldName: element.name,
+                                actualLength: stringValue.length,
+                                minLength: element.min_length,
+                            });
+                        }
+                        if (element.max_length !== undefined && stringValue.length > element.max_length) {
+                            this.logWarn('Field value too long', {
+                                fieldName: element.name,
+                                actualLength: stringValue.length,
+                                maxLength: element.max_length,
+                            });
+                        }
                     }
-                    if (element.max_length !== undefined && stringValue.length > element.max_length) {
-                        this.logWarn('Field value too long', {
-                            fieldName: element.name,
-                            actualLength: stringValue.length,
-                            maxLength: element.max_length,
-                        });
-                    }
+                    submission[element.name] = stringValue;
                 }
-                submission[element.name] = stringValue;
                 break;
-            }
-
             case 'bool':
                 submission[element.name] = Boolean(value);
                 break;
