@@ -4,9 +4,9 @@ SET @preparedStatement1 = (SELECT IF(
         WHERE table_name = 'PostAcknowledgements'
         AND table_schema = DATABASE()
         AND column_name = 'RemoteId'
-    ) = 0,
-    'ALTER TABLE PostAcknowledgements ADD COLUMN RemoteId varchar(26) DEFAULT \'\';',
-    'SELECT 1;'
+    ) > 0,
+    'SELECT 1;',
+    'ALTER TABLE PostAcknowledgements ADD COLUMN RemoteId varchar(26) DEFAULT \'\';'
 ));
 
 PREPARE addColumnIfNotExists FROM @preparedStatement1;
@@ -19,9 +19,9 @@ SET @preparedStatement2 = (SELECT IF(
         WHERE table_name = 'PostAcknowledgements'
         AND table_schema = DATABASE()
         AND column_name = 'ChannelId'
-    ) = 0,
-    'ALTER TABLE PostAcknowledgements ADD COLUMN ChannelId varchar(26) DEFAULT \'\';',
-    'SELECT 1;'
+    ) > 0,
+    'SELECT 1;',
+    'ALTER TABLE PostAcknowledgements ADD COLUMN ChannelId varchar(26) DEFAULT \'\';'
 ));
 
 PREPARE addColumnIfNotExists FROM @preparedStatement2;
