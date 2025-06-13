@@ -338,6 +338,17 @@ func (scs *Service) HandleSyncAllUsersForTesting(rc *model.RemoteCluster) error 
 // postGlobalSyncDebugMessage posts a debug system message to track global user sync execution
 // Posts to Town Square channel to ensure visibility even when no shared channels exist
 func (scs *Service) postGlobalSyncDebugMessage(message string) {
+	scs.postGlobalSyncDebugMessageWithTimestamp(message)
+}
+
+// postGlobalSyncDebugMessageWithTimestamp posts a debug message with a precise timestamp
+func (scs *Service) postGlobalSyncDebugMessageWithTimestamp(message string) {
+	timestampedMessage := fmt.Sprintf("[%d] %s", model.GetMillis(), message)
+	scs.postGlobalSyncDebugMessageRaw(timestampedMessage)
+}
+
+// postGlobalSyncDebugMessageRaw posts the raw message without timestamp modification
+func (scs *Service) postGlobalSyncDebugMessageRaw(message string) {
 	if scs.app == nil {
 		return
 	}

@@ -1244,7 +1244,169 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		assert.Equal(t, clusterB.RemoteId, *user.RemoteId, "RemoteId should point to origin cluster")
 	})
 
-	t.Run("Test 11: Database Error Handling", func(t *testing.T) {
+	// t.Run("Test 11: Bidirectional Sync Symmetry", func(t *testing.T) {
+	// 	// This test reproduces the asymmetric sync issue:
+	// 	// - Remote1 syncs to Remote2 (initial sync, LastGlobalUserSyncAt=0)
+	// 	// - Remote2 syncs to Remote1 (incremental sync, LastGlobalUserSyncAt>0)
+	// 	// - Both should sync the same users for symmetry
+	// 	EnsureCleanState(t, th, ss)
+
+	// 	var syncedToRemote1 []string
+	// 	var syncedToRemote2 []string
+	// 	var mu sync.Mutex
+	// 	var syncHandler1 *SelfReferentialSyncHandler
+	// 	var syncHandler2 *SelfReferentialSyncHandler
+
+	// 	// Create test servers
+	// 	testServer1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 		if syncHandler1 != nil {
+	// 			syncHandler1.HandleRequest(w, r)
+	// 		} else {
+	// 			writeOKResponse(w)
+	// 		}
+	// 	}))
+
+	// 	testServer2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 		if syncHandler2 != nil {
+	// 			syncHandler2.HandleRequest(w, r)
+	// 		} else {
+	// 			writeOKResponse(w)
+	// 		}
+	// 	}))
+	// 	defer testServer1.Close()
+	// 	defer testServer2.Close()
+
+	// 	// Create 5 test users with sequential update times
+	// 	testUsers := make([]*model.User, 5)
+	// 	baseTime := model.GetMillis()
+	// 	for i := 0; i < 5; i++ {
+	// 		testUsers[i] = th.CreateUser()
+	// 		testUsers[i].UpdateAt = baseTime + int64(i*1000)
+	// 		_, err = ss.User().Update(th.Context, testUsers[i], true)
+	// 		require.NoError(t, err)
+	// 	}
+
+	// 	// Create Remote1 with LastGlobalUserSyncAt=0 (will do initial sync)
+	// 	remote1 := &model.RemoteCluster{
+	// 		RemoteId:             model.NewId(),
+	// 		Name:                 "remote1-initial",
+	// 		SiteURL:              testServer1.URL,
+	// 		CreateAt:             model.GetMillis(),
+	// 		LastPingAt:           model.GetMillis(),
+	// 		LastGlobalUserSyncAt: 0, // Initial sync
+	// 		Token:                model.NewId(),
+	// 		CreatorId:            th.BasicUser.Id,
+	// 		RemoteToken:          model.NewId(),
+	// 	}
+	// 	remote1, err = ss.RemoteCluster().Save(remote1)
+	// 	require.NoError(t, err)
+
+	// 	// Create Remote2 with non-zero LastGlobalUserSyncAt (will do incremental sync)
+	// 	// Set cursor to middle timestamp to simulate partial previous sync
+	// 	middleTime := baseTime + 2500 // Between user 2 and 3
+	// 	remote2 := &model.RemoteCluster{
+	// 		RemoteId:             model.NewId(),
+	// 		Name:                 "remote2-incremental",
+	// 		SiteURL:              testServer2.URL,
+	// 		CreateAt:             model.GetMillis(),
+	// 		LastPingAt:           model.GetMillis(),
+	// 		LastGlobalUserSyncAt: middleTime, // Incremental sync from middle
+	// 		Token:                model.NewId(),
+	// 		CreatorId:            th.BasicUser.Id,
+	// 		RemoteToken:          model.NewId(),
+	// 	}
+	// 	remote2, err = ss.RemoteCluster().Save(remote2)
+	// 	require.NoError(t, err)
+
+	// 	// Initialize sync handlers with callbacks
+	// 	syncHandler1 = NewSelfReferentialSyncHandler(t, service, remote1)
+	// 	syncHandler1.OnGlobalUserSync = func(userIds []string, messageNumber int32) {
+	// 		mu.Lock()
+	// 		syncedToRemote1 = append(syncedToRemote1, userIds...)
+	// 		mu.Unlock()
+	// 	}
+
+	// 	syncHandler2 = NewSelfReferentialSyncHandler(t, service, remote2)
+	// 	syncHandler2.OnGlobalUserSync = func(userIds []string, messageNumber int32) {
+	// 		mu.Lock()
+	// 		syncedToRemote2 = append(syncedToRemote2, userIds...)
+	// 		mu.Unlock()
+	// 	}
+
+	// 	// Sync Remote1 to testServer1 (should get ALL 5 users due to initial sync)
+	// 	err = service.HandleSyncAllUsersForTesting(remote1)
+	// 	require.NoError(t, err)
+
+	// 	// Wait for first sync to complete
+	// 	require.Eventually(t, func() bool {
+	// 		count1 := syncHandler1.GetSyncMessageCount()
+	// 		return count1 > 0
+	// 	}, 5*time.Second, 100*time.Millisecond, "Remote1 sync should complete")
+
+	// 	// Sync Remote2 to testServer2 (should get only users 3,4,5 due to incremental sync)
+	// 	err = service.HandleSyncAllUsersForTesting(remote2)
+	// 	require.NoError(t, err)
+
+	// 	// Wait for Remote2 sync to complete or determine no sync is needed
+	// 	// Use Never to verify that Remote2 doesn't sync when cursor is in future
+	// 	require.Never(t, func() bool {
+	// 		count2 := syncHandler2.GetSyncMessageCount()
+	// 		return count2 > 0
+	// 	}, 2*time.Second, 100*time.Millisecond, "Remote2 should not sync any users with future cursor")
+
+	// 	// Check which users were synced to each remote
+	// 	mu.Lock()
+	// 	remote1UserMap := make(map[string]bool)
+	// 	remote2UserMap := make(map[string]bool)
+	// 	for _, userID := range syncedToRemote1 {
+	// 		remote1UserMap[userID] = true
+	// 	}
+	// 	for _, userID := range syncedToRemote2 {
+	// 		remote2UserMap[userID] = true
+	// 	}
+	// 	mu.Unlock()
+
+	// 	// Count how many test users were synced to each remote
+	// 	remote1TestUserCount := 0
+	// 	remote2TestUserCount := 0
+	// 	for _, user := range testUsers {
+	// 		if remote1UserMap[user.Id] {
+	// 			remote1TestUserCount++
+	// 		}
+	// 		if remote2UserMap[user.Id] {
+	// 			remote2TestUserCount++
+	// 		}
+	// 	}
+
+	// 	// This test SHOULD FAIL with current implementation
+	// 	// Remote1 (initial sync) should get all 5 users
+	// 	// Remote2 (incremental sync from middleTime) should get only users 3,4,5 (3 users)
+	// 	// This asymmetry is the bug we're testing for
+
+	// 	t.Logf("Remote1 (initial sync) got %d test users", remote1TestUserCount)
+	// 	t.Logf("Remote2 (incremental sync) got %d test users", remote2TestUserCount)
+
+	// 	// The ideal behavior would be for both to sync the same users
+	// 	// But currently this will fail because Remote1 gets all users, Remote2 gets subset
+	// 	assert.Equal(t, remote1TestUserCount, remote2TestUserCount,
+	// 		"Both remotes should sync the same number of users for symmetry - this test should FAIL with current implementation")
+
+	// 	// Log the actual asymmetry for debugging
+	// 	if remote1TestUserCount != remote2TestUserCount {
+	// 		t.Logf("ASYMMETRY DETECTED: Remote1 synced %d users, Remote2 synced %d users",
+	// 			remote1TestUserCount, remote2TestUserCount)
+
+	// 		// Show which specific users were synced to each
+	// 		for i, user := range testUsers {
+	// 			remote1Has := remote1UserMap[user.Id]
+	// 			remote2Has := remote2UserMap[user.Id]
+	// 			t.Logf("User %d (UpdateAt=%d): Remote1=%v, Remote2=%v",
+	// 				i, user.UpdateAt, remote1Has, remote2Has)
+	// 		}
+	// 	}
+	// })
+
+	t.Run("Test 12: Database Error Handling", func(t *testing.T) {
 		// This test verifies proper error handling when database operations fail:
 		// - Sync should fail gracefully
 		// - Cursor should not be updated
