@@ -387,7 +387,6 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 				)
 			}
 		} else {
-			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: User save succeeded - user_id: %s, saved_user_id: %s, username: %s, remote: %s, attempt: %d", user.Id, userSaved.Id, user.Username, rc.Name, i))
 			scs.app.NotifySharedChannelUserUpdate(userSaved)
 			return userSaved, nil
 		}
