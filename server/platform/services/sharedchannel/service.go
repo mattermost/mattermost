@@ -45,7 +45,6 @@ type ServerIface interface {
 	Log() *mlog.Logger
 	GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace
 	GetMetrics() einterfaces.MetricsInterface
-	GetClusterId() string
 }
 
 type PlatformIface interface {
@@ -329,11 +328,6 @@ func (scs *Service) scheduleGlobalUserSync(rc *model.RemoteCluster) {
 	}()
 }
 
-// OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing
-func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	return scs.onReceiveSyncMessage(msg, rc, response)
-}
-
 // HasPendingTasksForTesting returns true if there are pending sync tasks in the queue
 func (scs *Service) HasPendingTasksForTesting() bool {
 	scs.mux.RLock()
@@ -341,12 +335,12 @@ func (scs *Service) HasPendingTasksForTesting() bool {
 	return len(scs.tasks) > 0
 }
 
-// GetUserSyncBatchSizeForTesting returns the configured batch size for user syncing (exported for testing)
-func (scs *Service) GetUserSyncBatchSizeForTesting() int {
-	return scs.getGlobalUserSyncBatchSize()
-}
-
 // HandleSyncAllUsersForTesting exposes syncAllUsers for testing
 func (scs *Service) HandleSyncAllUsersForTesting(rc *model.RemoteCluster) error {
 	return scs.syncAllUsers(rc)
+}
+
+// OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing
+func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	return scs.onReceiveSyncMessage(msg, rc, response)
 }

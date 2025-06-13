@@ -60,24 +60,6 @@ func (_m *MockServerIface) Config() *model.Config {
 	return r0
 }
 
-// GetClusterId provides a mock function with no fields
-func (_m *MockServerIface) GetClusterId() string {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetClusterId")
-	}
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
-}
-
 // GetMetrics provides a mock function with no fields
 func (_m *MockServerIface) GetMetrics() einterfaces.MetricsInterface {
 	ret := _m.Called()
