@@ -75,6 +75,13 @@ type AppIface interface {
 	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
 	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 	Publish(message *model.WebSocketEvent)
+	SaveAcknowledgementForPostWithModel(c request.CTX, acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, *model.AppError)
+	DeleteAcknowledgementForPostWithModel(c request.CTX, acknowledgement *model.PostAcknowledgement) *model.AppError
+	SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string, postID ...string) (*model.PostAcknowledgement, *model.AppError)
+	SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Post, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError)
+	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
+	DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError
+	PreparePostForClient(c request.CTX, post *model.Post, isNewPost, includeDeleted, includePriority bool) *model.Post
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -314,11 +321,6 @@ func (scs *Service) scheduleGlobalUserSync(rc *model.RemoteCluster) {
 	}()
 }
 
-// OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing
-func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	return scs.onReceiveSyncMessage(msg, rc, response)
-}
-
 // GetUserSyncBatchSizeForTesting returns the configured batch size for user syncing (exported for testing)
 func (scs *Service) GetUserSyncBatchSizeForTesting() int {
 	return scs.getGlobalUserSyncBatchSize()
@@ -327,4 +329,16 @@ func (scs *Service) GetUserSyncBatchSizeForTesting() int {
 // HandleSyncAllUsersForTesting exposes syncAllUsers for testing
 func (scs *Service) HandleSyncAllUsersForTesting(rc *model.RemoteCluster) error {
 	return scs.syncAllUsers(rc)
+}
+
+// UpsertSyncPostForTesting exposes upsertSyncPost for testing purposes.
+// This allows direct testing of post metadata synchronization.
+func (scs *Service) UpsertSyncPostForTesting(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
+	return scs.upsertSyncPost(post, targetChannel, rc)
+}
+
+// OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing purposes.
+// This allows testing the complete sync message flow including post metadata preservation.
+func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	return scs.onReceiveSyncMessage(msg, rc, response)
 }
