@@ -37,6 +37,12 @@ import SchemaText from '../schema_text';
 import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess} from '../types';
 import './ldap_wizard.scss';
 
+const SECTION_OBSERVER_OPTIONS: IntersectionObserverInit = {
+    root: null, // Use viewport as root
+    rootMargin: '-40% 0px -40% 0px', // Active when in the middle 20% of the viewport
+    threshold: 0.01, // At least 1% of element in this zone
+};
+
 export type LDAPDefinitionSettingButton = AdminDefinitionSettingButton & {
     action: (success: () => void, error: (error: { message: string }) => void, settings?: Record<string, any>) => void;
 }
@@ -113,11 +119,6 @@ const LDAPWizard = (props: Props) => {
     // Combined test results - both filter and attribute test results in one array
     const [testResults, setTestResults] = useState<TestLdapFiltersResponse | null>(null);
 
-    // Helper functions to categorize test types
-    const filterTestNames = new Set(['BaseDN', 'UserFilter', 'GroupFilter', 'GuestFilter', 'AdminFilter']);
-    const isFilterTestName = (testName: string) => filterTestNames.has(testName);
-    const isAttributeTestName = (testName: string) => !isFilterTestName(testName);
-
     const getTestResult = useCallback((settingKey: string) => {
         const testName = settingKeyToTestNameMap[settingKey];
         if (!testName || !testResults) {
@@ -127,33 +128,26 @@ const LDAPWizard = (props: Props) => {
         return testResults.find((result) => result.test_name === testName) || null;
     }, [testResults]);
 
-    const handleTestResults = useCallback((results: TestLdapFiltersResponse, isAttributeTest: boolean) => {
-        // Filter out test results for text settings that had no input when the test button was pressed
-        const filteredResults = results.filter((result) => {
-            const settingKey = Object.keys(settingKeyToTestNameMap).find(
-                (key) => settingKeyToTestNameMap[key] === result.test_name,
-            );
-
-            if (!settingKey) {
-                // If we can't find a corresponding setting key, default include the result
-                return true;
-            }
-
-            const currentValue = state[settingKey];
-            return currentValue && currentValue !== '';
-        });
+    const handleTestResults = useCallback((results: TestLdapFiltersResponse, testType: 'filter' | 'attribute' | 'groupAttribute') => {
+        const filteredResults = results.filter((result) => result.test_value !== '' || result?.error !== '');
 
         setTestResults((prevResults) => {
-            // Start with existing results from the OTHER test type
-            const existingResultsFromOtherType = prevResults ?
-                prevResults.filter((result) =>
-                    (isAttributeTest ? isFilterTestName(result.test_name) : isAttributeTestName(result.test_name)),
-                ) : [];
+            // Object lookup for test type functions - cleaner than a switch statement
+            const testTypeFunctions = {
+                filter: isFilterTestName,
+                attribute: isAttributeTestName,
+                groupAttribute: isGroupAttributeTestName,
+            } as const;
+
+            const isCurrentTestType = testTypeFunctions[testType] || (() => false);
+
+            // Keep existing results from other test types, replace results from current test type
+            const existingResultsFromOtherTypes = prevResults ? prevResults.filter((result) => !isCurrentTestType(result.test_name)) : [];
 
             // Combine with new results
-            return [...existingResultsFromOtherType, ...filteredResults];
+            return [...existingResultsFromOtherTypes, ...filteredResults];
         });
-    }, [state]);
+    }, []);
 
     const memoizedSections = useMemo(() => {
         return (schema && 'sections' in schema && schema.sections) ? schema.sections : [];
@@ -162,13 +156,7 @@ const LDAPWizard = (props: Props) => {
         return memoizedSections.map((section) => section.key);
     }, [memoizedSections]);
 
-    const {activeSectionKey, sectionRefs} = useSectionNavigation(memoizedSectionKeys,
-        {
-            root: null, // Use viewport as root
-            rootMargin: '-40% 0px -40% 0px', // Active when in the middle 20% of the viewport
-            threshold: 0.01, // At least 1% of element in this zone
-        },
-    );
+    const {activeSectionKey, sectionRefs} = useSectionNavigation(memoizedSectionKeys, SECTION_OBSERVER_OPTIONS);
 
     const buildTextSetting = (setting: AdminDefinitionSetting) => {
         const testResult = getTestResult(setting.key || '');
@@ -223,9 +211,11 @@ const LDAPWizard = (props: Props) => {
         config = getConfigFromState(config, state, schema, isDisabled);
         var testResultsHandler;
         if (setting.key === 'LdapSettings.TestFilters') {
-            testResultsHandler = (results: TestLdapFiltersResponse) => handleTestResults(results, false);
+            testResultsHandler = (results: TestLdapFiltersResponse) => handleTestResults(results, 'filter');
         } else if (setting.key === 'LdapSettings.TestAttributes') {
-            testResultsHandler = (results: TestLdapFiltersResponse) => handleTestResults(results, true);
+            testResultsHandler = (results: TestLdapFiltersResponse) => handleTestResults(results, 'attribute');
+        } else if (setting.key === 'LdapSettings.TestGroupAttributes') {
+            testResultsHandler = (results: TestLdapFiltersResponse) => handleTestResults(results, 'groupAttribute');
         }
 
         return (
@@ -416,7 +406,7 @@ const LDAPWizard = (props: Props) => {
 
         const hasSaveActionError = await Promise.all(results).then((values) => values.some(((value) => value.error && value.error.message)));
 
-        const hasError = state.serverError || hasSaveActionError;
+        const hasError = error || hasSaveActionError;
         if (hasError) {
             setState((prev) => ({
                 ...prev,
@@ -432,6 +422,7 @@ const LDAPWizard = (props: Props) => {
                 clientWarning: '',
                 serverError: null,
             }));
+            props.setNavigationBlocked(false);
         }
     };
 
@@ -669,12 +660,12 @@ const LDAPWizard = (props: Props) => {
                 <div
                     className={'config-section'}
                     key={section.key}
+                    data-section-key={section.key}
                     ref={(el) => {
                         if (sectionRefs.current) {
                             sectionRefs.current[section.key] = el;
                         }
                     }}
-                    data-section-key={section.key}
                 >
                     <SettingsGroup
                         show={true}
@@ -710,7 +701,6 @@ const LDAPWizard = (props: Props) => {
                     <div className='admin-console__content'>
                         <form
                             className='form-horizontal'
-                            role='form'
                             onSubmit={handleSubmit}
                         >
                             {renderSettings()}
@@ -744,7 +734,7 @@ const LDAPWizard = (props: Props) => {
     );
 };
 
-// Helper functions for filter and attribute test results
+// Helper functions for filter, attribute, and group attribute test results
 const settingKeyToTestNameMap: Record<string, string> = {
     'LdapSettings.BaseDN': 'BaseDN',
     'LdapSettings.UserFilter': 'UserFilter',
@@ -760,6 +750,17 @@ const settingKeyToTestNameMap: Record<string, string> = {
     'LdapSettings.NicknameAttribute': 'NicknameAttribute',
     'LdapSettings.PositionAttribute': 'PositionAttribute',
     'LdapSettings.PictureAttribute': 'PictureAttribute',
+    'LdapSettings.GroupDisplayNameAttribute': 'GroupDisplayNameAttribute',
+    'LdapSettings.GroupIdAttribute': 'GroupIdAttribute',
 };
+
+// Helper functions to categorize test types
+const filterTestNames = new Set(['BaseDN', 'UserFilter', 'GroupFilter', 'GuestFilter', 'AdminFilter']);
+const attributeTestNames = new Set(['IdAttribute', 'LoginIdAttribute', 'UsernameAttribute', 'EmailAttribute', 'FirstNameAttribute', 'LastNameAttribute', 'NicknameAttribute', 'PositionAttribute', 'PictureAttribute']);
+const groupAttributeTestNames = new Set(['GroupDisplayNameAttribute', 'GroupIdAttribute']);
+
+const isFilterTestName = (testName: string) => filterTestNames.has(testName);
+const isAttributeTestName = (testName: string) => attributeTestNames.has(testName);
+const isGroupAttributeTestName = (testName: string) => groupAttributeTestNames.has(testName);
 
 export default LDAPWizard;
