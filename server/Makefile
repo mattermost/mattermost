@@ -143,7 +143,6 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v4.3.0
 # We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.41.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.2.0
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-ai-v1.1.1
