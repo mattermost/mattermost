@@ -5,7 +5,7 @@ import {render, screen} from '@testing-library/react';
 import React from 'react';
 
 import PreviewModalContent from './preview_modal_content';
-import type {PreviewModalContentData} from './preview_modal_content';
+import type {PreviewModalContentData} from './preview_modal_content_data';
 
 // Mock the MattermostLogo component
 jest.mock('components/widgets/icons/mattermost_logo', () => ({
@@ -22,6 +22,9 @@ describe('PreviewModalContent', () => {
     const baseContent: PreviewModalContentData = {
         title: 'Test Title',
         subtitle: 'Test subtitle with <strong>bold text</strong>',
+        skuLabel: 'Test sku label',
+        videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA',
+        useCase: 'missionops',
     };
 
     it('should render title and subtitle', () => {
