@@ -795,14 +795,14 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             });
         });
 
-        test('should handle null default values correctly', async () => {
-            const nullDefaultElement: DialogElement = {
-                name: 'test-null-default',
+        test('should handle undefined/falsy default values correctly', async () => {
+            const undefinedDefaultElement: DialogElement = {
+                name: 'test-undefined-default',
                 type: 'text',
-                display_name: 'Test Null Default',
+                display_name: 'Test Undefined Default',
                 help_text: '',
                 placeholder: '',
-                default: null, // Null default value
+                default: '', // Empty string (falsy) default value
                 optional: true,
                 max_length: 0,
                 min_length: 0,
@@ -813,7 +813,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const props = {
                 ...baseProps,
-                elements: [nullDefaultElement],
+                elements: [undefinedDefaultElement],
             };
 
             const {getByTestId} = renderWithContext(
@@ -822,8 +822,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             );
 
             await waitFor(() => {
-                // Should be null (matches original dialog behavior)
-                expect(getByTestId('field-value-test-null-default')).toHaveTextContent('null');
+                // Should preserve empty string as-is (matches original dialog behavior)
+                expect(getByTestId('field-value-test-undefined-default')).toHaveTextContent('""');
             });
         });
 
@@ -919,6 +919,134 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             await waitFor(() => {
                 expect(getByTestId('form-fields-count')).toHaveTextContent('0');
             });
+        });
+    });
+
+    describe('Error Handling', () => {
+        test('should render component with error-handling submit action', async () => {
+            const mockSubmitWithFieldErrors = jest.fn().mockResolvedValue({
+                data: {
+                    error: 'Form validation failed',
+                    errors: {
+                        'test-field': 'This field is required',
+                        'email-field': 'Invalid email format',
+                    },
+                },
+            });
+
+            const textElement: DialogElement = {
+                name: 'test-field',
+                type: 'text',
+                display_name: 'Test Field',
+                help_text: '',
+                placeholder: '',
+                default: '',
+                optional: false,
+                max_length: 0,
+                min_length: 0,
+                subtype: '',
+                data_source: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [textElement],
+                actions: {
+                    submitInteractiveDialog: mockSubmitWithFieldErrors,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            // Wait for component to render
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Verify the form element was converted correctly
+            expect(getByTestId('field-test-field')).toBeInTheDocument();
+            expect(getByTestId('field-type-test-field')).toHaveTextContent(AppFieldTypes.TEXT);
+            expect(getByTestId('field-required-test-field')).toHaveTextContent('required');
+        });
+
+        test('should render component with general error submit action', async () => {
+            const mockSubmitWithGeneralError = jest.fn().mockResolvedValue({
+                data: {
+                    error: 'Server internal error',
+                },
+            });
+
+            const props = {
+                ...baseProps,
+                actions: {
+                    submitInteractiveDialog: mockSubmitWithGeneralError,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            expect(getByTestId('form-title')).toHaveTextContent('Test Dialog');
+        });
+
+        test('should render component with network error submit action', async () => {
+            const mockSubmitWithNetworkError = jest.fn().mockResolvedValue({
+                error: {
+                    message: 'Network connection failed',
+                },
+            });
+
+            const props = {
+                ...baseProps,
+                actions: {
+                    submitInteractiveDialog: mockSubmitWithNetworkError,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            expect(getByTestId('form-title')).toHaveTextContent('Test Dialog');
+        });
+
+        test('should render component with successful submit action', async () => {
+            const mockSubmitSuccess = jest.fn().mockResolvedValue({
+                data: {}, // Success response (no error or errors)
+            });
+
+            const props = {
+                ...baseProps,
+                actions: {
+                    submitInteractiveDialog: mockSubmitSuccess,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            expect(getByTestId('form-title')).toHaveTextContent('Test Dialog');
         });
     });
 });
