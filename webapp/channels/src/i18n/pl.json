@@ -5567,7 +5567,7 @@
   "team_members_dropdown.menuAriaLabel": "Zmień rolę członka zespołu",
   "team_members_dropdown.systemAdmin": "Administrator Systemu",
   "team_members_dropdown.teamAdmin": "Administrator zespołu",
-  "team_members_dropdown.teamAdmins": "Administrator Zespołu",
+  "team_members_dropdown.teamAdmins": "Administratorzy Zespołu",
   "team_members_dropdown.teamMembers": "Członek zespołu",
   "team_settings.openInviteDescription.error": "Wystąpił błąd podczas generowania kodu zaproszenia, spróbuj ponownie",
   "team_settings.openInviteDescription.groupConstrained": "Członkowie tego zespołu są dodawani i usuwani przez połączone grupy. <link>Dowiedz się więcej</link>",
