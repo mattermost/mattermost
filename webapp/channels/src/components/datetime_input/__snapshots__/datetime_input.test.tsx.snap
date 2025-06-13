@@ -45,6 +45,7 @@ exports[`components/datetime_input/DateTimeInput should match snapshot 1`] = `
         aria-haspopup="true"
         aria-label="Time"
         class="date-time-input"
+        data-testid="time_button"
         id="time_button"
       >
         <span
