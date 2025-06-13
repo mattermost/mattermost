@@ -164,22 +164,6 @@ func (rcs *Service) Active() bool {
 	return rcs.active
 }
 
-// SetActive forces the service to be active or inactive
-func (rcs *Service) SetActive(active bool) {
-	rcs.mux.Lock()
-	defer rcs.mux.Unlock()
-
-	if rcs.active == active {
-		return
-	}
-
-	if active {
-		rcs.resume()
-	} else {
-		rcs.pause()
-	}
-}
-
 // GetPingFreq gets the frequency of pings to each remote.
 func (rcs *Service) GetPingFreq() time.Duration {
 	rcs.mux.Lock()
