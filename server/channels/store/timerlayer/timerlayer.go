@@ -2394,10 +2394,10 @@ func (s *TimerLayerChannelStore) Restore(channelID string, timestamp int64) erro
 	return err
 }
 
-func (s *TimerLayerChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
+func (s *TimerLayerChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam)
+	result, err := s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam, channelOptions...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7907,6 +7907,22 @@ func (s *TimerLayerRemoteClusterStore) Update(rc *model.RemoteCluster) (*model.R
 		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.Update", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerRemoteClusterStore) UpdateLastGlobalUserSyncAt(remoteID string, syncAt int64) error {
+	start := time.Now()
+
+	err := s.RemoteClusterStore.UpdateLastGlobalUserSyncAt(remoteID, syncAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.UpdateLastGlobalUserSyncAt", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerRemoteClusterStore) UpdateTopics(remoteClusterID string, topics string) (*model.RemoteCluster, error) {
