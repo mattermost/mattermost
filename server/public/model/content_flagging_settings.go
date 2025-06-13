@@ -9,17 +9,17 @@ type ContentFlaggingEvent string
 
 const (
 	EventFlagged          ContentFlaggingEvent = "flagged"
-	EventAssigned                              = "assigned"
-	EventContentRemoved                        = "removed"
-	EventContentDismissed                      = "dismissed"
+	EventAssigned         ContentFlaggingEvent = "assigned"
+	EventContentRemoved   ContentFlaggingEvent = "removed"
+	EventContentDismissed ContentFlaggingEvent = "dismissed"
 )
 
 type NotificationTarget string
 
 const (
 	TargetReviewers NotificationTarget = "reviewers"
-	TargetAuthor                       = "author"
-	TargetReporter                     = "reporter"
+	TargetAuthor    NotificationTarget = "author"
+	TargetReporter  NotificationTarget = "reporter"
 )
 
 type ContentFlaggingNotificationSettings struct {
@@ -156,8 +156,8 @@ func (acfs *AdditionalContentFlaggingSettings) SetDefault() {
 	}
 }
 
-func (acfx *AdditionalContentFlaggingSettings) IsValid() *AppError {
-	if acfx.Reasons == nil || len(*acfx.Reasons) == 0 {
+func (acfs *AdditionalContentFlaggingSettings) IsValid() *AppError {
+	if acfs.Reasons == nil || len(*acfs.Reasons) == 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.content_flagging.reasons_not_set.app_error", nil, "", http.StatusBadRequest)
 	}
 
