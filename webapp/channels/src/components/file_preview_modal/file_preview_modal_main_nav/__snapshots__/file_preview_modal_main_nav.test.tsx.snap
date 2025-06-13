@@ -24,6 +24,8 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
     </button>
   </WithTooltip>
   <span
+    aria-atomic="true"
+    aria-live="polite"
     className="modal-bar-file-count"
   >
     <MemoizedFormattedMessage

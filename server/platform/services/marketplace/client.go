@@ -119,7 +119,10 @@ func closeBody(r *http.Response) {
 }
 
 func (c *Client) buildURL(urlPath string, args ...any) string {
-	return fmt.Sprintf("%s/%s", strings.TrimRight(c.address, "/"), strings.TrimLeft(fmt.Sprintf(urlPath, args...), "/"))
+	if len(args) > 0 {
+		urlPath = fmt.Sprintf(urlPath, args...)
+	}
+	return fmt.Sprintf("%s/%s", strings.TrimRight(c.address, "/"), strings.TrimLeft(urlPath, "/"))
 }
 
 func (c *Client) doGet(u string) (*http.Response, error) {

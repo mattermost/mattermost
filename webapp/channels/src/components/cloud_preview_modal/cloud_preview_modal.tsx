@@ -9,26 +9,10 @@ import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import type {PreviewModalContentData} from './preview_modal_content';
+import {modalContent} from './preview_modal_content_data';
 import PreviewModalController from './preview_modal_controller';
 
 const CLOUD_PREVIEW_MODAL_SHOWN_PREF = 'cloud_preview_modal_shown';
-
-// Hardcoded content for now
-const modalContent: PreviewModalContentData[] = [
-    {
-        skuLabel: 'ENTERPRISE ADVANCED',
-        title: 'Welcome to your Mattermost preview',
-        subtitle: 'This hands-on, 1-hour Mattermost Enterprise Advanced lets your team explore secure, mission-critical collaboration. The workspace is preloaded with <strong>sample data</strong> to get started.',
-        videoUrl: 'https://www.youtube.com/watch?v=Zpyy2FqGotM', // TODO: Add proper video URL when available
-    },
-    {
-        skuLabel: 'ENTERPRISE',
-        title: 'Messaging built for action, not noise',
-        subtitle: 'Bring conversations and context together in one platform. Communicate with urgency using priority levels, persistent notifications, and acknowledgements—so critical messages are seen and acted on when every second counts.',
-        videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA', // TODO: Add proper video URL when available
-    },
-];
 
 const CloudPreviewModal: React.FC = () => {
     const dispatch = useDispatch();
@@ -75,11 +59,12 @@ const CloudPreviewModal: React.FC = () => {
         return null;
     }
 
+    // TODO: Remove hard coded filter on missionops in favour of dynamic based on selected use case
     return (
         <PreviewModalController
             show={showModal}
             onClose={handleClose}
-            contentData={modalContent}
+            contentData={modalContent.filter((content) => content.useCase === 'missionops')}
         />
     );
 };

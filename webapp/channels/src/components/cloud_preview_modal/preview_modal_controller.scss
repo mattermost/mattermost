@@ -1,4 +1,8 @@
 .preview-modal-controller {
+    &.modal-dialog {
+        width: 640px;
+        height: 614px;
+    }
     &__close-button {
         position: absolute;
         z-index: 10;

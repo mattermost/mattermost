@@ -8,12 +8,12 @@
         display: flex;
         width: fit-content;
         align-items: center;
-        padding: 2px var(--spacing-xxxs, 6px);
+        padding: 2px var(--spacing-xxxs, 4px);
         border-radius: 4px;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgb(var(--center-channel-color-rgb));
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
         gap: 8px;
         letter-spacing: 0.02em;
@@ -34,8 +34,10 @@
     &__title {
         margin: 0 0 16px 0;
         color: var(--center-channel-color);
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 600;
+        line-height: 28px;
+        min-height: 28px;
     }
 
     &__subtitle {
@@ -43,6 +45,9 @@
         color: rgb(var(--center-channel-color-rgb));
         font-size: 14px;
         line-height: 20px;
+        min-height: 60px;
+        max-height: 80px;
+        overflow-y: auto;
 
         strong {
             color: var(--center-channel-color);
@@ -62,8 +67,8 @@
     &__video-container {
         display: flex;
         overflow: hidden;
-        min-height: 300px;
-        flex: 1;
+        height: 306px;
+        flex: 0 0 306px;
         align-items: center;
         justify-content: center;
         border-radius: 4px;

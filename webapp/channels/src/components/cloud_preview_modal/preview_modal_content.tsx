@@ -5,14 +5,9 @@ import React from 'react';
 
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
-import './preview_modal_content.scss';
+import type {PreviewModalContentData} from './preview_modal_content_data';
 
-export interface PreviewModalContentData {
-    skuLabel?: string;
-    title: string;
-    subtitle: string;
-    videoUrl?: string;
-}
+import './preview_modal_content.scss';
 
 interface Props {
     content: PreviewModalContentData;

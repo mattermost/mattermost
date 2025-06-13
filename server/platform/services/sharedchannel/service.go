@@ -24,6 +24,7 @@ const (
 	TopicSync                    = "sharedchannel_sync"
 	TopicChannelInvite           = "sharedchannel_invite"
 	TopicUploadCreate            = "sharedchannel_upload"
+	TopicGlobalUserSync          = "sharedchannel_global_user_sync"
 	MaxRetries                   = 3
 	MaxUsersPerSync              = 25
 	NotifyRemoteOfflineThreshold = time.Second * 10
@@ -53,6 +54,7 @@ type AppIface interface {
 	SendEphemeralPost(c request.CTX, userId string, post *model.Post) *model.Post
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
 	GetOrCreateDirectChannel(c request.CTX, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
+	CreateGroupChannel(c request.CTX, userIDs []string, creatorId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
 	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
 	AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError
@@ -97,6 +99,7 @@ type Service struct {
 	syncTopicListenerId       string
 	inviteTopicListenerId     string
 	uploadTopicListenerId     string
+	globalSyncTopicListenerId string
 	siteURL                   *url.URL
 }
 
@@ -129,6 +132,7 @@ func (scs *Service) Start() error {
 	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
 	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
 	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
+	scs.globalSyncTopicListenerId = rcs.AddTopicListener(TopicGlobalUserSync, scs.onReceiveSyncMessage)
 	scs.connectionStateListenerId = rcs.AddConnectionStateListener(scs.onConnectionStateChange)
 	scs.mux.Unlock()
 
@@ -247,6 +251,9 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 		// when a previously offline remote comes back online force a sync.
 		scs.SendPendingInvitesForRemote(rc)
 		scs.ForceSyncForRemote(rc)
+
+		// Schedule global user sync if feature is enabled
+		scs.scheduleGlobalUserSync(rc)
 	}
 
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
@@ -276,4 +283,48 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
 	scs.app.Publish(messageWs)
+}
+
+// isGlobalUserSyncEnabled checks if the global user sync feature is enabled
+func (scs *Service) isGlobalUserSyncEnabled() bool {
+	cfg := scs.server.Config()
+
+	return cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster ||
+		(cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen != nil && *cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen)
+}
+
+// scheduleGlobalUserSync schedules a task to sync all users with a remote cluster
+func (scs *Service) scheduleGlobalUserSync(rc *model.RemoteCluster) {
+	if !scs.isGlobalUserSyncEnabled() {
+		return
+	}
+
+	// Schedule the sync task
+	go func() {
+		// Create a special sync task with empty channelID
+		// This empty channelID is a deliberate marker for a global user sync task
+		task := newSyncTask("", "", rc.RemoteId, nil, nil)
+		task.schedule = time.Now().Add(NotifyMinimumDelay)
+		scs.addTask(task)
+
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Scheduled global user sync task for remote",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+		)
+	}()
+}
+
+// OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing
+func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	return scs.onReceiveSyncMessage(msg, rc, response)
+}
+
+// GetUserSyncBatchSizeForTesting returns the configured batch size for user syncing (exported for testing)
+func (scs *Service) GetUserSyncBatchSizeForTesting() int {
+	return scs.getGlobalUserSyncBatchSize()
+}
+
+// HandleSyncAllUsersForTesting exposes syncAllUsers for testing
+func (scs *Service) HandleSyncAllUsersForTesting(rc *model.RemoteCluster) error {
+	return scs.syncAllUsers(rc)
 }

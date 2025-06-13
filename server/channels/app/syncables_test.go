@@ -303,9 +303,15 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	timeAfterLeaving := model.GetMillis() + 1
 
+	retentionPolicyBatchConfigs := model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: timeBeforeLeaving,
+		Limit:               1000,
+	}
+
 	// Purging channelmemberhistory doesn't re-add user to channel
 	deletedCount, _, nErr := th.App.Srv().Store().ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-		0, timeBeforeLeaving, 1000, model.RetentionPolicyCursor{})
+		retentionPolicyBatchConfigs, model.RetentionPolicyCursor{})
 	if nErr != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
@@ -321,9 +327,15 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Error("Expected channel member to remain deleted")
 	}
 
+	retentionPolicyBatchConfigs = model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: timeAfterLeaving,
+		Limit:               1000,
+	}
+
 	// Purging channelmemberhistory doesn't re-add user to channel
 	deletedCount, _, nErr = th.App.Srv().Store().ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-		0, timeAfterLeaving, 1000, model.RetentionPolicyCursor{})
+		retentionPolicyBatchConfigs, model.RetentionPolicyCursor{})
 	if nErr != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}

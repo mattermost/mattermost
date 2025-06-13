@@ -8,7 +8,7 @@ import {ChevronLeftIcon, ChevronRightIcon, CloseIcon} from '@mattermost/compass-
 import {GenericModal} from '@mattermost/components';
 
 import PreviewModalContent from './preview_modal_content';
-import type {PreviewModalContentData} from './preview_modal_content';
+import type {PreviewModalContentData} from './preview_modal_content_data';
 
 import './preview_modal_controller.scss';
 

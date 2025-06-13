@@ -10786,5 +10786,25 @@
   {
     "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
     "translation": "De kleur van de kanaalbanner moet een geldige hexadecimale kleur zijn (bijvoorbeeld #FF0000 of #F00)"
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "Deze licentie ondersteunt MySQL niet."
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "Proeflicenties worden niet ondersteund voor MySQL databases. Gebruik PostgreSQL om toegang te krijgen tot de proeffuncties."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Spatie voor of spatie achteraan gedetecteerd voor {{.Setting}}. Gevonden \"{{.Value}}\"."
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Kan geen synchroniseerbare lidmaatschappen voor groepen maken."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Kan ongeldige synchroniseerbare lidmaatschappen van groepen niet verwijderen."
   }
 ]

@@ -2672,6 +2672,14 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.team.refreshPostStatsRunTimeExample', defaultMessage: 'E.g.: "00:00"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
+                        {
+                            type: 'text',
+                            key: 'ServiceSettings.DeleteAccountLink',
+                            label: defineMessage({id: 'admin.team.deleteAccountTitle', defaultMessage: 'Delete Account Link:'}),
+                            help_text: defineMessage({id: 'admin.team.deleteAccountDesc', defaultMessage: 'The URL for the Delete Account link in the Security tab of Profile Settings. If this field is empty, the Delete Account link is hidden from users.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
                     ],
                 },
             },
@@ -3509,7 +3517,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             secure_connections: {
                 url: 'site_config/secure_connections',
-                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'}),
+                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces'}),
                 searchableStrings: secureConnectionsSearchableStrings,
                 isHidden: it.not(it.all(
                     it.configIsTrue('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
@@ -6810,6 +6818,13 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalSettings.YoutubeReferrerPolicy',
                             label: defineMessage({id: 'admin.experimental.youtubeReferrerPolicy.title', defaultMessage: 'YouTube Referrer Policy:'}),
                             help_text: defineMessage({id: 'admin.experimental.youtubeReferrerPolicy.desc', defaultMessage: 'When true, the referrer policy for embedded YouTube videos will be set to "strict-origin-when-cross-origin" which resolves issues where YouTube video previews display as unavailable, while balancing the need to protect user privacy with some degree of referral data to support web functionalities, like analytics, logging, and third-party integrations. When false, the referrer policy will be set to "no-referrer" which enhances user privacy by not disclosing the source URL, but limits the ability to track user engagement and traffic sources in analytics tools.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalSettings.ExperimentalChannelCategorySorting',
+                            label: defineMessage({id: 'admin.experimental.channelCategorySorting.title', defaultMessage: 'Channel Category Sorting:'}),
+                            help_text: defineMessage({id: 'admin.experimental.channelCategorySorting.desc', defaultMessage: 'When true, channels will be automatically sorted into categories based on their names using a "/" delimiter.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                     ],
