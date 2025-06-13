@@ -351,8 +351,6 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 	var userSaved *model.User
 	var suffix string
 
-	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Entering insertSyncUser - user_id: %s, username: %s, remote: %s", user.Id, user.Username, rc.Name))
-
 	// ensure the new user is created with system_user role and random password.
 	user = sanitizeUserForSync(user)
 
