@@ -49,7 +49,7 @@ func (cfs *ContentFlaggingNotificationSettings) SetDefault() {
 }
 
 func (cfs *ContentFlaggingNotificationSettings) IsValid() *AppError {
-	// Reviewers mst always be notified when content is flagged
+	// Reviewers must always be notified when content is flagged
 	// Disabling this option is disallowed in the UI, so this check is for safety and consistency.
 
 	if cfs.EventTargetMapping[EventFlagged] == nil || len(cfs.EventTargetMapping[EventFlagged]) == 0 {
