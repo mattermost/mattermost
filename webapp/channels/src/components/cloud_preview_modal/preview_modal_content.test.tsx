@@ -51,7 +51,12 @@ describe('PreviewModalContent', () => {
     });
 
     it('should not render SKU label when not provided', () => {
-        render(<PreviewModalContent content={baseContent}/>);
+        const contentWithoutSku = {
+            ...baseContent,
+            skuLabel: undefined,
+        };
+
+        render(<PreviewModalContent content={contentWithoutSku}/>);
 
         expect(screen.queryByText('ENTERPRISE')).not.toBeInTheDocument();
         expect(screen.queryByTestId('mattermost-logo')).not.toBeInTheDocument();
