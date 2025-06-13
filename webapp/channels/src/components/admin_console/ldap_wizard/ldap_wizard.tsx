@@ -29,7 +29,7 @@ import LDAPFileUploadSetting from './ldap_file_upload_setting';
 import LDAPJobsTableSetting from './ldap_jobs_table_setting';
 import LDAPTextSetting from './ldap_text_setting';
 
-import {ldapWizardAdminDefinition} from '../admin_definition';
+import {ldapWizardAdminDefinition} from '../admin_definition_ldap_wizard';
 import {getConfigFromState, isSetByEnv, SchemaAdminSettings} from '../schema_admin_settings';
 import SchemaText from '../schema_text';
 import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess} from '../types';
