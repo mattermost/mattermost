@@ -3656,11 +3656,11 @@ func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64
 
 }
 
-func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit, cursor)
+		result, resultVar1, err := s.ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs, cursor)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -8360,11 +8360,11 @@ func (s *RetryLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (
 
 }
 
-func (s *RetryLayerPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s *RetryLayerPostStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.PostStore.PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit, cursor)
+		result, resultVar1, err := s.PostStore.PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs, cursor)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -13796,11 +13796,11 @@ func (s *RetryLayerThreadStore) MarkAsRead(userID string, threadID string, times
 
 }
 
-func (s *RetryLayerThreadStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s *RetryLayerThreadStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.ThreadStore.PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit, cursor)
+		result, resultVar1, err := s.ThreadStore.PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs, cursor)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -13817,11 +13817,11 @@ func (s *RetryLayerThreadStore) PermanentDeleteBatchForRetentionPolicies(now int
 
 }
 
-func (s *RetryLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s *RetryLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit, cursor)
+		result, resultVar1, err := s.ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies(retentionPolicyBatchConfigs, cursor)
 		if err == nil {
 			return result, resultVar1, nil
 		}

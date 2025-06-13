@@ -558,7 +558,23 @@ func (s SqlSharedChannelStore) HasRemote(channelID string, remoteId string) (boo
 // shared with the remote.
 func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error) {
 	builder := s.getQueryBuilder().
-		Select("rc.*").
+		Select(
+			"rc.RemoteId",
+			"rc.RemoteTeamId",
+			"rc.Name",
+			"rc.DisplayName",
+			"rc.SiteURL",
+			"rc.DefaultTeamId",
+			"rc.CreateAt",
+			"rc.DeleteAt",
+			"rc.LastPingAt",
+			"rc.Token",
+			"rc.RemoteToken",
+			"rc.Topics",
+			"rc.CreatorId",
+			"rc.PluginID",
+			"rc.Options",
+		).
 		From("RemoteClusters AS rc").
 		Join("SharedChannelRemotes AS scr ON rc.RemoteId = scr.RemoteId").
 		Join("ChannelMembers AS cm ON scr.ChannelId = cm.ChannelId").

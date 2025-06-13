@@ -454,6 +454,7 @@ type ServiceSettings struct {
 	ScheduledPosts                                    *bool   `access:"site_posts"`
 	EnableWebHubChannelIteration                      *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	FrameAncestors                                    *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	DeleteAccountLink                                 *string `access:"site_users_and_teams,write_restrictable,cloud_restrictable"`
 }
 
 var MattermostGiphySdkKey string
@@ -989,6 +990,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.FrameAncestors == nil {
 		s.FrameAncestors = NewPointer("")
 	}
+
+	if !isSafeLink(s.DeleteAccountLink) {
+		*s.DeleteAccountLink = ""
+	}
+
+	if s.DeleteAccountLink == nil {
+		s.DeleteAccountLink = NewPointer("")
+	}
 }
 
 type CacheSettings struct {
@@ -1163,6 +1172,7 @@ type ExperimentalSettings struct {
 	DisableWakeUpReconnectHandler                         *bool   `access:"experimental_features"`
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64  `access:"experimental_features"`
 	YoutubeReferrerPolicy                                 *bool   `access:"experimental_features"`
+	ExperimentalChannelCategorySorting                    *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1212,6 +1222,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.YoutubeReferrerPolicy == nil {
 		s.YoutubeReferrerPolicy = NewPointer(false)
+	}
+
+	if s.ExperimentalChannelCategorySorting == nil {
+		s.ExperimentalChannelCategorySorting = NewPointer(false)
 	}
 }
 
@@ -3119,6 +3133,7 @@ type DataRetentionSettings struct {
 	BatchSize                      *int    `access:"compliance_data_retention_policy"`
 	TimeBetweenBatchesMilliseconds *int    `access:"compliance_data_retention_policy"`
 	RetentionIdsBatchSize          *int    `access:"compliance_data_retention_policy"`
+	PreservePinnedPosts            *bool   `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -3167,6 +3182,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 	}
 	if s.RetentionIdsBatchSize == nil {
 		s.RetentionIdsBatchSize = NewPointer(DataRetentionSettingsDefaultRetentionIdsBatchSize)
+	}
+
+	if s.PreservePinnedPosts == nil {
+		s.PreservePinnedPosts = NewPointer(false)
 	}
 }
 

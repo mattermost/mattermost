@@ -410,3 +410,15 @@ func (a *App) ListImports() ([]string, *model.AppError) {
 
 	return results, nil
 }
+
+func (a *App) DeleteImport(name string) *model.AppError {
+	filePath := filepath.Join(*a.Config().ImportSettings.Directory, name)
+
+	if ok, err := a.FileExists(filePath); err != nil {
+		return err
+	} else if !ok {
+		return nil
+	}
+
+	return a.RemoveFile(filePath)
+}

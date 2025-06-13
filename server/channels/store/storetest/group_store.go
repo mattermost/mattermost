@@ -2345,8 +2345,11 @@ func testChannelMembersToAdd(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Empty(t, channelMembers)
 
 	// Purging ChannelMemberHistory re-returns the result
-	_, _, nErr = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-		0, model.GetMillis()+1, 100, model.RetentionPolicyCursor{})
+	_, _, nErr = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: model.GetMillis() + 1,
+		Limit:               100,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
