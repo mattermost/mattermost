@@ -27,7 +27,7 @@ const PurchaseLink: React.FC<Props> = (props: Props) => {
 
     // Default classes for feature discovery context
     const defaultClassName = 'btn btn-primary';
-    
+
     // Use provided className or default
     const buttonClassName = props.className || defaultClassName;
 

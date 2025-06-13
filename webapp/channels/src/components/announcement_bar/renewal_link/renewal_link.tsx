@@ -37,7 +37,7 @@ const RenewalLink = (props: RenewalLinkProps) => {
 
     // Default classes for general context
     const defaultClassName = 'btn btn-primary';
-    
+
     // Use provided className or default
     const buttonClassName = props.className || defaultClassName;
 
