@@ -1552,7 +1552,7 @@
   "admin.ldap.testHelpText": "Tests if the Mattermost server can connect to the AD/LDAP server specified. Please review \"System Console > Logs\" and <link>documentation</link> to troubleshoot errors.",
   "admin.ldap.uploading.certificate": "Uploading Certificate...",
   "admin.ldap.uploading.privateKey": "Uploading Private Key...",
-  "admin.ldap.userFilterDisc": "(Optional) Enter an AD/LDAP filter to use when searching for user objects.\nFor Active Directory, the query to filter out disabled users is\n(&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).",
+  "admin.ldap.userFilterDisc": "(Optional) Enter an AD/LDAP filter to use when searching for user objects. When blank, defaults to the ID Attribute.\nFor Active Directory, the query to filter out disabled users is\n(&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).",
   "admin.ldap.userFilterDiscHover": "Only the users selected by the query will be able to access Mattermost.",
   "admin.ldap.userFilterEx": "E.g.: \"(objectClass=user)\"",
   "admin.ldap.userFilterTitle": "User Filter:",
