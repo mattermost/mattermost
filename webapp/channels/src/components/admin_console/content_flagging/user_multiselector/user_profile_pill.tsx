@@ -5,7 +5,7 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
 
-import type {UserProfile} from '@mattermost/types/src/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import Avatar from 'components/widgets/users/avatar/avatar';

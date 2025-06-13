@@ -5,7 +5,7 @@ import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {ContentFlaggingNotificationSettings} from '@mattermost/types/config';
-import type {NotificationTarget} from '@mattermost/types/content_flagging';
+import type {ContentFlaggingEvent, NotificationTarget} from '@mattermost/types/content_flagging';
 
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
 import type {SystemConsoleCustomSettingsComponentProps} from 'components/admin_console/schema_admin_settings';
@@ -18,10 +18,12 @@ import {
 import '../content_flagging_section_base.scss';
 
 export default function ContentFlaggingNotificationSettingsSection({id, value, onChange}: SystemConsoleCustomSettingsComponentProps) {
-    const [notificationSettings, setNotificationSettings] = useState<ContentFlaggingNotificationSettings>(value);
+    const [notificationSettings, setNotificationSettings] = useState<ContentFlaggingNotificationSettings>(value as ContentFlaggingNotificationSettings);
 
     const handleChange = useCallback((inputId: string, value: boolean) => {
-        const [action, target] = inputId.split('_');
+        const [actionRaw, targetRaw] = inputId.split('_');
+        const action = actionRaw as ContentFlaggingEvent;
+        const target = targetRaw as NotificationTarget;
         if (!action || !target) {
             return;
         }
