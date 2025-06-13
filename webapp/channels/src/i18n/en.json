@@ -1560,6 +1560,7 @@
   "admin.license.renewalCard.reviewNumbers": "Review your numbers below to ensure you renew for the right number of users.",
   "admin.license.renewalCard.usersNumbers_active": "Active Users: ",
   "admin.license.renewalCard.usersNumbers_licensed": "Licensed Users: ",
+  "admin.license.setByEnvVar": "License location is set by environment variable",
   "admin.license.title": "Edition and License",
   "admin.license.Trial": "Trial",
   "admin.license.trial-request.accept-terms": "By clicking <strong>Start trial</strong>, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails.",
