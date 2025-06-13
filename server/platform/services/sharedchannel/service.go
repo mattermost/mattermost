@@ -262,12 +262,16 @@ func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError 
 // for example when one comes back online.
 func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool) {
 	if online {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG] Remote cluster %s came ONLINE - triggering sync activities", rc.DisplayName))
+
 		// when a previously offline remote comes back online force a sync.
 		scs.SendPendingInvitesForRemote(rc)
 		scs.ForceSyncForRemote(rc)
 
 		// Schedule global user sync if feature is enabled
 		scs.scheduleGlobalUserSync(rc)
+	} else {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG] Remote cluster %s went OFFLINE", rc.DisplayName))
 	}
 
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
@@ -326,6 +330,58 @@ func (scs *Service) scheduleGlobalUserSync(rc *model.RemoteCluster) {
 			mlog.String("remoteId", rc.RemoteId),
 		)
 	}()
+}
+
+// postMembershipSyncDebugMessage posts a debug system message to track membership sync execution
+// Posts to Town Square channel to ensure visibility even when no shared channels exist
+func (scs *Service) postMembershipSyncDebugMessage(message string) {
+	if scs.app == nil {
+		return
+	}
+
+	// Try to find Town Square channel (default channel that should always exist)
+	// Get all teams and try to find Town Square in any team
+	teams, err := scs.server.GetStore().Team().GetAll()
+	if err != nil || len(teams) == 0 {
+		return
+	}
+
+	// Use the first team's Town Square channel
+	team := teams[0]
+	townSquareChannel, err := scs.server.GetStore().Channel().GetByName(team.Id, model.DefaultChannelName, true)
+	if err != nil {
+		return
+	}
+
+	// Find a system admin user to post as
+	adminUsersMap, err := scs.server.GetStore().User().GetSystemAdminProfiles()
+	if err != nil || len(adminUsersMap) == 0 {
+		return
+	}
+
+	// Get the first admin user from the map
+	var adminUser *model.User
+	for _, user := range adminUsersMap {
+		adminUser = user
+		break
+	}
+	if adminUser == nil {
+		return
+	}
+
+	post := &model.Post{
+		ChannelId: townSquareChannel.Id,
+		UserId:    adminUser.Id,
+		Message:   message,
+		Type:      model.PostTypeSystemGeneric,
+		CreateAt:  model.GetMillis(),
+	}
+
+	ctx := request.EmptyContext(scs.server.Log())
+	_, appErr := scs.app.CreatePost(ctx, post, townSquareChannel, model.CreatePostFlags{})
+	if appErr != nil {
+		scs.server.Log().Warn("Failed to post membership sync debug message", mlog.String("channel_id", townSquareChannel.Id), mlog.Err(appErr))
+	}
 }
 
 // HasPendingTasksForTesting returns true if there are pending sync tasks in the queue
