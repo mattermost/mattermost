@@ -826,6 +826,8 @@ func (scs *Service) getGlobalUserSyncBatchSize() int {
 
 // collectUsersForGlobalSync fetches users that need to be synced to the remote
 func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize int) (map[string]*model.User, int64, int, bool, error) {
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Starting for remote %s with batchSize=%d, LastGlobalUserSyncAt=%d", rc.DisplayName, batchSize, rc.LastGlobalUserSyncAt))
+
 	options := &model.UserGetOptions{
 		Page:    0,
 		PerPage: 100, // Database fetch batch size
@@ -837,65 +839,88 @@ func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize
 	// This ensures users with UpdateAt=0 are included in the first sync
 	if rc.LastGlobalUserSyncAt > 0 {
 		options.UpdatedAfter = rc.LastGlobalUserSyncAt
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Using UpdatedAfter filter %d for incremental sync", rc.LastGlobalUserSyncAt))
+	} else {
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Initial sync - no UpdatedAfter filter"))
 	}
 
 	users := make(map[string]*model.User)
 	latestTimestamp := rc.LastGlobalUserSyncAt
 	totalCount := 0
 
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Starting to page through database results"))
+
 	// Page through database results
 	for {
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Fetching page %d with PerPage=%d", options.Page, options.PerPage))
+
 		batch, err := scs.server.GetStore().User().GetAllProfiles(options)
 		if err != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error fetching users for global sync",
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.Err(err),
 			)
+			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: ERROR fetching users from database: %s", err.Error()))
 			return nil, 0, 0, false, err
 		}
 
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Retrieved %d users from database page %d", len(batch), options.Page))
+
 		if len(batch) == 0 {
+			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: No more users to process, breaking loop"))
 			break // No more users to process
 		}
 
 		totalCount += len(batch)
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Total count now: %d", totalCount))
 
 		// Process each user in this database page
-		for _, user := range batch {
+		for i, user := range batch {
+			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Processing user %d/%d: %s (ID: %s, UpdateAt: %d, LastPictureUpdate: %d, IsRemote: %t, RemoteId: %s)", 
+				i+1, len(batch), user.Username, user.Id, user.UpdateAt, user.LastPictureUpdate, user.IsRemote(), user.GetRemoteID()))
+
 			// Stop if we've reached batch limit
 			if len(users) >= batchSize {
+				scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Reached batch limit %d, returning with hasMore=true", batchSize))
 				return users, latestTimestamp, totalCount, true, nil
 			}
 
 			// Skip users from remotes
 			if user.IsRemote() {
+				scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Skipping remote user %s", user.Username))
 				continue
 			}
 
 			// Check if user needs syncing
 			needsSync, _ := scs.shouldUserSyncGlobal(user, rc)
+			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: User %s needsSync=%t", user.Username, needsSync))
 			if !needsSync {
 				continue
 			}
 
 			// Add user and update cursor timestamp
 			users[user.Id] = user
+			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Added user %s to sync list (current count: %d)", user.Username, len(users)))
 
 			userUpdateTime := max(user.UpdateAt, user.LastPictureUpdate)
 			if userUpdateTime > latestTimestamp {
 				latestTimestamp = userUpdateTime
+				scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Updated latestTimestamp to %d for user %s", latestTimestamp, user.Username))
 			}
 		}
 
 		// Check if we've reached the end of results
 		if len(batch) < options.PerPage {
+			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Reached end of results (batch size %d < PerPage %d)", len(batch), options.PerPage))
 			break
 		}
 
 		// Move to next page
 		options.Page++
+		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Moving to next page %d", options.Page))
 	}
 
+	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Completed - returning %d users, latestTimestamp=%d, totalCount=%d, hasMore=false", len(users), latestTimestamp, totalCount))
 	return users, latestTimestamp, totalCount, false, nil
 }
 
