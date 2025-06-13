@@ -25,6 +25,9 @@ type FeatureFlags struct {
 	// Enable plugins in shared channels.
 	EnableSharedChannelsPlugins bool
 
+	// Enable syncing all users for remote clusters in shared channels
+	EnableSyncAllUsersForRemoteCluster bool
+
 	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
@@ -72,6 +75,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
 	f.EnableSharedChannelsDMs = false
+	f.EnableSyncAllUsersForRemoteCluster = false
 	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
