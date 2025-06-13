@@ -120,6 +120,7 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
+import InteractiveDialog from 'components/interactive_dialog';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -1427,7 +1428,7 @@ function handlePluginStatusesChangedEvent(msg) {
     store.dispatch({type: AdminTypes.RECEIVED_PLUGIN_STATUSES, data: msg.data.plugin_statuses});
 }
 
-async function handleOpenDialogEvent(msg) {
+function handleOpenDialogEvent(msg) {
     const data = (msg.data && msg.data.dialog) || {};
     const dialog = JSON.parse(data);
 
@@ -1439,8 +1440,6 @@ async function handleOpenDialogEvent(msg) {
         return;
     }
 
-    // Dynamic import to avoid loading InteractiveDialog in the main bundle
-    const {default: InteractiveDialog} = await import('components/interactive_dialog');
     store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: InteractiveDialog}));
 }
 

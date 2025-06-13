@@ -6,7 +6,11 @@ import {useSelector} from 'react-redux';
 
 import {interactiveDialogAppsFormEnabled} from 'mattermost-redux/selectors/entities/interactive_dialog';
 
+import InteractiveDialog from 'components/interactive_dialog/interactive_dialog';
+
 import type {GlobalState} from 'types/store';
+
+import InteractiveDialogAdapter from './interactive_dialog_adapter';
 
 type Props = Record<string, any>;
 
@@ -23,11 +27,9 @@ const DialogRouter: React.FC<Props> = (props) => {
 
             if (isAppsFormEnabled && hasUrl) {
                 // Use AppsForm-based adapter for dialogs with URLs when feature flag is enabled
-                const {default: InteractiveDialogAdapter} = await import('./interactive_dialog_adapter');
                 setComponent(() => InteractiveDialogAdapter);
             } else {
                 // Use legacy InteractiveDialog for all other cases
-                const {default: InteractiveDialog} = await import('components/interactive_dialog/interactive_dialog');
                 setComponent(() => InteractiveDialog);
             }
 
