@@ -239,7 +239,7 @@ function gotoGuestAccessSettings() {
 function gotoLDAPSettings() {
     // # Go to settings page and wait until page is loaded
     cy.visit('/admin_console/authentication/ldap');
-    cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'AD/LDAP');
+    cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'AD/LDAP Wizard');
 }
 
 function promoteGuestToUser(user) {
