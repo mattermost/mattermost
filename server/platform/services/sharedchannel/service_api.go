@@ -175,7 +175,6 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite.error",
 			map[string]any{"Name": rc.DisplayName, "Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
 	}
-
 	return nil
 }
 

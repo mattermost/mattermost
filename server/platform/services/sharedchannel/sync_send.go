@@ -428,7 +428,6 @@ func (scs *Service) processTask(task syncTask) error {
 	for _, rc := range remotesMap {
 		rtask := task
 		rtask.remoteID = rc.RemoteId
-
 		if err := scs.syncForRemote(rtask, rc); err != nil {
 			// retry...
 			if rtask.incRetry() {

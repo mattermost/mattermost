@@ -300,7 +300,6 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 	scs.app.Publish(messageWs)
 }
 
-// OnReceiveSyncMessageForTesting is an exported wrapper for testing the sync message handling flow
 // isGlobalUserSyncEnabled checks if the global user sync feature is enabled
 func (scs *Service) isGlobalUserSyncEnabled() bool {
 	cfg := scs.server.Config()
