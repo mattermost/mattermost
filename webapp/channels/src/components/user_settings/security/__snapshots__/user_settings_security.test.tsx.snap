@@ -108,7 +108,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -135,7 +135,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -255,7 +255,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -282,7 +282,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -402,7 +402,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -429,7 +429,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -549,7 +549,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -576,7 +576,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -697,7 +697,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -724,7 +724,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
