@@ -81,20 +81,6 @@ func (scs *Service) processGlobalUserSync(c request.CTX, syncMsg *model.SyncMsg,
 		}
 	}
 
-	// Update remote cluster's global user sync cursor
-	if syncResp.UsersLastUpdateAt > 0 {
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("RECEIVER: Updating global sync cursor for remote %s from %d to %d", rc.DisplayName, rc.LastGlobalUserSyncAt, syncResp.UsersLastUpdateAt))
-		if updateErr := scs.server.GetStore().RemoteCluster().UpdateLastGlobalUserSyncAt(rc.RemoteId, syncResp.UsersLastUpdateAt); updateErr != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Cannot update RemoteCluster LastGlobalUserSyncAt",
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.Int("last_global_user_sync_at", syncResp.UsersLastUpdateAt),
-				mlog.Err(updateErr),
-			)
-		} else {
-			scs.postGlobalSyncDebugMessage(fmt.Sprintf("RECEIVER: Successfully updated global sync cursor for remote %s to %d", rc.DisplayName, syncResp.UsersLastUpdateAt))
-		}
-	}
-
 	// Final debug message
 	successfulUserNames := scs.extractUserNamesFromIds(syncResp.UsersSyncd, users)
 	errorUserNames := scs.extractUserNamesFromIds(syncResp.UserErrors, users)
