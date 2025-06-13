@@ -1,9 +1,9 @@
 with-expecter: false
 packages:
-  github.com/mattermost/mattermost/server/v8/platform/shared/filestore:
+  github.com/mattermost/mattermost/server/public/filestore:
     config:
       all: true
-      dir: "platform/shared/filestore/mocks"
+      dir: "public/filestore/mocks"
       filename: "{{.InterfaceName}}.go"
       mockname: "{{.InterfaceName}}"
       outpkg: "mocks"

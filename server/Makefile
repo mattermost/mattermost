@@ -341,7 +341,7 @@ new-migration: ## Creates a new migration. Run with make new-migration name=<>
 
 filestore-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --config platform/shared/filestore/.mockery.yaml
+	$(GOBIN)/mockery --config public/filestore/.mockery.yaml
 
 ldap-mocks: ## Creates mock files for ldap.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2

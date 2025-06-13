@@ -21,10 +21,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/public/filestore"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost/server/public/filestore"
 )
 
 type MyReporter struct {
@@ -44,7 +44,7 @@ func TestActianceExport(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		fileBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  exportTempDir,
 		})
@@ -61,7 +61,7 @@ func TestActianceExport(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		exportBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  exportTempDir,
 		})
@@ -74,7 +74,7 @@ func TestActianceExport(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		attachmentBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  attachmentTempDir,
 		})
@@ -83,7 +83,7 @@ func TestActianceExport(t *testing.T) {
 	})
 }
 
-func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
+func runTestActianceExport(t *testing.T, exportBackend model.FileBackend, attachmentBackend model.FileBackend) {
 	rctx := request.TestContext(t)
 	rctx = rctx.WithT(i18n.IdentityTfunc()).(*request.Context)
 
@@ -1239,7 +1239,7 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		fileBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  exportTempDir,
 		})
@@ -1256,7 +1256,7 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		exportBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  exportTempDir,
 		})
@@ -1269,7 +1269,7 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		attachmentBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  attachmentTempDir,
 		})
@@ -1278,7 +1278,7 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 	})
 }
 
-func runTestActianceExportMultipleBatches(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
+func runTestActianceExportMultipleBatches(t *testing.T, exportBackend model.FileBackend, attachmentBackend model.FileBackend) {
 	rctx := request.TestContext(t)
 	rctx = rctx.WithT(i18n.IdentityTfunc()).(*request.Context)
 
@@ -1691,7 +1691,7 @@ func TestMultipleActianceExport(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		fileBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  exportTempDir,
 		})
@@ -1708,7 +1708,7 @@ func TestMultipleActianceExport(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		exportBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  exportTempDir,
 		})
@@ -1721,7 +1721,7 @@ func TestMultipleActianceExport(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+		attachmentBackend, err := filestore.NewFileBackend(model.FileBackendSettings{
 			DriverName: model.ImageDriverLocal,
 			Directory:  attachmentTempDir,
 		})
@@ -1730,7 +1730,7 @@ func TestMultipleActianceExport(t *testing.T) {
 	})
 }
 
-func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
+func runTestMultipleActianceExport(t *testing.T, exportBackend model.FileBackend, attachmentBackend model.FileBackend) {
 	rctx := request.TestContext(t)
 	rctx = rctx.WithT(i18n.IdentityTfunc()).(*request.Context)
 
@@ -2144,7 +2144,7 @@ func TestWriteExportWarnings(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	config := filestore.FileBackendSettings{
+	config := model.FileBackendSettings{
 		DriverName: model.ImageDriverLocal,
 		Directory:  tempDir,
 	}
