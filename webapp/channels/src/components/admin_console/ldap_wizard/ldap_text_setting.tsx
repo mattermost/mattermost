@@ -5,10 +5,12 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
+import type {LdapFilterTestResult} from '@mattermost/types/admin';
 import type {AdminConfig} from '@mattermost/types/config';
 
 import TextSetting from 'components/admin_console/text_setting';
 import FormError, {TYPE_BACKSTAGE} from 'components/form_error';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 
@@ -24,6 +26,7 @@ type TextSettingProps = {
     onChange(id: string, value: any): void;
     disabled: boolean;
     setByEnv: boolean;
+    filterResult?: LdapFilterTestResult | null;
 } & GeneralSettingProps
 
 const LDAPTextSetting = (props: TextSettingProps) => {
@@ -67,22 +70,85 @@ const LDAPTextSetting = (props: TextSettingProps) => {
     const label = renderLabel(props.setting, props.schema, intl);
     const helpText = renderLDAPSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
 
+    // Show icon only when input has content and there's a filter result
+    const hasContent = value.trim() !== '';
+    const showFilterIcon = hasContent && props.filterResult != null; // loose equality operator is intentional
+
+    // Determine icon type and content - three states
+    const isSuccess = props.filterResult?.error === '' && (props.filterResult?.total_count || 0) > 0;
+    const isWarning = props.filterResult?.error === '' && (props.filterResult?.total_count || 0) === 0;
+
+    const getIconClass = () => {
+        if (isSuccess) {
+            return 'icon icon-check-circle';
+        }
+        return 'icon icon-alert-outline'; // Used for both warning and failure
+    };
+
+    const getIconCssClass = () => {
+        if (isSuccess) {
+            return 'ldap-text-setting__filter-icon--success';
+        }
+        if (isWarning) {
+            return 'ldap-text-setting__filter-icon--warning';
+        }
+        return 'ldap-text-setting__filter-icon--error';
+    };
+
+    const iconClass = getIconClass();
+    const iconCssClass = getIconCssClass();
+
+    const getTooltipContent = () => {
+        if (!props.filterResult) {
+            return '';
+        }
+
+        if (isSuccess) {
+            const count = props.filterResult.total_count || 0;
+            return `Test successful: ${count} result${count === 1 ? '' : 's'} found`;
+        }
+
+        if (isWarning) {
+            return 'Test successful but no results found. Your filter may be too restrictive.';
+        }
+
+        // For failed tests, combine message and error if both are available
+        const message = props.filterResult.message;
+        const error = props.filterResult.error;
+
+        if (message && error) {
+            return `${message}: ${error}`;
+        }
+
+        return message || error || 'Filter test failed';
+    };
+
     return (
-        <TextSetting
-            key={props.schema.id + '_text_' + props.setting.key}
-            id={props.setting.key}
-            multiple={props.setting.multiple}
-            type={inputType}
-            label={label}
-            helpText={helpText}
-            placeholder={props.setting.placeholder}
-            value={value}
-            disabled={props.disabled}
-            setByEnv={props.setByEnv}
-            onChange={props.onChange}
-            maxLength={props.setting.max_length}
-            footer={footer}
-        />
+        <div style={{position: 'relative'}}>
+            <TextSetting
+                key={props.schema.id + '_text_' + props.setting.key}
+                id={props.setting.key}
+                multiple={props.setting.multiple}
+                type={inputType}
+                label={label}
+                helpText={helpText}
+                placeholder={props.setting.placeholder}
+                value={value}
+                disabled={props.disabled}
+                setByEnv={props.setByEnv}
+                onChange={props.onChange}
+                maxLength={props.setting.max_length}
+                footer={footer}
+            />
+            {showFilterIcon && (
+                <WithTooltip
+                    title={getTooltipContent()}
+                    forcedPlacement='top'
+                >
+                    <i className={`${iconClass} ldap-text-setting__filter-icon ${iconCssClass}`}/>
+                </WithTooltip>
+            )}
+        </div>
     );
 };
 

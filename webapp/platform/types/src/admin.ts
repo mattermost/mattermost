@@ -143,3 +143,25 @@ export type SupportPacketContent = {
     selected: boolean;
     mandatory: boolean;
 }
+
+export type LdapSampleEntry = {
+    dn: string;
+    username?: string;
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+    id?: string;
+    display_name?: string;
+    available_attributes?: Record<string, string>;
+};
+
+export type LdapFilterTestResult = {
+    filter_name: string;
+    filter_value: string;
+    total_count: number;
+    message?: string;
+    error?: string;
+    sample_results: LdapSampleEntry[];
+};
+
+export type TestLdapFiltersResponse = LdapFilterTestResult[];
