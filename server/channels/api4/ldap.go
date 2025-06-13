@@ -24,6 +24,7 @@ func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/sync", api.APISessionRequired(syncLdap)).Methods(http.MethodPost)
 	api.BaseRoutes.LDAP.Handle("/test", api.APISessionRequired(testLdap)).Methods(http.MethodPost)
 	api.BaseRoutes.LDAP.Handle("/test_connection", api.APISessionRequired(testLdapConnection)).Methods(http.MethodPost)
+	api.BaseRoutes.LDAP.Handle("/test_filters", api.APISessionRequired(testLdapFilters)).Methods(http.MethodPost)
 
 	api.BaseRoutes.LDAP.Handle("/migrateid", api.APISessionRequired(migrateIDLdap)).Methods(http.MethodPost)
 
@@ -115,6 +116,34 @@ func testLdapConnection(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func testLdapFilters(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAP {
+		c.Err = model.NewAppError("Api4.testLdapFilters", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestLdap) {
+		c.SetPermissionError(model.PermissionTestLdap)
+		return
+	}
+
+	var settings model.LdapSettings
+	if err := json.NewDecoder(r.Body).Decode(&settings); err != nil {
+		c.SetInvalidParamWithErr("ldap_settings", err)
+		return
+	}
+
+	res, appErr := c.App.TestLdapFilters(c.AppContext, &settings)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {

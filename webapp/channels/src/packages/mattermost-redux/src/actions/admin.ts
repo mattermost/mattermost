@@ -212,6 +212,15 @@ export function testLdapConnection(settings: LdapSettings) {
     });
 }
 
+export function testLdapFilters(settings: LdapSettings) {
+    return bindClientFunc({
+        clientFunc: Client4.testLdapFilters,
+        params: [
+            settings,
+        ],
+    });
+}
+
 export function syncLdap() {
     return bindClientFunc({
         clientFunc: Client4.syncLdap,
