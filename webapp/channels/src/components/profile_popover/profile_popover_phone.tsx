@@ -34,6 +34,7 @@ const ProfilePopoverPhone = ({attribute, userProfile}: Props) => {
                 aria-label='phone icon'
             />
             <a
+                href={`tel:${phone}`}
                 onClick={handlePhoneClick}
             >
                 {phone}

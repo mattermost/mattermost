@@ -33,6 +33,7 @@ const ProfilePopoverEmail = ({
                 aria-hidden='true'
             />
             <a
+                href={`mailto:${email}`}
                 onClick={handleEmailClick}
             >
                 {email}
