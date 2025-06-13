@@ -20,7 +20,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/mattermost/ldap"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
@@ -72,6 +74,9 @@ const (
 	PermissionsSystemAdmin  = "system_admin"
 
 	FakeSetting = "********************************"
+
+	// SanitizedPassword is the placeholder used for redacting passwords in data sources
+	SanitizedPassword = "****"
 
 	RestrictEmojiCreationAll         = "all"
 	RestrictEmojiCreationAdmin       = "admin"
@@ -449,6 +454,7 @@ type ServiceSettings struct {
 	ScheduledPosts                                    *bool   `access:"site_posts"`
 	EnableWebHubChannelIteration                      *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	FrameAncestors                                    *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	DeleteAccountLink                                 *string `access:"site_users_and_teams,write_restrictable,cloud_restrictable"`
 }
 
 var MattermostGiphySdkKey string
@@ -984,6 +990,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.FrameAncestors == nil {
 		s.FrameAncestors = NewPointer("")
 	}
+
+	if !isSafeLink(s.DeleteAccountLink) {
+		*s.DeleteAccountLink = ""
+	}
+
+	if s.DeleteAccountLink == nil {
+		s.DeleteAccountLink = NewPointer("")
+	}
 }
 
 type CacheSettings struct {
@@ -1158,6 +1172,7 @@ type ExperimentalSettings struct {
 	DisableWakeUpReconnectHandler                         *bool   `access:"experimental_features"`
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64  `access:"experimental_features"`
 	YoutubeReferrerPolicy                                 *bool   `access:"experimental_features"`
+	ExperimentalChannelCategorySorting                    *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1207,6 +1222,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.YoutubeReferrerPolicy == nil {
 		s.YoutubeReferrerPolicy = NewPointer(false)
+	}
+
+	if s.ExperimentalChannelCategorySorting == nil {
+		s.ExperimentalChannelCategorySorting = NewPointer(false)
 	}
 }
 
@@ -3114,6 +3133,7 @@ type DataRetentionSettings struct {
 	BatchSize                      *int    `access:"compliance_data_retention_policy"`
 	TimeBetweenBatchesMilliseconds *int    `access:"compliance_data_retention_policy"`
 	RetentionIdsBatchSize          *int    `access:"compliance_data_retention_policy"`
+	PreservePinnedPosts            *bool   `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -3162,6 +3182,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 	}
 	if s.RetentionIdsBatchSize == nil {
 		s.RetentionIdsBatchSize = NewPointer(DataRetentionSettingsDefaultRetentionIdsBatchSize)
+	}
+
+	if s.PreservePinnedPosts == nil {
+		s.PreservePinnedPosts = NewPointer(false)
 	}
 }
 
@@ -3435,6 +3459,8 @@ type ConnectedWorkspacesSettings struct {
 	EnableSharedChannels            *bool
 	EnableRemoteClusterService      *bool
 	DisableSharedChannelsStatusSync *bool
+	SyncUsersOnConnectionOpen       *bool
+	GlobalUserSyncBatchSize         *int
 	MaxPostsPerSync                 *int
 }
 
@@ -3457,6 +3483,14 @@ func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalS
 
 	if c.DisableSharedChannelsStatusSync == nil {
 		c.DisableSharedChannelsStatusSync = NewPointer(false)
+	}
+
+	if c.SyncUsersOnConnectionOpen == nil {
+		c.SyncUsersOnConnectionOpen = NewPointer(false)
+	}
+
+	if c.GlobalUserSyncBatchSize == nil {
+		c.GlobalUserSyncBatchSize = NewPointer(25) // Default to MaxUsersPerSync
 	}
 
 	if c.MaxPostsPerSync == nil {
@@ -4681,6 +4715,14 @@ func (s *ImageProxySettings) isValid() *AppError {
 	return nil
 }
 
+// SanitizeOptions specifies options for the [Config.Sanitize] method.
+type SanitizeOptions struct {
+	// PartiallyRedactDataSources, when true, only redacts usernames and passwords
+	// from data sources, keeping other connection parameters visible.
+	// When false, replaces the entire data source with FakeSetting.
+	PartiallyRedactDataSources bool
+}
+
 func (o *Config) GetSanitizeOptions() map[string]bool {
 	options := map[string]bool{}
 	options["fullname"] = *o.PrivacySettings.ShowFullName
@@ -4689,7 +4731,32 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 	return options
 }
 
-func (o *Config) Sanitize(pluginManifests []*Manifest) {
+// Sanitize removes sensitive information from the configuration object.
+// It replaces sensitive fields with [FakeSetting] or sanitizes them.
+//
+// Parameters:
+//   - pluginManifests: Plugin manifests for sanitizing plugin settings.
+//   - opts: Options for controlling sanitization behavior. If nil, defaults are used. See [SanitizeOptions].
+func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
+	if opts == nil {
+		opts = &SanitizeOptions{}
+	}
+
+	var driverName string
+	if o.SqlSettings.DriverName != nil {
+		driverName = *o.SqlSettings.DriverName
+	}
+	sanitizeDataSourceField := func(dataSource string, fieldName string) string {
+		if opts.PartiallyRedactDataSources && driverName != "" {
+			sanitized, err := SanitizeDataSource(driverName, dataSource)
+			if err != nil {
+				mlog.Warn("Failed to sanitize "+fieldName+". Falling back to fully sanitizing the setting.", mlog.Err(err))
+				return FakeSetting
+			}
+			return sanitized
+		}
+		return FakeSetting
+	}
 	if o.LdapSettings.BindPassword != nil && *o.LdapSettings.BindPassword != "" {
 		*o.LdapSettings.BindPassword = FakeSetting
 	}
@@ -4723,7 +4790,7 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	}
 
 	if o.SqlSettings.DataSource != nil {
-		*o.SqlSettings.DataSource = FakeSetting
+		*o.SqlSettings.DataSource = sanitizeDataSourceField(*o.SqlSettings.DataSource, "SqlSettings.DataSource")
 	}
 
 	if o.SqlSettings.AtRestEncryptKey != nil {
@@ -4735,15 +4802,18 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	}
 
 	for i := range o.SqlSettings.DataSourceReplicas {
-		o.SqlSettings.DataSourceReplicas[i] = FakeSetting
+		o.SqlSettings.DataSourceReplicas[i] = sanitizeDataSourceField(o.SqlSettings.DataSourceReplicas[i], "SqlSettings.DataSourceReplicas")
 	}
 
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
-		o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
+		o.SqlSettings.DataSourceSearchReplicas[i] = sanitizeDataSourceField(o.SqlSettings.DataSourceSearchReplicas[i], "SqlSettings.DataSourceSearchReplicas")
 	}
 
 	for i := range o.SqlSettings.ReplicaLagSettings {
-		o.SqlSettings.ReplicaLagSettings[i].DataSource = NewPointer(FakeSetting)
+		if o.SqlSettings.ReplicaLagSettings[i].DataSource != nil {
+			sanitized := sanitizeDataSourceField(*o.SqlSettings.ReplicaLagSettings[i].DataSource, "SqlSettings.ReplicaLagSettings")
+			o.SqlSettings.ReplicaLagSettings[i].DataSource = NewPointer(sanitized)
+		}
 	}
 
 	if o.MessageExportSettings.GlobalRelaySettings != nil &&
@@ -4761,6 +4831,59 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	}
 
 	o.PluginSettings.Sanitize(pluginManifests)
+}
+
+// SanitizeDataSource redacts sensitive information (username and password) from a database
+// connection string while preserving other connection parameters.
+//
+// Parameters:
+//   - driverName: The database driver name (postgres or mysql)
+//   - dataSource: The database connection string to sanitize
+//
+// Returns:
+//   - The sanitized connection string with username/password replaced by SanitizedPassword
+//   - An error if the driverName is not supported or if parsing fails
+//
+// Examples:
+//   - PostgreSQL: "postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
+//   - MySQL: "user:pass@tcp(host:3306)/db" -> "****:****@tcp(host:3306)/db"
+func SanitizeDataSource(driverName, dataSource string) (string, error) {
+	// Handle empty data source
+	if dataSource == "" {
+		return "", nil
+	}
+
+	switch driverName {
+	case DatabaseDriverPostgres:
+		u, err := url.Parse(dataSource)
+		if err != nil {
+			return "", err
+		}
+		u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
+
+		// Remove username and password from query string
+		params := u.Query()
+		params.Del("user")
+		params.Del("password")
+		u.RawQuery = params.Encode()
+
+		// Unescape the URL to make it human-readable
+		out, err := url.QueryUnescape(u.String())
+		if err != nil {
+			return "", err
+		}
+		return out, nil
+	case DatabaseDriverMysql:
+		cfg, err := mysql.ParseDSN(dataSource)
+		if err != nil {
+			return "", err
+		}
+		cfg.User = SanitizedPassword
+		cfg.Passwd = SanitizedPassword
+		return cfg.FormatDSN(), nil
+	default:
+		return "", errors.New("invalid drivername. Not postgres or mysql.")
+	}
 }
 
 type FilterTag struct {
