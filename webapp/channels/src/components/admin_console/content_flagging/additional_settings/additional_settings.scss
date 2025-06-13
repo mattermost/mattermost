@@ -3,9 +3,9 @@
 
 .contentFlaggingReasons {
     width: 100%;
-}
 
-.contentFlaggingReasons___value-container {
-    padding: 6px 12px !important;
-    gap: 8px;
+    &___value-container {
+        padding: 6px 12px !important;
+        gap: 8px;
+    }
 }
