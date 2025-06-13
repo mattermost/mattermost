@@ -32,21 +32,21 @@
     }
 
     &__title {
+        min-height: 28px;
         margin: 0 0 16px 0;
         color: var(--center-channel-color);
         font-size: 22px;
         font-weight: 600;
         line-height: 28px;
-        min-height: 28px;
     }
 
     &__subtitle {
+        min-height: 60px;
+        max-height: 80px;
         margin-bottom: 24px;
         color: rgb(var(--center-channel-color-rgb));
         font-size: 14px;
         line-height: 20px;
-        min-height: 60px;
-        max-height: 80px;
         overflow-y: auto;
 
         strong {

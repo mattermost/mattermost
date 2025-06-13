@@ -5,7 +5,7 @@ import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 
-import type {PreviewModalContentData} from './preview_modal_content';
+import type {PreviewModalContentData} from './preview_modal_content_data';
 import PreviewModalController from './preview_modal_controller';
 
 // Mock the GenericModal component
@@ -34,14 +34,23 @@ describe('PreviewModalController', () => {
         {
             title: 'First Slide',
             subtitle: 'First subtitle',
+            skuLabel: 'First sku label',
+            videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA',
+            useCase: 'missionops',
         },
         {
             title: 'Second Slide',
             subtitle: 'Second subtitle',
+            skuLabel: 'Second sku label',
+            videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA',
+            useCase: 'missionops',
         },
         {
             title: 'Third Slide',
             subtitle: 'Third subtitle',
+            skuLabel: 'Third sku label',
+            videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA',
+            useCase: 'missionops',
         },
     ];
 
