@@ -44,6 +44,43 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/ldap/test_connection:
+    post:
+      tags:
+        - LDAP
+      summary: Test LDAP connection with specific settings
+      description: >
+        Test the LDAP connection using the provided settings without modifying
+        the current server configuration.
+
+        ##### Permissions
+
+        Must have `sysconsole_read_authentication_ldap` or `manage_system` permission.
+      operationId: TestLdapConnection
+      requestBody:
+        description: LDAP settings to test
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LdapSettings"
+      responses:
+        "200":
+          description: LDAP connection test successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/ldap/groups:
     get:
       tags:

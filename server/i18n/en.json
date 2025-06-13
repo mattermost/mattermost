@@ -8233,6 +8233,10 @@
     "translation": "ldap interface was nil."
   },
   {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
+  },
+  {
     "id": "ent.ldap.cpa_field_mapping.list_error",
     "translation": "Failed to retrieve CPA fields"
   },
