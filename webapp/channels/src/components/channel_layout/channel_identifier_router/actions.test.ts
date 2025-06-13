@@ -179,9 +179,7 @@ describe('Actions', () => {
                         ...initialState.entities.users,
                         profiles: {
                             ...initialState.entities.users.profiles,
-                            current_user_id: {
-                                roles: 'system_admin',
-                            },
+                            current_user_id: {},
                         },
                     },
                 },
@@ -205,9 +203,7 @@ describe('Actions', () => {
                         ...initialState.entities.users,
                         profiles: {
                             ...initialState.entities.users.profiles,
-                            current_user_id: {
-                                roles: 'system_user',
-                            },
+                            current_user_id: {},
                         },
                     },
                     channels: {

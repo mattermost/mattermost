@@ -2858,11 +2858,11 @@ func (s *RetryLayerChannelStore) Restore(channelID string, timestamp int64) erro
 
 }
 
-func (s *RetryLayerChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
+func (s *RetryLayerChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam)
+		result, err := s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam, channelOptions...)
 		if err == nil {
 			return result, nil
 		}
@@ -9992,6 +9992,27 @@ func (s *RetryLayerRemoteClusterStore) Update(rc *model.RemoteCluster) (*model.R
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRemoteClusterStore) UpdateLastGlobalUserSyncAt(remoteID string, syncAt int64) error {
+
+	tries := 0
+	for {
+		err := s.RemoteClusterStore.UpdateLastGlobalUserSyncAt(remoteID, syncAt)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
