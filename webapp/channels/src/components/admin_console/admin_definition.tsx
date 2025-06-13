@@ -45,6 +45,7 @@ import PolicyList from './access_control';
 import AccessControlPolicyJobs from './access_control/jobs';
 import PolicyDetails from './access_control/policy_details';
 import * as DefinitionConstants from './admin_definition_constants';
+import BleveSettings, {searchableStrings as bleveSearchableStrings} from './admin_settings/bleve_settings';
 import AuditLoggingCertificateUploadSetting from './audit_logging';
 import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
@@ -52,7 +53,6 @@ import BillingHistory, {searchableStrings as billingHistorySearchableStrings} fr
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
-import BleveSettings, {searchableStrings as bleveSearchableStrings} from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
