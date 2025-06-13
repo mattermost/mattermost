@@ -24,11 +24,8 @@ const (
 	TopicSync                    = "sharedchannel_sync"
 	TopicChannelInvite           = "sharedchannel_invite"
 	TopicUploadCreate            = "sharedchannel_upload"
-<<<<<<< HEAD
 	TopicChannelMembership       = "sharedchannel_membership"
-=======
 	TopicGlobalUserSync          = "sharedchannel_global_user_sync"
->>>>>>> master
 	MaxRetries                   = 3
 	MaxUsersPerSync              = 25
 	NotifyRemoteOfflineThreshold = time.Second * 10
@@ -145,7 +142,7 @@ func (scs *Service) Start() error {
 	scs.mux.Unlock()
 
 	rcs.AddTopicListener(TopicChannelMembership, scs.onReceiveSyncMessage)
-	
+
 	scs.onClusterLeaderChange()
 
 	return nil
@@ -344,7 +341,7 @@ func (scs *Service) HasPendingTasksForTesting() bool {
 	defer scs.mux.RUnlock()
 	return len(scs.tasks) > 0
 }
-	
+
 // GetUserSyncBatchSizeForTesting returns the configured batch size for user syncing (exported for testing)
 func (scs *Service) GetUserSyncBatchSizeForTesting() int {
 	return scs.getGlobalUserSyncBatchSize()
