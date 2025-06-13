@@ -1,0 +1,90 @@
+.suggestion-box-input-wrapper {
+    position: relative;
+    
+    .suggestion-box-mention-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 2;
+        padding: 13px 16px 12px 16px;
+        white-space: pre-wrap;
+        font-size: 14px;
+        line-height: 20px;
+        overflow: hidden;
+        background: transparent;
+        color: var(--center-channel-color);
+        font-family: inherit;
+        border: 2px solid transparent;
+        user-select: none;
+        word-wrap: break-word;
+        word-break: break-word;
+        
+        // メンション部分のスタイル調整
+        .at-mention {
+            display: inline;
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            font-size: inherit;
+            line-height: inherit;
+            color: var(--mention-color, #0073e6);
+            text-decoration: none;
+            font-weight: 600;
+            
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+    
+    .suggestion-box-input-transparent {
+        position: relative;
+        z-index: 1;
+        background: transparent !important;
+        color: transparent !important;
+        caret-color: var(--center-channel-color) !important;
+        
+        // テキストを完全に非表示にする
+        text-shadow: none !important;
+        -webkit-text-fill-color: transparent !important;
+        
+        &::selection {
+            background: rgba(0, 115, 230, 0.2);
+        }
+        
+        &::-moz-selection {
+            background: rgba(0, 115, 230, 0.2);
+        }
+        
+        // プレースホルダーも透明にする
+        &::placeholder {
+            color: transparent !important;
+        }
+        
+        &::-webkit-input-placeholder {
+            color: transparent !important;
+        }
+        
+        &::-moz-placeholder {
+            color: transparent !important;
+        }
+    }
+}
+
+// テキストエリア用の調整
+.form-control.suggestion-box-input-transparent {
+    color: transparent;
+    caret-color: var(--center-channel-color);
+}
+
+// フォーカス時の調整
+.suggestion-box-input-wrapper:focus-within {
+    .suggestion-box-mention-overlay {
+        // フォーカス時も表示を維持
+        opacity: 1;
+    }
+}

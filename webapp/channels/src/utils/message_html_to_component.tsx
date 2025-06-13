@@ -138,6 +138,7 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                         disableGroupHighlight={disableGroupHighlight}
                         channelId={options.channelId}
                         fetchMissingUsers={options.fetchMissingUsers}
+                        displayMode='fullname'
                     >
                         {children}
                     </AtMention>
