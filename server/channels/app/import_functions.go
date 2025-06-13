@@ -2105,7 +2105,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 		}
 		channel = ch
 	} else {
-		ch, err2 := a.createGroupChannel(rctx, userIDs)
+		ch, err2 := a.createGroupChannel(rctx, userIDs, "")
 		if err2 != nil && err2.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(err2)
 		}
@@ -2350,7 +2350,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 			}
 			channel = ch
 		} else if len(userIDs) > 2 {
-			ch, err = a.createGroupChannel(rctx, userIDs)
+			ch, err = a.createGroupChannel(rctx, userIDs, "")
 			if err != nil && err.Id != store.ChannelExistsError {
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
