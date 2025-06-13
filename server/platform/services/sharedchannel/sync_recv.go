@@ -323,7 +323,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	// Instead of undoing what succeeded on any failure we simply do all steps each
 	// time. AddUserToChannel & AddUserToTeamByTeamId do not error if user was already
 	// added and exit quickly.  Not needed for DMs where teamId is empty.
-	if channel.TeamId != "" {
+	if channel != nil && channel.TeamId != "" {
 		// add user to team
 		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Adding user to team - user_id: %s, team_id: %s, remote: %s", userSaved.Id, channel.TeamId, rc.Name))
 		if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
