@@ -1,29 +1,29 @@
-SET @preparedStatement = (SELECT IF(
-    NOT EXISTS(
-        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+SET @preparedStatement1 = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
         WHERE table_name = 'PostAcknowledgements'
         AND table_schema = DATABASE()
         AND column_name = 'RemoteId'
-    ),
+    ) = 0,
     'ALTER TABLE PostAcknowledgements ADD COLUMN RemoteId varchar(26) DEFAULT \'\';',
     'SELECT 1;'
 ));
 
-PREPARE addColumnIfNotExists FROM @preparedStatement;
+PREPARE addColumnIfNotExists FROM @preparedStatement1;
 EXECUTE addColumnIfNotExists;
 DEALLOCATE PREPARE addColumnIfNotExists;
 
-SET @preparedStatement = (SELECT IF(
-    NOT EXISTS(
-        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+SET @preparedStatement2 = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
         WHERE table_name = 'PostAcknowledgements'
         AND table_schema = DATABASE()
         AND column_name = 'ChannelId'
-    ),
+    ) = 0,
     'ALTER TABLE PostAcknowledgements ADD COLUMN ChannelId varchar(26) DEFAULT \'\';',
     'SELECT 1;'
 ));
 
-PREPARE addColumnIfNotExists FROM @preparedStatement;
+PREPARE addColumnIfNotExists FROM @preparedStatement2;
 EXECUTE addColumnIfNotExists;
 DEALLOCATE PREPARE addColumnIfNotExists;

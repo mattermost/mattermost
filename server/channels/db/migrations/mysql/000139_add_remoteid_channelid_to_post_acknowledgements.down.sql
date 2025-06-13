@@ -1,4 +1,4 @@
-SET @preparedStatement = (SELECT IF(
+SET @preparedStatement1 = (SELECT IF(
     (
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
         WHERE table_name = 'PostAcknowledgements'
@@ -9,11 +9,11 @@ SET @preparedStatement = (SELECT IF(
     'SELECT 1'
 ));
 
-PREPARE alterIfExists FROM @preparedStatement;
+PREPARE alterIfExists FROM @preparedStatement1;
 EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
 
-SET @preparedStatement = (SELECT IF(
+SET @preparedStatement2 = (SELECT IF(
     (
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
         WHERE table_name = 'PostAcknowledgements'
@@ -24,6 +24,6 @@ SET @preparedStatement = (SELECT IF(
     'SELECT 1'
 ));
 
-PREPARE alterIfExists FROM @preparedStatement;
+PREPARE alterIfExists FROM @preparedStatement2;
 EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
