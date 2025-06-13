@@ -408,7 +408,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			}
 
 			// Skip remote users unless mention contains a colon (@username:remote)
-			if user.RemoteId != nil && !strings.Contains(mention, ":") {
+			if user.IsRemote() && !strings.Contains(mention, ":") {
 				continue
 			}
 
