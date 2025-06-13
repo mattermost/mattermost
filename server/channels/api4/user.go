@@ -671,6 +671,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		rolesString        = query.Get("roles")
 		channelRolesString = query.Get("channel_roles")
 		teamRolesString    = query.Get("team_roles")
+		status             = query.Get("status")
 	)
 
 	if notInChannelId != "" && inTeamId == "" {
@@ -805,6 +806,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		Page:             c.Params.Page,
 		PerPage:          c.Params.PerPage,
 		ViewRestrictions: restrictions,
+		Status:           status,
 	}
 
 	var (
