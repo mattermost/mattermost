@@ -11,6 +11,7 @@ import (
 )
 
 func TestGetServerLimits(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("base case", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()

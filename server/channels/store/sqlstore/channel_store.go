@@ -137,6 +137,7 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 		p + "TotalMsgCountRoot",
 		p + "LastRootPostAt",
 		p + "BannerInfo",
+		p + "DefaultCategoryName",
 	}
 
 	if isSelect {
@@ -172,6 +173,7 @@ func channelToSlice(channel *model.Channel) []any {
 		channel.TotalMsgCountRoot,
 		channel.LastRootPostAt,
 		channel.BannerInfo,
+		channel.DefaultCategoryName,
 	}
 }
 
@@ -614,7 +616,11 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 }
 
 // Save writes the (non-direct) channel to the database.
-func (s SqlChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (_ *model.Channel, err error) {
+func (s SqlChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (_ *model.Channel, err error) {
+	for _, option := range channelOptions {
+		option(channel)
+	}
+
 	if channel.DeleteAt != 0 {
 		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
 	}
@@ -834,7 +840,8 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 			Shared=:Shared,
 			TotalMsgCountRoot=:TotalMsgCountRoot,
 			LastRootPostAt=:LastRootPostAt,
-		    BannerInfo=:BannerInfo
+		    BannerInfo=:BannerInfo,
+			DefaultCategoryName=:DefaultCategoryName
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
@@ -1136,17 +1143,18 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, opts *model.C
 func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error) {
 	query := s.getQueryBuilder().
 		Select(channelSliceColumns(true, "Channels")...).
-		From("Channels, ChannelMembers").
+		From("Channels, ChannelMembers, Teams").
 		Where(
 			sq.And{
-				sq.Expr("Id = ChannelId"),
-				sq.Eq{"UserId": userId},
+				sq.Expr("Channels.Id = ChannelMembers.ChannelId"),
+				sq.Expr("Channels.TeamId = Teams.Id"),
+				sq.Eq{"ChannelMembers.UserId": userId},
 			},
 		).
-		OrderBy("Id ASC")
+		OrderBy("Channels.Id ASC")
 
 	if fromChannelID != "" {
-		query = query.Where(sq.Gt{"Id": fromChannelID})
+		query = query.Where(sq.Gt{"Channels.Id": fromChannelID})
 	}
 
 	if pageSize != -1 {
@@ -1156,15 +1164,24 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 	if includeDeleted {
 		if lastDeleteAt != 0 {
 			// We filter by non-archived, and archived >= a timestamp.
-			query = query.Where(sq.Or{
-				sq.Eq{"DeleteAt": 0},
-				sq.GtOrEq{"DeleteAt": lastDeleteAt},
+			query = query.Where(sq.And{
+				sq.Or{
+					sq.Eq{"Channels.DeleteAt": 0},
+					sq.GtOrEq{"Channels.DeleteAt": lastDeleteAt},
+				},
+				sq.Or{
+					sq.Eq{"Teams.DeleteAt": 0},
+					sq.GtOrEq{"Teams.DeleteAt": lastDeleteAt},
+				},
 			})
 		}
 		// If lastDeleteAt is not set, we include everything. That means no filter is needed.
 	} else {
-		// Don't include archived channels.
-		query = query.Where(sq.Eq{"DeleteAt": 0})
+		// Don't include archived channels or channels from deleted teams
+		query = query.Where(sq.And{
+			sq.Eq{"Channels.DeleteAt": 0},
+			sq.Eq{"Teams.DeleteAt": 0},
+		})
 	}
 
 	sql, args, err := query.ToSql()

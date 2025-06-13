@@ -22,6 +22,9 @@ type FeatureFlags struct {
 	// Enable DMs and GMs for shared channels.
 	EnableSharedChannelsDMs bool
 
+	// Enable plugins in shared channels.
+	EnableSharedChannelsPlugins bool
+
 	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
@@ -66,6 +69,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
 	f.EnableSharedChannelsDMs = false
+	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.DeprecateCloudFree = false
@@ -83,7 +87,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
 	f.CustomProfileAttributes = true
-	f.AttributeBasedAccessControl = false
+	f.AttributeBasedAccessControl = true
 }
 
 // ToMap returns the feature flags as a map[string]string

@@ -20,6 +20,7 @@ import (
 )
 
 func TestCreateUpload(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -119,6 +120,7 @@ func TestCreateUpload(t *testing.T) {
 }
 
 func TestGetUpload(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -163,6 +165,7 @@ func TestGetUpload(t *testing.T) {
 }
 
 func TestGetUploadsForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -210,6 +213,7 @@ func TestGetUploadsForUser(t *testing.T) {
 }
 
 func TestUploadData(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	if *th.App.Config().FileSettings.DriverName == "" {
@@ -335,6 +339,7 @@ func TestUploadData(t *testing.T) {
 }
 
 func TestUploadDataMultipart(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	if *th.App.Config().FileSettings.DriverName == "" {

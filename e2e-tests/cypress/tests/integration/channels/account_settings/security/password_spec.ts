@@ -54,11 +54,15 @@ describe('Profile', () => {
         // # Enter valid values in password change fields
         enterPasswords(testUser.password, 'passwd', 'passwd');
 
+        // * Check that there are no errors
+        cy.get('#error_currentPassword').should('not.exist');
+        cy.get('#error_newPassword').should('not.exist');
+        cy.get('#error_confirmPassword').should('not.exist');
+
         // # Save the settings
         cy.uiSave();
 
         // * Check that there are no errors
-        cy.get('#clientError').should('not.exist');
         cy.get('#serverError').should('not.exist');
     });
 
@@ -66,22 +70,16 @@ describe('Profile', () => {
         // # Enter mismatching passwords for new password and confirm fields
         enterPasswords(testUser.password, 'newPW', 'NewPW');
 
-        // # Save
-        cy.uiSave();
-
         // * Verify for error message: "The new passwords you entered do not match."
-        cy.get('#clientError').should('be.visible').should('have.text', 'The new passwords you entered do not match.');
+        cy.get('#error_confirmPassword').should('be.visible').should('have.text', 'The new passwords you entered do not match.');
     });
 
     it('MM-T2083 Password: Too few characters in new password produces error', () => {
         // # Enter a New password two letters long
         enterPasswords(testUser.password, 'pw', 'pw');
 
-        // # Save
-        cy.uiSave();
-
         // * Verify for error message: "Your password must be 5-72 characters long."
-        cy.get('#clientError').should('be.visible').should('have.text', 'Your password must be 5-72 characters long.');
+        cy.get('#error_newPassword').should('be.visible').should('have.text', 'Your password must be 5-72 characters long.');
     });
 
     it('MM-T2084 Password: Cancel out of password changes causes no changes to be made', () => {
@@ -151,4 +149,7 @@ function enterPasswords(currentPassword, newPassword, confirmPassword) {
 
     // # Retype New password incorrectly
     cy.get('#confirmPassword').should('be.visible').type(confirmPassword);
+
+    // # Click on the input and blur it
+    cy.get('#currentPassword').should('be.visible').click().blur();
 }

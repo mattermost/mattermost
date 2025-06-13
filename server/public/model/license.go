@@ -350,6 +350,11 @@ func (l *License) IsStarted() bool {
 	return l.StartsAt < GetMillis()
 }
 
+// Cloud preview is a cloud license, that is also a trial, and the difference between the start and end date is exactly 1 hour.
+func (l *License) IsCloudPreview() bool {
+	return l.IsCloud() && l.IsTrialLicense() && l.ExpiresAt-l.StartsAt == 1*time.Hour.Milliseconds()
+}
+
 func (l *License) IsCloud() bool {
 	return l != nil && l.Features != nil && l.Features.Cloud != nil && *l.Features.Cloud
 }

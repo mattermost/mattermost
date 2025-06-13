@@ -205,6 +205,7 @@ func testUploadFilesMultipart(
 }
 
 func TestUploadFiles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	if *th.App.Config().FileSettings.DriverName == "" {
@@ -781,6 +782,7 @@ func TestUploadFiles(t *testing.T) {
 }
 
 func TestGetFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -822,6 +824,7 @@ func TestGetFile(t *testing.T) {
 }
 
 func TestGetFileAsSystemAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -907,6 +910,7 @@ func TestGetFileAsSystemAdmin(t *testing.T) {
 }
 
 func TestGetFileHeaders(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -975,6 +979,7 @@ func TestGetFileHeaders(t *testing.T) {
 }
 
 func TestGetFileThumbnail(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1025,6 +1030,7 @@ func TestGetFileThumbnail(t *testing.T) {
 }
 
 func TestGetFileThumbnailAsSystemAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1112,6 +1118,7 @@ func TestGetFileThumbnailAsSystemAdmin(t *testing.T) {
 }
 
 func TestGetFileLink(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1183,6 +1190,7 @@ func TestGetFileLink(t *testing.T) {
 }
 
 func TestGetFilePreview(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1232,6 +1240,7 @@ func TestGetFilePreview(t *testing.T) {
 }
 
 func TestGetFileInfo(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1289,6 +1298,7 @@ func TestGetFileInfo(t *testing.T) {
 }
 
 func TestGetPublicFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1352,6 +1362,7 @@ func TestGetPublicFile(t *testing.T) {
 }
 
 func TestSearchFilesInTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
@@ -1502,6 +1513,7 @@ func TestSearchFilesInTeam(t *testing.T) {
 }
 
 func TestSearchFilesAcrossTeams(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
