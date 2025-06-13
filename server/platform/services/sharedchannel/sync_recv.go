@@ -370,8 +370,6 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
 		user.Email = model.NewId()
 
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: Attempting to save user - user_id: %s, username: %s, remote: %s, attempt: %d", user.Id, user.Username, rc.Name, i))
-
 		if userSaved, err = scs.server.GetStore().User().Save(rctx, user); err != nil {
 			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] RECEIVER: User save failed - user_id: %s, username: %s, remote: %s, attempt: %d, error: %v", user.Id, user.Username, rc.Name, i, err))
 			field, ok := isConflictError(err)
