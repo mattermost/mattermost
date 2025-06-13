@@ -3461,6 +3461,8 @@ type ConnectedWorkspacesSettings struct {
 	EnableSharedChannels            *bool
 	EnableRemoteClusterService      *bool
 	DisableSharedChannelsStatusSync *bool
+	SyncUsersOnConnectionOpen       *bool
+	GlobalUserSyncBatchSize         *int
 	MaxPostsPerSync                 *int
 	MemberSyncBatchSize             *int // Maximum number of members to process in a single batch during shared channel synchronization
 }
@@ -3484,6 +3486,14 @@ func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalS
 
 	if c.DisableSharedChannelsStatusSync == nil {
 		c.DisableSharedChannelsStatusSync = NewPointer(false)
+	}
+
+	if c.SyncUsersOnConnectionOpen == nil {
+		c.SyncUsersOnConnectionOpen = NewPointer(false)
+	}
+
+	if c.GlobalUserSyncBatchSize == nil {
+		c.GlobalUserSyncBatchSize = NewPointer(25) // Default to MaxUsersPerSync
 	}
 
 	if c.MaxPostsPerSync == nil {

@@ -24,10 +24,9 @@ var (
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	if msg.Topic != TopicSync && msg.Topic != TopicChannelMembership {
+	if msg.Topic != TopicSync && msg.Topic != TopicChannelMembership && msg.Topic != TopicGlobalUserSync {
 		return fmt.Errorf("wrong topic, expected sync-related topic, got `%s`", msg.Topic)
-	}
-
+	
 	if len(msg.Payload) == 0 {
 		return errors.New("empty sync message")
 	}
@@ -45,6 +44,36 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 		return fmt.Errorf("invalid sync message: %w", err)
 	}
 	return scs.processSyncMessage(request.EmptyContext(scs.server.Log()), &sm, rc, response)
+}
+
+func (scs *Service) processGlobalUserSync(c request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	syncResp := model.SyncResponse{
+		UserErrors: make([]string, 0),
+		UsersSyncd: make([]string, 0),
+	}
+
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing global user sync",
+		mlog.String("remote", rc.Name),
+		mlog.Int("user_count", len(syncMsg.Users)),
+	)
+
+	// Process all users in the sync message
+	for _, user := range syncMsg.Users {
+		if userSaved, err := scs.upsertSyncUser(c, user, nil, rc); err != nil {
+			syncResp.UserErrors = append(syncResp.UserErrors, user.Id)
+		} else {
+			syncResp.UsersSyncd = append(syncResp.UsersSyncd, userSaved.Id)
+			if syncResp.UsersLastUpdateAt < user.UpdateAt {
+				syncResp.UsersLastUpdateAt = user.UpdateAt
+			}
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Global user upserted via sync",
+				mlog.String("remote", rc.Name),
+				mlog.String("user_id", user.Id),
+			)
+		}
+	}
+
+	return response.SetPayload(syncResp)
 }
 
 func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
@@ -78,6 +107,25 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		mlog.Int("membership_change_count", len(syncMsg.MembershipChanges)),
 	)
 
+	// Check if this is a global user sync message (no channel ID and only users)
+	if syncMsg.ChannelId == "" {
+		if len(syncMsg.Posts) != 0 ||
+			len(syncMsg.Reactions) != 0 ||
+			len(syncMsg.Statuses) != 0 {
+			return fmt.Errorf("global user sync message should not contain posts, reactions or statuses")
+		}
+
+		if len(syncMsg.Users) == 0 {
+			return nil
+		}
+		// Check if feature flag is enabled
+		if !scs.isGlobalUserSyncEnabled() {
+			return nil
+		}
+		return scs.processGlobalUserSync(c, syncMsg, rc, response)
+	}
+
+	// For regular sync messages, we need a specific channel
 	if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
 		// if the channel doesn't exist then none of these sync items are going to work.
 		return fmt.Errorf("channel not found processing sync message: %w", err)
@@ -262,7 +310,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	// Instead of undoing what succeeded on any failure we simply do all steps each
 	// time. AddUserToChannel & AddUserToTeamByTeamId do not error if user was already
 	// added and exit quickly.  Not needed for DMs where teamId is empty.
-	if channel.TeamId != "" {
+	if channel != nil && channel.TeamId != "" {
 		// add user to team
 		if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
 			return nil, fmt.Errorf("error adding sync user to Team: %w", err)
