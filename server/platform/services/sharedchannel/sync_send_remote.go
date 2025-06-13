@@ -841,14 +841,14 @@ func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize
 		options.UpdatedAfter = rc.LastGlobalUserSyncAt
 		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Using UpdatedAfter filter %d for incremental sync", rc.LastGlobalUserSyncAt))
 	} else {
-		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Initial sync - no UpdatedAfter filter"))
+		scs.postGlobalSyncDebugMessage("[DEBUG] collectUsersForGlobalSync: Initial sync - no UpdatedAfter filter")
 	}
 
 	users := make(map[string]*model.User)
 	latestTimestamp := rc.LastGlobalUserSyncAt
 	totalCount := 0
 
-	scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Starting to page through database results"))
+	scs.postGlobalSyncDebugMessage("[DEBUG] collectUsersForGlobalSync: Starting to page through database results")
 
 	// Page through database results
 	for {
@@ -867,7 +867,7 @@ func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize
 		scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Retrieved %d users from database page %d", len(batch), options.Page))
 
 		if len(batch) == 0 {
-			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: No more users to process, breaking loop"))
+			scs.postGlobalSyncDebugMessage("[DEBUG] collectUsersForGlobalSync: No more users to process, breaking loop")
 			break // No more users to process
 		}
 
@@ -876,7 +876,7 @@ func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize
 
 		// Process each user in this database page
 		for i, user := range batch {
-			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Processing user %d/%d: %s (ID: %s, UpdateAt: %d, LastPictureUpdate: %d, IsRemote: %t, RemoteId: %s)", 
+			scs.postGlobalSyncDebugMessage(fmt.Sprintf("[DEBUG] collectUsersForGlobalSync: Processing user %d/%d: %s (ID: %s, UpdateAt: %d, LastPictureUpdate: %d, IsRemote: %t, RemoteId: %s)",
 				i+1, len(batch), user.Username, user.Id, user.UpdateAt, user.LastPictureUpdate, user.IsRemote(), user.GetRemoteID()))
 
 			// Stop if we've reached batch limit
