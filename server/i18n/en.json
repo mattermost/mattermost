@@ -2277,6 +2277,10 @@
     "translation": "You do not have permission to manage this job type"
   },
   {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Invalid test type: {{.TestType}}"
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },

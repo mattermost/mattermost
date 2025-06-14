@@ -37,6 +37,7 @@ const LDAPExpandableSetting = (props: ExpandableSettingProps) => {
         <div className='ldap-expandable-section'>
             <div className='ldap-expandable-section-header'>
                 <button
+                    data-testid={`${props.setting.key}button`}
                     className='ldap-expandable-section-toggle'
                     onClick={toggleExpanded}
                     aria-expanded={expanded}
