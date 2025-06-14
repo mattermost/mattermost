@@ -684,16 +684,16 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 			},
 		}
 
-		// If not enterprise, check version.
+		// If not professional+, check version.
 		// Playbooks is not listed in the marketplace, this only handles prepackaged.
-		if !model.MinimumEnterpriseLicense(a.License()) {
+		if !model.MinimumProfessionalLicense(a.License()) {
 			if prepackaged.Manifest.Id == model.PluginIdPlaybooks {
 				version, err := semver.Parse(prepackaged.Manifest.Version)
 				if err != nil {
 					mlog.Error("Unable to verify prepackaged playbooks version", mlog.Err(err))
 					continue
 				}
-				// Do not show playbooks >=v2 if we do not have an enterprise license
+				// Do not show playbooks >=v2 if we do not have a professional+ license
 				if version.GTE(SemVerV2) {
 					continue
 				}
@@ -1033,16 +1033,16 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 			return nil, errors.Wrapf(err, "Unable to verify prepackaged playbooks version")
 		}
 
-		hasEnterpriseLicense := model.MinimumEnterpriseLicense(ch.License())
+		hasProfessionalLicense := model.MinimumProfessionalLicense(ch.License())
 
-		// Do not install playbooks >=v2 if we do not have an enterprise license
-		if version.GTE(SemVerV2) && !hasEnterpriseLicense {
+		// Do not install playbooks >=v2 if we do not have a professional+ license
+		if version.GTE(SemVerV2) && !hasProfessionalLicense {
 			logger.Info("Skip installing prepackaged playbooks >=v2 because the license does not allow it")
 			return plugin, nil
 		}
 
-		// Do not install playbooks <v2 if we have an enterprise license
-		if version.LT(SemVerV2) && hasEnterpriseLicense {
+		// Do not install playbooks <v2 if we have a professional+ license
+		if version.LT(SemVerV2) && hasProfessionalLicense {
 			logger.Info("Skip installing prepackaged playbooks <v2 because the license allows v2")
 			return plugin, nil
 		}
@@ -1101,7 +1101,7 @@ func (ch *Channels) pluginIsTransitionallyPrepackaged(m *model.Manifest) bool {
 
 // playbooksIsTransitionallyPrepackaged determines if the playbooks plugin is transitionally prepackaged.
 // conditions are:
-// - the server is not enterprise licensed
+// - the server is not professional+ licensed
 // - the playbooks version is <v2
 func (ch *Channels) playbooksIsTransitionallyPrepackaged(m *model.Manifest) bool {
 	version, err := semver.Parse(m.Version)
@@ -1110,7 +1110,7 @@ func (ch *Channels) playbooksIsTransitionallyPrepackaged(m *model.Manifest) bool
 		return false
 	}
 
-	return !model.MinimumEnterpriseLicense(ch.srv.License()) && version.LT(SemVerV2)
+	return !model.MinimumProfessionalLicense(ch.srv.License()) && version.LT(SemVerV2)
 }
 
 // shouldPersistTransitionallyPrepackagedPlugin determines if a transitionally prepackaged plugin
