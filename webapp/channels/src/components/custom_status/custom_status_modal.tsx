@@ -25,8 +25,8 @@ import {closeModal} from 'actions/views/modals';
 import {makeGetCustomStatus, getRecentCustomStatuses, showStatusDropdownPulsatingDot, isCustomStatusExpired} from 'selectors/views/custom_status';
 
 import CustomStatusSuggestion from 'components/custom_status/custom_status_suggestion';
-import DateTimeInput, {getRoundedTime} from 'components/custom_status/date_time_input';
 import ExpiryMenu from 'components/custom_status/expiry_menu';
+import DateTimeInput, {getRoundedTime} from 'components/datetime_input/datetime_input';
 import RenderEmoji from 'components/emoji/render_emoji';
 import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
@@ -416,6 +416,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                         handleChange={setCustomExpiryTime}
                         timezone={timezone}
                         setIsInteracting={setIsInteracting}
+                        relativeDate={true}
                     />
                 )}
             </div>
