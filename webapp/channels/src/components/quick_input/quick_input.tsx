@@ -94,43 +94,23 @@ export const QuickInput = React.memo(({
     inputComponent,
     clearClassName,
     clearableWithoutValue,
-    ...props
+    clearableTooltipText: clearableTooltipTextFromProps,
+    onClear: onClearFromProps,
+    ...restProps
 }: Props) => {
-    /**
-     * Refs are the equivalent of instance properties in a class.
-     * https://legacy.reactjs.org/docs/hooks-faq.html#is-there-something-like-instance-variables
-     */
     const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | undefined>();
 
-    /*
-        Using a ref here so the useEffect runs only once when the component
-        mounts instead of passing the 'autoFocus' prop to the effect which
-        will run it every time the autoFocus prop changes since 'autoFocus'
-        prop will have to be passed as a dependency.
-    */
-    const autoFocusRef = useRef(autoFocus);
-
     useEffect(() => {
-        if (autoFocusRef.current) {
+        if (autoFocus) {
             requestAnimationFrame(() => {
                 inputRef.current?.focus();
             });
         }
+
+        /* eslint-disable-next-line react-hooks/exhaustive-deps --
+         * This 'useEffect' should only run once during mount.
+         **/
     }, []);
-
-    /*
-        Storing this value in a ref so it's not required as dependency
-        in the 'useEffect' that runs when 'value' changes, otherwise,
-        'delayInputUpdate' changing would re-run the effect.
-
-        A separate 'useEffect' updates the ref so it gets the latest
-        value whenever delayInputUpdate changes.
-    */
-    const delayInputUpdateRef = useRef(delayInputUpdate);
-
-    useEffect(() => {
-        delayInputUpdateRef.current = delayInputUpdate;
-    }, [delayInputUpdate]);
 
     useEffect(() => {
         const updateInputFromProps = () => {
@@ -141,11 +121,15 @@ export const QuickInput = React.memo(({
             inputRef.current.value = value;
         };
 
-        if (delayInputUpdateRef.current) {
+        if (delayInputUpdate) {
             requestAnimationFrame(updateInputFromProps);
         } else {
             updateInputFromProps();
         }
+
+        /* eslint-disable-next-line react-hooks/exhaustive-deps --
+         * This 'useEffect' should run only when 'value' prop changes.
+         **/
     }, [value]);
 
     const setInputRef = (input: HTMLInputElement) => {
@@ -164,43 +148,27 @@ export const QuickInput = React.memo(({
         e.preventDefault();
         e.stopPropagation();
 
-        if (props.onClear) {
-            props.onClear();
+        if (onClearFromProps) {
+            onClearFromProps();
         }
 
         inputRef.current?.focus();
     };
 
-    let clearableTooltipText = props.clearableTooltipText || '';
+    const showClearButton = onClearFromProps && (clearableWithoutValue || (clearable && value));
 
-    if (!clearableTooltipText) {
-        clearableTooltipText = (
-            <FormattedMessage
-                id={'input.clear'}
-                defaultMessage='Clear'
-            />
-        );
-    }
-
-    const showClearButton = props.onClear && (clearableWithoutValue || (clearable && value));
-
-    Reflect.deleteProperty(props, 'delayInputUpdate');
-    Reflect.deleteProperty(props, 'onClear');
-    Reflect.deleteProperty(props, 'clearableTooltipText');
-    Reflect.deleteProperty(props, 'channelId');
-    Reflect.deleteProperty(props, 'clearClassName');
-    Reflect.deleteProperty(props, 'tooltipPosition');
-    Reflect.deleteProperty(props, 'forwardedRef');
+    Reflect.deleteProperty(restProps, 'channelId');
+    Reflect.deleteProperty(restProps, 'tooltipPosition');
 
     if (inputComponent !== AutosizeTextarea) {
-        Reflect.deleteProperty(props, 'onHeightChange');
-        Reflect.deleteProperty(props, 'onWidthChange');
+        Reflect.deleteProperty(restProps, 'onHeightChange');
+        Reflect.deleteProperty(restProps, 'onWidthChange');
     }
 
     const inputElement = React.createElement(
         inputComponent || 'input',
         {
-            ...props,
+            ...restProps,
             ref: setInputRef,
             defaultValue: value, // Only set the defaultValue since the real one will be updated using the 'useEffect' above
         },
@@ -210,7 +178,15 @@ export const QuickInput = React.memo(({
         <div className='input-wrapper'>
             {inputElement}
             {showClearButton && (
-                <WithTooltip title={clearableTooltipText}>
+                <WithTooltip
+                    title={
+                        clearableTooltipTextFromProps ||
+                        <FormattedMessage
+                            id={'input.clear'}
+                            defaultMessage='Clear'
+                        />
+                    }
+                >
                     <button
                         data-testid='input-clear'
                         className={classNames(clearClassName, 'input-clear visible')}
