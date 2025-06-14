@@ -4,7 +4,7 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import type {LdapFilterTestResult, TestLdapFiltersResponse} from '@mattermost/types/admin';
+import type {LdapDiagnosticResult, TestLdapFiltersResponse} from '@mattermost/types/admin';
 import type {LdapSettings} from '@mattermost/types/config';
 
 import type {GeneralSettingProps, LDAPDefinitionSettingButton} from './ldap_wizard';
@@ -35,7 +35,7 @@ const LDAPButtonSetting = (props: Props) => {
             });
             return;
         }
-        const successCallback = (data?: LdapFilterTestResult[]) => {
+        const successCallback = (data?: LdapDiagnosticResult[]) => {
             // If this is the filter test button and we have results, pass them to the handler
             if (props.setting.key === 'LdapSettings.TestFilters' && props.onFilterTestResults && data) {
                 props.onFilterTestResults(data);

@@ -73,6 +73,15 @@ export async function ldapTestFilters(success, error, settings) {
     }
 }
 
+export async function ldapTestAttributes(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapAttributes(settings));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
 export async function invalidateAllCaches(success, error) {
     const {data, error: err} = await dispatch(AdminActions.invalidateCaches());
     if (data && success) {

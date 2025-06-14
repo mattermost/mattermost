@@ -1355,15 +1355,15 @@ components:
           type: string
         LoginButtonTextColor:
           type: string
-    LdapFilterTestResult:
+    LdapDiagnosticResult:
       type: object
       properties:
-        filter_name:
+        test_name:
           type: string
-          description: Name/type of the filter being tested
-        filter_value:
+          description: Name/type of the diagnostic test being performed
+        test_value:
           type: string
-          description: The actual filter string used
+          description: The actual test value (filter string or attribute name)
         total_count:
           type: integer
           description: Number of entries found by the filter

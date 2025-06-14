@@ -10,13 +10,14 @@ const (
 )
 
 // For Diagnostic results
-type LdapFilterTestResult struct {
-	FilterName    string            `json:"filter_name"`
-	FilterValue   string            `json:"filter_value"`
-	TotalCount    int               `json:"total_count"`
-	Message       string            `json:"message,omitempty"`
-	Error         string            `json:"error"`
-	SampleResults []LdapSampleEntry `json:"sample_results"`
+type LdapDiagnosticResult struct {
+	TestName         string            `json:"test_name"`
+	TestValue        string            `json:"test_value"`
+	TotalCount       int               `json:"total_count"`
+	EntriesWithValue int               `json:"entries_with_value"` // For Attributes
+	Message          string            `json:"message,omitempty"`
+	Error            string            `json:"error"`
+	SampleResults    []LdapSampleEntry `json:"sample_results"`
 }
 
 type LdapSampleEntry struct {

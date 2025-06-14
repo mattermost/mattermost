@@ -3330,6 +3330,13 @@ export default class Client4 {
         );
     };
 
+    testLdapAttributes = (settings: LdapSettings) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/ldap/test_attributes`,
+            {method: 'post', body: JSON.stringify(settings)},
+        );
+    };
+
     syncLdap = () => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/ldap/sync`,
