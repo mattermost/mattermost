@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
@@ -1793,137 +1794,431 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	return ruser, nil
 }
 
+// jobMetadataValue defines the types that can be used for job progress values
+type jobMetadataValue interface {
+	int | string | bool
+}
+
+// updateJobProgressWithMetadata is a generic helper function to update job progress with various value types
+func updateJobProgressWithMetadata[T jobMetadataValue](logger mlog.LoggerIFace, jobSrv *jobs.JobServer, job *model.Job, key string, value T) {
+	if job != nil {
+		job.Data[key] = fmt.Sprint(value)
+		if appErr := jobSrv.SetJobProgress(job, 0); appErr != nil {
+			logger.Warn("Failed to update job status", mlog.Err(appErr))
+		}
+	}
+}
+
+// PermanentDeleteUser permanently deletes a user from the system without job tracking
 func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError {
-	rctx.Logger().Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.Email))
+	return a._permanentDeleteUser(rctx, user, nil)
+}
+
+// PermanentDeleteUserWithJob permanently deletes a user with job progress tracking
+func (a *App) PermanentDeleteUserWithJob(rctx request.CTX, user *model.User, job *model.Job) *model.AppError {
+	return a._permanentDeleteUser(rctx, user, job)
+}
+
+func (a *App) _permanentDeleteUser(rctx request.CTX, user *model.User, job *model.Job) *model.AppError {
+	// Create a contextual logger with user_id field already included
+	logger := rctx.Logger().With(mlog.String("user_id", user.Id))
+
+	logger.Warn("Attempting to permanently delete account", mlog.String("user_email", user.Email))
+
 	if user.IsInRole(model.SystemAdminRoleId) {
-		rctx.Logger().Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
+		logger.Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
+	}
+	// Helper function to check context cancellation
+	checkCancellation := func() *model.AppError {
+		select {
+		case <-rctx.Context().Done():
+			return model.NewAppError("PermanentDeleteUser", model.NoTranslation, nil, "", http.StatusRequestTimeout)
+		default:
+			return nil
+		}
 	}
 
-	if _, err := a.UpdateActive(rctx, user, false); err != nil {
+	// needsDelete checks whether a step has been completed or not,
+	// by checking it's job metadata.
+	// Alternatively, if there's no job, then it always returns true allowing internal
+	// calls to PermanentDeleteUser work without a job.
+	needsDelete := func(job *model.Job, stepKey string) bool {
+		return job == nil || job.Data[stepKey] != "true"
+	}
+
+	// Check for cancellation before deactivating user
+	if err := checkCancellation(); err != nil {
 		return err
 	}
 
-	if err := a.Srv().Store().Session().PermanentDeleteSessionsByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.session.permanent_delete_sessions_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().UserAccessToken().DeleteAllForUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().OAuth().PermanentDeleteAuthDataByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.oauth.permanent_delete_auth_data_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Webhook().PermanentDeleteIncomingByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_incoming_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Webhook().PermanentDeleteOutgoingByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_outgoing_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Command().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.user.permanentdeleteuser.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Preference().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.preference.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Channel().PermanentDeleteMembersByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Group().PermanentDeleteMembersByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.group.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Post().PermanentDeleteByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Reaction().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.reaction.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().ScheduledPost().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.scheduled_post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Draft().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.drafts.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
-			return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, "", http.StatusBadRequest).Wrap(err)
-		default: // last fallback in case it doesn't map to an existing app error.
-			return model.NewAppError("PermanentDeleteUser", "app.bot.permanent_delete.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	// Deactivate user if not already done
+	if needsDelete(job, "user_deactivated") {
+		if _, err := a.UpdateActive(rctx, user, false); err != nil {
+			return err
 		}
+		logger.Info("User deactivated before deletion")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "user_deactivated", "true")
+	} else {
+		logger.Info("User deactivation already completed, skipping")
 	}
 
-	infos, err := a.Srv().Store().FileInfo().GetForUser(user.Id)
-	if err != nil {
-		rctx.Logger().Warn("Error getting file list for user from FileInfoStore", mlog.Err(err))
+	// Check for cancellation before deleting sessions
+	if err := checkCancellation(); err != nil {
+		return err
 	}
 
-	a.RemoveFilesFromFileStore(rctx, infos)
+	// Delete sessions if not already done
+	if needsDelete(job, "sessions_deleted") {
+		if err := a.Srv().Store().Session().PermanentDeleteSessionsByUser(user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.session.permanent_delete_sessions_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User sessions deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "sessions_deleted", "true")
+	} else {
+		logger.Info("User sessions already deleted, skipping")
+	}
 
-	// delete directory containing user's profile image
-	profileImageDirectory := getProfileImageDirectory(user.Id)
-	profileImagePath := getProfileImagePath(user.Id)
-	resProfileImageExists, errProfileImageExists := a.FileExists(profileImagePath)
+	// Check for cancellation before deleting access tokens
+	if err := checkCancellation(); err != nil {
+		return err
+	}
 
+	// Delete access tokens if not already done
+	if needsDelete(job, "access_tokens_deleted") {
+		if err := a.Srv().Store().UserAccessToken().DeleteAllForUser(user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User access tokens deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "access_tokens_deleted", "true")
+	} else {
+		logger.Info("User access tokens already deleted, skipping")
+	}
+
+	// Check for cancellation before deleting OAuth data
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete OAuth data if not already done
+	if needsDelete(job, "oauth_data_deleted") {
+		if err := a.Srv().Store().OAuth().PermanentDeleteAuthDataByUser(user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.oauth.permanent_delete_auth_data_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User OAuth data deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "oauth_data_deleted", "true")
+	} else {
+		logger.Info("User OAuth data already deleted, skipping")
+	}
+
+	// Check for cancellation before deleting incoming webhooks
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete incoming webhooks if not already done
+	if needsDelete(job, "incoming_webhooks_deleted") {
+		if err := a.Srv().Store().Webhook().PermanentDeleteIncomingByUser(user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_incoming_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User incoming webhooks deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "incoming_webhooks_deleted", "true")
+	} else {
+		logger.Info("User incoming webhooks already deleted, skipping")
+	}
+
+	// Check for cancellation before deleting outgoing webhooks
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete outgoing webhooks if not already done
+	if needsDelete(job, "outgoing_webhooks_deleted") {
+		if err := a.Srv().Store().Webhook().PermanentDeleteOutgoingByUser(user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_outgoing_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User outgoing webhooks deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "outgoing_webhooks_deleted", "true")
+	} else {
+		logger.Info("User outgoing webhooks already deleted, skipping")
+	}
+
+	// Check for cancellation before deleting commands
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete commands if not already done
+	if needsDelete(job, "commands_deleted") {
+		if err := a.Srv().Store().Command().PermanentDeleteByUser(user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.user.permanentdeleteuser.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User commands deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "commands_deleted", "true")
+	} else {
+		logger.Info("User commands already deleted, skipping")
+	}
+
+	// Check for cancellation before deleting preferences
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete preferences if not already done
+	if needsDelete(job, "preferences_deleted") {
+		if err := a.Srv().Store().Preference().PermanentDeleteByUser(user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.preference.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User preferences deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "preferences_deleted", "true")
+	} else {
+		logger.Info("User preferences already deleted, skipping")
+	}
+
+	// Check for cancellation before deleting channel memberships
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete channel memberships if not already done
+	if needsDelete(job, "channel_memberships_deleted") {
+		if err := a.Srv().Store().Channel().PermanentDeleteMembersByUser(rctx, user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User channel memberships deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "channel_memberships_deleted", "true")
+	} else {
+		logger.Info("User channel memberships already deleted, skipping")
+	}
+
+	// Check for cancellation before deleting group memberships
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete group memberships if not already done
+	if needsDelete(job, "group_memberships_deleted") {
+		if err := a.Srv().Store().Group().PermanentDeleteMembersByUser(user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.group.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User group memberships deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "group_memberships_deleted", "true")
+	} else {
+		logger.Info("User group memberships already deleted, skipping")
+	}
+
+	// Check for cancellation before deleting posts
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete posts if not already done
+	if needsDelete(job, "posts_deleted") {
+		if err := a.Srv().Store().Post().PermanentDeleteByUser(rctx, user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User posts deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "posts_deleted", "true")
+	} else {
+		logger.Info("User posts already deleted, skipping")
+	}
+
+	// Check for cancellation before deleting scheduled posts
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete scheduled posts if not already done
+	if needsDelete(job, "scheduled_posts_deleted") {
+		if err := a.Srv().Store().ScheduledPost().PermanentDeleteByUser(user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.scheduled_post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User scheduled posts deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "scheduled_posts_deleted", "true")
+	} else {
+		logger.Info("User scheduled posts already deleted, skipping")
+	}
+
+	// Check for cancellation before deleting drafts
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete drafts if not already done
+	if needsDelete(job, "drafts_deleted") {
+		if err := a.Srv().Store().Draft().PermanentDeleteByUser(user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.drafts.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User drafts deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "drafts_deleted", "true")
+	} else {
+		logger.Info("User drafts already deleted, skipping")
+	}
+
+	// Check for cancellation before deleting bot accounts
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete bot accounts if not already done
+	if needsDelete(job, "bot_accounts_deleted") {
+		if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
+			var invErr *store.ErrInvalidInput
+			switch {
+			case errors.As(err, &invErr):
+				return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, "", http.StatusBadRequest).Wrap(err)
+			default: // last fallback in case it doesn't map to an existing app error.
+				return model.NewAppError("PermanentDeleteUser", "app.bot.permanent_delete.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+		logger.Info("User bot accounts deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "bot_accounts_deleted", "true")
+	} else {
+		logger.Info("User bot accounts already deleted, skipping")
+	}
+
+	// Check for cancellation before removing files
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Remove files from file store if not already done
+	if needsDelete(job, "files_removed") {
+		infos, err := a.Srv().Store().FileInfo().GetForUser(user.Id)
+		if err != nil {
+			logger.Warn("Error getting file list for user from FileInfoStore", mlog.Err(err))
+		}
+
+		a.RemoveFilesFromFileStore(rctx, infos)
+		logger.Info("User files removed from file store")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "files_removed", "true")
+	} else {
+		logger.Info("User files already removed from file store, skipping")
+	}
+
+	// Check for cancellation before deleting profile image
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete profile image directory if not already done
 	fileHandlingErrorsFound := false
+	if needsDelete(job, "profile_image_removed") {
+		// delete directory containing user's profile image
+		profileImageDirectory := getProfileImageDirectory(user.Id)
+		profileImagePath := getProfileImagePath(user.Id)
+		resProfileImageExists, errProfileImageExists := a.FileExists(profileImagePath)
 
-	if errProfileImageExists != nil {
-		fileHandlingErrorsFound = true
-		rctx.Logger().Warn(
-			"Error checking existence of profile image.",
-			mlog.String("path", profileImagePath),
-			mlog.Err(errProfileImageExists),
-		)
-	}
-
-	if resProfileImageExists {
-		errRemoveDirectory := a.RemoveDirectory(profileImageDirectory)
-
-		if errRemoveDirectory != nil {
+		if errProfileImageExists != nil {
 			fileHandlingErrorsFound = true
-			rctx.Logger().Warn(
-				"Unable to remove profile image directory",
-				mlog.String("path", profileImageDirectory),
-				mlog.Err(errRemoveDirectory),
+			logger.Warn(
+				"Error checking existence of profile image.",
+				mlog.String("path", profileImagePath),
+				mlog.Err(errProfileImageExists),
 			)
 		}
+
+		if resProfileImageExists {
+			errRemoveDirectory := a.RemoveDirectory(profileImageDirectory)
+
+			if errRemoveDirectory != nil {
+				fileHandlingErrorsFound = true
+				logger.Warn(
+					"Unable to remove profile image directory",
+					mlog.String("path", profileImageDirectory),
+					mlog.Err(errRemoveDirectory),
+				)
+			} else {
+				logger.Info("User profile image directory removed")
+				updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "profile_image_removed", "true")
+			}
+		}
+	} else {
+		logger.Info("User profile image already removed, skipping")
 	}
 
-	if _, err := a.Srv().Store().FileInfo().PermanentDeleteByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	// Check for cancellation before deleting file info
+	if err := checkCancellation(); err != nil {
+		return err
 	}
 
-	if err := a.Srv().Store().User().PermanentDelete(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	// Delete file info from database if not already done
+	if needsDelete(job, "file_info_deleted") {
+		if _, err := a.Srv().Store().FileInfo().PermanentDeleteByUser(rctx, user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User file info deleted from database")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "file_info_deleted", "true")
+	} else {
+		logger.Info("User file info already deleted from database, skipping")
 	}
 
-	if err := a.Srv().Store().Audit().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.audit.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	// Check for cancellation before deleting user record
+	if err := checkCancellation(); err != nil {
+		return err
 	}
 
-	if err := a.Srv().Store().Team().RemoveAllMembersByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	// Delete user record if not already done
+	if needsDelete(job, "user_record_deleted") {
+		if err := a.Srv().Store().User().PermanentDelete(rctx, user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User record permanently deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "user_record_deleted", "true")
+	} else {
+		logger.Info("User record already deleted, skipping")
 	}
 
-	a.InvalidateCacheForUser(user.Id)
+	// Check for cancellation before deleting audit records
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete audit records if not already done
+	if needsDelete(job, "audit_records_deleted") {
+		if err := a.Srv().Store().Audit().PermanentDeleteByUser(user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.audit.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User audit records deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "audit_records_deleted", "true")
+	} else {
+		logger.Info("User audit records already deleted, skipping")
+	}
+
+	// Check for cancellation before deleting team memberships
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Delete team memberships if not already done
+	if needsDelete(job, "team_memberships_deleted") {
+		if err := a.Srv().Store().Team().RemoveAllMembersByUser(rctx, user.Id); err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		logger.Info("User team memberships deleted")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "team_memberships_deleted", "true")
+	} else {
+		logger.Info("User team memberships already deleted, skipping")
+	}
+
+	// Check for cancellation before invalidating cache
+	if err := checkCancellation(); err != nil {
+		return err
+	}
+
+	// Invalidate cache if not already done
+	if needsDelete(job, "cache_invalidated") {
+		a.InvalidateCacheForUser(user.Id)
+		logger.Info("User cache invalidated")
+		updateJobProgressWithMetadata(logger, a.Srv().Jobs, job, "cache_invalidated", "true")
+	} else {
+		logger.Info("User cache already invalidated, skipping")
+	}
 
 	if fileHandlingErrorsFound {
 		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "Couldn't delete profile image of the user.", http.StatusAccepted)
 	}
 
-	rctx.Logger().Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
+	logger.Warn("Permanently deleted account", mlog.String("user_email", user.Email))
 
 	return nil
 }
