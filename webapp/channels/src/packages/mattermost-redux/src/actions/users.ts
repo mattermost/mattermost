@@ -432,12 +432,12 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFuncAsy
     };
 }
 
-export function getProfilesNotInChannel(teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFuncAsync<UserProfile[]> {
+export function getProfilesNotInChannel(teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage: number = General.PROFILE_CHUNK_SIZE, cursorId = ''): ActionFuncAsync<UserProfile[]> {
     return async (dispatch, getState) => {
         let profiles;
 
         try {
-            profiles = await Client4.getProfilesNotInChannel(teamId, channelId, groupConstrained, page, perPage);
+            profiles = await Client4.getProfilesNotInChannel(teamId, channelId, groupConstrained, page, perPage, cursorId);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

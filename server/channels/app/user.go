@@ -667,6 +667,28 @@ func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupCon
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+func (a *App) GetUsersNotInAbacChannel(ctx request.CTX, teamID string, channelID string, groupConstrained bool, cursorID string, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	// Get the AccessControl service
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("GetUsersNotInAbacChannel", "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	// Use cursor-based pagination for ABAC channels
+	users, _, appErr := acs.QueryUsersForResource(ctx, channelID, "*", model.SubjectSearchOptions{
+		TeamID: teamID,
+		Limit:  limit,
+		Cursor: model.SubjectCursor{
+			TargetID: cursorID, // Empty string means start from beginning
+		},
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return a.sanitizeProfiles(users, asAdmin), nil
+}
+
 func (a *App) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersWithoutTeamPage(options, asAdmin)
 	if err != nil {
