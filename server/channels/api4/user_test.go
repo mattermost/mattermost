@@ -3283,28 +3283,12 @@ func TestGetUsersInChannel(t *testing.T) {
 		_, err = th.SystemAdminClient.DeleteChannel(context.Background(), channel.Id)
 		require.NoError(t, err)
 
-		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = true })
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.ExperimentalViewArchivedChannels = experimentalViewArchivedChannels
-		})
-
 		// the endpoint should work fine for all clients when viewing
 		// archived channels is enabled
 		for _, client := range []*model.Client4{th.SystemAdminClient, th.Client, th.LocalClient} {
 			users, _, userErr := client.GetUsersInChannel(context.Background(), channel.Id, 0, 1000, "")
 			require.NoError(t, userErr)
 			require.Len(t, users, 3)
-		}
-
-		// the endpoint should return forbidden if viewing archived
-		// channels is disabled for all clients but the Local one
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = false })
-		for _, client := range []*model.Client4{th.SystemAdminClient, th.Client} {
-			users, resp, userErr := client.GetUsersInChannel(context.Background(), channel.Id, 0, 1000, "")
-			require.Error(t, userErr)
-			require.Len(t, users, 0)
-			CheckForbiddenStatus(t, resp)
 		}
 
 		// local client should be able to get the users still
@@ -9383,6 +9367,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		require.Equal(t, int(0), sysadminUser.FailedAttempts)
 	})
 }
+
 func TestSearchUsersWithMfaEnforced(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

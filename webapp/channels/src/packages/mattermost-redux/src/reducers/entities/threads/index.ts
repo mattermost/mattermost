@@ -140,21 +140,6 @@ export const threadsReducer = (state: ThreadsState['threads'] = {}, action: MMRe
     return state;
 };
 
-function getThreadsOfChannel(threads: ThreadsState['threads'], channelId: string) {
-    const channelThreads: UserThread[] = [];
-    for (const rootId of Object.keys(threads)) {
-        if (
-            threads[rootId] &&
-            threads[rootId].post &&
-            threads[rootId].post.channel_id === channelId
-        ) {
-            channelThreads.push(threads[rootId]);
-        }
-    }
-
-    return channelThreads;
-}
-
 const initialState = {
     threads: {},
     threadsInTeam: {},
@@ -171,14 +156,6 @@ function reducer(state: ThreadsState = initialState, action: MMReduxAction): Thr
     };
 
     // acting as a 'middleware'
-    if (
-        action.type === ChannelTypes.LEAVE_CHANNEL ||
-        action.type === ChannelTypes.RECEIVED_CHANNEL_DELETED
-    ) {
-        if (!action.data.viewArchivedChannels) {
-            extra.threadsToDelete = getThreadsOfChannel(state.threads, action.data.id);
-        }
-    }
 
     const nextState = {
 
