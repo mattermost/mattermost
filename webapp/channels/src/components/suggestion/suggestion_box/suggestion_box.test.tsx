@@ -104,7 +104,7 @@ describe('SuggestionBox', () => {
         );
 
         // Start with no suggestions rendered
-        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('suggestionList')).not.toBeInTheDocument();
 
         // Typing some text should cause a suggestion to be shown
         userEvent.click(screen.getByPlaceholderText('test input'));
@@ -115,9 +115,9 @@ describe('SuggestionBox', () => {
             expect(providerSpy).toHaveBeenCalledTimes(1);
         });
 
-        expect(screen.queryByRole('listbox')).toBeVisible();
+        expect(screen.queryByTestId('suggestionList')).toBeVisible();
 
-        expect(screen.queryByRole('listbox')).toBeVisible();
+        expect(screen.queryByTestId('suggestionList')).toBeVisible();
         expect(screen.getByText('Suggestion: testtest')).toBeVisible();
 
         // Typing more text should cause the suggestion to be updaetd
@@ -127,13 +127,13 @@ describe('SuggestionBox', () => {
             expect(providerSpy).toHaveBeenCalledTimes(2);
         });
 
-        expect(screen.queryByRole('listbox')).toBeVisible();
+        expect(screen.queryByTestId('suggestionList')).toBeVisible();
         expect(screen.getByText('Suggestion: testwordstestwords')).toBeVisible();
 
         // Clearing the textbox hides all suggestions
         await userEvent.clear(screen.getByPlaceholderText('test input'));
 
-        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('suggestionList')).not.toBeInTheDocument();
     });
 
     test('should hide suggestions on pressing escape', async () => {
@@ -147,20 +147,20 @@ describe('SuggestionBox', () => {
         );
 
         // Start with no suggestions rendered
-        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('suggestionList')).not.toBeInTheDocument();
 
         // Typing some text should cause a suggestion to be shown
         userEvent.click(screen.getByPlaceholderText('test input'));
         await userEvent.keyboard('test');
 
         await waitFor(() => {
-            expect(screen.getByRole('listbox')).toBeVisible();
+            expect(screen.getByTestId('suggestionList')).toBeVisible();
         });
 
         // Pressing escape hides all suggestions
         await userEvent.keyboard('{escape}');
 
-        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('suggestionList')).not.toBeInTheDocument();
     });
 
     test('should autocomplete suggestions by pressing enter', async () => {
@@ -178,7 +178,7 @@ describe('SuggestionBox', () => {
         await userEvent.keyboard('test');
 
         await waitFor(() => {
-            expect(screen.queryByRole('listbox')).toBeVisible();
+            expect(screen.queryByTestId('suggestionList')).toBeVisible();
             expect(screen.getByText('Suggestion: testtest')).toBeVisible();
         });
 
@@ -189,7 +189,7 @@ describe('SuggestionBox', () => {
             expect(screen.getByPlaceholderText('test input')).toHaveValue('testtest ');
         });
 
-        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('suggestionList')).not.toBeInTheDocument();
     });
 
     test('MM-57320 completing text with enter and calling resultCallback twice should not erase text following caret', async () => {
@@ -215,14 +215,14 @@ describe('SuggestionBox', () => {
         onSuggestionsReceived.mockClear();
 
         expect(screen.getByPlaceholderText('test input')).toHaveValue('This is important');
-        expect(screen.getByRole('listbox')).toBeVisible();
+        expect(screen.getByTestId('suggestionList')).toBeVisible();
         expect(screen.getByText('Suggestion: This is importantThis is important')).toBeVisible();
 
         // Move the caret back to the start of the textbox and then use escape to clear the suggestions because
         // we don't support moving the caret with the autocomplete open yet
         await userEvent.keyboard('{home}{escape}');
 
-        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('suggestionList')).not.toBeInTheDocument();
 
         // Type a space and then start typing something again to show results
         onSuggestionsReceived.mockClear();
@@ -233,7 +233,7 @@ describe('SuggestionBox', () => {
             expect(onSuggestionsReceived).toHaveBeenCalledTimes(2);
         });
 
-        expect(screen.getByRole('listbox')).toBeVisible();
+        expect(screen.getByTestId('suggestionList')).toBeVisible();
         expect(screen.getByText('Suggestion: @us@us')).toBeVisible();
 
         onSuggestionsReceived.mockClear();
@@ -313,8 +313,8 @@ describe('SuggestionBox', () => {
         });
 
         // Ensure that the input is correctly linked to the suggestion list
-        expect(document.getElementById(input.getAttribute('aria-controls')!)).toBe(screen.getByRole('listbox'));
-        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByRole('listbox').firstElementChild);
+        expect(document.getElementById(input.getAttribute('aria-controls')!)).toBe(screen.getByTestId('suggestionList'));
+        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByTestId('suggestionList').firstElementChild);
 
         // The number of results should also be read out
         expect(screen.getByRole('status')).toHaveTextContent('2 suggestions available');
@@ -322,12 +322,12 @@ describe('SuggestionBox', () => {
         // Pressing the down arrow should change the selection to the second user
         await userEvent.keyboard('{arrowdown}');
 
-        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByRole('listbox').lastElementChild);
+        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByTestId('suggestionList').lastElementChild);
 
         // Pressing the up arrow should change the selection back to the first user
         await userEvent.keyboard('{arrowup}');
 
-        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByRole('listbox').firstElementChild);
+        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByTestId('suggestionList').firstElementChild);
 
         // Pressing enter should complete the result and close the suggestions
         await userEvent.keyboard('{enter}');
