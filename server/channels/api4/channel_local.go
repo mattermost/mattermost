@@ -422,8 +422,8 @@ func localDeleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(channel)
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 
-	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-		c.Err = model.NewAppError("localDeleteChannel", "api.channel.delete_channel.type.invalid", nil, "", http.StatusBadRequest)
+	if (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionDeletePrivateChannel) {
+		c.SetPermissionError(model.PermissionDeletePrivateChannel)
 		return
 	}
 
