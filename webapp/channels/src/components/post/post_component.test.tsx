@@ -330,9 +330,9 @@ describe('PostComponent', () => {
 
     describe('file list', () => {
         test('should show file list in post', () => {
-            const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.jpg'});
-            const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.jpg'});
-            const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.jpg'});
+            const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.pdf', extension: 'pdf'});
+            const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.doc', extension: 'doc'});
+            const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.txt', extension: 'txt'});
 
             const post = TestHelper.getPostMock({file_ids: [fileInfo1.id, fileInfo2.id, fileInfo3.id]});
 
@@ -350,7 +350,7 @@ describe('PostComponent', () => {
                             [fileInfo3.id]: fileInfo3,
                         },
                         fileIdsByPostId: {
-                            [baseProps.post.id]: ['fileId1', 'fileId2', 'fileId3'],
+                            [post.id]: ['fileId1', 'fileId2', 'fileId3'],
                         },
                     },
                 },
@@ -370,9 +370,9 @@ describe('PostComponent', () => {
         });
 
         test('should show file list in edit container when editing', () => {
-            const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.jpg'});
-            const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.jpg'});
-            const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.jpg'});
+            const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.pdf', extension: 'pdf'});
+            const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.doc', extension: 'doc'});
+            const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.txt', extension: 'txt'});
 
             const team = TestHelper.getTeamMock({id: 'team_id'});
             const channel = TestHelper.getChannelMock({team_id: team.id});
@@ -399,7 +399,7 @@ describe('PostComponent', () => {
                             [fileInfo3.id]: fileInfo3,
                         },
                         fileIdsByPostId: {
-                            [post.id]: [fileInfo1.id, fileInfo2.id, fileInfo3.id],
+                            [post.id]: ['fileId1', 'fileId2', 'fileId3'],
                         },
                     },
                     channels: {

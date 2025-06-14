@@ -5,8 +5,10 @@ import classNames from 'classnames';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent} from 'react';
 
+import {MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilePreviewModal from 'components/file_preview_modal';
@@ -25,12 +27,20 @@ const DISPROPORTIONATE_HEIGHT_RATIO = 20;
 export interface Props extends PropsFromRedux {
     postId: string;
     fileInfo: FileInfo;
+    fileInfos?: FileInfo[];
     isRhsOpen: boolean;
     enablePublicLink: boolean;
     compactDisplay?: boolean;
     isEmbedVisible?: boolean;
     isInPermalink?: boolean;
     disableActions?: boolean;
+    handleImageClick?: () => void;
+    smallImageThreshold?: number;
+    actions: {
+        toggleEmbedVisibility: (postId: string) => void;
+        getFilePublicLink: (fileId: string) => Promise<ActionResult<{link: string}>>;
+        openModal: PropsFromRedux['actions']['openModal'];
+    };
 }
 
 type State = {
@@ -87,13 +97,22 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
     handleImageClick = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLDivElement | HTMLImageElement>)) => {
         e.preventDefault();
 
+        // If a parent handleImageClick is provided, use it instead of opening the modal ourselves
+        if (this.props.handleImageClick) {
+            this.props.handleImageClick();
+            return;
+        }
+
+        // Default behavior: open modal with this component's logic
         this.props.actions.openModal({
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
             dialogType: FilePreviewModal,
             dialogProps: {
-                fileInfos: [this.props.fileInfo],
+                fileInfos: this.props.fileInfos || [this.props.fileInfo],
+                startIndex: this.props.fileInfos ? this.props.fileInfos.findIndex((f) => f.id === this.props.fileInfo.id) : 0,
+                onExited: () => {},
+                handleImageClick: () => {},
                 postId: this.props.postId,
-                startIndex: 0,
             },
         });
     };
@@ -152,12 +171,17 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 aria-label='Toggle Embed Visibility'
                 onClick={this.toggleEmbedVisibility}
             >
-                <span
-                    className={classNames('icon', {
-                        'icon-menu-down': this.props.isEmbedVisible,
-                        'icon-menu-right': !this.props.isEmbedVisible,
-                    })}
-                />
+                {this.props.isEmbedVisible ? (
+                    <MenuDownIcon
+                        size={16}
+                        color='currentColor'
+                    />
+                ) : (
+                    <MenuRightIcon
+                        size={16}
+                        color='currentColor'
+                    />
+                )}
             </button>
         );
 
@@ -223,34 +247,36 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                     className='file__image'
                 >
                     {fileHeader}
-                    {this.props.isEmbedVisible &&
                     <div
                         className={classNames('image-container', permalinkClass)}
                         style={imageContainerStyle}
+                        data-expanded={this.props.isEmbedVisible}
                     >
-                        <div
-                            className={classNames('image-loaded', fadeInClass, svgClass)}
-                            style={styleIfSvgWithDimensions}
-                        >
-                            <div className={classNames(permalinkClass)}>
-                                <SizeAwareImage
-                                    onClick={this.handleImageClick}
-                                    className={classNames(minPreviewClass, permalinkClass)}
-                                    src={previewURL}
-                                    dimensions={this.state.dimensions}
-                                    fileInfo={this.props.fileInfo}
-                                    fileURL={fileURL}
-                                    onImageLoaded={this.imageLoaded}
-                                    showLoader={this.props.isEmbedVisible}
-                                    handleSmallImageContainer={true}
-                                    enablePublicLink={this.props.enablePublicLink}
-                                    getFilePublicLink={this.getFilePublicLink}
-                                    hideUtilities={this.props.disableActions}
-                                />
+                        {this.props.isEmbedVisible && (
+                            <div
+                                className={classNames('image-loaded', fadeInClass, svgClass)}
+                                style={styleIfSvgWithDimensions}
+                            >
+                                <div className={classNames(permalinkClass)}>
+                                    <SizeAwareImage
+                                        onClick={this.handleImageClick}
+                                        className={classNames(minPreviewClass, permalinkClass)}
+                                        src={previewURL}
+                                        dimensions={this.state.dimensions}
+                                        fileInfo={this.props.fileInfo}
+                                        fileURL={fileURL}
+                                        onImageLoaded={this.imageLoaded}
+                                        showLoader={this.props.isEmbedVisible}
+                                        handleSmallImageContainer={true}
+                                        enablePublicLink={this.props.enablePublicLink}
+                                        getFilePublicLink={this.getFilePublicLink}
+                                        hideUtilities={this.props.disableActions}
+                                        smallImageThreshold={this.props.smallImageThreshold}
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
-                    }
                 </div>
             </div>
         );
