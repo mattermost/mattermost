@@ -15,6 +15,7 @@ import (
 const (
 	driverS3    = "amazons3"
 	driverLocal = "local"
+	driverAzure = "azure"
 )
 
 type ReadCloseSeeker interface {
@@ -65,6 +66,13 @@ type FileBackendSettings struct {
 	AmazonS3PresignExpiresSeconds      int64
 	AmazonS3UploadPartSizeBytes        int64
 	AmazonS3StorageClass               string
+	AzureAccessKey                     string
+	AzureAccessSecret                  string
+	AzureContainer                     string
+	AzureStorageAccount                string
+	AzurePathPrefix                    string
+	AzureRequestTimeoutMilliseconds    int64
+	AzurePresignExpiresSeconds         int64
 }
 
 func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
@@ -74,6 +82,21 @@ func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableCo
 			Directory:  *fileSettings.Directory,
 		}
 	}
+
+	if *fileSettings.DriverName == driverAzure {
+		return FileBackendSettings{
+			DriverName:                      *fileSettings.DriverName,
+			AzureAccessKey:                  *fileSettings.AzureAccessKey,
+			AzureAccessSecret:               *fileSettings.AzureAccessSecret,
+			AzureContainer:                  *fileSettings.AzureContainer,
+			AzureStorageAccount:             *fileSettings.AzureStorageAccount,
+			AzurePathPrefix:                 *fileSettings.AzurePathPrefix,
+			AzureRequestTimeoutMilliseconds: *fileSettings.AzureRequestTimeoutMilliseconds,
+			AzurePresignExpiresSeconds:      *fileSettings.AzurePresignExpiresSeconds,
+			SkipVerify:                      skipVerify,
+		}
+	}
+
 	return FileBackendSettings{
 		DriverName:                         *fileSettings.DriverName,
 		AmazonS3AccessKeyId:                *fileSettings.AmazonS3AccessKeyId,
@@ -100,6 +123,21 @@ func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, en
 			Directory:  *fileSettings.ExportDirectory,
 		}
 	}
+
+	if *fileSettings.ExportDriverName == driverAzure {
+		return FileBackendSettings{
+			DriverName:                      *fileSettings.ExportDriverName,
+			AzureAccessKey:                  *fileSettings.ExportAzureAccessKey,
+			AzureAccessSecret:               *fileSettings.ExportAzureAccessSecret,
+			AzureContainer:                  *fileSettings.ExportAzureContainer,
+			AzureStorageAccount:             *fileSettings.ExportAzureStorageAccount,
+			AzurePathPrefix:                 *fileSettings.ExportAzurePathPrefix,
+			AzureRequestTimeoutMilliseconds: *fileSettings.ExportAzureRequestTimeoutMilliseconds,
+			AzurePresignExpiresSeconds:      *fileSettings.ExportAzurePresignExpiresSeconds,
+			SkipVerify:                      skipVerify,
+		}
+	}
+
 	return FileBackendSettings{
 		DriverName:                         *fileSettings.ExportDriverName,
 		AmazonS3AccessKeyId:                *fileSettings.ExportAmazonS3AccessKeyId,
@@ -159,6 +197,12 @@ func newFileBackend(settings FileBackendSettings, canBeCloud bool) (FileBackend,
 		return &LocalFileBackend{
 			directory: settings.Directory,
 		}, nil
+	case driverAzure:
+		backend, err := NewAzureFileBackend(settings)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to connect to the azure backend")
+		}
+		return backend, nil
 	}
 	return nil, errors.New("no valid filestorage driver found")
 }
