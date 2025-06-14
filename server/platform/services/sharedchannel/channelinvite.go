@@ -166,7 +166,6 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				LastPostUpdateAt:  curTime,
 				LastMembersSyncAt: 0,
 			}
-			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SENDER] Creating SharedChannelRemote for channel %s to remote %s with LastMembersSyncAt=%d", sc.ChannelId, rc.DisplayName, scr.LastMembersSyncAt))
 			if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
 				return
