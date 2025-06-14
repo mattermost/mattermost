@@ -303,7 +303,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			mu.Unlock()
 		}
 
-		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 		require.NoError(t, err)
 
 		// Wait for batch messages to be received with more robust checking
@@ -459,7 +459,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 
 		// First sync
-		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 		require.NoError(t, err)
 
 		// Wait for first sync to complete
@@ -488,7 +488,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Second sync - should only sync user3
-		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 		require.NoError(t, err)
 
 		// Wait for second sync to complete
@@ -608,7 +608,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// First sync attempt - will fail
-		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 		require.NoError(t, err)
 
 		// Wait for first sync attempt with more robust checking
@@ -625,7 +625,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		failureMode.Store(false)
 
 		// Second sync attempt - should succeed
-		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 		require.NoError(t, err)
 
 		// Wait for successful sync with more robust checking
@@ -752,7 +752,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		initialCursor := initialScr.LastMembersSyncAt
 
 		// Initial sync
-		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 		require.NoError(t, err)
 
 		// Wait for initial sync to complete
@@ -794,7 +794,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Sync mixed changes
 		previousMessages := atomic.LoadInt32(&totalSyncMessages)
 
-		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 		require.NoError(t, err)
 
 		// Wait for mixed changes sync to complete
@@ -955,7 +955,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Sync to all clusters - need to sync each one individually
 		for _, cluster := range clusters {
-			err = service.SyncAllChannelMembers(channel.Id, cluster.RemoteId)
+			err = service.SyncAllChannelMembers(channel.Id, cluster.RemoteId, nil)
 			require.NoError(t, err)
 		}
 
@@ -1050,7 +1050,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Sync removal to all clusters
 		for _, cluster := range clusters {
-			err = service.SyncAllChannelMembers(channel.Id, cluster.RemoteId)
+			err = service.SyncAllChannelMembers(channel.Id, cluster.RemoteId, nil)
 			require.NoError(t, err)
 		}
 
@@ -1150,7 +1150,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 
 		atomic.StoreInt32(&syncMessageCount, 0)
-		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 		require.NoError(t, err)
 
 		// Verify no sync messages were sent
@@ -1164,7 +1164,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		})
 
 		atomic.StoreInt32(&syncMessageCount, 0)
-		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 		require.NoError(t, err)
 
 		// Verify sync messages were sent
@@ -1257,7 +1257,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Trigger membership sync as would happen when connection is restored
-		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 		require.NoError(t, err)
 
 		// Verify sync task was created and executed with more generous timeout
@@ -1374,7 +1374,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
 
 		// First sync should succeed
-		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 		require.NoError(t, err)
 
 		// Wait for first sync with more generous timeout
@@ -1403,7 +1403,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 
 		// Second sync should fail (server goes offline)
-		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+		err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 		require.NoError(t, err) // Method itself shouldn't error
 
 		// Wait for second sync attempt with more generous timeout
@@ -1558,7 +1558,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Sync memberships for each channel separately
 		for _, channel := range []*model.Channel{channel1, channel2, channel3} {
-			err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+			err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 			require.NoError(t, err)
 		}
 
@@ -1782,7 +1782,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	}
 
 	// 	// Phase 2: Initial sync
-	// 	err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+	// 	err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 	// 	require.NoError(t, err)
 
 	// 	// Wait for initial sync to complete
@@ -1839,7 +1839,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	syncMessages = []model.SyncMsg{}
 	// 	mu.Unlock()
 
-	// 	err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+	// 	err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 	// 	require.NoError(t, err)
 
 	// 	// Wait for conflict resolution sync to complete
@@ -1893,7 +1893,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	syncMessages = []model.SyncMsg{}
 	// 	mu.Unlock()
 
-	// 	err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+	// 	err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 	// 	require.NoError(t, err)
 
 	// 	// Verify the new user is synced correctly
@@ -1919,7 +1919,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	mu.Unlock()
 
 	// 	// Trigger another sync - should not send messages for already-synced members
-	// 	err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId)
+	// 	err = service.SyncAllChannelMembers(channel.Id, selfCluster.RemoteId, nil)
 	// 	require.NoError(t, err)
 
 	// 	// Wait for sync completion and verify minimal activity

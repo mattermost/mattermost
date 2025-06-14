@@ -90,7 +90,8 @@ func (scs *Service) HandleMembershipBatchChange(channelID string, userIDs []stri
 
 // SyncAllChannelMembers synchronizes all channel members to a specific remote.
 // This is typically called when a channel is first shared with a remote cluster.
-func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) error {
+// If remote is provided, it will be used instead of fetching from the database.
+func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string, remote *model.SharedChannelRemote) error {
 	if !scs.isChannelMemberSyncEnabled() {
 		return nil
 	}
@@ -104,15 +105,18 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 		return fmt.Errorf("failed to get shared channel %s: %w", channelID, err)
 	}
 
-	// Get the remote to ensure it exists
-	remote, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
-	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Failed to get remote",
-			mlog.String("channel_id", channelID),
-			mlog.String("remote_id", remoteID),
-			mlog.Err(err),
-		)
-		return fmt.Errorf("failed to get remote for channel %s: %w", channelID, err)
+	// Get the remote to ensure it exists (if not provided)
+	if remote == nil {
+		var err error
+		remote, err = scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
+		if err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Failed to get remote",
+				mlog.String("channel_id", channelID),
+				mlog.String("remote_id", remoteID),
+				mlog.Err(err),
+			)
+			return fmt.Errorf("failed to get remote for channel %s: %w", channelID, err)
+		}
 	}
 
 	// Use offset-based pagination to handle channels with many members
@@ -179,13 +183,11 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 
 	// For small channels, queue individual membership changes
 	if len(allMembers) <= batchSize {
-		err = scs.syncMembersIndividually(channelID, remoteID, allMembers, remote)
-		return err
+		return scs.syncMembersIndividually(channelID, remoteID, allMembers, remote)
 	}
 
 	// For larger channels, use batch processing
-	err = scs.syncMembersInBatches(channelID, remoteID, allMembers, remote)
-	return err
+	return scs.syncMembersInBatches(channelID, remoteID, allMembers, remote)
 }
 
 // syncMembersIndividually processes each member individually
@@ -195,21 +197,7 @@ func (scs *Service) syncMembersIndividually(channelID, remoteID string, members 
 	for _, member := range members {
 		// Queue membership change for this user (isAdd=true)
 		scs.HandleMembershipChange(channelID, member.UserId, true, "")
-
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Queued channel member sync",
-			mlog.String("channel_id", channelID),
-			mlog.String("remote_id", remoteID),
-			mlog.String("user_id", member.UserId),
-			mlog.Int("timestamp", int(model.GetMillis())), // Add timestamp for better tracking
-		)
 	}
-
-	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Channel member sync queued successfully",
-		mlog.String("channel_id", channelID),
-		mlog.String("remote_id", remoteID),
-		mlog.Int("member_count", len(members)),
-		mlog.Int("timestamp", int(model.GetMillis())),
-	)
 
 	return nil
 }
@@ -219,9 +207,6 @@ func (scs *Service) syncMembersIndividually(channelID, remoteID string, members 
 func (scs *Service) syncMembersInBatches(channelID, remoteID string, members model.ChannelMembers, remote *model.SharedChannelRemote) error {
 	// Get batch size from config
 	batchSize := scs.GetMemberSyncBatchSize()
-
-	// Process in batches of the configured size
-	totalBatches := (len(members) + batchSize - 1) / batchSize
 
 	for i := 0; i < len(members); i += batchSize {
 		end := i + batchSize
@@ -240,23 +225,7 @@ func (scs *Service) syncMembersInBatches(channelID, remoteID string, members mod
 
 		// Use the batch handling function to queue the changes
 		scs.HandleMembershipBatchChange(channelID, userIDs, true, "")
-
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Queued membership batch",
-			mlog.String("channel_id", channelID),
-			mlog.String("remote_id", remoteID),
-			mlog.Int("batch_num", i/batchSize+1),
-			mlog.Int("total_batches", totalBatches),
-			mlog.Int("batch_size", len(batchMembers)),
-		)
 	}
-
-	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Channel member batch sync queued",
-		mlog.String("channel_id", channelID),
-		mlog.String("remote_id", remoteID),
-		mlog.Int("total_batches", totalBatches),
-		mlog.Int("member_count", len(members)),
-		mlog.Int("timestamp", int(model.GetMillis())),
-	)
 
 	return nil
 }
