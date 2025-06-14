@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import './file_preview_modal_main_nav.scss';
 
@@ -16,6 +16,7 @@ interface Props {
 }
 
 const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
+    const {formatMessage} = useIntl();
     const leftArrow = (
         <WithTooltip
             key='previewArrowLeft'
@@ -30,6 +31,7 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
                 id='previewArrowLeft'
                 className='file_preview_modal_main_nav__prev'
                 onClick={props.handlePrev}
+                aria-label={formatMessage({id: 'file_preview_modal_main_nav.prevAriaLabel', defaultMessage: 'Previous file'})}
             >
                 <i className='icon icon-chevron-left'/>
             </button>
@@ -50,6 +52,7 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
                 id='previewArrowRight'
                 className='file_preview_modal_main_nav__next'
                 onClick={props.handleNext}
+                aria-label={formatMessage({id: 'file_preview_modal_main_nav.nextAriaLabel', defaultMessage: 'Next file'})}
             >
                 <i className='icon icon-chevron-right'/>
             </button>
