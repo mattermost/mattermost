@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
-import {useIntl} from 'react-intl';
+import {useIntl, defineMessages} from 'react-intl';
 
 import type {LdapDiagnosticResult} from '@mattermost/types/admin';
 import type {AdminConfig} from '@mattermost/types/config';
@@ -26,7 +26,7 @@ type TextSettingProps = {
     onChange(id: string, value: any): void;
     disabled: boolean;
     setByEnv: boolean;
-    filterResult?: LdapDiagnosticResult | null;
+    filterResult: LdapDiagnosticResult | null;
 } & GeneralSettingProps
 
 const LDAPTextSetting = (props: TextSettingProps) => {
@@ -75,8 +75,10 @@ const LDAPTextSetting = (props: TextSettingProps) => {
     const showFilterIcon = hasContent && props.filterResult != null; // loose equality operator is intentional
 
     // Determine icon type and content - three states
-    const isSuccess = props.filterResult?.error === '' && (props.filterResult?.total_count || 0) > 0;
-    const isWarning = props.filterResult?.error === '' && (props.filterResult?.total_count || 0) === 0;
+    const isFilter = isFilterTest(props.filterResult);
+    const countReturned = (isFilter ? props.filterResult?.total_count : props.filterResult?.entries_with_value) || 0;
+    const isSuccess = props.filterResult?.error === '' && countReturned > 0;
+    const isWarning = props.filterResult?.error === '' && countReturned === 0;
 
     const getIconClass = () => {
         if (isSuccess) {
@@ -103,13 +105,14 @@ const LDAPTextSetting = (props: TextSettingProps) => {
             return '';
         }
 
+        const totalCount = props.filterResult.total_count || 0;
+
         if (isSuccess) {
-            const count = props.filterResult.total_count || 0;
-            return `Test successful: ${count} result${count === 1 ? '' : 's'} found`;
+            return intl.formatMessage(isFilter ? ldapTestMessages.filterTestSuccess : ldapTestMessages.attributeTestSuccess, {countReturned, totalCount});
         }
 
         if (isWarning) {
-            return 'Test successful but no results found. Your filter may be too restrictive.';
+            return intl.formatMessage(isFilter ? ldapTestMessages.filterTestWarning : ldapTestMessages.attributeTestWarning, {totalCount});
         }
 
         // For failed tests, combine message and error if both are available
@@ -120,7 +123,9 @@ const LDAPTextSetting = (props: TextSettingProps) => {
             return `${message}: ${error}`;
         }
 
-        return message || error || 'Filter test failed';
+        const fallbackMessage = intl.formatMessage(isFilter ? ldapTestMessages.filterTestFailed : ldapTestMessages.attributeTestFailed);
+
+        return message || error || fallbackMessage;
     };
 
     return (
@@ -158,5 +163,41 @@ function sanitizeValue(value: any): string {
     }
     return String(value);
 }
+
+// Helper to determine test type from test result
+function isFilterTest(testResult: LdapDiagnosticResult | null) {
+    if (!testResult) {
+        return false;
+    }
+    const filterTestNames = new Set(['BaseDN', 'UserFilter', 'GroupFilter', 'GuestFilter', 'AdminFilter']);
+    return filterTestNames.has(testResult.test_name);
+}
+
+const ldapTestMessages = defineMessages({
+    filterTestSuccess: {
+        id: 'admin.ldap.filterTestSuccess',
+        defaultMessage: 'Filter test successful: {countReturned, number} result{countReturned, plural, one {} other {s}} found',
+    },
+    attributeTestSuccess: {
+        id: 'admin.ldap.attributeTestSuccess',
+        defaultMessage: 'Attribute test successful: {countReturned, number} result{countReturned, plural, one {} other {s}} found out of {totalCount} user{totalCount, plural, one {} other {s}} returned by the user filter',
+    },
+    filterTestWarning: {
+        id: 'admin.ldap.filterTestWarning',
+        defaultMessage: 'Filter test successful but no results found. Your filter may be too restrictive.',
+    },
+    attributeTestWarning: {
+        id: 'admin.ldap.attributeTestWarning',
+        defaultMessage: 'The attribute exists in the LDAP schema, but was not found in any of the {totalCount} user{totalCount, plural, one {} other {s}} returned by the user filter',
+    },
+    filterTestFailed: {
+        id: 'admin.ldap.filterTestFailed',
+        defaultMessage: 'Filter test failed',
+    },
+    attributeTestFailed: {
+        id: 'admin.ldap.attributeTestFailed',
+        defaultMessage: 'Attribute test failed',
+    },
+});
 
 export default LDAPTextSetting;

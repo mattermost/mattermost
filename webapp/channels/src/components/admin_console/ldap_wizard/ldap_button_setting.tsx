@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
+import {useIntl, defineMessages} from 'react-intl';
 
 import type {LdapDiagnosticResult, TestLdapFiltersResponse} from '@mattermost/types/admin';
 import type {LdapSettings} from '@mattermost/types/config';
@@ -36,8 +36,11 @@ const LDAPButtonSetting = (props: Props) => {
             return;
         }
         const successCallback = (data?: LdapDiagnosticResult[]) => {
-            // If this is the filter test button and we have results, pass them to the handler
-            if (props.setting.key === 'LdapSettings.TestFilters' && props.onFilterTestResults && data) {
+            // If this is the filter test button or attribute test button and we have results, pass them to the handler
+            const isAttributeTest = props.setting.key === 'LdapSettings.TestAttributes';
+            const isFiltersTest = props.setting.key === 'LdapSettings.TestFilters';
+
+            if ((isFiltersTest || isAttributeTest) && props.onFilterTestResults && data) {
                 props.onFilterTestResults(data);
 
                 const allTestsPassed = Array.isArray(data) && data.every((result) => result.error === '');
@@ -49,16 +52,13 @@ const LDAPButtonSetting = (props: Props) => {
 
                     error({
                         message: intl.formatMessage(
-                            {
-                                id: 'admin.ldap.testFiltersPartialFailure',
-                                defaultMessage: '{failedCount, number} of {totalCount, number} filter test{totalCount, plural, one {} other {s}} failed. Check the highlighted fields for details.',
-                            },
+                            isAttributeTest ? ldapButtonMessages.testAttributesPartialFailure : ldapButtonMessages.testFiltersPartialFailure,
                             {failedCount, totalCount},
                         ),
                     });
                 }
             } else {
-                // For non-filter test buttons, show success normally
+                // For non-test buttons, show success normally
                 success?.();
             }
         };
@@ -86,5 +86,16 @@ const LDAPButtonSetting = (props: Props) => {
         />
     );
 };
+
+const ldapButtonMessages = defineMessages({
+    testFiltersPartialFailure: {
+        id: 'admin.ldap.testFiltersPartialFailure',
+        defaultMessage: '{failedCount, number} of {totalCount, number} filter test{totalCount, plural, one {} other {s}} failed. Check the highlighted fields for details.',
+    },
+    testAttributesPartialFailure: {
+        id: 'admin.ldap.testAttributesPartialFailure',
+        defaultMessage: '{failedCount, number} of {totalCount, number} attribute test{totalCount, plural, one {} other {s}} failed. Check the highlighted fields for details.',
+    },
+});
 
 export default LDAPButtonSetting;

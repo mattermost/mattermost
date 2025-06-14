@@ -371,7 +371,8 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.IdAttribute',
                 label: defineMessage({id: 'admin.ldap.idAttrTitle', defaultMessage: 'ID Attribute: '}),
                 placeholder: defineMessage({id: 'admin.ldap.idAttrEx', defaultMessage: 'E.g.: "objectGUID" or "uid"'}),
-                help_text: defineMessage({id: 'admin.ldap.idAttrDesc', defaultMessage: "The attribute in the AD/LDAP server used as a unique identifier in Mattermost. It should be an AD/LDAP attribute with a value that does not change such as `uid` for LDAP or `objectGUID` for Active Directory. If a user's ID Attribute changes, it will create a new Mattermost account unassociated with their old one. If you need to change this field after users have already logged in, use the <link>mattermost ldap idmigrate</link> CLI tool."}),
+                help_text: defineMessage({id: 'admin.ldap.idAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used as a unique identifier in Mattermost. If you need to change this field after users have already logged in, use the <link>mattermost ldap idmigrate</link> CLI tool.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.idAttrDescHover', defaultMessage: 'It should be an AD/LDAP attribute with a value that does not change such as uid for LDAP or objectGUID for Active Directory. If a user\'s ID Attribute changes, it will create a new Mattermost account unassociated with their old one.'}),
                 help_text_markdown: false,
                 help_text_values: {
                     link: (msg: string) => (
@@ -396,7 +397,8 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.LoginIdAttribute',
                 label: defineMessage({id: 'admin.ldap.loginAttrTitle', defaultMessage: 'Login ID Attribute: '}),
                 placeholder: defineMessage({id: 'admin.ldap.loginIdAttrEx', defaultMessage: 'E.g.: "sAMAccountName"'}),
-                help_text: defineMessage({id: 'admin.ldap.loginAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used to log in to Mattermost. Normally this attribute is the same as the "Username Attribute" field above. If your team typically uses domain/username to log in to other services with AD/LDAP, you may enter domain/username in this field to maintain consistency between sites.'}),
+                help_text: defineMessage({id: 'admin.ldap.loginAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used to log in to Mattermost.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.loginAttrDescHover', defaultMessage: 'Normally this attribute is the same as the "Username Attribute" field above. If your team typically uses domain/username to log in to other services with AD/LDAP, you may enter domain/username in this field to maintain consistency between sites.'}),
                 help_text_markdown: false,
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
@@ -411,7 +413,8 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.UsernameAttribute',
                 label: defineMessage({id: 'admin.ldap.usernameAttrTitle', defaultMessage: 'Username Attribute:'}),
                 placeholder: defineMessage({id: 'admin.ldap.usernameAttrEx', defaultMessage: 'E.g.: "sAMAccountName"'}),
-                help_text: defineMessage({id: 'admin.ldap.usernameAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used to populate the username field in Mattermost. This may be the same as the Login ID Attribute.'}),
+                help_text: defineMessage({id: 'admin.ldap.usernameAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used to populate the username field in Mattermost.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.usernameAttrDescHover', defaultMessage: 'This may be the same as the Login ID Attribute.'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
@@ -439,10 +442,8 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.FirstNameAttribute',
                 label: defineMessage({id: 'admin.ldap.firstnameAttrTitle', defaultMessage: 'First Name Attribute:'}),
                 placeholder: defineMessage({id: 'admin.ldap.firstnameAttrEx', defaultMessage: 'E.g.: "givenName"'}),
-                help_text: defineMessage({id: 'admin.ldap.firstnameAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the first name of users in Mattermost. When set, users cannot edit their first name, since it is synchronized with the LDAP server. When left blank, users can set their first name in <strong>Account Menu > Account Settings > Profile</strong>.'}),
-                help_text_values: {
-                    strong: (msg: string) => <strong>{msg}</strong>,
-                },
+                help_text: defineMessage({id: 'admin.ldap.firstnameAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the first name of users in Mattermost.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.firstnameAttrDescHover', defaultMessage: 'When set, users cannot edit their first name, since it is synchronized with the LDAP server. When left blank, users can set their first name in Account Menu > Account Settings > Profile.'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
@@ -456,10 +457,8 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.LastNameAttribute',
                 label: defineMessage({id: 'admin.ldap.lastnameAttrTitle', defaultMessage: 'Last Name Attribute:'}),
                 placeholder: defineMessage({id: 'admin.ldap.lastnameAttrEx', defaultMessage: 'E.g.: "sn"'}),
-                help_text: defineMessage({id: 'admin.ldap.lastnameAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the last name of users in Mattermost. When set, users cannot edit their last name, since it is synchronized with the LDAP server. When left blank, users can set their last name in <strong>Account Menu > Account Settings > Profile</strong>.'}),
-                help_text_values: {
-                    strong: (msg: string) => <strong>{msg}</strong>,
-                },
+                help_text: defineMessage({id: 'admin.ldap.lastnameAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the last name of users in Mattermost.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.lastnameAttrDescHover', defaultMessage: 'When set, users cannot edit their last name, since it is synchronized with the LDAP server. When left blank, users can set their last name in Account Menu > Account Settings > Profile.'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
@@ -473,10 +472,8 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.NicknameAttribute',
                 label: defineMessage({id: 'admin.ldap.nicknameAttrTitle', defaultMessage: 'Nickname Attribute:'}),
                 placeholder: defineMessage({id: 'admin.ldap.nicknameAttrEx', defaultMessage: 'E.g.: "nickname"'}),
-                help_text: defineMessage({id: 'admin.ldap.nicknameAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the nickname of users in Mattermost. When set, users cannot edit their nickname, since it is synchronized with the LDAP server. When left blank, users can set their nickname in <strong>Account Menu > Account Settings > Profile</strong>.'}),
-                help_text_values: {
-                    strong: (msg: string) => <strong>{msg}</strong>,
-                },
+                help_text: defineMessage({id: 'admin.ldap.nicknameAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the nickname of users in Mattermost.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.nicknameAttrDescHover', defaultMessage: 'When set, users cannot edit their nickname, since it is synchronized with the LDAP server. When left blank, users can set their nickname in Account Menu > Account Settings > Profile.'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
@@ -490,10 +487,8 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 key: 'LdapSettings.PositionAttribute',
                 label: defineMessage({id: 'admin.ldap.positionAttrTitle', defaultMessage: 'Position Attribute:'}),
                 placeholder: defineMessage({id: 'admin.ldap.positionAttrEx', defaultMessage: 'E.g.: "title"'}),
-                help_text: defineMessage({id: 'admin.ldap.positionAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the position field in Mattermost. When set, users cannot edit their position, since it is synchronized with the LDAP server. When left blank, users can set their position in <strong>Account Menu > Account Settings > Profile</strong>.'}),
-                help_text_values: {
-                    strong: (msg: string) => <strong>{msg}</strong>,
-                },
+                help_text: defineMessage({id: 'admin.ldap.positionAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the position field in Mattermost.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.positionAttrDescHover', defaultMessage: 'When set, users cannot edit their position, since it is synchronized with the LDAP server. When left blank, users can set their position in Account Menu > Account Settings > Profile.'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
