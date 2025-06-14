@@ -61,8 +61,8 @@ func (ms *mockSuite) UserCanSeeOtherUser(c request.CTX, userID string, otherUser
 	return true, nil
 }
 
-func (ms *mockSuite) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
-	return true
+func (ms *mockSuite) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) (bool, bool) {
+	return true, true
 }
 
 func setupDBStore(tb testing.TB) (store.Store, *model.SqlSettings) {

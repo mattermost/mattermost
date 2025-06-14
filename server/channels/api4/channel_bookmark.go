@@ -424,7 +424,7 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 		}
 	}
 
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+	if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
