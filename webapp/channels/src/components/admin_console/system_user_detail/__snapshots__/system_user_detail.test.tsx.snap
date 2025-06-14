@@ -57,11 +57,6 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                 class="AdminUserCard__user-nickname"
               />
             </div>
-            <div
-              class="AdminUserCard__user-id"
-            >
-              User ID: user_id
-            </div>
           </div>
           <div
             class="AdminUserCard__body"
@@ -123,6 +118,11 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                 Email
               </span>
             </label>
+            <div
+              class="AdminUserCard__user-id"
+            >
+              User ID: user_id
+            </div>
           </div>
           <div
             class="AdminUserCard__footer"
@@ -266,11 +266,6 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                 class="AdminUserCard__user-nickname"
               />
             </div>
-            <div
-              class="AdminUserCard__user-id"
-            >
-              User ID: user_id
-            </div>
           </div>
           <div
             class="AdminUserCard__body"
@@ -332,6 +327,11 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                 Email
               </span>
             </label>
+            <div
+              class="AdminUserCard__user-id"
+            >
+              User ID: user_id
+            </div>
           </div>
           <div
             class="AdminUserCard__footer"
@@ -475,11 +475,6 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                 class="AdminUserCard__user-nickname"
               />
             </div>
-            <div
-              class="AdminUserCard__user-id"
-            >
-              User ID: user_id
-            </div>
           </div>
           <div
             class="AdminUserCard__body"
@@ -541,6 +536,11 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                 Email
               </span>
             </label>
+            <div
+              class="AdminUserCard__user-id"
+            >
+              User ID: user_id
+            </div>
           </div>
           <div
             class="AdminUserCard__footer"
@@ -684,11 +684,6 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                 class="AdminUserCard__user-nickname"
               />
             </div>
-            <div
-              class="AdminUserCard__user-id"
-            >
-              User ID: user_id
-            </div>
           </div>
           <div
             class="AdminUserCard__body"
@@ -750,6 +745,11 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                 Email
               </span>
             </label>
+            <div
+              class="AdminUserCard__user-id"
+            >
+              User ID: user_id
+            </div>
           </div>
           <div
             class="AdminUserCard__footer"
@@ -899,11 +899,6 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                 class="AdminUserCard__user-nickname"
               />
             </div>
-            <div
-              class="AdminUserCard__user-id"
-            >
-              User ID: user_id
-            </div>
           </div>
           <div
             class="AdminUserCard__body"
@@ -965,6 +960,11 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                 Email
               </span>
             </label>
+            <div
+              class="AdminUserCard__user-id"
+            >
+              User ID: user_id
+            </div>
           </div>
           <div
             class="AdminUserCard__footer"
@@ -1108,11 +1108,6 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                 class="AdminUserCard__user-nickname"
               />
             </div>
-            <div
-              class="AdminUserCard__user-id"
-            >
-              User ID: user_id
-            </div>
           </div>
           <div
             class="AdminUserCard__body"
@@ -1174,6 +1169,11 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                 LDAP
               </span>
             </label>
+            <div
+              class="AdminUserCard__user-id"
+            >
+              User ID: user_id
+            </div>
           </div>
           <div
             class="AdminUserCard__footer"
