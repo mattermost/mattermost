@@ -337,8 +337,6 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 			LastPostUpdateAt:  model.GetMillis(),
 		}
 
-		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECEIVER] Creating SharedChannelRemote for channel %s from remote %s with LastMembersSyncAt=%d", channel.Id, rc.DisplayName, scr.LastMembersSyncAt))
-
 		if _, err := scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 			// delete the newly created channel since we could not create a SharedChannelRemote record for it,
 			// and delete the newly created SharedChannel record as well.
