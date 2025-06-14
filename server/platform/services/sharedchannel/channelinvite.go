@@ -89,6 +89,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 			RemoteId:          rc.RemoteId,
 			IsInviteAccepted:  true,
 			IsInviteConfirmed: false,
+			LastMembersSyncAt: 0,
 		}
 		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error saving channel invite for %s: %v", rc.DisplayName, err))
@@ -163,6 +164,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				IsInviteConfirmed: true,
 				LastPostCreateAt:  curTime,
 				LastPostUpdateAt:  curTime,
+				LastMembersSyncAt: 0,
 			}
 			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SENDER] Creating SharedChannelRemote for channel %s to remote %s with LastMembersSyncAt=%d", sc.ChannelId, rc.DisplayName, scr.LastMembersSyncAt))
 			if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
@@ -335,6 +337,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 			RemoteId:          rc.RemoteId,
 			LastPostCreateAt:  model.GetMillis(),
 			LastPostUpdateAt:  model.GetMillis(),
+			LastMembersSyncAt: 0,
 		}
 
 		if _, err := scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
