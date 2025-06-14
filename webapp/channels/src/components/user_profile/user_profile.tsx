@@ -11,7 +11,7 @@ import SharedUserIndicator from 'components/shared_user_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {imageURLForUser} from 'utils/utils';
+import {imageURLForUser, getUsername} from 'utils/utils';
 
 import {generateColor} from './utils';
 
@@ -34,7 +34,7 @@ export default function UserProfile({
 }: Props) {
     let name: ReactNode;
     if (user && displayUsername) {
-        name = `@${(user.username)}`;
+        name = `@${(getUsername(user))}`;
     } else {
         name = overwriteName || displayName || '...';
     }
