@@ -338,6 +338,9 @@ func (scs *Service) postMembershipSyncDebugMessage(message string) {
 	if scs.app == nil {
 		return
 	}
+	
+	// Add timestamp to message for tracking order of operations
+	timestampedMessage := fmt.Sprintf("[TIMESTAMP=%d] %s", model.GetMillis(), message)
 
 	// Try to find Town Square channel (default channel that should always exist)
 	// Get all teams and try to find Town Square in any team
@@ -372,7 +375,7 @@ func (scs *Service) postMembershipSyncDebugMessage(message string) {
 	post := &model.Post{
 		ChannelId: townSquareChannel.Id,
 		UserId:    adminUser.Id,
-		Message:   message,
+		Message:   timestampedMessage,
 		Type:      model.PostTypeSystemGeneric,
 		CreateAt:  model.GetMillis(),
 	}

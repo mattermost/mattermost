@@ -281,6 +281,9 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 // updateMembershipSyncCursor updates the LastMembersSyncAt value for the shared channel remote
 // This provides centralized and consistent cursor management
 func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string, newTimestamp int64) error {
+	// INSTRUMENTATION: Track when cursor gets updated
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG CURSOR] updateMembershipSyncCursor CALLED - channel %s, remote %s, newTimestamp=%d", channelID, remoteID, newTimestamp))
+	
 	// Get the remote record
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
 	if err != nil {
@@ -301,6 +304,9 @@ func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string
 		return fmt.Errorf("shared channel remote not found for channel %s and remote %s", channelID, remoteID)
 	}
 
+	// INSTRUMENTATION: Show old vs new values
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG CURSOR] updateMembershipSyncCursor - channel %s, remote %s, oldTimestamp=%d, newTimestamp=%d", channelID, remoteID, scr.LastMembersSyncAt, newTimestamp))
+
 	// Update the cursor - the store will handle ensuring it only moves forward
 	err = scs.server.GetStore().SharedChannel().UpdateRemoteMembershipCursor(scr.Id, newTimestamp)
 	if err != nil {
@@ -311,6 +317,9 @@ func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string
 			mlog.Int("timestamp", int(newTimestamp)),
 			mlog.Err(err),
 		)
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG CURSOR] updateMembershipSyncCursor FAILED - channel %s, remote %s, error: %s", channelID, remoteID, err.Error()))
+	} else {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG CURSOR] updateMembershipSyncCursor SUCCESS - channel %s, remote %s, newTimestamp=%d", channelID, remoteID, newTimestamp))
 	}
 
 	return err

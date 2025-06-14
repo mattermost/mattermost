@@ -37,6 +37,9 @@ func (scs *Service) HandleMembershipChange(channelID, userID string, isAdd bool,
 		action = "ADD"
 	}
 
+	// Enhanced debugging to track why this is called
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG CALL] HandleMembershipChange INVOKED - %s user %s to channel %s (from remote %s) - investigating call source", action, userID, channelID, remoteID))
+
 	if !scs.isChannelMemberSyncEnabled() {
 		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] HandleMembershipChange SKIPPED - %s user %s to channel %s (from remote %s) - feature disabled", action, userID, channelID, remoteID))
 		return
@@ -357,6 +360,7 @@ func (scs *Service) syncMembershipBatchToRemotes(syncMsg *model.SyncMsg, remotes
 	for _, remote := range remotes {
 		// Skip the remote that initiated this change to prevent loops
 		if remote.RemoteId == initiatingRemoteId {
+			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] Skipping sync to initiating remote %s for channel %s (loop prevention)", remote.RemoteId, syncMsg.ChannelId))
 			continue
 		}
 
