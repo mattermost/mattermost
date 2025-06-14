@@ -45,6 +45,8 @@ func Run(args []string) error {
 	_ = viper.BindPFlag("insecure-tls-version", RootCmd.PersistentFlags().Lookup("insecure-tls-version"))
 	RootCmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
 	_ = viper.BindPFlag("local", RootCmd.PersistentFlags().Lookup("local"))
+	RootCmd.PersistentFlags().String("local-user-id", "", "allows to set the user-id for local connections")
+	_ = viper.BindPFlag("local-user-id", RootCmd.PersistentFlags().Lookup("local-user-id"))
 	RootCmd.PersistentFlags().Bool("short-stat", false, "short stat will provide useful statistical data")
 	_ = RootCmd.PersistentFlags().MarkHidden("short-stat")
 	RootCmd.PersistentFlags().Bool("no-stat", false, "the statistical data won't be displayed")
