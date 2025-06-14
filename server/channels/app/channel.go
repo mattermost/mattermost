@@ -1715,7 +1715,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 	if a.Config().FeatureFlags.EnableSharedChannelsMemberSync {
 		if _, pErr := a.GetSharedChannel(channel.Id); pErr == nil {
 			if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-				scs.HandleMembershipChange(channel.Id, user.Id, true, "")
+				scs.HandleMembershipChange(channel.Id, user.Id, true, user.GetRemoteID())
 			}
 		}
 	}
