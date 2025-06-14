@@ -1712,7 +1712,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 	a.invalidateCacheForChannelMembers(channel.Id)
 
 	// Synchronize membership change for shared channels
-	if _, pErr := a.GetSharedChannel(channel.Id); pErr == nil {
+	if channel.IsShared() {
 		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
 			scs.HandleMembershipChange(channel.Id, user.Id, true, user.GetRemoteID())
 		}
@@ -2753,7 +2753,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	a.Publish(userMsg)
 
 	// Synchronize membership change for shared channels
-	if _, pErr := a.GetSharedChannel(channel.Id); pErr == nil {
+	if channel.IsShared() {
 		// isAdd=false, empty remoteId means locally initiated
 		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
 			scs.HandleMembershipChange(channel.Id, userIDToRemove, false, "")
