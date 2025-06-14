@@ -283,7 +283,7 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string, newTimestamp int64) error {
 	// INSTRUMENTATION: Track when cursor gets updated
 	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG CURSOR] updateMembershipSyncCursor CALLED - channel %s, remote %s, newTimestamp=%d", channelID, remoteID, newTimestamp))
-	
+
 	// Get the remote record
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
 	if err != nil {

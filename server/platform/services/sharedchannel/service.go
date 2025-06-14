@@ -338,7 +338,7 @@ func (scs *Service) postMembershipSyncDebugMessage(message string) {
 	if scs.app == nil {
 		return
 	}
-	
+
 	// Add timestamp to message for tracking order of operations
 	timestampedMessage := fmt.Sprintf("[TIMESTAMP=%d] %s", model.GetMillis(), message)
 
