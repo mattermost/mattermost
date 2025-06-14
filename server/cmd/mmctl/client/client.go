@@ -74,6 +74,7 @@ type Client interface {
 	InviteUsersToTeam(ctx context.Context, teamID string, userEmails []string) (*model.Response, error)
 	SendPasswordResetEmail(ctx context.Context, email string) (*model.Response, error)
 	UpdateUser(ctx context.Context, user *model.User) (*model.User, *model.Response, error)
+	UpdateUserAuth(ctx context.Context, userId string, userAuth *model.UserAuth) (*model.UserAuth, *model.Response, error)
 	UpdateUserMfa(ctx context.Context, userID, code string, activate bool) (*model.Response, error)
 	UpdateUserPassword(ctx context.Context, userID, currentPassword, newPassword string) (*model.Response, error)
 	UpdateUserHashedPassword(ctx context.Context, userID, newHashedPassword string) (*model.Response, error)
