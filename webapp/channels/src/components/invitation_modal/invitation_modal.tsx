@@ -262,15 +262,39 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
 
     debouncedSearchChannels = debounce((term) => this.props.currentTeam && this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
 
+    // Filter channels based on the current invite type and search term
+    filterChannels = (channels: Channel[], isGuestInvite: boolean, searchTerm: string = '') => {
+        return channels.filter((channel) => {
+            // For guest invites, filter out policy_enforced channels
+            if (isGuestInvite && channel.policy_enforced) {
+                return false;
+            }
+
+            // If there's a search term, filter by name match
+            if (searchTerm) {
+                const lowerSearchTerm = searchTerm.toLowerCase();
+                return channel.display_name.toLowerCase().includes(lowerSearchTerm) ||
+                       channel.name.toLowerCase().includes(lowerSearchTerm);
+            }
+
+            return true;
+        });
+    };
+
     channelsLoader = async (value: string) => {
-        if (!value) {
-            return this.props.invitableChannels;
+        const isGuestInvite = this.state.invite.inviteType === InviteType.GUEST;
+
+        // If there's a search term, search the channels from the server
+        if (value) {
+            this.debouncedSearchChannels(value);
         }
 
-        this.debouncedSearchChannels(value);
-        return this.props.invitableChannels.filter((channel) => {
-            return channel.display_name.toLowerCase().startsWith(value.toLowerCase()) || channel.name.toLowerCase().startsWith(value.toLowerCase());
-        });
+        // Apply filtering to the channels
+        return this.filterChannels(
+            this.props.invitableChannels,
+            isGuestInvite,
+            value,
+        );
     };
 
     onChannelsChange = (channels: Channel[]) => {
