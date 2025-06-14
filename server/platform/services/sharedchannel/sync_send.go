@@ -231,10 +231,15 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 			mlog.String("remoteId", rc.RemoteId),
 			mlog.Err(err),
 		)
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SYNC] ForceSyncForRemote FAILED for remote %s: %s", rc.DisplayName, err.Error()))
 		return
 	}
 
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SYNC] ForceSyncForRemote found %d shared channels for remote %s", len(scrs), rc.DisplayName))
+
 	for _, scr := range scrs {
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SYNC] ForceSyncForRemote processing channel %s with LastMembersSyncAt=%d for remote %s", scr.ChannelId, scr.LastMembersSyncAt, rc.DisplayName))
+
 		task := newSyncTask(scr.ChannelId, "", rc.RemoteId, nil, nil)
 		task.schedule = time.Now().Add(NotifyMinimumDelay)
 		scs.addTask(task)

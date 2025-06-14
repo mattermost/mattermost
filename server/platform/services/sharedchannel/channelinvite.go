@@ -164,6 +164,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				LastPostCreateAt:  curTime,
 				LastPostUpdateAt:  curTime,
 			}
+			scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SENDER] Creating SharedChannelRemote for channel %s to remote %s with LastMembersSyncAt=%d", sc.ChannelId, rc.DisplayName, scr.LastMembersSyncAt))
 			if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
 				return
@@ -335,6 +336,8 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 			LastPostCreateAt:  model.GetMillis(),
 			LastPostUpdateAt:  model.GetMillis(),
 		}
+
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG RECEIVER] Creating SharedChannelRemote for channel %s from remote %s with LastMembersSyncAt=%d", channel.Id, rc.DisplayName, scr.LastMembersSyncAt))
 
 		if _, err := scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 			// delete the newly created channel since we could not create a SharedChannelRemote record for it,

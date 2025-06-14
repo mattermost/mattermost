@@ -146,6 +146,8 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 	lastSyncAt := remote.LastMembersSyncAt
 	offset := 0
 
+	scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers using lastSyncAt=%d for channel %s to remote %s", lastSyncAt, channelID, remoteID))
+
 	// Process members incrementally with offset-based pagination
 	for {
 		opts := model.ChannelMembersGetOptions{
@@ -159,6 +161,8 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 		if err1 != nil {
 			return fmt.Errorf("failed to get members for channel %s: %w", channelID, err1)
 		}
+
+		scs.postMembershipSyncDebugMessage(fmt.Sprintf("[DEBUG SEND] SyncAllChannelMembers GetMembers returned %d members for channel %s (offset=%d, limit=%d, updatedAfter=%d)", len(members), channelID, offset, maxPerPage, opts.UpdatedAfter))
 
 		if len(members) == 0 {
 			break // No more members to process
