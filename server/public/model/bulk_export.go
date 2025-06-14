@@ -13,4 +13,6 @@ type BulkExportOpts struct {
 	IncludeArchivedChannels bool
 	IncludeRolesAndSchemes  bool
 	CreateArchive           bool
+	// UsersOnly determines whether the export should include only user-related data.
+	UsersOnly bool
 }
