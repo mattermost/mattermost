@@ -1444,7 +1444,12 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
 			err = c.App.PermanentDeleteUser(c.AppContext, user)
 		} else {
-			err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+			key := "api.user.delete_user.not_enabled.app_error"
+			user, usrErr := c.App.GetUser(c.AppContext.Session().UserId)
+			if usrErr == nil && user != nil && model.IsInRole(user.Roles, model.SystemAdminRoleId) {
+				key = "api.user.delete_user.not_enabled.for_admin.app_error"
+			}
+			err = model.NewAppError("deleteUser", key, nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		}
 	} else {
 		_, err = c.App.UpdateActive(c.AppContext, user, false)
