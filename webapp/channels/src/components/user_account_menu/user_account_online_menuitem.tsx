@@ -73,7 +73,6 @@ export default function UserAccountOnlineMenuItem(props: Props) {
                 />
             }
             trailingElements={trailingElement}
-            aria-checked={props.isStatusOnline}
             onClick={handleClick}
         />
     );
