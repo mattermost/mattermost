@@ -36,7 +36,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createCommand", audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventCreateCommand, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -77,7 +77,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCommand", audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventUpdateCommand, audit.Fail)
 	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -137,7 +137,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("moveCommand", audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventMoveCommand, audit.Fail)
 	audit.AddEventParameter(auditRec, "command_move_request", cmr.TeamId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -189,7 +189,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteCommand", audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventDeleteCommand, audit.Fail)
 	audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -319,7 +319,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("executeCommand", audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventExecuteCommand, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "command_args", &commandArgs)
 
@@ -450,7 +450,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("regenCommandToken", audit.Fail)
+	auditRec := c.MakeAuditRecord(audit.EventRegenCommandToken, audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
