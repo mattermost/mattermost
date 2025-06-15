@@ -166,7 +166,6 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	t.Run("should not create a local DM channel that is shared", func(t *testing.T) {
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
-
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
@@ -189,7 +188,6 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
-
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
@@ -215,7 +213,6 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
-
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
@@ -250,7 +247,6 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
-
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
