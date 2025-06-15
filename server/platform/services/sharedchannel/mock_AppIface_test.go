@@ -225,26 +225,6 @@ func (_m *MockAppIface) DeleteAcknowledgementForPostWithModel(c request.CTX, ack
 	return r0
 }
 
-// DeleteAcknowledgementsForPostWithPost provides a mock function with given fields: c, post
-func (_m *MockAppIface) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError {
-	ret := _m.Called(c, post)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteAcknowledgementsForPostWithPost")
-	}
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) *model.AppError); ok {
-		r0 = rf(c, post)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
 // DeletePost provides a mock function with given fields: c, postID, deleteByID
 func (_m *MockAppIface) DeletePost(c request.CTX, postID string, deleteByID string) (*model.Post, *model.AppError) {
 	ret := _m.Called(c, postID, deleteByID)
@@ -657,68 +637,29 @@ func (_m *MockAppIface) SaveAcknowledgementForPostWithModel(c request.CTX, ackno
 	return r0, r1
 }
 
-// SaveAcknowledgementForPostWithPost provides a mock function with given fields: c, post, userID, postID
-func (_m *MockAppIface) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string, postID ...string) (*model.PostAcknowledgement, *model.AppError) {
-	_va := make([]interface{}, len(postID))
-	for _i := range postID {
-		_va[_i] = postID[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, c, post, userID)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
+// SaveAcknowledgementsForPost provides a mock function with given fields: c, postID, userIDs
+func (_m *MockAppIface) SaveAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(c, postID, userIDs)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SaveAcknowledgementForPostWithPost")
-	}
-
-	var r0 *model.PostAcknowledgement
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, string, ...string) (*model.PostAcknowledgement, *model.AppError)); ok {
-		return rf(c, post, userID, postID...)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, string, ...string) *model.PostAcknowledgement); ok {
-		r0 = rf(c, post, userID, postID...)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.PostAcknowledgement)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, string, ...string) *model.AppError); ok {
-		r1 = rf(c, post, userID, postID...)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// SaveAcknowledgementsForPostWithPost provides a mock function with given fields: c, post, userIDs
-func (_m *MockAppIface) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Post, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
-	ret := _m.Called(c, post, userIDs)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SaveAcknowledgementsForPostWithPost")
+		panic("no return value specified for SaveAcknowledgementsForPost")
 	}
 
 	var r0 []*model.PostAcknowledgement
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, []string) ([]*model.PostAcknowledgement, *model.AppError)); ok {
-		return rf(c, post, userIDs)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) ([]*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(c, postID, userIDs)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, []string) []*model.PostAcknowledgement); ok {
-		r0 = rf(c, post, userIDs)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) []*model.PostAcknowledgement); ok {
+		r0 = rf(c, postID, userIDs)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PostAcknowledgement)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, []string) *model.AppError); ok {
-		r1 = rf(c, post, userIDs)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, []string) *model.AppError); ok {
+		r1 = rf(c, postID, userIDs)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

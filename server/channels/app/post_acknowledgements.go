@@ -15,10 +15,10 @@ import (
 )
 
 func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
-	return a.SaveAcknowledgementForPostWithPost(c, nil, userID, postID)
+	return a.saveAcknowledgementForPostWithPost(c, nil, userID, postID)
 }
 
-func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string, postID ...string) (*model.PostAcknowledgement, *model.AppError) {
+func (a *App) saveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string, postID ...string) (*model.PostAcknowledgement, *model.AppError) {
 	if post == nil {
 		if len(postID) == 0 {
 			return nil, model.NewAppError("SaveAcknowledgementForPost", "app.acknowledgement.save.missing_post.app_error", nil, "", http.StatusBadRequest)
@@ -81,10 +81,10 @@ func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post
 }
 
 func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError {
-	return a.DeleteAcknowledgementForPostWithPost(c, nil, userID, postID)
+	return a.deleteAcknowledgementForPostWithPost(c, nil, userID, postID)
 }
 
-func (a *App) DeleteAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string, postID ...string) *model.AppError {
+func (a *App) deleteAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string, postID ...string) *model.AppError {
 	if post == nil {
 		if len(postID) == 0 {
 			return model.NewAppError("DeleteAcknowledgementForPost", "app.acknowledgement.delete.missing_post.app_error", nil, "", http.StatusBadRequest)
@@ -162,10 +162,15 @@ func (a *App) GetAcknowledgementsForPostList(postList *model.PostList) (map[stri
 	return acknowledgementsMap, nil
 }
 
-// SaveAcknowledgementsForPostWithPost saves multiple acknowledgements for a post in a single operation.
-func (a *App) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Post, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
+// SaveAcknowledgementsForPost saves multiple acknowledgements for a post in a single operation.
+func (a *App) SaveAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
 	if len(userIDs) == 0 {
 		return []*model.PostAcknowledgement{}, nil
+	}
+
+	post, err := a.GetSinglePost(c, postID, false)
+	if err != nil {
+		return nil, err
 	}
 
 	channel, err := a.GetChannel(c, post.ChannelId)
@@ -229,47 +234,6 @@ func (a *App) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Pos
 	a.sendPostUpdateEvent(c, post)
 
 	return savedAcks, nil
-}
-
-// DeleteAcknowledgementsForPost deletes all acknowledgements for a post.
-func (a *App) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError {
-	channel, err := a.GetChannel(c, post.ChannelId)
-	if err != nil {
-		return err
-	}
-
-	if channel.DeleteAt > 0 {
-		return model.NewAppError("DeleteAcknowledgementsForPost", "api.acknowledgement.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
-	}
-
-	// Get all current acknowledgements
-	acknowledgements, appErr := a.GetAcknowledgementsForPost(post.Id)
-	if appErr != nil {
-		return appErr
-	}
-
-	// No acknowledgements to delete
-	if len(acknowledgements) == 0 {
-		return nil
-	}
-
-	// Delete all acknowledgements
-	nErr := a.Srv().Store().PostAcknowledgement().BatchDelete(acknowledgements)
-	if nErr != nil {
-		return model.NewAppError("DeleteAcknowledgementsForPost", "app.acknowledgement.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-	}
-
-	for _, ack := range acknowledgements {
-		a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementRemoved, ack, post)
-	}
-
-	// Invalidate the last post time cache
-	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
-
-	// Trigger post updated event to ensure shared channel sync
-	a.sendPostUpdateEvent(c, post)
-
-	return nil
 }
 
 func (a *App) sendAcknowledgementEvent(rctx request.CTX, event model.WebsocketEventType, acknowledgement *model.PostAcknowledgement, post *model.Post) {

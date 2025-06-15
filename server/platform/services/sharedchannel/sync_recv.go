@@ -592,12 +592,23 @@ func (scs *Service) syncRemotePriorityMetadata(rctx request.CTX, post *model.Pos
 func (scs *Service) syncRemoteAcknowledgementsMetadata(rctx request.CTX, post *model.Post, acknowledgements []*model.PostAcknowledgement, rpost *model.Post) *model.Post {
 	// When syncing from remote, we completely replace the existing acknowledgements
 	// with the ones received from the remote, regardless of update type
-	appErrDel := scs.app.DeleteAcknowledgementsForPostWithPost(rctx, post)
-	if appErrDel != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error deleting existing acknowledgements for remote sync",
+
+	// Get existing acknowledgements and delete them using batch operation
+	existingAcks, appErrGet := scs.app.GetAcknowledgementsForPost(post.Id)
+	if appErrGet != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error getting existing acknowledgements for remote sync",
 			mlog.String("post_id", post.Id),
-			mlog.Err(appErrDel),
+			mlog.Err(appErrGet),
 		)
+	} else if len(existingAcks) > 0 {
+		// Use batch delete for better performance
+		if nErr := scs.server.GetStore().PostAcknowledgement().BatchDelete(existingAcks); nErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error batch deleting acknowledgements for remote sync",
+				mlog.String("post_id", post.Id),
+				mlog.Int("count", len(existingAcks)),
+				mlog.Err(nErr),
+			)
+		}
 	}
 
 	// Extract all user IDs from acknowledgements for batch processing
@@ -611,7 +622,7 @@ func (scs *Service) syncRemoteAcknowledgementsMetadata(rctx request.CTX, post *m
 
 	if len(userIDs) > 0 {
 		var appErrAck *model.AppError
-		savedAcks, appErrAck = scs.app.SaveAcknowledgementsForPostWithPost(rctx, post, userIDs)
+		savedAcks, appErrAck = scs.app.SaveAcknowledgementsForPost(rctx, post.Id, userIDs)
 		if appErrAck != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error syncing remote post acknowledgements",
 				mlog.String("post_id", post.Id),

@@ -312,13 +312,6 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	count := len(posts)
 	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt, scs.server.Log())
 
-	// Populate metadata for posts before syncing
-	for i, post := range sd.posts {
-		if post != nil {
-			sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
-		}
-	}
-
 	cache := postsSliceToMap(posts)
 
 	// Fill remaining batch capacity with updated posts.
@@ -331,14 +324,13 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		}
 		posts = reducePostsSliceInCache(posts, cache)
 		count += len(posts)
-		previousLen := len(sd.posts)
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
+	}
 
-		// Populate metadata for updated posts before syncing (only process newly appended posts)
-		for i := previousLen; i < len(sd.posts); i++ {
-			if sd.posts[i] != nil {
-				sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), sd.posts[i], false, false, true)
-			}
+	// Populate metadata for all posts before syncing (done once at the end)
+	for i, post := range sd.posts {
+		if post != nil {
+			sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
 		}
 	}
 
