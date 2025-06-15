@@ -24,10 +24,9 @@ var (
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	if msg.Topic != TopicSync && msg.Topic != TopicGlobalUserSync {
-		return fmt.Errorf("wrong topic, expected `%s` or `%s`, got `%s`", TopicSync, TopicGlobalUserSync, msg.Topic)
+	if msg.Topic != TopicSync && msg.Topic != TopicChannelMembership && msg.Topic != TopicGlobalUserSync {
+		return fmt.Errorf("wrong topic, expected sync-related topic, got `%s`", msg.Topic)
 	}
-
 	if len(msg.Payload) == 0 {
 		return errors.New("empty sync message")
 	}
@@ -89,6 +88,15 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		ReactionErrors: make([]string, 0),
 	}
 
+	// Check if feature flag is enabled for membership changes
+	membershipSyncEnabled := scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync
+	hasMembershipChanges := len(syncMsg.MembershipChanges) > 0
+
+	// If this message only contains membership changes and feature is disabled, skip it
+	if hasMembershipChanges && !membershipSyncEnabled && len(syncMsg.Users) == 0 && len(syncMsg.Posts) == 0 && len(syncMsg.Reactions) == 0 {
+		return nil
+	}
+
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Sync msg received",
 		mlog.String("remote", rc.Name),
 		mlog.String("channel_id", syncMsg.ChannelId),
@@ -96,6 +104,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		mlog.Int("post_count", len(syncMsg.Posts)),
 		mlog.Int("reaction_count", len(syncMsg.Reactions)),
 		mlog.Int("status_count", len(syncMsg.Statuses)),
+		mlog.Int("membership_change_count", len(syncMsg.MembershipChanges)),
 	)
 
 	// Check if this is a global user sync message (no channel ID and only users)
@@ -227,6 +236,19 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 
 	for _, status := range syncMsg.Statuses {
 		scs.app.SaveAndBroadcastStatus(status)
+	}
+
+	// Process membership changes after users have been synced
+	if hasMembershipChanges && membershipSyncEnabled {
+		if err := scs.onReceiveMembershipChanges(syncMsg, rc, response); err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error processing membership changes",
+				mlog.String("remote", rc.Name),
+				mlog.String("channel_id", syncMsg.ChannelId),
+				mlog.Int("change_count", len(syncMsg.MembershipChanges)),
+				mlog.Err(err),
+			)
+			// Don't fail the entire sync if membership changes fail
+		}
 	}
 
 	response.SetPayload(syncResp)

@@ -1661,7 +1661,6 @@ func (s *Server) initJobs() {
 		model.JobTypeDeleteDmsPreferencesMigration,
 		delete_dms_preferences_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil)
-
 	s.platform.Jobs = s.Jobs
 }
 

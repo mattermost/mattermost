@@ -119,6 +119,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 			RemoteId:          rc.RemoteId,
 			LastPostCreateAt:  model.GetMillis(),
 			LastPostUpdateAt:  model.GetMillis(),
+			LastMembersSyncAt: 0,
 		}
 		if scr, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 			return fmt.Errorf("cannot auto-create shared channel remote (channel_id=%s, remote_id=%s): %w", task.channelID, rc.RemoteId, err)

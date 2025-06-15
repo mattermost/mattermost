@@ -5340,7 +5340,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 			}
 			assert.ElementsMatch(t, tt.expectedUpdatedUsers, updatedUserIDs)
 
-			members, err := ss.Channel().GetMembers(channel.Id, 0, 100)
+			members, err := ss.Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: channel.Id, Offset: 0, Limit: 100})
 			require.NoError(t, err)
 			assert.GreaterOrEqual(t, len(members), 4) // sanity check for channel membership
 

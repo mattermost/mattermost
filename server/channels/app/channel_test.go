@@ -2513,8 +2513,16 @@ func TestClearChannelMembersCache(t *testing.T) {
 			ChannelId: "1",
 		})
 	}
-	mockChannelStore.On("GetMembers", "channelID", 0, 100).Return(cms, nil)
-	mockChannelStore.On("GetMembers", "channelID", 100, 100).Return(model.ChannelMembers{
+	mockChannelStore.On("GetMembers", model.ChannelMembersGetOptions{
+		ChannelID: "channelID",
+		Offset:    0,
+		Limit:     100,
+	}).Return(cms, nil)
+	mockChannelStore.On("GetMembers", model.ChannelMembersGetOptions{
+		ChannelID: "channelID",
+		Offset:    100,
+		Limit:     100,
+	}).Return(model.ChannelMembers{
 		model.ChannelMember{
 			ChannelId: "1",
 		},
