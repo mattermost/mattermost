@@ -25,6 +25,9 @@ type FeatureFlags struct {
 	// Enable plugins in shared channels.
 	EnableSharedChannelsPlugins bool
 
+	// Enable synchronization of channel members in shared channels
+	EnableSharedChannelsMemberSync bool
+
 	// Enable syncing all users for remote clusters in shared channels
 	EnableSyncAllUsersForRemoteCluster bool
 
@@ -75,6 +78,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
 	f.EnableSharedChannelsDMs = false
+	f.EnableSharedChannelsMemberSync = false
 	f.EnableSyncAllUsersForRemoteCluster = false
 	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
