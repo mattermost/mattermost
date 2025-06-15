@@ -335,11 +335,6 @@ func (scs *Service) scheduleGlobalUserSync(rc *model.RemoteCluster) {
 	}()
 }
 
-// GetUserSyncBatchSizeForTesting returns the configured batch size for user syncing (exported for testing)
-func (scs *Service) GetUserSyncBatchSizeForTesting() int {
-	return scs.getGlobalUserSyncBatchSize()
-}
-
 // HasPendingTasksForTesting returns true if there are pending sync tasks in the queue
 func (scs *Service) HasPendingTasksForTesting() bool {
 	scs.mux.RLock()
@@ -352,14 +347,6 @@ func (scs *Service) HandleSyncAllUsersForTesting(rc *model.RemoteCluster) error 
 	return scs.syncAllUsers(rc)
 }
 
-// UpsertSyncPostForTesting exposes upsertSyncPost for testing purposes.
-// This allows direct testing of post metadata synchronization.
-func (scs *Service) UpsertSyncPostForTesting(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
-	return scs.upsertSyncPost(post, targetChannel, rc)
-}
-
-// OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing purposes.
-// This allows testing the complete sync message flow including post metadata preservation.
 // OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing
 func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	return scs.onReceiveSyncMessage(msg, rc, response)

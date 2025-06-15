@@ -290,8 +290,8 @@ type SyncMsg struct {
 	Posts             []*Post                `json:"posts,omitempty"`
 	Reactions         []*Reaction            `json:"reactions,omitempty"`
 	Statuses          []*Status              `json:"statuses,omitempty"`
-	Acknowledgements  []*PostAcknowledgement `json:"acknowledgements,omitempty"`
 	MembershipChanges []*MembershipChangeMsg `json:"membership_changes,omitempty"`
+	Acknowledgements  []*PostAcknowledgement `json:"acknowledgements,omitempty"`
 }
 
 func NewSyncMsg(channelID string) *SyncMsg {

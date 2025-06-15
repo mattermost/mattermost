@@ -8,8 +8,8 @@ import "net/http"
 type PostAcknowledgement struct {
 	UserId         string  `json:"user_id"`
 	PostId         string  `json:"post_id"`
-	ChannelId      string  `json:"channel_id"`
 	AcknowledgedAt int64   `json:"acknowledged_at"`
+	ChannelId      string  `json:"channel_id"`
 	RemoteId       *string `json:"remote_id,omitempty"`
 }
 
