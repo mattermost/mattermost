@@ -184,35 +184,6 @@ type PostPriority struct {
 	ChannelId string `json:",omitempty"`
 }
 
-// Copy creates a deep copy of the PostPriority
-func (p *PostPriority) Copy() *PostPriority {
-	if p == nil {
-		return nil
-	}
-
-	result := &PostPriority{
-		PostId:    p.PostId,
-		ChannelId: p.ChannelId,
-	}
-
-	if p.Priority != nil {
-		priorityValue := *p.Priority
-		result.Priority = &priorityValue
-	}
-
-	if p.RequestedAck != nil {
-		requestedAck := *p.RequestedAck
-		result.RequestedAck = &requestedAck
-	}
-
-	if p.PersistentNotifications != nil {
-		persistentNotifications := *p.PersistentNotifications
-		result.PersistentNotifications = &persistentNotifications
-	}
-
-	return result
-}
-
 type PostPersistentNotifications struct {
 	PostId     string
 	CreateAt   int64
