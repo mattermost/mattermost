@@ -9,10 +9,10 @@ import type {Job} from '@mattermost/types/jobs';
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import {
-    ldapTest,
     ldapTestAttributes,
     ldapTestConnection,
     ldapTestFilters,
+    ldapTestGroupAttributes,
     removePrivateLdapCertificate,
     removePublicLdapCertificate,
     uploadPrivateLdapCertificate,
@@ -228,6 +228,17 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 action: ldapTestConnection,
                 key: 'LdapSettings.TestConnection',
                 label: defineMessage({id: 'admin.ldap.testConnectionTitle', defaultMessage: 'Test Connection'}),
+                help_text: defineMessage({id: 'admin.ldap.testHelpText', defaultMessage: 'Tests if the Mattermost server can connect to the AD/LDAP server specified. Please review "System Console > Logs" and <link>documentation</link> to troubleshoot errors.'}),
+                help_text_values: {
+                    link: (msg: string) => (
+                        <ExternalLink
+                            location='admin_console'
+                            href={DocLinks.CONFIGURE_AD_LDAP_QUERY_TIMEOUT}
+                        >
+                            {msg}
+                        </ExternalLink>
+                    ),
+                },
                 help_text_markdown: false,
                 error_message: defineMessage({id: 'admin.ldap.testConnectionFailure', defaultMessage: 'Test Connection Failure: {error}'}),
                 success_message: defineMessage({id: 'admin.ldap.testConnectionSuccess', defaultMessage: 'Test Connection Successful'}),
@@ -264,7 +275,7 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 type: 'text',
                 key: 'LdapSettings.UserFilter',
                 label: defineMessage({id: 'admin.ldap.userFilterTitle', defaultMessage: 'User Filter:'}),
-                help_text: defineMessage({id: 'admin.ldap.userFilterDisc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use when searching for user objects.\nFor Active Directory, the query to filter out disabled users is\n(&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).'}),
+                help_text: defineMessage({id: 'admin.ldap.userFilterDisc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use when searching for user objects. When blank, defaults to the ID Attribute.\nFor Active Directory, the query to filter out disabled users is\n(&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).'}),
                 help_text_more_info: defineMessage({id: 'admin.ldap.userFilterDiscHover', defaultMessage: 'Only the users selected by the query will be able to access Mattermost.'}),
                 placeholder: defineMessage({id: 'admin.ldap.userFilterEx', defaultMessage: 'Ex. "(objectClass=user)"'}),
                 isDisabled: it.any(
@@ -558,13 +569,30 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 type: 'text',
                 key: 'LdapSettings.GroupIdAttribute',
                 label: defineMessage({id: 'admin.ldap.groupIdAttributeTitle', defaultMessage: 'Group ID Attribute:'}),
-                help_text: defineMessage({id: 'admin.ldap.groupIdAttributeDesc', defaultMessage: 'The attribute in the AD/LDAP server used as a unique identifier for Groups. This should be a AD/LDAP attribute with a value that does not change such as `entryUUID` for LDAP or `objectGUID` for Active Directory.'}),
-                help_text_markdown: true,
+                help_text: defineMessage({id: 'admin.ldap.groupIdAttributeDesc', defaultMessage: 'The attribute in the AD/LDAP server used as a unique identifier for Groups.'}),
+                help_text_more_info: defineMessage({id: 'admin.ldap.groupIdAttributeDescHover', defaultMessage: 'This should be a AD/LDAP attribute with a value that does not change such as entryUUID for LDAP or objectGUID for Active Directory.'}),
+                help_text_markdown: false,
                 placeholder: defineMessage({id: 'admin.ldap.groupIdAttributeEx', defaultMessage: 'E.g.: "objectGUID" or "entryUUID"'}),
                 isHidden: it.not(it.licensedForFeature('LDAPGroups')),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.stateIsFalse('LdapSettings.EnableSync'),
+                ),
+            },
+            {
+                type: 'button',
+                action: ldapTestGroupAttributes,
+                key: 'LdapSettings.TestGroupAttributes',
+                label: defineMessage({id: 'admin.ldap.testGroupAttributesTitle', defaultMessage: 'Test Group Attributes'}),
+                help_text_markdown: false,
+                error_message: defineMessage({id: 'admin.ldap.testGroupAttributesFailure', defaultMessage: 'We failed to find some attributes: {error}'}),
+                success_message: defineMessage({id: 'admin.ldap.testGroupAttributesSuccess', defaultMessage: 'Test Successful'}),
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                    it.all(
+                        it.stateIsFalse('LdapSettings.Enable'),
+                        it.stateIsFalse('LdapSettings.EnableSync'),
+                    ),
                 ),
             },
         ],
@@ -607,33 +635,6 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 label: defineMessage({id: 'admin.ldap.queryTitle', defaultMessage: 'Query Timeout (seconds):'}),
                 placeholder: defineMessage({id: 'admin.ldap.queryEx', defaultMessage: 'E.g.: "60"'}),
                 help_text: defineMessage({id: 'admin.ldap.queryDesc', defaultMessage: 'The timeout value for queries to the AD/LDAP server. Increase if you are getting timeout errors caused by a slow AD/LDAP server.'}),
-                isDisabled: it.any(
-                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                    it.all(
-                        it.stateIsFalse('LdapSettings.Enable'),
-                        it.stateIsFalse('LdapSettings.EnableSync'),
-                    ),
-                ),
-            },
-            {
-                type: 'button',
-                action: ldapTest,
-                key: 'LdapSettings.LdapTest',
-                label: defineMessage({id: 'admin.ldap.ldap_test_button', defaultMessage: 'AD/LDAP Test'}),
-                help_text: defineMessage({id: 'admin.ldap.testHelpText', defaultMessage: 'Tests if the Mattermost server can connect to the AD/LDAP server specified. Please review "System Console > Logs" and <link>documentation</link> to troubleshoot errors.'}),
-                help_text_values: {
-                    link: (msg: string) => (
-                        <ExternalLink
-                            location='admin_console'
-                            href={DocLinks.CONFIGURE_AD_LDAP_QUERY_TIMEOUT}
-                        >
-                            {msg}
-                        </ExternalLink>
-                    ),
-                },
-                help_text_markdown: false,
-                error_message: defineMessage({id: 'admin.ldap.testFailure', defaultMessage: 'AD/LDAP Test Failure: {error}'}),
-                success_message: defineMessage({id: 'admin.ldap.testSuccess', defaultMessage: 'AD/LDAP Test Successful'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
