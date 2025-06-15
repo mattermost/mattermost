@@ -49,7 +49,8 @@ const (
 	PasswordMaximumLength = 72
 	PasswordMinimumLength = 5
 
-	ServiceGitlab    = "gitlab"
+	ServiceGitlab = "gitlab"
+
 	ServiceGoogle    = "google"
 	ServiceOffice365 = "office365"
 	ServiceOpenid    = "openid"
@@ -285,7 +286,8 @@ const (
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
 
-	ConnectedWorkspacesSettingsDefaultMaxPostsPerSync = 50 // a bit more than 4 typical screenfulls of posts
+	ConnectedWorkspacesSettingsDefaultMaxPostsPerSync     = 50 // a bit more than 4 typical screenfulls of posts
+	ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize = 20 // optimal batch size for syncing channel members
 
 	// These storage classes are the valid values for the x-amz-storage-class header. More documentation here https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html#AmazonS3-PutObject-request-header-StorageClass
 	StorageClassStandard           = "STANDARD"
@@ -3462,6 +3464,7 @@ type ConnectedWorkspacesSettings struct {
 	SyncUsersOnConnectionOpen       *bool
 	GlobalUserSyncBatchSize         *int
 	MaxPostsPerSync                 *int
+	MemberSyncBatchSize             *int // Maximum number of members to process in a single batch during shared channel synchronization
 }
 
 func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalSettings) {
@@ -3495,6 +3498,10 @@ func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalS
 
 	if c.MaxPostsPerSync == nil {
 		c.MaxPostsPerSync = NewPointer(ConnectedWorkspacesSettingsDefaultMaxPostsPerSync)
+	}
+
+	if c.MemberSyncBatchSize == nil {
+		c.MemberSyncBatchSize = NewPointer(ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize)
 	}
 }
 

@@ -513,6 +513,26 @@ func (_m *MockAppIface) Publish(message *model.WebSocketEvent) {
 	_m.Called(message)
 }
 
+// RemoveUserFromChannel provides a mock function with given fields: c, userID, removerUserId, channel
+func (_m *MockAppIface) RemoveUserFromChannel(c request.CTX, userID string, removerUserId string, channel *model.Channel) *model.AppError {
+	ret := _m.Called(c, userID, removerUserId, channel)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveUserFromChannel")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, *model.Channel) *model.AppError); ok {
+		r0 = rf(c, userID, removerUserId, channel)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // SaveAndBroadcastStatus provides a mock function with given fields: status
 func (_m *MockAppIface) SaveAndBroadcastStatus(status *model.Status) {
 	_m.Called(status)
