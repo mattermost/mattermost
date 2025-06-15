@@ -123,9 +123,14 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		_, err = ss.SharedChannel().SaveRemote(scr)
 		require.NoError(t, err)
 
+		// Refresh the channel object to get the updated Shared field
+		channel, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.True(t, channel.IsShared(), "Channel should be marked as shared")
+
 		// Create a user and add to team
 		user := th.CreateUser()
-		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		// Add user to channel - this triggers HandleMembershipChange automatically
@@ -422,11 +427,16 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		scr, err = ss.SharedChannel().SaveRemote(scr)
 		require.NoError(t, err)
 
+		// Refresh the channel object to get the updated Shared field
+		channel, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.True(t, channel.IsShared(), "Channel should be marked as shared")
+
 		// Add first batch of users
 		user1 := th.CreateUser()
 		user2 := th.CreateUser()
 
-		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user1.Id, th.BasicUser.Id)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user1.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		_, appErr = th.App.AddUserToChannel(th.Context, user1, channel, false)
 		require.Nil(t, appErr)
@@ -736,11 +746,16 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		_, err = ss.SharedChannel().SaveRemote(scr)
 		require.NoError(t, err)
 
+		// Refresh the channel object to get the updated Shared field
+		channel, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.True(t, channel.IsShared(), "Channel should be marked as shared")
+
 		// Phase 1: Add initial batch of users
 		initialUsers := make([]*model.User, 10)
 		for i := 0; i < 10; i++ {
 			initialUsers[i] = th.CreateUser()
-			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, initialUsers[i].Id, th.BasicUser.Id)
+			_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, initialUsers[i].Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
 			_, appErr = th.App.AddUserToChannel(th.Context, initialUsers[i], channel, false)
 			require.Nil(t, appErr)
