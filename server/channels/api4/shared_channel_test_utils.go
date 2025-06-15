@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
@@ -38,17 +39,13 @@ func writeOKResponse(w http.ResponseWriter) {
 // SelfReferentialSyncHandler handles incoming sync messages for self-referential tests.
 type SelfReferentialSyncHandler struct {
 	t                *testing.T
-	handler          func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error
-	syncMessageCount *int32
-	remoteCluster    *model.RemoteCluster
 	service          *sharedchannel.Service
+	selfCluster      *model.RemoteCluster
+	syncMessageCount *int32
 
 	// Callbacks for capturing sync data
 	OnPostSync            func(post *model.Post)
 	OnAcknowledgementSync func(ack *model.PostAcknowledgement)
-
-	// Pending acknowledgements to inject into next sync
-	pendingAcknowledgements []*model.PostAcknowledgement
 }
 
 // NewSelfReferentialSyncHandler creates a new handler for processing sync messages in tests
@@ -56,24 +53,10 @@ func NewSelfReferentialSyncHandler(t *testing.T, service *sharedchannel.Service,
 	count := int32(0)
 	return &SelfReferentialSyncHandler{
 		t:                t,
-		syncMessageCount: &count,
-		remoteCluster:    selfCluster,
 		service:          service,
-		handler: func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-			return service.OnReceiveSyncMessageForTesting(msg, selfCluster, response)
-		},
-		pendingAcknowledgements: make([]*model.PostAcknowledgement, 0),
+		selfCluster:      selfCluster,
+		syncMessageCount: &count,
 	}
-}
-
-// GetSyncMessageCount returns the current count of sync messages received
-func (h *SelfReferentialSyncHandler) GetSyncMessageCount() int32 {
-	return atomic.LoadInt32(h.syncMessageCount)
-}
-
-// QueueAcknowledgementForSync adds an acknowledgement to be included in the next sync message
-func (h *SelfReferentialSyncHandler) QueueAcknowledgementForSync(ack *model.PostAcknowledgement) {
-	h.pendingAcknowledgements = append(h.pendingAcknowledgements, ack)
 }
 
 // HandleRequest processes incoming HTTP requests for the test server.
@@ -89,30 +72,9 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 		var frame model.RemoteClusterFrame
 		err := json.Unmarshal(body, &frame)
 		if err == nil {
-			// Debug: Log the raw sync message
-			h.t.Logf("Received sync message: Type=%s", frame.Msg.Topic)
-
-			// Parse the message first to see what's being sent
-			var syncMsg model.SyncMsg
-			if unmarshalErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); unmarshalErr == nil {
-				h.t.Logf("Sync message contains %d posts, %d acknowledgements", len(syncMsg.Posts), len(syncMsg.Acknowledgements))
-				for i, post := range syncMsg.Posts {
-					h.t.Logf("Post %d: ID=%s, Message=%s, HasMetadata=%v", i, post.Id, post.Message, post.Metadata != nil)
-					if post.Metadata != nil && post.Metadata.Priority != nil {
-						h.t.Logf("  Priority metadata: Priority=%v, RequestedAck=%v, PersistentNotifications=%v",
-							post.Metadata.Priority.Priority,
-							post.Metadata.Priority.RequestedAck,
-							post.Metadata.Priority.PersistentNotifications)
-					}
-					for i, ack := range syncMsg.Acknowledgements {
-						h.t.Logf("Acknowledgement %d: PostId=%s, UserId=%s, RemoteId=%v", i, ack.PostId, ack.UserId, ack.RemoteId)
-					}
-				}
-			}
-
-			// Process the message using the provided handler
+			// Process the message to update cursor
 			response := &remotecluster.Response{}
-			processErr := h.handler(frame.Msg, nil, response)
+			processErr := h.service.OnReceiveSyncMessageForTesting(frame.Msg, h.selfCluster, response)
 			if processErr != nil {
 				response.Status = "ERROR"
 				response.Err = processErr.Error()
@@ -121,7 +83,7 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 				response.Status = "OK"
 				response.Err = ""
 
-				// Parse the message to call our callback
+				var syncMsg model.SyncMsg
 				if unmarshalErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); unmarshalErr == nil {
 					// Handle posts - call callback for verification
 					if len(syncMsg.Posts) > 0 && h.OnPostSync != nil {
@@ -166,12 +128,35 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 	}
 }
 
+// GetSyncMessageCount returns the current count of sync messages received
+func (h *SelfReferentialSyncHandler) GetSyncMessageCount() int32 {
+	return atomic.LoadInt32(h.syncMessageCount)
+}
+
 // ensureCleanState ensures a clean test state by removing all shared channels and remote clusters.
 // This helps prevent state pollution between tests.
-func ensureCleanState(t *testing.T, th *TestHelper) {
+func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 	t.Helper()
 
-	ss := th.App.Srv().Store()
+	// First, wait for any pending async tasks to complete, then shutdown services
+	scsInterface := th.App.Srv().GetSharedChannelSyncService()
+	if scsInterface != nil && scsInterface.Active() {
+		// Cast to concrete type to access testing methods
+		if service, ok := scsInterface.(*sharedchannel.Service); ok {
+			// Wait for any pending tasks from previous tests to complete
+			require.Eventually(t, func() bool {
+				return !service.HasPendingTasksForTesting()
+			}, 10*time.Second, 100*time.Millisecond, "All pending sync tasks should complete before cleanup")
+		}
+
+		// Shutdown the shared channel service to stop any async operations
+		_ = scsInterface.Shutdown()
+
+		// Wait for shutdown to complete with more time
+		require.Eventually(t, func() bool {
+			return !scsInterface.Active()
+		}, 5*time.Second, 100*time.Millisecond, "Shared channel service should be inactive after shutdown")
+	}
 
 	// Clear all shared channels and remotes from previous tests
 	allSharedChannels, _ := ss.SharedChannel().GetAll(0, 1000, model.SharedChannelFilterOpts{})
@@ -197,6 +182,38 @@ func ensureCleanState(t *testing.T, th *TestHelper) {
 		_, _ = sqlStore.GetMaster().Exec("UPDATE PostAcknowledgements SET AcknowledgedAt = 0")
 	}
 
+	// Remove all channel members from test channels (except the basic team/channel setup)
+	channels, _ := ss.Channel().GetAll(th.BasicTeam.Id)
+	for _, channel := range channels {
+		// Skip direct message and group channels, and skip the default channels
+		if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup &&
+			channel.Id != th.BasicChannel.Id {
+			members, _ := ss.Channel().GetMembers(model.ChannelMembersGetOptions{
+				ChannelID: channel.Id,
+			})
+			for _, member := range members {
+				_ = ss.Channel().RemoveMember(th.Context, channel.Id, member.UserId)
+			}
+		}
+	}
+
+	// Get all active users and deactivate non-basic ones
+	options := &model.UserGetOptions{
+		Page:    0,
+		PerPage: 200,
+		Active:  true,
+	}
+	users, _ := ss.User().GetAllProfiles(options)
+	for _, user := range users {
+		// Keep only the basic test users active
+		if user.Id != th.BasicUser.Id && user.Id != th.BasicUser2.Id &&
+			user.Id != th.SystemAdminUser.Id {
+			// Deactivate the user (soft delete)
+			user.DeleteAt = model.GetMillis()
+			_, _ = ss.User().Update(th.Context, user, true)
+		}
+	}
+
 	// Verify cleanup is complete
 	require.Eventually(t, func() bool {
 		sharedChannels, _ := ss.SharedChannel().GetAll(0, 1000, model.SharedChannelFilterOpts{})
@@ -204,12 +221,16 @@ func ensureCleanState(t *testing.T, th *TestHelper) {
 		return len(sharedChannels) == 0 && len(remoteClusters) == 0
 	}, 2*time.Second, 100*time.Millisecond, "Failed to clean up shared channels and remote clusters")
 
-	// Ensure services are running and ready
-	scsInterface := th.App.Srv().GetSharedChannelSyncService()
-	if scs, ok := scsInterface.(*sharedchannel.Service); ok {
-		require.Eventually(t, func() bool {
-			return scs.Active()
-		}, 2*time.Second, 100*time.Millisecond, "Shared channel service should be active")
+	// Restart services and ensure they are running and ready
+	if scsInterface != nil {
+		// Restart the shared channel service
+		_ = scsInterface.Start()
+
+		if scs, ok := scsInterface.(*sharedchannel.Service); ok {
+			require.Eventually(t, func() bool {
+				return scs.Active()
+			}, 5*time.Second, 100*time.Millisecond, "Shared channel service should be active after restart")
+		}
 	}
 
 	rcService := th.App.Srv().GetRemoteClusterService()
@@ -219,6 +240,6 @@ func ensureCleanState(t *testing.T, th *TestHelper) {
 		}
 		require.Eventually(t, func() bool {
 			return rcService.Active()
-		}, 2*time.Second, 100*time.Millisecond, "Remote cluster service should be active")
+		}, 5*time.Second, 100*time.Millisecond, "Remote cluster service should be active")
 	}
 }

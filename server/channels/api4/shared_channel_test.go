@@ -41,6 +41,9 @@ func TestGetAllSharedChannels(t *testing.T) {
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
 
+	ss := th.App.Srv().Store()
+	EnsureCleanState(t, th, ss)
+
 	const pages = 3
 	const pageSize = 7
 
@@ -110,8 +113,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
 
-	// Ensure clean state before running tests
-	ensureCleanState(t, th)
+	ss := th.App.Srv().Store()
+	EnsureCleanState(t, th, ss)
 
 	// Set license with all enterprise features
 	license := model.NewTestLicense()
@@ -963,6 +966,9 @@ func TestGetRemoteClusterById(t *testing.T) {
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
 
+	ss := th.App.Srv().Store()
+	EnsureCleanState(t, th, ss)
+
 	// for this test we need a user that belongs to a channel that
 	// is shared with the requested remote id.
 
@@ -1015,9 +1021,14 @@ func TestGetRemoteClusterById(t *testing.T) {
 
 func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	mainHelper.Parallel(t)
+
 	t.Run("should not create a local DM channel that is shared", func(t *testing.T) {
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
+
+		ss := th.App.Srv().Store()
+		EnsureCleanState(t, th, ss)
+
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
@@ -1040,6 +1051,10 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
+
+		ss := th.App.Srv().Store()
+		EnsureCleanState(t, th, ss)
+
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
@@ -1065,6 +1080,10 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
+
+		ss := th.App.Srv().Store()
+		EnsureCleanState(t, th, ss)
+
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
@@ -1099,6 +1118,10 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
+
+		ss := th.App.Srv().Store()
+		EnsureCleanState(t, th, ss)
+
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
@@ -1142,6 +1165,9 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
+
+	ss := th.App.Srv().Store()
+	EnsureCleanState(t, th, ss)
 
 	newRC1 := &model.RemoteCluster{Name: "rc1", SiteURL: "http://example1.com", CreatorId: th.SystemAdminUser.Id}
 	newRC2 := &model.RemoteCluster{Name: "rc2", SiteURL: "http://example2.com", CreatorId: th.SystemAdminUser.Id}
@@ -1402,6 +1428,9 @@ func TestInviteRemoteClusterToChannel(t *testing.T) {
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
 
+	ss := th.App.Srv().Store()
+	EnsureCleanState(t, th, ss)
+
 	newRC := &model.RemoteCluster{Name: "rc", SiteURL: "http://example.com", CreatorId: th.SystemAdminUser.Id}
 
 	rc, appErr := th.App.AddRemoteCluster(newRC)
@@ -1447,6 +1476,9 @@ func TestUninviteRemoteClusterToChannel(t *testing.T) {
 
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
+
+	ss := th.App.Srv().Store()
+	EnsureCleanState(t, th, ss)
 
 	newRC := &model.RemoteCluster{Name: "rc", SiteURL: "http://example.com", CreatorId: th.SystemAdminUser.Id}
 
