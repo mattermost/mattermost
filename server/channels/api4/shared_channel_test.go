@@ -162,7 +162,6 @@ func TestGetRemoteClusterById(t *testing.T) {
 
 func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	mainHelper.Parallel(t)
-
 	t.Run("should not create a local DM channel that is shared", func(t *testing.T) {
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
