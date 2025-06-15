@@ -327,7 +327,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
 	}
 
-	// Populate metadata for all posts before syncing (done once at the end)
+	// Populate metadata for all posts before syncing
 	for i, post := range sd.posts {
 		if post != nil {
 			sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
