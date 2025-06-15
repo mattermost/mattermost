@@ -37,8 +37,17 @@ func newSyncTask(channelID, userID string, remoteID string, existingMsg, retryMs
 		retryID = retryMsg.Id
 	}
 
+	// Generate a unique task ID
+	taskID := channelID + userID + remoteID + retryID // combination of ids to avoid duplicates
+
+	// For batch tasks, add a batch identifier to make the ID unique
+	if existingMsg != nil && len(existingMsg.MembershipChanges) > 1 {
+		batchID := model.NewId()[:8] // Use a short unique ID for the batch
+		taskID = channelID + "batch" + batchID + remoteID + retryID
+	}
+
 	return syncTask{
-		id:          channelID + userID + remoteID + retryID, // combination of ids to avoid duplicates
+		id:          taskID,
 		channelID:   channelID,
 		userID:      userID,
 		remoteID:    remoteID, // empty means update all remote clusters
@@ -235,6 +244,7 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 // addTask adds or re-adds a task to the queue.
 func (scs *Service) addTask(task syncTask) {
 	task.AddedAt = time.Now()
+
 	scs.mux.Lock()
 	if originalTask, ok := scs.tasks[task.id]; ok {
 		// if the task was already scheduled, we only update the
@@ -365,6 +375,16 @@ func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 
 // processTask updates one or more remote clusters with any new channel content.
 func (scs *Service) processTask(task syncTask) error {
+	// Check if this is a membership change task
+	if task.existingMsg != nil && len(task.existingMsg.MembershipChanges) > 0 {
+		// Check if feature flag is enabled
+		if !scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync {
+			return nil
+		}
+		scs.processMembershipChange(task.existingMsg)
+		return nil
+	}
+
 	// map is used to ensure remotes don't get sync'd twice, such as when
 	// they have the autoinvited flag and have explicitly subscribed to a channel.
 	remotesMap := make(map[string]*model.RemoteCluster)
