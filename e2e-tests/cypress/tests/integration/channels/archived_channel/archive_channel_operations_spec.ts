@@ -40,7 +40,7 @@ describe('Leave an archived channel', () => {
         });
     });
 
-    it.skip('MM-T1704 Archived channels appear in channel switcher after refresh', () => {
+    it('MM-T1704 Archived channels appear in channel switcher after refresh', () => {
         // # Archive the channel
         cy.apiLogin(testUser);
         cy.uiArchiveChannel();
