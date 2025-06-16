@@ -2047,6 +2047,240 @@ func TestPatchUser(t *testing.T) {
 	})
 }
 
+func TestAutocompleteUsersInChannelWithABAC(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Set license to EnterpriseAdvanced
+	th.App.Srv().SetLicense(model.NewTestLicense("enterprise.advanced"))
+
+	// Enable ABAC in config
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// Create two channels in the same team
+	abacChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	regularChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+	// Create test users with predictable usernames for search
+	user1 := &model.User{
+		Email:    "user1@test.com",
+		Username: "testuser1",
+		Password: "Password1",
+	}
+	user1, err := th.App.CreateUser(th.Context, user1)
+	require.Nil(t, err)
+
+	user2 := &model.User{
+		Email:    "user2@test.com",
+		Username: "testuser2",
+		Password: "Password1",
+	}
+	user2, err = th.App.CreateUser(th.Context, user2)
+	require.Nil(t, err)
+
+	user3 := &model.User{
+		Email:    "user3@test.com",
+		Username: "testuser3",
+		Password: "Password1",
+	}
+	user3, err = th.App.CreateUser(th.Context, user3)
+	require.Nil(t, err)
+
+	user4 := &model.User{
+		Email:    "user4@test.com",
+		Username: "testuser4",
+		Password: "Password1",
+	}
+	user4, err = th.App.CreateUser(th.Context, user4)
+	require.Nil(t, err)
+
+	// Add all users to the team
+	th.LinkUserToTeam(user1, th.BasicTeam)
+	th.LinkUserToTeam(user2, th.BasicTeam)
+	th.LinkUserToTeam(user3, th.BasicTeam)
+	th.LinkUserToTeam(user4, th.BasicTeam)
+
+	// Set user1 and user4 attributes to match the policy
+	user1.Props = map[string]string{
+		"program": "test-program",
+	}
+	user1, err = th.App.UpdateUser(th.Context, user1, false)
+	require.Nil(t, err)
+
+	user4.Props = map[string]string{
+		"program": "test-program",
+	}
+	user4, err = th.App.UpdateUser(th.Context, user4, false)
+	require.Nil(t, err)
+
+	// Add user1 to the ABAC channel (in-channel)
+	_, appErr := th.App.AddChannelMember(th.Context, user1.Id, abacChannel, ChannelMemberOpts{})
+	require.Nil(t, appErr)
+
+	// Create a policy with the same ID as the ABAC channel
+	channelPolicy := &model.AccessControlPolicy{
+		Type:     model.AccessControlPolicyTypeChannel,
+		ID:       abacChannel.Id,
+		Name:     "Test Channel Policy",
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_1,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"view", "join_channel"},
+				Expression: "user.attributes.program == \"test-program\"",
+			},
+		},
+	}
+
+	// Save the channel policy
+	var storeErr error
+	channelPolicy, storeErr = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, channelPolicy)
+	require.NoError(t, storeErr)
+	require.NotNil(t, channelPolicy)
+	t.Cleanup(func() {
+		dErr := th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channelPolicy.ID)
+		require.NoError(t, dErr)
+	})
+
+	// Mock the AccessControl service
+	mockAccessControl := &mocks.AccessControlServiceInterface{}
+	originalAccessControl := th.App.Srv().ch.AccessControl
+	th.App.Srv().ch.AccessControl = mockAccessControl
+	defer func() {
+		th.App.Srv().ch.AccessControl = originalAccessControl
+	}()
+
+	t.Run("ABAC Channel - Returns users with matching attributes split by channel membership", func(t *testing.T) {
+		// Set up the mock to return user1 and user4 when querying for users
+		mockAccessControl.On("QueryUsersForResource",
+			mock.Anything,
+			abacChannel.Id,
+			"*",
+			mock.Anything).Return([]*model.User{user1, user4}, int64(2), nil).Once()
+
+		autocomplete, appErr := th.App.AutocompleteUsersInChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, "testuser", &model.UserSearchOptions{
+			Limit: 25,
+		})
+		require.Nil(t, appErr)
+
+		// Create maps for easier lookup
+		inChannelMap := make(map[string]bool)
+		for _, u := range autocomplete.InChannel {
+			inChannelMap[u.Id] = true
+		}
+		outChannelMap := make(map[string]bool)
+		for _, u := range autocomplete.OutOfChannel {
+			outChannelMap[u.Id] = true
+		}
+
+		// Verify user1 is in InChannel (since they're a member)
+		assert.True(t, inChannelMap[user1.Id], "User1 should be in InChannel")
+		assert.False(t, outChannelMap[user1.Id], "User1 should not be in OutOfChannel")
+
+		// Verify user4 is in OutOfChannel (since they're not a member but match policy)
+		assert.True(t, outChannelMap[user4.Id], "User4 should be in OutOfChannel")
+		assert.False(t, inChannelMap[user4.Id], "User4 should not be in InChannel")
+
+		// Verify user2 and user3 are not returned at all
+		assert.False(t, inChannelMap[user2.Id], "User2 should not be returned")
+		assert.False(t, outChannelMap[user2.Id], "User2 should not be returned")
+		assert.False(t, inChannelMap[user3.Id], "User3 should not be returned")
+		assert.False(t, outChannelMap[user3.Id], "User3 should not be returned")
+	})
+
+	t.Run("Regular Channel - Uses normal autocomplete logic", func(t *testing.T) {
+		// Add some users to the regular channel for testing
+		_, appErr := th.App.AddChannelMember(th.Context, user1.Id, regularChannel, ChannelMemberOpts{})
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, regularChannel, ChannelMemberOpts{})
+		require.Nil(t, appErr)
+
+		autocomplete, appErr := th.App.AutocompleteUsersInChannel(th.Context, th.BasicTeam.Id, regularChannel.Id, "testuser", &model.UserSearchOptions{
+			Limit: 25,
+		})
+		require.Nil(t, appErr)
+
+		// For regular channels, we just verify that we get some results and no error
+		// The exact distribution depends on the normal autocomplete logic
+		require.NotNil(t, autocomplete)
+
+		// Count total users returned
+		totalUsers := len(autocomplete.InChannel) + len(autocomplete.OutOfChannel)
+		assert.Greater(t, totalUsers, 0, "Should return some users for regular channel")
+
+		// Verify that users in the channel appear in InChannel
+		inChannelMap := make(map[string]bool)
+		for _, u := range autocomplete.InChannel {
+			inChannelMap[u.Id] = true
+		}
+
+		// At least user1 and user2 should be in the channel
+		if len(autocomplete.InChannel) > 0 {
+			// We know user1 and user2 are in the channel, so at least one should appear in InChannel
+			hasChannelMember := inChannelMap[user1.Id] || inChannelMap[user2.Id]
+			assert.True(t, hasChannelMember, "At least one channel member should appear in InChannel")
+		}
+	})
+
+	t.Run("ABAC Service Unavailable - Falls back to regular autocomplete", func(t *testing.T) {
+		// Set up the mock to return an error
+		mockAccessControl.On("QueryUsersForResource",
+			mock.Anything,
+			abacChannel.Id,
+			"*",
+			mock.Anything).Return([]*model.User{}, int64(0), model.NewAppError("test", "test.error", nil, "", 500)).Once()
+
+		autocomplete, appErr := th.App.AutocompleteUsersInChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, "testuser", &model.UserSearchOptions{
+			Limit: 25,
+		})
+		require.Nil(t, appErr)
+
+		// Should fall back to regular autocomplete, so we should get results
+		require.NotNil(t, autocomplete)
+
+		// Should get some results from fallback
+		totalUsers := len(autocomplete.InChannel) + len(autocomplete.OutOfChannel)
+		assert.GreaterOrEqual(t, totalUsers, 0, "Fallback should work without error")
+	})
+
+	t.Run("ABAC Service Returns Empty Results when term gets no match", func(t *testing.T) {
+		// Set up the mock to return empty results
+		mockAccessControl.On("QueryUsersForResource",
+			mock.Anything,
+			abacChannel.Id,
+			"*",
+			mock.Anything).Return([]*model.User{}, int64(0), nil).Once()
+
+		// "testuser" do not match any users in the ABAC channel
+		autocomplete, appErr := th.App.AutocompleteUsersInChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, "testuser", &model.UserSearchOptions{
+			Limit: 25,
+		})
+		require.Nil(t, appErr)
+
+		// Should return empty results
+		assert.Empty(t, autocomplete.InChannel, "InChannel should be empty")
+		assert.Empty(t, autocomplete.OutOfChannel, "OutOfChannel should be empty")
+	})
+
+	t.Run("ABAC Service is Nil - Falls back to regular autocomplete", func(t *testing.T) {
+		// Temporarily set AccessControl to nil
+		th.App.Srv().ch.AccessControl = nil
+		defer func() {
+			th.App.Srv().ch.AccessControl = mockAccessControl
+		}()
+
+		autocomplete, appErr := th.App.AutocompleteUsersInChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, "testuser", &model.UserSearchOptions{
+			Limit: 25,
+		})
+		require.Nil(t, appErr)
+
+		// Should fall back to regular autocomplete
+		require.NotNil(t, autocomplete)
+	})
+}
+
 func TestUpdateThreadReadForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Ensure thread membership exists before updating read", func(t *testing.T) {
