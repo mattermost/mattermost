@@ -3993,6 +3993,87 @@ func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.
 	// Should return an error since team is archived and there are no results
 	_, nErr = ss.Channel().GetChannelsByUser(m1.UserId, false, 0, -1, "")
 	require.Error(t, nErr)
+
+	// Now test with DM and GM channels to ensure they're not affected by team archival
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Nickname: model.NewId(),
+		Username: "user" + model.NewId(),
+	}
+	u1, err = ss.User().Save(rctx, u1)
+	require.NoError(t, err)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Nickname: model.NewId(),
+		Username: "user" + model.NewId(),
+	}
+	u2, err = ss.User().Save(rctx, u2)
+	require.NoError(t, err)
+
+	u3 := &model.User{
+		Email:    MakeEmail(),
+		Nickname: model.NewId(),
+		Username: "user" + model.NewId(),
+	}
+	u3, err = ss.User().Save(rctx, u3)
+	require.NoError(t, err)
+
+	// Create a direct message channel
+	dmChannel, nErr := ss.Channel().CreateDirectChannel(rctx, u1, u2)
+	require.NoError(t, nErr)
+	require.Equal(t, model.ChannelTypeDirect, dmChannel.Type)
+	require.Equal(t, "", dmChannel.TeamId)
+
+	// Create a group message channel
+	gmChannel := model.Channel{
+		Name:        model.GetGroupNameFromUserIds([]string{u1.Id, u2.Id, u3.Id}),
+		DisplayName: "GroupChannel" + model.NewId(),
+		Type:        model.ChannelTypeGroup,
+	}
+	gmChannelPtr, nErr := ss.Channel().Save(rctx, &gmChannel, -1)
+	require.NoError(t, nErr)
+	gmChannel = *gmChannelPtr
+	require.Equal(t, model.ChannelTypeGroup, gmChannel.Type)
+	require.Equal(t, "", gmChannel.TeamId)
+
+	// Add users to the group channel
+	for _, userID := range []string{u1.Id, u2.Id, u3.Id} {
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   gmChannel.Id,
+			UserId:      userID,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
+
+	// Verify that DM and GM channels are returned even when teams are archived
+	list, nErr = ss.Channel().GetChannelsByUser(u1.Id, false, 0, -1, "")
+	require.NoError(t, nErr)
+	require.Len(t, list, 2)
+
+	channelIds := []string{list[0].Id, list[1].Id}
+	require.Contains(t, channelIds, dmChannel.Id, "DM channel should be returned")
+	require.Contains(t, channelIds, gmChannel.Id, "GM channel should be returned")
+
+	// Test that archived DM and GM channels can be included when requested
+	nErr = ss.Channel().Delete(dmChannel.Id, model.GetMillis())
+	require.NoError(t, nErr)
+
+	// Without includeDeleted, should only return GM channel
+	list, nErr = ss.Channel().GetChannelsByUser(u1.Id, false, 0, -1, "")
+	require.NoError(t, nErr)
+	require.Len(t, list, 1)
+	require.Equal(t, gmChannel.Id, list[0].Id)
+
+	// With includeDeleted, should return both DM and GM channels
+	list, nErr = ss.Channel().GetChannelsByUser(u1.Id, true, 0, -1, "")
+	require.NoError(t, nErr)
+	require.Len(t, list, 2)
+
+	channelIds = []string{list[0].Id, list[1].Id}
+	require.Contains(t, channelIds, dmChannel.Id, "Archived DM channel should be returned when includeDeleted=true")
+	require.Contains(t, channelIds, gmChannel.Id, "GM channel should be returned")
 }
 
 func testChannelStoreGetAllChannels(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
