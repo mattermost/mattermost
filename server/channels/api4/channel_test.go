@@ -1352,7 +1352,7 @@ func TestDeleteDirectChannel(t *testing.T) {
 	require.NotNil(t, rgc, "should have created a direct channel")
 
 	_, err = client.DeleteChannel(context.Background(), rgc.Id)
-	CheckErrorID(t, err, "api.channel.delete_channel.type.invalid")
+	require.NoError(t, err)
 }
 
 func TestCreateGroupChannel(t *testing.T) {
@@ -1496,13 +1496,22 @@ func TestDeleteGroupChannel(t *testing.T) {
 
 	userIds := []string{user.Id, user2.Id, user3.Id}
 
-	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+	t.Run("Delete group channel for normal client", func(t *testing.T) {
 		rgc, resp, err := th.Client.CreateGroupChannel(context.Background(), userIds)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, rgc, "should have created a group channel")
-		_, err = client.DeleteChannel(context.Background(), rgc.Id)
-		CheckErrorID(t, err, "api.channel.delete_channel.type.invalid")
+		_, err = th.Client.DeleteChannel(context.Background(), rgc.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("Delete group channel for system admin client", func(t *testing.T) {
+		rgc, resp, err := th.SystemAdminClient.CreateGroupChannel(context.Background(), userIds)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rgc, "should have created a group channel")
+		_, err = th.SystemAdminClient.DeleteChannel(context.Background(), rgc.Id)
+		require.NoError(t, err)
 	})
 }
 
