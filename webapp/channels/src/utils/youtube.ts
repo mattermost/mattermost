@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-export const ytRegex = /(?:http|https):\/\/(?:www\.|m\.)?(?:(?:youtube\.com\/(?:(?:v\/)|(?:(?:watch|embed\/watch)(?:\/|.*v=))|(?:embed\/)|(?:user\/[^/]+\/u\/[0-9]\/)))|(?:youtu\.be\/))([^#&?]*)/;
+export const ytRegex = /(?:http|https):\/\/(?:www\.|m\.)?(?:(?:youtube\.com\/(?:(?:v\/)|(?:(?:watch|embed\/watch)(?:\/|.*v=))|(?:embed\/)|(?:shorts\/)|(?:user\/[^/]+\/u\/[0-9]\/)))|(?:youtu\.be\/))([^#&?]*)/;
 
 export function handleYoutubeTime(link: string) {
     const timeRegex = /[\\?&](t|time|start|time_continue)=([0-9]+h)?([0-9]+m)?([0-9]+s?)/;
@@ -39,4 +39,13 @@ export function getVideoId(link: string) {
     }
 
     return match[1];
+}
+
+export function getIsShortsVideoLink(link: string) {
+    const match = link.trim().match(ytRegex);
+    if (!match) {
+        return false;
+    }
+
+    return link.includes('/shorts/');
 }
