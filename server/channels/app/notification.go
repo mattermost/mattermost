@@ -1064,7 +1064,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		}
 	} else {
 		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
-		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap, groups, channel.Id)
+		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap, groups)
 
 		mentions = getExplicitMentions(post, keywords)
 
@@ -1531,7 +1531,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap, groups map[string]*model.Group, channelId string) MentionKeywords {
+func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap, groups map[string]*model.Group) MentionKeywords {
 	keywords := make(MentionKeywords)
 
 	for _, profile := range profiles {

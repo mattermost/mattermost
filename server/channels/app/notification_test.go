@@ -1644,7 +1644,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles := map[string]*model.User{user1.Id: user1}
-	keywords := th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap1Off, nil, "")
+	keywords := th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap1Off, nil)
 	require.Len(t, keywords, 3, "should've returned three mention keywords")
 
 	ids, ok := keywords["user"]
@@ -1675,7 +1675,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles = map[string]*model.User{user2.Id: user2}
-	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap2Off, nil, "")
+	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap2Off, nil)
 	require.Len(t, keywords, 2, "should've returned two mention keyword")
 
 	ids, ok = keywords["First"]
@@ -1700,7 +1700,7 @@ func TestGetMentionKeywords(t *testing.T) {
 		},
 	}
 	profiles = map[string]*model.User{user3.Id: user3}
-	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3Off, nil, "")
+	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3Off, nil)
 	require.Len(t, keywords, 3, "should've returned three mention keywords")
 	ids, ok = keywords["@channel"]
 	require.True(t, ok)
@@ -1716,7 +1716,7 @@ func TestGetMentionKeywords(t *testing.T) {
 		},
 	}
 	profiles = map[string]*model.User{user3.Id: user3}
-	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapDefault, nil, "")
+	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapDefault, nil)
 	require.Len(t, keywords, 3, "should've returned three mention keywords")
 	ids, ok = keywords["@channel"]
 	require.True(t, ok)
@@ -1728,7 +1728,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel member notify props is empty
 	channelMemberNotifyPropsMapEmpty := map[string]model.StringMap{}
 	profiles = map[string]*model.User{user3.Id: user3}
-	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmpty, nil, "")
+	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmpty, nil)
 	require.Len(t, keywords, 3, "should've returned three mention keywords")
 	ids, ok = keywords["@channel"]
 	require.True(t, ok)
@@ -1743,7 +1743,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"ignore_channel_mentions": model.IgnoreChannelMentionsOn,
 		},
 	}
-	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3On, nil, "")
+	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3On, nil)
 	require.NotEmpty(t, keywords, "should've not returned any keywords")
 
 	// user with all types of mentions enabled
@@ -1767,7 +1767,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles = map[string]*model.User{user4.Id: user4}
-	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4Off, nil, "")
+	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4Off, nil)
 	require.Len(t, keywords, 6, "should've returned six mention keywords")
 	ids, ok = keywords["user"]
 	require.True(t, ok)
@@ -1794,7 +1794,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"ignore_channel_mentions": model.IgnoreChannelMentionsOn,
 		},
 	}
-	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4On, nil, "")
+	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4On, nil)
 	require.Len(t, keywords, 4, "should've returned four mention keywords")
 	ids, ok = keywords["user"]
 	require.True(t, ok)
@@ -1849,7 +1849,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"ignore_channel_mentions": model.IgnoreChannelMentionsOff,
 		},
 	}
-	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap5Off, nil, "")
+	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap5Off, nil)
 	require.Len(t, keywords, 6, "should've returned six mention keywords")
 	ids, ok = keywords["user"]
 	require.True(t, ok)
@@ -1884,7 +1884,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.False(t, ids[0] != mentionableUser4ID && ids[1] != mentionableUser4ID, "should've mentioned user4 with @all")
 
 	// multiple users and more than MaxNotificationsPerChannel
-	keywords = th.App.getMentionKeywordsInChannel(profiles, false, channelMemberNotifyPropsMap4Off, nil, "")
+	keywords = th.App.getMentionKeywordsInChannel(profiles, false, channelMemberNotifyPropsMap4Off, nil)
 	require.Len(t, keywords, 4, "should've returned four mention keywords")
 	_, ok = keywords["@channel"]
 	require.False(t, ok, "should not have mentioned any user with @channel")
@@ -1896,7 +1896,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	profiles = map[string]*model.User{
 		user1.Id: user1,
 	}
-	keywords = th.App.getMentionKeywordsInChannel(profiles, false, channelMemberNotifyPropsMap4Off, nil, "")
+	keywords = th.App.getMentionKeywordsInChannel(profiles, false, channelMemberNotifyPropsMap4Off, nil)
 	require.Len(t, keywords, 3, "should've returned three mention keywords")
 	ids, ok = keywords["user"]
 	require.True(t, ok)
@@ -1940,7 +1940,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles = map[string]*model.User{userNoMentionKeys.Id: userNoMentionKeys}
-	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmptyOff, nil, "")
+	keywords = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmptyOff, nil)
 	assert.Equal(t, 1, len(keywords), "should've returned one mention keyword")
 	ids, ok = keywords["@user"]
 	assert.True(t, ok)
@@ -2187,7 +2187,6 @@ func TestGetMentionKeywords_Groups(t *testing.T) {
 				!tc.DisallowChannelMentions,
 				tc.ChannelMemberNotifyProps,
 				tc.Groups,
-				"",
 			)
 
 			require.Equal(t, len(tc.Expected), len(keywords))
