@@ -6,7 +6,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig, SingleValue} from 'react-select';
+import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig, SingleValue, MultiValue} from 'react-select';
 
 import 'components/widgets/inputs/input/input.scss';
 import './dropdown_input_hybrid.scss';
@@ -156,15 +156,14 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
         props.onBlur?.(event);
     };
 
-    const onValueChange = (event: SingleValue<T>) => {
-        if (!event) {
+    const onValueChange = (event: SingleValue<T> | MultiValue<T>) => {
+        if (!event || Array.isArray(event)) {
             // This case doesn't seem possible with the way that we're using ReactSelect
             return;
         }
 
-        showTextInput(event.value);
-
-        onDropdownChange(event);
+        showTextInput((event as T).value);
+        onDropdownChange(event as T);
     };
 
     // We want to show the text input when we have a dropdown value selected and
