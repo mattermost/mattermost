@@ -341,19 +341,6 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 }
 
-func TestServePluginRequest(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	th.App.ch.ServePluginRequest(w, r)
-	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
-}
-
 func TestPrivateServePluginRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

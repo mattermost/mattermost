@@ -145,9 +145,9 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	var token string
 	authHeader := r.Header.Get(model.HeaderAuth)
 	if strings.HasPrefix(strings.ToUpper(authHeader), model.HeaderBearer+" ") {
-		token = authHeader[len(model.HeaderBearer)+1:]
+		token = strings.TrimPrefix(authHeader, model.HeaderBearer+" ")
 	} else if strings.HasPrefix(strings.ToLower(authHeader), model.HeaderToken+" ") {
-		token = authHeader[len(model.HeaderToken)+1:]
+		token = strings.TrimPrefix(authHeader, model.HeaderToken+" ")
 	} else if cookie, _ := r.Cookie(model.SessionCookieToken); cookie != nil {
 		token = cookie.Value
 		cookieAuth = true
@@ -233,7 +233,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		return
 	}
 
-	if ch.validateCSRFForPluginRequest(rctx, r, session, cookieAuth) {
+	if validateCSRFForPluginRequest(rctx, r, session, cookieAuth, *ch.cfgSvc.Config().ServiceSettings.StrictCSRFEnforcement) {
 		r.Header.Set("Mattermost-User-Id", session.UserId)
 		context.SessionId = session.Id
 	} else {
@@ -244,7 +244,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 }
 
 // validateCSRFForPluginRequest validates CSRF token for plugin requests
-func (ch *Channels) validateCSRFForPluginRequest(rctx request.CTX, r *http.Request, session *model.Session, cookieAuth bool) bool {
+func validateCSRFForPluginRequest(rctx request.CTX, r *http.Request, session *model.Session, cookieAuth bool, StrictCSRFEnforcement bool) bool {
 	// Skip CSRF check for non-cookie auth or GET requests
 	if !cookieAuth || r.Method == http.MethodGet {
 		return true
@@ -273,7 +273,7 @@ func (ch *Channels) validateCSRFForPluginRequest(rctx request.CTX, r *http.Reque
 	// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
 	if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML {
 		csrfErrorMessage := "CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated"
-		if *ch.cfgSvc.Config().ServiceSettings.StrictCSRFEnforcement {
+		if StrictCSRFEnforcement {
 			rctx.Logger().Warn(csrfErrorMessage, mlog.String("session_id", session.Id))
 			return false
 		}
