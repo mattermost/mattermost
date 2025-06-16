@@ -103,6 +103,7 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	// to avoid fetching the channel again, we manually set the shared
 	// flag before notifying the clients
 	channel.Shared = model.NewPointer(false)
+
 	scs.notifyClientsForSharedChannelConverted(channel)
 	return deleted, nil
 }
