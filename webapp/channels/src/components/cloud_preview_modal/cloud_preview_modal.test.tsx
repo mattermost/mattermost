@@ -3,11 +3,11 @@
 
 import React from 'react';
 import * as reactRedux from 'react-redux';
+import {fireEvent, screen} from '@testing-library/react';
 
 import type {Subscription} from '@mattermost/types/cloud';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import CloudPreviewModal from './cloud_preview_modal';
 
@@ -66,19 +66,15 @@ describe('CloudPreviewModal', () => {
     };
 
     it('should show modal when in cloud preview and modal has not been shown before', () => {
-        const store = mockStore(initialState);
-
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudPreviewModal/>
-            </reactRedux.Provider>,
+        renderWithContext(
+            <CloudPreviewModal/>,
+            initialState,
         );
 
-        wrapper.update();
-        expect(wrapper.find('[data-testid="preview-modal-controller"]').exists()).toEqual(true);
+        expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
     });
 
     it('should not show modal when not in cloud preview', () => {
@@ -88,38 +84,30 @@ describe('CloudPreviewModal', () => {
             is_cloud_preview: false,
         };
 
-        const store = mockStore(state);
-
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudPreviewModal/>
-            </reactRedux.Provider>,
+        renderWithContext(
+            <CloudPreviewModal/>,
+            state,
         );
 
-        wrapper.update();
-        expect(wrapper.find('[data-testid="preview-modal-controller"]').exists()).toEqual(false);
+        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 
     it('should not show modal when not cloud', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.general.license.Cloud = 'false';
 
-        const store = mockStore(state);
-
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudPreviewModal/>
-            </reactRedux.Provider>,
+        renderWithContext(
+            <CloudPreviewModal/>,
+            state,
         );
 
-        wrapper.update();
-        expect(wrapper.find('[data-testid="preview-modal-controller"]').exists()).toEqual(false);
+        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 
     // Skip for now.
@@ -133,37 +121,29 @@ describe('CloudPreviewModal', () => {
     //         },
     //     };
 
-    //     const store = mockStore(state);
-
     //     const dummyDispatch = jest.fn();
     //     useDispatchMock.mockReturnValue(dummyDispatch);
 
-    //     const wrapper = mountWithIntl(
-    //         <reactRedux.Provider store={store}>
-    //             <CloudPreviewModal/>
-    //         </reactRedux.Provider>,
+    //     renderWithContext(
+    //         <CloudPreviewModal/>,
+    //         state,
     //     );
 
-    //     wrapper.update();
-    //     expect(wrapper.find('[data-testid="preview-modal-controller"]').exists()).toEqual(false);
+    //     expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     // });
 
     it('should save preference when modal is closed', () => {
-        const store = mockStore(initialState);
-
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudPreviewModal/>
-            </reactRedux.Provider>,
+        renderWithContext(
+            <CloudPreviewModal/>,
+            initialState,
         );
 
-        wrapper.update();
-
         // Click close button
-        wrapper.find('button').simulate('click');
+        const closeButton = screen.getByText('Close');
+        fireEvent.click(closeButton);
 
         // Check that dispatch was called (savePreferences action)
         expect(dummyDispatch).toHaveBeenCalled();
@@ -173,18 +153,14 @@ describe('CloudPreviewModal', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = undefined;
 
-        const store = mockStore(state);
-
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudPreviewModal/>
-            </reactRedux.Provider>,
+        renderWithContext(
+            <CloudPreviewModal/>,
+            state,
         );
 
-        wrapper.update();
-        expect(wrapper.find('[data-testid="preview-modal-controller"]').exists()).toEqual(false);
+        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 });

@@ -31,11 +31,7 @@ describe('PreviewModalContent', () => {
         render(<PreviewModalContent content={baseContent}/>);
 
         expect(screen.getByText('Test Title')).toBeInTheDocument();
-        expect(screen.getByText(/Test subtitle with/)).toBeInTheDocument();
-
-        // Check that HTML is rendered
-        const subtitle = screen.getByText(/Test subtitle with/);
-        expect(subtitle.innerHTML).toContain('<strong>bold text</strong>');
+        expect(screen.getByText('Test subtitle with <strong>bold text</strong>')).toBeInTheDocument();
     });
 
     it('should render SKU label with logo when provided', () => {

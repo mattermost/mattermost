@@ -8,27 +8,11 @@ import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 import type {PreviewModalContentData} from './preview_modal_content_data';
 
 import './preview_modal_content.scss';
+import { getVideoId } from 'utils/youtube';
 
 interface Props {
     content: PreviewModalContentData;
 }
-
-// Helper function to extract YouTube video ID from various YouTube URL formats
-const getYouTubeVideoId = (url: string): string | null => {
-    const patterns = [
-        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-        /youtube\.com\/v\/([^&\n?#]+)/,
-    ];
-
-    for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match && match[1]) {
-            return match[1];
-        }
-    }
-
-    return null;
-};
 
 const PreviewModalContent: React.FC<Props> = ({content}) => {
     const renderVideoContent = () => {
@@ -36,7 +20,7 @@ const PreviewModalContent: React.FC<Props> = ({content}) => {
             return null;
         }
 
-        const youtubeVideoId = getYouTubeVideoId(content.videoUrl);
+        const youtubeVideoId = getVideoId(content.videoUrl);
 
         if (youtubeVideoId) {
             // Create a more integrated YouTube embed with minimal branding
@@ -106,10 +90,9 @@ const PreviewModalContent: React.FC<Props> = ({content}) => {
                 </div>
             )}
             <h2 className='preview-modal-content__title'>{content.title}</h2>
-            <div
-                className='preview-modal-content__subtitle'
-                dangerouslySetInnerHTML={{__html: content.subtitle}}
-            />
+            <div className='preview-modal-content__subtitle'>
+                {content.subtitle}
+            </div>
             {content.videoUrl && (
                 <div className='preview-modal-content__video-container'>
                     {renderVideoContent()}
