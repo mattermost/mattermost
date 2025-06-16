@@ -88,11 +88,13 @@ type LogFilter struct {
 	LogLevels   []string `json:"log_levels"`
 	DateFrom    string   `json:"date_from"`
 	DateTo      string   `json:"date_to"`
+	PluginId    string   `json:"plugin_id"`
 }
 
 type LogEntry struct {
 	Timestamp string
 	Level     string
+	PluginId  string `json:"plugin_id"`
 }
 
 // SystemPingOptions is the options for setting contents of the system ping

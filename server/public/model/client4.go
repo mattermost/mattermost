@@ -6155,8 +6155,8 @@ func (c *Client4) UploadBrandImage(ctx context.Context, data []byte) (*Response,
 // Logs Section
 
 // GetLogs page of logs as a string array.
-func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Response, error) {
-	query := fmt.Sprintf("?page=%v&logs_per_page=%v", page, perPage)
+func (c *Client4) GetLogs(ctx context.Context, page, perPage int, pluginId string) ([]string, *Response, error) {
+	query := fmt.Sprintf("?page=%v&logs_per_page=%v&plugin_id=%v", page, perPage, PluginIdAI)
 	r, err := c.DoAPIGet(ctx, "/logs"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
