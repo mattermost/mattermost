@@ -137,7 +137,7 @@ func TestFetchAndComplete(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			comp, directive := fetchAndComplete[user](tc.fetcher, tc.matcher)(context.Background(), nil, nil, nil, tc.toComplete)
+			comp, directive := fetchAndComplete(tc.fetcher, tc.matcher)(context.Background(), nil, nil, nil, tc.toComplete)
 			assert.Equal(t, tc.ExpectedCompletion, comp, name)
 
 			expectedDirective := cobra.ShellCompDirectiveNoFileComp
