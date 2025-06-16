@@ -125,9 +125,9 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 	}
 
 	t.Run("remote-initiated unshare with single remote", func(t *testing.T) {
-		EnsureCleanUnshareState(t, th, ss)
+		EnsureCleanState(t, th, ss)
 
-		var syncHandler *SelfReferentialUnshareHandler
+		var syncHandler *SelfReferentialSyncHandler
 
 		// Create a test HTTP server that acts as the "remote" cluster
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +155,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		require.NoError(t, err)
 
 		// Initialize sync handler
-		syncHandler = NewSelfReferentialUnshareHandler(t, service, selfCluster)
+		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
 
 		// Create a shared channel
 		channel := th.CreateChannel(th.Context, th.BasicTeam)
@@ -247,9 +247,9 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 	})
 
 	t.Run("remote-initiated unshare with multiple remotes", func(t *testing.T) {
-		EnsureCleanUnshareState(t, th, ss)
+		EnsureCleanState(t, th, ss)
 
-		var syncHandler1, syncHandler2 *SelfReferentialUnshareHandler
+		var syncHandler1, syncHandler2 *SelfReferentialSyncHandler
 
 		// Create test HTTP servers for both remotes
 		testServer1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -300,8 +300,8 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		require.NoError(t, err)
 
 		// Initialize sync handlers
-		syncHandler1 = NewSelfReferentialUnshareHandler(t, service, selfCluster1)
-		syncHandler2 = NewSelfReferentialUnshareHandler(t, service, selfCluster2)
+		syncHandler1 = NewSelfReferentialSyncHandler(t, service, selfCluster1)
+		syncHandler2 = NewSelfReferentialSyncHandler(t, service, selfCluster2)
 
 		// Create a shared channel
 		channel := th.CreateChannel(th.Context, th.BasicTeam)

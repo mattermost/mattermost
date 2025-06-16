@@ -32,11 +32,8 @@ const (
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
-<<<<<<< HEAD
 	UnshareMessage               = "This channel is no longer shared."
-=======
 	// Default value for MaxMembersPerBatch is defined in config.go as ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
->>>>>>> master
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
