@@ -32,6 +32,7 @@ import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
+import BetaTag from 'components/widgets/tag/beta_tag';
 import WithTooltip from 'components/with_tooltip';
 
 import * as I18n from 'i18n/i18n.jsx';
@@ -39,7 +40,7 @@ import Constants from 'utils/constants';
 import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
 import Setting from './setting';
-import type {AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
+import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
 
 import './schema_admin_settings.scss';
 
@@ -330,10 +331,19 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             name = this.props.schema.name;
         }
 
+        const betaBadge = this.props.schema.isBeta && (
+            <BetaTag
+                variant='default'
+                size='sm'
+                className='admin-header-beta-badge'
+            />
+        );
+
         if (typeof name === 'string') {
             return (
                 <AdminHeader>
                     {name}
+                    {betaBadge}
                 </AdminHeader>
             );
         }
@@ -343,6 +353,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     {...name}
                 />
+                {betaBadge}
             </AdminHeader>
         );
     };
@@ -432,6 +443,13 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             return setting.isHidden(this.props.config, this.state, this.props.license);
         }
         return Boolean(setting.isHidden);
+    };
+
+    isSectionHidden = (section: AdminDefinitionConfigSchemaSection) => {
+        if (typeof section.isHidden === 'function') {
+            return section.isHidden(this.props.config, this.state, this.props.license);
+        }
+        return Boolean(section.isHidden);
     };
 
     buildButtonSetting = (setting: AdminDefinitionSetting) => {
@@ -1058,6 +1076,10 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             const sections: React.ReactNode[] = [];
 
             schema.sections.forEach((section) => {
+                if (this.isSectionHidden(section)) {
+                    return;
+                }
+
                 const settingsList: React.ReactNode[] = [];
                 if (section.settings) {
                     section.settings.forEach((setting) => {

@@ -266,7 +266,7 @@ const NewSearch = (): JSX.Element => {
         >
             <i className='icon icon-magnify'/>
             {(searchType === 'messages' || searchType === 'files') && (
-                <SearchTypeBadge>
+                <SearchTypeBadge data-testid='searchTypeBadge'>
                     {searchType === 'messages' && (
                         <FormattedMessage
                             id='search_bar.search_types.messages'

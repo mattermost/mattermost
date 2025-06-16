@@ -208,10 +208,6 @@
     "translation": "Impossible de quitter un canal de messages personnels."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Vous êtes le seul membre restant, essayez de supprimer le groupe privé plutôt que d'essayer de le quitter."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v a quitté le canal."
   },

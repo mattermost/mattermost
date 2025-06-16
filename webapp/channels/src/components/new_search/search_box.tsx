@@ -279,6 +279,10 @@ const SearchBox = forwardRef(
                     data-testid='searchBoxClose'
                     className='btn btn-icon btn-m'
                     onClick={closeHandler}
+                    aria-label={intl.formatMessage({
+                        id: 'search_bar.close',
+                        defaultMessage: 'Close',
+                    })}
                 >
                     <i className='icon icon-close'/>
                 </CloseIcon>

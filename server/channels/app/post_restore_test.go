@@ -12,6 +12,7 @@ import (
 )
 
 func TestRestorePostVersion(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

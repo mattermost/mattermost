@@ -208,10 +208,6 @@
     "translation": "无法退出私信频道。"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "你是本组最后一人，请删除私有组而不是离开。"
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v 已退出该频道。"
   },
@@ -5651,15 +5647,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "版本 119+"
+    "translation": "版本 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 132+"
+    "translation": "版本 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 132+"
+    "translation": "版本 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10616,5 +10612,177 @@
   {
     "id": "ent.saml.login.ldap_user_missing",
     "translation": "没有匹配该 SAML 用户的 AD/LDAP 服务器上的已注册用户。"
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} 功能在当前许可证下不可用"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "报告问题链接无效。必须为有效的 URL 且开始于 http:// 或 https://。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "报告问题链接为必填项。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "报告问题邮箱无效。必须为有效的邮箱地址。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "报告问题邮箱为必填项。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "无法更新一个同步的自定义个人资料字段的值"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "获取频道限制无效。"
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "获取字段限制无效。"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "用户没有加入该频道必需的属性。"
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "策略已强制的频道无法被更新。"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "OnSamlLogin 钩子中遇到错误。请联系您的系统管理员。"
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "无法获取频道。"
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "更新群组时出错。未找到用户名为“{{.Username}}”的用户。"
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "无法分配访问控制策略至频道。"
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "无法检查表达式。"
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "无法创建访问控制策略。"
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "无法删除访问控制策略。"
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "无法删除访问控制策略。"
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "无法从表达式生成可视 AST。"
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "无法获取访问控制自动补全。"
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "无法获取访问控制策略。"
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "无法获取频道的属性。"
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "无法获取要移除的频道成员。"
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "无法获取访问控制策略。"
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "无法获取策略的属性。"
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "无法初始化访问控制服务。"
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "访问控制服务未就绪。"
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "表达式中缺少一个属性。"
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "无法标准化策略表达式。"
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "无法查询表达式。"
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "无法保存访问控制策略。"
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "无法从频道取消分配访问控制策略。"
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "无法更改访问控制策略的活跃状态。"
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "评估访问控制策略失败。"
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "访问控制同步任务运行失败。"
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "无法继承访问控制策略。"
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "无法搜索访问控制策略。"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "频道横幅颜色必须为有效的十六进制颜色（例如：#FF0000 或 #F00）"
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "此许可证不支持 MySQL。"
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "无法创建群组同步成员资格。"
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "试用许可证不支持 MySQL 数据库。请使用 PostgreSQL 以访问试用功能。"
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "无法删除无效的群组同步成员资格。"
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "{{.Setting}} 中检测到前导或尾随空格。发现 \"{{.Value}}\"。"
   }
 ]

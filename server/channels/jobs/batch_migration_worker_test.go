@@ -20,8 +20,8 @@ type MockApp struct {
 	clusterInfo []*model.ClusterInfo
 }
 
-func (ma MockApp) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
-	return ma.clusterInfo
+func (ma MockApp) GetClusterStatus(rctx request.CTX) ([]*model.ClusterInfo, error) {
+	return ma.clusterInfo, nil
 }
 
 func (ma *MockApp) SetInSync() {
@@ -45,6 +45,8 @@ func (ma *MockApp) SetOutOfSync() {
 }
 
 func TestBatchMigrationWorker(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	setupBatchWorker := func(t *testing.T, th *TestHelper, mockApp *MockApp, doMigrationBatch func(model.StringMap, store.Store) (model.StringMap, bool, error)) (model.Worker, *model.Job) {
 		t.Helper()
 

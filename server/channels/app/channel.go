@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -181,6 +182,8 @@ func (a *App) CreateChannelWithUser(c request.CTX, channel *model.Channel, userI
 		return nil, err
 	}
 
+	a.addChannelToDefaultCategory(c, userID, channel)
+
 	var user *model.User
 	if user, err = a.GetUser(userID); err != nil {
 		return nil, err
@@ -208,6 +211,10 @@ func (a *App) RenameChannel(c request.CTX, channel *model.Channel, newChannelNam
 		return nil, model.NewAppError("RenameChannel", "api.channel.rename_channel.cant_rename_group_messages.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Clean up the channel name and display name
+	newChannelName = strings.TrimSpace(newChannelName)
+	newDisplayName = strings.TrimSpace(newDisplayName)
+
 	channel.Name = newChannelName
 	if newDisplayName != "" {
 		channel.DisplayName = newDisplayName
@@ -222,6 +229,8 @@ func (a *App) RenameChannel(c request.CTX, channel *model.Channel, newChannelNam
 }
 
 func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
+	a.handleChannelCategoryName(channel)
+
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
 	sc, nErr := a.Srv().Store().Channel().Save(c, channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if nErr != nil {
@@ -495,8 +504,8 @@ func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.
 	return channel, nil
 }
 
-func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId string) (*model.Channel, *model.AppError) {
-	channel, err := a.createGroupChannel(c, userIDs)
+func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	channel, err := a.createGroupChannel(c, userIDs, creatorId, channelOptions...)
 	if err != nil {
 		if err.Id == store.ChannelExistsError {
 			return channel, nil
@@ -516,7 +525,11 @@ func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId stri
 	return channel, nil
 }
 
-func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channel, *model.AppError) {
+// creatorId is used to determine if the group channel should have a
+// shared channel record attached. It can be empty if the caller
+// doesn't know who the creator is (e.g. the import process) and the
+// resulting group channel will not be shared
+func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	if len(userIDs) > model.ChannelGroupMaxUsers || len(userIDs) < model.ChannelGroupMinUsers {
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -530,7 +543,21 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJSON(userIDs), http.StatusBadRequest)
 	}
 
-	if !a.Config().FeatureFlags.EnableSharedChannelsDMs {
+	// extracts the creator and the remotes involved in the GM to
+	// decide how to handle the shared part of the creation
+	var creator *model.User
+	remoteIDs := map[string]bool{}
+	for _, user := range users {
+		if user.Id == creatorID {
+			creator = user
+		}
+		if user.IsRemote() {
+			remoteIDs[*user.RemoteId] = true
+		}
+	}
+	channelIsShared := len(remoteIDs) > 0
+
+	if channelIsShared && !a.Config().FeatureFlags.EnableSharedChannelsDMs {
 		for _, user := range users {
 			if user.IsRemote() {
 				return nil, model.NewAppError("createGroupChannel", "api.channel.create_group.remote_restricted.app_error", nil, "", http.StatusForbidden)
@@ -542,9 +569,10 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		Name:        model.GetGroupNameFromUserIds(userIDs),
 		DisplayName: model.GetGroupDisplayNameFromUsers(users, true),
 		Type:        model.ChannelTypeGroup,
+		Shared:      model.NewPointer(channelIsShared),
 	}
 
-	channel, nErr := a.Srv().Store().Channel().Save(c, group, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	channel, nErr := a.Srv().Store().Channel().Save(c, group, *a.Config().TeamSettings.MaxChannelsPerTeam, channelOptions...)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		var cErr *store.ErrConflict
@@ -600,6 +628,48 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		}
 	}
 
+	// When the newly created channel is shared, the creator is local
+	// and one of the participants is remote create a local shared
+	// channel record
+	if channel.IsShared() && creator != nil && !creator.IsRemote() {
+		sc := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ReadOnly:         false,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			SharePurpose:     channel.Purpose,
+			ShareHeader:      channel.Header,
+			CreatorId:        creatorID,
+			Type:             channel.Type,
+		}
+
+		if _, err := a.ShareChannel(c, sc); err != nil {
+			c.Logger().Error("Failed to share newly created group channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+		} else {
+			// if we could successfully share the channel, we invite
+			// the remotes involved to it
+			if sc, _ := a.getSharedChannelsService(); sc != nil {
+				for remoteID := range remoteIDs {
+					rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
+					if err != nil {
+						c.Logger().Error("Failed to send invite to group message channel, can't retrieve remote cluster", mlog.String("channel_id", channel.Id), mlog.String("remote_id", remoteID), mlog.Err(err))
+						continue
+					}
+
+					opts := []sharedchannel.InviteOption{sharedchannel.WithCreator(creatorID)}
+					for _, user := range users {
+						opts = append(opts, sharedchannel.WithDirectParticipant(user, remoteID))
+					}
+					if err := sc.SendChannelInvite(channel, creatorID, rc, opts...); err != nil {
+						c.Logger().Error("Failed to send invite to group message channel, error sending the invite", mlog.String("channel_id", channel.Id), mlog.String("remote_id", remoteID), mlog.Err(err))
+					}
+				}
+			}
+		}
+	}
+
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -635,6 +705,14 @@ func (a *App) GetGroupChannel(c request.CTX, userIDs []string) (*model.Channel, 
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
+	ok, appErr := a.ChannelAccessControlled(c, channel.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if ok && channel.Type != model.ChannelTypePrivate {
+		return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+	}
+
 	_, err := a.Srv().Store().Channel().Update(c, channel)
 	if err != nil {
 		var appErr *model.AppError
@@ -856,10 +934,13 @@ func (a *App) PatchChannel(c request.CTX, channel *model.Channel, patch *model.C
 	oldChannelPurpose := channel.Purpose
 
 	channel.Patch(patch)
+	a.handleChannelCategoryName(channel)
 	channel, err := a.UpdateChannel(c, channel)
 	if err != nil {
 		return nil, err
 	}
+
+	a.addChannelToDefaultCategory(c, userID, channel)
 
 	if oldChannelDisplayName != channel.DisplayName {
 		if err = a.PostUpdateChannelDisplayNameMessage(c, userID, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
@@ -1576,6 +1657,40 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 		newMember.SchemeAdmin = userShouldBeAdmin
 	}
 
+	if channel.Type == model.ChannelTypePrivate {
+		if ok, appErr := a.ChannelAccessControlled(c, channel.Id); ok {
+			if acs := a.Srv().Channels().AccessControl; acs != nil {
+				groupID, err := a.CpaGroupID()
+				if err != nil {
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
+						fmt.Sprintf("failed to get group: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
+				}
+
+				s, err := a.Srv().Store().Attributes().GetSubject(c, user.Id, groupID)
+				if err != nil {
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
+						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
+				}
+
+				decision, evalErr := acs.AccessEvaluation(c, model.AccessRequest{
+					Subject: *s,
+					Resource: model.Resource{
+						Type: model.AccessControlPolicyTypeChannel,
+						ID:   channel.Id,
+					},
+					Action: "join_channel",
+				})
+				if evalErr != nil {
+					return nil, evalErr
+				} else if !decision.Decision {
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.rejected", nil, "", http.StatusForbidden)
+				}
+			}
+		} else if appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	newMember, nErr = a.Srv().Store().Channel().SaveMember(c, newMember)
 	if nErr != nil {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
@@ -1595,6 +1710,13 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 
 	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
+
+	// Synchronize membership change for shared channels
+	if channel.IsShared() {
+		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+			scs.HandleMembershipChange(channel.Id, user.Id, true, user.GetRemoteID())
+		}
+	}
 
 	return newMember, nil
 }
@@ -1622,6 +1744,8 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 	if err != nil {
 		return nil, err
 	}
+
+	a.addChannelToDefaultCategory(c, user.Id, channel)
 
 	// We are sending separate websocket events to the user added and to the channel
 	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
@@ -1989,13 +2113,15 @@ func (a *App) GetAllChannels(c request.CTX, page, perPage int, opts model.Channe
 		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
 	storeOpts := store.ChannelSearchOpts{
-		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
-		IncludeDeleted:           opts.IncludeDeleted,
-		ExcludeChannelNames:      opts.ExcludeChannelNames,
-		GroupConstrained:         opts.GroupConstrained,
-		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
-		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
-		IncludePolicyID:          opts.IncludePolicyID,
+		NotAssociatedToGroup:               opts.NotAssociatedToGroup,
+		IncludeDeleted:                     opts.IncludeDeleted,
+		ExcludeChannelNames:                opts.ExcludeChannelNames,
+		GroupConstrained:                   opts.GroupConstrained,
+		ExcludeGroupConstrained:            opts.ExcludeGroupConstrained,
+		ExcludePolicyConstrained:           opts.ExcludePolicyConstrained,
+		IncludePolicyID:                    opts.IncludePolicyID,
+		AccessControlPolicyEnforced:        opts.AccessControlPolicyEnforced,
+		ExcludeAccessControlPolicyEnforced: opts.ExcludeAccessControlPolicyEnforced,
 	}
 	channels, err := a.Srv().Store().Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 	if err != nil {
@@ -2117,7 +2243,12 @@ func (s *Server) getChannelMemberLastViewedAt(c request.CTX, channelID string, u
 }
 
 func (a *App) GetChannelMembersPage(c request.CTX, channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
-	channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, page*perPage, perPage)
+	opts := model.ChannelMembersGetOptions{
+		ChannelID: channelID,
+		Offset:    page * perPage,
+		Limit:     perPage,
+	}
+	channelMembers, err := a.Srv().Store().Channel().GetMembers(opts)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelMembersPage", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2174,10 +2305,25 @@ func (a *App) GetChannelMembersForUserWithPagination(c request.CTX, userID strin
 	return members, nil
 }
 
-func (a *App) GetChannelMembersWithTeamDataForUserWithPagination(c request.CTX, userID string, page, perPage int) (model.ChannelMembersWithTeamData, *model.AppError) {
-	m, err := a.Srv().Store().Channel().GetMembersForUserWithPagination(userID, page, perPage)
+func (a *App) GetChannelMembersWithTeamDataForUserWithPagination(c request.CTX, userID string, cursor *model.ChannelMemberCursor) (model.ChannelMembersWithTeamData, *model.AppError) {
+	var m model.ChannelMembersWithTeamData
+	var err error
+	var method string
+	if cursor.Page == -1 {
+		m, err = a.Srv().Store().Channel().GetMembersForUserWithCursorPagination(userID, cursor.PerPage, cursor.FromChannelID)
+		method = "GetMembersForUserWithCursorPagination"
+	} else {
+		m, err = a.Srv().Store().Channel().GetMembersForUserWithPagination(userID, cursor.Page, cursor.PerPage)
+		method = "GetMembersForUserWithPagination"
+	}
 	if err != nil {
-		return nil, model.NewAppError("GetChannelMembersForUserWithPagination", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError(method, MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError(method, "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return m, nil
@@ -2363,13 +2509,6 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 		close(uc)
 	}()
 
-	mcc := make(chan store.StoreResult[int64], 1)
-	go func() {
-		count, err := a.Srv().Store().Channel().GetMemberCount(channelID, false)
-		mcc <- store.StoreResult[int64]{Data: count, NErr: err}
-		close(mcc)
-	}()
-
 	cresult := <-sc
 	if cresult.NErr != nil {
 		errCtx := map[string]any{"channel_id": channelID}
@@ -2391,22 +2530,12 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 			return model.NewAppError("LeaveChannel", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(uresult.NErr)
 		}
 	}
-	ccresult := <-mcc
-	if ccresult.NErr != nil {
-		return model.NewAppError("LeaveChannel", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(ccresult.NErr)
-	}
 
 	channel := cresult.Data
 	user := uresult.Data
-	membersCount := ccresult.Data
 
 	if channel.IsGroupOrDirect() {
 		err := model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
-		return err
-	}
-
-	if channel.Type == model.ChannelTypePrivate && membersCount == 1 {
-		err := model.NewAppError("LeaveChannel", "api.channel.leave.last_member.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 		return err
 	}
 
@@ -2622,6 +2751,14 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	userMsg.Add("channel_id", channel.Id)
 	userMsg.Add("remover_id", removerUserId)
 	a.Publish(userMsg)
+
+	// Synchronize membership change for shared channels
+	if channel.IsShared() {
+		// isAdd=false, empty remoteId means locally initiated
+		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+			scs.HandleMembershipChange(channel.Id, userIDToRemove, false, "")
+		}
+	}
 
 	return nil
 }
@@ -2964,22 +3101,25 @@ func (a *App) SearchAllChannels(c request.CTX, term string, opts model.ChannelSe
 		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
 	storeOpts := store.ChannelSearchOpts{
-		ExcludeChannelNames:      opts.ExcludeChannelNames,
-		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
-		IncludeDeleted:           opts.IncludeDeleted,
-		Deleted:                  opts.Deleted,
-		TeamIds:                  opts.TeamIds,
-		GroupConstrained:         opts.GroupConstrained,
-		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
-		PolicyID:                 opts.PolicyID,
-		IncludePolicyID:          opts.IncludePolicyID,
-		IncludeSearchByID:        opts.IncludeSearchById,
-		ExcludeRemote:            opts.ExcludeRemote,
-		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
-		Public:                   opts.Public,
-		Private:                  opts.Private,
-		Page:                     opts.Page,
-		PerPage:                  opts.PerPage,
+		ExcludeChannelNames:                opts.ExcludeChannelNames,
+		NotAssociatedToGroup:               opts.NotAssociatedToGroup,
+		IncludeDeleted:                     opts.IncludeDeleted,
+		Deleted:                            opts.Deleted,
+		TeamIds:                            opts.TeamIds,
+		GroupConstrained:                   opts.GroupConstrained,
+		ExcludeGroupConstrained:            opts.ExcludeGroupConstrained,
+		PolicyID:                           opts.PolicyID,
+		IncludePolicyID:                    opts.IncludePolicyID,
+		IncludeSearchByID:                  opts.IncludeSearchById,
+		ExcludeRemote:                      opts.ExcludeRemote,
+		ExcludePolicyConstrained:           opts.ExcludePolicyConstrained,
+		Public:                             opts.Public,
+		Private:                            opts.Private,
+		Page:                               opts.Page,
+		PerPage:                            opts.PerPage,
+		AccessControlPolicyEnforced:        opts.AccessControlPolicyEnforced,
+		ExcludeAccessControlPolicyEnforced: opts.ExcludeAccessControlPolicyEnforced,
+		ParentAccessControlPolicyId:        opts.ParentAccessControlPolicyId,
 	}
 
 	term = strings.TrimSpace(term)
@@ -3519,7 +3659,12 @@ func (a *App) forEachChannelMember(c request.CTX, channelID string, f func(model
 	page := 0
 
 	for {
-		channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, page*perPage, perPage)
+		opts := model.ChannelMembersGetOptions{
+			ChannelID: channelID,
+			Offset:    page * perPage,
+			Limit:     perPage,
+		}
+		channelMembers, err := a.Srv().Store().Channel().GetMembers(opts)
 		if err != nil {
 			return err
 		}
@@ -3816,4 +3961,73 @@ func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*m
 	}
 
 	return channel, nil
+}
+
+func (a *App) ChannelAccessControlled(c request.CTX, channelID string) (bool, *model.AppError) {
+	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return false, nil
+	}
+
+	_, err := a.Srv().Store().AccessControlPolicy().Get(c, channelID)
+	var nfErr *store.ErrNotFound
+	if err != nil && !errors.As(err, &nfErr) {
+		return false, model.NewAppError("ChannelIsAccessControlled", "app.channel.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	} else if errors.As(err, &nfErr) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (a *App) handleChannelCategoryName(channel *model.Channel) {
+	if *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting && strings.Contains(channel.DisplayName, "/") {
+		parts := strings.Split(channel.DisplayName, "/")
+		channel.DisplayName = strings.TrimSpace(strings.Join(parts[1:], "/"))
+		channel.DefaultCategoryName = strings.TrimSpace(parts[0])
+	}
+}
+
+func (a *App) addChannelToDefaultCategory(c request.CTX, userID string, channel *model.Channel) {
+	// Add channel to default category if specified
+	if channel.DefaultCategoryName != "" && *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting {
+		// Get user's categories for this team
+		categories, err := a.GetSidebarCategoriesForTeamForUser(c, userID, channel.TeamId)
+		if err != nil {
+			mlog.Error("Failed to get sidebar categories", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.Err(err))
+			return
+		}
+		// Find or create the category
+		var targetCategory *model.SidebarCategoryWithChannels
+		for _, category := range categories.Categories {
+			if category.Type == model.SidebarCategoryCustom && strings.EqualFold(category.DisplayName, channel.DefaultCategoryName) {
+				targetCategory = category
+				break
+			}
+		}
+
+		if targetCategory == nil {
+			// Create new category if it doesn't exist
+			targetCategory = &model.SidebarCategoryWithChannels{
+				SidebarCategory: model.SidebarCategory{
+					UserId:      userID,
+					TeamId:      channel.TeamId,
+					Type:        model.SidebarCategoryCustom,
+					DisplayName: channel.DefaultCategoryName,
+					Sorting:     model.SidebarCategorySortDefault,
+				},
+				Channels: []string{channel.Id},
+			}
+			_, err = a.CreateSidebarCategory(c, userID, channel.TeamId, targetCategory)
+			if err != nil {
+				mlog.Error("Failed to create default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+			}
+		} else {
+			// Add channel to existing category
+			targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
+			_, err = a.UpdateSidebarCategories(c, userID, channel.TeamId, []*model.SidebarCategoryWithChannels{targetCategory})
+			if err != nil {
+				mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+			}
+		}
+	}
 }

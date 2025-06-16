@@ -57,9 +57,11 @@ type Props = {
 }
 
 export default class TeamUrl extends React.PureComponent<Props, State> {
+    teamURLInput: React.RefObject<HTMLInputElement>;
+
     constructor(props: Props) {
         super(props);
-
+        this.teamURLInput = React.createRef();
         this.state = {
             nameError: '',
             isLoading: false,
@@ -95,6 +97,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                     defaultMessage='This field is required'
                 />),
             });
+            this.teamURLInput.current?.focus();
             return;
         }
 
@@ -109,6 +112,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                     }}
                 />),
             });
+            this.teamURLInput.current?.focus();
             return;
         }
 
@@ -119,6 +123,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                     defaultMessage="Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
                 />),
             });
+            this.teamURLInput.current?.focus();
             return;
         }
 
@@ -191,7 +196,15 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
         let nameError = null;
         let nameDivClass = 'form-group';
         if (this.state.nameError) {
-            nameError = <label className='control-label'>{this.state.nameError}</label>;
+            nameError = (
+                <label
+                    role='alert'
+                    className='control-label'
+                    id='teamURLInputError'
+                >
+                    {this.state.nameError}
+                </label>
+            );
             nameDivClass += ' has-error';
         }
 
@@ -221,13 +234,13 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                         className='signup-team-logo'
                         src={logoImage}
                     />
-                    <h5>
+                    <label htmlFor='teamURLInput'>
                         <FormattedMessage
                             id='create_team.team_url.teamUrl'
                             tagName='strong'
                             defaultMessage='Team URL'
                         />
-                    </h5>
+                    </label>
                     <div className={nameDivClass}>
                         <div className='row'>
                             <div className='col-sm-11'>
@@ -242,6 +255,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                                     <input
                                         id='teamURLInput'
                                         type='text'
+                                        ref={this.teamURLInput}
                                         className='form-control'
                                         placeholder=''
                                         maxLength={128}
@@ -250,6 +264,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                                         onFocus={this.handleFocus}
                                         onChange={this.handleTeamURLInputChange}
                                         spellCheck='false'
+                                        aria-describedby='teamURLInputError'
                                     />
                                 </div>
                             </div>

@@ -8,6 +8,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -29,6 +30,13 @@ func StoreOverride(override any) Option {
 func StoreOverrideWithCache(override store.Store) Option {
 	return func(s *Server) error {
 		s.platformOptions = append(s.platformOptions, platform.StoreOverrideWithCache(override))
+		return nil
+	}
+}
+
+func StoreOption(option sqlstore.Option) Option {
+	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.StoreOption(option))
 		return nil
 	}
 }
@@ -110,8 +118,10 @@ func SkipPostInitialization() Option {
 	}
 }
 
-type AppOption func(a *App)
-type AppOptionCreator func() []AppOption
+type (
+	AppOption        func(a *App)
+	AppOptionCreator func() []AppOption
+)
 
 func ServerConnector(ch *Channels) AppOption {
 	return func(a *App) {

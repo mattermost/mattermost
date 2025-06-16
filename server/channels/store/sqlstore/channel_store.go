@@ -108,7 +108,7 @@ func channelMemberSliceColumns() []string {
 
 // channelSliceColumns returns fields of the channel as a string slice.
 // Optionally, you can add a prefix (accepts only 1 value) to the fields.
-func channelSliceColumns(prefix ...string) []string {
+func channelSliceColumns(isSelect bool, prefix ...string) []string {
 	var p string
 	if len(prefix) == 1 {
 		p = prefix[0] + "."
@@ -116,7 +116,7 @@ func channelSliceColumns(prefix ...string) []string {
 		panic("cannot accept multiple prefixes")
 	}
 
-	return []string{
+	columns := []string{
 		p + "Id",
 		p + "CreateAt",
 		p + "UpdateAt",
@@ -137,7 +137,18 @@ func channelSliceColumns(prefix ...string) []string {
 		p + "TotalMsgCountRoot",
 		p + "LastRootPostAt",
 		p + "BannerInfo",
+		p + "DefaultCategoryName",
 	}
+
+	if isSelect {
+		if p == "" {
+			p = "Channels."
+		}
+
+		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %sId) AS PolicyEnforced", p))
+	}
+
+	return columns
 }
 
 func channelToSlice(channel *model.Channel) []any {
@@ -162,6 +173,7 @@ func channelToSlice(channel *model.Channel) []any {
 		channel.TotalMsgCountRoot,
 		channel.LastRootPostAt,
 		channel.BannerInfo,
+		channel.DefaultCategoryName,
 	}
 }
 
@@ -493,7 +505,7 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 		metrics:  metrics,
 	}
 
-	s.tableSelectQuery = s.getQueryBuilder().Select(channelSliceColumns()...).From("Channels")
+	s.tableSelectQuery = s.getQueryBuilder().Select(channelSliceColumns(true)...).From("Channels")
 
 	s.sidebarCategorySelectQuery = s.getQueryBuilder().
 		Select("SidebarCategories.Id", "SidebarCategories.UserId", "SidebarCategories.TeamId", "SidebarCategories.SortOrder", "SidebarCategories.Sorting", "SidebarCategories.Type", "SidebarCategories.DisplayName", "SidebarCategories.Muted", "SidebarCategories.Collapsed").
@@ -604,7 +616,11 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 }
 
 // Save writes the (non-direct) channel to the database.
-func (s SqlChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (_ *model.Channel, err error) {
+func (s SqlChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (_ *model.Channel, err error) {
+	for _, option := range channelOptions {
+		option(channel)
+	}
+
 	if channel.DeleteAt != 0 {
 		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
 	}
@@ -731,7 +747,7 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 
 	insert := s.getQueryBuilder().
 		Insert("Channels").
-		Columns(channelSliceColumns()...).
+		Columns(channelSliceColumns(false)...).
 		Values(channelToSlice(channel)...)
 	if s.DriverName() == model.DatabaseDriverMysql {
 		insert = insert.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Id=Id"))
@@ -824,7 +840,8 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 			Shared=:Shared,
 			TotalMsgCountRoot=:TotalMsgCountRoot,
 			LastRootPostAt=:LastRootPostAt,
-		    BannerInfo=:BannerInfo
+		    BannerInfo=:BannerInfo,
+			DefaultCategoryName=:DefaultCategoryName
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
@@ -908,7 +925,7 @@ func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, er
 //nolint:unparam
 func (s SqlChannelStore) GetMany(ids []string, allowFromCache bool) (model.ChannelList, error) {
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns()...).
+		Select(channelSliceColumns(true)...).
 		From("Channels").
 		Where(sq.Eq{"Id": ids})
 	sql, args, err := query.ToSql()
@@ -1070,7 +1087,7 @@ func (s SqlChannelStore) PermanentDeleteMembersByChannel(rctx request.CTX, chann
 
 func (s SqlChannelStore) GetChannels(teamId string, userId string, opts *model.ChannelSearchOpts) (model.ChannelList, error) {
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns("ch")...).
+		Select(channelSliceColumns(true, "ch")...).
 		From("Channels ch, ChannelMembers cm").
 		Where(
 			sq.And{
@@ -1125,18 +1142,19 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, opts *model.C
 
 func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error) {
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns("Channels")...).
-		From("Channels, ChannelMembers").
+		Select(channelSliceColumns(true, "Channels")...).
+		From("Channels, ChannelMembers, Teams").
 		Where(
 			sq.And{
-				sq.Expr("Id = ChannelId"),
-				sq.Eq{"UserId": userId},
+				sq.Expr("Channels.Id = ChannelMembers.ChannelId"),
+				sq.Expr("Channels.TeamId = Teams.Id"),
+				sq.Eq{"ChannelMembers.UserId": userId},
 			},
 		).
-		OrderBy("Id ASC")
+		OrderBy("Channels.Id ASC")
 
 	if fromChannelID != "" {
-		query = query.Where(sq.Gt{"Id": fromChannelID})
+		query = query.Where(sq.Gt{"Channels.Id": fromChannelID})
 	}
 
 	if pageSize != -1 {
@@ -1146,15 +1164,24 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 	if includeDeleted {
 		if lastDeleteAt != 0 {
 			// We filter by non-archived, and archived >= a timestamp.
-			query = query.Where(sq.Or{
-				sq.Eq{"DeleteAt": 0},
-				sq.GtOrEq{"DeleteAt": lastDeleteAt},
+			query = query.Where(sq.And{
+				sq.Or{
+					sq.Eq{"Channels.DeleteAt": 0},
+					sq.GtOrEq{"Channels.DeleteAt": lastDeleteAt},
+				},
+				sq.Or{
+					sq.Eq{"Teams.DeleteAt": 0},
+					sq.GtOrEq{"Teams.DeleteAt": lastDeleteAt},
+				},
 			})
 		}
 		// If lastDeleteAt is not set, we include everything. That means no filter is needed.
 	} else {
-		// Don't include archived channels.
-		query = query.Where(sq.Eq{"DeleteAt": 0})
+		// Don't include archived channels or channels from deleted teams
+		query = query.Where(sq.And{
+			sq.Eq{"Channels.DeleteAt": 0},
+			sq.Eq{"Teams.DeleteAt": 0},
+		})
 	}
 
 	sql, args, err := query.ToSql()
@@ -1233,7 +1260,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 			Select("count(c.Id)")
 	} else {
 		selectQuery = s.getQueryBuilder().
-			Select(channelSliceColumns("c")...).
+			Select(channelSliceColumns(true, "c")...).
 			Columns(
 				"Teams.DisplayName AS TeamDisplayName",
 				"Teams.Name AS TeamName",
@@ -1280,6 +1307,11 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	if opts.ExcludePolicyConstrained {
 		query = query.Where("RetentionPoliciesChannels.ChannelId IS NULL")
 	}
+	if opts.ExcludeAccessControlPolicyEnforced {
+		query = query.Where("c.Id NOT IN (SELECT ID From AccessControlPolicies WHERE Type = ?)", model.AccessControlPolicyTypeChannel)
+	} else if opts.AccessControlPolicyEnforced {
+		query = query.InnerJoin("AccessControlPolicies acp ON c.Id = acp.ID")
+	}
 
 	return query
 }
@@ -1296,7 +1328,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset in
 		})
 
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns("Channels")...).
+		Select(channelSliceColumns(true, "Channels")...).
 		From("Channels").
 		Join("PublicChannels c ON (c.Id = Channels.Id)").
 		Where(sq.Eq{
@@ -1321,7 +1353,7 @@ func (s SqlChannelStore) GetPrivateChannelsForTeam(teamId string, offset int, li
 	channels := model.ChannelList{}
 
 	builder := s.getQueryBuilder().
-		Select(channelSliceColumns()...).
+		Select(channelSliceColumns(true)...).
 		From("Channels").
 		Where(sq.Eq{"Type": model.ChannelTypePrivate, "TeamId": teamId, "DeleteAt": 0}).
 		OrderBy("DisplayName").
@@ -1342,7 +1374,7 @@ func (s SqlChannelStore) GetPrivateChannelsForTeam(teamId string, offset int, li
 
 func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) (model.ChannelList, error) {
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns("Channels")...).
+		Select(channelSliceColumns(true, "Channels")...).
 		From("Channels").
 		Join("PublicChannels pc ON (pc.Id = Channels.Id)").
 		Where(sq.Eq{
@@ -1386,7 +1418,7 @@ func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds
 	var data model.ChannelList
 
 	builder := s.getQueryBuilder().
-		Select(channelSliceColumns("Channels")...).
+		Select(channelSliceColumns(true, "Channels")...).
 		From("Channels").
 		Join("PublicChannels pc ON (pc.Id = Channels.Id)").
 		Where(sq.And{
@@ -1481,7 +1513,7 @@ func (s SqlChannelStore) getByNames(teamId string, names []string, allowFromCach
 		}
 
 		builder := s.getQueryBuilder().
-			Select(channelSliceColumns()...).
+			Select(channelSliceColumns(true)...).
 			From("Channels").
 			Where(cond)
 
@@ -1516,7 +1548,7 @@ func (s SqlChannelStore) GetByName(teamId string, name string, allowFromCache bo
 
 func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bool, allowFromCache bool) (*model.Channel, error) {
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns()...).
+		Select(channelSliceColumns(true)...).
 		From("Channels").
 		Where(sq.Eq{"Name": name}).
 		Where(sq.Or{
@@ -1567,7 +1599,7 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 	channels := model.ChannelList{}
 
 	builder := s.getQueryBuilder().
-		Select(channelSliceColumns()...).
+		Select(channelSliceColumns(true)...).
 		From("Channels").
 		Where(sq.Or{
 			sq.Eq{"TeamId": teamId},
@@ -2038,22 +2070,34 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 	return updated, nil
 }
 
-func (s SqlChannelStore) GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error) {
-	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
+func (s SqlChannelStore) GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error) {
+	query := s.channelMembersForTeamWithSchemeSelectQuery.
 		Where(sq.Eq{
-			"ChannelId": channelID,
-		}).
-		Limit(uint64(limit)).
-		Offset(uint64(offset)).
-		ToSql()
+			"ChannelId": opts.ChannelID,
+		})
+
+	if opts.UpdatedAfter > 0 {
+		query = query.Where(sq.Gt{"ChannelMembers.LastUpdateAt": opts.UpdatedAfter})
+		query = query.OrderBy("ChannelMembers.LastUpdateAt")
+	}
+
+	if opts.Limit > 0 {
+		query = query.Limit(uint64(opts.Limit))
+	}
+
+	if opts.Offset > 0 {
+		query = query.Offset(uint64(opts.Offset))
+	}
+
+	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "GetMember_ToSql ChannelID=%s", channelID)
+		return nil, errors.Wrapf(err, "GetMember_ToSql ChannelID=%s", opts.ChannelID)
 	}
 
 	dbMembers := channelMemberWithSchemeRolesList{}
 	err = s.GetReplica().Select(&dbMembers, sql, args...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelId=%s", channelID)
+		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelId=%s", opts.ChannelID)
 	}
 
 	return dbMembers.ToModel(), nil
@@ -2883,7 +2927,7 @@ func (s SqlChannelStore) GetAll(teamId string) ([]*model.Channel, error) {
 
 func (s SqlChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error) {
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns()...).
+		Select(channelSliceColumns(true)...).
 		From("Channels").
 		Where(sq.Eq{"Id": channelIds}).
 		OrderBy("Name")
@@ -2907,7 +2951,7 @@ func (s SqlChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bo
 
 func (s SqlChannelStore) GetChannelsWithTeamDataByIds(channelIDs []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns("c")...).
+		Select(channelSliceColumns(true, "c")...).
 		Columns(
 			"COALESCE(t.DisplayName, '') As TeamDisplayName",
 			"COALESCE(t.Name, '') AS TeamName",
@@ -2937,7 +2981,7 @@ func (s SqlChannelStore) GetChannelsWithTeamDataByIds(channelIDs []string, inclu
 
 func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns("Channels")...).
+		Select(channelSliceColumns(true, "Channels")...).
 		From("Channels").
 		Join("Posts ON Channels.Id = Posts.ChannelId").
 		Where(sq.Eq{
@@ -3077,6 +3121,20 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(userId string, page, pe
 	return dbMembers.ToModel(), nil
 }
 
+func (s SqlChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChannelID string) (model.ChannelMembersWithTeamData, error) {
+	dbMembers := channelMemberWithTeamWithSchemeRolesList{}
+	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND ChannelId > ? ORDER BY ChannelId ASC Limit ?", userId, fromChannelID, perPage)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with and userId=%s", userId)
+	}
+
+	if len(dbMembers) == 0 {
+		return nil, store.NewErrNotFound("ChannelMembers", "userId="+userId)
+	}
+
+	return dbMembers.ToModel(), nil
+}
+
 func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
 	teamMemberIDs := []string{}
 	if err := s.GetReplica().Select(&teamMemberIDs, `SELECT tm.UserId
@@ -3096,7 +3154,7 @@ func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, e
 
 func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error) {
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns("c")...).
+		Select(channelSliceColumns(true, "c")...).
 		Columns(
 			"t.DisplayName AS TeamDisplayName",
 			"t.Name AS TeamName",
@@ -3153,7 +3211,7 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 }
 
 func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error) {
-	query := s.getQueryBuilder().Select(channelSliceColumns()...).
+	query := s.getQueryBuilder().Select(channelSliceColumns(true, "c")...).
 		From("Channels c").
 		Where(sq.Eq{"c.TeamId": teamID}).
 		OrderBy("c.DisplayName").
@@ -3189,7 +3247,7 @@ func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, te
 
 func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
 	// shared query
-	query := s.getSubQueryBuilder().Select(channelSliceColumns("C")...).
+	query := s.getSubQueryBuilder().Select(channelSliceColumns(true, "C")...).
 		From("Channels AS C").
 		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
 		Limit(50).
@@ -3280,7 +3338,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userID string, term string) ([]*model.Channel, error) {
 	// create the main query
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns("C")...).
+		Select(channelSliceColumns(true, "C")...).
 		Columns("OtherUsers.Username AS DisplayName").
 		From("Channels AS C").
 		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
@@ -3325,7 +3383,7 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userID string
 }
 
 func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
-	query := s.getQueryBuilder().Select(channelSliceColumns("Channels")...).
+	query := s.getQueryBuilder().Select(channelSliceColumns(true, "Channels")...).
 		From("Channels").
 		Join("PublicChannels c ON (c.Id = Channels.Id)").
 		Where(sq.Eq{"c.TeamId": teamId}).
@@ -3347,7 +3405,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 }
 
 func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (model.ChannelList, error) {
-	queryBase := s.getQueryBuilder().Select(channelSliceColumns("Channels")...).
+	queryBase := s.getQueryBuilder().Select(channelSliceColumns(true, "Channels")...).
 		From("Channels").
 		Join("Channels c ON (c.Id = Channels.Id)").
 		Where(sq.And{
@@ -3391,7 +3449,7 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 }
 
 func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
-	query := s.getQueryBuilder().Select(channelSliceColumns("Channels")...).
+	query := s.getQueryBuilder().Select(channelSliceColumns(true, "Channels")...).
 		From("Channels").
 		Join("PublicChannels c ON (c.Id = Channels.Id)").
 		Join("ChannelMembers cm ON (c.Id = cm.ChannelId)").
@@ -3427,7 +3485,7 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 		selectQuery = s.getQueryBuilder().Select("count(*)")
 	} else {
 		selectQuery = s.getQueryBuilder().
-			Select(channelSliceColumns("c")...)
+			Select(channelSliceColumns(true, "c")...)
 		if opts.IncludeTeamInfo {
 			selectQuery = selectQuery.Columns(
 				"t.DisplayName AS TeamDisplayName",
@@ -3543,6 +3601,18 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			})
 	}
 
+	if opts.ExcludeAccessControlPolicyEnforced {
+		query = query.Where("c.Id NOT IN (SELECT ID From AccessControlPolicies WHERE Type = ?)", model.AccessControlPolicyTypeChannel)
+	} else if opts.ParentAccessControlPolicyId != "" {
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			query = query.Where(sq.Expr("c.Id IN (SELECT ID From AccessControlPolicies WHERE Type = ? AND Data->'imports' @> ?)", model.AccessControlPolicyTypeChannel, fmt.Sprintf("%q", opts.ParentAccessControlPolicyId)))
+		} else {
+			query = query.Where(sq.Expr("c.Id IN (SELECT ID From AccessControlPolicies WHERE Type = ? AND JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?))", model.AccessControlPolicyTypeChannel, fmt.Sprintf("%q", opts.ParentAccessControlPolicyId)))
+		}
+	} else if opts.AccessControlPolicyEnforced {
+		query = query.InnerJoin("AccessControlPolicies acp ON acp.ID = c.Id")
+	}
+
 	return query
 }
 
@@ -3587,7 +3657,7 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (
 			"c.DeleteAt": 0,
 		})
 
-	query := s.getQueryBuilder().Select(channelSliceColumns("Channels")...).
+	query := s.getQueryBuilder().Select(channelSliceColumns(true, "Channels")...).
 		From("Channels").
 		Join("PublicChannels c ON (c.Id=Channels.Id)").
 		Where(sq.And{
@@ -3794,7 +3864,7 @@ func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgre
 			Having(having).
 			Limit(model.ChannelSearchDefaultLimit)
 
-		return s.getQueryBuilder().Select(channelSliceColumns()...).
+		return s.getQueryBuilder().Select(channelSliceColumns(true)...).
 			From("Channels").
 			Where(sq.Expr("Id IN (?)", subq))
 	}
@@ -3806,7 +3876,7 @@ func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgre
 		having = append(having, sq.Expr(baseLikeTerm, "%"+term+"%"))
 	}
 
-	cc := s.getSubQueryBuilder().Select(channelSliceColumns("c")...).
+	cc := s.getSubQueryBuilder().Select(channelSliceColumns(true, "c")...).
 		From("Channels c").
 		Join("ChannelMembers cm ON c.Id=cm.ChannelId").
 		Join("Users u on u.Id = cm.UserId").
@@ -4140,7 +4210,7 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() (err error) {
 
 func (s SqlChannelStore) GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, error) {
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns("Channels")...).
+		Select(channelSliceColumns(true, "Channels")...).
 		Columns(
 			"Teams.Name as TeamName",
 			"Schemes.Name as SchemeName",
@@ -4208,7 +4278,7 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error) {
 	directChannelsForExport := []*model.DirectChannelForExport{}
 	query := s.getQueryBuilder().
-		Select(channelSliceColumns("Channels")...).
+		Select(channelSliceColumns(true, "Channels")...).
 		From("Channels").
 		Where(sq.And{
 			sq.Gt{"Channels.Id": afterId},

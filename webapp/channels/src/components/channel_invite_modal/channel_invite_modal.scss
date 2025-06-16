@@ -1,0 +1,45 @@
+@import 'utils/mixins';
+
+.channel-invite {
+    &__wrapper {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    &__content {
+        padding: 0;
+
+        .multi-select__container {
+            padding: 0 !important;
+        }
+
+        .multi-select__footer {
+            padding: 24px 0 !important;
+        }
+
+        .multi-select__wrapper {
+            margin: -10px 0 0 -5px !important;
+        }
+
+        .invite-as-guest {
+            margin-right: 0 !important;
+        }
+    }
+    
+    &__username {
+        font-size: 12px;
+    }
+    
+    &__user-mapping {
+        position: absolute;
+        right: 20px;
+    }
+
+    &__policy-banner {
+        .TagGroup {
+            margin-top: 12px;
+        }
+    }
+}

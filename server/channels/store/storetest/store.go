@@ -70,6 +70,7 @@ type Store struct {
 	PropertyFieldStore              mocks.PropertyFieldStore
 	PropertyValueStore              mocks.PropertyValueStore
 	AccessControlPolicyStore        mocks.AccessControlPolicyStore
+	AttributesStore                 mocks.AttributesStore
 }
 
 func (s *Store) SetContext(context context.Context)            { s.context = context }
@@ -158,6 +159,9 @@ func (s *Store) ReplicaLagTime() error { return nil }
 func (s *Store) AccessControlPolicy() store.AccessControlPolicyStore {
 	return &s.AccessControlPolicyStore
 }
+func (s *Store) Attributes() store.AttributesStore {
+	return &s.AttributesStore
+}
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,
@@ -202,5 +206,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ChannelBookmarkStore,
 		&s.ScheduledPostStore,
 		&s.AccessControlPolicyStore,
+		&s.AttributesStore,
 	)
 }

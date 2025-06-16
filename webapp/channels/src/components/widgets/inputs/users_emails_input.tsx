@@ -262,9 +262,22 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
     MultiValueRemove = (props: MultiValueRemoveProps<EmailInvite | UserProfile, true>) => {
         const {children, innerProps} = props;
 
-        return (<div {...innerProps}>
-            {children || <CloseCircleSolidIcon/>}
-        </div>);
+        return (
+            <div
+                {...innerProps}
+                role='button'
+                tabIndex={0}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        innerProps.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
+                    }
+                }}
+            >
+                {children || <CloseCircleSolidIcon/>}
+            </div>
+        );
     };
 
     components = {

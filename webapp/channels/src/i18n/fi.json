@@ -989,7 +989,6 @@
   "channel_loader.postedImage": " lähetti kuvan",
   "channel_loader.socketError": "Tarkista yhteytesi, Mattermostiin ei saada yhteyttä. Jos ongelma jatkuu, pyydä järjestelmänvalvojaa [tarkistamaan WebSocket-portin](!https://about.mattermost.com/default-websocket-port-help).",
   "channel_loader.someone": "Joku",
-  "channel_loader.something": " teki jotain uutta",
   "channel_loader.unknown_error": "Vastaanotimme odottamattoman tilakoodin palvelimelta.",
   "channel_loader.uploadedFile": " lähetti tiedoston",
   "channel_loader.uploadedImage": " lähetti kuvan",

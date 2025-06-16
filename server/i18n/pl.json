@@ -208,10 +208,6 @@
     "translation": "Nie można opuścić kanału wiadomości bezpośrednich."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Jesteś ostatnim uczestnikiem grupy, spróbuj usunąć Prywatny Kanał zamiast go opuszczać."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v opuścił kanał."
   },
@@ -10650,5 +10646,89 @@
   {
     "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
     "translation": "Wymagane jest zgłoszenie problemu pocztą."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Nie można zaktualizować wartości dla zsynchronizowanego pola atrybutu profilu niestandardowego"
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Nie udało się zweryfikować danych importu załącznika. Nieprawidłowa ścieżka: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Nie udało się zweryfikować danych załączonego postu."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Pole importu obrazu emoji ma nieprawidłową ścieżkę: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Nie udało się zweryfikować danych załącznika."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Nie udało się zweryfikować danych załącznika odpowiedzi."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "Ścieżka do obrazu profilu użytkownika jest nieprawidłowa: \"{{.Path}}\""
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "Licencje próbne nie są obsługiwane dla baz danych MySQL. Aby uzyskać dostęp do funkcji testowych, użyj PostgreSQL."
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "Ta licencja nie obsługuje MySQL."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Limit Pobierz Kanały nie jest ważny."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Pobierz limit pól jest nieprawidłowy."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "Użytkownik nie posiada wymaganych atrybutów, aby dołączyć do Kanału."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Kanały wymuszone przez politykę nie mogą być aktualizowane."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "Wystąpił błąd w haku OnSamlLogin. Skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Nie udało się uzyskać kanału."
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Błąd aktualizacji grupy. Nie można znaleźć użytkownika o nazwie użytkownika \"{{.Username}}\"."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Nie można przypisać zasad kontroli dostępu do Kanałów."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "Nie można sprawdzić wyrażenia."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Nie można utworzyć polityki kontroli dostępu."
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Nie można utworzyć członkostwa z możliwością synchronizacji grup."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Nie można usunąć nieprawidłowych członkostw synchronizowanych grup."
   }
 ]

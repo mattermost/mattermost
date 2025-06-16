@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -64,6 +65,7 @@ type Channels struct {
 	Saml             einterfaces.SamlInterface
 	Notification     einterfaces.NotificationInterface
 	Ldap             einterfaces.LdapInterface
+	AccessControl    einterfaces.AccessControlServiceInterface
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -129,6 +131,23 @@ func NewChannels(s *Server) (*Channels, error) {
 		ch.AddConfigListener(func(_, _ *model.Config) {
 			if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
 				s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			}
+		})
+	}
+	if accessControlServiceInterface != nil {
+		app := New(ServerConnector(ch))
+		ch.AccessControl = accessControlServiceInterface(app)
+
+		appErr := ch.AccessControl.Init(request.EmptyContext(s.Log()))
+		if appErr != nil && appErr.StatusCode != http.StatusNotImplemented {
+			s.Log().Error("An error occurred while initializing Access Control", mlog.Err(appErr))
+		}
+
+		app.AddLicenseListener(func(newCfg, old *model.License) {
+			if ch.AccessControl != nil {
+				if appErr := ch.AccessControl.Init(request.EmptyContext(s.Log())); appErr != nil {
+					s.Log().Error("An error occurred while initializing Access Control", mlog.Err(appErr))
+				}
 			}
 		})
 	}

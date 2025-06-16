@@ -208,10 +208,6 @@
     "translation": "Ein Direktnachrichtenkanal kann nicht verlassen werden."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Du bist das letzte Mitglied. Versuche die private Gruppe zu löschen, anstatt sie zu verlassen."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v hat den Kanal verlassen."
   },
@@ -10646,5 +10642,185 @@
   {
     "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
     "translation": "\"Melde ein Problem\"-Mail ist erforderlich."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Wert für ein synchronisiertes benutzerdefiniertes Profilattributfeld kann nicht aktualisiert werden"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Das Get Channels Limit ist nicht gültig."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Das Get fields Limit ist nicht gültig."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "Der Nutzer verfügt nicht über die erforderlichen Attribute, um dem Kanal beizutreten."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Richtlinienerzwungene Kanäle können nicht aktualisiert werden."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "Beim OnSamlLogin-Hook ist ein Fehler aufgetreten. Bitte wende dich an deinen Systemadministrator."
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Kann den Kanal nicht holen."
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Fehler beim Aktualisieren der Gruppe. Der Benutzer mit dem Benutzernamen \"{{.Username}}\" konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Es ist nicht möglich, den Kanälen eine Zugriffskontrollrichtlinie zuzuweisen."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "Konnte den Ausdruck nicht überprüfen."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Die Zugriffskontrollrichtlinie konnte nicht erstellt werden."
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Die Zugriffskontrollrichtlinie konnte nicht gelöscht werden."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Die Zugriffskontrollrichtlinie kann nicht gelöscht werden."
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "Ich konnte das visuelle AST nicht aus dem Ausdruck generieren."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Die Zugangskontrolle konnte nicht automatisch abgeschlossen werden."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Die Zugriffskontrollrichtlinien konnten nicht abgerufen werden."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Es konnten keine Attribute für den Kanal ermittelt werden."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Ich konnte die Kanalmitglieder zum Entfernen nicht holen."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Die Zugriffskontrollrichtlinie kann nicht abgerufen werden."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "Es konnten keine Attribute für die Richtlinie ermittelt werden."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Der Zugriffskontrolldienst kann nicht initialisiert werden."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "Der Zugangskontrolldienst ist nicht bereit."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "Ein Attribut fehlt in dem Ausdruck."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "Der Ausdruck der Richtlinie konnte nicht normalisiert werden."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "Die Abfrage nach dem Ausdruck konnte nicht durchgeführt werden."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Die Zugriffskontrollrichtlinie kann nicht gespeichert werden."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Konnte nicht nach Zugriffskontrollrichtlinien suchen."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Die Zuweisung der Zugriffskontrollrichtlinie für Kanäle konnte nicht aufgehoben werden."
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "Der aktive Status der Zugriffskontrollrichtlinie konnte nicht geändert werden."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Die Auswertung der Zugriffskontrollrichtlinie ist fehlgeschlagen."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Der Synchronisierungsauftrag für die Zugriffskontrolle konnte nicht ausgeführt werden."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Die Zugriffskontrollrichtlinie konnte nicht vererbt werden."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Die Farbe des Kanal-Banners muss eine gültige Hex-Farbe sein (z.B. #FF0000 oder #F00)"
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "Diese Lizenz unterstützt MySQL nicht."
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "Testlizenzen werden für MySQL-Datenbanken nicht unterstützt. Bitte verwende PostgreSQL, um auf die Testfunktionen zuzugreifen."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Führendes oder nachgestelltes Leerzeichen für {{.Setting}} erkannt. Gefunden \"{{.Value}}\"."
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Es ist nicht möglich, synchronisierbare Gruppenmitgliedschaften zu erstellen."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Es ist nicht möglich, ungültige synchronisierbare Gruppenmitgliedschaften zu löschen."
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Die Importdaten des Anhangs konnten nicht validiert werden. Ungültiger Pfad: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Die Validierung der Anhangsdaten der Direktnachricht ist fehlgeschlagen."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Das Feld \"Emoji-Bild importieren\" hat einen ungültigen Pfad: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Die Daten des Nachrichtenanhangs konnten nicht validiert werden."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Die Daten des Antwortanhangs konnten nicht validiert werden."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "Der Pfad zum Benutzerprofilbild ist ungültig: \"{{.Path}}\""
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Die Daten aus dem vorherigen Auftrag konnten nicht extrahiert werden."
   }
 ]

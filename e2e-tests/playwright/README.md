@@ -57,8 +57,12 @@ npm run test -- login
 # Run a specific test of a project
 npm run test -- login --project=chrome
 
-# Or run all tests
+# Run all tests (including visual tests)
 npm run test
+
+# Run CI tests (excludes visual tests, runs only in Chrome)
+# Note: visual tests run in a separate workflow
+npm run test:ci
 ```
 
 #### 3. Inspect test results at `/results/output` folder when something fails unexpectedly.
@@ -79,6 +83,68 @@ npm run playwright-ui
 > - Execution status filters
 >
 > The "setup" project runs the initial configuration tests in `specs/test_setup.ts` (ensuring plugins are loaded and server deployment is correct). These setup tests are typically run only once before other tests and may be unchecked for subsequent runs, though they can remain checked if needed.
+
+## Visual Testing
+
+All visual tests must be placed in the `specs/visual/` directory and tagged with `@visual` in the test tags array. This organization ensures proper test discovery and execution patterns.
+
+Visual tests are used to verify the UI appearance is consistent across browsers and remains stable across code changes. There are two types of visual tests supported:
+
+1. **Built-in snapshot testing**: Uses Playwright's built-in snapshot comparison
+2. **Percy integration**: Uses the Percy service for more advanced visual testing and reporting
+
+### CI Pipeline for Visual Tests
+
+In CI environments, visual tests run in a separate dedicated pipeline:
+
+- Regular tests run with `npm run test:ci` which excludes all tests with the `@visual` tag
+- Visual tests run in a separate workflow using the Playwright Docker container
+- This separation prevents visual tests from slowing down the main test pipeline
+- It also ensures visual tests always run in a consistent environment
+
+### Writing Visual Tests
+
+When creating visual tests:
+
+1. **Follow the test documentation format** like other tests:
+
+    - Include JSDoc with `@objective` tag
+    - Use action-oriented test title
+    - Add proper comment prefixes (`// #` for actions, `// *` for verifications)
+
+2. **Place in the correct location**:
+
+    - Put visual tests in the `specs/visual/` directory, organized by feature area
+    - Example: `specs/visual/channels/intro_channel.spec.ts`
+
+3. **Add required tags**:
+
+    - Always include `@visual` tag
+    - Add feature-specific tags as needed (e.g., `@login_page`, `@channel_page`)
+
+4. **Manage dynamic content**:
+    - Use `pw.hideDynamicChannelsContent()` to hide elements that could change between runs
+    - Take snapshots only after UI is fully loaded and stable
+
+Example:
+
+```typescript
+/**
+ * @objective Capture visual snapshot of the landing/login page
+ */
+test(
+    'displays landing page with login options',
+    {tag: ['@visual', '@landing_page']},
+    async ({pw, page, browserName, viewport}, testInfo) => {
+        // # Go to landing login page
+        await pw.landingLoginPage.goto();
+        await pw.landingLoginPage.toBeVisible();
+
+        // * Verify landing page appears as expected
+        await pw.matchSnapshot(testInfo, {page, browserName, viewport});
+    },
+);
+```
 
 ## Updating screenshots is done strictly via Playwright's docker container for consistency
 
@@ -106,11 +172,15 @@ npm run test -- login --project=chrome
 # Or run all tests
 npm run test
 
-# Run visual tests
-npm run test -- visual
+# Run visual tests (must be run inside Docker for consistency)
+npm run test -- specs/visual
 
-# Update snapshots of visual tests
-npm run test -- visual --update-snapshots
+# Update snapshots of visual tests (must be run inside Docker)
+npm run test -- specs/visual --update-snapshots
+
+# Run Percy visual tests (requires PERCY_TOKEN environment variable)
+export PERCY_TOKEN=<your-percy-token>
+npm run percy:docker
 ```
 
 ## Page/Component Object Model

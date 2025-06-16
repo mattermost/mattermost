@@ -1348,10 +1348,6 @@
     "translation": "%v ने चैनल छोड़ दिया।"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "आप अकेले सदस्य हैं, छोड़ने के बजाय निजी चैनल को निकालने का प्रयास करें।"
-  },
-  {
     "id": "api.command_code.name",
     "translation": "कोड"
   },

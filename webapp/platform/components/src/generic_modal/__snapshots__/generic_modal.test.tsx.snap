@@ -39,6 +39,9 @@ exports[`GenericModal should match snapshot for base case 1`] = `
               <div
                 class="modal-header"
               >
+                <div
+                  class="GenericModal__header__text_container"
+                />
                 <button
                   aria-label="Close"
                   class="close"
@@ -55,9 +58,6 @@ exports[`GenericModal should match snapshot for base case 1`] = `
                     Close
                   </span>
                 </button>
-                <div
-                  class="GenericModal__header__text_container"
-                />
               </div>
               <div
                 class="modal-body"

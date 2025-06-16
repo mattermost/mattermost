@@ -252,6 +252,7 @@ jobs:
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
       ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
+      TEST: "cypress"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_CYPRESS }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
@@ -259,6 +260,7 @@ jobs:
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
       ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
       ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
+      PR_NUMBER: "${{ inputs.PR_NUMBER }}"
     secrets:
       MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
@@ -269,6 +271,8 @@ jobs:
       REPORT_TM4J_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_TEST_CYCLE_LINK_PREFIX }}"
       CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
+      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
+      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
 
   e2e-fulltest-playwright:
     needs:
@@ -284,7 +288,7 @@ jobs:
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
-      TEST: playwright
+      TEST: "playwright"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
@@ -292,12 +296,15 @@ jobs:
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
       ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
       ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
+      PR_NUMBER: "${{ inputs.PR_NUMBER }}"
     secrets:
       MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
       PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
+      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
+      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
 
   notify-user:
     runs-on: ubuntu-latest
@@ -322,6 +329,7 @@ jobs:
       CYCLE_URL: "${{ needs.generate-test-variables.outputs.CYCLE_URL }}"
       RUN_CYPRESS: "${{inputs.RUN_CYPRESS == 'true' || ''}}"
       RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT == 'true' || ''}}"
+      PLAYWRIGHT_REPORT_URL: "${{ needs.e2e-fulltest-playwright.outputs.playwright_report_url }}"
     steps:
       - name: ci/notify-user-test-completion
         run: |
@@ -330,7 +338,7 @@ jobs:
           E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
           Results summary:
           - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
-          - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see commit status check \`$STATUS_CHECK_CONTEXT-playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
+          - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report URL]($PLAYWRIGHT_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
           
           The run summary artifacts are available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
           EOF

@@ -58,7 +58,7 @@ describe('Authentication', () => {
         cy.visit('/login');
 
         // # Remove autofocus from login input
-        cy.get('.login-body-card-content').should('be.visible').focus();
+        cy.get('.login-body-card-title').click();
 
         // # Clear email/username field and type username
         cy.apiGetClientLicense().then(({isLicensed}) => {

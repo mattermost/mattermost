@@ -156,7 +156,7 @@ func wrapBinaryParamStringMap(ok bool, props model.StringMap) model.StringMap {
 type morphWriter struct{}
 
 func (l *morphWriter) Write(in []byte) (int, error) {
-	mlog.Debug(string(in))
+	mlog.Debug(strings.TrimSpace(string(in)))
 	return len(in), nil
 }
 

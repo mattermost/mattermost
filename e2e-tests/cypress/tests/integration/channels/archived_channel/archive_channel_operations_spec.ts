@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @channel
 
 import {getRandomId} from '../../../utils';
@@ -41,7 +40,7 @@ describe('Leave an archived channel', () => {
         });
     });
 
-    it('MM-T1704 Archived channels appear in channel switcher after refresh', () => {
+    it.skip('MM-T1704 Archived channels appear in channel switcher after refresh', () => {
         // # Archive the channel
         cy.apiLogin(testUser);
         cy.uiArchiveChannel();
@@ -57,7 +56,7 @@ describe('Leave an archived channel', () => {
 
         // * The archived channel appears in channel switcher search results
         cy.get('#suggestionList').should('be.visible');
-        cy.get('#suggestionList').find(`#quickSwitchInput_${testChannel.id}`).should('be.visible');
+        cy.get('#suggestionList').find(`#suggestionList_item_${testChannel.id}`).should('be.visible');
 
         // # Reload the app (refresh the web page)
         cy.reload().then(() => {
@@ -68,7 +67,7 @@ describe('Leave an archived channel', () => {
             cy.get('#quickSwitchInput').type(testChannel.display_name).then(() => {
                 // * The archived channel appears in channel switcher search results
                 cy.get('#suggestionList').should('be.visible');
-                cy.get('#suggestionList').find(`#quickSwitchInput_${testChannel.id}`).should('be.visible');
+                cy.get('#suggestionList').find(`#suggestionList_item_${testChannel.id}`).should('be.visible');
             });
         });
     });

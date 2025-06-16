@@ -95,7 +95,7 @@ const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchTyp
     const clearSearch = useCallback(() => {
         setSearchTerms('');
         dispatch(updateSearchTerms(''));
-        dispatch(updateSearchType('messages'));
+        dispatch(updateSearchType(''));
         focus(0);
     }, [focus, setSearchTerms]);
 

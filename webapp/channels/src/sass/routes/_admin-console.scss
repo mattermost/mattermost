@@ -13,6 +13,7 @@
     height: 100%;
     color: functions.v(center-channel-color);
     grid-area: center;
+    scroll-behavior: smooth;
 
     > div {
         width: 100%;

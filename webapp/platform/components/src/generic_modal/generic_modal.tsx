@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {useFocusTrap} from '../hooks/useFocusTrap';
 import './generic_modal.scss';
@@ -128,6 +128,8 @@ export const GenericModal: React.FC<Props> = ({
     dataTestId,
     delayFocusTrap,
 }) => {
+    const intl = useIntl();
+
     // Create a ref for the modal container
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -290,7 +292,7 @@ export const GenericModal: React.FC<Props> = ({
                 className='GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher'
             >
                 {showHeader && (
-                    <Modal.Header closeButton={showCloseButton}>
+                    <Modal.Header closeButton={false}>
                         <div className='GenericModal__header__text_container'>
                             {compassDesign && (
                                 <>
@@ -306,6 +308,19 @@ export const GenericModal: React.FC<Props> = ({
                                 </div>
                             )}
                         </div>
+                        {showCloseButton && (
+                            <button
+                                type='button'
+                                className='close'
+                                onClick={onHideCallback}
+                                aria-label={intl.formatMessage({id: 'generic_modal.close', defaultMessage: 'Close'})}
+                            >
+                                <span aria-hidden='true'>{'×'}</span>
+                                <span className='sr-only'>
+                                    <FormattedMessage id='generic_modal.close' defaultMessage='Close' />
+                                </span>
+                            </button>
+                        )}
                     </Modal.Header>
                 )}
                 <Modal.Body className={classNames({divider: bodyDivider, 'overflow-visible': bodyOverflowVisible})}>

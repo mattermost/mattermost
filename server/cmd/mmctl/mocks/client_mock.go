@@ -387,6 +387,21 @@ func (mr *MockClientMockRecorder) DeleteExport(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExport", reflect.TypeOf((*MockClient)(nil).DeleteExport), arg0, arg1)
 }
 
+// DeleteImport mocks base method.
+func (m *MockClient) DeleteImport(arg0 context.Context, arg1 string) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteImport", arg0, arg1)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteImport indicates an expected call of DeleteImport.
+func (mr *MockClientMockRecorder) DeleteImport(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteImport", reflect.TypeOf((*MockClient)(nil).DeleteImport), arg0, arg1)
+}
+
 // DeleteIncomingWebhook mocks base method.
 func (m *MockClient) DeleteIncomingWebhook(arg0 context.Context, arg1 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2074,7 +2089,7 @@ func (mr *MockClientMockRecorder) SoftDeleteTeam(arg0, arg1 interface{}) *gomock
 }
 
 // SyncLdap mocks base method.
-func (m *MockClient) SyncLdap(arg0 context.Context, arg1 bool) (*model.Response, error) {
+func (m *MockClient) SyncLdap(arg0 context.Context, arg1 *bool) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SyncLdap", arg0, arg1)
 	ret0, _ := ret[0].(*model.Response)

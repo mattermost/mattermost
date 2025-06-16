@@ -63,7 +63,7 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                         id='installed_integrations.audience_urls'
                         defaultMessage='Audience URLs: {urls}'
                         values={{
-                            urls: outgoingOAuthConnection.audiences.join(', '),
+                            urls: <code>{outgoingOAuthConnection.audiences.join(', ')}</code>,
                         }}
                     />
                 </span>
@@ -74,7 +74,7 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                         id='installed_integrations.token_url'
                         defaultMessage='Token URL: {url}'
                         values={{
-                            url: outgoingOAuthConnection.oauth_token_url,
+                            url: <code>{outgoingOAuthConnection.oauth_token_url}</code>,
                         }}
                     />
                 </span>
@@ -124,7 +124,7 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                         id='installed_integrations.client_id'
                         defaultMessage='Client ID: '
                     />
-                    <strong>{outgoingOAuthConnection.client_id}</strong>
+                    <strong><code>{outgoingOAuthConnection.client_id}</code></strong>
                 </span>
             </div>
             <div className='item-details__row'>

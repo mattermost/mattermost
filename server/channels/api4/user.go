@@ -3094,14 +3094,62 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	// For backward compatibility purposes
+	if c.Params.Page != -1 {
+		cursor := &model.ChannelMemberCursor{
+			Page:    c.Params.Page,
+			PerPage: c.Params.PerPage,
+		}
+		members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, cursor)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if err := json.NewEncoder(w).Encode(members); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(members); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	// The new model streams data using NDJSON format (each JSON object on a new line)
+	pageSize := 100
+	fromChannelID := ""
+
+	// Set the correct content type for NDJSON
+	w.Header().Set("Content-Type", "application/x-ndjson")
+
+	enc := json.NewEncoder(w)
+
+	for {
+		cursor := &model.ChannelMemberCursor{
+			Page:          -1,
+			PerPage:       pageSize,
+			FromChannelID: fromChannelID,
+		}
+
+		members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, cursor)
+		if err != nil {
+			// If the page size was a perfect multiple of the total number of results,
+			// then the last query will always return zero results.
+			if fromChannelID != "" && err.Id == app.MissingChannelMemberError {
+				break
+			}
+			c.Err = err
+			return
+		}
+
+		for _, member := range members {
+			if err := enc.Encode(member); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+		}
+
+		if len(members) < pageSize {
+			break
+		}
+
+		fromChannelID = members[len(members)-1].ChannelId
 	}
 }
 

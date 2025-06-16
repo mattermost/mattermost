@@ -48,6 +48,7 @@ func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trial
 		CompanyName:           trialRequest.CompanyName,
 		CompanySize:           trialRequest.CompanySize,
 		CompanyCountry:        trialRequest.CompanyCountry,
+		ServerVersion:         model.CurrentVersion,
 	}
 
 	if !sanitizedRequest.IsValid() {
