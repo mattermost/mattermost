@@ -32,8 +32,6 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 		return errors.New("empty sync message")
 	}
 
-	// Parse the sync message to get channel ID for debugging
-	var sm model.SyncMsg
 	if scs.server.Log().IsLevelEnabled(mlog.LvlSharedChannelServiceMessagesInbound) {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceMessagesInbound, "inbound message",
 			mlog.String("remote", rc.DisplayName),
@@ -41,6 +39,7 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 		)
 	}
 
+	var sm model.SyncMsg
 	if err := json.Unmarshal(msg.Payload, &sm); err != nil {
 		return fmt.Errorf("invalid sync message: %w", err)
 	}
