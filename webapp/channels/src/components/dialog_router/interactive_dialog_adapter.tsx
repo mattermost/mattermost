@@ -19,7 +19,7 @@ import type {DoAppCallResult} from 'types/apps';
 type ValidationError = {
     field: string;
     message: string;
-    code: 'REQUIRED' | 'TOO_LONG' | 'TOO_SHORT' | 'INVALID_TYPE' | 'INVALID_FORMAT';
+    code: 'REQUIRED' | 'TOO_LONG' | 'TOO_SHORT' | 'INVALID_TYPE' | 'INVALID_FORMAT' | 'CONVERSION_ERROR';
 };
 
 type ConversionContext = {

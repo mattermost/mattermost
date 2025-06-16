@@ -915,16 +915,10 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         });
     });
 
-    describe('Error Handling', () => {
-        test('should render component with error-handling submit action', async () => {
-            const mockSubmitWithFieldErrors = jest.fn().mockResolvedValue({
-                data: {
-                    error: 'Form validation failed',
-                    errors: {
-                        'test-field': 'This field is required',
-                        'email-field': 'Invalid email format',
-                    },
-                },
+    describe('Submit and Cancel Functionality', () => {
+        test('should handle submit adapter with successful response', async () => {
+            const mockSubmitSuccess = jest.fn().mockResolvedValue({
+                data: {}, // Success response (no error or errors)
             });
 
             const textElement: DialogElement = {
@@ -933,7 +927,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 display_name: 'Test Field',
                 help_text: '',
                 placeholder: '',
-                default: '',
+                default: 'test value',
                 optional: false,
                 max_length: 0,
                 min_length: 0,
@@ -946,7 +940,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [textElement],
                 actions: {
-                    submitInteractiveDialog: mockSubmitWithFieldErrors,
+                    submitInteractiveDialog: mockSubmitSuccess,
                 },
             };
 
@@ -955,28 +949,35 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 mockState,
             );
 
-            // Wait for component to render
             await waitFor(() => {
                 expect(getByTestId('apps-form-container')).toBeInTheDocument();
             });
 
-            // Verify the form element was converted correctly
-            expect(getByTestId('field-test-field')).toBeInTheDocument();
-            expect(getByTestId('field-type-test-field')).toHaveTextContent(AppFieldTypes.TEXT);
-            expect(getByTestId('field-required-test-field')).toHaveTextContent('required');
+            // Verify MockAppsFormContainer received the submit action
+            expect(MockAppsFormContainer).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    actions: expect.objectContaining({
+                        doAppSubmit: expect.any(Function),
+                    }),
+                }),
+                {},
+            );
         });
 
-        test('should render component with general error submit action', async () => {
-            const mockSubmitWithGeneralError = jest.fn().mockResolvedValue({
+        test('should handle submit adapter with server validation errors', async () => {
+            const mockSubmitWithErrors = jest.fn().mockResolvedValue({
                 data: {
-                    error: 'Server internal error',
+                    error: 'Validation failed',
+                    errors: {
+                        'test-field': 'Field is required',
+                    },
                 },
             });
 
             const props = {
                 ...baseProps,
                 actions: {
-                    submitInteractiveDialog: mockSubmitWithGeneralError,
+                    submitInteractiveDialog: mockSubmitWithErrors,
                 },
             };
 
@@ -989,10 +990,21 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 expect(getByTestId('apps-form-container')).toBeInTheDocument();
             });
 
-            expect(getByTestId('form-title')).toHaveTextContent('Test Dialog');
+            // Get the submit adapter function
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const submitAdapter = mockCall.actions.doAppSubmit;
+
+            // Test the submit adapter directly
+            const result = await submitAdapter({
+                values: {'test-field': 'test value'},
+            });
+
+            expect(result.error).toBeDefined();
+            expect(result.error.text).toBe('Validation failed');
+            expect(result.error.data.errors).toEqual({'test-field': 'Field is required'});
         });
 
-        test('should render component with network error submit action', async () => {
+        test('should handle submit adapter with network error', async () => {
             const mockSubmitWithNetworkError = jest.fn().mockResolvedValue({
                 error: {
                     message: 'Network connection failed',
@@ -1015,18 +1027,25 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 expect(getByTestId('apps-form-container')).toBeInTheDocument();
             });
 
-            expect(getByTestId('form-title')).toHaveTextContent('Test Dialog');
+            // Get the submit adapter function and test error handling
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const submitAdapter = mockCall.actions.doAppSubmit;
+
+            const result = await submitAdapter({
+                values: {},
+            });
+
+            expect(result.error).toBeDefined();
+            expect(result.error.type).toBe('error');
         });
 
-        test('should render component with successful submit action', async () => {
-            const mockSubmitSuccess = jest.fn().mockResolvedValue({
-                data: {}, // Success response (no error or errors)
-            });
+        test('should handle submit adapter exception', async () => {
+            const mockSubmitThrows = jest.fn().mockRejectedValue(new Error('Submit failed'));
 
             const props = {
                 ...baseProps,
                 actions: {
-                    submitInteractiveDialog: mockSubmitSuccess,
+                    submitInteractiveDialog: mockSubmitThrows,
                 },
             };
 
@@ -1039,7 +1058,494 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 expect(getByTestId('apps-form-container')).toBeInTheDocument();
             });
 
-            expect(getByTestId('form-title')).toHaveTextContent('Test Dialog');
+            // Test exception handling in submit adapter
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const submitAdapter = mockCall.actions.doAppSubmit;
+
+            const result = await submitAdapter({
+                values: {},
+            });
+
+            expect(result.error).toBeDefined();
+            expect(result.error.text).toBe('Submit failed');
+            expect(mockConsole.error).toHaveBeenCalledWith(
+                '[InteractiveDialogAdapter]',
+                'Dialog submission failed',
+                expect.any(Object),
+            );
+        });
+
+        test('should handle cancel adapter with notifyOnCancel enabled', async () => {
+            const mockSubmit = jest.fn().mockResolvedValue({data: {}});
+
+            const props = {
+                ...baseProps,
+                notifyOnCancel: true,
+                actions: {
+                    submitInteractiveDialog: mockSubmit,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the cancel adapter (onHide) function
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const cancelAdapter = mockCall.onHide;
+
+            await cancelAdapter();
+
+            expect(mockSubmit).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    cancelled: true,
+                    url: baseProps.url,
+                    callback_id: baseProps.callbackId,
+                    state: baseProps.state,
+                }),
+            );
+        });
+
+        test('should handle cancel adapter with notifyOnCancel disabled', async () => {
+            const mockSubmit = jest.fn();
+
+            const props = {
+                ...baseProps,
+                notifyOnCancel: false,
+                actions: {
+                    submitInteractiveDialog: mockSubmit,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the cancel adapter function
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const cancelAdapter = mockCall.onHide;
+
+            await cancelAdapter();
+
+            // Should not call submit when notifyOnCancel is false
+            expect(mockSubmit).not.toHaveBeenCalled();
+        });
+
+        test('should handle cancel adapter exception gracefully', async () => {
+            const mockSubmitThrows = jest.fn().mockRejectedValue(new Error('Cancel failed'));
+
+            const props = {
+                ...baseProps,
+                notifyOnCancel: true,
+                actions: {
+                    submitInteractiveDialog: mockSubmitThrows,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the cancel adapter function
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const cancelAdapter = mockCall.onHide;
+
+            // Should not throw even if submit fails
+            await expect(cancelAdapter()).resolves.toBeUndefined();
+
+            expect(mockConsole.error).toHaveBeenCalledWith(
+                '[InteractiveDialogAdapter]',
+                'Failed to notify server of dialog cancellation',
+                expect.any(Object),
+            );
+        });
+    });
+
+    describe('Form Value Conversion', () => {
+        test('should convert complex form values back to dialog submission format', async () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'text-field',
+                    type: 'text',
+                    display_name: 'Text Field',
+                    default: 'default text',
+                    optional: false,
+                    max_length: 100,
+                    min_length: 5,
+                    help_text: '',
+                    placeholder: '',
+                    subtype: '',
+                    data_source: '',
+                    options: [],
+                },
+                {
+                    name: 'numeric-field',
+                    type: 'text',
+                    display_name: 'Numeric Field',
+                    default: '42',
+                    optional: false,
+                    subtype: 'number',
+                    max_length: 0,
+                    min_length: 0,
+                    help_text: '',
+                    placeholder: '',
+                    data_source: '',
+                    options: [],
+                },
+                {
+                    name: 'bool-field',
+                    type: 'bool',
+                    display_name: 'Boolean Field',
+                    default: 'true',
+                    optional: false,
+                    max_length: 0,
+                    min_length: 0,
+                    help_text: '',
+                    placeholder: '',
+                    subtype: '',
+                    data_source: '',
+                    options: [],
+                },
+                {
+                    name: 'select-field',
+                    type: 'select',
+                    display_name: 'Select Field',
+                    default: 'option2',
+                    optional: false,
+                    options: [
+                        {text: 'Option 1', value: 'option1'},
+                        {text: 'Option 2', value: 'option2'},
+                    ],
+                    max_length: 0,
+                    min_length: 0,
+                    help_text: '',
+                    placeholder: '',
+                    subtype: '',
+                    data_source: '',
+                },
+            ];
+
+            const mockSubmit = jest.fn().mockResolvedValue({data: {}});
+
+            const props = {
+                ...baseProps,
+                elements,
+                actions: {
+                    submitInteractiveDialog: mockSubmit,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the submit adapter function
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const submitAdapter = mockCall.actions.doAppSubmit;
+
+            // Test form value conversion
+            await submitAdapter({
+                values: {
+                    'text-field': 'updated text',
+                    'numeric-field': 123.45,
+                    'bool-field': true,
+                    'select-field': {label: 'Option 1', value: 'option1'},
+                },
+            });
+
+            expect(mockSubmit).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    submission: {
+                        'text-field': 'updated text',
+                        'numeric-field': 123.45,
+                        'bool-field': true,
+                        'select-field': 'option1',
+                    },
+                }),
+            );
+        });
+
+        test('should validate field lengths during conversion when validation enabled', async () => {
+            const textElement: DialogElement = {
+                name: 'text-field',
+                type: 'text',
+                display_name: 'Text Field',
+                default: '',
+                optional: false,
+                max_length: 10,
+                min_length: 5,
+                help_text: '',
+                placeholder: '',
+                subtype: '',
+                data_source: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [textElement],
+                conversionOptions: {
+                    validateInputs: true,
+                },
+                actions: {
+                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the submit adapter function
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const submitAdapter = mockCall.actions.doAppSubmit;
+
+            // Test with value that's too short
+            await submitAdapter({
+                values: {
+                    'text-field': 'abc', // Too short (< 5 chars)
+                },
+            });
+
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                '[InteractiveDialogAdapter]',
+                'Field value too short',
+                expect.objectContaining({
+                    fieldName: 'text-field',
+                    actualLength: 3,
+                    minLength: 5,
+                }),
+            );
+
+            // Test with value that's too long
+            await submitAdapter({
+                values: {
+                    'text-field': 'this is way too long', // Too long (> 10 chars)
+                },
+            });
+
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                '[InteractiveDialogAdapter]',
+                'Field value too long',
+                expect.objectContaining({
+                    fieldName: 'text-field',
+                    actualLength: 20,
+                    maxLength: 10,
+                }),
+            );
+        });
+
+        test('should handle missing required values during conversion', async () => {
+            const requiredElement: DialogElement = {
+                name: 'required-field',
+                type: 'text',
+                display_name: 'Required Field',
+                default: '',
+                optional: false,
+                max_length: 0,
+                min_length: 0,
+                help_text: '',
+                placeholder: '',
+                subtype: '',
+                data_source: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [requiredElement],
+                conversionOptions: {
+                    validateInputs: true,
+                },
+                actions: {
+                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the submit adapter function
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const submitAdapter = mockCall.actions.doAppSubmit;
+
+            // Test with null value for required field
+            await submitAdapter({
+                values: {
+                    'required-field': null,
+                },
+            });
+
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                '[InteractiveDialogAdapter]',
+                'Required field has null/undefined value',
+                expect.objectContaining({
+                    fieldName: 'required-field',
+                    fieldType: 'text',
+                    isOptional: false,
+                }),
+            );
+        });
+    });
+
+    describe('No-op Handlers', () => {
+        test('should handle lookup calls with no-op implementation', async () => {
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...baseProps}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the lookup handler
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const lookupHandler = mockCall.actions.doAppLookup;
+
+            const result = await lookupHandler();
+
+            expect(result.data).toEqual({
+                type: 'ok',
+                data: {items: []},
+            });
+        });
+
+        test('should handle refresh calls with no-op implementation', async () => {
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...baseProps}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the refresh handler
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const refreshHandler = mockCall.actions.doAppFetchForm;
+
+            const result = await refreshHandler();
+
+            expect(result.data).toEqual({
+                type: 'ok',
+            });
+        });
+
+        test('should warn about unsupported features when validation enabled', async () => {
+            const props = {
+                ...baseProps,
+                conversionOptions: {
+                    validateInputs: true,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the handlers
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const lookupHandler = mockCall.actions.doAppLookup;
+            const refreshHandler = mockCall.actions.doAppFetchForm;
+
+            await lookupHandler();
+            await refreshHandler();
+
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                '[InteractiveDialogAdapter]',
+                'Lookup calls are not supported in Interactive Dialogs',
+                expect.objectContaining({
+                    feature: 'dynamic lookup',
+                    suggestion: 'Consider migrating to full Apps Framework',
+                }),
+            );
+
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                '[InteractiveDialogAdapter]',
+                'Refresh on select is not supported in Interactive Dialogs',
+                expect.objectContaining({
+                    feature: 'refresh on select',
+                    suggestion: 'Consider migrating to full Apps Framework',
+                }),
+            );
+        });
+
+        test('should handle postEphemeralCallResponseForContext as no-op', async () => {
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...baseProps}/>,
+                mockState,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the ephemeral handler
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const ephemeralHandler = mockCall.actions.postEphemeralCallResponseForContext;
+
+            // Should not throw
+            expect(() => {
+                ephemeralHandler();
+            }).not.toThrow();
+        });
+    });
+
+    describe('Dynamic Import Loading', () => {
+        test('should handle loading state before AppsFormContainer loads', async () => {
+            // Mock useState to simulate loading state
+            const mockSetState = jest.fn();
+            const mockUseState = jest.
+                spyOn(React, 'useState').
+                mockReturnValueOnce([null, mockSetState]); // Component not loaded initially
+
+            const {container} = renderWithContext(
+                <InteractiveDialogAdapter {...baseProps}/>,
+                mockState,
+            );
+
+            // Should render nothing during loading
+            expect(container.firstChild).toBeNull();
+
+            // Restore useState
+            mockUseState.mockRestore();
         });
     });
 });
