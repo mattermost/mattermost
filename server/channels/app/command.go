@@ -254,10 +254,15 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 			// Standard mention resolution - try to find user by username
 			user, nErr := a.Srv().Store().User().GetByUsername(mention)
 
+			var nfErr *store.ErrNotFound
+			if nErr != nil && !errors.As(nErr, &nfErr) {
+				c.Logger().Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
+				return
+			}
+
 			// If it's a http.StatusNotFound error, check for usernames in substrings
 			// without trailing punctuation
 			if nErr != nil {
-				var nfErr *store.ErrNotFound
 				trimmed, ok := trimUsernameSpecialChar(mention)
 				for ; ok; trimmed, ok = trimUsernameSpecialChar(trimmed) {
 					userFromTrimmed, nErr := a.Srv().Store().User().GetByUsername(trimmed)
