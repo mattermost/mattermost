@@ -16,7 +16,9 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
     }
   >
     <button
-      aria-expanded="false"
+      aria-controls="center_actions_dropdown_post_id_1"
+      aria-expanded={true}
+      aria-haspopup={true}
       aria-label="actions"
       className="post-menu__item post-menu__item--active"
       id="center_actions_button_post_id_1"
@@ -30,8 +32,7 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
   </WithTooltip>
   <Menu
     ariaLabel="Post extra options"
-    id="center_actions_dropdown_post_id_1"
-    key="center_actions_dropdown_post_id_1"
+    listId="center_actions_dropdown_post_id_1"
     openLeft={true}
     openUp={false}
   >
@@ -66,7 +67,9 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
     }
   >
     <button
-      aria-expanded="false"
+      aria-controls="center_actions_dropdown_post_id_1"
+      aria-expanded={true}
+      aria-haspopup={true}
       aria-label="actions"
       className="post-menu__item post-menu__item--active"
       id="center_actions_button_post_id_1"
@@ -80,8 +83,7 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
   </WithTooltip>
   <Menu
     ariaLabel="Post extra options"
-    id="center_actions_dropdown_post_id_1"
-    key="center_actions_dropdown_post_id_1"
+    listId="center_actions_dropdown_post_id_1"
     openLeft={true}
     openUp={false}
   >
@@ -135,7 +137,9 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
     }
   >
     <button
-      aria-expanded="false"
+      aria-controls="center_actions_dropdown_post_id_1"
+      aria-expanded={true}
+      aria-haspopup={true}
       aria-label="actions"
       className="post-menu__item post-menu__item--active"
       id="center_actions_button_post_id_1"
@@ -149,8 +153,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
   </WithTooltip>
   <Menu
     ariaLabel="Post extra options"
-    id="center_actions_dropdown_post_id_1"
-    key="center_actions_dropdown_post_id_1"
+    listId="center_actions_dropdown_post_id_1"
     openLeft={true}
     openUp={false}
   >

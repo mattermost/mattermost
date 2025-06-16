@@ -373,6 +373,8 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             }
         }
 
+        const menuId = `${this.props.location}_actions_dropdown_${this.props.post.id}`;
+
         return (
             <MenuWrapper
                 open={this.props.isMenuOpen}
@@ -395,17 +397,18 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                             'post-menu__item--active': this.props.isMenuOpen,
                         })}
                         type='button'
-                        aria-expanded='false'
+                        aria-controls={menuId}
+                        aria-expanded={this.props.isMenuOpen}
+                        aria-haspopup={true}
                     >
                         <i className={'icon icon-apps'}/>
                     </button>
                 </WithTooltip>
                 <Menu
-                    id={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
+                    listId={menuId}
                     openLeft={true}
                     openUp={this.state.openUp}
                     ariaLabel={formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'})}
-                    key={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
                 >
                     {menuItems}
                 </Menu>
