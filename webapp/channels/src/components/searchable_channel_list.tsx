@@ -525,18 +525,33 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             </>
         );
         const channelDropdown = (
-            <Menu.Container
-                menuButton={{
-                    id: 'menuWrapper',
-                    children: menuButton,
-                }}
-                menu={{
-                    id: 'browseChannelsDropdown',
-                    'aria-label': this.props.intl.formatMessage({id: 'more_channels.title', defaultMessage: 'Browse channels'}),
-                }}
-            >
-                {channelDropdownItems.map((item) => item)}
-            </Menu.Container >
+            <>
+                <div
+                    role='status'
+                    aria-atomic='true'
+                    className='sr-only'
+                >
+                    {this.props.intl.formatMessage({
+                        id: 'more_channels.channel_type_filter.filter_type_set',
+                        defaultMessage: 'Channel type filter set to {filterType}',
+                    }, {
+                        filterType: this.props.filter,
+                    })}
+                </div>
+                <Menu.Container
+                    menuButton={{
+                        id: 'menuWrapper',
+                        children: menuButton,
+                        'aria-label': this.props.intl.formatMessage({id: 'more_channels.channel_type_filter', defaultMessage: 'Channel type filter'}),
+                    }}
+                    menu={{
+                        id: 'browseChannelsDropdown',
+                        'aria-label': this.props.intl.formatMessage({id: 'more_channels.channel_type_filter', defaultMessage: 'Channel type filter'}),
+                    }}
+                >
+                    {channelDropdownItems.map((item) => item)}
+                </Menu.Container>
+            </>
         );
 
         const hideJoinedButtonClass = classNames('get-app__checkbox', {checked: this.props.rememberHideJoinedChannelsChecked});

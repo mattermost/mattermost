@@ -62,9 +62,10 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
               }
               tabIndex={-1}
               url="/api/v4/users/1/image?_=1620680333191"
+              username="first.last1"
             >
               <img
-                alt="user profile image"
+                alt="first.last1 profile image"
                 className="Avatar Avatar-xl"
                 loading="lazy"
                 onBlur={[Function]}
@@ -334,9 +335,10 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
               }
               tabIndex={-1}
               url="/api/v4/users/1/image?_=1620680333191"
+              username="first.last1"
             >
               <img
-                alt="user profile image"
+                alt="first.last1 profile image"
                 className="Avatar Avatar-xl"
                 loading="lazy"
                 onBlur={[Function]}
@@ -405,9 +407,10 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
               }
               tabIndex={-1}
               url="/api/v4/users/2/image?_=1620680333191"
+              username="first.last2"
             >
               <img
-                alt="user profile image"
+                alt="first.last2 profile image"
                 className="Avatar Avatar-xl"
                 loading="lazy"
                 onBlur={[Function]}
@@ -476,9 +479,10 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
               }
               tabIndex={-1}
               url="/api/v4/users/3/image?_=1620680333191"
+              username="first.last3"
             >
               <img
-                alt="user profile image"
+                alt="first.last3 profile image"
                 className="Avatar Avatar-xl"
                 loading="lazy"
                 onBlur={[Function]}
@@ -604,9 +608,10 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
               }
               tabIndex={-1}
               url="/api/v4/users/1/image?_=1620680333191"
+              username="first.last1"
             >
               <img
-                alt="user profile image"
+                alt="first.last1 profile image"
                 className="Avatar Avatar-xl"
                 loading="lazy"
                 onBlur={[Function]}
@@ -675,9 +680,10 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
               }
               tabIndex={-1}
               url="/api/v4/users/2/image?_=1620680333191"
+              username="first.last2"
             >
               <img
-                alt="user profile image"
+                alt="first.last2 profile image"
                 className="Avatar Avatar-xl"
                 loading="lazy"
                 onBlur={[Function]}
@@ -746,9 +752,10 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
               }
               tabIndex={-1}
               url="/api/v4/users/3/image?_=1620680333191"
+              username="first.last3"
             >
               <img
-                alt="user profile image"
+                alt="first.last3 profile image"
                 className="Avatar Avatar-xl"
                 loading="lazy"
                 onBlur={[Function]}
