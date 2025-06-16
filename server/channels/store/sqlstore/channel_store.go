@@ -1160,6 +1160,7 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 	if includeDeleted {
 		if lastDeleteAt != 0 {
 			// We filter by non-archived, and archived >= a timestamp.
+			// Include DM/GM channels (Teams.Id = nil) since they don't belong to teams.
 			query = query.Where(sq.And{
 				sq.Or{
 					sq.Eq{"Channels.DeleteAt": 0},
@@ -1174,7 +1175,8 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 		}
 		// If lastDeleteAt is not set, we include everything. That means no filter is needed.
 	} else {
-		// Don't include archived channels or channels from deleted teams
+		// Don't include archived channels or channels from deleted teams.
+		// Include DM/GM channels (Teams.Id = nil) since they don't belong to teams.
 		query = query.Where(sq.And{
 			sq.Eq{"Channels.DeleteAt": 0},
 			sq.Or{
