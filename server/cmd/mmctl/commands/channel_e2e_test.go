@@ -361,7 +361,7 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 	})
 
 	s.Run("Delete channel with disabled config as system admin", func() {
-		channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: "channel_name", CreatorId: user.Id}, true)
+		channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: "channel_name_you_cannot_delete", CreatorId: user.Id}, true)
 		s.Require().Nil(appErr)
 
 		previousVal := s.th.App.Config().ServiceSettings.EnableAPIChannelDeletion
