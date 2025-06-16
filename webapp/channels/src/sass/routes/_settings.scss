@@ -210,9 +210,15 @@
 
             .security-links {
                 margin-right: 20px;
+                text-decoration: none;
 
-                .fa {
+                .icon {
                     margin-right: 6px;
+                    font-size: inherit;
+                }
+
+                &.danger {
+                    color: variables.$red;
                 }
             }
 

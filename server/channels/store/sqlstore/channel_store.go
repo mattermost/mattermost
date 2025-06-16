@@ -616,7 +616,11 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 }
 
 // Save writes the (non-direct) channel to the database.
-func (s SqlChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (_ *model.Channel, err error) {
+func (s SqlChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (_ *model.Channel, err error) {
+	for _, option := range channelOptions {
+		option(channel)
+	}
+
 	if channel.DeleteAt != 0 {
 		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
 	}
@@ -2066,22 +2070,34 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 	return updated, nil
 }
 
-func (s SqlChannelStore) GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error) {
-	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
+func (s SqlChannelStore) GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error) {
+	query := s.channelMembersForTeamWithSchemeSelectQuery.
 		Where(sq.Eq{
-			"ChannelId": channelID,
-		}).
-		Limit(uint64(limit)).
-		Offset(uint64(offset)).
-		ToSql()
+			"ChannelId": opts.ChannelID,
+		})
+
+	if opts.UpdatedAfter > 0 {
+		query = query.Where(sq.Gt{"ChannelMembers.LastUpdateAt": opts.UpdatedAfter})
+		query = query.OrderBy("ChannelMembers.LastUpdateAt")
+	}
+
+	if opts.Limit > 0 {
+		query = query.Limit(uint64(opts.Limit))
+	}
+
+	if opts.Offset > 0 {
+		query = query.Offset(uint64(opts.Offset))
+	}
+
+	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "GetMember_ToSql ChannelID=%s", channelID)
+		return nil, errors.Wrapf(err, "GetMember_ToSql ChannelID=%s", opts.ChannelID)
 	}
 
 	dbMembers := channelMemberWithSchemeRolesList{}
 	err = s.GetReplica().Select(&dbMembers, sql, args...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelId=%s", channelID)
+		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelId=%s", opts.ChannelID)
 	}
 
 	return dbMembers.ToModel(), nil

@@ -27,6 +27,10 @@
             }
         }
 
+        @media screen and (max-width: 400px) {
+            min-width: unset;
+        }
+
         @media screen and (min-width: 901px) {
             min-width: 304px;
             max-width: 400px;
