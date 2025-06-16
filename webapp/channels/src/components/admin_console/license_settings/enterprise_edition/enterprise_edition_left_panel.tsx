@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import type {RefObject} from 'react';
-import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessages, useIntl} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
 
 import type {ClientLicense} from '@mattermost/types/config';
 
@@ -13,6 +13,7 @@ import {Client4} from 'mattermost-redux/client';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import Tag from 'components/widgets/tag/tag';
+import WithTooltip from 'components/with_tooltip';
 
 import {FileTypes} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
@@ -35,6 +36,7 @@ export interface EnterpriseEditionProps {
     fileInputRef: RefObject<HTMLInputElement>;
     handleChange: () => void;
     statsActiveUsers: number;
+    isLicenseSetByEnvVar: boolean;
 }
 
 export const messages = defineMessages({
@@ -52,6 +54,7 @@ const EnterpriseEditionLeftPanel = ({
     fileInputRef,
     handleChange,
     statsActiveUsers,
+    isLicenseSetByEnvVar,
 }: EnterpriseEditionProps) => {
     const {formatMessage} = useIntl();
     const [unsanitizedLicense, setUnsanitizedLicense] = useState(license);
@@ -148,6 +151,7 @@ const EnterpriseEditionLeftPanel = ({
                         handleChange,
                         statsActiveUsers,
                         expirationDays,
+                        isLicenseSetByEnvVar,
                     )
                 }
             </div>
@@ -245,6 +249,7 @@ const renderLicenseContent = (
     handleChange: () => void,
     statsActiveUsers: number,
     expirationDays: number,
+    isLicenseSetByEnvVar: boolean,
 ) => {
     // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
 
@@ -284,7 +289,7 @@ const renderLicenseContent = (
         <div className='licenseElements'>
             {licenseValues.map(renderLicenseValues(statsActiveUsers, parseInt(license.Users, 10), expirationDays))}
             <hr/>
-            {renderAddNewLicenseButton(fileInputRef, handleChange)}
+            {renderAddNewLicenseButton(fileInputRef, handleChange, isLicenseSetByEnvVar)}
             {renderRemoveButton(handleRemove, isDisabled, removing)}
         </div>
     );
@@ -293,18 +298,28 @@ const renderLicenseContent = (
 const renderAddNewLicenseButton = (
     fileInputRef: RefObject<HTMLInputElement>,
     handleChange: () => void,
+    isLicenseSetByEnvVar: boolean,
 ) => {
     return (
         <>
-            <button
-                className='btn btn-tertiary add-new-licence-btn'
-                onClick={() => fileInputRef.current?.click()}
+            <WithTooltip
+                title={defineMessage({
+                    id: 'admin.license.setByEnvVar',
+                    defaultMessage: 'License location is set by environment variable',
+                })}
+                disabled={!isLicenseSetByEnvVar}
             >
-                <FormattedMessage
-                    id='admin.license.keyAddNew'
-                    defaultMessage='Add a new license'
-                />
-            </button>
+                <button
+                    className={'btn btn-secondary'}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isLicenseSetByEnvVar}
+                >
+                    <FormattedMessage
+                        id='admin.license.keyAddNew'
+                        defaultMessage='Add a new license'
+                    />
+                </button>
+            </WithTooltip>
             <input
                 ref={fileInputRef}
                 type='file'

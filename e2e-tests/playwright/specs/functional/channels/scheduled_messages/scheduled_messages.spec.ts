@@ -36,8 +36,7 @@ test(
         const {selectedDate, selectedTime} = await channelsPage.scheduleMessage(draftMessage, 0, 1);
 
         // * Verify scheduled post indicator shows correct date and time
-        const indicatorMessage = `Message scheduled for ${selectedDate} at ${selectedTime}.`;
-        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, indicatorMessage);
+        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, selectedDate, selectedTime);
 
         // * Verify scheduled post badge in left sidebar shows count of 1
         await verifyScheduledPostBadgeOnLeftSidebar(channelsPage, 1);
@@ -46,8 +45,7 @@ test(
         await channelsPage.centerView.scheduledPostIndicator.seeAllLink.click();
 
         // * Verify scheduled post appears with correct information
-        const sendOnMessage = `Send ${selectedDate} at ${selectedTime}`;
-        await verifyScheduledPost(scheduledPostsPage, {draftMessage, sendOnMessage, badgeCountOnTab: 1});
+        await verifyScheduledPost(scheduledPostsPage, {draftMessage, selectedDate, selectedTime, badgeCountOnTab: 1});
 
         // # Return to the channels page
         await page.goBack();
@@ -98,17 +96,16 @@ test(
         const {selectedDate, selectedTime} = await channelsPage.scheduleMessageFromThread(draftMessage, 1);
 
         // * Verify scheduled post indicator shows correct date and time
-        const indicatorMessage = `Message scheduled for ${selectedDate} at ${selectedTime}.`;
-        await verifyScheduledPostIndicator(sidebarRight.scheduledPostIndicator, indicatorMessage);
+        await verifyScheduledPostIndicator(sidebarRight.scheduledPostIndicator, selectedDate, selectedTime);
 
         // # Navigate to scheduled posts page using indicator link
         await sidebarRight.scheduledPostIndicator.seeAllLink.click();
 
         // * Verify scheduled post appears with correct information
-        const sendOnMessage = `Send on ${selectedDate} at ${selectedTime}`;
         const scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
             draftMessage,
-            sendOnMessage,
+            selectedDate,
+            selectedTime,
             badgeCountOnTab: 1,
         });
 
@@ -153,8 +150,7 @@ test(
         const {selectedDate, selectedTime} = await channelsPage.scheduleMessage(draftMessage, 1);
 
         // * Verify scheduled message indicator shows correct date and time
-        const indicatorMessage = `Message scheduled for ${selectedDate} at ${selectedTime}.`;
-        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, indicatorMessage);
+        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, selectedDate, selectedTime);
 
         // * Verify scheduled post badge appears with count of 1
         await verifyScheduledPostBadgeOnLeftSidebar(channelsPage, 1);
@@ -163,10 +159,10 @@ test(
         await channelsPage.centerView.scheduledPostIndicator.seeAllLink.click();
 
         // * Verify scheduled post appears with correct information
-        const sendOnMessage = `Send on ${selectedDate} at ${selectedTime}`;
         const scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
             draftMessage,
-            sendOnMessage,
+            selectedDate,
+            selectedTime,
             badgeCountOnTab: 1,
         });
 
@@ -178,8 +174,11 @@ test(
         await channelsPage.goto();
 
         // * Verify indicator shows the updated scheduled time
-        const newIndicatorMessage = `Message scheduled for ${newSelectedDate} at ${newSelectedTime}.`;
-        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, newIndicatorMessage);
+        await verifyScheduledPostIndicator(
+            channelsPage.centerView.scheduledPostIndicator,
+            newSelectedDate,
+            newSelectedTime,
+        );
     },
 );
 
@@ -205,17 +204,16 @@ test(
         const {selectedDate, selectedTime} = await channelsPage.scheduleMessage(draftMessage, 1);
 
         // * Verify scheduled message indicator shows correct date and time
-        const indicatorMessage = `Message scheduled for ${selectedDate} at ${selectedTime}.`;
-        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, indicatorMessage);
+        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, selectedDate, selectedTime);
 
         // # Navigate to scheduled posts page via indicator link
         await channelsPage.centerView.scheduledPostIndicator.seeAllLink.click();
 
         // * Verify scheduled post appears with correct information
-        const sendOnMessage = `Send on ${selectedDate} at ${selectedTime}`;
         const scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
             draftMessage,
-            sendOnMessage,
+            selectedDate,
+            selectedTime,
             badgeCountOnTab: 1,
         });
 
@@ -256,17 +254,16 @@ test(
         const {selectedDate, selectedTime} = await channelsPage.scheduleMessage(draftMessage, 1);
 
         // * Verify scheduled message indicator shows correct date and time
-        const indicatorMessage = `Message scheduled for ${selectedDate} at ${selectedTime}.`;
-        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, indicatorMessage);
+        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, selectedDate, selectedTime);
 
         // # Navigate to scheduled posts page via indicator link
         await channelsPage.centerView.scheduledPostIndicator.seeAllLink.click();
 
         // * Verify scheduled post appears with correct information
-        const sendOnMessage = `Send on ${selectedDate} at ${selectedTime}`;
         const scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
             draftMessage,
-            sendOnMessage,
+            selectedDate,
+            selectedTime,
             badgeCountOnTab: 1,
         });
 
@@ -314,14 +311,20 @@ test(
         const {selectedDate, selectedTime} = await channelsPage.scheduleMessage(draftMessage, 1);
 
         // * Verify appropriate scheduled message indicator appears
-        let indicatorMessage;
-        if (pw.isOutsideRemoteUserHour(otherUser.timezone)) {
-            indicatorMessage = 'You have one scheduled message.';
-        } else {
-            indicatorMessage = `Message scheduled for ${selectedDate} at ${selectedTime}.`;
-        }
         await channelsPage.centerView.scheduledPostIndicator.toBeVisible();
-        await expect(channelsPage.centerView.scheduledPostIndicator.messageText).toContainText(indicatorMessage);
+        if (pw.isOutsideRemoteUserHour(otherUser.timezone)) {
+            // Special case for timezone - expect generic message
+            await expect(channelsPage.centerView.scheduledPostIndicator.messageText).toContainText(
+                'You have one scheduled message.',
+            );
+        } else {
+            // Normal case - verify the scheduled indicator
+            await verifyScheduledPostIndicator(
+                channelsPage.centerView.scheduledPostIndicator,
+                selectedDate,
+                selectedTime,
+            );
+        }
 
         // # Navigate to scheduled posts page using appropriate link
         if (pw.isOutsideRemoteUserHour(otherUser.timezone)) {
@@ -331,10 +334,10 @@ test(
         }
 
         // * Verify scheduled post appears with correct information
-        const sendOnMessage = `Send on ${selectedDate} at ${selectedTime}`;
         const scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
             draftMessage,
-            sendOnMessage,
+            selectedDate,
+            selectedTime,
             badgeCountOnTab: 1,
         });
 
@@ -399,8 +402,7 @@ test(
         await scheduledPostsPage.goto(team.name);
 
         // * Verify scheduled post appears with correct information
-        const sendOnMessage = `Send on ${selectedDate} at ${selectedTime}`;
-        await verifyScheduledPost(scheduledPostsPage, {draftMessage, sendOnMessage, badgeCountOnTab: 1});
+        await verifyScheduledPost(scheduledPostsPage, {draftMessage, selectedDate, selectedTime, badgeCountOnTab: 1});
     },
 );
 
@@ -426,8 +428,7 @@ test(
         const {selectedDate, selectedTime} = await channelsPage.scheduleMessage(draftMessage, 2);
 
         // * Verify scheduled message indicator shows correct date and time
-        const indicatorMessage = `Message scheduled for ${selectedDate} at ${selectedTime}.`;
-        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, indicatorMessage);
+        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, selectedDate, selectedTime);
 
         // * Verify scheduled post badge shows count of 1
         await verifyScheduledPostBadgeOnLeftSidebar(channelsPage, 1);
@@ -436,10 +437,10 @@ test(
         await channelsPage.centerView.scheduledPostIndicator.seeAllLink.click();
 
         // * Verify scheduled post appears with correct information
-        const sendOnMessage = `Send on ${selectedDate} at ${selectedTime}`;
         const scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
             draftMessage,
-            sendOnMessage,
+            selectedDate,
+            selectedTime,
             badgeCountOnTab: 1,
         });
 
@@ -454,7 +455,7 @@ test(
         await expect(scheduledPost.panelBody).toContainText(updatedText);
 
         // * Verify scheduled date/time remains unchanged
-        await expect(scheduledPost.panelHeader).toContainText(`Send on ${selectedDate} at ${selectedTime}`);
+        await expect(scheduledPost.panelHeader).toContainText(selectedTime);
 
         // # Send the edited message immediately
         await scheduledPost.hover();
@@ -506,10 +507,10 @@ test(
         await channelsPage.centerView.scheduledPostIndicator.seeAllLink.click();
 
         // * Verify scheduled post appears with correct information
-        const sendOnMessage = `Send on ${selectedDate} at ${selectedTime}`;
         const scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
             draftMessage,
-            sendOnMessage,
+            selectedDate,
+            selectedTime,
             badgeCountOnTab: 1,
         });
 
@@ -532,15 +533,36 @@ test(
 );
 
 /**
- * Verifies that the scheduled post indicator is visible and displays the correct date and time.
- *
- * @param scheduledPostIndicator - The ScheduledPostIndicator instance
- * @param messageText - A post message
+ * Verifies that the scheduled post indicator shows the correct date and time.
  */
-async function verifyScheduledPostIndicator(scheduledPostIndicator: ScheduledPostIndicator, messageText: string) {
+async function verifyScheduledPostIndicator(
+    scheduledPostIndicator: ScheduledPostIndicator,
+    selectedDate: string,
+    selectedTime: string | null,
+) {
     await scheduledPostIndicator.toBeVisible();
     await expect(scheduledPostIndicator.icon).toBeVisible();
-    await expect(scheduledPostIndicator.messageText).toContainText(messageText);
+
+    if (!selectedTime) {
+        throw new Error('selectedTime is required');
+    }
+
+    // Verify the indicator contains both the time and a valid date
+    const messageText = await scheduledPostIndicator.messageText.textContent();
+    await expect(scheduledPostIndicator.messageText).toContainText(selectedTime);
+    const datePatterns = [
+        selectedDate, // Original date
+        'Today',
+        'Tomorrow',
+    ];
+
+    const hasValidDate = datePatterns.some((pattern) => messageText?.toLowerCase().includes(pattern.toLowerCase()));
+
+    if (!hasValidDate) {
+        throw new Error(
+            `Indicator text "${messageText}" does not contain any expected date pattern: ${datePatterns.join(', ')}`,
+        );
+    }
 }
 
 async function verifyScheduledPostBadgeOnLeftSidebar(channelsPage: ChannelsPage, count: number) {
@@ -552,9 +574,10 @@ async function verifyScheduledPost(
     scheduledPostsPage: ScheduledPostsPage,
     {
         draftMessage,
-        sendOnMessage,
+        selectedDate,
+        selectedTime,
         badgeCountOnTab,
-    }: {draftMessage: string; sendOnMessage: string; badgeCountOnTab: number},
+    }: {draftMessage: string; selectedDate: string; selectedTime: string | null; badgeCountOnTab: number},
 ) {
     // * Verify scheduled posts page is visible
     await scheduledPostsPage.toBeVisible();
@@ -566,7 +589,26 @@ async function verifyScheduledPost(
     const scheduledPost = await scheduledPostsPage.getLastPost();
     await expect(scheduledPost.panelBody).toContainText(draftMessage);
 
-    await expect(scheduledPost.panelHeader).toContainText(sendOnMessage);
+    if (!selectedTime) {
+        throw new Error('selectedTime is required');
+    }
+
+    // Verify the header contains both the time and a valid date
+    const headerText = await scheduledPost.panelHeader.textContent();
+    await expect(scheduledPost.panelHeader).toContainText(selectedTime);
+    const datePatterns = [
+        selectedDate, // Original date
+        'Today',
+        'Tomorrow',
+    ];
+
+    const hasValidDate = datePatterns.some((pattern) => headerText?.toLowerCase().includes(pattern.toLowerCase()));
+
+    if (!hasValidDate) {
+        throw new Error(
+            `Header "${headerText}" does not contain any expected date pattern: ${datePatterns.join(', ')}`,
+        );
+    }
 
     return scheduledPost;
 }

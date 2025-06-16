@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -181,6 +182,8 @@ func (a *App) CreateChannelWithUser(c request.CTX, channel *model.Channel, userI
 		return nil, err
 	}
 
+	a.addChannelToDefaultCategory(c, userID, channel)
+
 	var user *model.User
 	if user, err = a.GetUser(userID); err != nil {
 		return nil, err
@@ -208,6 +211,10 @@ func (a *App) RenameChannel(c request.CTX, channel *model.Channel, newChannelNam
 		return nil, model.NewAppError("RenameChannel", "api.channel.rename_channel.cant_rename_group_messages.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Clean up the channel name and display name
+	newChannelName = strings.TrimSpace(newChannelName)
+	newDisplayName = strings.TrimSpace(newDisplayName)
+
 	channel.Name = newChannelName
 	if newDisplayName != "" {
 		channel.DisplayName = newDisplayName
@@ -222,6 +229,8 @@ func (a *App) RenameChannel(c request.CTX, channel *model.Channel, newChannelNam
 }
 
 func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
+	a.handleChannelCategoryName(channel)
+
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
 	sc, nErr := a.Srv().Store().Channel().Save(c, channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if nErr != nil {
@@ -495,8 +504,8 @@ func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.
 	return channel, nil
 }
 
-func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId string) (*model.Channel, *model.AppError) {
-	channel, err := a.createGroupChannel(c, userIDs)
+func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	channel, err := a.createGroupChannel(c, userIDs, creatorId, channelOptions...)
 	if err != nil {
 		if err.Id == store.ChannelExistsError {
 			return channel, nil
@@ -516,7 +525,11 @@ func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId stri
 	return channel, nil
 }
 
-func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channel, *model.AppError) {
+// creatorId is used to determine if the group channel should have a
+// shared channel record attached. It can be empty if the caller
+// doesn't know who the creator is (e.g. the import process) and the
+// resulting group channel will not be shared
+func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	if len(userIDs) > model.ChannelGroupMaxUsers || len(userIDs) < model.ChannelGroupMinUsers {
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -530,7 +543,21 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJSON(userIDs), http.StatusBadRequest)
 	}
 
-	if !a.Config().FeatureFlags.EnableSharedChannelsDMs {
+	// extracts the creator and the remotes involved in the GM to
+	// decide how to handle the shared part of the creation
+	var creator *model.User
+	remoteIDs := map[string]bool{}
+	for _, user := range users {
+		if user.Id == creatorID {
+			creator = user
+		}
+		if user.IsRemote() {
+			remoteIDs[*user.RemoteId] = true
+		}
+	}
+	channelIsShared := len(remoteIDs) > 0
+
+	if channelIsShared && !a.Config().FeatureFlags.EnableSharedChannelsDMs {
 		for _, user := range users {
 			if user.IsRemote() {
 				return nil, model.NewAppError("createGroupChannel", "api.channel.create_group.remote_restricted.app_error", nil, "", http.StatusForbidden)
@@ -542,9 +569,10 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		Name:        model.GetGroupNameFromUserIds(userIDs),
 		DisplayName: model.GetGroupDisplayNameFromUsers(users, true),
 		Type:        model.ChannelTypeGroup,
+		Shared:      model.NewPointer(channelIsShared),
 	}
 
-	channel, nErr := a.Srv().Store().Channel().Save(c, group, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	channel, nErr := a.Srv().Store().Channel().Save(c, group, *a.Config().TeamSettings.MaxChannelsPerTeam, channelOptions...)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		var cErr *store.ErrConflict
@@ -597,6 +625,48 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		}
 		if err := a.Srv().Store().ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
 			return nil, model.NewAppError("createGroupChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	// When the newly created channel is shared, the creator is local
+	// and one of the participants is remote create a local shared
+	// channel record
+	if channel.IsShared() && creator != nil && !creator.IsRemote() {
+		sc := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ReadOnly:         false,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			SharePurpose:     channel.Purpose,
+			ShareHeader:      channel.Header,
+			CreatorId:        creatorID,
+			Type:             channel.Type,
+		}
+
+		if _, err := a.ShareChannel(c, sc); err != nil {
+			c.Logger().Error("Failed to share newly created group channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+		} else {
+			// if we could successfully share the channel, we invite
+			// the remotes involved to it
+			if sc, _ := a.getSharedChannelsService(); sc != nil {
+				for remoteID := range remoteIDs {
+					rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
+					if err != nil {
+						c.Logger().Error("Failed to send invite to group message channel, can't retrieve remote cluster", mlog.String("channel_id", channel.Id), mlog.String("remote_id", remoteID), mlog.Err(err))
+						continue
+					}
+
+					opts := []sharedchannel.InviteOption{sharedchannel.WithCreator(creatorID)}
+					for _, user := range users {
+						opts = append(opts, sharedchannel.WithDirectParticipant(user, remoteID))
+					}
+					if err := sc.SendChannelInvite(channel, creatorID, rc, opts...); err != nil {
+						c.Logger().Error("Failed to send invite to group message channel, error sending the invite", mlog.String("channel_id", channel.Id), mlog.String("remote_id", remoteID), mlog.Err(err))
+					}
+				}
+			}
 		}
 	}
 
@@ -864,10 +934,13 @@ func (a *App) PatchChannel(c request.CTX, channel *model.Channel, patch *model.C
 	oldChannelPurpose := channel.Purpose
 
 	channel.Patch(patch)
+	a.handleChannelCategoryName(channel)
 	channel, err := a.UpdateChannel(c, channel)
 	if err != nil {
 		return nil, err
 	}
+
+	a.addChannelToDefaultCategory(c, userID, channel)
 
 	if oldChannelDisplayName != channel.DisplayName {
 		if err = a.PostUpdateChannelDisplayNameMessage(c, userID, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
@@ -1638,6 +1711,13 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
+	// Synchronize membership change for shared channels
+	if channel.IsShared() {
+		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+			scs.HandleMembershipChange(channel.Id, user.Id, true, user.GetRemoteID())
+		}
+	}
+
 	return newMember, nil
 }
 
@@ -1664,6 +1744,8 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 	if err != nil {
 		return nil, err
 	}
+
+	a.addChannelToDefaultCategory(c, user.Id, channel)
 
 	// We are sending separate websocket events to the user added and to the channel
 	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
@@ -2161,7 +2243,12 @@ func (s *Server) getChannelMemberLastViewedAt(c request.CTX, channelID string, u
 }
 
 func (a *App) GetChannelMembersPage(c request.CTX, channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
-	channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, page*perPage, perPage)
+	opts := model.ChannelMembersGetOptions{
+		ChannelID: channelID,
+		Offset:    page * perPage,
+		Limit:     perPage,
+	}
+	channelMembers, err := a.Srv().Store().Channel().GetMembers(opts)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelMembersPage", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2664,6 +2751,14 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	userMsg.Add("channel_id", channel.Id)
 	userMsg.Add("remover_id", removerUserId)
 	a.Publish(userMsg)
+
+	// Synchronize membership change for shared channels
+	if channel.IsShared() {
+		// isAdd=false, empty remoteId means locally initiated
+		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+			scs.HandleMembershipChange(channel.Id, userIDToRemove, false, "")
+		}
+	}
 
 	return nil
 }
@@ -3564,7 +3659,12 @@ func (a *App) forEachChannelMember(c request.CTX, channelID string, f func(model
 	page := 0
 
 	for {
-		channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, page*perPage, perPage)
+		opts := model.ChannelMembersGetOptions{
+			ChannelID: channelID,
+			Offset:    page * perPage,
+			Limit:     perPage,
+		}
+		channelMembers, err := a.Srv().Store().Channel().GetMembers(opts)
 		if err != nil {
 			return err
 		}
@@ -3877,4 +3977,57 @@ func (a *App) ChannelAccessControlled(c request.CTX, channelID string) (bool, *m
 	}
 
 	return true, nil
+}
+
+func (a *App) handleChannelCategoryName(channel *model.Channel) {
+	if *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting && strings.Contains(channel.DisplayName, "/") {
+		parts := strings.Split(channel.DisplayName, "/")
+		channel.DisplayName = strings.TrimSpace(strings.Join(parts[1:], "/"))
+		channel.DefaultCategoryName = strings.TrimSpace(parts[0])
+	}
+}
+
+func (a *App) addChannelToDefaultCategory(c request.CTX, userID string, channel *model.Channel) {
+	// Add channel to default category if specified
+	if channel.DefaultCategoryName != "" && *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting {
+		// Get user's categories for this team
+		categories, err := a.GetSidebarCategoriesForTeamForUser(c, userID, channel.TeamId)
+		if err != nil {
+			mlog.Error("Failed to get sidebar categories", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.Err(err))
+			return
+		}
+		// Find or create the category
+		var targetCategory *model.SidebarCategoryWithChannels
+		for _, category := range categories.Categories {
+			if category.Type == model.SidebarCategoryCustom && strings.EqualFold(category.DisplayName, channel.DefaultCategoryName) {
+				targetCategory = category
+				break
+			}
+		}
+
+		if targetCategory == nil {
+			// Create new category if it doesn't exist
+			targetCategory = &model.SidebarCategoryWithChannels{
+				SidebarCategory: model.SidebarCategory{
+					UserId:      userID,
+					TeamId:      channel.TeamId,
+					Type:        model.SidebarCategoryCustom,
+					DisplayName: channel.DefaultCategoryName,
+					Sorting:     model.SidebarCategorySortDefault,
+				},
+				Channels: []string{channel.Id},
+			}
+			_, err = a.CreateSidebarCategory(c, userID, channel.TeamId, targetCategory)
+			if err != nil {
+				mlog.Error("Failed to create default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+			}
+		} else {
+			// Add channel to existing category
+			targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
+			_, err = a.UpdateSidebarCategories(c, userID, channel.TeamId, []*model.SidebarCategoryWithChannels{targetCategory})
+			if err != nil {
+				mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+			}
+		}
+	}
 }
