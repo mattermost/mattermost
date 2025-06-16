@@ -19,8 +19,8 @@ import {
     isCurrentChannelMuted,
     getCurrentChannelStats,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {
     displayLastActiveLabel,
