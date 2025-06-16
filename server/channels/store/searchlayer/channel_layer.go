@@ -70,8 +70,8 @@ func (c *SearchChannelStore) indexChannelWithTeamMembers(rctx request.CTX, chann
 	}
 }
 
-func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannels int64) (*model.Channel, error) {
-	newChannel, err := c.ChannelStore.Save(rctx, channel, maxChannels)
+func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannels int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	newChannel, err := c.ChannelStore.Save(rctx, channel, maxChannels, channelOptions...)
 	if err == nil {
 		c.indexChannel(rctx, newChannel)
 	}

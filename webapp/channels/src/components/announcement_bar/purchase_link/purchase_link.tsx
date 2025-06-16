@@ -12,6 +12,7 @@ import './purchase_link.scss';
 export interface Props {
     buttonTextElement: JSX.Element;
     eventID?: string;
+    className?: string;
 }
 
 const PurchaseLink: React.FC<Props> = (props: Props) => {
@@ -24,10 +25,16 @@ const PurchaseLink: React.FC<Props> = (props: Props) => {
         openSalesLink();
     };
 
+    // Default classes for feature discovery context
+    const defaultClassName = 'btn btn-primary';
+
+    // Use provided className or default
+    const buttonClassName = props.className || defaultClassName;
+
     return (
         <button
             id={props.eventID}
-            className={'annnouncementBar__purchaseNow'}
+            className={buttonClassName}
             onClick={handlePurchaseLinkClick}
         >
             {props.buttonTextElement}

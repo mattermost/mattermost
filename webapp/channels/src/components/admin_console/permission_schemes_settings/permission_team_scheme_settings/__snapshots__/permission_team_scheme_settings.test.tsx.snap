@@ -345,7 +345,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       }
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -751,7 +752,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       }
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -1159,7 +1161,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       }
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -1569,7 +1572,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       }
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -2045,7 +2049,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       }
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage

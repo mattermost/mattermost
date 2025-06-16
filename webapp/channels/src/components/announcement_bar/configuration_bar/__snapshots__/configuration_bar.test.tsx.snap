@@ -23,6 +23,7 @@ exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
         />
       </React.Fragment>
       <Memo(Connect(RenewalLink))
+        className="btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense"
         telemetryInfo={
           Object {
             "error": "renew_license_banner_fail",
@@ -79,6 +80,7 @@ exports[`components/ConfigurationBar should match snapshot, expired, in grace pe
         />
       </React.Fragment>
       <Memo(Connect(RenewalLink))
+        className="btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense"
         telemetryInfo={
           Object {
             "error": "renew_license_banner_fail",
@@ -156,6 +158,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
             id="announcement_bar.error.purchase_a_license_now"
           />
         }
+        className="btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow"
       />
     </div>
   }
@@ -194,6 +197,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
             id="announcement_bar.error.purchase_a_license_now"
           />
         }
+        className="btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow"
       />
     </div>
   }
