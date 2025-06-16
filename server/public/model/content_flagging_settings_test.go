@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestContentFlaggingNotificationSettings_SetDefault(t *testing.T) {
@@ -77,6 +76,38 @@ func TestContentFlaggingNotificationSettings_IsValid(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled", err.Id)
 	})
+
+	t.Run("should be invalid when invalid events and targets are specified", func(t *testing.T) {
+		settings := &ContentFlaggingNotificationSettings{
+			EventTargetMapping: map[ContentFlaggingEvent][]NotificationTarget{
+				"invalid_event": {TargetAuthor, TargetReporter},
+			},
+		}
+
+		err := settings.IsValid()
+		assert.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.notification_settings.invalid_event", err.Id)
+
+		settings = &ContentFlaggingNotificationSettings{
+			EventTargetMapping: map[ContentFlaggingEvent][]NotificationTarget{
+				EventFlagged: {"invalid_target_1", "invalid_target_2"},
+			},
+		}
+
+		err = settings.IsValid()
+		assert.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.notification_settings.invalid_target", err.Id)
+
+		settings = &ContentFlaggingNotificationSettings{
+			EventTargetMapping: map[ContentFlaggingEvent][]NotificationTarget{
+				"invalid_event": {"invalid_target_1", "invalid_target_2"},
+			},
+		}
+
+		err = settings.IsValid()
+		assert.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.notification_settings.invalid_event", err.Id)
+	})
 }
 
 func TestReviewerSettings_SetDefault(t *testing.T) {
@@ -88,10 +119,13 @@ func TestReviewerSettings_SetDefault(t *testing.T) {
 		assert.True(t, *settings.CommonReviewers)
 		assert.NotNil(t, settings.CommonReviewerIds)
 		assert.Empty(t, *settings.CommonReviewerIds)
+
 		assert.NotNil(t, settings.TeamReviewersSetting)
 		assert.Empty(t, *settings.TeamReviewersSetting)
+
 		assert.NotNil(t, settings.SystemAdminsAsReviewers)
 		assert.False(t, *settings.SystemAdminsAsReviewers)
+
 		assert.NotNil(t, settings.TeamAdminsAsReviewers)
 		assert.True(t, *settings.TeamAdminsAsReviewers)
 	})
@@ -363,7 +397,7 @@ func TestContentFlaggingSettings_IsValid(t *testing.T) {
 func TestTeamReviewerSetting(t *testing.T) {
 	t.Run("should handle nil values properly", func(t *testing.T) {
 		setting := TeamReviewerSetting{}
-		
+
 		// Should not panic when accessing nil pointers in validation logic
 		assert.Nil(t, setting.Enabled)
 		assert.Nil(t, setting.ReviewerIds)
@@ -374,7 +408,7 @@ func TestTeamReviewerSetting(t *testing.T) {
 			Enabled:     NewPointer(true),
 			ReviewerIds: &[]string{"user1", "user2"},
 		}
-		
+
 		assert.True(t, *setting.Enabled)
 		assert.Equal(t, []string{"user1", "user2"}, *setting.ReviewerIds)
 	})

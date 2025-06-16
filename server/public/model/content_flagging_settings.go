@@ -52,6 +52,19 @@ func (cfs *ContentFlaggingNotificationSettings) IsValid() *AppError {
 	// Reviewers must always be notified when content is flagged
 	// Disabling this option is disallowed in the UI, so this check is for safety and consistency.
 
+	// Only valid events and targets are allowed
+	for event, targets := range cfs.EventTargetMapping {
+		if event != EventFlagged && event != EventAssigned && event != EventContentRemoved && event != EventContentDismissed {
+			return NewAppError("Config.IsValid", "model.config.is_valid.notification_settings.invalid_event", nil, "", http.StatusBadRequest)
+		}
+
+		for _, target := range targets {
+			if target != TargetReviewers && target != TargetAuthor && target != TargetReporter {
+				return NewAppError("Config.IsValid", "model.config.is_valid.notification_settings.invalid_target", nil, "", http.StatusBadRequest)
+			}
+		}
+	}
+
 	if cfs.EventTargetMapping[EventFlagged] == nil || len(cfs.EventTargetMapping[EventFlagged]) == 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled", nil, "", http.StatusBadRequest)
 	}
