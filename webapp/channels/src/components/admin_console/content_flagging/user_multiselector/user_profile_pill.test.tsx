@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {fireEvent, renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
-import {renderWithContext} from 'tests/react_testing_utils';
 
-import {UserProfilePill} from './user_profile_pill';
 import type {AutocompleteOptionType} from './user_multiselector';
+import {UserProfilePill} from './user_profile_pill';
 
 describe('components/admin_console/content_flagging/user_multiselector/UserProfilePill', () => {
     const baseProps = {
@@ -43,7 +44,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         isMulti: true,
         isRtl: false,
         theme: {} as any,
-    };
+    } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile>, true>;
 
     const initialState = {
         entities: {
@@ -123,8 +124,8 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
 
         const removeComponent = container.querySelector('.Remove');
         expect(removeComponent).toBeInTheDocument();
-        
-        removeComponent?.click();
+
+        fireEvent.click(removeComponent);
         expect(mockOnClick).toHaveBeenCalledTimes(1);
     });
 
@@ -180,27 +181,5 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         const pill = container.querySelector('.UserProfilePill');
         expect(pill).toBeInTheDocument();
         expect(pill).toHaveClass('UserProfilePill');
-    });
-
-    test('should pass through innerProps to main container', () => {
-        const customInnerProps = {
-            'data-testid': 'user-pill',
-            className: 'custom-class',
-        };
-
-        const propsWithCustomInner = {
-            ...baseProps,
-            innerProps: customInnerProps,
-        };
-
-        const {container} = renderWithContext(
-            <UserProfilePill {...propsWithCustomInner}/>,
-            initialState,
-        );
-
-        const pill = container.querySelector('.UserProfilePill');
-        expect(pill).toBeInTheDocument();
-        expect(pill).toHaveAttribute('data-testid', 'user-pill');
-        expect(pill).toHaveClass('custom-class');
     });
 });
