@@ -4,14 +4,16 @@
 import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
 import type {GlobalState} from '@mattermost/types/store';
 
+import {logError} from 'mattermost-redux/actions/errors';
+import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-import {ActionTypes} from '../reducers/entities/shared_channels';
+import SharedChannelTypes from '../action_types/shared_channels';
 
 export function receivedChannelRemotes(channelId: string, remotes: RemoteClusterInfo[]) {
     return {
-        type: ActionTypes.RECEIVED_CHANNEL_REMOTES,
+        type: SharedChannelTypes.RECEIVED_CHANNEL_REMOTES,
         data: {
             channelId,
             remotes,
@@ -21,7 +23,7 @@ export function receivedChannelRemotes(channelId: string, remotes: RemoteCluster
 
 export function receivedRemoteClusterInfo(remoteId: string, remoteInfo: RemoteClusterInfo) {
     return {
-        type: ActionTypes.RECEIVED_REMOTE_CLUSTER_INFO,
+        type: SharedChannelTypes.RECEIVED_REMOTE_CLUSTER_INFO,
         data: {
             remoteId,
             remoteInfo,
@@ -44,7 +46,8 @@ export function fetchChannelRemotes(channelId: string, forceRefresh = false): Ac
         try {
             data = await Client4.getSharedChannelRemoteInfos(channelId);
         } catch (error) {
-            // In case of failures, we just skip and don't update the remote data
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
             return {error};
         }
 
@@ -70,6 +73,8 @@ export function fetchRemoteClusterInfo(remoteId: string, forceRefresh = false): 
         try {
             data = await Client4.getRemoteClusterInfo(remoteId);
         } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
             return {error};
         }
 

@@ -6,14 +6,11 @@ import type {AnyAction} from 'redux';
 
 import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
 
-export const ActionTypes = {
-    RECEIVED_CHANNEL_REMOTES: 'RECEIVED_CHANNEL_REMOTES',
-    RECEIVED_REMOTE_CLUSTER_INFO: 'RECEIVED_REMOTE_CLUSTER_INFO',
-};
+import SharedChannelTypes from '../../action_types/shared_channels';
 
 export function remotes(state: Record<string, RemoteClusterInfo[]> = {}, action: AnyAction) {
     switch (action.type) {
-    case ActionTypes.RECEIVED_CHANNEL_REMOTES: {
+    case SharedChannelTypes.RECEIVED_CHANNEL_REMOTES: {
         const {channelId, remotes} = action.data;
         return {
             ...state,
@@ -27,7 +24,7 @@ export function remotes(state: Record<string, RemoteClusterInfo[]> = {}, action:
 
 export function remotesByRemoteId(state: Record<string, RemoteClusterInfo> = {}, action: AnyAction) {
     switch (action.type) {
-    case ActionTypes.RECEIVED_REMOTE_CLUSTER_INFO: {
+    case SharedChannelTypes.RECEIVED_REMOTE_CLUSTER_INFO: {
         const {remoteId, remoteInfo} = action.data;
         return {
             ...state,

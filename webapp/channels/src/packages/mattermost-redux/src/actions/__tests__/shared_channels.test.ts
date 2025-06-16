@@ -5,7 +5,7 @@ import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {ActionTypes} from '../../reducers/entities/shared_channels';
+import SharedChannelTypes from '../../action_types/shared_channels';
 import {fetchChannelRemotes, receivedChannelRemotes} from '../shared_channels';
 
 jest.mock('mattermost-redux/client');
@@ -33,7 +33,7 @@ describe('shared_channels actions', () => {
         const action = receivedChannelRemotes(channelId, remotes);
 
         expect(action).toEqual({
-            type: ActionTypes.RECEIVED_CHANNEL_REMOTES,
+            type: SharedChannelTypes.RECEIVED_CHANNEL_REMOTES,
             data: {
                 channelId,
                 remotes,
@@ -80,7 +80,7 @@ describe('shared_channels actions', () => {
 
         // Verify the action was dispatched
         expect(dispatch).toHaveBeenCalledWith({
-            type: ActionTypes.RECEIVED_CHANNEL_REMOTES,
+            type: SharedChannelTypes.RECEIVED_CHANNEL_REMOTES,
             data: {
                 channelId,
                 remotes,
@@ -172,7 +172,7 @@ describe('shared_channels actions', () => {
 
         // Verify the action was dispatched with the new remotes
         expect(dispatch).toHaveBeenCalledWith({
-            type: ActionTypes.RECEIVED_CHANNEL_REMOTES,
+            type: SharedChannelTypes.RECEIVED_CHANNEL_REMOTES,
             data: {
                 channelId,
                 remotes: newRemotes,

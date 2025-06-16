@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionTypes, remotes} from '../shared_channels';
+import SharedChannelTypes from '../../../action_types/shared_channels';
+import {remotes} from '../shared_channels';
 
 describe('shared_channels reducer', () => {
     test('RECEIVED_CHANNEL_REMOTES should store remotes correctly', () => {
@@ -40,7 +41,7 @@ describe('shared_channels reducer', () => {
         ];
 
         const action = {
-            type: ActionTypes.RECEIVED_CHANNEL_REMOTES,
+            type: SharedChannelTypes.RECEIVED_CHANNEL_REMOTES,
             data: {
                 channelId,
                 remotes: remotesList,
@@ -77,7 +78,7 @@ describe('shared_channels reducer', () => {
         ];
 
         const action2 = {
-            type: ActionTypes.RECEIVED_CHANNEL_REMOTES,
+            type: SharedChannelTypes.RECEIVED_CHANNEL_REMOTES,
             data: {
                 channelId: channelId2,
                 remotes: remotesList2,
@@ -112,7 +113,7 @@ describe('shared_channels reducer', () => {
         ];
 
         const action3 = {
-            type: ActionTypes.RECEIVED_CHANNEL_REMOTES,
+            type: SharedChannelTypes.RECEIVED_CHANNEL_REMOTES,
             data: {
                 channelId,
                 remotes: updatedRemotesList,
