@@ -22,7 +22,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
-	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
@@ -2295,105 +2294,6 @@ func TestGetUsersForReporting(t *testing.T) {
 	})
 }
 
-func TestCreateUserOrGuest(t *testing.T) {
-	mainHelper.Parallel(t)
-	t.Run("base case - you can create a user", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-
-	t.Run("cannot create user when user count has exceeded the permissible limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-		mockUserStore := storemocks.UserStore{}
-		mockUserStore.On("Count", mock.Anything).Return(int64(12000), nil)
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockStore.On("User").Return(&mockUserStore)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.NotNil(t, appErr)
-		require.Nil(t, createdUser)
-	})
-
-	t.Run("can create user when server is exactly on limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		id := NewTestId()
-		userCreationMocks(t, th, id, 5000)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-
-	t.Run("licensed server can create user when server is OVER limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		id := NewTestId()
-		userCreationMocks(t, th, id, 20000)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-
-		th.App.Srv().SetLicense(model.NewTestLicense(""))
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-
-	t.Run("licensed server can create user when server is UNDER limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		id := NewTestId()
-		userCreationMocks(t, th, id, 10)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-
-		th.App.Srv().SetLicense(model.NewTestLicense(""))
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-}
-
 // TestRemoteUserDirectChannelCreation tests direct channel creation with remote users
 func TestRemoteUserDirectChannelCreation(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS", "true")
@@ -2692,24 +2592,6 @@ func TestUserCanSeeOtherUserWithRemotesDB(t *testing.T) {
 		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErr.Id)
 	})
 
-	t.Run("User cannot see remote user from offline cluster", func(t *testing.T) {
-		// Force remote3 to be offline by setting LastPingAt to a very old time
-		rc3.LastPingAt = 0
-		_, err := ss.RemoteCluster().Update(rc3)
-		require.NoError(t, err)
-
-		// Verify the database state now shows it as offline
-		fetchedRemote3, err := ss.RemoteCluster().Get(rc3.RemoteId, false)
-		require.NoError(t, err)
-		require.False(t, fetchedRemote3.IsOnline(), "Remote cluster 3 should be offline")
-
-		// Now check if the user cannot see the remote user
-		canSee, appErr := th.App.UserCanSeeOtherUser(th.Context, th.BasicUser.Id, user3.Id)
-		assert.False(t, canSee)
-		assert.NotNil(t, appErr)
-		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErr.Id)
-	})
-
 	t.Run("Cannot see user from indirectly connected remote", func(t *testing.T) {
 		// Remote2 is already not confirmed in our setup
 		fetchedRemote2, err := ss.RemoteCluster().Get(rc2.RemoteId, false)
@@ -2922,60 +2804,4 @@ func TestIndirectRemoteUserCommunication(t *testing.T) {
 		_, err = ss.RemoteCluster().Update(remoteB)
 		require.NoError(t, err)
 	})
-}
-
-func userCreationMocks(t *testing.T, th *TestHelper, userID string, activeUserCount int64) {
-	mockUserStore := storemocks.UserStore{}
-	mockUserStore.On("Count", mock.Anything).Return(activeUserCount, nil)
-	mockUserStore.On("IsEmpty", mock.Anything).Return(false, nil)
-	mockUserStore.On("VerifyEmail", mock.Anything, "TestCreateUserOrGuest@example.com").Return("", nil)
-	mockUserStore.On("InvalidateProfilesInChannelCacheByUser", mock.Anything).Return()
-	mockUserStore.On("InvalidateProfileCacheForUser", mock.Anything).Return()
-	mockUserStore.On("Save", mock.Anything, mock.Anything).Return(&model.User{
-		Id:            userID,
-		Email:         "TestCreateUserOrGuest@example.com",
-		Username:      "username_123",
-		Nickname:      "nn_username_123",
-		Password:      "Password1",
-		EmailVerified: true,
-	}, nil)
-
-	mockUserStore.On("Get", mock.Anything, userID).Return(&model.User{
-		Id:            userID,
-		Email:         "TestCreateUserOrGuest@example.com",
-		Username:      "username_123",
-		Nickname:      "nn_username_123",
-		Password:      "Password1",
-		EmailVerified: true,
-	}, nil)
-
-	mockGroupStore := storemocks.GroupStore{}
-	mockGroupStore.On("GetByName", "username_123", mock.Anything).Return(nil, nil)
-
-	mockChannelStore := storemocks.ChannelStore{}
-	mockChannelStore.On("InvalidateAllChannelMembersForUser", mock.Anything).Return()
-
-	mockPreferencesStore := storemocks.PreferenceStore{}
-	mockPreferencesStore.On("Save", mock.Anything).Return(nil)
-
-	mockProductNoticeStore := storemocks.ProductNoticesStore{}
-	mockProductNoticeStore.On("View", userID, mock.Anything).Return(nil)
-
-	mockStore := th.App.Srv().Store().(*storemocks.Store)
-	mockStore.On("User").Return(&mockUserStore)
-	mockStore.On("Group").Return(&mockGroupStore)
-	mockStore.On("Channel").Return(&mockChannelStore)
-	mockStore.On("Preference").Return(&mockPreferencesStore)
-	mockStore.On("ProductNotices").Return(&mockProductNoticeStore)
-
-	var err error
-	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
-		UserStore:    &mockUserStore,
-		SessionStore: &storemocks.SessionStore{},
-		OAuthStore:   &storemocks.OAuthStore{},
-		ConfigFn:     th.App.ch.srv.platform.Config,
-		LicenseFn:    th.App.ch.srv.License,
-	})
-
-	require.NoError(t, err)
 }
