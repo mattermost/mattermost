@@ -76,7 +76,6 @@ func checkParentChildIntegrity(ss *SqlStore, config relationalCheckConfig) model
 	data.ParentIdAttr = config.parentIdAttr
 	data.ChildIdAttr = config.childIdAttr
 	result.Data = data
-
 	return result
 }
 
@@ -520,6 +519,9 @@ func checkUsersIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult
 	results <- checkUsersStatusIntegrity(ss)
 	results <- checkUsersTeamMembersIntegrity(ss)
 	results <- checkUsersUserAccessTokensIntegrity(ss)
+	for _, v := range validateDMChannelPattern(ss) {
+		results <- v
+	}
 }
 
 func checkThreadsTeamsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
@@ -543,4 +545,61 @@ func CheckRelationalIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckR
 	checkUsersIntegrity(ss, results)
 	mlog.Info("Done with relational integrity checks")
 	close(results)
+}
+
+func validateDMChannelPattern(ss *SqlStore) []model.IntegrityCheckResult {
+	relationalData := model.RelationalIntegrityCheckData{}
+	records := []model.OrphanedRecord{}
+	invalidChannelRecords := model.NameIntegrityCheckData{}
+	result := []model.IntegrityCheckResult{}
+
+	err := ss.GetMaster().SelectBuilder(&invalidChannelRecords.Names, ss.getQueryBuilder().
+		Select().
+		Column("CT.name AS names").
+		From("Channels AS CT").
+		Where(sq.And{
+			sq.Eq{"CT.Type": model.ChannelTypeDirect},
+			sq.Or{
+				sq.NotLike{"CT.name": `%\_\_%`},
+				sq.NotEq{"LENGTH(CT.name)": 54},
+			},
+		}))
+	if err != nil {
+		mlog.Error("There is an issue with validating the DM Channel Name pattern", mlog.Err(err))
+		return result
+	}
+	invalidChannelRecords.RelName = "Channel"
+
+	err = ss.GetMaster().SelectBuilder(&records, ss.getQueryBuilder().
+		Select().
+		Columns("ParentId", "ChildId").
+		FromSelect(sq.SelectBuilder(ss.getQueryBuilder().Select().Column(`
+		Id AS ChildId, 
+		SUBSTRING(name, 1, 26) AS ParentId`).
+			From("Channels").Where(`Type = 'D'`)), "CT").
+		Where(`NOT EXISTS (
+			SELECT 
+			  1
+			FROM 
+			  Users AS PT 
+			WHERE 
+			  PT.id = CT.ParentId
+		  )`).OrderBy("CT.ParentId"))
+	if err != nil {
+		mlog.Error("There is an issue with performing an inegrity check on DM Channel names", mlog.Err(err))
+		return result
+	}
+
+	relationalData.ParentName = "Channels"
+	relationalData.ChildName = "Name"
+	relationalData.Records = append(relationalData.Records, records...)
+
+	temp := model.IntegrityCheckResult{}
+	temp.Data = relationalData
+	result = append(result, temp)
+
+	temp = model.IntegrityCheckResult{}
+	temp.Data = invalidChannelRecords
+	result = append(result, temp)
+	return result
 }
