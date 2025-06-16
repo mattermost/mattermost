@@ -221,7 +221,7 @@ const Option = (props: OptionProps<OptionType, false>) => {
     );
 };
 
-const LoadingIndicator = () => {
+export const LoadingIndicator = () => {
     return (
         <LoadingSpinner/>
     );
