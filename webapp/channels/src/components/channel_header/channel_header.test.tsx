@@ -50,11 +50,8 @@ describe('components/ChannelHeader', () => {
             'hour',
         ],
         hideGuestTags: false,
-<<<<<<< HEAD
         remoteNames: [],
-=======
         sharedChannelsPluginsEnabled: false,
->>>>>>> master
         intl: {
             formatMessage: jest.fn(({id, defaultMessage}) => defaultMessage || id),
         } as MockIntl,
