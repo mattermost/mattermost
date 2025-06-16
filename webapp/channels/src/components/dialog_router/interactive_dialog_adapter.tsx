@@ -248,6 +248,15 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             }
         }
 
+        // Log warning for multiselect on non-select elements
+        if (element.multiselect && element.type !== 'select') {
+            this.logWarn('multiselect property ignored for non-select element', {
+                fieldName: element.name,
+                elementType: element.type,
+                note: 'multiselect only applies to select elements',
+            });
+        }
+
         // Validation for bool fields
         if (element.type === 'bool') {
             // Validate max_length for bool fields (server limit is 150)
@@ -432,6 +441,32 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             case 'select':
             case 'radio': {
                 if (element.options && element.default) {
+                    // Handle multiselect defaults (comma-separated values)
+                    if (element.type === 'select' && element.multiselect) {
+                        const defaultValues = Array.isArray(element.default) ?
+                            element.default :
+                            String(element.default).split(',').map((val) => val.trim());
+
+                        const defaultOptions = defaultValues.map((value) => {
+                            const option = element.options!.find((opt) => opt.value === value);
+                            if (option) {
+                                return {
+                                    label: this.sanitizeString(option.text),
+                                    value: this.sanitizeString(option.value),
+                                };
+                            }
+                            this.logWarn('Default multiselect value not found in options', {
+                                elementName: element.name,
+                                defaultValue: value,
+                                availableOptions: element.options?.map((opt) => opt.value),
+                            });
+                            return null;
+                        }).filter(Boolean) as AppSelectOption[];
+
+                        return defaultOptions.length > 0 ? defaultOptions : null;
+                    }
+
+                    // Single select default
                     const defaultOption = element.options.find((option) => option.value === element.default);
                     if (defaultOption) {
                         return {
@@ -521,6 +556,11 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         // Add options for select and radio fields
         if (element.type === 'select' || element.type === 'radio') {
             appField.options = getOptions();
+
+            // Add multiselect support for select fields
+            if (element.type === 'select' && element.multiselect) {
+                appField.multiselect = true;
+            }
         }
 
         return appField;
@@ -676,33 +716,57 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 break;
 
             case 'select':
-                if (element.data_source === 'users' || element.data_source === 'channels') {
-                    // Handle user/channel selects
-                    if (typeof value === 'object' && value !== null && 'value' in value) {
-                        submission[element.name] = this.sanitizeString((value as AppSelectOption).value);
+                // Handle multiselect arrays
+                if (Array.isArray(value)) {
+                    if (element.multiselect) {
+                        // For multiselect, convert array of AppSelectOption to array of values
+                        const multiValues = value.map((item) => {
+                            if (typeof item === 'object' && item !== null && 'value' in item) {
+                                return this.sanitizeString((item as AppSelectOption).value);
+                            }
+                            return this.sanitizeString(item);
+                        });
+                        submission[element.name] = multiValues;
                     } else {
-                        submission[element.name] = this.sanitizeString(value);
+                        this.logWarn('Received array value for non-multiselect field', {
+                            fieldName: element.name,
+                            valueType: 'array',
+                            multiselect: element.multiselect,
+                        });
+
+                        // Fallback: use first value
+                        submission[element.name] = value.length > 0 ? this.sanitizeString(value[0]) : '';
                     }
                 }
 
-                // Handle static selects
-                if (typeof value === 'object' && value !== null && 'value' in value) {
-                    const selectOption = value as AppSelectOption;
-
-                    // Validate that the selected option exists in the original options
-                    if (this.conversionContext.validateInputs && element.options) {
-                        const validOption = element.options.find((opt) => opt.value === selectOption.value);
-                        if (!validOption) {
-                            this.logWarn('Selected value not found in options', {
-                                fieldName: element.name,
-                                selectedValue: selectOption.value,
-                                availableOptions: element.options.map((opt) => opt.value),
-                            });
+                // Single value handling
+                if (!Array.isArray(value)) {
+                    if (element.data_source === 'users' || element.data_source === 'channels') {
+                        // Handle user/channel selects
+                        if (typeof value === 'object' && value !== null && 'value' in value) {
+                            submission[element.name] = this.sanitizeString((value as AppSelectOption).value);
+                        } else {
+                            submission[element.name] = this.sanitizeString(value);
                         }
+                    } else if (typeof value === 'object' && value !== null && 'value' in value) {
+                        // Handle static selects
+                        const selectOption = value as AppSelectOption;
+
+                        // Validate that the selected option exists in the original options
+                        if (this.conversionContext.validateInputs && element.options) {
+                            const validOption = element.options.find((opt) => opt.value === selectOption.value);
+                            if (!validOption) {
+                                this.logWarn('Selected value not found in options', {
+                                    fieldName: element.name,
+                                    selectedValue: selectOption.value,
+                                    availableOptions: element.options.map((opt) => opt.value),
+                                });
+                            }
+                        }
+                        submission[element.name] = this.sanitizeString(selectOption.value);
+                    } else {
+                        submission[element.name] = this.sanitizeString(value);
                     }
-                    submission[element.name] = this.sanitizeString(selectOption.value);
-                } else {
-                    submission[element.name] = this.sanitizeString(value);
                 }
                 break;
 

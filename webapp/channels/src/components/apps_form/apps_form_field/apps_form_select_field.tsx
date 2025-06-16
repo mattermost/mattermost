@@ -24,7 +24,7 @@ export type Props = {
     field: AppField;
     label: React.ReactNode;
     helpText: React.ReactNode;
-    value: AppSelectOption | UserProfile | Channel | null;
+    value: AppSelectOption | AppSelectOption[] | UserProfile | UserProfile[] | Channel | Channel[] | null;
     onChange: (value: AppSelectOption) => void;
     performLookup: (name: string, userInput: string) => Promise<AppSelectOption[]>;
     teammateNameDisplay?: string;
