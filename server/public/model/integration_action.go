@@ -319,18 +319,19 @@ type Dialog struct {
 }
 
 type DialogElement struct {
-	DisplayName string               `json:"display_name"`
-	Name        string               `json:"name"`
-	Type        string               `json:"type"`
-	SubType     string               `json:"subtype"`
-	Default     string               `json:"default"`
-	Placeholder string               `json:"placeholder"`
-	HelpText    string               `json:"help_text"`
-	Optional    bool                 `json:"optional"`
-	MinLength   int                  `json:"min_length"`
-	MaxLength   int                  `json:"max_length"`
-	DataSource  string               `json:"data_source"`
-	Options     []*PostActionOptions `json:"options"`
+	DisplayName   string               `json:"display_name"`
+	Name          string               `json:"name"`
+	Type          string               `json:"type"`
+	SubType       string               `json:"subtype"`
+	Default       string               `json:"default"`
+	Placeholder   string               `json:"placeholder"`
+	HelpText      string               `json:"help_text"`
+	Optional      bool                 `json:"optional"`
+	MinLength     int                  `json:"min_length"`
+	MaxLength     int                  `json:"max_length"`
+	DataSource    string               `json:"data_source"`
+	DataSourceURL string               `json:"data_source_url,omitempty"`
+	Options       []*PostActionOptions `json:"options"`
 }
 
 type OpenDialogRequest struct {
@@ -354,6 +355,17 @@ type SubmitDialogRequest struct {
 type SubmitDialogResponse struct {
 	Error  string            `json:"error,omitempty"`
 	Errors map[string]string `json:"errors,omitempty"`
+}
+
+// DialogSelectOption represents an option in a select dropdown for dialogs
+type DialogSelectOption struct {
+	Text  string `json:"text"`
+	Value string `json:"value"`
+}
+
+// LookupDialogResponse represents the response for a lookup dialog request.
+type LookupDialogResponse struct {
+	Items []DialogSelectOption `json:"items"`
 }
 
 func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
@@ -481,6 +493,29 @@ func (d *Dialog) IsValid() error {
 	return multiErr.ErrorOrNil()
 }
 
+// IsValidLookupURL validates if a URL is safe for lookup operations
+func IsValidLookupURL(url string) bool {
+	if url == "" {
+		return false
+	}
+
+	// Only allow HTTPS for external URLs (more secure than HTTP)
+	if strings.HasPrefix(url, "https://") {
+		return IsValidHTTPURL(url)
+	}
+
+	// Only allow plugin paths that start with /plugins/
+	if strings.HasPrefix(url, "/plugins/") {
+		// Additional validation for plugin paths - ensure no path traversal
+		if strings.Contains(url, "..") || strings.Contains(url, "//") {
+			return false
+		}
+		return true
+	}
+
+	return false
+}
+
 func (e *DialogElement) IsValid() error {
 	var multiErr *multierror.Error
 	textSubTypes := map[string]bool{
@@ -523,8 +558,13 @@ func (e *DialogElement) IsValid() error {
 	case "select":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementSelectMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementSelectMaxLength))
-		if e.DataSource != "" && e.DataSource != "users" && e.DataSource != "channels" {
-			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users' or 'channels'", e.DataSource))
+		if e.DataSource != "" && e.DataSource != "users" && e.DataSource != "channels" && e.DataSource != "dynamic" {
+			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users', 'channels', or 'dynamic'", e.DataSource))
+		}
+		if e.DataSource == "dynamic" && e.DataSourceURL != "" {
+			if !IsValidLookupURL(e.DataSourceURL) {
+				multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source URL %q - must be HTTPS URL or /plugins/ path", e.DataSourceURL))
+			}
 		}
 		if e.DataSource == "" && !isDefaultInOptions(e.Default, e.Options) {
 			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
