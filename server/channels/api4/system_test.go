@@ -556,7 +556,7 @@ func TestPostLog(t *testing.T) {
 
 func TestGetAnalyticsOld(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -943,7 +943,7 @@ func TestServerBusy503(t *testing.T) {
 
 func TestPushNotificationAck(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	api, err := Init(th.Server)
 	require.NoError(t, err)
 	session, _ := th.App.GetSession(th.Client.AuthToken)

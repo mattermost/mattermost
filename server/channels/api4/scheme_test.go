@@ -195,7 +195,7 @@ func TestCreateScheme(t *testing.T) {
 
 func TestGetScheme(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -263,7 +263,7 @@ func TestGetScheme(t *testing.T) {
 
 func TestGetSchemes(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -332,7 +332,7 @@ func TestGetSchemes(t *testing.T) {
 
 func TestGetTeamsForScheme(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -430,7 +430,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 
 func TestGetChannelsForScheme(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -879,7 +879,7 @@ func TestDeleteScheme(t *testing.T) {
 
 func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("Correctly invalidates team member cache", func(t *testing.T) {

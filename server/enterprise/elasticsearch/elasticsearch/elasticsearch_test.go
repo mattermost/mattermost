@@ -35,7 +35,7 @@ func TestElasticsearchInterfaceTestSuite(t *testing.T) {
 }
 
 func (s *ElasticsearchInterfaceTestSuite) SetupSuite() {
-	s.th = api4.SetupEnterprise(s.T()).InitBasic()
+	s.th = api4.SetupEnterprise(s.T()).InitBasic(s.T())
 	s.CommonTestSuite.TH = s.th
 	s.CommonTestSuite.GetDocumentFn = func(index, documentID string) (bool, json.RawMessage, error) {
 		resp, err := s.client.API.Get(index, documentID).Do(s.ctx)

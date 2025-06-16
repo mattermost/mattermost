@@ -15,7 +15,7 @@ import (
 )
 
 func TestGetTeamAsGuest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))

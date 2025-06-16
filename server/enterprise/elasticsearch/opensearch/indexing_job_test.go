@@ -60,7 +60,7 @@ func TestOpenSearchIndexerJobIsEnabled(t *testing.T) {
 }
 
 func TestOpenSearchIndexerPending(t *testing.T) {
-	th := api4.SetupEnterprise(t).InitBasic()
+	th := api4.SetupEnterprise(t).InitBasic(t)
 	defer th.TearDown()
 
 	// Set up the state for the tests.

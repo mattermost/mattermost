@@ -127,12 +127,14 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
-	memoryStore.Set(memoryConfig)
+	err = memoryStore.Set(memoryConfig)
+	require.NoError(tb, err)
 	for _, signaturePublicKeyFile := range memoryConfig.PluginSettings.SignaturePublicKeyFiles {
 		var signaturePublicKey []byte
 		signaturePublicKey, err = os.ReadFile(signaturePublicKeyFile)
 		require.NoError(tb, err, "failed to read signature public key file %s", signaturePublicKeyFile)
-		memoryStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
+		err = memoryStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
+		require.NoError(tb, err)
 	}
 
 	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
@@ -442,7 +444,10 @@ func (th *TestHelper) ShutdownApp() {
 func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
+		appErr := th.App.Srv().InvalidateAllCaches()
+		if appErr != nil {
+			panic(appErr)
+		}
 	}
 
 	th.ShutdownApp()
@@ -463,72 +468,34 @@ func closeBody(r *http.Response) {
 	}
 }
 
-var (
-	initBasicOnce sync.Once
-	userCache     struct {
-		SystemAdminUser   *model.User
-		SystemManagerUser *model.User
-		TeamAdminUser     *model.User
-		BasicUser         *model.User
-		BasicUser2        *model.User
-	}
-)
-
 func (th *TestHelper) InitLogin(tb testing.TB) *TestHelper {
 	th.waitForConnectivity(tb)
 
-	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		var err *model.AppError
+	th.SystemAdminUser = th.CreateUser()
+	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	require.Nil(tb, appErr)
+	th.SystemAdminUser, appErr = th.App.GetUser(th.SystemAdminUser.Id)
+	require.Nil(tb, appErr)
 
-		th.SystemAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		th.SystemAdminUser, err = th.App.GetUser(th.SystemAdminUser.Id)
-		if err != nil {
-			panic(err)
-		}
-		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
+	th.SystemManagerUser = th.CreateUser()
+	_, appErr = th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
+	require.Nil(tb, appErr)
+	th.SystemManagerUser, appErr = th.App.GetUser(th.SystemManagerUser.Id)
+	require.Nil(tb, appErr)
 
-		th.SystemManagerUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
-		th.SystemManagerUser, err = th.App.GetUser(th.SystemManagerUser.Id)
-		if err != nil {
-			panic(err)
-		}
-		userCache.SystemManagerUser = th.SystemManagerUser.DeepCopy()
+	th.TeamAdminUser = th.CreateUser()
+	_, appErr = th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
+	require.Nil(tb, appErr)
+	th.TeamAdminUser, appErr = th.App.GetUser(th.TeamAdminUser.Id)
+	require.Nil(tb, appErr)
 
-		th.TeamAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
-		th.TeamAdminUser, err = th.App.GetUser(th.TeamAdminUser.Id)
-		if err != nil {
-			panic(err)
-		}
-		userCache.TeamAdminUser = th.TeamAdminUser.DeepCopy()
+	th.BasicUser = th.CreateUser()
+	th.BasicUser, appErr = th.App.GetUser(th.BasicUser.Id)
+	require.Nil(tb, appErr)
 
-		th.BasicUser = th.CreateUser()
-		th.BasicUser, err = th.App.GetUser(th.BasicUser.Id)
-		if err != nil {
-			panic(err)
-		}
-
-		userCache.BasicUser = th.BasicUser.DeepCopy()
-
-		th.BasicUser2 = th.CreateUser()
-		th.BasicUser2, err = th.App.GetUser(th.BasicUser2.Id)
-		if err != nil {
-			panic(err)
-		}
-		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
-	})
-
-	// restore cached users
-	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
-	th.SystemManagerUser = userCache.SystemManagerUser.DeepCopy()
-	th.TeamAdminUser = userCache.TeamAdminUser.DeepCopy()
-	th.BasicUser = userCache.BasicUser.DeepCopy()
-	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-
-	th.Store.User().InsertUsers([]*model.User{th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser})
+	th.BasicUser2 = th.CreateUser()
+	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
+	require.Nil(tb, appErr)
 
 	// restore non hashed password for login
 	th.SystemAdminUser.Password = "Pa$$word11"
@@ -553,7 +520,7 @@ func (th *TestHelper) InitLogin(tb testing.TB) *TestHelper {
 	return th
 }
 
-func (th *TestHelper) InitBasic() *TestHelper {
+func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	th.BasicTeam = th.CreateTeam()
 	th.BasicChannel = th.CreatePublicChannel()
 	th.BasicPrivateChannel = th.CreatePrivateChannel()
@@ -563,26 +530,37 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicPost = th.CreatePost()
 	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel2, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel2, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicPrivateChannel, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicPrivateChannel, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicDeletedChannel, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicDeletedChannel, false)
-	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
-	th.Client.DeleteChannel(context.Background(), th.BasicDeletedChannel.Id)
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false)
+	require.Nil(tb, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	require.Nil(tb, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel2, false)
+	require.Nil(tb, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel2, false)
+	require.Nil(tb, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicPrivateChannel, false)
+	require.Nil(tb, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicPrivateChannel, false)
+	require.Nil(tb, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicDeletedChannel, false)
+	require.Nil(tb, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicDeletedChannel, false)
+	require.Nil(tb, appErr)
+	_, appErr = th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
+	require.Nil(tb, appErr)
+	_, err := th.Client.DeleteChannel(context.Background(), th.BasicDeletedChannel.Id)
+	require.NoError(tb, err)
 	th.LoginBasic()
 	th.Group = th.CreateGroup()
 
 	return th
 }
 
-func (th *TestHelper) DeleteBots() *TestHelper {
+func (th *TestHelper) DeleteBots(tb testing.TB) *TestHelper {
 	preexistingBots, _ := th.App.GetBots(th.Context, &model.BotGetOptions{Page: 0, PerPage: 100})
 	for _, bot := range preexistingBots {
-		th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		require.Nil(tb, appErr)
 	}
 	return th
 }
@@ -958,11 +936,11 @@ func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message 
 	return post
 }
 
-func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
-	var err *model.AppError
+func (th *TestHelper) CreateDmChannel(tb testing.TB, user *model.User) *model.Channel {
+	var appErr *model.AppError
 	var channel *model.Channel
-	if channel, err = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); err != nil {
-		panic(err)
+	if channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); appErr != nil {
+		panic(appErr)
 	}
 	return channel
 }

@@ -483,7 +483,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 
 func TestCreateUserWithToken(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("CreateWithTokenHappyPath", func(t *testing.T) {
@@ -744,7 +744,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 func TestCreateUserWebSocketEvent(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("guest should not received new_user event but user should", func(t *testing.T) {
@@ -814,7 +814,7 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 
 func TestCreateUserWithInviteId(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("CreateWithInviteIdHappyPath", func(t *testing.T) {
@@ -979,7 +979,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 func TestGetMe(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	ruser, _, err := th.Client.GetMe(context.Background(), "")
@@ -1087,7 +1087,7 @@ func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
 
 func TestGetUserWithAcceptedTermsOfService(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -1117,7 +1117,7 @@ func TestGetUserWithAcceptedTermsOfService(t *testing.T) {
 
 func TestGetUserWithAcceptedTermsOfServiceWithAdminUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	th.LoginSystemAdmin()
 	defer th.TearDown()
 
@@ -1148,7 +1148,7 @@ func TestGetUserWithAcceptedTermsOfServiceWithAdminUser(t *testing.T) {
 
 func TestGetBotUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	defaultPerms := th.SaveDefaultRolePermissions()
@@ -1184,7 +1184,7 @@ func TestGetBotUser(t *testing.T) {
 
 func TestGetUserByUsername(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -1236,7 +1236,7 @@ func TestGetUserByUsername(t *testing.T) {
 
 func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -1412,7 +1412,7 @@ func TestGetUserByEmail(t *testing.T) {
 // Not much can be done about it.
 func TestSearchUsers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	search := &model.UserSearch{Term: th.BasicUser.Username}
@@ -1683,7 +1683,7 @@ func findUserInList(id string, users []*model.User) bool { //nolint:unused
 
 func TestAutocompleteUsersInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 	channelId := th.BasicChannel.Id
@@ -1832,7 +1832,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 
 func TestAutocompleteUsersInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 	username := th.BasicUser.Username
@@ -1906,7 +1906,7 @@ func TestAutocompleteUsersInTeam(t *testing.T) {
 
 func TestAutocompleteUsers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	username := th.BasicUser.Username
 	newUser := th.CreateUser()
@@ -1975,7 +1975,7 @@ func TestAutocompleteUsers(t *testing.T) {
 
 func TestGetProfileImage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	// recreate basic user
@@ -2014,7 +2014,7 @@ func TestGetProfileImage(t *testing.T) {
 
 func TestGetUsersByIds(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -2092,7 +2092,7 @@ func TestGetUsersByIdsWithOptions(t *testing.T) {
 
 func TestGetUsersByGroupChannelIds(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	gc1, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, th.BasicUser.Id)
@@ -2126,7 +2126,7 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 
 func TestGetUsersByUsernames(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	users, _, err := th.Client.GetUsersByUsernames(context.Background(), []string{th.BasicUser.Username})
@@ -2250,7 +2250,7 @@ func TestUpdateUser(t *testing.T) {
 
 func TestUpdateAdminUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -2273,7 +2273,7 @@ func TestUpdateAdminUser(t *testing.T) {
 
 func TestUpdateBotUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(c *model.Config) {
@@ -2295,7 +2295,7 @@ func TestUpdateBotUser(t *testing.T) {
 
 func TestPatchUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -2411,7 +2411,7 @@ func TestPatchUser(t *testing.T) {
 
 func TestPatchBotUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(c *model.Config) {
@@ -2433,7 +2433,7 @@ func TestPatchBotUser(t *testing.T) {
 
 func TestPatchAdminUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -2576,7 +2576,7 @@ func TestUpdateUserAuth(t *testing.T) {
 
 func TestDeleteUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.LoginBasic()
@@ -2628,7 +2628,7 @@ func TestDeleteUser(t *testing.T) {
 
 func TestDeleteBotUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(c *model.Config) {
@@ -2644,7 +2644,7 @@ func TestDeleteBotUser(t *testing.T) {
 
 func TestPermanentDeleteUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	enableAPIUserDeletion := *th.App.Config().ServiceSettings.EnableAPIUserDeletion
@@ -2684,7 +2684,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 func TestPermanentDeleteAllUsers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("The endpoint should not be available for neither normal nor sysadmin users", func(t *testing.T) {
@@ -2752,7 +2752,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 
 func TestUpdateUserRoles(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	resp, err := th.Client.UpdateUserRoles(context.Background(), th.SystemAdminUser.Id, model.SystemUserRoleId)
@@ -2807,7 +2807,7 @@ func TestUpdateUserActive(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("basic tests", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		user := th.BasicUser
@@ -2865,7 +2865,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 	t.Run("websocket events", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		user := th.BasicUser2
@@ -2904,7 +2904,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 	t.Run("activate guest should fail when guests feature is disable", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		id := model.NewId()
@@ -2932,7 +2932,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 	t.Run("activate guest should work when guests feature is enabled", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		id := model.NewId()
@@ -2957,7 +2957,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 	t.Run("update active status of LDAP user should fail", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		ldapUser := &model.User{
@@ -3055,7 +3055,7 @@ func TestGetUsers(t *testing.T) {
 
 func TestGetNewUsersInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 
@@ -3082,7 +3082,7 @@ func TestGetNewUsersInTeam(t *testing.T) {
 
 func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 
@@ -3109,7 +3109,7 @@ func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 
 func TestGetActiveUsersInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 
@@ -3142,7 +3142,7 @@ func TestGetActiveUsersInTeam(t *testing.T) {
 
 func TestGetUsersWithoutTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	_, _, err := th.Client.GetUsersWithoutTeam(context.Background(), 0, 100, "")
@@ -3193,7 +3193,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 
 func TestGetUsersInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 
@@ -3237,7 +3237,7 @@ func TestGetUsersInTeam(t *testing.T) {
 
 func TestGetUsersNotInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic().DeleteBots()
+	th := Setup(t).InitBasic(t).DeleteBots(t)
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 
@@ -3282,7 +3282,7 @@ func TestGetUsersNotInTeam(t *testing.T) {
 
 func TestGetUsersInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	channelId := th.BasicChannel.Id
 
@@ -3369,7 +3369,7 @@ func TestGetUsersInChannel(t *testing.T) {
 
 func TestGetUsersNotInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 	channelId := th.BasicChannel.Id
@@ -3409,7 +3409,7 @@ func TestGetUsersNotInChannel(t *testing.T) {
 
 func TestGetUsersInGroup(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -3492,7 +3492,7 @@ func TestGetUsersInGroup(t *testing.T) {
 
 func TestGetUsersInGroupByDisplayName(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -3550,7 +3550,7 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 
 func TestUpdateUserMfa(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
@@ -3596,7 +3596,7 @@ func TestUpdateUserMfa(t *testing.T) {
 
 func TestUserLoginMFAFlow(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(c *model.Config) {
@@ -3662,7 +3662,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 
 func TestGenerateMfaSecret(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = false })
@@ -3704,7 +3704,7 @@ func TestGenerateMfaSecret(t *testing.T) {
 
 func TestUpdateUserPassword(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	password := "newpassword1"
@@ -3774,7 +3774,7 @@ func TestUpdateUserPassword(t *testing.T) {
 
 func TestUpdateUserHashedPassword(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -3798,7 +3798,7 @@ func TestUpdateUserHashedPassword(t *testing.T) {
 func TestResetPassword(t *testing.T) {
 	t.Skip("test disabled during old build server changes, should be investigated")
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	_, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
@@ -3880,7 +3880,7 @@ func TestResetPassword(t *testing.T) {
 
 func TestGetSessions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -3924,7 +3924,7 @@ func TestGetSessions(t *testing.T) {
 
 func TestRevokeSessions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -3984,7 +3984,7 @@ func TestRevokeSessions(t *testing.T) {
 
 func TestRevokeAllSessions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -4028,7 +4028,7 @@ func TestRevokeAllSessions(t *testing.T) {
 func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -4075,7 +4075,7 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 
 func TestAttachDeviceId(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	deviceId := model.PushNotifyApple + ":1234567890"
@@ -4197,7 +4197,7 @@ func TestAttachDeviceId(t *testing.T) {
 
 func TestGetUserAudits(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	user := th.BasicUser
 
@@ -4248,7 +4248,7 @@ func TestVerifyUserEmail(t *testing.T) {
 
 func TestSendVerificationEmail(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	_, err := th.Client.SendVerificationEmail(context.Background(), th.BasicUser.Email)
@@ -4270,7 +4270,7 @@ func TestSendVerificationEmail(t *testing.T) {
 
 func TestSetProfileImage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	user := th.BasicUser
 
@@ -4326,7 +4326,7 @@ func TestSetProfileImage(t *testing.T) {
 
 func TestSetDefaultProfileImage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	user := th.BasicUser
 
@@ -4382,7 +4382,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	_, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
@@ -4458,7 +4458,7 @@ func TestLogin(t *testing.T) {
 func TestLoginCookies(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return cookies with X-Requested-With header", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.Client.HTTPHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXML
@@ -4487,7 +4487,7 @@ func TestLoginCookies(t *testing.T) {
 	})
 
 	t.Run("should not return cookies without X-Requested-With header", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		_, resp, _ := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
@@ -4496,7 +4496,7 @@ func TestLoginCookies(t *testing.T) {
 	})
 
 	t.Run("should include subpath in path", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.Client.HTTPHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXML
@@ -4530,7 +4530,7 @@ func TestLoginCookies(t *testing.T) {
 		updateConfig := func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://testchips.cloud.mattermost.com"
 		}
-		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -4558,7 +4558,7 @@ func TestLoginCookies(t *testing.T) {
 		updateConfig := func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://testchips.cloud.mattermost.com"
 		}
-		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -4596,7 +4596,7 @@ func TestLoginCookies(t *testing.T) {
 		updateConfig := func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://testchips.com" // correct cloud URL would be https://testchips.cloud.mattermost.com
 		}
-		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -4617,7 +4617,7 @@ func TestLoginCookies(t *testing.T) {
 		updateConfig := func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://testchips.com"
 		}
-		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 		defer th.TearDown()
 
 		_, resp, _ := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
@@ -4636,7 +4636,7 @@ func TestLoginCookies(t *testing.T) {
 func TestCBALogin(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("primary", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 		th.App.Srv().SetLicense(model.NewTestLicense("future_features"))
 
@@ -4700,7 +4700,7 @@ func TestCBALogin(t *testing.T) {
 	})
 
 	t.Run("secondary", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 		th.App.Srv().SetLicense(model.NewTestLicense("future_features"))
 
@@ -4752,7 +4752,7 @@ func TestCBALogin(t *testing.T) {
 
 func TestSwitchAccount(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
@@ -5015,7 +5015,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create token without permission", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5027,7 +5027,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("system admin and local mode can create access token", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5047,7 +5047,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create token for invalid user id", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5061,7 +5061,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create token with invalid value", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5075,7 +5075,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create token with user access tokens disabled", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
@@ -5091,7 +5091,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create user access token", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5112,7 +5112,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create user access token as second user, without permission", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5124,7 +5124,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create user access token for another user, with permission", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5144,7 +5144,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create user access token for system admin, as system user manager", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5159,7 +5159,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create user access token for basic user as a system admin", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5176,7 +5176,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create user access token for remote user as a system admin", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5197,7 +5197,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create access token as oauth session", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5213,7 +5213,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create access token for bot created by user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5260,7 +5260,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create access token for bot created by another user, only having MANAGE_BOTS permission", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5311,7 +5311,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 	t.Run("get for invalid user id", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5323,7 +5323,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 	t.Run("get for unknown user id", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5335,7 +5335,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 	t.Run("get my token", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5356,7 +5356,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 	t.Run("get user token as system admin", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5378,7 +5378,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 	t.Run("get token for bot created by user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5432,7 +5432,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 	t.Run("get token for bot created by another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5488,7 +5488,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 
 	t.Run("multiple tokens, offset 0, limit 100", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5515,7 +5515,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 
 	t.Run("multiple tokens, offset 1, limit 1", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5546,7 +5546,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 
 	t.Run("GetUserAccessTokens, not a system admin", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5561,7 +5561,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 
 	t.Run("GetUserAccessTokens, as a system admin, page 1, perPage 1", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5583,7 +5583,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 
 	t.Run("GetUserAccessTokens, as a system admin, page 0, perPage 2", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5607,7 +5607,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 func TestSearchUserAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	testDescription := "test token"
@@ -5649,7 +5649,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 	t.Run("revoke user token", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5670,7 +5670,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 	t.Run("revoke token belonging to another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5685,7 +5685,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 	t.Run("revoke token for bot created by user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5735,7 +5735,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 	t.Run("revoke token for bot created by another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5787,7 +5787,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 	t.Run("disable user token", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5806,7 +5806,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 	t.Run("disable token belonging to another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5821,7 +5821,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 	t.Run("disable token for bot created by user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5870,7 +5870,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("disable token for bot created by another user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5921,7 +5921,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("enable user token", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5945,7 +5945,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 	t.Run("enable token belonging to another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -5963,7 +5963,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 	t.Run("enable token for bot created by user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -6016,7 +6016,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 	t.Run("enable token for bot created by another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -6069,7 +6069,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 func TestUserAccessTokenInactiveUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	testDescription := "test token"
@@ -6096,7 +6096,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 func TestUserAccessTokenDisableConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	testDescription := "test token"
@@ -6263,7 +6263,7 @@ func TestGetUsersByStatus(t *testing.T) {
 func TestRegisterTermsOfServiceAction(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	_, err := th.Client.RegisterTermsOfServiceAction(context.Background(), th.BasicUser.Id, "st_1", true)
@@ -6282,7 +6282,7 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 func TestGetUserTermsOfService(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	_, _, err := th.Client.GetUserTermsOfService(context.Background(), th.BasicUser.Id, "")
@@ -6305,7 +6305,7 @@ func TestGetUserTermsOfService(t *testing.T) {
 func TestLoginErrorMessage(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	_, err := th.Client.Logout(context.Background())
@@ -6363,7 +6363,7 @@ func TestLoginErrorMessage(t *testing.T) {
 func TestLoginLockout(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	_, err := th.Client.Logout(context.Background())
@@ -6413,7 +6413,7 @@ func TestLoginLockout(t *testing.T) {
 func TestDemoteUserToGuest(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
@@ -6489,7 +6489,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 func TestPromoteGuestToUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
@@ -6695,7 +6695,7 @@ func TestGetKnownUsers(t *testing.T) {
 
 func TestPublishUserTyping(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	tr := model.TypingRequest{
@@ -6770,7 +6770,7 @@ func TestPublishUserTyping(t *testing.T) {
 
 func TestConvertUserToBot(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	bot, resp, err := th.Client.ConvertUserToBot(context.Background(), th.BasicUser.Id)
@@ -6817,7 +6817,7 @@ func TestConvertUserToBot(t *testing.T) {
 
 func TestGetChannelMembersWithTeamData(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	channels, resp, err := th.Client.GetChannelMembersWithTeamData(context.Background(), th.BasicUser.Id, 0, 5)
@@ -6849,7 +6849,7 @@ func TestGetChannelMembersWithTeamData(t *testing.T) {
 
 func TestMigrateAuthToLDAP(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	resp, err := th.Client.MigrateAuthToLdap(context.Background(), "email", "a", false)
@@ -6865,7 +6865,7 @@ func TestMigrateAuthToLDAP(t *testing.T) {
 
 func TestMigrateAuthToSAML(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	resp, err := th.Client.MigrateAuthToSaml(context.Background(), "email", map[string]string{"1": "a"}, true)
@@ -6944,7 +6944,7 @@ func TestUpdatePasswordAudit(t *testing.T) {
 
 func TestGetThreadsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -7414,7 +7414,7 @@ func TestGetThreadsForUser(t *testing.T) {
 
 func TestThreadSocketEvents(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.ConfigStore.SetReadOnlyFF(false)
@@ -7687,7 +7687,7 @@ func TestThreadSocketEvents(t *testing.T) {
 
 func TestFollowThreads(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -7800,7 +7800,7 @@ func postAndCheck(t *testing.T, client *model.Client4, post *model.Post) (*model
 func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 	defer th.UnlinkUserFromTeam(th.SystemAdminUser, th.BasicTeam)
@@ -7863,7 +7863,7 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 
 func TestThreadCounts(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -7911,7 +7911,7 @@ func TestThreadCounts(t *testing.T) {
 
 func TestSingleThreadGet(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
@@ -7988,7 +7988,7 @@ func TestSingleThreadGet(t *testing.T) {
 
 func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 	defer th.UnlinkUserFromTeam(th.SystemAdminUser, th.BasicTeam)
@@ -8040,7 +8040,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
 
 	// test DM
-	dm := th.CreateDmChannel(th.SystemAdminUser)
+	dm := th.CreateDmChannel(t, th.SystemAdminUser)
 	dm_root_post, _ := postAndCheck(t, client, &model.Post{ChannelId: dm.Id, Message: "hi @" + th.SystemAdminUser.Username})
 
 	// no changes
@@ -8061,7 +8061,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 
 func TestReadThreads(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -8192,7 +8192,7 @@ func TestReadThreads(t *testing.T) {
 
 func TestMarkThreadUnreadMentionCount(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -8241,7 +8241,7 @@ func TestMarkThreadUnreadMentionCount(t *testing.T) {
 func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("LDAP user", func(t *testing.T) {
-		th := SetupEnterprise(t).InitBasic()
+		th := SetupEnterprise(t).InitBasic(t)
 		defer th.TearDown()
 		user := th.CreateUserWithAuth(model.UserAuthServiceLdap)
 		ldapMock := &mocks.LdapInterface{}
@@ -8263,7 +8263,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 	})
 	t.Run("SAML user", func(t *testing.T) {
 		t.Run("with LDAP sync", func(t *testing.T) {
-			th := SetupEnterprise(t).InitBasic()
+			th := SetupEnterprise(t).InitBasic(t)
 			defer th.TearDown()
 			th.SetupLdapConfig()
 			th.SetupSamlConfig()
@@ -8284,7 +8284,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			ldapMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 2)
 		})
 		t.Run("without LDAP sync", func(t *testing.T) {
-			th := SetupEnterprise(t).InitBasic()
+			th := SetupEnterprise(t).InitBasic(t)
 			defer th.TearDown()
 			user := th.CreateUserWithAuth(model.UserAuthServiceSaml)
 			samlMock := &mocks.SamlInterface{}
@@ -8301,7 +8301,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		})
 	})
 	t.Run("OpenID user", func(t *testing.T) {
-		th := SetupEnterprise(t).InitBasic()
+		th := SetupEnterprise(t).InitBasic(t)
 		defer th.TearDown()
 		user := th.CreateUserWithAuth(model.ServiceOpenid)
 		// OAUTH users cannot change these fields
@@ -8316,7 +8316,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		}
 	})
 	t.Run("Patch username", func(t *testing.T) {
-		th := SetupEnterprise(t).InitBasic()
+		th := SetupEnterprise(t).InitBasic(t)
 		defer th.TearDown()
 		// For non-email users, the username must be changed through the provider
 		for _, authService := range []string{
@@ -8373,7 +8373,7 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 			{"profile picture attribute is set", true, false},
 			{"profile picture attribute is not set", false, true},
 		}
-		th := SetupEnterprise(t).InitBasic()
+		th := SetupEnterprise(t).InitBasic(t)
 		defer th.TearDown()
 		th.SetupLdapConfig()
 		user := th.CreateUserWithAuth(model.UserAuthServiceLdap)
@@ -8384,7 +8384,7 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 	})
 
 	t.Run("SAML user", func(t *testing.T) {
-		th := SetupEnterprise(t).InitBasic()
+		th := SetupEnterprise(t).InitBasic(t)
 		defer th.TearDown()
 		th.SetupLdapConfig()
 		th.SetupSamlConfig()
@@ -8420,7 +8420,7 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 
 func TestGetUsersWithInvalidEmails(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.SystemAdminClient
 
@@ -8469,7 +8469,7 @@ func TestGetUsersWithInvalidEmails(t *testing.T) {
 
 func TestUserUpdateEvents(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	client1 := th.CreateClient()
@@ -8514,7 +8514,7 @@ func TestUserUpdateEvents(t *testing.T) {
 
 func TestLoginWithDesktopToken(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("login SAML User with desktop token", func(t *testing.T) {
@@ -8587,7 +8587,7 @@ func TestLoginWithDesktopToken(t *testing.T) {
 
 func TestGetUsersByNames(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("Get users by valid usernames", func(t *testing.T) {
@@ -8646,7 +8646,7 @@ func TestGetUsersByNames(t *testing.T) {
 
 func TestGetFilteredUsersStats(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("Get filtered users stats as system admin", func(t *testing.T) {
@@ -8750,7 +8750,7 @@ func TestGetFilteredUsersStats(t *testing.T) {
 
 func TestGetDefaultProfileImage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("Get default profile image for existing user", func(t *testing.T) {
@@ -8820,7 +8820,7 @@ func TestGetDefaultProfileImage(t *testing.T) {
 
 func TestGetUserThread(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	client := th.Client
@@ -8941,7 +8941,7 @@ func TestGetUserThread(t *testing.T) {
 
 func TestUpdateReadStateThreadByUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	client := th.Client
@@ -9019,7 +9019,7 @@ func TestUpdateReadStateThreadByUser(t *testing.T) {
 
 func TestSetUnreadThreadByPostId(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	client := th.Client
@@ -9133,7 +9133,7 @@ func TestSetUnreadThreadByPostId(t *testing.T) {
 
 func TestRevokeAllSessionsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -9179,7 +9179,7 @@ func TestRevokeAllSessionsForUser(t *testing.T) {
 }
 
 func TestResetPasswordFailedAttempts(t *testing.T) {
-	th := SetupEnterprise(t).InitBasic()
+	th := SetupEnterprise(t).InitBasic(t)
 	defer th.TearDown()
 	th.SetupLdapConfig()
 
@@ -9394,7 +9394,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 	})
 }
 func TestSearchUsersWithMfaEnforced(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))

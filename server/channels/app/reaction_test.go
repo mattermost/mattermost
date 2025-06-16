@@ -54,11 +54,11 @@ func TestSaveReactionForPost(t *testing.T) {
 
 	t.Run("should not add reaction if we are over the limit", func(t *testing.T) {
 		var originalLimit *int
-		th.UpdateConfig(func(cfg *model.Config) {
+		th.UpdateConfig(t, func(cfg *model.Config) {
 			originalLimit = cfg.ServiceSettings.UniqueEmojiReactionLimitPerPost
 			*cfg.ServiceSettings.UniqueEmojiReactionLimitPerPost = 3
 		})
-		defer th.UpdateConfig(func(cfg *model.Config) {
+		defer th.UpdateConfig(t, func(cfg *model.Config) {
 			cfg.ServiceSettings.UniqueEmojiReactionLimitPerPost = originalLimit
 		})
 
@@ -77,11 +77,11 @@ func TestSaveReactionForPost(t *testing.T) {
 		user := th.CreateUser()
 
 		var originalLimit *int
-		th.UpdateConfig(func(cfg *model.Config) {
+		th.UpdateConfig(t, func(cfg *model.Config) {
 			originalLimit = cfg.ServiceSettings.UniqueEmojiReactionLimitPerPost
 			*cfg.ServiceSettings.UniqueEmojiReactionLimitPerPost = 3
 		})
-		defer th.UpdateConfig(func(cfg *model.Config) {
+		defer th.UpdateConfig(t, func(cfg *model.Config) {
 			cfg.ServiceSettings.UniqueEmojiReactionLimitPerPost = originalLimit
 		})
 
@@ -170,14 +170,13 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 	})
 }
 
-func (th *TestHelper) UpdateConfig(f func(*model.Config)) {
+func (th *TestHelper) UpdateConfig(tb testing.TB, f func(*model.Config)) {
 	if th.ConfigStore.IsReadOnly() {
 		return
 	}
 	old := th.ConfigStore.Get()
 	updated := old.Clone()
 	f(updated)
-	if _, _, err := th.ConfigStore.Set(updated); err != nil {
-		panic(err)
-	}
+	_, _, err := th.ConfigStore.Set(updated)
+	require.NoError(tb, err)
 }

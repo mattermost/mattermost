@@ -19,7 +19,7 @@ import (
 
 // setupTestEnvironment sets up a common test environment for shared channel metadata tests
 func setupTestEnvironment(t *testing.T) (*TestHelper, *sharedchannel.Service) {
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	ss := th.App.Srv().Store()
 	EnsureCleanState(t, th, ss)
 

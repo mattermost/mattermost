@@ -15,7 +15,7 @@ import (
 
 func TestCreateIncomingWebhook(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -110,7 +110,7 @@ func TestCreateIncomingWebhook(t *testing.T) {
 
 func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -148,7 +148,7 @@ func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 
 func TestGetIncomingWebhooks(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -227,7 +227,7 @@ func TestGetIncomingWebhooks(t *testing.T) {
 
 func TestGetIncomingWebhooksListByUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	BasicClient := th.Client
 	th.LoginBasic()
@@ -271,7 +271,7 @@ func TestGetIncomingWebhooksListByUser(t *testing.T) {
 
 func TestGetIncomingWebhooksByTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	BasicClient := th.Client
 
@@ -314,7 +314,7 @@ func TestGetIncomingWebhooksByTeam(t *testing.T) {
 
 func TestGetIncomingWebhooksWithCount(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	BasicClient := th.Client
 	th.LoginBasic()
@@ -369,7 +369,7 @@ func TestGetIncomingWebhooksWithCount(t *testing.T) {
 
 func TestGetIncomingWebhook(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -406,7 +406,7 @@ func TestGetIncomingWebhook(t *testing.T) {
 
 func TestDeleteIncomingWebhook(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -458,7 +458,7 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 
 func TestCreateOutgoingWebhook(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -543,7 +543,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 
 func TestGetOutgoingWebhooks(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
@@ -643,7 +643,7 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 
 func TestGetOutgoingWebhooksByTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
@@ -685,7 +685,7 @@ func TestGetOutgoingWebhooksByTeam(t *testing.T) {
 
 func TestGetOutgoingWebhooksByChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
@@ -727,7 +727,7 @@ func TestGetOutgoingWebhooksByChannel(t *testing.T) {
 
 func TestGetOutgoingWebhooksListByUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	th.LoginBasic()
 
@@ -770,7 +770,7 @@ func TestGetOutgoingWebhooksListByUser(t *testing.T) {
 
 func TestGetOutgoingWebhook(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
@@ -806,7 +806,7 @@ func TestGetOutgoingWebhook(t *testing.T) {
 
 func TestUpdateIncomingHook(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -1009,7 +1009,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 
 func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -1047,7 +1047,7 @@ func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 
 func TestRegenOutgoingHookToken(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -1081,7 +1081,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 
 func TestUpdateOutgoingHook(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
@@ -1304,7 +1304,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 
 func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
@@ -1342,7 +1342,7 @@ func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
 
 func TestDeleteOutgoingHook(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })

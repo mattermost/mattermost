@@ -31,7 +31,7 @@ func Test_getIPFilters(t *testing.T) {
 
 	t.Run("No license returns 501", func(t *testing.T) {
 		t.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		ipFiltering := &mocks.IPFilteringInterface{}
@@ -52,7 +52,7 @@ func Test_getIPFilters(t *testing.T) {
 	t.Run("No feature flag returns 501", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "false")
 		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDIPFILTERING")
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		ipFiltering := &mocks.IPFilteringInterface{}
@@ -71,7 +71,7 @@ func Test_getIPFilters(t *testing.T) {
 
 	t.Run("Feature flag and license but no permission", func(t *testing.T) {
 		t.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		ipFiltering := &mocks.IPFilteringInterface{}
@@ -90,7 +90,7 @@ func Test_getIPFilters(t *testing.T) {
 
 	t.Run("Feature flag and license and permission", func(t *testing.T) {
 		t.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		ipFiltering := &mocks.IPFilteringInterface{}
@@ -115,7 +115,7 @@ func Test_getIPFilters(t *testing.T) {
 
 	t.Run("Feature flag and license and permission but not cloud returns 503", func(t *testing.T) {
 		t.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		ipFiltering := &mocks.IPFilteringInterface{}
@@ -155,7 +155,7 @@ func Test_applyIPFilters(t *testing.T) {
 	// Initialize the allowedRanges variable
 	t.Run("No license returns 501", func(t *testing.T) {
 		t.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		ipFiltering := &mocks.IPFilteringInterface{}
@@ -176,7 +176,7 @@ func Test_applyIPFilters(t *testing.T) {
 	t.Run("License but no feature flag returns 501", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "false")
 		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDIPFILTERING")
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		ipFiltering := &mocks.IPFilteringInterface{}
@@ -194,7 +194,7 @@ func Test_applyIPFilters(t *testing.T) {
 
 	t.Run("feature flag and license but no permission", func(t *testing.T) {
 		t.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
@@ -212,7 +212,7 @@ func Test_applyIPFilters(t *testing.T) {
 
 	t.Run("Feature flag and license and permission", func(t *testing.T) {
 		t.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(lic)
@@ -260,7 +260,7 @@ func Test_getMyIP(t *testing.T) {
 	}
 	t.Run("No license returns 501", func(t *testing.T) {
 		t.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		ipFiltering := &mocks.IPFilteringInterface{}
@@ -281,7 +281,7 @@ func Test_getMyIP(t *testing.T) {
 	t.Run("Licensed, but no feature flag returns 501", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "false")
 		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDIPFILTERING")
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)

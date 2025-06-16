@@ -399,7 +399,7 @@ func TestDisableOnRemove(t *testing.T) {
 		},
 	}
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	for _, tc := range testCases {
@@ -885,7 +885,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 	testIconData := fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(testIcon))
 
 	t.Run("search installed plugin", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -1415,7 +1415,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		cfg.PluginSettings.SignaturePublicKeyFiles = []string{
 			filepath.Join(path, "development-private-key.asc"),
 		}
-	}).InitBasic()
+	}).InitBasic(t)
 	defer th.TearDown()
 
 	signatureFilename := "testplugin2.tar.gz.sig"
@@ -1828,7 +1828,7 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 			cfg.PluginSettings.SignaturePublicKeyFiles = []string{
 				filepath.Join(path, "development-private-key.asc"),
 			}
-		}).InitBasic()
+		}).InitBasic(t)
 		defer th.TearDown()
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -1998,7 +1998,7 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 			cfg.PluginSettings.SignaturePublicKeyFiles = []string{
 				filepath.Join(path, "development-private-key.asc"),
 			}
-		}).InitBasic()
+		}).InitBasic(t)
 		defer th.TearDown()
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -2071,7 +2071,7 @@ func findClusterMessages(event model.ClusterEvent, msgs []*model.ClusterMessage)
 
 func TestPluginWebSocketSession(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	pluginID := "com.mattermost.websocket_session_test"
@@ -2124,7 +2124,7 @@ func TestPluginWebSocketSession(t *testing.T) {
 
 func TestPluginWebSocketRemoteAddress(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	pluginID := "com.mattermost.websocket_remote_address_test"

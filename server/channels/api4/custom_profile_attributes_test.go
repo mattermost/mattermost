@@ -362,7 +362,7 @@ func TestListCPAValues(t *testing.T) {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic()
+	}).InitBasic(t)
 	defer th.TearDown()
 
 	th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
@@ -451,7 +451,7 @@ func TestPatchCPAValues(t *testing.T) {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic()
+	}).InitBasic(t)
 	defer th.TearDown()
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{

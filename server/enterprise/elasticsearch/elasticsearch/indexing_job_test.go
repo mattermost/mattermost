@@ -60,7 +60,7 @@ func TestElasticSearchIndexerJobIsEnabled(t *testing.T) {
 }
 
 func TestElasticSearchIndexerPending(t *testing.T) {
-	th := api4.SetupEnterprise(t).InitBasic()
+	th := api4.SetupEnterprise(t).InitBasic(t)
 	defer th.TearDown()
 
 	// Set up the state for the tests.

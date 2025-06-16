@@ -47,7 +47,7 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
 
 	t.Run("no permissions", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		session := model.Session{
@@ -65,7 +65,7 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 	})
 
 	t.Run("with management permissions", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		session := model.Session{
@@ -88,7 +88,7 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 	})
 
 	t.Run("with slash command management permissions", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		session := model.Session{
@@ -108,7 +108,7 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 	})
 
 	t.Run("with outgoing webhooks management permissions", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		session := model.Session{
@@ -132,7 +132,7 @@ func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
 	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
 
 	t.Run("no permissions", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		session := model.Session{
@@ -150,7 +150,7 @@ func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
 	})
 
 	t.Run("with permissions", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		session := model.Session{
@@ -178,7 +178,7 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 	t.Run("No license returns 501", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION", "true")
 		defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION")
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 		defaultRolePermissions := th.SaveDefaultRolePermissions()
 		defer func() {
@@ -208,7 +208,7 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 	})
 
 	t.Run("license but no config enabled returns 501", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		defaultRolePermissions := th.SaveDefaultRolePermissions()
@@ -251,7 +251,7 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
@@ -455,7 +455,7 @@ func TestClientGetOutgoingOAuthConnection(t *testing.T) {
 
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	defer func() {
 		appErr := th.App.Srv().RemoveLicense()
@@ -532,7 +532,7 @@ func TestClientCreateOutgoingOAuthConnection(t *testing.T) {
 
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	defer func() {
 		appErr := th.App.Srv().RemoveLicense()
@@ -610,7 +610,7 @@ func TestClientUpdateOutgoingOAuthConnection(t *testing.T) {
 
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	defer func() {
 		appErr := th.App.Srv().RemoveLicense()
@@ -694,7 +694,7 @@ func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
 
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	defer func() {
 		appErr := th.App.Srv().RemoveLicense()
@@ -771,7 +771,7 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
 
 	t.Run("no feature flag, no interface, no license", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		c := &Context{}
@@ -786,7 +786,7 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 	})
 
 	t.Run("config, no interface, no license", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
@@ -807,7 +807,7 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 	})
 
 	t.Run("feature flag, interface defined, no license", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
@@ -830,7 +830,7 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 	})
 
 	t.Run("feature flag, interface defined, valid license", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
@@ -867,7 +867,7 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
@@ -995,7 +995,7 @@ func TestHandlerOutgoingOAuthConnectionListReadOnly(t *testing.T) {
 
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
@@ -1094,7 +1094,7 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
@@ -1309,7 +1309,7 @@ func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
 
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
@@ -1460,7 +1460,7 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")

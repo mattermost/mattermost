@@ -16,7 +16,7 @@ import (
 
 func TestGetUserStatus(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -104,7 +104,7 @@ func TestGetUserStatus(t *testing.T) {
 
 func TestGetUsersStatusesByIds(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -188,7 +188,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 
 func TestUpdateUserStatus(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -253,7 +253,7 @@ func TestUpdateUserStatus(t *testing.T) {
 
 func TestUpdateUserCustomStatus(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -356,7 +356,7 @@ func TestUpdateUserCustomStatus(t *testing.T) {
 
 func TestRemoveUserCustomStatus(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 

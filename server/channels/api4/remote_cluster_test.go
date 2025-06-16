@@ -203,7 +203,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 		require.Empty(t, rcWithInvite)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("Should not work if the user doesn't have the right permissions", func(t *testing.T) {
@@ -314,7 +314,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		require.Empty(t, rc)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	defer th.TearDown()
 
 	rcAcceptInvite.DefaultTeamId = th.BasicTeam.Id
@@ -420,7 +420,7 @@ func TestGenerateRemoteClusterInvite(t *testing.T) {
 		require.Zero(t, inviteCode)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	defer th.TearDown()
 
 	newRC.CreatorId = th.SystemAdminUser.Id
@@ -510,7 +510,7 @@ func TestGetRemoteCluster(t *testing.T) {
 		require.Empty(t, fetchedRC)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	defer th.TearDown()
 
 	newRC.CreatorId = th.SystemAdminUser.Id
@@ -571,7 +571,7 @@ func TestPatchRemoteCluster(t *testing.T) {
 		require.Empty(t, patchedRC)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	defer th.TearDown()
 
 	newRC.CreatorId = th.SystemAdminUser.Id
@@ -633,7 +633,7 @@ func TestDeleteRemoteCluster(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	defer th.TearDown()
 
 	newRC.CreatorId = th.SystemAdminUser.Id

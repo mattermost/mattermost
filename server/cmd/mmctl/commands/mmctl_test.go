@@ -79,7 +79,7 @@ func (s *MmctlE2ETestSuite) SetupMessageExportTestHelper() *api4.TestHelper {
 	}
 
 	jobs.DefaultWatcherPollingInterval = 100
-	s.th = api4.SetupEnterprise(s.T()).InitBasic()
+	s.th = api4.SetupEnterprise(s.T()).InitBasic(s.T())
 	s.th.App.Srv().SetLicense(model.NewTestLicense("message_export"))
 	messageExportImpl := message_export.MessageExportJobInterfaceImpl{Server: s.th.App.Srv()}
 	s.th.App.Srv().Jobs.RegisterJobType(model.JobTypeMessageExport, messageExportImpl.MakeWorker(), messageExportImpl.MakeScheduler())

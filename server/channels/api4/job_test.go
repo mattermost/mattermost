@@ -244,7 +244,7 @@ func TestGetJobsByType(t *testing.T) {
 
 func TestDownloadJob(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	th.LoginSystemManager()
 	defer th.TearDown()
 	jobName := model.NewId()

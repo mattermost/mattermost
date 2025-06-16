@@ -12,7 +12,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("install a plugin", func(c client.Client) {
 		printer.Clean()
@@ -99,7 +99,7 @@ func removePluginIfInstalled(c client.Client, s *MmctlE2ETestSuite, pluginID str
 }
 
 func (s *MmctlE2ETestSuite) TestPluginMarketplaceListCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("List Marketplace Plugins for Admin User", func(c client.Client) {
 		printer.Clean()

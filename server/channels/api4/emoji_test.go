@@ -23,7 +23,7 @@ import (
 
 func TestCreateEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -214,7 +214,7 @@ func TestCreateEmoji(t *testing.T) {
 
 func TestGetEmojiList(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -308,7 +308,7 @@ func TestGetEmojiList(t *testing.T) {
 
 func TestGetEmojisByNames(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	// Set up some custom emojis
@@ -389,7 +389,7 @@ func TestGetEmojisByNames(t *testing.T) {
 
 func TestDeleteEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -560,7 +560,7 @@ func TestDeleteEmoji(t *testing.T) {
 
 func TestGetEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -589,7 +589,7 @@ func TestGetEmoji(t *testing.T) {
 
 func TestGetEmojiByName(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -620,7 +620,7 @@ func TestGetEmojiByName(t *testing.T) {
 
 func TestGetEmojiImage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -716,7 +716,7 @@ func TestGetEmojiImage(t *testing.T) {
 
 func TestSearchEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 
@@ -819,7 +819,7 @@ func TestSearchEmoji(t *testing.T) {
 
 func TestAutocompleteEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 

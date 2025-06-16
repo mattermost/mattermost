@@ -892,7 +892,7 @@ func TestPatchConfig(t *testing.T) {
 }
 
 func TestMigrateConfig(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("LocalClient", func(t *testing.T) {

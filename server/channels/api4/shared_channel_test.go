@@ -35,7 +35,7 @@ func setupForSharedChannels(tb testing.TB) *TestHelper {
 
 func TestGetAllSharedChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	defer th.TearDown()
 
 	const pages = 3
@@ -107,7 +107,7 @@ func randomBool() bool {
 
 func TestGetRemoteClusterById(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	defer th.TearDown()
 
 	// for this test we need a user that belongs to a channel that
@@ -163,7 +163,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should not create a local DM channel that is shared", func(t *testing.T) {
-		th := setupForSharedChannels(t).InitBasic()
+		th := setupForSharedChannels(t).InitBasic(t)
 		defer th.TearDown()
 		client := th.Client
 		defer func() {
@@ -185,7 +185,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	t.Run("creates a local DM channel that is shared", func(t *testing.T) {
 		t.Skip("Remote DMs are currently disabled")
 
-		th := setupForSharedChannels(t).InitBasic()
+		th := setupForSharedChannels(t).InitBasic(t)
 		defer th.TearDown()
 		client := th.Client
 		defer func() {
@@ -210,7 +210,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	t.Run("sends a shared channel invitation to the remote", func(t *testing.T) {
 		t.Skip("Remote DMs are currently disabled")
 
-		th := setupForSharedChannels(t).InitBasic()
+		th := setupForSharedChannels(t).InitBasic(t)
 		defer th.TearDown()
 		client := th.Client
 		defer func() {
@@ -244,7 +244,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	t.Run("does not send a shared channel invitation to the remote when creator is remote", func(t *testing.T) {
 		t.Skip("Remote DMs are currently disabled")
 
-		th := setupForSharedChannels(t).InitBasic()
+		th := setupForSharedChannels(t).InitBasic(t)
 		defer th.TearDown()
 		client := th.Client
 		defer func() {
@@ -287,7 +287,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	defer th.TearDown()
 
 	newRC1 := &model.RemoteCluster{Name: "rc1", SiteURL: "http://example1.com", CreatorId: th.SystemAdminUser.Id}
@@ -546,7 +546,7 @@ func TestInviteRemoteClusterToChannel(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	defer th.TearDown()
 
 	newRC := &model.RemoteCluster{Name: "rc", SiteURL: "http://example.com", CreatorId: th.SystemAdminUser.Id}
@@ -592,7 +592,7 @@ func TestUninviteRemoteClusterToChannel(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	defer th.TearDown()
 
 	newRC := &model.RemoteCluster{Name: "rc", SiteURL: "http://example.com", CreatorId: th.SystemAdminUser.Id}
