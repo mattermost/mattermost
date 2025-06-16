@@ -4,25 +4,28 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon} from '@mattermost/compass-icons/components';
-import type {CloudState, Product} from '@mattermost/types/cloud';
-import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
-import type {Job} from '@mattermost/types/jobs';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import {
-    ldapTest, invalidateAllCaches, reloadConfig, testS3Connection,
-    removeIdpSamlCertificate, uploadIdpSamlCertificate,
-    removePrivateSamlCertificate, uploadPrivateSamlCertificate,
-    removePublicSamlCertificate, uploadPublicSamlCertificate,
-    removePrivateLdapCertificate, uploadPrivateLdapCertificate,
-    removePublicLdapCertificate, uploadPublicLdapCertificate,
-    invalidateAllEmailInvites, testSmtp, testSiteURL, getSamlMetadataFromIdp, setSamlIdpCertificateFromMetadata,
+    getSamlMetadataFromIdp,
+    invalidateAllCaches,
+    invalidateAllEmailInvites,
+    reloadConfig,
+    removeIdpSamlCertificate,
+    removePrivateSamlCertificate,
+    removePublicSamlCertificate,
+    setSamlIdpCertificateFromMetadata,
+    testS3Connection,
+    testSiteURL,
+    testSmtp,
+    uploadIdpSamlCertificate,
+    uploadPrivateSamlCertificate,
+    uploadPublicSamlCertificate,
 } from 'actions/admin_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
@@ -34,10 +37,8 @@ import {searchableStrings as systemAnalyticsSearchableStrings} from 'components/
 import TeamAnalytics from 'components/analytics/team_analytics';
 import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/analytics/team_analytics/team_analytics';
 import ExternalLink from 'components/external_link';
-import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks, CacheTypes, getLicenseTier} from 'utils/constants';
-import {isCloudLicense} from 'utils/license_utils';
+import {AboutLinks, CacheTypes, Constants, DeveloperLinks, DocLinks, LicenseSkus} from 'utils/constants';
 import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
@@ -45,6 +46,7 @@ import PolicyList from './access_control';
 import AccessControlPolicyJobs from './access_control/jobs';
 import PolicyDetails from './access_control/policy_details';
 import * as DefinitionConstants from './admin_definition_constants';
+import {getRestrictedIndicator, it, usesLegacyOauth, validators} from './admin_definition_helpers';
 import AuditLoggingCertificateUploadSetting from './audit_logging';
 import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
@@ -67,24 +69,25 @@ import GlobalDataRetentionForm from './data_retention_settings/global_policy_for
 import DatabaseSettings, {searchableStrings as databaseSearchableStrings} from './database_settings';
 import ElasticSearchSettings, {searchableStrings as elasticSearchSearchableStrings} from './elasticsearch_settings';
 import {
-    LDAPFeatureDiscovery,
-    SAMLFeatureDiscovery,
-    OpenIDFeatureDiscovery,
-    OpenIDCustomFeatureDiscovery,
     AnnouncementBannerFeatureDiscovery,
     ComplianceExportFeatureDiscovery,
     CustomTermsOfServiceFeatureDiscovery,
     DataRetentionFeatureDiscovery,
-    GuestAccessFeatureDiscovery,
-    SystemRolesFeatureDiscovery,
     GroupsFeatureDiscovery,
+    GuestAccessFeatureDiscovery,
+    LDAPFeatureDiscovery,
     MobileSecurityFeatureDiscovery,
+    OpenIDCustomFeatureDiscovery,
+    OpenIDFeatureDiscovery,
+    SAMLFeatureDiscovery,
+    SystemRolesFeatureDiscovery,
 } from './feature_discovery/features';
 import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/features/attribute_based_access_control';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
+import LDAPWizard from './ldap_wizard';
 import LicenseSettings from './license_settings';
 import {searchableStrings as licenseSettingsSearchableStrings} from './license_settings/license_settings';
 import MessageExportSettings, {searchableStrings as messageExportSearchableStrings} from './message_export_settings';
@@ -111,9 +114,12 @@ import ChannelSettings from './team_channel_settings/channel';
 import ChannelDetails from './team_channel_settings/channel/details';
 import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
-import type {Check, AdminDefinition as AdminDefinitionType, ConsoleAccess} from './types';
+import type {AdminDefinition as AdminDefinitionType} from './types';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
+
+// Re-export for backward compatibility
+export {it};
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';
@@ -200,107 +206,6 @@ const SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11 = 'Canonical1.1';
 //   - remove_action: An store action to remove the file.
 //   - fileType: A list of extensions separated by ",". E.g. ".jpg,.png,.gif".
 
-export const it = {
-    not: (func: Check) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => {
-        return typeof func === 'function' ? !func(config, state, license, enterpriseReady, consoleAccess, cloud, isSystemAdmin) : !func;
-    },
-    all: (...funcs: Check[]) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => {
-        for (const func of funcs) {
-            if (typeof func === 'function' ? !func(config, state, license, enterpriseReady, consoleAccess, cloud, isSystemAdmin) : !func) {
-                return false;
-            }
-        }
-        return true;
-    },
-    any: (...funcs: Check[]) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => {
-        for (const func of funcs) {
-            if (typeof func === 'function' ? func(config, state, license, enterpriseReady, consoleAccess, cloud, isSystemAdmin) : func) {
-                return true;
-            }
-        }
-        return false;
-    },
-    stateMatches: (key: string, regex: RegExp) => (config: Partial<AdminConfig>, state: any) => state[key].match(regex),
-    stateEquals: (key: string, value: any) => (config: Partial<AdminConfig>, state: any) => state[key] === value,
-    stateIsTrue: (key: string) => (config: Partial<AdminConfig>, state: any) => Boolean(state[key]),
-    stateIsFalse: (key: string) => (config: Partial<AdminConfig>, state: any) => !state[key],
-    configIsTrue: (group: keyof Partial<AdminConfig>, setting: string) => (config: Partial<AdminConfig>) => Boolean((config[group] as any)?.[setting]),
-    configIsFalse: (group: keyof Partial<AdminConfig>, setting: string) => (config: Partial<AdminConfig>) => !(config[group] as any)?.[setting],
-    configContains: (group: keyof Partial<AdminConfig>, setting: string, word: string) => (config: Partial<AdminConfig>) => Boolean((config[group] as any)?.[setting]?.includes(word)),
-    enterpriseReady: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean) => Boolean(enterpriseReady),
-    licensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => license?.IsLicensed === 'true',
-    cloudLicensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license)),
-    licensedForFeature: (feature: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license[feature] === 'true'),
-    licensedForSku: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license.SkuShortName === skuName),
-    minLicenseTier: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && getLicenseTier(license.SkuShortName) >= getLicenseTier(skuName)),
-    licensedForCloudStarter: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license) && license.SkuShortName === LicenseSkus.Starter),
-    hidePaymentInfo: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
-        if (!cloud) {
-            return true;
-        }
-        const productId = cloud?.subscription?.product_id;
-        if (!productId) {
-            return false;
-        }
-        return cloud?.subscription?.is_free_trial === 'true';
-    },
-    userHasReadPermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.read as any)?.[key],
-    userHasReadPermissionOnSomeResources: (key: string | {[key: string]: string}) => Object.values(key).some((resource) => it.userHasReadPermissionOnResource(resource)),
-    userHasWritePermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.write as any)?.[key],
-    isSystemAdmin: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => Boolean(isSystemAdmin),
-};
-
-export const validators = {
-    isRequired: (text: MessageDescriptor | string) => (value: string) => new ValidationResult(Boolean(value), text),
-    minValue: (min: number, text: MessageDescriptor | string) => (value: number) => new ValidationResult((value >= min), text),
-    maxValue: (max: number, text: MessageDescriptor | string) => (value: number) => new ValidationResult((value <= max), text),
-};
-
-const usesLegacyOauth = (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
-    if (!config.GitLabSettings || !config.GoogleSettings || !config.Office365Settings) {
-        return false;
-    }
-
-    return it.any(
-        it.all(
-            it.not(it.configContains('GitLabSettings', 'Scope', 'openid')),
-            it.any(
-                it.configIsTrue('GitLabSettings', 'Id'),
-                it.configIsTrue('GitLabSettings', 'Secret'),
-            ),
-        ),
-        it.all(
-            it.not(it.configContains('GoogleSettings', 'Scope', 'openid')),
-            it.any(
-                it.configIsTrue('GoogleSettings', 'Id'),
-                it.configIsTrue('GoogleSettings', 'Secret'),
-            ),
-        ),
-        it.all(
-            it.not(it.configContains('Office365Settings', 'Scope', 'openid')),
-            it.any(
-                it.configIsTrue('Office365Settings', 'Id'),
-                it.configIsTrue('Office365Settings', 'Secret'),
-            ),
-        ),
-    )(config, state, license, enterpriseReady, consoleAccess, cloud);
-};
-
-const getRestrictedIndicator = (displayBlocked = false, minimumPlanRequiredForFeature = LicenseSkus.Professional) => ({
-    value: (cloud: CloudState) => (
-        <RestrictedIndicator
-            useModal={false}
-            blocked={displayBlocked || !(cloud?.subscription?.is_free_trial === 'true')}
-            minimumPlanRequiredForFeature={minimumPlanRequiredForFeature}
-            tooltipMessageBlocked={defineMessage({
-                id: 'admin.sidebar.restricted_indicator.tooltip.message.blocked',
-                defaultMessage: 'This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial',
-            })}
-        />
-    ),
-    shouldDisplay: (license: ClientLicense, subscriptionProduct: Product|undefined) => displayBlocked || (isCloudLicense(license) && subscriptionProduct?.sku === CloudProducts.STARTER),
-});
-
 const adminDefinitionMessages = defineMessages({
     data_retention_title: {id: 'admin.data_retention.title', defaultMessage: 'Data Retention Policy'},
     ip_filtering_title: {id: 'admin.sidebar.ip_filtering', defaultMessage: 'IP Filtering'},
@@ -323,6 +228,7 @@ const adminDefinitionMessages = defineMessages({
     redis_clientcache_title: {id: 'admin.cacheSettings.redisClientCache', defaultMessage: 'Disable Client Cache'},
     redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client-side caching is disabled.'},
 });
+
 const AdminDefinition: AdminDefinitionType = {
     about: {
         icon: (
@@ -3722,715 +3628,9 @@ const AdminDefinition: AdminDefinitionType = {
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                 ),
                 schema: {
-                    id: 'LdapSettings',
-                    name: defineMessage({id: 'admin.authentication.ldap', defaultMessage: 'AD/LDAP'}),
-                    sections: [
-                        {
-                            key: 'admin.authentication.ldap.connection',
-                            title: 'Connection',
-                            subtitle: 'Connection and security level to your AD/LDAP server.',
-                            settings: [
-                                {
-                                    type: 'bool',
-                                    key: 'LdapSettings.Enable',
-                                    label: defineMessage({id: 'admin.ldap.enableTitle', defaultMessage: 'Enable sign-in with AD/LDAP:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.enableDesc', defaultMessage: 'When true, Mattermost allows login using AD/LDAP'}),
-                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                },
-                                {
-                                    type: 'bool',
-                                    key: 'LdapSettings.EnableSync',
-                                    label: defineMessage({id: 'admin.ldap.enableSyncTitle', defaultMessage: 'Enable Synchronization with AD/LDAP:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.enableSyncDesc', defaultMessage: 'When true, Mattermost periodically synchronizes users from AD/LDAP. When false, user attributes are updated from AD/LDAP during user login only.'}),
-                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.LoginFieldName',
-                                    label: defineMessage({id: 'admin.ldap.loginNameTitle', defaultMessage: 'Login Field Name:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.loginNameEx', defaultMessage: 'E.g.: "AD/LDAP Username"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.loginNameDesc', defaultMessage: 'The placeholder text that appears in the login field on the login page. Defaults to "AD/LDAP Username".'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'number',
-                                    key: 'LdapSettings.MaximumLoginAttempts',
-                                    label: defineMessage({id: 'admin.ldap.maximumLoginAttemptsTitle', defaultMessage: 'Maximum Login Attempts:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.maximumLoginAttemptsDesc', defaultMessage: 'The maximum number of login attempts before the Mattermost account is locked. You can unlock the account in system console on the users page. Setting this value lower than your LDAP maximum login attempts ensures that the users won\'t be locked out of your LDAP server because of failed login attempts in Mattermost.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.LdapServer',
-                                    label: defineMessage({id: 'admin.ldap.serverTitle', defaultMessage: 'AD/LDAP Server:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.serverDesc', defaultMessage: 'The domain or IP address of AD/LDAP server.'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.serverEx', defaultMessage: 'E.g.: "10.0.0.23"'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'number',
-                                    key: 'LdapSettings.LdapPort',
-                                    label: defineMessage({id: 'admin.ldap.portTitle', defaultMessage: 'AD/LDAP Port:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.portDesc', defaultMessage: 'The port Mattermost will use to connect to the AD/LDAP server. Default is 389.'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.portEx', defaultMessage: 'E.g.: "389"'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'dropdown',
-                                    key: 'LdapSettings.ConnectionSecurity',
-                                    label: defineMessage({id: 'admin.connectionSecurityTitle', defaultMessage: 'Connection Security:'}),
-                                    help_text: DefinitionConstants.CONNECTION_SECURITY_HELP_TEXT_LDAP,
-                                    options: [
-                                        {
-                                            value: '',
-                                            display_name: defineMessage({id: 'admin.connectionSecurityNone', defaultMessage: 'None'}),
-                                        },
-                                        {
-                                            value: 'TLS',
-                                            display_name: defineMessage({id: 'admin.connectionSecurityTls', defaultMessage: 'TLS (Recommended)'}),
-                                        },
-                                        {
-                                            value: 'STARTTLS',
-                                            display_name: defineMessage({id: 'admin.connectionSecurityStart', defaultMessage: 'STARTTLS'}),
-                                        },
-                                    ],
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'bool',
-                                    key: 'LdapSettings.SkipCertificateVerification',
-                                    label: defineMessage({id: 'admin.ldap.skipCertificateVerification', defaultMessage: 'Skip Certificate Verification:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.skipCertificateVerificationDesc', defaultMessage: 'Skips the certificate verification step for TLS or STARTTLS connections. Skipping certificate verification is not recommended for production environments where TLS is required.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.stateIsFalse('LdapSettings.ConnectionSecurity'),
-                                    ),
-                                },
-                                {
-                                    type: 'fileupload',
-                                    key: 'LdapSettings.PrivateKeyFile',
-                                    label: defineMessage({id: 'admin.ldap.privateKeyFileTitle', defaultMessage: 'Private Key:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.privateKeyFileFileDesc', defaultMessage: 'The private key file for TLS Certificate. If using TLS client certificates as primary authentication mechanism. This will be provided by your LDAP Authentication Provider.'}),
-                                    remove_help_text: defineMessage({id: 'admin.ldap.privateKeyFileFileRemoveDesc', defaultMessage: 'Remove the private key file for TLS Certificate.'}),
-                                    remove_button_text: defineMessage({id: 'admin.ldap.remove.privKey', defaultMessage: 'Remove TLS Certificate Private Key'}),
-                                    removing_text: defineMessage({id: 'admin.ldap.removing.privKey', defaultMessage: 'Removing Private Key...'}),
-                                    uploading_text: defineMessage({id: 'admin.ldap.uploading.privateKey', defaultMessage: 'Uploading Private Key...'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                    fileType: '.key',
-                                    upload_action: uploadPrivateLdapCertificate,
-                                    remove_action: removePrivateLdapCertificate,
-                                },
-                                {
-                                    type: 'fileupload',
-                                    key: 'LdapSettings.PublicCertificateFile',
-                                    label: defineMessage({id: 'admin.ldap.publicCertificateFileTitle', defaultMessage: 'Public Certificate:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.publicCertificateFileDesc', defaultMessage: 'The public certificate file for TLS Certificate. If using TLS client certificates as primary authentication mechanism. This will be provided by your LDAP Authentication Provider.'}),
-                                    remove_help_text: defineMessage({id: 'admin.ldap.publicCertificateFileRemoveDesc', defaultMessage: 'Remove the public certificate file for TLS Certificate.'}),
-                                    remove_button_text: defineMessage({id: 'admin.ldap.remove.sp_certificate', defaultMessage: 'Remove Service Provider Certificate'}),
-                                    removing_text: defineMessage({id: 'admin.ldap.removing.certificate', defaultMessage: 'Removing Certificate...'}),
-                                    uploading_text: defineMessage({id: 'admin.ldap.uploading.certificate', defaultMessage: 'Uploading Certificate...'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                    fileType: '.crt,.cer',
-                                    upload_action: uploadPublicLdapCertificate,
-                                    remove_action: removePublicLdapCertificate,
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.BindUsername',
-                                    label: defineMessage({id: 'admin.ldap.bindUserTitle', defaultMessage: 'Bind Username:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.bindUserDesc', defaultMessage: 'The username used to perform the AD/LDAP search. This should typically be an account created specifically for use with Mattermost. It should have access limited to read the portion of the AD/LDAP tree specified in the Base DN field.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.BindPassword',
-                                    label: defineMessage({id: 'admin.ldap.bindPwdTitle', defaultMessage: 'Bind Password:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.bindPwdDesc', defaultMessage: 'Password of the user given in "Bind Username".'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                            ],
-                        },
-                        {
-                            key: 'admin.authentication.ldap.dn_and_filters',
-                            title: 'Base DN & Filters',
-                            settings: [
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.BaseDN',
-                                    label: defineMessage({id: 'admin.ldap.baseTitle', defaultMessage: 'Base DN:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.baseDesc', defaultMessage: 'The Base DN is the Distinguished Name of the location where Mattermost should start its search for user and group objects in the AD/LDAP tree.'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.baseEx', defaultMessage: 'E.g.: "ou=Unit Name,dc=corp,dc=example,dc=com"'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.UserFilter',
-                                    label: defineMessage({id: 'admin.ldap.userFilterTitle', defaultMessage: 'User Filter:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.userFilterDisc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use when searching for user objects. Only the users selected by the query will be able to access Mattermost. For Active Directory, the query to filter out disabled users is (&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.userFilterEx', defaultMessage: 'Ex. "(objectClass=user)"'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.GroupFilter',
-                                    label: defineMessage({id: 'admin.ldap.groupFilterTitle', defaultMessage: 'Group Filter:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.groupFilterFilterDesc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use when searching for group objects. Only the groups selected by the query will be available to Mattermost. From [User Management > Groups]({siteURL}/admin_console/user_management/groups), select which AD/LDAP groups should be linked and configured.'}),
-                                    help_text_markdown: true,
-                                    help_text_values: {siteURL: getSiteURL()},
-                                    placeholder: defineMessage({id: 'admin.ldap.groupFilterEx', defaultMessage: 'E.g.: "(objectClass=group)"'}),
-                                    isHidden: it.not(it.licensedForFeature('LDAPGroups')),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.stateIsFalse('LdapSettings.EnableSync'),
-                                    ),
-                                },
-                                {
-                                    type: 'bool',
-                                    key: 'LdapSettings.EnableAdminFilter',
-                                    label: defineMessage({id: 'admin.ldap.enableAdminFilterTitle', defaultMessage: 'Enable Admin Filter:'}),
-                                    isDisabled: it.any(
-                                        it.not(it.isSystemAdmin),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.AdminFilter',
-                                    label: defineMessage({id: 'admin.ldap.adminFilterTitle', defaultMessage: 'Admin Filter:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.adminFilterFilterDesc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use for designating System Admins. The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console. Existing members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to members in **System Console > User Management** to ensure access is restricted immediately. Note: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in **System Console > User Management**.'}),
-                                    help_text_markdown: true,
-                                    placeholder: defineMessage({id: 'admin.ldap.adminFilterEx', defaultMessage: 'E.g.: "(objectClass=user)"'}),
-                                    isDisabled: it.any(
-                                        it.not(it.isSystemAdmin),
-                                        it.stateIsFalse('LdapSettings.EnableAdminFilter'),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.GuestFilter',
-                                    label: defineMessage({id: 'admin.ldap.guestFilterTitle', defaultMessage: 'Guest Filter:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.guestFilterFilterDesc', defaultMessage: '(Optional) Requires Guest Access to be enabled before being applied. Enter an AD/LDAP filter to use when searching for guest objects. Only the users selected by the query will be able to access Mattermost as Guests. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel. Note: If this filter is removed/changed, active guests will not be promoted to a member and will retain their Guest role. Guests can be promoted in **System Console > User Management**. Existing members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to login next. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to guests in **System Console > User Management ** to ensure access is restricted immediately.'}),
-                                    help_text_markdown: true,
-                                    placeholder: defineMessage({id: 'admin.ldap.guestFilterEx', defaultMessage: 'E.g.: "(objectClass=user)"'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.configIsFalse('GuestAccountsSettings', 'Enable'),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                            ],
-                        },
-                        {
-                            key: 'admin.authentication.ldap.account_synchronization',
-                            title: 'Account Synchronization',
-                            settings: [
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.IdAttribute',
-                                    label: defineMessage({id: 'admin.ldap.idAttrTitle', defaultMessage: 'ID Attribute: '}),
-                                    placeholder: defineMessage({id: 'admin.ldap.idAttrEx', defaultMessage: 'E.g.: "objectGUID" or "uid"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.idAttrDesc', defaultMessage: "The attribute in the AD/LDAP server used as a unique identifier in Mattermost. It should be an AD/LDAP attribute with a value that does not change such as `uid` for LDAP or `objectGUID` for Active Directory. If a user's ID Attribute changes, it will create a new Mattermost account unassociated with their old one. If you need to change this field after users have already logged in, use the <link>mattermost ldap idmigrate</link> CLI tool."}),
-                                    help_text_markdown: false,
-                                    help_text_values: {
-                                        link: (msg: string) => (
-                                            <ExternalLink
-                                                location='admin_console'
-                                                href='https://docs.mattermost.com/manage/command-line-tools.html#mattermost-ldap-idmigrate'
-                                            >
-                                                {msg}
-                                            </ExternalLink>
-                                        ),
-                                    },
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateEquals('LdapSettings.Enable', false),
-                                            it.stateEquals('LdapSettings.EnableSync', false),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.LoginIdAttribute',
-                                    label: defineMessage({id: 'admin.ldap.loginAttrTitle', defaultMessage: 'Login ID Attribute: '}),
-                                    placeholder: defineMessage({id: 'admin.ldap.loginIdAttrEx', defaultMessage: 'E.g.: "sAMAccountName"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.loginAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used to log in to Mattermost. Normally this attribute is the same as the "Username Attribute" field above. If your team typically uses domain/username to log in to other services with AD/LDAP, you may enter domain/username in this field to maintain consistency between sites.'}),
-                                    help_text_markdown: false,
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.UsernameAttribute',
-                                    label: defineMessage({id: 'admin.ldap.usernameAttrTitle', defaultMessage: 'Username Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.usernameAttrEx', defaultMessage: 'E.g.: "sAMAccountName"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.usernameAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used to populate the username field in Mattermost. This may be the same as the Login ID Attribute.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.EmailAttribute',
-                                    label: defineMessage({id: 'admin.ldap.emailAttrTitle', defaultMessage: 'Email Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.emailAttrEx', defaultMessage: 'E.g.: "mail" or "userPrincipalName"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.emailAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used to populate the email address field in Mattermost.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.FirstNameAttribute',
-                                    label: defineMessage({id: 'admin.ldap.firstnameAttrTitle', defaultMessage: 'First Name Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.firstnameAttrEx', defaultMessage: 'E.g.: "givenName"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.firstnameAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the first name of users in Mattermost. When set, users cannot edit their first name, since it is synchronized with the LDAP server. When left blank, users can set their first name in <strong>Account Menu > Account Settings > Profile</strong>.'}),
-                                    help_text_values: {
-                                        strong: (msg: string) => <strong>{msg}</strong>,
-                                    },
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.LastNameAttribute',
-                                    label: defineMessage({id: 'admin.ldap.lastnameAttrTitle', defaultMessage: 'Last Name Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.lastnameAttrEx', defaultMessage: 'E.g.: "sn"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.lastnameAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the last name of users in Mattermost. When set, users cannot edit their last name, since it is synchronized with the LDAP server. When left blank, users can set their last name in <strong>Account Menu > Account Settings > Profile</strong>.'}),
-                                    help_text_values: {
-                                        strong: (msg: string) => <strong>{msg}</strong>,
-                                    },
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.NicknameAttribute',
-                                    label: defineMessage({id: 'admin.ldap.nicknameAttrTitle', defaultMessage: 'Nickname Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.nicknameAttrEx', defaultMessage: 'E.g.: "nickname"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.nicknameAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the nickname of users in Mattermost. When set, users cannot edit their nickname, since it is synchronized with the LDAP server. When left blank, users can set their nickname in <strong>Account Menu > Account Settings > Profile</strong>.'}),
-                                    help_text_values: {
-                                        strong: (msg: string) => <strong>{msg}</strong>,
-                                    },
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.PositionAttribute',
-                                    label: defineMessage({id: 'admin.ldap.positionAttrTitle', defaultMessage: 'Position Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.positionAttrEx', defaultMessage: 'E.g.: "title"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.positionAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the position field in Mattermost. When set, users cannot edit their position, since it is synchronized with the LDAP server. When left blank, users can set their position in <strong>Account Menu > Account Settings > Profile</strong>.'}),
-                                    help_text_values: {
-                                        strong: (msg: string) => <strong>{msg}</strong>,
-                                    },
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.PictureAttribute',
-                                    label: defineMessage({id: 'admin.ldap.pictureAttrTitle', defaultMessage: 'Profile Picture Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.pictureAttrEx', defaultMessage: 'E.g.: "thumbnailPhoto" or "jpegPhoto"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.pictureAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the profile picture in Mattermost.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'custom',
-                                    key: 'LdapSettings.CustomProfileAttributes',
-                                    component: CustomProfileAttributes,
-                                    isHidden: it.not(it.all(
-                                        it.minLicenseTier(LicenseSkus.Enterprise),
-                                        it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-                                    )),
-                                },
-                            ],
-                        },
-                        {
-                            key: 'admin.authentication.ldap.group_synchronization',
-                            title: 'Group Synchronization',
-                            settings: [
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.GroupDisplayNameAttribute',
-                                    label: defineMessage({id: 'admin.ldap.groupDisplayNameAttributeTitle', defaultMessage: 'Group Display Name Attribute:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.groupDisplayNameAttributeDesc', defaultMessage: 'The attribute in the AD/LDAP server used to populate the group display names.'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.groupDisplayNameAttributeEx', defaultMessage: 'E.g.: "cn"'}),
-                                    isHidden: it.not(it.licensedForFeature('LDAPGroups')),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.stateIsFalse('LdapSettings.EnableSync'),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.GroupIdAttribute',
-                                    label: defineMessage({id: 'admin.ldap.groupIdAttributeTitle', defaultMessage: 'Group ID Attribute:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.groupIdAttributeDesc', defaultMessage: 'The attribute in the AD/LDAP server used as a unique identifier for Groups. This should be a AD/LDAP attribute with a value that does not change such as `entryUUID` for LDAP or `objectGUID` for Active Directory.'}),
-                                    help_text_markdown: true,
-                                    placeholder: defineMessage({id: 'admin.ldap.groupIdAttributeEx', defaultMessage: 'E.g.: "objectGUID" or "entryUUID"'}),
-                                    isHidden: it.not(it.licensedForFeature('LDAPGroups')),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.stateIsFalse('LdapSettings.EnableSync'),
-                                    ),
-                                },
-                            ],
-                        },
-                        {
-                            key: 'admin.authentication.ldap.synchronization_performance',
-                            title: 'Synchronization Performance',
-                            settings: [
-                                {
-                                    type: 'number',
-                                    key: 'LdapSettings.SyncIntervalMinutes',
-                                    label: defineMessage({id: 'admin.ldap.syncIntervalTitle', defaultMessage: 'Synchronization Interval (minutes):'}),
-                                    help_text: defineMessage({id: 'admin.ldap.syncIntervalHelpText', defaultMessage: 'AD/LDAP Synchronization updates Mattermost user information to reflect updates on the AD/LDAP server. For example, when a user\'s name changes on the AD/LDAP server, the change updates in Mattermost when synchronization is performed. Accounts removed from or disabled in the AD/LDAP server have their Mattermost accounts set to "Inactive" and have their account sessions revoked. Mattermost performs synchronization on the interval entered. For example, if 60 is entered, Mattermost synchronizes every 60 minutes.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'bool',
-                                    key: 'LdapSettings.ReAddRemovedMembers',
-                                    label: defineMessage({id: 'admin.ldap.reAddRemovedMembersTitle', defaultMessage: 'Re-add removed members on sync:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.reAddRemovedMembersDesc', defaultMessage: 'When enabled, members who were previously removed from group-synced teams or channels will be re-added during LDAP synchronization if they are still a member of the LDAP group.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'number',
-                                    key: 'LdapSettings.MaxPageSize',
-                                    label: defineMessage({id: 'admin.ldap.maxPageSizeTitle', defaultMessage: 'Maximum Page Size:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.maxPageSizeEx', defaultMessage: 'E.g.: "2000"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.maxPageSizeHelpText', defaultMessage: 'The maximum number of users the Mattermost server will request from the AD/LDAP server at one time. 0 is unlimited.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'number',
-                                    key: 'LdapSettings.QueryTimeout',
-                                    label: defineMessage({id: 'admin.ldap.queryTitle', defaultMessage: 'Query Timeout (seconds):'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.queryEx', defaultMessage: 'E.g.: "60"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.queryDesc', defaultMessage: 'The timeout value for queries to the AD/LDAP server. Increase if you are getting timeout errors caused by a slow AD/LDAP server.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'button',
-                                    action: ldapTest,
-                                    key: 'LdapSettings.LdapTest',
-                                    label: defineMessage({id: 'admin.ldap.ldap_test_button', defaultMessage: 'AD/LDAP Test'}),
-                                    help_text: defineMessage({id: 'admin.ldap.testHelpText', defaultMessage: 'Tests if the Mattermost server can connect to the AD/LDAP server specified. Please review "System Console > Logs" and <link>documentation</link> to troubleshoot errors.'}),
-                                    help_text_values: {
-                                        link: (msg: string) => (
-                                            <ExternalLink
-                                                location='admin_console'
-                                                href={DocLinks.CONFIGURE_AD_LDAP_QUERY_TIMEOUT}
-                                            >
-                                                {msg}
-                                            </ExternalLink>
-                                        ),
-                                    },
-                                    help_text_markdown: false,
-                                    error_message: defineMessage({id: 'admin.ldap.testFailure', defaultMessage: 'AD/LDAP Test Failure: {error}'}),
-                                    success_message: defineMessage({id: 'admin.ldap.testSuccess', defaultMessage: 'AD/LDAP Test Successful'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                            ],
-                        },
-                        {
-                            key: 'admin.authentication.ldap.synchronization_history',
-                            title: 'Synchronization History',
-                            subtitle: 'See the table below for the status of each synchronization',
-                            settings: [
-                                {
-                                    type: 'jobstable',
-                                    job_type: Constants.JobTypes.LDAP_SYNC,
-                                    label: defineMessage({id: 'admin.ldap.sync_button', defaultMessage: 'AD/LDAP Synchronize Now'}),
-                                    help_text: defineMessage({id: 'admin.ldap.syncNowHelpText', defaultMessage: 'Initiates an AD/LDAP synchronization immediately. See the table below for status of each synchronization. Please review "System Console > Logs" and <link>documentation</link> to troubleshoot errors.'}),
-                                    help_text_markdown: false,
-                                    help_text_values: {
-                                        link: (msg: string) => (
-                                            <ExternalLink
-                                                location='admin_console'
-                                                href={DocLinks.SETUP_LDAP}
-                                            >
-                                                {msg}
-                                            </ExternalLink>
-                                        ),
-                                    },
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.stateIsFalse('LdapSettings.EnableSync'),
-                                    ),
-                                    render_job: (job: Job) => {
-                                        if (job.status === 'pending') {
-                                            return <span>{'--'}</span>;
-                                        }
-
-                                        let ldapUsers = 0;
-                                        let deleteCount = 0;
-                                        let updateCount = 0;
-                                        let linkedLdapGroupsCount; // Deprecated.
-                                        let totalLdapGroupsCount = 0;
-                                        let groupDeleteCount = 0;
-                                        let groupMemberDeleteCount = 0;
-                                        let groupMemberAddCount = 0;
-
-                                        if (job && job.data) {
-                                            if (job.data.ldap_users_count && job.data.ldap_users_count.length > 0) {
-                                                ldapUsers = job.data.ldap_users_count;
-                                            }
-
-                                            if (job.data.delete_count && job.data.delete_count.length > 0) {
-                                                deleteCount = job.data.delete_count;
-                                            }
-
-                                            if (job.data.update_count && job.data.update_count.length > 0) {
-                                                updateCount = job.data.update_count;
-                                            }
-
-                                            // Deprecated groups count representing the number of linked LDAP groups.
-                                            if (job.data.ldap_groups_count) {
-                                                linkedLdapGroupsCount = job.data.ldap_groups_count;
-                                            }
-
-                                            // Groups count representing the total number of LDAP groups available based on
-                                            // the configured based DN and groups filter.
-                                            if (job.data.total_ldap_groups_count) {
-                                                totalLdapGroupsCount = job.data.total_ldap_groups_count;
-                                            }
-
-                                            if (job.data.group_delete_count) {
-                                                groupDeleteCount = job.data.group_delete_count;
-                                            }
-
-                                            if (job.data.group_member_delete_count) {
-                                                groupMemberDeleteCount = job.data.group_member_delete_count;
-                                            }
-
-                                            if (job.data.group_member_add_count) {
-                                                groupMemberAddCount = job.data.group_member_add_count;
-                                            }
-                                        }
-
-                                        return (
-                                            <span>
-                                                <FormattedMessage
-                                                    id={linkedLdapGroupsCount ? 'admin.ldap.jobExtraInfo' : 'admin.ldap.jobExtraInfoTotal'}
-                                                    defaultMessage={linkedLdapGroupsCount ? 'Scanned {ldapUsers, number} LDAP users and {ldapGroups, number} linked groups.' : 'Scanned {ldapUsers, number} LDAP users and {ldapGroups, number} groups.'}
-                                                    values={{
-                                                        ldapUsers,
-                                                        ldapGroups: linkedLdapGroupsCount || totalLdapGroupsCount, // Show the old count for jobs records containing the old JSON key.
-                                                    }}
-                                                />
-                                                <ul>
-                                                    {updateCount > 0 &&
-                                                    <li>
-                                                        <FormattedMessage
-                                                            id='admin.ldap.jobExtraInfo.updatedUsers'
-                                                            defaultMessage='Updated {updateCount, number} users.'
-                                                            values={{
-                                                                updateCount,
-                                                            }}
-                                                        />
-                                                    </li>
-                                                    }
-                                                    {deleteCount > 0 &&
-                                                    <li>
-                                                        <FormattedMessage
-                                                            id='admin.ldap.jobExtraInfo.deactivatedUsers'
-                                                            defaultMessage='Deactivated {deleteCount, number} users.'
-                                                            values={{
-                                                                deleteCount,
-                                                            }}
-                                                        />
-                                                    </li>
-                                                    }
-                                                    {groupDeleteCount > 0 &&
-                                                    <li>
-                                                        <FormattedMessage
-                                                            id='admin.ldap.jobExtraInfo.deletedGroups'
-                                                            defaultMessage='Deleted {groupDeleteCount, number} groups.'
-                                                            values={{
-                                                                groupDeleteCount,
-                                                            }}
-                                                        />
-                                                    </li>
-                                                    }
-                                                    {groupMemberDeleteCount > 0 &&
-                                                    <li>
-                                                        <FormattedMessage
-                                                            id='admin.ldap.jobExtraInfo.deletedGroupMembers'
-                                                            defaultMessage='Deleted {groupMemberDeleteCount, number} group members.'
-                                                            values={{
-                                                                groupMemberDeleteCount,
-                                                            }}
-                                                        />
-                                                    </li>
-                                                    }
-                                                    {groupMemberAddCount > 0 &&
-                                                    <li>
-                                                        <FormattedMessage
-                                                            id='admin.ldap.jobExtraInfo.addedGroupMembers'
-                                                            defaultMessage='Added {groupMemberAddCount, number} group members.'
-                                                            values={{
-                                                                groupMemberAddCount,
-                                                            }}
-                                                        />
-                                                    </li>
-                                                    }
-                                                </ul>
-                                            </span>
-                                        );
-                                    },
-                                },
-                            ],
-                        },
-                    ],
+                    id: 'LdapWizard',
+                    component: LDAPWizard,
                 },
-                restrictedIndicator: getRestrictedIndicator(),
             },
             ldap_feature_discovery: {
                 url: 'authentication/ldap',
@@ -4943,7 +4143,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'GitLabSettings',
                     name: defineMessage({id: 'admin.authentication.gitlab', defaultMessage: 'GitLab'}),
                     onConfigLoad: (config) => {
-                        const newState: {'GitLabSettings.Url'?: string} = {};
+                        const newState: { 'GitLabSettings.Url'?: string } = {};
                         newState['GitLabSettings.Url'] = config.GitLabSettings?.UserAPIEndpoint?.replace('/api/v4/user', '');
                         return newState;
                     },
@@ -5056,7 +4256,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'OAuthSettings',
                     name: defineMessage({id: 'admin.authentication.oauth', defaultMessage: 'OAuth 2.0'}),
                     onConfigLoad: (config) => {
-                        const newState: {oauthType?: string; 'GitLabSettings.Url'?: string} = {};
+                        const newState: { oauthType?: string; 'GitLabSettings.Url'?: string } = {};
                         if (config.GitLabSettings?.Enable) {
                             newState.oauthType = Constants.GITLAB_SERVICE;
                         }
@@ -5380,7 +4580,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'OpenIdSettings',
                     name: defineMessage({id: 'admin.authentication.openid', defaultMessage: 'OpenID Connect'}),
                     onConfigLoad: (config) => {
-                        const newState: {openidType?: string; 'GitLabSettings.Url'?: string} = {};
+                        const newState: { openidType?: string; 'GitLabSettings.Url'?: string } = {};
                         if (config.Office365Settings?.Enable) {
                             newState.openidType = Constants.OFFICE365_SERVICE;
                         }
