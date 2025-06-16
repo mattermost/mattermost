@@ -15,20 +15,25 @@ import {attachFile} from '../files_and_attachments/helpers';
 describe('Image Gallery', () => {
     before(() => {
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
-            // Visit the channel and wait for it to be fully loaded
+            // Save team and channel for use in beforeEach
+            Cypress.env('team', team);
+            Cypress.env('channel', channel);
             cy.visit(`/${team.name}/channels/${channel.name}`);
-
-            // Wait for the app to be fully loaded
             cy.get('#app-content', {timeout: 30000}).should('be.visible');
-
-            // Wait for the channel to be fully loaded
             cy.get('#channel-header', {timeout: 30000}).should('be.visible');
             cy.get('#channelHeaderTitle', {timeout: 30000}).should('be.visible');
             cy.get('#post_textbox', {timeout: 30000}).should('be.visible');
-
-            // Additional check to ensure the channel is ready
             cy.get('#postListContent', {timeout: 30000}).should('be.visible');
         });
+    });
+
+    beforeEach(() => {
+        // Reload the channel page before each test to ensure isolation
+        const team = Cypress.env('team');
+        const channel = Cypress.env('channel');
+        cy.visit(`/${team.name}/channels/${channel.name}`);
+        cy.get('#channelHeaderTitle', {timeout: 30000}).should('be.visible');
+        cy.get('#post_textbox', {timeout: 30000}).should('be.visible');
     });
 
     it('MM-T1798 Gallery grid layout with multiple images', () => {
@@ -61,7 +66,7 @@ describe('Image Gallery', () => {
             cy.get(`#post_${postId}`).within(() => {
                 cy.findByTestId('fileAttachmentList').within(() => {
                     cy.get('.image-gallery__toggle').should('contain.text', '4 images');
-                    cy.findByText('Download all');
+                    cy.get('.image-gallery__download-all').should('have.length', 1);
                     cy.get('.image-gallery__body').should('not.have.class', 'collapsed').within(() => {
                         cy.get('.image-gallery__item').should('have.length', 4);
                         cy.get('.image-gallery__item--small').should('have.length', 3);
@@ -91,12 +96,13 @@ describe('Image Gallery', () => {
                     cy.get('.image-gallery__toggle').should('contain.text', '4 images');
                     cy.get('.image-gallery__item').should('exist').and('be.visible');
                 });
+                // Click the Download all button scoped to this post
+                cy.get('.image-gallery__download-all').first().click();
+                cy.get('.image-gallery__download-all').first().should('have.attr', 'disabled');
             });
             cy.get('.image-gallery__item').first().click();
             cy.uiGetFilePreviewModal().should('exist');
             cy.uiCloseFilePreviewModal();
-            cy.findByText('Download all').click();
-            cy.findByText('Download all').should('have.attr', 'disabled');
         });
     });
 
