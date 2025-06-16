@@ -482,7 +482,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 
 	limit := uint64(opts.Limit)
 	if limit < 1 {
-		limit = 10
+		limit = 1
 	} else if limit > MaxPerPage {
 		limit = MaxPerPage
 	}
@@ -576,7 +576,7 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 	limit := uint64(opts.Limit)
 	if limit < 1 {
-		limit = 10
+		limit = 1
 	} else if limit > MaxPerPage {
 		limit = MaxPerPage
 	}

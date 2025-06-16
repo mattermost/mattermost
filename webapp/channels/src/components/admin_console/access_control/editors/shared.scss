@@ -53,3 +53,22 @@
         opacity: 0.4;
     }
 }
+
+.editor__help-text {
+    color: var(--center-channel-color-72);
+    font-size: 12px;
+
+    p {
+        margin-bottom: 0;
+    }
+
+    a {
+        display: inline-block;
+        margin-top: 8px;
+        color: var(--link-color);
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}

@@ -160,6 +160,11 @@ func initStores(logger mlog.LoggerIFace, parallelism int) {
 	if testing.Short() {
 		return
 	}
+
+	// NOTE: we use a pool size higher than the parallelism value (coming from -test.parallel flag) as we need a bit of extra buffer to cover
+	// for subtests or paused tests that might also run in parallel and initialize a new store.
+	parallelTestsPoolSize := parallelism * 2
+
 	// In CI, we already run the entire test suite for both mysql and postgres in parallel.
 	// So we just run the tests for the current database set.
 	if os.Getenv("IS_CI") == "true" {
@@ -169,7 +174,7 @@ func initStores(logger mlog.LoggerIFace, parallelism int) {
 		case "postgres":
 			storeTypes = append(storeTypes, newStoreType("PostgreSQL", model.DatabaseDriverPostgres))
 			if enableFullyParallelTests {
-				pgStorePool, err := NewTestPool(logger, model.DatabaseDriverPostgres, parallelism)
+				pgStorePool, err := NewTestPool(logger, model.DatabaseDriverPostgres, parallelTestsPoolSize)
 				if err != nil {
 					panic(err)
 				}
@@ -183,11 +188,11 @@ func initStores(logger mlog.LoggerIFace, parallelism int) {
 		)
 
 		if enableFullyParallelTests {
-			pgStorePool, err := NewTestPool(logger, model.DatabaseDriverPostgres, parallelism)
+			pgStorePool, err := NewTestPool(logger, model.DatabaseDriverPostgres, parallelTestsPoolSize)
 			if err != nil {
 				panic(err)
 			}
-			msStorePool, err := NewTestPool(logger, model.DatabaseDriverMysql, parallelism)
+			msStorePool, err := NewTestPool(logger, model.DatabaseDriverMysql, parallelTestsPoolSize)
 			if err != nil {
 				panic(err)
 			}

@@ -194,7 +194,7 @@ const DotMenu = ({
                     ) : (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label'
-                            defaultMessage={'Link property to AD/LDAP'}
+                            defaultMessage={'Link attribute to AD/LDAP'}
                         />
                     )}
                 />,
@@ -215,7 +215,7 @@ const DotMenu = ({
                     ) : (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.saml.link_property.label'
-                            defaultMessage={'Link property to SAML'}
+                            defaultMessage={'Link attribute to SAML'}
                         />
                     )}
                 />,
@@ -229,7 +229,7 @@ const DotMenu = ({
                     labels={(
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.duplicate.label'
-                            defaultMessage={'Duplicate property'}
+                            defaultMessage={'Duplicate attribute'}
                         />
                     )}
                 />
@@ -242,7 +242,7 @@ const DotMenu = ({
                 labels={(
                     <FormattedMessage
                         id='admin.system_properties.user_properties.dotmenu.delete.label'
-                        defaultMessage={'Delete property'}
+                        defaultMessage={'Delete attribute'}
                     />
                 )}
             />

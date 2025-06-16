@@ -10,7 +10,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
     <div>
       <Connect(Component)
         className="fa fa-angle-left back"
-        to="/admin_console/user_management/attribute_based_access_control"
+        to="/admin_console/system_attributes/attribute_based_access_control"
       />
       <MemoizedFormattedMessage
         defaultMessage="Edit Access Control Policy"
@@ -28,6 +28,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         className="admin-console__setting-group"
       >
         <TextSetting
+          autoFocus={false}
           id="admin.access_control.policy.edit_policy.policyName"
           inputClassName="col-sm-8"
           label={
@@ -94,7 +95,13 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         </CardHeader>
         <CardBody>
           <TableEditor
+            actions={
+              Object {
+                "getVisualAST": [MockFunction],
+              }
+            }
             onChange={[Function]}
+            onParseError={[Function]}
             onValidate={[Function]}
             userAttributes={Array []}
             value=""
@@ -186,7 +193,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
     />
     <Connect(Component)
       className="btn btn-quaternary"
-      to="/admin_console/user_management/attribute_based_access_control"
+      to="/admin_console/system_attributes/attribute_based_access_control"
     >
       <MemoizedFormattedMessage
         defaultMessage="Cancel"
@@ -207,7 +214,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
     <div>
       <Connect(Component)
         className="fa fa-angle-left back"
-        to="/admin_console/user_management/attribute_based_access_control"
+        to="/admin_console/system_attributes/attribute_based_access_control"
       />
       <MemoizedFormattedMessage
         defaultMessage="Edit Access Control Policy"
@@ -225,6 +232,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         className="admin-console__setting-group"
       >
         <TextSetting
+          autoFocus={false}
           id="admin.access_control.policy.edit_policy.policyName"
           inputClassName="col-sm-8"
           label={
@@ -291,7 +299,13 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         </CardHeader>
         <CardBody>
           <TableEditor
+            actions={
+              Object {
+                "getVisualAST": [MockFunction],
+              }
+            }
             onChange={[Function]}
+            onParseError={[Function]}
             onValidate={[Function]}
             userAttributes={Array []}
             value=""
@@ -354,7 +368,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
     />
     <Connect(Component)
       className="btn btn-quaternary"
-      to="/admin_console/user_management/attribute_based_access_control"
+      to="/admin_console/system_attributes/attribute_based_access_control"
     >
       <MemoizedFormattedMessage
         defaultMessage="Cancel"
