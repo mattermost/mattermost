@@ -249,73 +249,15 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 			defer wg.Done()
 
 			a.PostDebugToTownSquare(c,
-				fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Processing FullMention: %s", mention))
+				fmt.Sprintf("RECV_MENTION_RESOLVE: Processing mention: %s", mention))
 
-			// First try to find the user by the full mention (could be username or username:remote)
+			// Standard mention resolution - try to find user by username
 			user, nErr := a.Srv().Store().User().GetByUsername(mention)
-
-			// For shared channels: If we found a local user but a remote user with same name exists
-			// in a connected remote cluster, prefer the remote user (fixes mention collision bug)
-			if nErr == nil && !user.IsRemote() && !strings.Contains(mention, ":") {
-				a.PostDebugToTownSquare(c,
-					fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Found local user %s, checking for remote user preference", mention))
-				// Check if a remote user with the same username exists and is connected to this team
-				if remoteUser := a.findPreferredRemoteUserInSharedChannels(c, mention, teamID); remoteUser != nil {
-					a.PostDebugToTownSquare(c,
-						fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Preferring remote user %s over local user %s", remoteUser.Id, user.Id))
-					user = remoteUser
-				}
-			}
-
-			var nfErr *store.ErrNotFound
-			if nErr != nil && !errors.As(nErr, &nfErr) {
-				a.PostDebugToTownSquare(c,
-					fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Failed to retrieve mention FullMention: %s", mention))
-				c.Logger().Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
-				return
-			}
-
-			// If not found and mention contains colon, try to find remote user
-			if nErr != nil && strings.Contains(mention, ":") {
-				parts := strings.SplitN(mention, ":", 2)
-				if len(parts) == 2 {
-					username := parts[0]
-					remoteClusterName := parts[1]
-
-					// Debug: Log remote mention lookup attempt (Scenario 2)
-					a.PostDebugToTownSquare(c,
-						fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Looking up remote mention - Username: %s, Cluster: %s, FullMention: %s",
-							username, remoteClusterName, mention))
-
-					// Look for users with this username
-					users, err := a.Srv().Store().User().GetProfilesByUsernames([]string{username}, &model.ViewUsersRestrictions{})
-					if err == nil {
-						for _, u := range users {
-							if u.RemoteId != nil && *u.RemoteId != "" {
-								// Check if this user belongs to the specified remote cluster
-								rc, rcErr := a.Srv().Store().RemoteCluster().Get(*u.RemoteId, false)
-								if rcErr == nil && strings.EqualFold(rc.Name, remoteClusterName) {
-									// Found the remote user, check team membership
-									_, tmErr := a.GetTeamMember(c, teamID, u.Id)
-									if tmErr == nil {
-										// Debug: Log successful remote mention resolution (Scenario 2)
-										a.PostDebugToTownSquare(c,
-											fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Found remote user - UserId: %s, Username: %s, RemoteCluster: %s",
-												u.Id, u.Username, rc.Name))
-
-										mentionChan <- &mentionMapItem{mention, u.Id}
-										return
-									}
-								}
-							}
-						}
-					}
-				}
-			}
 
 			// If it's a http.StatusNotFound error, check for usernames in substrings
 			// without trailing punctuation
 			if nErr != nil {
+				var nfErr *store.ErrNotFound
 				trimmed, ok := trimUsernameSpecialChar(mention)
 				for ; ok; trimmed, ok = trimUsernameSpecialChar(trimmed) {
 					userFromTrimmed, nErr := a.Srv().Store().User().GetByUsername(trimmed)
@@ -359,83 +301,6 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 	}
 
 	return atMentionMap
-}
-
-// findPreferredRemoteUserInSharedChannels checks if a remote user with the given username
-// exists and is connected to this team through shared channels. This helps resolve
-// mention conflicts where both local and remote users have the same username.
-func (a *App) findPreferredRemoteUserInSharedChannels(c request.CTX, username, teamID string) *model.User {
-	a.PostDebugToTownSquare(c,
-		fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Searching for remote user preference for username: %s, teamID: %s", username, teamID))
-
-	// Get all users with this username
-	users, err := a.Srv().Store().User().GetProfilesByUsernames([]string{username}, &model.ViewUsersRestrictions{})
-	if err != nil {
-		a.PostDebugToTownSquare(c,
-			fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Error getting users by username %s: %v", username, err))
-		return nil
-	}
-
-	a.PostDebugToTownSquare(c,
-		fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Found %d users with username %s", len(users), username))
-
-	// Look for remote users who are team members and belong to connected remote clusters
-	for _, user := range users {
-		a.PostDebugToTownSquare(c,
-			fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Checking user %s (isRemote: %v, remoteId: %v)", user.Id, user.IsRemote(), user.RemoteId))
-
-		if user.IsRemote() && user.RemoteId != nil {
-			// Check if user is a team member
-			if _, tmErr := a.GetTeamMember(c, teamID, user.Id); tmErr == nil {
-				a.PostDebugToTownSquare(c,
-					fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Remote user %s is team member, checking shared channels", user.Id))
-				// Check if this remote cluster has shared channels with this team
-				if hasSharedChannels, _ := a.teamHasSharedChannelsWithRemoteCluster(teamID, *user.RemoteId); hasSharedChannels {
-					a.PostDebugToTownSquare(c,
-						fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Found preferred remote user %s from cluster %s", user.Id, *user.RemoteId))
-					return user
-				}
-				a.PostDebugToTownSquare(c,
-					fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Remote user %s cluster %s has no shared channels with team", user.Id, *user.RemoteId))
-			} else {
-				a.PostDebugToTownSquare(c,
-					fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: Remote user %s is not a team member: %v", user.Id, tmErr))
-			}
-		}
-	}
-
-	a.PostDebugToTownSquare(c,
-		fmt.Sprintf("RECV_SCENARIO2_MENTION_RESOLVE: No preferred remote user found for username %s", username))
-	return nil
-}
-
-// teamHasSharedChannelsWithRemoteCluster checks if a team has any shared channels
-// connected to the specified remote cluster
-func (a *App) teamHasSharedChannelsWithRemoteCluster(teamID, remoteClusterID string) (bool, error) {
-	// Get all shared channels for this team
-	sharedChannels, err := a.Srv().Store().SharedChannel().GetAll(0, 1000, model.SharedChannelFilterOpts{
-		TeamId: teamID,
-	})
-	if err != nil {
-		return false, err
-	}
-
-	// Check if any shared channel is connected to the remote cluster
-	for _, sc := range sharedChannels {
-		remotes, err := a.Srv().Store().SharedChannel().GetRemotes(0, 100, model.SharedChannelRemoteFilterOpts{
-			ChannelId: sc.ChannelId,
-		})
-		if err != nil {
-			continue
-		}
-
-		for _, remote := range remotes {
-			if remote.RemoteId == remoteClusterID {
-				return true, nil
-			}
-		}
-	}
-	return false, nil
 }
 
 // MentionsToPublicChannels returns all the mentions to public channels,

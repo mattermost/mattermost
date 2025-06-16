@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
+	"runtime/debug"
 	"strconv"
 	"strings"
 
@@ -289,7 +291,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 		}
 	}
 
-	// CRITICAL: Check for username collision - a different user with same username
+	// Check for username collision - a different user with same username
 	userByUsername, err := scs.server.GetStore().User().GetByUsername(user.Username)
 	var usernameCollision bool
 	if err == nil && userByUsername != nil && userByUsername.Id != user.Id {
@@ -530,6 +532,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			fmt.Sprintf("RECV_%s_SYNC: Received post from %s - Message: %s", scenario, rc.Name, post.Message))
 
 		// Transform mentions for proper display on the receiving cluster
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("CALLING transformMentionsOnReceive for post: %s", post.Message))
 		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc)
 
 		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
@@ -627,111 +630,79 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 }
 
 // transformMentionsOnReceive transforms mentions in received posts to ensure proper display
-// on the receiving cluster. Local users get cluster suffixes stripped, remote users get
-// cluster suffixes added if missing.
+// on the receiving cluster. Logic: add sender's cluster suffix to mentions without suffixes,
+// remove cluster suffix if it doesn't refer to a known remote cluster (making it local).
 func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) {
+	// Add stack trace to understand the call path
+	stackTrace := string(debug.Stack())
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("TRANSFORM_MENTIONS CALLED: Message: %s, Remote: %s", post.Message, rc.Name))
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("TRANSFORM_MENTIONS STACK: %s", stackTrace))
+
 	if post.Message == "" || !strings.Contains(post.Message, "@") {
+		scs.app.PostDebugToTownSquare(rctx, "TRANSFORM_MENTIONS: No mentions to transform")
 		return
 	}
 
-	originalMessage := post.Message
-	scs.app.PostDebugToTownSquare(rctx,
-		fmt.Sprintf("RECV_TRANSFORM_DEBUG: Starting mention transformation from remote %s - Original: %s", rc.DisplayName, originalMessage))
+	// Use existing atMentionRegexp to find all @mentions
+	atMentionRegexp := regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_:]*`)
 
-	// For shared channels, we need to resolve mentions in the context of the sending cluster
-	// Use a custom mention resolver that considers the shared channel context
-	mentionMap := scs.resolveMentionsForSharedChannel(rctx, post.Message, targetChannel, rc)
-	scs.app.PostDebugToTownSquare(rctx,
-		fmt.Sprintf("RECV_TRANSFORM_DEBUG: Found mentions: %+v", mentionMap))
-
-	for mention, userID := range mentionMap {
-		mentionedUser, userErr := scs.server.GetStore().User().Get(context.TODO(), userID)
-		if userErr != nil {
-			scs.app.PostDebugToTownSquare(rctx,
-				fmt.Sprintf("RECV_TRANSFORM_DEBUG: Could not get mentioned user %s: %v", userID, userErr))
-			continue
-		}
-
-		remoteIdStr := "nil"
-		if mentionedUser.RemoteId != nil {
-			remoteIdStr = *mentionedUser.RemoteId
-		}
-		scs.app.PostDebugToTownSquare(rctx,
-			fmt.Sprintf("RECV_TRANSFORM_DEBUG: Processing mention @%s (userID: %s, isRemote: %v, remoteId: %s)",
-				mention, userID, mentionedUser.IsRemote(), remoteIdStr))
-
-		if mentionedUser.IsRemote() {
-			// Remote user - add cluster suffix (should not already have one from sender)
-			if mentionedUser.RemoteId != nil {
-				remoteCluster, rcErr := scs.server.GetStore().RemoteCluster().Get(*mentionedUser.RemoteId, false)
-				if rcErr == nil {
-					newMention := fmt.Sprintf("%s:%s", mention, remoteCluster.DisplayName)
-					post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+newMention)
-					scs.app.PostDebugToTownSquare(rctx,
-						fmt.Sprintf("RECV_TRANSFORM_DEBUG: Added cluster suffix to remote user: @%s -> @%s", mention, newMention))
-				}
-			}
-		} else {
-			// Local user - strip cluster suffix if present (from manual typing)
-			if strings.Contains(mention, ":") {
-				username := strings.Split(mention, ":")[0]
-				post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+username)
-				scs.app.PostDebugToTownSquare(rctx,
-					fmt.Sprintf("RECV_TRANSFORM_DEBUG: Stripped cluster suffix from local user: @%s -> @%s", mention, username))
-			}
-		}
-	}
-
-	if post.Message != originalMessage {
-		scs.app.PostDebugToTownSquare(rctx,
-			fmt.Sprintf("RECV_TRANSFORM_DEBUG: Message transformed - Final: %s", post.Message))
-	} else {
-		scs.app.PostDebugToTownSquare(rctx,
-			"RECV_TRANSFORM_DEBUG: No transformation needed")
-	}
-}
-
-// resolveMentionsForSharedChannel resolves mentions in the context of a shared channel
-// considering that mentions without suffixes from remote clusters refer to users from that cluster
-func (scs *Service) resolveMentionsForSharedChannel(rctx request.CTX, message string, channel *model.Channel, rc *model.RemoteCluster) model.UserMentionMap {
-	result := make(model.UserMentionMap)
-	possibleMentions := scs.app.PossibleAtMentions(message)
-
-	for _, mention := range possibleMentions {
-		scs.app.PostDebugToTownSquare(rctx,
-			fmt.Sprintf("RECV_MENTION_RESOLVE: Processing mention %s from remote %s", mention, rc.DisplayName))
-
-		var user *model.User
-		var err error
+	post.Message = atMentionRegexp.ReplaceAllStringFunc(post.Message, func(match string) string {
+		mention := match[1:] // Remove @
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("Processing mention: %s", match))
 
 		if strings.Contains(mention, ":") {
-			// Mention has cluster suffix - look up as shown (e.g., @user:org1)
-			// This is the username as displayed locally
-			user, err = scs.server.GetStore().User().GetByUsername(mention)
-			if err == nil {
-				scs.app.PostDebugToTownSquare(rctx,
-					fmt.Sprintf("RECV_MENTION_RESOLVE: Found user by full mention %s with ID %s", mention, user.Id))
-			}
-		} else {
-			// Mention has no cluster suffix - it refers to a user from the sending cluster
-			// First, construct the expected username for this remote user
-			expectedUsername := fmt.Sprintf("%s:%s", mention, rc.Name)
-			user, err = scs.server.GetStore().User().GetByUsername(expectedUsername)
-			if err == nil && user.IsRemote() && user.GetRemoteID() == rc.RemoteId {
-				scs.app.PostDebugToTownSquare(rctx,
-					fmt.Sprintf("RECV_MENTION_RESOLVE: Found remote user %s (stored as %s) with ID %s",
-						mention, expectedUsername, user.Id))
-			}
-			// Fix: Remove fallback to local users. A mention without colon from a remote cluster
-			// should only resolve to the intended remote user, not to local users with same name.
-			// This prevents the bug where @admin:org2 mentioned on org1 incorrectly resolves to
-			// local admin on org2 instead of the intended remote admin from org1.
-		}
+			// Has cluster suffix - check if it refers to a known remote cluster
+			parts := strings.SplitN(mention, ":", 2)
+			if len(parts) == 2 {
+				clusterName := parts[1]
+				username := parts[0]
 
-		if user != nil {
-			result[mention] = user.Id
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Username: %s, ClusterName: %s", username, clusterName))
+
+				// If this cluster name refers to a known remote, keep the suffix
+				isKnown := scs.isKnownRemoteCluster(clusterName)
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  isKnownRemoteCluster(%s) = %v", clusterName, isKnown))
+
+				if isKnown {
+					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Keeping suffix - known remote cluster: %s", match))
+					return match // Keep @user:knownRemote
+				}
+				newMention := "@" + username
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Stripping suffix - unknown cluster: %s -> %s", match, newMention))
+				// Unknown cluster name - assume it refers to local user
+				return newMention // Strip to @user
+			}
+			return match
+		}
+		// No suffix - add sender's cluster name
+		newMention := fmt.Sprintf("@%s:%s", mention, rc.Name)
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Adding sender cluster suffix: %s -> %s", match, newMention))
+		return newMention
+	})
+
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("TRANSFORM_MENTIONS COMPLETE: Final message: %s", post.Message))
+}
+
+// isKnownRemoteCluster checks if the given cluster name refers to a known remote cluster
+func (scs *Service) isKnownRemoteCluster(clusterName string) bool {
+	// Get all remote clusters known to this server
+	remotes, err := scs.server.GetStore().RemoteCluster().GetAll(0, 1000, model.RemoteClusterQueryFilter{})
+	if err != nil {
+		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("    Error getting remote clusters: %v", err))
+		return false
+	}
+
+	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("    Checking %d remote clusters for '%s'", len(remotes), clusterName))
+
+	// Check if clusterName matches any remote cluster name
+	for _, remote := range remotes {
+		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("      Remote: '%s' vs '%s'", remote.Name, clusterName))
+		if strings.EqualFold(remote.Name, clusterName) {
+			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("    Found matching remote cluster: %s", clusterName))
+			return true
 		}
 	}
 
-	return result
+	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("    Cluster name '%s' not found in remotes, assuming local", clusterName))
+	return false
 }

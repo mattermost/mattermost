@@ -1535,21 +1535,11 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 	keywords := make(MentionKeywords)
 
 	for _, profile := range profiles {
-		var remoteClusterName string
-
-		// If this is a remote user, get the cluster name
-		if profile.IsRemote() {
-			if rc, err := a.Srv().Store().RemoteCluster().Get(*profile.RemoteId, false); err == nil {
-				remoteClusterName = rc.Name
-			}
-		}
-
-		keywords.AddUserWithRemoteClusterSupport(
+		keywords.AddUser(
 			profile,
 			channelMemberNotifyPropsMap[profile.Id],
 			a.GetStatusFromCache(profile.Id),
 			allowChannelMentions,
-			remoteClusterName,
 		)
 	}
 
