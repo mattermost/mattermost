@@ -62,8 +62,10 @@ func TestDoUploadFile(t *testing.T) {
 	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
-		th.App.RemoveFile(info1.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info1.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value := fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info1.Id, filename)
@@ -72,8 +74,10 @@ func TestDoUploadFile(t *testing.T) {
 	info2, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
-		th.App.RemoveFile(info2.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info2.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value = fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info2.Id, filename)
@@ -82,8 +86,10 @@ func TestDoUploadFile(t *testing.T) {
 	info3, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info3.Id)
-		th.App.RemoveFile(info3.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info3.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info3.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value = fmt.Sprintf("20080305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info3.Id, filename)
@@ -92,8 +98,10 @@ func TestDoUploadFile(t *testing.T) {
 	info4, err := th.App.DoUploadFile(th.Context, time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamID, "../../"+channelID, "../../"+userID, "../../"+filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info4.Id)
-		th.App.RemoveFile(info4.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info4.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info4.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value = fmt.Sprintf("20090305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info4.Id, filename)
@@ -102,8 +110,10 @@ func TestDoUploadFile(t *testing.T) {
 	info5, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, model.BookmarkFileOwner, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info5.Id)
-		th.App.RemoveFile(info3.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info5.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info5.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value = fmt.Sprintf("%v/teams/%v/channels/%v/%v/%v", model.BookmarkFileOwner, teamID, channelID, info5.Id, filename)
@@ -130,8 +140,10 @@ func TestUploadFile(t *testing.T) {
 	info1, err = th.App.UploadFile(th.Context, data, channelID, filename)
 	require.Nil(t, err, "UploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
-		th.App.RemoveFile(info1.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info1.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value := fmt.Sprintf("%v/teams/noteam/channels/%v/users/nouser/%v/%v",
@@ -370,8 +382,8 @@ func TestCopyFileInfos(t *testing.T) {
 	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
-		th.App.RemoveFile(info1.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
+		require.NoError(t, err)
 	}()
 
 	infoIds, err := th.App.CopyFileInfos(th.Context, userID, []string{info1.Id})
@@ -380,8 +392,10 @@ func TestCopyFileInfos(t *testing.T) {
 	info2, err := th.App.GetFileInfo(th.Context, infoIds[0])
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
-		th.App.RemoveFile(info2.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info2.Path)
+		require.Nil(t, appErr)
 	}()
 
 	assert.NotEqual(t, info1.Id, info2.Id, "should not be equal")
