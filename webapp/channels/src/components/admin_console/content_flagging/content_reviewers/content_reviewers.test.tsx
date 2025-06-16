@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen, fireEvent} from '@testing-library/react';
+import React from 'react';
 
 import type {ContentFlaggingReviewerSetting, TeamReviewerSetting} from '@mattermost/types/config';
+
+import type {SystemConsoleCustomSettingsComponentProps} from 'components/admin_console/schema_admin_settings';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
@@ -29,14 +31,14 @@ jest.mock('../../content_flagging/user_multiselector/user_multiselector', () => 
 jest.mock('./team_reviewers_section/team_reviewers_section', () => ({
     __esModule: true,
     default: ({teamReviewersSetting, onChange}: {teamReviewersSetting: Record<string, TeamReviewerSetting>; onChange: (settings: Record<string, TeamReviewerSetting>) => void}) => (
-        <div data-testid="team-reviewers">
+        <div data-testid='team-reviewers'>
             <button
-                onClick={() => onChange({team1: {ReviewerIds: ['user3']}})}
-                data-testid="team-reviewers-change"
+                onClick={() => onChange({team1: {Enabled: true, ReviewerIds: ['user3']}})}
+                data-testid='team-reviewers-change'
             >
-                Change Team Reviewers
+                {'Change Team Reviewers'}
             </button>
-            <span data-testid="team-reviewers-setting">{JSON.stringify(teamReviewersSetting)}</span>
+            <span data-testid='team-reviewers-setting'>{JSON.stringify(teamReviewersSetting)}</span>
         </div>
     ),
 }));
@@ -54,21 +56,21 @@ describe('ContentFlaggingContentReviewers', () => {
         onChange: jest.fn(),
         disabled: false,
         setByEnv: false,
-    };
+    } as unknown as SystemConsoleCustomSettingsComponentProps;
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
     it('renders the component with correct title and description', () => {
-        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
         expect(screen.getByText('Content Reviewers')).toBeInTheDocument();
         expect(screen.getByText('Define who should review content in your environment')).toBeInTheDocument();
     });
 
     it('renders radio buttons for same reviewers for all teams setting', () => {
-        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
         expect(screen.getByText('Same reviewers for all teams:')).toBeInTheDocument();
         expect(screen.getByTestId('sameReviewersForAllTeams_true')).toBeInTheDocument();
@@ -76,7 +78,7 @@ describe('ContentFlaggingContentReviewers', () => {
     });
 
     it('shows common reviewers section when CommonReviewers is true', () => {
-        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
         expect(screen.getByText('Reviewers:')).toBeInTheDocument();
         expect(screen.getByTestId('user-multi-selector-content_reviewers_common_reviewers')).toBeInTheDocument();
@@ -87,12 +89,12 @@ describe('ContentFlaggingContentReviewers', () => {
         const props = {
             ...defaultProps,
             value: {
-                ...defaultProps.value,
+                ...(defaultProps.value as ContentFlaggingReviewerSetting),
                 CommonReviewers: false,
             },
         };
 
-        renderWithContext(<ContentFlaggingContentReviewers {...props} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...props}/>);
 
         expect(screen.getByText('Configure content flagging per team')).toBeInTheDocument();
         expect(screen.getByTestId('team-reviewers')).toBeInTheDocument();
@@ -100,7 +102,7 @@ describe('ContentFlaggingContentReviewers', () => {
     });
 
     it('renders additional reviewers checkboxes', () => {
-        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
         expect(screen.getByText('Additional reviewers')).toBeInTheDocument();
         expect(screen.getByText('System Administrators')).toBeInTheDocument();
@@ -111,12 +113,12 @@ describe('ContentFlaggingContentReviewers', () => {
         const props = {
             ...defaultProps,
             value: {
-                ...defaultProps.value,
+                ...(defaultProps.value as ContentFlaggingReviewerSetting),
                 CommonReviewers: false,
             },
         };
 
-        renderWithContext(<ContentFlaggingContentReviewers {...props} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...props}/>);
 
         const trueRadio = screen.getByTestId('sameReviewersForAllTeams_true');
         fireEvent.click(trueRadio);
@@ -128,49 +130,49 @@ describe('ContentFlaggingContentReviewers', () => {
     });
 
     it('handles same reviewers for all teams radio button change to false', () => {
-        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
         const falseRadio = screen.getByTestId('sameReviewersForAllTeams_false');
         fireEvent.click(falseRadio);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('content_reviewers', {
-            ...defaultProps.value,
+            ...(defaultProps.value as ContentFlaggingReviewerSetting),
             CommonReviewers: false,
         });
     });
 
     it('handles system admin reviewer checkbox change', () => {
-        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
         const systemAdminCheckbox = screen.getByRole('checkbox', {name: /system administrators/i});
         fireEvent.click(systemAdminCheckbox);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('content_reviewers', {
-            ...defaultProps.value,
+            ...(defaultProps.value as ContentFlaggingReviewerSetting),
             SystemAdminsAsReviewers: true,
         });
     });
 
     it('handles team admin reviewer checkbox change', () => {
-        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
         const teamAdminCheckbox = screen.getByRole('checkbox', {name: /team administrators/i});
         fireEvent.click(teamAdminCheckbox);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('content_reviewers', {
-            ...defaultProps.value,
+            ...(defaultProps.value as ContentFlaggingReviewerSetting),
             TeamAdminsAsReviewers: true,
         });
     });
 
     it('handles common reviewers change', () => {
-        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
         const changeUsersButton = screen.getByTestId('content_reviewers_common_reviewers-change-users');
         fireEvent.click(changeUsersButton);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('content_reviewers', {
-            ...defaultProps.value,
+            ...(defaultProps.value as ContentFlaggingReviewerSetting),
             CommonReviewerIds: ['user1', 'user2'],
         });
     });
@@ -179,19 +181,19 @@ describe('ContentFlaggingContentReviewers', () => {
         const props = {
             ...defaultProps,
             value: {
-                ...defaultProps.value,
+                ...(defaultProps.value as ContentFlaggingReviewerSetting),
                 CommonReviewers: false,
             },
         };
 
-        renderWithContext(<ContentFlaggingContentReviewers {...props} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...props}/>);
 
         const changeTeamReviewersButton = screen.getByTestId('team-reviewers-change');
         fireEvent.click(changeTeamReviewersButton);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('content_reviewers', {
             ...props.value,
-            TeamReviewersSetting: {team1: {ReviewerIds: ['user3']}},
+            TeamReviewersSetting: {team1: {Enabled: true, ReviewerIds: ['user3']}},
         });
     });
 
@@ -199,12 +201,12 @@ describe('ContentFlaggingContentReviewers', () => {
         const props = {
             ...defaultProps,
             value: {
-                ...defaultProps.value,
+                ...(defaultProps.value as ContentFlaggingReviewerSetting),
                 CommonReviewerIds: ['user1', 'user2', 'user3'],
             },
         };
 
-        renderWithContext(<ContentFlaggingContentReviewers {...props} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...props}/>);
 
         const initialValueSpan = screen.getByTestId('content_reviewers_common_reviewers-initial-value');
         expect(initialValueSpan).toHaveTextContent('user1,user2,user3');
@@ -219,26 +221,26 @@ describe('ContentFlaggingContentReviewers', () => {
         const props = {
             ...defaultProps,
             value: {
-                ...defaultProps.value,
+                ...(defaultProps.value as ContentFlaggingReviewerSetting),
                 CommonReviewers: false,
                 TeamReviewersSetting: teamReviewersSetting,
             },
         };
 
-        renderWithContext(<ContentFlaggingContentReviewers {...props} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...props}/>);
 
         const teamReviewersSettingSpan = screen.getByTestId('team-reviewers-setting');
         expect(teamReviewersSettingSpan).toHaveTextContent(JSON.stringify(teamReviewersSetting));
     });
 
     it('renders help text for additional reviewers', () => {
-        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
         expect(screen.getByText(/If enabled, system administrators will be sent flagged posts/)).toBeInTheDocument();
     });
 
     it('correctly sets radio button checked states', () => {
-        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
         const trueRadio = screen.getByTestId('sameReviewersForAllTeams_true') as HTMLInputElement;
         const falseRadio = screen.getByTestId('sameReviewersForAllTeams_false') as HTMLInputElement;
@@ -251,12 +253,12 @@ describe('ContentFlaggingContentReviewers', () => {
         const props = {
             ...defaultProps,
             value: {
-                ...defaultProps.value,
+                ...(defaultProps.value as ContentFlaggingReviewerSetting),
                 CommonReviewers: false,
             },
         };
 
-        renderWithContext(<ContentFlaggingContentReviewers {...props} />);
+        renderWithContext(<ContentFlaggingContentReviewers {...props}/>);
 
         const trueRadio = screen.getByTestId('sameReviewersForAllTeams_true') as HTMLInputElement;
         const falseRadio = screen.getByTestId('sameReviewersForAllTeams_false') as HTMLInputElement;

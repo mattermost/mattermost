@@ -65,7 +65,7 @@ describe('TeamReviewersSection', () => {
     });
 
     test('should render component with teams data', async () => {
-        renderWithContext(<TeamReviewersSection {...defaultProps} />);
+        renderWithContext(<TeamReviewersSection {...defaultProps}/>, {}, {useMockedStore: true});
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -90,7 +90,7 @@ describe('TeamReviewersSection', () => {
     });
 
     test('should handle search functionality', async () => {
-        renderWithContext(<TeamReviewersSection {...defaultProps} />);
+        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -405,7 +405,7 @@ describe('TeamReviewersSection', () => {
         });
 
         const toggle = screen.getByRole('button', {name: /enable or disable content reviewers for this team/i});
-        
+
         // First click - enable
         fireEvent.click(toggle);
         expect(onChange).toHaveBeenCalledWith({
@@ -437,7 +437,7 @@ describe('TeamReviewersSection', () => {
         });
 
         const updatedToggle = screen.getByRole('button', {name: /enable or disable content reviewers for this team/i});
-        
+
         // Second click - disable
         fireEvent.click(updatedToggle);
         expect(onChange).toHaveBeenCalledWith({
