@@ -205,6 +205,10 @@ func (api *PluginAPI) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Le
 	if rec == nil {
 		return
 	}
+
+	// Ensure the plugin_id is always logged with the correct ID
+	model.AddEventParameterToAuditRec(rec, "plugin_id", api.id)
+
 	api.app.Srv().Audit.LogRecord(level, *rec)
 }
 

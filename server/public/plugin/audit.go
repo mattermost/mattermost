@@ -8,7 +8,7 @@ import "github.com/mattermost/mattermost/server/public/model"
 // MakeAuditRecord creates a new audit record with basic information for plugin use.
 // This function creates a minimal audit record that can be populated with additional data.
 // Use this when you don't have access to request context or want to manually populate fields.
-func MakeAuditRecord(pluginId string, event string, initialStatus string) *model.AuditRecord {
+func MakeAuditRecord(event string, initialStatus string) *model.AuditRecord {
 	return &model.AuditRecord{
 		EventName: event,
 		Status:    initialStatus,
@@ -21,9 +21,7 @@ func MakeAuditRecord(pluginId string, event string, initialStatus string) *model
 			XForwardedFor: "",
 		},
 		EventData: model.AuditEventData{
-			Parameters: map[string]any{
-				"plugin_id": pluginId,
-			},
+			Parameters:  map[string]any{},
 			PriorState:  make(map[string]any),
 			ResultState: make(map[string]any),
 			ObjectType:  "",
@@ -34,8 +32,8 @@ func MakeAuditRecord(pluginId string, event string, initialStatus string) *model
 // MakeAuditRecordWithContext creates a new audit record populated with plugin context information.
 // This is the recommended way for plugins to create audit records when they have request context.
 // The Context should come from plugin hook parameters or HTTP request handlers.
-func MakeAuditRecordWithContext(pluginId string, event string, initialStatus string, ctx Context, userId, apiPath string) *model.AuditRecord {
-	rec := MakeAuditRecord(pluginId, event, initialStatus)
+func MakeAuditRecordWithContext(event string, initialStatus string, ctx Context, userId, apiPath string) *model.AuditRecord {
+	rec := MakeAuditRecord(event, initialStatus)
 	rec.AddMeta(model.AuditKeyAPIPath, apiPath)
 	rec.Actor.UserId = userId
 	rec.Actor.SessionId = ctx.SessionId
