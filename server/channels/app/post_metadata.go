@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/app/oembed"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/imgutils"
 )
 
@@ -232,8 +233,17 @@ func (a *App) sanitizePostMetadataForUserAndChannel(c request.CTX, post *model.P
 		return post
 	}
 
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
-		removePermalinkMetadataFromPost(post)
+	if previewedChannel != nil {
+		hasPermission, isMember := a.HasPermissionToReadChannel(c, userID, previewedChannel)
+		if !hasPermission {
+			removePermalinkMetadataFromPost(post)
+		} else if !isMember {
+			auditRec := a.MakeAuditRecord(c, "viewed_post_without_membership", audit.Success)
+			defer a.LogAuditRec(c, auditRec, nil)
+			auditRec.AddMeta("reason", "permalink_preview")
+			auditRec.AddMeta("post_id", previewedPost.PostID)
+			auditRec.AddEventResultState(c.Session())
+		}
 	}
 
 	return post
@@ -254,8 +264,17 @@ func (a *App) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userI
 		return nil, err
 	}
 
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
-		removePermalinkMetadataFromPost(post)
+	if previewedChannel != nil {
+		hasPermission, isMember := a.HasPermissionToReadChannel(c, userID, previewedChannel)
+		if !hasPermission {
+			removePermalinkMetadataFromPost(post)
+		} else if !isMember {
+			auditRec := a.MakeAuditRecord(c, "viewed_post_without_membership", audit.Success)
+			defer a.LogAuditRec(c, auditRec, nil)
+			auditRec.AddMeta("reason", "permalink_preview")
+			auditRec.AddMeta("post_id", previewPost.PostID)
+			auditRec.AddEventResultState(c.Session())
+		}
 	}
 
 	return post, nil

@@ -46,7 +46,7 @@ func (*HeaderProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandA
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
-		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
+		if ok, _ := a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties); !ok {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_header.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
@@ -54,7 +54,7 @@ func (*HeaderProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandA
 		}
 
 	case model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
+		if ok, _ := a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties); !ok {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_header.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
