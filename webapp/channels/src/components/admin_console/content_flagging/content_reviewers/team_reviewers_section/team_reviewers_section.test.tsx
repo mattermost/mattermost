@@ -68,6 +68,10 @@ describe('TeamReviewersSection', () => {
         renderWithContext(<TeamReviewersSection {...defaultProps} />);
 
         await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
+
+        await waitFor(() => {
             expect(screen.getByText('Team One')).toBeInTheDocument();
             expect(screen.getByText('Team Two')).toBeInTheDocument();
         });
@@ -88,6 +92,10 @@ describe('TeamReviewersSection', () => {
     test('should handle search functionality', async () => {
         renderWithContext(<TeamReviewersSection {...defaultProps} />);
 
+        await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
+
         const searchInput = screen.getByRole('textbox');
         fireEvent.change(searchInput, {target: {value: 'search term'}});
 
@@ -105,6 +113,10 @@ describe('TeamReviewersSection', () => {
         } as any);
 
         renderWithContext(<TeamReviewersSection {...defaultProps} />);
+
+        await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
 
         await waitFor(() => {
             expect(screen.getByText('Team One')).toBeInTheDocument();
@@ -127,6 +139,10 @@ describe('TeamReviewersSection', () => {
         } as any);
 
         renderWithContext(<TeamReviewersSection {...defaultProps} />);
+
+        await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
 
         // First go to next page
         await waitFor(() => {
@@ -157,6 +173,10 @@ describe('TeamReviewersSection', () => {
                 onChange={onChange}
             />
         );
+
+        await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
 
         await waitFor(() => {
             expect(screen.getByText('Team One')).toBeInTheDocument();
@@ -190,6 +210,10 @@ describe('TeamReviewersSection', () => {
         );
 
         await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
+
+        await waitFor(() => {
             expect(screen.getByText('Team One')).toBeInTheDocument();
         });
 
@@ -212,6 +236,10 @@ describe('TeamReviewersSection', () => {
                 onChange={onChange}
             />
         );
+
+        await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
 
         await waitFor(() => {
             expect(screen.getByText('Team One')).toBeInTheDocument();
@@ -244,12 +272,20 @@ describe('TeamReviewersSection', () => {
         );
 
         await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
+
+        await waitFor(() => {
             expect(screen.getByText('Selected: existing-user1, existing-user2')).toBeInTheDocument();
         });
     });
 
     test('should render disable all button', async () => {
         renderWithContext(<TeamReviewersSection {...defaultProps} />);
+
+        await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
 
         await waitFor(() => {
             expect(screen.getByText('Disable for all teams')).toBeInTheDocument();
@@ -283,6 +319,10 @@ describe('TeamReviewersSection', () => {
         renderWithContext(<TeamReviewersSection {...defaultProps} />);
 
         await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
+
+        await waitFor(() => {
             expect(screen.getByText(/1.*10.*25/)).toBeInTheDocument();
         });
     });
@@ -302,6 +342,10 @@ describe('TeamReviewersSection', () => {
         renderWithContext(<TeamReviewersSection {...defaultProps} />);
 
         // Wait for initial load
+        await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
+
         await waitFor(() => {
             expect(screen.getByText('Team One')).toBeInTheDocument();
         });
@@ -353,6 +397,10 @@ describe('TeamReviewersSection', () => {
         );
 
         await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
+
+        await waitFor(() => {
             expect(screen.getByText('Team One')).toBeInTheDocument();
         });
 
@@ -379,6 +427,10 @@ describe('TeamReviewersSection', () => {
         };
 
         renderWithContext(<TeamReviewersSection {...updatedProps} />);
+
+        await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
 
         await waitFor(() => {
             expect(screen.getByText('Team One')).toBeInTheDocument();
