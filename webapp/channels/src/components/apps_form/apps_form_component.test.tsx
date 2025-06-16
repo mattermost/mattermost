@@ -566,7 +566,7 @@ describe('AppsFormComponent', () => {
             // Verify form renders with custom submit buttons (Save and multiple Cancel buttons)
             expect(screen.getByRole('button', {name: /save/i})).toBeInTheDocument();
             expect(screen.getAllByRole('button', {name: /cancel/i})).toHaveLength(2); // Default + custom cancel
-            
+
             // Verify the form has the submit_buttons configuration
             expect(props.form.submit_buttons).toBe('action_buttons');
         });
