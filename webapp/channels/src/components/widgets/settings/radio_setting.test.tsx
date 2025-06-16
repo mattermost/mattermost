@@ -35,6 +35,7 @@ describe('components/widgets/settings/RadioSetting', () => {
   >
     <label>
       <input
+        autoFocus={false}
         checked={false}
         name="string.id"
         onChange={[Function]}
@@ -50,6 +51,7 @@ describe('components/widgets/settings/RadioSetting', () => {
   >
     <label>
       <input
+        autoFocus={false}
         checked={true}
         name="string.id"
         onChange={[Function]}
@@ -65,6 +67,7 @@ describe('components/widgets/settings/RadioSetting', () => {
   >
     <label>
       <input
+        autoFocus={false}
         checked={false}
         name="string.id"
         onChange={[Function]}
