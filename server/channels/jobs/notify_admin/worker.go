@@ -5,7 +5,7 @@ package notify_admin
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
@@ -23,7 +23,8 @@ func MakeUpgradeNotifyWorker(jobServer *jobs.JobServer, license *model.License, 
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
-	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+	execute := func(rctx request.CTX, job *model.Job) error {
+		logger := rctx.Logger()
 		defer jobServer.HandleJobPanic(logger, job)
 
 		appErr := app.DoCheckForAdminNotifications(false)
@@ -41,7 +42,8 @@ func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, ap
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
-	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+	execute := func(rctx request.CTX, job *model.Job) error {
+		logger := rctx.Logger()
 		defer jobServer.HandleJobPanic(logger, job)
 
 		appErr := app.DoCheckForAdminNotifications(true)
@@ -59,7 +61,8 @@ func MakeInstallPluginNotifyWorker(jobServer *jobs.JobServer, app AppIface) *job
 	isEnabled := func(_ *model.Config) bool {
 		return true
 	}
-	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+	execute := func(rctx request.CTX, job *model.Job) error {
+		logger := rctx.Logger()
 		defer jobServer.HandleJobPanic(logger, job)
 
 		appErr := app.DoCheckForAdminNotifications(false)
