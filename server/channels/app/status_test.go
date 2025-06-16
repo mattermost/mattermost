@@ -19,7 +19,7 @@ import (
 func TestCustomStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	user := th.BasicUser
 
@@ -65,7 +65,7 @@ func TestCustomStatusErrors(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 
 			mockUserStore := mocks.UserStore{}
 
@@ -115,7 +115,7 @@ func TestCustomStatusErrors(t *testing.T) {
 func TestSetCustomStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableCustomEmoji = true

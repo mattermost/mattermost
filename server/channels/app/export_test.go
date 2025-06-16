@@ -30,7 +30,7 @@ import (
 func TestReactionsOfPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	post := th.BasicPost
 	post.HasReactions = true
@@ -61,7 +61,7 @@ func TestReactionsOfPost(t *testing.T) {
 func TestExportUserNotifyProps(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	userNotifyProps := model.StringMap{
 		model.DesktopNotifyProp:         model.UserNotifyAll,
@@ -89,7 +89,7 @@ func TestExportUserNotifyProps(t *testing.T) {
 func TestExportUserChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	channel := th.BasicChannel
 	user := th.BasicUser
@@ -141,7 +141,7 @@ func TestExportUserChannels(t *testing.T) {
 func TestCopyEmojiImages(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	emoji := &model.Emoji{
 		Id: model.NewId(),
@@ -178,7 +178,7 @@ func TestCopyEmojiImages(t *testing.T) {
 func TestExportCustomEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	filePath := "../demo.json"
 
@@ -199,7 +199,7 @@ func TestExportCustomEmoji(t *testing.T) {
 func TestExportAllUsers(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t)
-	defer th1.TearDown()
+	defer th1.TearDown(t)
 
 	// Adding a user and deactivating it to check whether it gets included in bulk export
 	user := th1.CreateUser()
@@ -216,7 +216,7 @@ func TestExportAllUsers(t *testing.T) {
 		th2 = th1
 	} else {
 		th2 = Setup(t)
-		defer th2.TearDown()
+		defer th2.TearDown(t)
 	}
 
 	i, err := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
@@ -256,7 +256,7 @@ func TestExportAllUsers(t *testing.T) {
 func TestExportAllBots(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t)
-	defer th1.TearDown()
+	defer th1.TearDown(t)
 
 	u := th1.CreateUser()
 	bot, err := th1.App.CreateBot(th1.Context, &model.Bot{
@@ -271,7 +271,7 @@ func TestExportAllBots(t *testing.T) {
 	require.Nil(t, err)
 
 	th2 := Setup(t)
-	defer th2.TearDown()
+	defer th2.TearDown(t)
 	i, err := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	require.Nil(t, err)
 	assert.EqualValues(t, 0, i)
@@ -293,7 +293,7 @@ func TestExportDMChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Export a DM channel to another server", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
-		defer th1.TearDown()
+		defer th1.TearDown(t)
 
 		// DM Channel
 		ch := th1.CreateDmChannel(th1.BasicUser2)
@@ -317,7 +317,7 @@ func TestExportDMChannel(t *testing.T) {
 		assert.Equal(t, 1, len(channels))
 
 		th2 := Setup(t).InitBasic(t)
-		defer th2.TearDown()
+		defer th2.TearDown(t)
 
 		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
@@ -344,7 +344,7 @@ func TestExportDMChannel(t *testing.T) {
 
 	t.Run("Invalid DM channel export", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
-		defer th1.TearDown()
+		defer th1.TearDown(t)
 
 		// DM Channel
 		th1.CreateDmChannel(th1.BasicUser2)
@@ -363,7 +363,7 @@ func TestExportDMChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th2 := Setup(t).InitBasic(t)
-		defer th2.TearDown()
+		defer th2.TearDown(t)
 
 		// import the exported channel
 		_, appErr = th2.App.BulkImport(th2.Context, &b, nil, true, 5)
@@ -376,7 +376,7 @@ func TestExportDMChannel(t *testing.T) {
 
 	t.Run("Should not export DM channel if other user is permanently deleted", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
-		defer th1.TearDown()
+		defer th1.TearDown(t)
 
 		// Create a DM Channel with another user
 		dmc1 := th1.CreateDmChannel(th1.BasicUser2)
@@ -399,7 +399,7 @@ func TestExportDMChannel(t *testing.T) {
 		require.Nil(t, err)
 
 		th2 := Setup(t).InitBasic(t)
-		defer th2.TearDown()
+		defer th2.TearDown(t)
 
 		// import the exported channel
 		_, err = th2.App.BulkImport(th2.Context, &b, nil, false, 5)
@@ -423,7 +423,7 @@ func TestExportDMChannel(t *testing.T) {
 func TestExportDMChannelToSelf(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t).InitBasic(t)
-	defer th1.TearDown()
+	defer th1.TearDown(t)
 
 	// DM Channel with self (me channel)
 	th1.CreateDmChannel(th1.BasicUser)
@@ -437,7 +437,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	assert.Equal(t, 1, len(channels))
 
 	th2 := Setup(t)
-	defer th2.TearDown()
+	defer th2.TearDown(t)
 
 	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
@@ -475,10 +475,10 @@ func TestExportGMChannel(t *testing.T) {
 	require.NoError(t, nErr)
 	assert.Equal(t, 1, len(channels))
 
-	th1.TearDown()
+	th1.TearDown(t)
 
 	th2 := Setup(t)
-	defer th2.TearDown()
+	defer th2.TearDown(t)
 
 	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
@@ -508,10 +508,10 @@ func TestExportGMandDMChannels(t *testing.T) {
 	require.NoError(t, nErr)
 	assert.Equal(t, 2, len(channels))
 
-	th1.TearDown()
+	th1.TearDown(t)
 
 	th2 := Setup(t)
-	defer th2.TearDown()
+	defer th2.TearDown(t)
 
 	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
@@ -592,10 +592,10 @@ func TestExportDMandGMPost(t *testing.T) {
 	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, appErr)
 
-	th1.TearDown()
+	th1.TearDown(t)
 
 	th2 := Setup(t)
-	defer th2.TearDown()
+	defer th2.TearDown(t)
 
 	posts, err = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
@@ -670,10 +670,10 @@ func TestExportPostWithProps(t *testing.T) {
 	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, appErr)
 
-	th1.TearDown()
+	th1.TearDown(t)
 
 	th2 := Setup(t)
-	defer th2.TearDown()
+	defer th2.TearDown(t)
 
 	posts, err = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
@@ -715,10 +715,10 @@ func TestExportUserCustomStatus(t *testing.T) {
 	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, appErr)
 
-	th1.TearDown()
+	th1.TearDown(t)
 
 	th2 := Setup(t)
-	defer th2.TearDown()
+	defer th2.TearDown(t)
 
 	i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 	require.Nil(t, appErr)
@@ -748,10 +748,10 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	require.NoError(t, nErr)
 	assert.Equal(t, 1, len(posts))
 
-	th1.TearDown()
+	th1.TearDown(t)
 
 	th2 := Setup(t)
-	defer th2.TearDown()
+	defer th2.TearDown(t)
 
 	posts, nErr = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, nErr)
@@ -772,7 +772,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 func TestExportPostsWithThread(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t).InitBasic(t)
-	defer th1.TearDown()
+	defer th1.TearDown(t)
 
 	assertThreadFollowers := func(t *testing.T, b *bytes.Buffer, postCreateAt int64, userNames []string) {
 		scanner := bufio.NewScanner(b)
@@ -909,7 +909,7 @@ func TestExportFileWarnings(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			th := Setup(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 
 			th.App.UpdateConfig(testCase.ConfigFunc)
 
@@ -1051,9 +1051,9 @@ func TestBulkExport(t *testing.T) {
 	appErr = th.App.BulkExport(th.Context, exportFile, dir, nil, opts)
 	require.Nil(t, appErr)
 
-	th.TearDown()
+	th.TearDown(t)
 	th = Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	jsonFile = extractImportFile(filepath.Join(dir, "export.zip"))
 	defer jsonFile.Close()
@@ -1065,7 +1065,7 @@ func TestBulkExport(t *testing.T) {
 func TestBuildPostReplies(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	createPostWithAttachments := func(th *TestHelper, n int, rootID string) *model.Post {
 		var fileIDs []string
@@ -1130,7 +1130,7 @@ func TestBuildPostReplies(t *testing.T) {
 func TestExportDeletedTeams(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t).InitBasic(t)
-	defer th1.TearDown()
+	defer th1.TearDown(t)
 
 	team1 := th1.CreateTeam()
 	channel1 := th1.CreateChannel(th1.Context, team1)
@@ -1150,7 +1150,7 @@ func TestExportDeletedTeams(t *testing.T) {
 		th2 = th1
 	} else {
 		th2 = Setup(t)
-		defer th2.TearDown()
+		defer th2.TearDown(t)
 	}
 
 	i, err := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
@@ -1179,7 +1179,7 @@ func TestExportDeletedTeams(t *testing.T) {
 func TestExportArchivedChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t).InitBasic(t)
-	defer th1.TearDown()
+	defer th1.TearDown(t)
 
 	archivedChannel := th1.CreateChannel(th1.Context, th1.BasicTeam)
 	th1.CreatePost(archivedChannel)
@@ -1193,7 +1193,7 @@ func TestExportArchivedChannels(t *testing.T) {
 	require.Nil(t, appErr)
 
 	th2 := Setup(t)
-	defer th2.TearDown()
+	defer th2.TearDown(t)
 	i, err := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
@@ -1216,7 +1216,7 @@ func TestExportRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("defaults", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
-		defer th1.TearDown()
+		defer th1.TearDown(t)
 
 		var b bytes.Buffer
 		appErr := th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{})
@@ -1227,7 +1227,7 @@ func TestExportRoles(t *testing.T) {
 		assert.NotEmpty(t, exportedRoles)
 
 		th2 := Setup(t)
-		defer th2.TearDown()
+		defer th2.TearDown(t)
 		i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 		assert.Nil(t, appErr)
 		assert.Equal(t, 0, i)
@@ -1241,7 +1241,7 @@ func TestExportRoles(t *testing.T) {
 
 	t.Run("modified roles", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
-		defer th1.TearDown()
+		defer th1.TearDown(t)
 
 		exportedRole, appErr := th1.App.GetRoleByName(th1.Context.Context(), model.TeamUserRoleId)
 		require.Nil(t, appErr)
@@ -1258,7 +1258,7 @@ func TestExportRoles(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th2 := Setup(t)
-		defer th2.TearDown()
+		defer th2.TearDown(t)
 		i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, i)
@@ -1275,7 +1275,7 @@ func TestExportRoles(t *testing.T) {
 
 	t.Run("custom roles", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
-		defer th1.TearDown()
+		defer th1.TearDown(t)
 
 		exportedRoles, appErr := th1.App.GetAllRoles()
 		require.Nil(t, appErr)
@@ -1295,7 +1295,7 @@ func TestExportRoles(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th2 := Setup(t)
-		defer th2.TearDown()
+		defer th2.TearDown(t)
 		i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, i)
@@ -1315,7 +1315,7 @@ func TestExportSchemes(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("no schemes", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
-		defer th1.TearDown()
+		defer th1.TearDown(t)
 
 		// Need to set this or working with schemes won't work until the job is
 		// completed which is unnecessary for the purpose of this test.
@@ -1339,7 +1339,7 @@ func TestExportSchemes(t *testing.T) {
 		// The following causes the original store to be wiped so from here on we are targeting the
 		// second instance where the import will be loaded.
 		th2 := Setup(t)
-		defer th2.TearDown()
+		defer th2.TearDown(t)
 		err = th2.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
@@ -1358,7 +1358,7 @@ func TestExportSchemes(t *testing.T) {
 
 	t.Run("skip export", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
-		defer th1.TearDown()
+		defer th1.TearDown(t)
 
 		// Need to set this or working with schemes won't work until the job is
 		// completed which is unnecessary for the purpose of this test.
@@ -1379,7 +1379,7 @@ func TestExportSchemes(t *testing.T) {
 		// The following causes the original store to be wiped so from here on we are targeting the
 		// second instance where the import will be loaded.
 		th2 := Setup(t)
-		defer th2.TearDown()
+		defer th2.TearDown(t)
 		err = th2.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
@@ -1394,7 +1394,7 @@ func TestExportSchemes(t *testing.T) {
 
 	t.Run("export channel scheme", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
-		defer th1.TearDown()
+		defer th1.TearDown(t)
 
 		// Need to set this or working with schemes won't work until the job is
 		// completed which is unnecessary for the purpose of this test.
@@ -1438,7 +1438,7 @@ func TestExportSchemes(t *testing.T) {
 		// The following causes the original store to be wiped so from here on we are targeting the
 		// second instance where the import will be loaded.
 		th2 := Setup(t)
-		defer th2.TearDown()
+		defer th2.TearDown(t)
 		err = th2.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
@@ -1492,7 +1492,7 @@ func TestExportSchemes(t *testing.T) {
 
 	t.Run("export team scheme", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
-		defer th1.TearDown()
+		defer th1.TearDown(t)
 
 		// Need to set this or working with schemes won't work until the job is
 		// completed which is unnecessary for the purpose of this test.
@@ -1546,7 +1546,7 @@ func TestExportSchemes(t *testing.T) {
 		// The following causes the original store to be wiped so from here on we are targeting the
 		// second instance where the import will be loaded.
 		th2 := Setup(t)
-		defer th2.TearDown()
+		defer th2.TearDown(t)
 		err = th2.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
@@ -1627,7 +1627,7 @@ func TestExportSchemes(t *testing.T) {
 // by validating that direct messages from deactivated users are exported correctly
 func TestExportDeactivatedUserDMs(t *testing.T) {
 	th1 := Setup(t).InitBasic(t)
-	defer th1.TearDown()
+	defer th1.TearDown(t)
 
 	// Create a DM Channel
 	user2 := th1.BasicUser2
@@ -1727,7 +1727,7 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 
 	// 7. Import data into a new instance
 	th2 := Setup(t)
-	defer th2.TearDown()
+	defer th2.TearDown(t)
 
 	i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	require.Nil(t, appErr)

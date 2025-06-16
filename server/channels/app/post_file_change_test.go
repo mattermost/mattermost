@@ -13,7 +13,7 @@ import (
 func TestProcessPostFileChanges(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	t.Run("no files", func(t *testing.T) {
 		oldPost := &model.Post{FileIds: []string{}}

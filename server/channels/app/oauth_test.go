@@ -27,7 +27,7 @@ import (
 func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
@@ -77,7 +77,7 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 func TestOAuthRevokeAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	session := &model.Session{}
 	session.CreateAt = model.GetMillis()
@@ -96,7 +96,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 func TestOAuthDeleteApp(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	*th.App.Config().ServiceSettings.EnableOAuthServiceProvider = true
 
@@ -191,7 +191,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("not enabled", func(t *testing.T) {
 		th := setup(t, false, true, true, "")
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(th.Context, nil, nil, model.ServiceGitlab, "", "", "")
 		require.NotNil(t, err)
@@ -200,7 +200,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an improperly encoded state", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		state := "!"
 
@@ -211,7 +211,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("without a stored token", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(map[string]string{
 			"token": model.NewId(),
@@ -225,7 +225,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with a stored token of the wrong type", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		token := model.NewToken("invalid", "")
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -240,7 +240,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with email missing when changing login types", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		email := ""
 		action := model.OAuthActionEmailToSSO
@@ -262,7 +262,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("without an OAuth cookie", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		cookie := model.NewId()
 		request := makeRequest("")
@@ -275,7 +275,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an invalid token", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		cookie := model.NewId()
 
@@ -292,7 +292,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an incorrect token endpoint", func(t *testing.T) {
 		th := setup(t, true, false, true, "")
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -310,7 +310,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -330,7 +330,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -353,7 +353,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -375,7 +375,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -397,7 +397,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, false, server.URL)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -426,7 +426,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -457,7 +457,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -470,7 +470,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with error in GetSSOSettings", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.OpenIdSettings.Enable = true
@@ -516,7 +516,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				defer server.Close()
 
 				th := setup(t, true, true, true, server.URL)
-				defer th.TearDown()
+				defer th.TearDown(t)
 
 				th.App.UpdateConfig(func(cfg *model.Config) {
 					*cfg.ServiceSettings.SiteURL = tc.SiteURL
@@ -554,7 +554,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.GitLabSettings.Enable = false
@@ -568,7 +568,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 
 	t.Run("enabled and properly configured", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.GitLabSettings.Enable = true
@@ -611,7 +611,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 func TestDeauthorizeOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
@@ -654,7 +654,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 func TestDeactivatedUserOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 

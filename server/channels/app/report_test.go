@@ -49,7 +49,7 @@ var testData []model.ReportableObject = []model.ReportableObject{
 func TestSaveReportChunk(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	t.Run("should write CSV chunk to file", func(t *testing.T) {
 		prefix := model.NewId()
@@ -72,7 +72,7 @@ func TestSaveReportChunk(t *testing.T) {
 func TestCompileReportChunks(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	prefix := model.NewId()
 	err := th.App.SaveReportChunk("csv", prefix, 0, []model.ReportableObject{testData[0]})
@@ -113,7 +113,7 @@ some-other-other-name,600,2022-01-01
 func TestCheckForExistingJobs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	t.Run("should return error if job with same options exists in pending jobs", func(t *testing.T) {
 		app := th.App

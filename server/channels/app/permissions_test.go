@@ -25,7 +25,7 @@ func (tw testWriter) Write(p []byte) (int, error) {
 func TestExportPermissions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	var scheme *model.Scheme
 	var roles []*model.Role
@@ -93,7 +93,7 @@ func TestExportPermissions(t *testing.T) {
 func TestMigration(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	role, err := th.App.GetRoleByName(context.Background(), model.SystemAdminRoleId)
 	require.Nil(t, err)

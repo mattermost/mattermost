@@ -203,7 +203,7 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	postFromCreateAt := func(at int64) *model.Post {
 		return &model.Post{CreateAt: at}
@@ -333,7 +333,7 @@ func TestGetFilteredAccessiblePosts(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	postFromCreateAt := func(at int64) *model.Post {
 		return &model.Post{CreateAt: at}
@@ -376,7 +376,7 @@ func TestIsInaccessiblePost(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	post := &model.Post{CreateAt: 3}
 	firstInaccessiblePostTime, appErr := th.App.isInaccessiblePost(post)

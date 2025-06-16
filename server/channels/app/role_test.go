@@ -82,7 +82,7 @@ func TestGetAllRoles(t *testing.T) {
 // testPermissionInheritance tests 48 combinations of scheme, permission, role data.
 func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData)) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)

@@ -15,7 +15,7 @@ import (
 
 func TestSaveStatus(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	user := th.BasicUser
 
@@ -59,7 +59,7 @@ func TestQueueSetStatusOffline(t *testing.T) {
 
 	defer func() {
 		// First tear down the test environment
-		th.TearDown()
+		th.TearDown(t)
 
 		// Then verify that the status update processor has properly shut down
 		// by checking that the done signal channel is closed
@@ -136,7 +136,7 @@ func TestQueueSetStatusOffline(t *testing.T) {
 
 func TestSetStatusOffline(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	user := th.BasicUser
 

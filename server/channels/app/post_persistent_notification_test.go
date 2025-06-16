@@ -17,7 +17,7 @@ func TestResolvePersistentNotification(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should not delete when no posts exist", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		post := &model.Post{Id: "test id"}
 
@@ -40,7 +40,7 @@ func TestResolvePersistentNotification(t *testing.T) {
 
 	t.Run("should delete for mentioned user", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		user1 := &model.User{Id: "uid1", Username: "user-1"}
 		user2 := &model.User{Id: "uid2", Username: "user-2"}
@@ -85,7 +85,7 @@ func TestResolvePersistentNotification(t *testing.T) {
 
 	t.Run("should not delete for post owner", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		user1 := &model.User{Id: "uid1"}
 		post := &model.Post{Id: "test id", UserId: user1.Id}
@@ -103,7 +103,7 @@ func TestResolvePersistentNotification(t *testing.T) {
 
 	t.Run("should not delete for non-mentioned user", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		user1 := &model.User{Id: "uid1", Username: "user-1"}
 		user2 := &model.User{Id: "uid2", Username: "user-2"}
@@ -152,7 +152,7 @@ func TestDeletePersistentNotification(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should not delete when no posts exist", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		post := &model.Post{Id: "test id"}
 
@@ -175,7 +175,7 @@ func TestDeletePersistentNotification(t *testing.T) {
 
 	t.Run("should delete", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		post := &model.Post{Id: "test id"}
 
@@ -199,7 +199,7 @@ func TestDeletePersistentNotification(t *testing.T) {
 func TestSendPersistentNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 	require.Nil(t, appErr)

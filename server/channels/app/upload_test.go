@@ -23,7 +23,7 @@ import (
 func TestCreateUploadSession(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	us := &model.UploadSession{
 		Type:      model.UploadTypeAttachment,
@@ -88,7 +88,7 @@ func TestCreateUploadSession(t *testing.T) {
 func TestUploadData(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	us := &model.UploadSession{
 		Id:        model.NewId(),
@@ -248,7 +248,7 @@ func TestUploadData(t *testing.T) {
 func TestUploadDataConcurrent(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	us := &model.UploadSession{
 		Id:        model.NewId(),

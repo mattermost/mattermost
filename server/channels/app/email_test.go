@@ -17,7 +17,7 @@ import (
 func TestSendInviteEmailRateLimits(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.BasicTeam.AllowedDomains = "common.com"
 	_, err := th.App.UpdateTeam(th.BasicTeam)

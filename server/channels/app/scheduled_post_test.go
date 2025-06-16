@@ -16,7 +16,7 @@ import (
 func TestSaveScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	user1ConnID := model.NewId()
 
 	t.Run("base case", func(t *testing.T) {
@@ -228,7 +228,7 @@ func TestSaveScheduledPost(t *testing.T) {
 func TestGetUserTeamScheduledPosts(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	user1ConnID := model.NewId()
 
 	t.Run("should get created scheduled posts", func(t *testing.T) {
@@ -463,7 +463,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 func TestUpdateScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	user1ConnID := model.NewId()
 
 	t.Run("base case", func(t *testing.T) {
@@ -677,7 +677,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 func TestDeleteScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	user1ConnID := model.NewId()
 
 	t.Run("base case", func(t *testing.T) {
@@ -762,7 +762,7 @@ func TestDeleteScheduledPost(t *testing.T) {
 func TestPublishScheduledPostEvent(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	userID := th.BasicUser.Id
 

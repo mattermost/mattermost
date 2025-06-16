@@ -29,7 +29,7 @@ import (
 func TestImportImportScheme(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Mark the phase 2 permissions migration as completed.
 	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
@@ -226,7 +226,7 @@ func TestImportImportScheme(t *testing.T) {
 func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Mark the phase 2 permissions migration as completed.
 	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
@@ -415,7 +415,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 func TestImportImportRole(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Try importing an invalid role in dryRun mode.
 	rid1 := model.NewId()
@@ -507,7 +507,7 @@ func TestImportImportRole(t *testing.T) {
 func TestImportImportTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Mark the phase 2 permissions migration as completed.
 	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
@@ -605,7 +605,7 @@ func TestImportImportTeam(t *testing.T) {
 func TestImportImportChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Mark the phase 2 permissions migration as completed.
 	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
@@ -752,7 +752,7 @@ func TestImportImportChannel(t *testing.T) {
 func TestImportImportUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Check how many users are in the database.
 	userCount, cErr := th.App.Srv().Store().User().Count(model.UserCountOptions{
@@ -1749,7 +1749,7 @@ func TestImportImportUser(t *testing.T) {
 func TestImportUserTeams(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	team2 := th.CreateTeam()
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	channel3 := th.CreateChannel(th.Context, team2)
@@ -1972,7 +1972,7 @@ func TestImportUserTeams(t *testing.T) {
 func TestImportUserChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	customRole := th.CreateRole("test_custom_role")
 	sampleNotifyProps := imports.UserChannelNotifyPropsImportData{
@@ -2107,7 +2107,7 @@ func TestImportUserChannels(t *testing.T) {
 func TestImportUserDefaultNotifyProps(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Create a valid new user with some, but not all, notify props populated.
 	username := model.NewUsername()
@@ -2147,7 +2147,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 func TestImportimportMultiplePostLines(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Create a Team.
 	teamName := model.NewRandomTeamName()
@@ -3207,7 +3207,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 func TestImportImportPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Create a Team.
 	teamName := model.NewRandomTeamName()
@@ -3815,7 +3815,7 @@ func TestImportImportPost(t *testing.T) {
 func TestImportImportDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	user3 := th.CreateUser()
 
 	// Check how many channels are in the database.
@@ -4187,7 +4187,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 func TestImportImportDirectPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Create the DIRECT channel.
 	channelData := imports.DirectChannelImportData{
@@ -5135,7 +5135,7 @@ func TestImportImportDirectPost(t *testing.T) {
 func TestImportImportEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
@@ -5187,7 +5187,7 @@ func TestImportImportEmoji(t *testing.T) {
 func TestImportAttachment(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
@@ -5210,7 +5210,7 @@ func TestImportAttachment(t *testing.T) {
 func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Create a Team.
 	teamName := model.NewRandomTeamName()
@@ -5452,7 +5452,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 func TestImportDirectPostWithAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
@@ -5580,7 +5580,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Create a Team.
 	teamName := model.NewRandomTeamName()
@@ -5887,7 +5887,7 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 					AmazonS3RequestTimeoutMilliseconds: model.NewPointer(int64(300 * 1000)),
 				}
 			})
-			defer th.TearDown()
+			defer th.TearDown(b)
 
 			err := th.App.Srv().FileBackend().(*filestore.S3FileBackend).TestConnection()
 			require.NoError(b, err)
@@ -6034,7 +6034,7 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 					AmazonS3RequestTimeoutMilliseconds: model.NewPointer(int64(300 * 1000)),
 				}
 			})
-			defer th.TearDown()
+			defer th.TearDown(b)
 
 			err := th.App.Srv().FileBackend().(*filestore.S3FileBackend).TestConnection()
 			require.NoError(b, err)

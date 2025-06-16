@@ -41,7 +41,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// Enable the feature flag for global user sync
 		cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster = true
 	}).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	ss := th.App.Srv().Store()
 

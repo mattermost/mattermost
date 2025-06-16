@@ -19,7 +19,7 @@ func TestCreateBot(t *testing.T) {
 	t.Run("invalid bot", func(t *testing.T) {
 		t.Run("relative to user", func(t *testing.T) {
 			th := Setup(t).InitBasic(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 
 			_, err := th.App.CreateBot(th.Context, &model.Bot{
 				Username:    "invalid username",
@@ -32,7 +32,7 @@ func TestCreateBot(t *testing.T) {
 
 		t.Run("relative to bot", func(t *testing.T) {
 			th := Setup(t).InitBasic(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 
 			_, err := th.App.CreateBot(th.Context, &model.Bot{
 				Username:    "username",
@@ -45,7 +45,7 @@ func TestCreateBot(t *testing.T) {
 
 		t.Run("username contains . character", func(t *testing.T) {
 			th := Setup(t).InitBasic(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 
 			bot, err := th.App.CreateBot(th.Context, &model.Bot{
 				Username:    "username.",
@@ -59,7 +59,7 @@ func TestCreateBot(t *testing.T) {
 
 		t.Run("username missing", func(t *testing.T) {
 			th := Setup(t).InitBasic(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 			bot, err := th.App.CreateBot(th.Context, &model.Bot{
 				Description: "a bot",
 				OwnerId:     th.BasicUser.Id,
@@ -72,7 +72,7 @@ func TestCreateBot(t *testing.T) {
 
 	t.Run("create bot", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -104,7 +104,7 @@ func TestCreateBot(t *testing.T) {
 
 	t.Run("create bot, username already used by a non-bot user", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		_, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    th.BasicUser.Username,
@@ -120,7 +120,7 @@ func TestEnsureBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("ensure bot should pass if already exist bot user", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 		pluginId := "pluginId"
 
 		appErr := th.App.SetPluginKey(pluginId, "key", []byte("test"))
@@ -154,7 +154,7 @@ func TestEnsureBot(t *testing.T) {
 
 	t.Run("ensure bot should pass even after delete bot user", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 		pluginId := "pluginId"
 
 		appErr := th.App.SetPluginKey(pluginId, "key", []byte("test"))
@@ -195,7 +195,7 @@ func TestPatchBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("invalid patch for user", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -221,7 +221,7 @@ func TestPatchBot(t *testing.T) {
 
 	t.Run("invalid patch for bot", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -247,7 +247,7 @@ func TestPatchBot(t *testing.T) {
 
 	t.Run("patch bot", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		bot := &model.Bot{
 			Username:    "username",
@@ -284,7 +284,7 @@ func TestPatchBot(t *testing.T) {
 
 	t.Run("patch bot, username already used by a non-bot user", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -311,7 +311,7 @@ func TestPatchBot(t *testing.T) {
 func TestGetBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	bot1, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username",
@@ -382,7 +382,7 @@ func TestGetBot(t *testing.T) {
 func TestGetBots(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).DeleteBots(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	OwnerId1 := model.NewId()
 	OwnerId2 := model.NewId()
@@ -594,7 +594,7 @@ func TestUpdateBotActive(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("unknown bot", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		_, err := th.App.UpdateBotActive(th.Context, model.NewId(), false)
 		require.NotNil(t, err)
@@ -603,7 +603,7 @@ func TestUpdateBotActive(t *testing.T) {
 
 	t.Run("disable/enable bot", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -639,7 +639,7 @@ func TestUpdateBotActive(t *testing.T) {
 func TestPermanentDeleteBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	bot, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username",
@@ -658,7 +658,7 @@ func TestPermanentDeleteBot(t *testing.T) {
 func TestDisableUserBots(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	ownerId1 := model.NewId()
 	ownerId2 := model.NewId()
@@ -720,7 +720,7 @@ func TestDisableUserBots(t *testing.T) {
 func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	userBots := []*model.Bot{}
 	defer func() {
@@ -861,7 +861,7 @@ func TestConvertUserToBot(t *testing.T) {
 	t.Run("invalid user", func(t *testing.T) {
 		t.Run("invalid user id", func(t *testing.T) {
 			th := Setup(t).InitBasic(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 
 			_, err := th.App.ConvertUserToBot(th.Context, &model.User{
 				Username: "username",
@@ -873,7 +873,7 @@ func TestConvertUserToBot(t *testing.T) {
 
 		t.Run("invalid username", func(t *testing.T) {
 			th := Setup(t).InitBasic(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 
 			_, err := th.App.ConvertUserToBot(th.Context, &model.User{
 				Username: "invalid username",
@@ -886,7 +886,7 @@ func TestConvertUserToBot(t *testing.T) {
 
 	t.Run("valid user and session revoked", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 		require.Nil(t, err)
@@ -916,7 +916,7 @@ func TestConvertUserToBot(t *testing.T) {
 
 	t.Run("user with oauth credentials", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		// Create a user first
 		oauthUser := &model.User{
@@ -967,7 +967,7 @@ func TestGetSystemBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("An error should be returned if there are no sysadmins in the instance", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
 
@@ -977,7 +977,7 @@ func TestGetSystemBot(t *testing.T) {
 	})
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	t.Run("The bot should be created the first time it's retrieved", func(t *testing.T) {
 		// assert no bot with username exists

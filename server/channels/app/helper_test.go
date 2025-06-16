@@ -648,16 +648,17 @@ func (th *TestHelper) ShutdownApp() {
 	}
 }
 
-func (th *TestHelper) TearDown() {
+func (th *TestHelper) TearDown(tb testing.TB) {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
 		appErr := th.App.Srv().InvalidateAllCaches()
 		require.Nil(tb, appErr)
-
 	}
+
 	th.ShutdownApp()
 	if th.tempWorkspace != "" {
-		os.RemoveAll(th.tempWorkspace)
+		err := os.RemoveAll(th.tempWorkspace)
+		require.NoError(tb, err)
 	}
 }
 

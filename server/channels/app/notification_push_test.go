@@ -434,7 +434,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 func TestDoesStatusAllowPushNotification(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	userID := model.NewId()
 	channelID := model.NewId()
@@ -650,7 +650,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 func TestGetPushNotificationMessage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -1033,7 +1033,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	team := th.CreateTeam()
 	sender := th.CreateUser()
@@ -1090,7 +1090,7 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 func TestSendPushNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	_, err := th.App.CreateSession(th.Context, &model.Session{
 		UserId:    th.BasicUser.Id,
 		DeviceId:  "test",
@@ -1111,7 +1111,7 @@ func TestSendPushNotifications(t *testing.T) {
 func TestShouldSendPushNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	t.Run("should return true if forced", func(t *testing.T) {
 		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
 		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyNone
@@ -1246,7 +1246,7 @@ func (h *testPushNotificationHandler) notificationAcks() []*model.PushNotificati
 func TestClearPushNotificationSync(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	handler := &testPushNotificationHandler{t: t}
 	pushServer := httptest.NewServer(
@@ -1323,7 +1323,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	handler := &testPushNotificationHandler{t: t}
 	pushServer := httptest.NewServer(
@@ -1383,7 +1383,7 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 func TestSendTestPushNotification(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	handler := &testPushNotificationHandler{t: t}
 	pushServer := httptest.NewServer(
@@ -1411,7 +1411,7 @@ func TestSendTestPushNotification(t *testing.T) {
 func TestSendAckToPushProxy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	handler := &testPushNotificationHandler{t: t}
 	pushServer := httptest.NewServer(
@@ -1460,7 +1460,7 @@ func TestAllPushNotifications(t *testing.T) {
 	}
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Create 10 users, each having 2 sessions.
 	type userSession struct {
@@ -1567,7 +1567,7 @@ func TestAllPushNotifications(t *testing.T) {
 func TestPushNotificationRace(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	memoryStore := config.NewTestMemoryStore()
 	mockStore := testlib.GetMockStoreForSetupFunctions()
@@ -1624,7 +1624,7 @@ func TestPushNotificationRace(t *testing.T) {
 func TestPushNotificationAttachment(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	originalMessage := "hello world"
 	post := &model.Post{
@@ -1655,7 +1655,7 @@ func TestPushNotificationAttachment(t *testing.T) {
 // Run it with | grep -v '{"level"' to prevent spamming the console.
 func BenchmarkPushNotificationThroughput(b *testing.B) {
 	th := SetupWithStoreMock(b)
-	defer th.TearDown()
+	defer th.TearDown(b)
 
 	handler := &testPushNotificationHandler{
 		t:        b,

@@ -136,7 +136,7 @@ func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, 
 func TestPublicFilesPathConfiguration(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	pluginID := "com.mattermost.sample"
 
@@ -168,7 +168,7 @@ func TestPluginAPIGetUserPreference(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return preferences when called", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 		api := th.SetupPluginAPI()
 
 		err := api.UpdatePreferencesForUser(th.BasicUser.Id, []model.Preference{
@@ -204,7 +204,7 @@ func TestPluginAPIGetUserPreference(t *testing.T) {
 
 	t.Run("should return an error when a user doesn't have a preference set", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 		api := th.SetupPluginAPI()
 
 		_, err := api.GetPreferenceForUser(th.BasicUser.Id, "something", "that doesn't exist")
@@ -215,7 +215,7 @@ func TestPluginAPIGetUserPreference(t *testing.T) {
 func TestPluginAPIGetUserPreferences(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
@@ -249,7 +249,7 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
@@ -311,7 +311,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
@@ -363,7 +363,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 func TestPluginAPIGetUsers(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).DeleteBots(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
@@ -463,7 +463,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 func TestPluginAPIGetUsersByIds(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).DeleteBots(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
@@ -528,7 +528,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 func TestPluginAPIGetUsersInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	team1 := th.CreateTeam()
@@ -657,7 +657,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 func TestPluginAPIUserCustomStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
@@ -714,7 +714,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 func TestPluginAPIGetFile(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	// check a valid file first
@@ -743,7 +743,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 func TestPluginAPIGetFileInfos(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	fileInfo1, err := th.App.DoUploadFile(th.Context,
@@ -841,7 +841,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 func TestPluginAPISavePluginConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	manifest := &model.Manifest{
 		Id: "pluginid",
@@ -885,7 +885,7 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	var pluginJson map[string]any
 	err := json.Unmarshal([]byte(`{"mystringsetting": "str", "MyIntSetting": 32, "myBoolsetting": true}`), &pluginJson)
@@ -919,7 +919,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	var pluginJson map[string]any
 	err := json.Unmarshal([]byte(`{"mystringsetting": "override"}`), &pluginJson)
@@ -957,7 +957,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 func TestPluginAPIGetPlugins(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	pluginCode := `
@@ -1017,7 +1017,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 func TestPluginAPIInstallPlugin(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	tarData, err := os.ReadFile(filepath.Join(server.GetPackagePath(), "tests", "testplugin.tar.gz"))
@@ -1095,7 +1095,7 @@ func TestInstallPlugin(t *testing.T) {
 	}
 
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// start an http server to serve plugin's tarball to the test.
 	ts := httptest.NewServer(http.FileServer(http.Dir(filepath.Join(server.GetPackagePath(), "tests"))))
@@ -1181,7 +1181,7 @@ func TestInstallPlugin(t *testing.T) {
 func TestPluginAPIGetTeamIcon(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	// Create an 128 x 128 image
@@ -1213,7 +1213,7 @@ func TestPluginAPIGetTeamIcon(t *testing.T) {
 func TestPluginAPISetTeamIcon(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	// Create an 128 x 128 image
@@ -1244,7 +1244,7 @@ func TestPluginAPISetTeamIcon(t *testing.T) {
 func TestPluginAPIRemoveTeamIcon(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	// Create an 128 x 128 image
@@ -1313,7 +1313,7 @@ func TestBasicAPIPlugins(t *testing.T) {
 				_, err := os.Stat(mainPath)
 				require.NoError(t, err, "Cannot find plugin main file at %v", mainPath)
 				th := Setup(t).InitBasic(t).DeleteBots(t)
-				defer th.TearDown()
+				defer th.TearDown(t)
 				setDefaultPluginConfig(th, dir.Name())
 				err = pluginAPIHookTest(t, th, mainPath, dir.Name(), defaultSchema)
 				require.NoError(t, err)
@@ -1325,7 +1325,7 @@ func TestBasicAPIPlugins(t *testing.T) {
 func TestPluginAPIKVCompareAndSet(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	testCases := []struct {
@@ -1422,7 +1422,7 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 func TestPluginAPIKVCompareAndDelete(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	testCases := []struct {
@@ -1475,7 +1475,7 @@ func TestPluginAPIKVCompareAndDelete(t *testing.T) {
 func TestPluginCreateBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	bot, err := api.CreateBot(&model.Bot{
@@ -1497,7 +1497,7 @@ func TestPluginCreateBot(t *testing.T) {
 func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	data := []byte("Hello World")
@@ -1534,7 +1534,7 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	channelID := th.BasicChannel.Id
@@ -1554,7 +1554,7 @@ func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
 func TestPluginAPIGetConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	config := api.GetConfig()
@@ -1592,7 +1592,7 @@ func TestPluginAPIGetConfig(t *testing.T) {
 func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	config := api.GetUnsanitizedConfig()
@@ -1630,7 +1630,7 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 func TestPluginAddUserToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	member, err := api.AddUserToChannel(th.BasicChannel.Id, th.BasicUser.Id, th.BasicUser2.Id)
@@ -1643,7 +1643,7 @@ func TestPluginAddUserToChannel(t *testing.T) {
 func TestInterpluginPluginHTTP(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	setupMultiPluginAPITest(t,
 		[]string{
@@ -1774,7 +1774,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 func TestAPIMetrics(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	t.Run("", func(t *testing.T) {
 		metricsMock := &mocks.MetricsInterface{}
@@ -1858,7 +1858,7 @@ func TestPluginAPIGetPostsForChannel(t *testing.T) {
 	require := require.New(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	numPosts := 10
@@ -1900,7 +1900,7 @@ func TestPluginAPIGetPostsForChannel(t *testing.T) {
 func TestPluginHTTPConnHijack(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	fullPath := filepath.Join(server.GetPackagePath(), "channels", "app", "plugin_api_tests", "manual.test_http_hijack_plugin", "main.go")
 
@@ -1950,7 +1950,7 @@ func makePluginHTTPRequest(t *testing.T, pluginID string, port int, token string
 
 func TestPluginMFAEnforcement(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
 
@@ -2020,7 +2020,7 @@ func TestPluginMFAEnforcement(t *testing.T) {
 func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	fullPath := filepath.Join(server.GetPackagePath(), "channels", "app", "plugin_api_tests", "manual.test_http_upgrade_websocket_plugin", "main.go")
 
@@ -2092,7 +2092,7 @@ func (mscp *MockSlashCommandProvider) DoCommand(a *App, c request.CTX, args *mod
 func TestPluginExecuteSlashCommand(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	slashCommandMock := &MockSlashCommandProvider{}
@@ -2118,7 +2118,7 @@ func TestPluginExecuteSlashCommand(t *testing.T) {
 func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	basicPostText := &th.BasicPost.Message
@@ -2166,7 +2166,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	foundCommand := func(listXCommand func(teamID string) ([]*model.Command, error)) bool {
@@ -2205,7 +2205,7 @@ func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
 func TestPluginAPIUpdateCommand(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	cmd := &model.Command{
@@ -2255,7 +2255,7 @@ func TestPluginAPIIsEnterpriseReady(t *testing.T) {
 
 	model.BuildEnterpriseReady = "true"
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	assert.Equal(t, true, api.IsEnterpriseReady())
@@ -2264,7 +2264,7 @@ func TestPluginAPIIsEnterpriseReady(t *testing.T) {
 func TestPluginUploadsAPI(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	pluginCode := fmt.Sprintf(`
     package main
@@ -2364,7 +2364,7 @@ var configurationWillBeSavedHookTemplate string
 func TestConfigurationWillBeSavedHook(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	getPluginCode := func(hookCode string) string {
 		return fmt.Sprintf(configurationWillBeSavedHookTemplate, hookCode)
@@ -2470,7 +2470,7 @@ func TestSendPushNotification(t *testing.T) {
 	}
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	api := th.SetupPluginAPI()
 
 	// Create 3 users, each having 2 sessions.
@@ -2564,7 +2564,7 @@ func TestSendPushNotification(t *testing.T) {
 func TestPluginServeMetrics(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t, StartMetrics)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	var prevEnable *bool
 	var prevAddress *string
@@ -2623,7 +2623,7 @@ func TestPluginServeMetrics(t *testing.T) {
 func TestPluginGetChannelsForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	user := th.CreateUser()
 
@@ -2728,7 +2728,7 @@ func TestPluginPatchChannelMembersNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should be able to set fields for multiple members", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		channel := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(th.BasicUser, channel)
@@ -2796,7 +2796,7 @@ func TestPluginPatchChannelMembersNotifications(t *testing.T) {
 
 	t.Run("should be able to clear a field", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		channel := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(th.BasicUser, channel)
@@ -2856,7 +2856,7 @@ func TestPluginPatchChannelMembersNotifications(t *testing.T) {
 
 func TestPluginServeHTTPCompatibility(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	pluginCode := `
 	package main

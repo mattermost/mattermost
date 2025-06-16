@@ -127,7 +127,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 		_, err = th.App.SaveReactionForPost(th.Context, reaction)
 		require.Nil(t, err, "Adding a reaction should not error")
 
-		th.TearDown() // We need to enforce teardown because reaction instrumentation happens in a goroutine
+		th.TearDown(t) // We need to enforce teardown because reaction instrumentation happens in a goroutine
 
 		assert.Len(t, sharedChannelService.channelNotifications, 2)
 		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[0])
@@ -162,7 +162,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 		err = th.App.DeleteReactionForPost(th.Context, reaction)
 		require.Nil(t, err, "Adding a reaction should not error")
 
-		th.TearDown() // We need to enforce teardown because reaction instrumentation happens in a goroutine
+		th.TearDown(t) // We need to enforce teardown because reaction instrumentation happens in a goroutine
 
 		assert.Len(t, sharedChannelService.channelNotifications, 2)
 		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[0])

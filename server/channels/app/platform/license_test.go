@@ -20,7 +20,7 @@ import (
 func TestLoadLicense(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.Service.LoadLicense()
 	require.Nil(t, th.Service.License(), "shouldn't have a valid license")
@@ -29,7 +29,7 @@ func TestLoadLicense(t *testing.T) {
 func TestSaveLicense(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	b1 := []byte("junk")
 
@@ -39,7 +39,7 @@ func TestSaveLicense(t *testing.T) {
 
 func TestSaveEnterpriseAdvancedLicense(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	defer testutils.ResetLicenseValidator()
 	mockLicenseValidator := mocks2.LicenseValidatorIface{}
@@ -74,7 +74,7 @@ func TestSaveEnterpriseAdvancedLicense(t *testing.T) {
 func TestRemoveLicense(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	err := th.Service.RemoveLicense()
 	require.Nil(t, err, "should have removed license")
@@ -83,7 +83,7 @@ func TestRemoveLicense(t *testing.T) {
 func TestSetLicense(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	l1 := &model.License{}
 	l1.Features = &model.Features{}
@@ -105,7 +105,7 @@ func TestSetLicense(t *testing.T) {
 func TestGetSanitizedClientLicense(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	setLicense(th, nil)
 

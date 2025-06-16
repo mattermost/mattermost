@@ -50,7 +50,7 @@ func TestNoticeValidation(t *testing.T) {
 		*cfg.AnnouncementSettings.UserNoticesEnabled = true
 	})
 
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	type args struct {
 		client               model.NoticeClientType
@@ -549,7 +549,7 @@ func TestNoticeValidation(t *testing.T) {
 func TestNoticeFetch(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	notices := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{},

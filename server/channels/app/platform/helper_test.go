@@ -197,10 +197,13 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 	return th
 }
 
-func (th *TestHelper) TearDown() {
-	th.Service.ShutdownMetrics()
-	th.Service.Shutdown()
-	th.Service.ShutdownConfig()
+func (th *TestHelper) TearDown(tb testing.TB) {
+	err := th.Service.ShutdownMetrics()
+	require.NoError(tb, err)
+	err = th.Service.Shutdown()
+	require.NoError(tb, err)
+	err = th.Service.ShutdownConfig()
+	require.NoError(tb, err)
 }
 
 func (th *TestHelper) CreateTeam(tb testing.TB) *model.Team {

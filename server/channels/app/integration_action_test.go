@@ -23,7 +23,7 @@ import (
 func TestPostActionInvalidURL(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -74,7 +74,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 func TestPostActionEmptyResponse(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	channel := th.BasicChannel
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -198,7 +198,7 @@ func TestPostAction(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			th := Setup(t).InitBasic(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 
 			channel := testCase.Channel(th)
 
@@ -468,7 +468,7 @@ func TestPostAction(t *testing.T) {
 func TestPostActionProps(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -553,7 +553,7 @@ func TestPostActionProps(t *testing.T) {
 func TestSubmitInteractiveDialog(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -676,7 +676,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 func TestPostActionRelativeURL(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request model.PostActionIntegrationRequest
@@ -890,7 +890,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 func TestPostActionRelativePluginURL(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	setupPluginAPITest(t,
 		`
@@ -1088,7 +1088,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 func TestDoPluginRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"

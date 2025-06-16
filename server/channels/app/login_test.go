@@ -16,7 +16,7 @@ import (
 func TestCheckForClientSideCert(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	tests := []struct {
 		pem           string
@@ -43,7 +43,7 @@ func TestCheckForClientSideCert(t *testing.T) {
 func TestCWSLogin(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 	license := model.NewTestLicense()
 	license.Features.Cloud = model.NewPointer(true)
 	th.App.Srv().SetLicense(license)

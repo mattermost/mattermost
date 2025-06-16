@@ -25,7 +25,7 @@ import (
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	type TestCase struct {
 		EnableIncomingHooks        bool
@@ -158,7 +158,7 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 func TestUpdateIncomingWebhook(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	type TestCase struct {
 		EnableIncomingHooks        bool
@@ -298,7 +298,7 @@ func TestCreateWebhookPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	testCluster := &testlib.FakeClusterInterface{}
 	th := SetupWithClusterMock(t, testCluster).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
@@ -399,7 +399,7 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 
 func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableIncomingWebhooks = true
@@ -508,7 +508,7 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 	mainHelper.Parallel(t)
 	testCluster := &testlib.FakeClusterInterface{}
 	th := SetupWithClusterMock(t, testCluster).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
@@ -558,7 +558,7 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 func TestCreateWebhookPostLinks(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
@@ -768,7 +768,7 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	outgoingWebhook := model.OutgoingWebhook{
 		ChannelId:    th.BasicChannel.Id,
@@ -881,7 +881,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 	}
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -988,7 +988,7 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 	defer ts2.Close()
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -1050,7 +1050,7 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 func TestDoOutgoingWebhookRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
