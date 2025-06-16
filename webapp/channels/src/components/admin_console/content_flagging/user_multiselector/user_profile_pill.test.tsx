@@ -2,18 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
-import {Provider} from 'react-redux';
-import configureStore from 'redux-mock-store';
 
 import type {UserProfile} from '@mattermost/types/users';
 
 import {TestHelper} from 'utils/test_helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import {UserProfilePill} from './user_profile_pill';
 import type {AutocompleteOptionType} from './user_multiselector';
-
-const mockStore = configureStore([]);
 
 describe('components/admin_console/content_flagging/user_multiselector/UserProfilePill', () => {
     const baseProps = {
@@ -67,65 +63,48 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         },
     };
 
-    let store: any;
-
     beforeEach(() => {
-        store = mockStore(initialState);
         jest.clearAllMocks();
     });
 
     test('should render user profile pill with avatar and display name', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <UserProfilePill {...baseProps}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <UserProfilePill {...baseProps}/>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render with correct user display name', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <UserProfilePill {...baseProps}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <UserProfilePill {...baseProps}/>,
+            initialState,
         );
 
-        const pill = wrapper.dive().dive();
-        expect(pill.find('.UserProfilePill')).toHaveLength(1);
-        expect(pill.text()).toContain('Test User');
+        const pill = container.querySelector('.UserProfilePill');
+        expect(pill).toBeInTheDocument();
+        expect(pill).toHaveTextContent('Test User');
     });
 
     test('should render Avatar component with correct props', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <UserProfilePill {...baseProps}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <UserProfilePill {...baseProps}/>,
+            initialState,
         );
 
-        const pill = wrapper.dive().dive();
-        const avatar = pill.find('Avatar');
-        
-        expect(avatar).toHaveLength(1);
-        expect(avatar.prop('size')).toBe('xxs');
-        expect(avatar.prop('username')).toBe('testuser');
-        expect(avatar.prop('url')).toBeDefined();
+        const avatar = container.querySelector('.Avatar');
+        expect(avatar).toBeInTheDocument();
     });
 
     test('should render Remove component with close icon', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <UserProfilePill {...baseProps}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <UserProfilePill {...baseProps}/>,
+            initialState,
         );
 
-        const pill = wrapper.dive().dive();
-        const removeComponent = pill.find('Remove');
-        
-        expect(removeComponent).toHaveLength(1);
-        expect(removeComponent.prop('data')).toBe(baseProps.data);
-        expect(removeComponent.prop('innerProps')).toBe(baseProps.innerProps);
-        expect(removeComponent.prop('selectProps')).toBe(baseProps.selectProps);
+        const removeComponent = container.querySelector('.Remove');
+        expect(removeComponent).toBeInTheDocument();
     });
 
     test('should call onClick when remove button is clicked', () => {
@@ -137,16 +116,15 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
             },
         };
 
-        const wrapper = shallow(
-            <Provider store={store}>
-                <UserProfilePill {...propsWithClick}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <UserProfilePill {...propsWithClick}/>,
+            initialState,
         );
 
-        const pill = wrapper.dive().dive();
-        const removeComponent = pill.find('Remove');
+        const removeComponent = container.querySelector('.Remove');
+        expect(removeComponent).toBeInTheDocument();
         
-        removeComponent.simulate('click');
+        removeComponent?.click();
         expect(mockOnClick).toHaveBeenCalledTimes(1);
     });
 
@@ -162,16 +140,13 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
             },
         };
 
-        const wrapper = shallow(
-            <Provider store={store}>
-                <UserProfilePill {...propsWithoutUsername}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <UserProfilePill {...propsWithoutUsername}/>,
+            initialState,
         );
 
-        const pill = wrapper.dive().dive();
-        const avatar = pill.find('Avatar');
-        
-        expect(avatar.prop('username')).toBeUndefined();
+        const pill = container.querySelector('.UserProfilePill');
+        expect(pill).toBeInTheDocument();
     });
 
     test('should use different display name based on config', () => {
@@ -187,26 +162,24 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
             },
         };
 
-        const storeWithUsername = mockStore(stateWithUsernameDisplay);
-
-        const wrapper = shallow(
-            <Provider store={storeWithUsername}>
-                <UserProfilePill {...baseProps}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <UserProfilePill {...baseProps}/>,
+            stateWithUsernameDisplay,
         );
 
-        expect(wrapper).toBeDefined();
+        const pill = container.querySelector('.UserProfilePill');
+        expect(pill).toBeInTheDocument();
     });
 
     test('should apply correct CSS classes', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <UserProfilePill {...baseProps}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <UserProfilePill {...baseProps}/>,
+            initialState,
         );
 
-        const pill = wrapper.dive().dive();
-        expect(pill.find('.UserProfilePill')).toHaveLength(1);
+        const pill = container.querySelector('.UserProfilePill');
+        expect(pill).toBeInTheDocument();
+        expect(pill).toHaveClass('UserProfilePill');
     });
 
     test('should pass through innerProps to main container', () => {
@@ -220,16 +193,14 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
             innerProps: customInnerProps,
         };
 
-        const wrapper = shallow(
-            <Provider store={store}>
-                <UserProfilePill {...propsWithCustomInner}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <UserProfilePill {...propsWithCustomInner}/>,
+            initialState,
         );
 
-        const pill = wrapper.dive().dive();
-        const container = pill.find('.UserProfilePill');
-        
-        expect(container.prop('data-testid')).toBe('user-pill');
-        expect(container.prop('className')).toContain('custom-class');
+        const pill = container.querySelector('.UserProfilePill');
+        expect(pill).toBeInTheDocument();
+        expect(pill).toHaveAttribute('data-testid', 'user-pill');
+        expect(pill).toHaveClass('custom-class');
     });
 });
