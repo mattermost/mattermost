@@ -291,6 +291,7 @@ type SyncMsg struct {
 	Reactions         []*Reaction            `json:"reactions,omitempty"`
 	Statuses          []*Status              `json:"statuses,omitempty"`
 	MembershipChanges []*MembershipChangeMsg `json:"membership_changes,omitempty"`
+	Acknowledgements  []*PostAcknowledgement `json:"acknowledgements,omitempty"`
 }
 
 func NewSyncMsg(channelID string) *SyncMsg {
@@ -327,6 +328,9 @@ type SyncResponse struct {
 
 	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at"`
 	ReactionErrors        []string `json:"reaction_errors"`
+
+	AcknowledgementsLastUpdateAt int64    `json:"acknowledgements_last_update_at"`
+	AcknowledgementErrors        []string `json:"acknowledgement_errors"`
 
 	StatusErrors []string `json:"status_errors"` // user IDs for which the status sync failed
 }
