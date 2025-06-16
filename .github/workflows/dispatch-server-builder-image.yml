@@ -1,0 +1,56 @@
+# .github/workflows/dispatch-build.yml
+name: Build & Push New Golang Docker Build Server Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Git branch or PR ref to build'
+        required: true
+      tag:
+        description: 'Docker image tag (e.g. v1.2.3 or latest)'
+        required: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #4.2.2
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Set up QEMU (optional, for multi-arch)
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca
+
+      - name: Login to DockerHub (development repo)
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+
+      - name: Build & push development image
+        run: |
+          docker buildx build \
+            --tag mattermostdevelopment/mattermost-build-server:${{ github.event.inputs.tag }} \
+            --push \
+            -f Dockerfile.buildenv .
+
+      - name: Login to DockerHub (production repo)
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push production image
+        run: |
+          docker buildx build \
+            --tag mattermost/mattermost-build-server:${{ github.event.inputs.tag }} \
+            --push \
+            -f Dockerfile.buildenv .
