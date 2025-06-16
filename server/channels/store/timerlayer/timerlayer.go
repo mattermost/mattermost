@@ -2033,10 +2033,10 @@ func (s *TimerLayerChannelStore) GetTeamForChannel(channelID string) (*model.Tea
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
+func (s *TimerLayerChannelStore) GetTeamMembersForChannel(rctx request.CTX, channelID string) ([]string, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetTeamMembersForChannel(channelID)
+	result, err := s.ChannelStore.GetTeamMembersForChannel(rctx, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
