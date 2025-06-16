@@ -4,7 +4,6 @@
 import {Page, expect} from '@playwright/test';
 
 import {ChannelsPost} from '@/ui/components';
-import { default as waitUntil } from 'async-wait-until';
 
 export default class ThreadsPage {
     readonly page: Page;
@@ -36,13 +35,7 @@ export default class ThreadsPage {
     }
 
     async toNotHaveThreadSelected() {
-        await waitUntil(async () => {
-            const isVisible = await this.noThreadSelected.isVisible();
-            return isVisible;
-        }, {
-            timeout: 5000,
-            intervalBetweenAttempts: 100,
-        });
+        await this.noThreadSelected.waitFor({state: 'visible'});
         await expect(this.noThreadSelected).toBeVisible();
     }
 
