@@ -8,3 +8,5 @@ on:
 jobs:
   master-ci:
     uses: ./.github/workflows/webapp-ci-template.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
