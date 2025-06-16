@@ -67,7 +67,7 @@ func getPermanentDeleteUserSleepInterval() time.Duration {
 		return time.Duration(milliseconds) * time.Millisecond
 	}
 
-	// If parsing fails, log and return default
+	// If parsing fails, return default
 	return time.Second
 }
 
@@ -3173,79 +3173,81 @@ func (s *SqlPostStore) deleteThreadFiles(transaction *sqlxTxWrapper, postID stri
 // updateThreadAfterReplyDeletion decrements the thread reply count and adjusts the participants
 // list as necessary.
 func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper, rootId string, userId string) error {
-	if rootId != "" {
-		queryString, args, err := s.getQueryBuilder().
-			Select("COUNT(Posts.Id)").
-			From("Posts").
-			Where(sq.And{
-				sq.Eq{"Posts.RootId": rootId},
-				sq.Eq{"Posts.UserId": userId},
-				sq.Eq{"Posts.DeleteAt": 0},
-			}).
-			ToSql()
+	if rootId == "" {
+		return nil
+	}
 
-		if err != nil {
-			return errors.Wrap(err, "failed to create SQL query to count user's posts")
+	queryString, args, err := s.getQueryBuilder().
+		Select("COUNT(Posts.Id)").
+		From("Posts").
+		Where(sq.And{
+			sq.Eq{"Posts.RootId": rootId},
+			sq.Eq{"Posts.UserId": userId},
+			sq.Eq{"Posts.DeleteAt": 0},
+		}).
+		ToSql()
+
+	if err != nil {
+		return errors.Wrap(err, "failed to create SQL query to count user's posts")
+	}
+
+	var count int64
+	err = transaction.Get(&count, queryString, args...)
+
+	if err != nil {
+		return errors.Wrap(err, "failed to count user's posts in thread")
+	}
+
+	// Updating replyCount, and reducing participants if this was the last post in the thread for the user
+	updateQuery := s.getQueryBuilder().Update("Threads")
+
+	if count == 0 {
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
+		} else {
+			updateQuery = updateQuery.
+				Set("Participants", sq.Expr(
+					`IFNULL(JSON_REMOVE(Participants, JSON_UNQUOTE(JSON_SEARCH(Participants, 'one', ?))), Participants)`, userId,
+				))
 		}
+	}
 
-		var count int64
-		err = transaction.Get(&count, queryString, args...)
+	// Fetch both aggregated values in a single query to avoid duplicate subqueries
+	// TODO: when MySQL is deprecated, we can use just a single query with CTE.
+	statsQuery := s.getQueryBuilder().Select("COALESCE(MAX(CreateAt), 0) AS last_reply_at", "COUNT(*) AS reply_count").
+		From("Posts").
+		Where(sq.Eq{
+			"RootId":   rootId,
+			"DeleteAt": 0,
+		})
 
-		if err != nil {
-			return errors.Wrap(err, "failed to count user's posts in thread")
-		}
+	var threadStats struct {
+		LastReplyAt int64 `db:"last_reply_at"`
+		ReplyCount  int64 `db:"reply_count"`
+	}
 
-		// Updating replyCount, and reducing participants if this was the last post in the thread for the user
-		updateQuery := s.getQueryBuilder().Update("Threads")
+	err = transaction.GetBuilder(&threadStats, statsQuery)
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch thread stats")
+	}
 
-		if count == 0 {
-			if s.DriverName() == model.DatabaseDriverPostgres {
-				updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
-			} else {
-				updateQuery = updateQuery.
-					Set("Participants", sq.Expr(
-						`IFNULL(JSON_REMOVE(Participants, JSON_UNQUOTE(JSON_SEARCH(Participants, 'one', ?))), Participants)`, userId,
-					))
-			}
-		}
+	updateQueryString, updateArgs, err := updateQuery.
+		Set("LastReplyAt", threadStats.LastReplyAt).
+		Set("ReplyCount", threadStats.ReplyCount).
+		Where(sq.And{
+			sq.Eq{"PostId": rootId},
+			sq.Gt{"ReplyCount": 0},
+		}).
+		ToSql()
 
-		// Fetch both aggregated values in a single query to avoid duplicate subqueries
-		// TODO: when MySQL is deprecated, we can use just a single query with CTE.
-		statsQuery := s.getQueryBuilder().Select("COALESCE(MAX(CreateAt), 0) AS last_reply_at", "COUNT(*) AS reply_count").
-			From("Posts").
-			Where(sq.Eq{
-				"RootId":   rootId,
-				"DeleteAt": 0,
-			})
+	if err != nil {
+		return errors.Wrap(err, "failed to create SQL query to update thread")
+	}
 
-		var threadStats struct {
-			LastReplyAt int64 `db:"last_reply_at"`
-			ReplyCount  int64 `db:"reply_count"`
-		}
+	_, err = transaction.Exec(updateQueryString, updateArgs...)
 
-		err = transaction.GetBuilder(&threadStats, statsQuery)
-		if err != nil {
-			return errors.Wrap(err, "failed to fetch thread stats")
-		}
-
-		updateQueryString, updateArgs, err := updateQuery.
-			Set("LastReplyAt", threadStats.LastReplyAt).
-			Set("ReplyCount", threadStats.ReplyCount).
-			Where(sq.And{
-				sq.Eq{"PostId": rootId},
-				sq.Gt{"ReplyCount": 0},
-			}).
-			ToSql()
-
-		if err != nil {
-			return errors.Wrap(err, "failed to create SQL query to update thread")
-		}
-
-		_, err = transaction.Exec(updateQueryString, updateArgs...)
-
-		if err != nil {
-			return errors.Wrap(err, "failed to update Threads")
-		}
+	if err != nil {
+		return errors.Wrap(err, "failed to update Threads")
 	}
 	return nil
 }

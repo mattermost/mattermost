@@ -7,11 +7,14 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -717,13 +720,21 @@ func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
-	s.SetupTestHelper().InitBasic()
+	original := jobs.DefaultWatcherPollingInterval
+	jobs.DefaultWatcherPollingInterval = 1000
+	defer func() {
+		jobs.DefaultWatcherPollingInterval = original
+	}()
+
+	s.SetupTestHelperWithOptions([]app.Option{app.RunEssentialJobs}).InitBasic()
 
 	s.RunForSystemAdminAndLocal("Delete user", func(c client.Client) {
 		printer.Clean()
 
 		previousVal := s.th.App.Config().ServiceSettings.EnableAPIUserDeletion
-		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableAPIUserDeletion = true
+		})
 		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = *previousVal })
 
 		cmd := &cobra.Command{}
@@ -744,7 +755,13 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal(newUser.Username, jobResult.Username)
 		s.Require().NotEmpty(jobResult.Id) // Job ID should be present
 
-		// User deletion is now asynchronous, so we don't check immediate deletion
+		s.Require().Eventually(func() bool {
+			_, appErr := s.th.App.GetUser(newUser.Id)
+			if appErr == nil {
+				return false
+			}
+			return appErr.Id == app.MissingAccountError
+		}, 30*time.Second, 2*time.Second)
 	})
 
 	s.RunForSystemAdminAndLocal("Delete nonexistent user", func(c client.Client) {
@@ -818,6 +835,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		user, err := s.th.App.GetUser(newUser.Id)
 		s.Require().Nil(err)
 		s.Require().Equal(newUser.Username, user.Username)
+		s.Require().Equal(user.DeleteAt, int64(0))
 	})
 
 	s.Run("Delete user with disabled config as local client", func() {
