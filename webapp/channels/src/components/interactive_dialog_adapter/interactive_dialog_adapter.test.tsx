@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {render, screen, fireEvent, waitFor} from '@testing-library/react';
-import {Provider} from 'react-redux';
+import React from 'react';
 import {IntlProvider} from 'react-intl';
+import {Provider} from 'react-redux';
 
 import testConfigureStore from 'tests/test_store';
 
@@ -13,18 +13,24 @@ import InteractiveDialogAdapter from './interactive_dialog_adapter';
 // Mock the AppsForm component
 jest.mock('components/apps_form/apps_form_component', () => ({
     AppsForm: ({actions, onExited, onHide}: any) => (
-        <div data-testid="apps-form">
+        <div data-testid='apps-form'>
             <button
-                data-testid="submit-button"
+                data-testid='submit-button'
                 onClick={() => actions.submit({values: {test_field: 'test_value'}})}
             >
-                Submit
+                {'Submit'}
             </button>
-            <button data-testid="hide-button" onClick={onHide}>
-                Hide
+            <button
+                data-testid='hide-button'
+                onClick={onHide}
+            >
+                {'Hide'}
             </button>
-            <button data-testid="exit-button" onClick={onExited}>
-                Exit
+            <button
+                data-testid='exit-button'
+                onClick={onExited}
+            >
+                {'Exit'}
             </button>
         </div>
     ),
@@ -69,8 +75,14 @@ describe('InteractiveDialogAdapter', () => {
     const renderComponent = (props = {}) => {
         return render(
             <Provider store={store}>
-                <IntlProvider locale="en">
-                    <InteractiveDialogAdapter {...baseProps} {...props} />
+                <IntlProvider
+                    locale='en'
+                    {...props}
+                >
+                    <InteractiveDialogAdapter
+                        {...baseProps}
+                        {...props}
+                    />
                 </IntlProvider>
             </Provider>,
         );
@@ -118,8 +130,8 @@ describe('InteractiveDialogAdapter', () => {
             data: {
                 error: 'Form validation failed',
                 errors: {
-                    'test_field': 'This field is required',
-                    'email_field': 'Invalid email format',
+                    test_field: 'This field is required',
+                    email_field: 'Invalid email format',
                 },
             },
         });
@@ -167,7 +179,7 @@ describe('InteractiveDialogAdapter', () => {
         const mockSubmitWithDirectError = jest.fn().mockResolvedValue({
             error: 'Network error',
             errors: {
-                'network': 'Connection failed',
+                network: 'Connection failed',
             },
         });
 
