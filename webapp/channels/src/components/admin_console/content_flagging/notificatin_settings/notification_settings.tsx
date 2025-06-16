@@ -65,6 +65,14 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
         onChange(id, updatedSettings);
     }, [id, notificationSettings, onChange]);
 
+    const getValue = useCallback((event: ContentFlaggingEvent, target: NotificationTarget): boolean => {
+        if (!notificationSettings || !notificationSettings.EventTargetMapping) {
+            return false;
+        }
+
+        return notificationSettings.EventTargetMapping[event]?.includes(target) || false;
+    }, [notificationSettings]);
+
     return (
         <AdminSection>
             <SectionHeader>
@@ -104,7 +112,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                         defaultMessage='Reviewer(s)'
                                     />
                                 }
-                                defaultChecked={notificationSettings.EventTargetMapping.flagged.includes('reviewers')}
+                                defaultChecked={getValue('flagged', 'reviewers')}
                                 onChange={handleChange}
                                 setByEnv={false}
                                 disabled={true}
@@ -118,7 +126,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                         defaultMessage='Author'
                                     />
                                 }
-                                defaultChecked={notificationSettings.EventTargetMapping.flagged.includes('author')}
+                                defaultChecked={getValue('flagged', 'author')}
                                 onChange={handleChange}
                                 setByEnv={false}
                             />
@@ -143,7 +151,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                         defaultMessage='Reviewer(s)'
                                     />
                                 }
-                                defaultChecked={notificationSettings.EventTargetMapping.assigned.includes('reviewers')}
+                                defaultChecked={getValue('assigned', 'reviewers')}
                                 onChange={handleChange}
                                 setByEnv={false}
                             />
@@ -168,7 +176,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                         defaultMessage='Reviewer(s)'
                                     />
                                 }
-                                defaultChecked={notificationSettings.EventTargetMapping.removed.includes('reviewers')}
+                                defaultChecked={getValue('removed', 'reviewers')}
                                 onChange={handleChange}
                                 setByEnv={false}
                             />
@@ -181,7 +189,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                         defaultMessage='Author'
                                     />
                                 }
-                                defaultChecked={notificationSettings.EventTargetMapping.removed.includes('author')}
+                                defaultChecked={getValue('removed', 'author')}
                                 onChange={handleChange}
                                 setByEnv={false}
                             />
@@ -194,7 +202,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                         defaultMessage='Reporter'
                                     />
                                 }
-                                defaultChecked={notificationSettings.EventTargetMapping.removed.includes('reporter')}
+                                defaultChecked={getValue('removed', 'reporter')}
                                 onChange={handleChange}
                                 setByEnv={false}
                             />
@@ -219,7 +227,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                         defaultMessage='Reviewer(s)'
                                     />
                                 }
-                                defaultChecked={notificationSettings.EventTargetMapping.dismissed.includes('reviewers')}
+                                defaultChecked={getValue('dismissed', 'reviewers')}
                                 onChange={handleChange}
                                 setByEnv={false}
                             />
@@ -232,7 +240,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                         defaultMessage='Author'
                                     />
                                 }
-                                defaultChecked={notificationSettings.EventTargetMapping.dismissed.includes('author')}
+                                defaultChecked={getValue('dismissed', 'author')}
                                 onChange={handleChange}
                                 setByEnv={false}
                             />
@@ -245,7 +253,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                         defaultMessage='Reporter'
                                     />
                                 }
-                                defaultChecked={notificationSettings.EventTargetMapping.dismissed.includes('reporter')}
+                                defaultChecked={getValue('dismissed', 'reporter')}
                                 onChange={handleChange}
                                 setByEnv={false}
                             />
