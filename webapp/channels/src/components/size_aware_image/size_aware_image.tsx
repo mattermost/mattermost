@@ -238,6 +238,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
         Reflect.deleteProperty(props, 'intl');
+        Reflect.deleteProperty(props, 'gifAutoplayEnabled');
+        Reflect.deleteProperty(props, 'dispatch');
 
         let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
