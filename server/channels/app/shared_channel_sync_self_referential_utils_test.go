@@ -42,6 +42,7 @@ type SelfReferentialSyncHandler struct {
 	service          *sharedchannel.Service
 	selfCluster      *model.RemoteCluster
 	syncMessageCount *int32
+	SimulateUnshared bool // When true, always return ErrChannelIsNotShared for sync messages
 
 	// Callbacks for capturing sync data
 	OnIndividualSync func(userId string, messageNumber int32)
@@ -78,6 +79,14 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 
 		err := json.Unmarshal(body, &frame)
 		if err == nil {
+			// Simulate the remote having unshared if configured to do so
+			if h.SimulateUnshared && frame.Msg.Topic == "sharedchannel_sync" {
+				// Return HTTP error instead of JSON error response
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = w.Write([]byte("channel is no longer shared"))
+				return
+			}
+
 			// Process the message to update cursor
 			response := &remotecluster.Response{}
 			processErr := h.service.OnReceiveSyncMessageForTesting(frame.Msg, h.selfCluster, response)
