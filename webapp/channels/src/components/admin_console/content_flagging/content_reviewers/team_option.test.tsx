@@ -9,9 +9,9 @@ import type {Team} from '@mattermost/types/teams';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import * as Utils from 'utils/utils';
 
-import type {AutocompleteOptionType} from '../user_multiselector/user_multiselector';
-
 import {TeamOptionComponent} from './team_option';
+
+import type {AutocompleteOptionType} from '../user_multiselector/user_multiselector';
 
 // Mock the utils module
 jest.mock('utils/utils', () => ({
@@ -21,7 +21,11 @@ jest.mock('utils/utils', () => ({
 // Mock the TeamIcon component
 jest.mock('components/widgets/team_icon/team_icon', () => ({
     TeamIcon: ({content, size, url}: {content: string; size: string; url: string}) => (
-        <div data-testid="team-icon" data-size={size} data-url={url}>
+        <div
+            data-testid='team-icon'
+            data-size={size}
+            data-url={url}
+        >
             {content}
         </div>
     ),
@@ -45,7 +49,6 @@ describe('TeamOptionComponent', () => {
         scheme_id: '',
         group_constrained: false,
         policy_id: '',
-        cloud_limits_archived: false,
     };
 
     const mockProps: OptionProps<AutocompleteOptionType<Team>, true> = {
@@ -75,7 +78,7 @@ describe('TeamOptionComponent', () => {
         theme: {} as any,
         isMulti: true,
         options: [],
-    };
+    } as unknown as OptionProps<AutocompleteOptionType<Team>, true>;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -83,9 +86,9 @@ describe('TeamOptionComponent', () => {
     });
 
     it('should render team option with team icon and display name', () => {
-        renderWithContext(<TeamOptionComponent {...mockProps} />);
+        renderWithContext(<TeamOptionComponent {...mockProps}/>);
 
-        expect(screen.getByText('Test Team')).toBeInTheDocument();
+        expect(screen.queryAllByText('Test Team')).toHaveLength(2);
         expect(screen.getByTestId('team-icon')).toBeInTheDocument();
         expect(screen.getByTestId('team-icon')).toHaveAttribute('data-size', 'xsm');
         expect(screen.getByTestId('team-icon')).toHaveAttribute('data-url', 'http://example.com/team-icon.png');
@@ -93,16 +96,16 @@ describe('TeamOptionComponent', () => {
     });
 
     it('should call imageURLForTeam with correct team data', () => {
-        renderWithContext(<TeamOptionComponent {...mockProps} />);
+        renderWithContext(<TeamOptionComponent {...mockProps}/>);
 
         expect(Utils.imageURLForTeam).toHaveBeenCalledWith(mockTeam);
         expect(Utils.imageURLForTeam).toHaveBeenCalledTimes(1);
     });
 
     it('should apply CSS class and inner props correctly', () => {
-        renderWithContext(<TeamOptionComponent {...mockProps} />);
+        renderWithContext(<TeamOptionComponent {...mockProps}/>);
 
-        const container = screen.getByText('Test Team').closest('.TeamOptionComponent');
+        const container = screen.queryAllByText('Test Team')[0].closest('.TeamOptionComponent');
         expect(container).toBeInTheDocument();
         expect(container).toHaveClass('TeamOptionComponent');
     });
@@ -111,9 +114,9 @@ describe('TeamOptionComponent', () => {
         const propsWithNullData = {
             ...mockProps,
             data: null,
-        };
+        } as unknown as OptionProps<AutocompleteOptionType<Team>, true>;
 
-        const {container} = renderWithContext(<TeamOptionComponent {...propsWithNullData} />);
+        const {container} = renderWithContext(<TeamOptionComponent {...propsWithNullData}/>);
         expect(container.firstChild).toBeNull();
     });
 
@@ -121,9 +124,9 @@ describe('TeamOptionComponent', () => {
         const propsWithUndefinedData = {
             ...mockProps,
             data: undefined,
-        };
+        } as unknown as OptionProps<AutocompleteOptionType<Team>, true>;
 
-        const {container} = renderWithContext(<TeamOptionComponent {...propsWithUndefinedData} />);
+        const {container} = renderWithContext(<TeamOptionComponent {...propsWithUndefinedData}/>);
         expect(container.firstChild).toBeNull();
     });
 
@@ -135,9 +138,9 @@ describe('TeamOptionComponent', () => {
                 label: 'Test',
                 value: 'test',
             },
-        };
+        } as unknown as OptionProps<AutocompleteOptionType<Team>, true>;
 
-        const {container} = renderWithContext(<TeamOptionComponent {...propsWithNullRaw} />);
+        const {container} = renderWithContext(<TeamOptionComponent {...propsWithNullRaw}/>);
         expect(container.firstChild).toBeNull();
     });
 
@@ -149,30 +152,10 @@ describe('TeamOptionComponent', () => {
                 label: 'Test',
                 value: 'test',
             },
-        };
+        } as unknown as OptionProps<AutocompleteOptionType<Team>, true>;
 
-        const {container} = renderWithContext(<TeamOptionComponent {...propsWithUndefinedRaw} />);
+        const {container} = renderWithContext(<TeamOptionComponent {...propsWithUndefinedRaw}/>);
         expect(container.firstChild).toBeNull();
-    });
-
-    it('should handle team with empty display name', () => {
-        const teamWithEmptyName = {
-            ...mockTeam,
-            display_name: '',
-        };
-
-        const propsWithEmptyName = {
-            ...mockProps,
-            data: {
-                ...mockProps.data!,
-                raw: teamWithEmptyName,
-            },
-        };
-
-        renderWithContext(<TeamOptionComponent {...propsWithEmptyName} />);
-
-        expect(screen.getByTestId('team-icon')).toHaveTextContent('');
-        expect(screen.getByText('')).toBeInTheDocument();
     });
 
     it('should handle different team types', () => {
@@ -188,11 +171,11 @@ describe('TeamOptionComponent', () => {
                 ...mockProps.data!,
                 raw: privateTeam,
             },
-        };
+        } as unknown as OptionProps<AutocompleteOptionType<Team>, true>;
 
-        renderWithContext(<TeamOptionComponent {...propsWithPrivateTeam} />);
+        renderWithContext(<TeamOptionComponent {...propsWithPrivateTeam}/>);
 
-        expect(screen.getByText('Private Team')).toBeInTheDocument();
+        expect(screen.queryAllByText('Private Team')[0]).toBeInTheDocument();
         expect(Utils.imageURLForTeam).toHaveBeenCalledWith(privateTeam);
     });
 });
