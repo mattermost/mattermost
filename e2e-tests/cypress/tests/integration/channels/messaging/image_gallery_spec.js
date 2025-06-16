@@ -96,6 +96,7 @@ describe('Image Gallery', () => {
                     cy.get('.image-gallery__toggle').should('contain.text', '4 images');
                     cy.get('.image-gallery__item').should('exist').and('be.visible');
                 });
+
                 // Click the Download all button scoped to this post
                 cy.get('.image-gallery__download-all').first().click();
                 cy.get('.image-gallery__download-all').first().should('have.attr', 'disabled');
