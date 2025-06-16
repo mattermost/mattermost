@@ -1,0 +1,105 @@
+.preview-modal-content {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    padding-top: 48px;
+
+    &__sku-label {
+        display: flex;
+        width: fit-content;
+        align-items: center;
+        padding: 2px var(--spacing-xxxs, 4px);
+        border-radius: 4px;
+        margin-bottom: 12px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgb(var(--center-channel-color-rgb));
+        font-size: 12px;
+        font-weight: 600;
+        gap: 8px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+
+        &-logo {
+            width: 16px;
+            height: 16px;
+
+            svg {
+                width: 100%;
+                height: 100%;
+                fill: rgb(var(--center-channel-color-rgb));
+            }
+        }
+    }
+
+    &__title {
+        min-height: 28px;
+        margin: 0 0 16px 0;
+        color: var(--center-channel-color);
+        font-size: 22px;
+        font-weight: 600;
+        line-height: 28px;
+    }
+
+    &__subtitle {
+        min-height: 60px;
+        max-height: 80px;
+        margin-bottom: 24px;
+        color: rgb(var(--center-channel-color-rgb));
+        font-size: 14px;
+        line-height: 20px;
+        overflow-y: auto;
+
+        strong {
+            color: var(--center-channel-color);
+            font-weight: 600;
+        }
+
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    &__video-container {
+        display: flex;
+        overflow: hidden;
+        height: 306px;
+        flex: 0 0 306px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+            align-self: stretch;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(var(--center-channel-color-rgb), 0.08);
+            transition: all 0.2s ease;
+
+            &:hover {
+                box-shadow: 0 4px 16px rgba(var(--center-channel-color-rgb), 0.12);
+                transform: translateY(-1px);
+            }
+        }
+    }
+}
