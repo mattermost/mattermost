@@ -42,6 +42,10 @@ type SubmitDialogRequest = {
 type SubmitDialogResponse = {
     error?: string;
     errors?: {[field: string]: string};
+    data?: {
+        error?: string;
+        errors?: {[field: string]: string};
+    };
 };
 
 interface Props extends WrappedComponentProps {
@@ -89,16 +93,29 @@ function InteractiveDialogAdapter({
 
             try {
                 // Submit using original Interactive Dialog API
-                const response = await actions.submitInteractiveDialog(submitRequest);
+                const result = await actions.submitInteractiveDialog(submitRequest);
 
-                // Convert the response to the format expected by AppsFormContainer
-                if (response?.error) {
+                // Handle server-side validation errors from the response data (like original dialog)
+                if (result?.data?.error || result?.data?.errors) {
                     return {
                         error: {
-                            text: response.error,
+                            type: 'error' as const,
+                            text: result.data.error || 'Submission failed with validation errors',
+                            data: {
+                                errors: result.data.errors || {},
+                            },
+                        },
+                    };
+                }
+
+                // Handle direct errors from the response (network/API errors)
+                if (result?.error) {
+                    return {
+                        error: {
+                            text: result.error,
                             type: AppCallResponseTypes.ERROR,
                             data: {
-                                errors: response.errors,
+                                errors: result.errors || {},
                             },
                         },
                     };
