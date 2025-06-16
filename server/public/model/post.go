@@ -130,7 +130,6 @@ func (o *Post) Auditable() map[string]any {
 
 	return map[string]any{
 		"id":              o.Id,
-		"message":         o.Message,
 		"create_at":       o.CreateAt,
 		"update_at":       o.UpdateAt,
 		"edit_at":         o.EditAt,
