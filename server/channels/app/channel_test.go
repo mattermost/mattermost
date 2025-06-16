@@ -14,8 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost/server/v8/channels/store"
-
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
@@ -2957,7 +2955,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	mockChannelStore.On("GetAllChannelMembersNotifyPropsForChannel", "channelidchannelidchanneli", true).Return(map[string]model.StringMap{}, nil)
 	mockChannelStore.On("IncrementMentionCount", "", []string{}, true, false).Return(nil)
 	mockChannelStore.On("DeleteAllSidebarChannelForChannel", "channelidchannelidchanneli").Return(nil)
-	mockChannelStore.On("GetSidebarCategories", "user_id_1", &store.SidebarCategorySearchOpts{TeamID: "team_id_1", ExcludeTeam: false, Type: "channels"}).Return(
+	mockChannelStore.On("GetSidebarCategories", "user_id_1", "team_id_1").Return(
 		&model.OrderedSidebarCategories{
 			Categories: model.SidebarCategoriesWithChannels{
 				{
@@ -2967,7 +2965,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 				},
 			},
 		}, nil)
-	mockChannelStore.On("GetSidebarCategories", "user_id_2", &store.SidebarCategorySearchOpts{TeamID: "team_id_1", ExcludeTeam: false, Type: "channels"}).Return(
+	mockChannelStore.On("GetSidebarCategories", "user_id_2", "team_id_1").Return(
 		&model.OrderedSidebarCategories{
 			Categories: model.SidebarCategoriesWithChannels{
 				{
