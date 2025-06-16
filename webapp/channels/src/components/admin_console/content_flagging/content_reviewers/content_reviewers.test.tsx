@@ -20,7 +20,7 @@ jest.mock('../../content_flagging/user_multiselector/user_multiselector', () => 
                 onClick={() => onChange(['user1', 'user2'])}
                 data-testid={`${id}-change-users`}
             >
-                Change Users
+                {'Change Users'}
             </button>
             <span data-testid={`${id}-initial-value`}>{initialValue.join(',')}</span>
         </div>

@@ -124,8 +124,9 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
 
         const removeComponent = container.querySelector('.Remove');
         expect(removeComponent).toBeInTheDocument();
+        expect(removeComponent).toBeDefined();
 
-        fireEvent.click(removeComponent);
+        fireEvent.click(removeComponent!);
         expect(mockOnClick).toHaveBeenCalledTimes(1);
     });
 
@@ -139,7 +140,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
                     username: undefined,
                 },
             },
-        };
+        } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile>, true>;
 
         const {container} = renderWithContext(
             <UserProfilePill {...propsWithoutUsername}/>,

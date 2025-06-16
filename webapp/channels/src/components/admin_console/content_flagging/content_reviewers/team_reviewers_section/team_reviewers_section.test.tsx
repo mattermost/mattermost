@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen, fireEvent, waitFor} from '@testing-library/react';
+import React from 'react';
 
 import type {TeamReviewerSetting} from '@mattermost/types/config';
 import type {Team} from '@mattermost/types/teams';
@@ -21,16 +21,16 @@ jest.mock('mattermost-redux/actions/teams', () => ({
 jest.mock('../../user_multiselector/user_multiselector', () => ({
     UserMultiSelector: ({id, initialValue, onChange}: {id: string; initialValue: string[]; onChange: (ids: string[]) => void}) => (
         <div data-testid={`user-multi-selector-${id}`}>
-            <span>Selected: {initialValue.join(', ')}</span>
+            <span>{`Selected: {${initialValue.join(', ')}`}</span>
             <button onClick={() => onChange(['user1', 'user2'])}>
-                Change Reviewers
+                {'Change Reviewers'}
             </button>
         </div>
     ),
 }));
 
 jest.mock('components/widgets/team_icon/team_icon', () => ({
-    TeamIcon: ({content}: {content: string}) => <div data-testid="team-icon">{content}</div>,
+    TeamIcon: ({content}: {content: string}) => <div data-testid='team-icon'>{content}</div>,
 }));
 
 const mockSearchTeams = searchTeams as jest.MockedFunction<typeof searchTeams>;
@@ -61,7 +61,7 @@ describe('TeamReviewersSection', () => {
                 teams: mockTeams,
                 total_count: 2,
             },
-        } as any);
+        } as never);
     });
 
     test('should render component with teams data', async () => {
@@ -82,7 +82,7 @@ describe('TeamReviewersSection', () => {
     });
 
     test('should call searchTeams on component mount', async () => {
-        renderWithContext(<TeamReviewersSection {...defaultProps} />);
+        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -110,9 +110,9 @@ describe('TeamReviewersSection', () => {
                 teams: mockTeams,
                 total_count: 20,
             },
-        } as any);
+        } as never);
 
-        renderWithContext(<TeamReviewersSection {...defaultProps} />);
+        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -136,9 +136,9 @@ describe('TeamReviewersSection', () => {
                 teams: mockTeams,
                 total_count: 20,
             },
-        } as any);
+        } as never);
 
-        renderWithContext(<TeamReviewersSection {...defaultProps} />);
+        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -171,7 +171,7 @@ describe('TeamReviewersSection', () => {
             <TeamReviewersSection
                 {...defaultProps}
                 onChange={onChange}
-            />
+            />,
         );
 
         await waitFor(() => {
@@ -206,7 +206,7 @@ describe('TeamReviewersSection', () => {
             <TeamReviewersSection
                 teamReviewersSetting={teamReviewersSetting}
                 onChange={onChange}
-            />
+            />,
         );
 
         await waitFor(() => {
@@ -234,7 +234,7 @@ describe('TeamReviewersSection', () => {
             <TeamReviewersSection
                 {...defaultProps}
                 onChange={onChange}
-            />
+            />,
         );
 
         await waitFor(() => {
@@ -268,7 +268,7 @@ describe('TeamReviewersSection', () => {
             <TeamReviewersSection
                 teamReviewersSetting={teamReviewersSetting}
                 onChange={jest.fn()}
-            />
+            />,
         );
 
         await waitFor(() => {
@@ -281,7 +281,7 @@ describe('TeamReviewersSection', () => {
     });
 
     test('should render disable all button', async () => {
-        renderWithContext(<TeamReviewersSection {...defaultProps} />);
+        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -297,9 +297,12 @@ describe('TeamReviewersSection', () => {
 
     test('should handle API error gracefully', async () => {
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         mockSearchTeams.mockRejectedValue(new Error('API Error'));
 
-        renderWithContext(<TeamReviewersSection {...defaultProps} />);
+        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(consoleSpy).toHaveBeenCalledWith(new Error('API Error'));
@@ -314,9 +317,9 @@ describe('TeamReviewersSection', () => {
                 teams: mockTeams,
                 total_count: 25,
             },
-        } as any);
+        } as never);
 
-        renderWithContext(<TeamReviewersSection {...defaultProps} />);
+        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -328,18 +331,18 @@ describe('TeamReviewersSection', () => {
     });
 
     test('should reset page to 0 when searching', async () => {
-        mockSearchTeams
-            .mockResolvedValueOnce({
+        mockSearchTeams.
+            mockResolvedValueOnce({
                 data: {teams: mockTeams, total_count: 20},
-            } as any)
-            .mockResolvedValueOnce({
+            } as never).
+            mockResolvedValueOnce({
                 data: {teams: mockTeams, total_count: 20},
-            } as any)
-            .mockResolvedValueOnce({
+            } as never).
+            mockResolvedValueOnce({
                 data: {teams: mockTeams, total_count: 5},
-            } as any);
+            } as never);
 
-        renderWithContext(<TeamReviewersSection {...defaultProps} />);
+        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         // Wait for initial load
         await waitFor(() => {
@@ -373,9 +376,9 @@ describe('TeamReviewersSection', () => {
                 teams: [],
                 total_count: 0,
             },
-        } as any);
+        } as never);
 
-        renderWithContext(<TeamReviewersSection {...defaultProps} />);
+        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -393,7 +396,7 @@ describe('TeamReviewersSection', () => {
             <TeamReviewersSection
                 {...defaultProps}
                 onChange={onChange}
-            />
+            />,
         );
 
         await waitFor(() => {
@@ -426,7 +429,7 @@ describe('TeamReviewersSection', () => {
             onChange,
         };
 
-        renderWithContext(<TeamReviewersSection {...updatedProps} />);
+        renderWithContext(<TeamReviewersSection {...updatedProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
