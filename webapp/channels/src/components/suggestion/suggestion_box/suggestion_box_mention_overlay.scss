@@ -1,5 +1,6 @@
 .suggestion-box-input-wrapper {
     position: relative;
+    background: transparent !important;
     
     .suggestion-box-mention-overlay {
         position: absolute;
@@ -14,29 +15,88 @@
         font-size: 14px;
         line-height: 20px;
         overflow: hidden;
-        background: transparent;
+        background: transparent !important;
         color: var(--center-channel-color);
         font-family: inherit;
-        border: 2px solid transparent;
+        border: none !important;
         user-select: none;
         word-wrap: break-word;
         word-break: break-word;
+        box-shadow: none !important;
+        outline: none !important;
+        filter: none !important;
+        
+        // 擬似要素の背景も消す
+        &::before,
+        &::after {
+            background: none !important;
+            content: none !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
         
         // メンション部分のスタイル調整
         .at-mention {
             display: inline;
-            background: transparent;
-            border: none;
-            padding: 0;
-            margin: 0;
+            background: rgba(var(--mention-color-rgb, 0, 115, 230), 0.1);
+            border: 1px solid rgba(var(--mention-color-rgb, 0, 115, 230), 0.2);
+            border-radius: 3px;
+            padding: 1px 3px;
+            margin: 0 1px;
             font-size: inherit;
             line-height: inherit;
             color: var(--mention-color, #0073e6);
             text-decoration: none;
             font-weight: 600;
+            position: relative;
             
             &:hover {
+                background: rgba(var(--mention-color-rgb, 0, 115, 230), 0.15);
                 text-decoration: underline;
+            }
+            
+            // メンション領域の視覚的インジケーター
+            &::before {
+                content: '';
+                position: absolute;
+                top: -2px;
+                left: -2px;
+                right: -2px;
+                bottom: -2px;
+                border-radius: 5px;
+                border: 1px dashed rgba(var(--mention-color-rgb, 0, 115, 230), 0.3);
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+            
+            &.mention-area-protected::before {
+                opacity: 1;
+            }
+        }
+    }
+    
+    // メンション部分のクリック領域制御
+    .mention-click-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 3;
+        pointer-events: none;
+        
+        .mention-zone {
+            position: absolute;
+            background: transparent !important;
+            border-radius: 3px;
+            border: 1px dashed rgba(var(--mention-color-rgb, 0, 115, 230), 0.2);
+            pointer-events: auto;
+            cursor: not-allowed;
+            
+            &:hover {
+                background: rgba(var(--mention-color-rgb, 0, 115, 230), 0.1);
+                border-color: rgba(var(--mention-color-rgb, 0, 115, 230), 0.4);
             }
         }
     }

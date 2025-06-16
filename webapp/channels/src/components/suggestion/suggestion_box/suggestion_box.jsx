@@ -578,6 +578,11 @@ export default class SuggestionBox extends React.PureComponent {
     };
 
     handleKeyDown = (e) => {
+        // メンション領域での入力制御を最初にチェック
+        if (this.handleMentionInputControl(e)) {
+            return;
+        }
+
         if ((this.props.openWhenEmpty || this.props.value) && this.hasSuggestions()) {
             const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
             if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
@@ -791,7 +796,6 @@ export default class SuggestionBox extends React.PureComponent {
             if (match.index > lastIndex) {
                 parts.push(value.substring(lastIndex, match.index));
             }
-            
             // メンション部分をAtMentionコンポーネントで表示
             parts.push(
                 <AtMention
@@ -800,7 +804,6 @@ export default class SuggestionBox extends React.PureComponent {
                     displayMode='fullname'
                 />
             );
-            
             lastIndex = match.index + match[0].length;
         }
 
@@ -809,11 +812,426 @@ export default class SuggestionBox extends React.PureComponent {
             parts.push(value.substring(lastIndex));
         }
 
+        // mention-click-overlay（クリック制御レイヤー）は不要なので削除
         return (
             <div className='suggestion-box-mention-overlay'>
                 {parts.length > 0 ? parts : value}
             </div>
         );
+    }
+
+    // メンション領域の位置を計算してクリック・入力制御レイヤーを作成
+    renderMentionClickBlocker() {
+        const {value} = this.props;
+        if (!value) {
+            return null;
+        }
+
+        const textbox = this.getTextbox();
+        if (!textbox) {
+            return null;
+        }
+
+        const mentionRegex = /@([a-z0-9.\-_]+)/gi;
+        const mentionZones = [];
+        let match;
+
+        while ((match = mentionRegex.exec(value)) !== null) {
+            const mentionStart = match.index;
+            const mentionEnd = match.index + match[0].length;
+            
+            mentionZones.push(
+                <div
+                    key={`mention-zone-${mentionStart}`}
+                    className='mention-zone'
+                    style={{
+                        left: `${this.calculateCharPosition(mentionStart)}px`,
+                        width: `${this.calculateCharPosition(mentionEnd) - this.calculateCharPosition(mentionStart)}px`,
+                        top: 0,
+                        height: '100%',
+                    }}
+                    onClick={(e) => this.handleMentionClick(e, mentionStart, mentionEnd)}
+                />
+            );
+        }
+
+        return mentionZones.length > 0 ? (
+            <div className='mention-click-overlay'>
+                {mentionZones}
+            </div>
+        ) : null;
+    }
+
+    // 文字位置のピクセル計算（改善版）
+    calculateCharPosition(charIndex) {
+        const textbox = this.getTextbox();
+        if (!textbox) {
+            return charIndex * 8; // フォールバック
+        }
+
+        // より正確な文字幅計算のために、実際のレンダリング情報を使用
+        const computedStyle = window.getComputedStyle(textbox);
+        const fontSize = parseInt(computedStyle.fontSize, 10);
+        
+        // フォントサイズに基づく平均文字幅の推定
+        const averageCharWidth = fontSize * 0.6; // 一般的な比率
+        
+        return charIndex * averageCharWidth;
+    }
+
+    // メンション領域の範囲を取得
+    getMentionRanges() {
+        const {value} = this.props;
+        const mentionRegex = /@([a-z0-9.\-_]+)/gi;
+        const ranges = [];
+        let match;
+
+        while ((match = mentionRegex.exec(value)) !== null) {
+            ranges.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                text: match[0]
+            });
+        }
+
+        return ranges;
+    }
+
+    // カーソルを最適な位置に移動（メンション領域を避ける）
+    moveCursorToSafePosition(targetPosition) {
+        const textbox = this.getTextbox();
+        if (!textbox) {
+            return;
+        }
+
+        const mentionRanges = this.getMentionRanges();
+        let newPosition = targetPosition;
+
+        for (const range of mentionRanges) {
+            // targetPosition がメンション領域内（開始位置を含み、終了位置は含まない）の場合
+            if (targetPosition >= range.start && targetPosition < range.end) {
+                newPosition = range.end; // メンションの右端に設定
+                break;
+            }
+        }
+
+        // カーソル位置がテキスト長を超えないように調整
+        const textLength = textbox.value.length;
+        newPosition = Math.max(0, Math.min(newPosition, textLength));
+
+        textbox.setSelectionRange(newPosition, newPosition);
+        this.props.onSelectionChange?.(newPosition);
+    }
+
+    // メンション領域のクリック処理（改善版）
+    handleMentionClick = (e, start, end) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // メンション領域がクリックされた場合は、カーソルをメンション直後に移動
+        this.moveCursorToSafePosition(end);
+    };
+
+    // カーソルがメンション領域内にあるかチェック（修正版 + ログ追加）
+    isCursorInMentionArea() {
+        const textbox = this.getTextbox();
+        if (!textbox) {
+            return { inArea: false };
+        }
+
+        const cursorPosition = textbox.selectionStart;
+        const mentionRanges = this.getMentionRanges();
+
+        console.log('🔍 isCursorInMentionArea:', {
+            cursorPosition,
+            mentionRanges: mentionRanges.map(r => `${r.start}-${r.end}(${r.text})`)
+        });
+
+        for (const range of mentionRanges) {
+            // メンション領域内（開始位置を含み、終了位置は含まない）にカーソルがある場合
+            if (cursorPosition >= range.start && cursorPosition < range.end) {
+                console.log('✅ カーソルがメンション領域内:', {
+                    cursorPosition,
+                    range: `${range.start}-${range.end}`,
+                    text: range.text
+                });
+                return {
+                    inArea: true,
+                    range,
+                    position: cursorPosition
+                };
+            }
+        }
+
+        console.log('❌ カーソルはメンション領域外:', { cursorPosition });
+        return { inArea: false };
+    }
+
+    // カーソル移動がメンション領域に侵入するかチェック（修正版）
+    willMoveCursorIntoMentionArea(currentPos, targetPos) {
+        const mentionRanges = this.getMentionRanges();
+        
+        for (const range of mentionRanges) {
+            // 移動先がメンション領域内（境界を含む）または
+            // メンション領域をまたぐ移動の場合は侵入と判定
+            if ((targetPos >= range.start && targetPos <= range.end) ||
+                (currentPos < range.start && targetPos > range.start)) {
+                return { willEnter: true, range };
+            }
+        }
+        
+        return { willEnter: false };
+    }
+
+    // メンション領域での入力制御（修正版 + Backspace対応強化）
+    handleMentionInputControl = (e) => {
+        const textbox = this.getTextbox();
+        if (!textbox) {
+            return false;
+        }
+
+        const cursorPosition = textbox.selectionStart;
+        const mentionInfo = this.isCursorInMentionArea();
+        const mentionRanges = this.getMentionRanges();
+
+        // デバッグログ: キー入力時の状態（詳細表示）
+        console.log('🔍 handleMentionInputControl:', {
+            key: e.key,
+            cursorPosition,
+            textValue: textbox.value,
+            mentionInArea: mentionInfo.inArea,
+            mentionRanges: mentionRanges.map(r => `${r.start}-${r.end}(${r.text})`),
+            currentRange: mentionInfo.range ? `${mentionInfo.range.start}-${mentionInfo.range.end}` : 'none'
+        });
+
+        // 1. カーソルがメンション領域内に「ある」場合の制御
+        if (mentionInfo.inArea && mentionInfo.range) {
+            const currentRange = mentionInfo.range;
+            const newPositionDeferred = (newPos) => {
+                setTimeout(() => {
+                    textbox.setSelectionRange(newPos, newPos);
+                    this.props.onSelectionChange?.(newPos);
+                }, 0);
+            };
+
+            switch (e.key) {
+            case 'ArrowLeft':
+                if (cursorPosition === currentRange.start) {
+                    return false;
+                }
+                newPositionDeferred(currentRange.start);
+                e.preventDefault();
+                return true;
+            case 'ArrowRight':
+                newPositionDeferred(currentRange.end);
+                e.preventDefault();
+                return true;
+            case 'Backspace':
+                newPositionDeferred(currentRange.start);
+                e.preventDefault();
+                return true;
+            case 'Delete':
+                // ログ: mention内でDelete押下時の状況
+                console.log('[mention-Delete] before:', {
+                    value: textbox.value,
+                    cursorPosition,
+                    mentionRanges: mentionRanges.map(r => `${r.start}-${r.end}(${r.text})`)
+                });
+                setTimeout(() => {
+                    const newValue = textbox.value;
+                    const newMentionRanges = this.getMentionRanges();
+                    console.log('[mention-Delete] after:', {
+                        value: newValue,
+                        selectionStart: textbox.selectionStart,
+                        newMentionRanges: newMentionRanges.map(r => `${r.start}-${r.end}(${r.text})`)
+                    });
+                    // mentionが消えている && カーソルが左端でない場合のみ左端に移動
+                    if (newMentionRanges.length === 0 && textbox.selectionStart !== 0) {
+                        console.log('[mention-Delete] move cursor to left edge');
+                        textbox.setSelectionRange(0, 0);
+                        this.props.onSelectionChange?.(0);
+                    }
+                }, 0);
+                newPositionDeferred(currentRange.end);
+                e.preventDefault();
+                return true;
+            default:
+                if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1 && !e.isComposing) {
+                    newPositionDeferred(currentRange.end);
+                    e.preventDefault();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 2. Home/Ctrl+Left/Cmd+Left などでメンション左端を越えて移動しようとした場合の制御
+        if ((e.key === 'Home') || (e.key === 'ArrowLeft' && (e.ctrlKey || e.metaKey))) {
+            // Home/Ctrl+Left/Cmd+Left の場合、移動先は通常 0
+            const targetPosition = 0;
+            for (const range of mentionRanges) {
+                // 移動先がメンションの左端より左（またはメンション内）なら、メンションの右端に移動
+                if (targetPosition < range.end) {
+                    textbox.setSelectionRange(range.end, range.end);
+                    this.props.onSelectionChange?.(range.end);
+                    e.preventDefault();
+                    return true;
+                }
+            }
+        }
+
+        // 3. カーソルがメンション領域外に「ある」が、移動によって領域内に「入る」場合の制御
+        const nextPosition = e.key === 'ArrowLeft' ? cursorPosition - 1 : (e.key === 'ArrowRight' ? cursorPosition + 1 : cursorPosition);
+        console.log('🎯 メンション領域外からの制御チェック:', { cursorPosition, nextPosition, key: e.key });
+
+        // Backspace での特別制御: メンションの右端直後(range.end)でBackspaceした場合
+        if (e.key === 'Backspace') {
+            for (const range of mentionRanges) {
+                // カーソルがメンション直後(range.end)にある場合
+                if (cursorPosition === range.end) {
+                    console.log('🚫🔙 メンション直後でBackspace → メンション全体削除', {
+                        cursorPosition,
+                        range: `${range.start}-${range.end}(${range.text})`
+                    });
+                    // メンション全体を削除してカーソルをメンション開始位置に移動
+                    setTimeout(() => {
+                        const beforeValue = textbox.value;
+                        const newValue = beforeValue.substring(0, range.start) + beforeValue.substring(range.end);
+                        textbox.value = newValue;
+                        textbox.setSelectionRange(range.start, range.start);
+                        this.props.onSelectionChange?.(range.start);
+                        if (this.props.onChange) {
+                            this.props.onChange({ target: textbox });
+                        }
+                        console.log('✅ メンション削除完了、カーソルをメンション開始位置に移動:', { newPosition: range.start });
+                    }, 0);
+                    e.preventDefault();
+                    return true;
+                }
+                
+                // カーソルがメンション直前(range.start-1)にある場合
+                if (cursorPosition === range.start) {
+                    console.log('🚫🔙 メンション直前でBackspace → 通常削除許可', {
+                        cursorPosition,
+                        range: `${range.start}-${range.end}(${range.text})`
+                    });
+                    // 通常のBackspace処理を許可（メンション前の文字を削除）
+                    return false;
+                }
+            }
+        }
+
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            for (const range of mentionRanges) {
+                const newPositionDeferredExternal = (newPos) => {
+                    console.log('⏰ setTimeout で外部からカーソル移動:', { from: cursorPosition, to: newPos });
+                    setTimeout(() => {
+                        console.log('✅ 外部からカーソル移動実行:', { newPos });
+                        textbox.setSelectionRange(newPos, newPos);
+                        this.props.onSelectionChange?.(newPos);
+                    }, 0);
+                };
+
+                // 右矢印キーでメンションの開始位置に侵入しようとする場合
+                if (e.key === 'ArrowRight' && cursorPosition < range.start && nextPosition >= range.start) {
+                    console.log('🚫➡️ 右矢印でメンション侵入阻止:', { cursorPosition, nextPosition, rangeStart: range.start });
+                    newPositionDeferredExternal(range.start);
+                    e.preventDefault();
+                    return true;
+                }
+                // 左矢印キーでの侵入制御
+                if (e.key === 'ArrowLeft') {
+                    // メンション直後（range.end < cursorPosition）から左矢印でrange.endに入ろうとした場合は、右端で止める
+                    if (cursorPosition > range.end && nextPosition === range.end) {
+                        console.log('🚫⬅️ メンション直後から右端への侵入阻止 → 右端で止める:', { cursorPosition, nextPosition, range: `${range.start}-${range.end}` });
+                        newPositionDeferredExternal(range.end);
+                        e.preventDefault();
+                        return true;
+                    }
+                    // 通常の侵入パターン（メンション右端からメンション内への侵入）
+                    if (cursorPosition >= range.end && nextPosition < range.end && nextPosition >= range.start) {
+                        console.log('🚫⬅️ 左矢印でメンション侵入阻止(通常):', { cursorPosition, nextPosition, range: `${range.start}-${range.end}` });
+                        newPositionDeferredExternal(range.end);
+                        e.preventDefault();
+                        return true;
+                    }
+                    // range.end から range.end-1 への移動は必ず range.end に戻す
+                    if (cursorPosition === range.end && nextPosition === range.end - 1) {
+                        console.log('🚫⬅️ 右端から左への侵入阻止:', { cursorPosition, nextPosition, rangeEnd: range.end });
+                        setTimeout(() => {
+                            console.log('✅ 右端に戻す:', { rangeEnd: range.end });
+                            textbox.setSelectionRange(range.end, range.end);
+                            this.props.onSelectionChange?.(range.end);
+                        }, 0);
+                        e.preventDefault();
+                        return true;
+                    }
+                }
+            }
+        }
+
+        console.log('🔄 デフォルトのキーイベント許可');
+        return false; // 上記以外の場合はデフォルトのキーイベントを許可
+    };
+
+    // マウスクリック時のカーソル位置制御
+    handleMouseClick = (e) => {
+        // 少し遅延してカーソル位置をチェック・修正
+        setTimeout(() => {
+            this.correctCursorPosition();
+        }, 10);
+    };
+
+    // マウス選択時のカーソル位置制御
+    handleMouseUp = (e) => {
+        // 選択終了後にカーソル位置をチェック・修正
+        setTimeout(() => {
+            this.correctCursorPosition();
+        }, 10);
+    };
+
+    // カーソル位置の修正（メンション領域内またはメンション境界の場合 + ログ追加）
+    correctCursorPosition() {
+        const textbox = this.getTextbox();
+        if (!textbox) {
+            return;
+        }
+
+        const cursorPosition = textbox.selectionStart;
+        const mentionRanges = this.getMentionRanges();
+
+        console.log('🔧 correctCursorPosition:', {
+            cursorPosition,
+            mentionRanges: mentionRanges.map(r => `${r.start}-${r.end}(${r.text})`)
+        });
+
+        for (const range of mentionRanges) {
+            // カーソルがメンション領域内（開始位置を含み、終了位置は含まない）の場合
+            if (cursorPosition >= range.start && cursorPosition < range.end) {
+                console.log('🔧 マウスクリックでメンション内にカーソル:', {
+                    cursorPosition,
+                    range: `${range.start}-${range.end}`
+                });
+                // メンションの中間点を計算
+                const midPoint = range.start + (range.end - range.start) / 2;
+                let newPosition;
+                if (cursorPosition < midPoint) {
+                    // カーソルがメンションの前半にある場合は、メンションの開始位置に移動
+                    newPosition = range.start;
+                    console.log('⬅️ メンションの前半 → 開始位置へ:', { newPosition });
+                } else {
+                    // カーソルがメンションの後半にある場合は、メンションの終了位置に移動
+                    newPosition = range.end;
+                    console.log('➡️ メンションの後半 → 終了位置へ:', { newPosition });
+                }
+                textbox.setSelectionRange(newPosition, newPosition);
+                this.props.onSelectionChange?.(newPosition);
+                console.log('✅ カーソル位置修正完了:', { newPosition });
+                return; // 最初の該当メンションで処理を終了
+            }
+        }
+
+        console.log('❌ カーソル位置修正不要');
     }
 
     render() {
@@ -885,6 +1303,8 @@ export default class SuggestionBox extends React.PureComponent {
                         onCompositionUpdate={this.handleCompositionUpdate}
                         onCompositionEnd={this.handleCompositionEnd}
                         onKeyDown={this.handleKeyDown}
+                        onClick={this.handleMouseClick}
+                        onMouseUp={this.handleMouseUp}
                         className={`${props.className || ''} suggestion-box-input-transparent`}
                     />
                 </div>
