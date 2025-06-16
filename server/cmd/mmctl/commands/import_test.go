@@ -475,4 +475,86 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 		s.Require().Empty(res.Errors)
 		s.Equal("Validation complete\n", printer.GetLines()[2])
 	})
+
+	s.Run("invalid file attachment path", func() {
+		file, err := os.Create(importFilePath)
+		s.Require().NoError(err)
+
+		zipWr := zip.NewWriter(file)
+		wr, err := zipWr.Create("import.jsonl")
+		s.Require().NoError(err)
+
+		_, err = wr.Write([]byte(importBase))
+		s.Require().NoError(err)
+
+		_, err = wr.Write([]byte(`
+{"type":"post","post":{"team":"ad-1","channel":"iusto-9","user":"ashley.berry","message":"message","props":{},"create_at":1603398068740,"reactions":null,"replies":null,"attachments":[{"path": "data/../../invalid.jpg"}]}}`))
+		s.Require().NoError(err)
+
+		err = zipWr.Close()
+		s.Require().NoError(err)
+
+		err = file.Close()
+		s.Require().NoError(err)
+
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetUsers(context.TODO(), 0, 200, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetAllTeams(context.TODO(), "", 0, 200).
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetOldClientConfig(context.TODO(), "").
+			Return(map[string]string{
+				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
+			}, &model.Response{}, nil).
+			Times(1)
+
+		err = importValidateCmdF(s.client, ImportValidateCmd, []string{importFilePath})
+		s.Require().Nil(err)
+
+		s.Empty(printer.GetErrorLines())
+		s.Equal(Statistics{
+			Teams:          2,
+			Channels:       1,
+			DirectChannels: 1,
+			Users:          1,
+			Posts:          1,
+		}, printer.GetLines()[0].(Statistics))
+		res := printer.GetLines()[1].(ImportValidationResult)
+		s.Require().Len(res.Errors, 2)
+		s.Require().Equal("app.import.validate_post_import_data.attachment.error", res.Errors[0].Err.(*model.AppError).Id)
+		s.Equal("Validation complete\n", printer.GetLines()[2])
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestDeleteImportCmdF() {
+	s.Run("delete command succeeds", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			DeleteImport(context.TODO(), "import.zip").
+			Return(&model.Response{}, nil).
+			Times(2)
+
+		err := importDeleteCmdF(s.client, &cobra.Command{}, []string{"import.zip"})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Equal("Import file \"import.zip\" has been deleted", printer.GetLines()[0])
+
+		//idempotency check
+		err = importDeleteCmdF(s.client, &cobra.Command{}, []string{"import.zip"})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 2)
+		s.Equal("Import file \"import.zip\" has been deleted", printer.GetLines()[1])
+	})
 }

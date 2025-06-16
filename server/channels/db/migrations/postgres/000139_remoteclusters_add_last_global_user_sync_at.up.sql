@@ -1,0 +1,1 @@
+ALTER TABLE remoteclusters ADD COLUMN IF NOT EXISTS lastglobalusersyncat bigint DEFAULT 0;

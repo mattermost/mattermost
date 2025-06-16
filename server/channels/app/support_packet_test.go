@@ -22,6 +22,7 @@ import (
 )
 
 func TestGenerateSupportPacket(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -270,6 +271,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 }
 
 func TestGetPluginsFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -334,6 +336,7 @@ func TestGetPluginsFile(t *testing.T) {
 }
 
 func TestGetSupportPacketStats(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 
 	generateStats := func(t *testing.T) *model.SupportPacketStats {
@@ -463,6 +466,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 }
 
 func TestGetSupportPacketJobList(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -576,6 +580,7 @@ func TestGetSupportPacketJobList(t *testing.T) {
 }
 
 func TestGetSupportPacketPermissionsInfo(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -662,6 +667,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 }
 
 func TestGetSupportPacketMetadata(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
