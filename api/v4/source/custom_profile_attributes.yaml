@@ -53,7 +53,36 @@
                 type:
                   type: string
                 attrs:
-                  type: string
+                  type: object
+                  properties:
+                    visibility:
+                      type: string
+                      description: "Visibility of the attribute"
+                      enum: ["hidden", "when_set", "always"]
+                      default: "when_set"
+                    sort_order:
+                      type: number
+                      description: "Sort order for displaying this attribute"
+                    options:
+                      type: array
+                      description: "Options for select/multiselect fields"
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          color:
+                            type: string
+                    value_type:
+                      type: string
+                      description: "Type of text value"
+                      enum: ["email", "url", "phone"]
+                    ldap:
+                      type: string
+                      description: "LDAP attribute for syncing"
+                    saml:
+                      type: string
+                      description: "SAML attribute for syncing"
       responses:
         "201":
           description: Custom Profile Attribute field creation successful
@@ -106,7 +135,38 @@
                 type:
                   type: string
                 attrs:
-                  type: string
+                  type: object
+                  properties:
+                    visibility:
+                      type: string
+                      description: "Visibility of the attribute"
+                      enum: ["hidden", "when_set", "always"]
+                      default: "when_set"
+                    sort_order:
+                      type: number
+                      description: "Sort order for displaying this attribute"
+                    options:
+                      type: array
+                      description: "Options for select/multiselect fields"
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                          color:
+                            type: string
+                    value_type:
+                      type: string
+                      description: "Type of text value"
+                      enum: ["email", "url", "phone"]
+                    ldap:
+                      type: string
+                      description: "LDAP attribute for syncing"
+                    saml:
+                      type: string
+                      description: "SAML attribute for syncing"
       responses:
         "200":
           description: Custom Profile Attribute field patch successful

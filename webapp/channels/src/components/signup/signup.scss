@@ -142,6 +142,7 @@
                 box-shadow: none;
 
                 .signup-body-card-title {
+                    margin: 0;
                     color: var(--center-channel-color);
                     font-family: 'Metropolis';
                     font-size: 22px;
@@ -186,8 +187,7 @@
                         @include mixins.primary-button;
                         @include mixins.button-large;
 
-                        width: 100%;
-                        margin-top: 30px;
+                        width: 100%;                    
                     }
                 }
 

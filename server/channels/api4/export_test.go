@@ -17,6 +17,7 @@ import (
 )
 
 func TestListExports(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -87,6 +88,7 @@ func TestListExports(t *testing.T) {
 }
 
 func TestDeleteExport(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -131,6 +133,7 @@ func TestDeleteExport(t *testing.T) {
 }
 
 func TestDownloadExport(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

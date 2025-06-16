@@ -16,6 +16,8 @@ import (
 )
 
 func TestBusySet(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
@@ -30,9 +32,9 @@ func TestBusySet(t *testing.T) {
 	require.True(t, compareBusyState(t, busy, cluster.Busy))
 
 	// should automatically expire after 5s.
-	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*100)
+	require.Eventually(t, isNotBusy, time.Second*10, time.Millisecond*100)
 	// allow a moment for cluster to sync.
-	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
+	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*5, time.Millisecond*20)
 
 	// test set after auto expiry.
 	busy.Set(time.Second * 30)
@@ -54,6 +56,8 @@ func TestBusySet(t *testing.T) {
 }
 
 func TestBusyExpires(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
@@ -86,10 +90,12 @@ func TestBusyExpires(t *testing.T) {
 	// should be time.Time zero value
 	require.Equal(t, time.Time{}.Unix(), expire.Unix())
 	// allow a moment for cluster to sync
-	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
+	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*5, time.Millisecond*20)
 }
 
 func TestBusyRace(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
@@ -147,12 +153,15 @@ func (c *ClusterMock) NotifyMsg(buf []byte)                           {}
 func (c *ClusterMock) GetClusterStats(rctx request.CTX) ([]*model.ClusterStats, *model.AppError) {
 	return nil, nil
 }
+
 func (c *ClusterMock) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	return nil, nil
 }
+
 func (c *ClusterMock) QueryLogs(rctx request.CTX, page, perPage int) (map[string][]string, *model.AppError) {
 	return nil, nil
 }
+
 func (c *ClusterMock) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error) {
 	return nil, nil
 }
@@ -164,6 +173,7 @@ func (c *ClusterMock) HealthScore() int { return 0 }
 func (c *ClusterMock) WebConnCountForUser(userID string) (int, *model.AppError) {
 	return 0, nil
 }
+
 func (c *ClusterMock) GetWSQueues(userID, connectionID string, seqNum int64) (map[string]*model.WSQueues, error) {
 	return nil, nil
 }

@@ -13,6 +13,7 @@ import (
 )
 
 func TestLoadLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -21,6 +22,7 @@ func TestLoadLicense(t *testing.T) {
 }
 
 func TestSaveLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -31,6 +33,7 @@ func TestSaveLicense(t *testing.T) {
 }
 
 func TestRemoveLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -39,6 +42,7 @@ func TestRemoveLicense(t *testing.T) {
 }
 
 func TestSetLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -60,6 +64,7 @@ func TestSetLicense(t *testing.T) {
 }
 
 func TestGetSanitizedClientLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

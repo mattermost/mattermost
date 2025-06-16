@@ -152,6 +152,13 @@
     font-weight: 600;
     text-transform: uppercase;
 
+    h2 {
+        all: inherit;
+        display: flex;
+        padding: 0;
+        margin: 0;
+    }
+
     &:first-child {
         &::before {
             display: none;

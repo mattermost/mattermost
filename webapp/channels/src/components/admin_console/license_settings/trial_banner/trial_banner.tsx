@@ -367,7 +367,7 @@ const TrialBanner = ({
             title={
                 <FormattedMessage
                     id='licensingPage.infoBanner.startTrialTitle'
-                    defaultMessage='Start a free 30-day tral of Mattermost Enterprise Advanced'
+                    defaultMessage='Start a free 30-day trial of Mattermost Enterprise Advanced'
                 />
             }
             message={

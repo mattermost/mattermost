@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
@@ -16,8 +15,7 @@ import (
 )
 
 func TestGetCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -122,8 +120,7 @@ func TestGetCPAField(t *testing.T) {
 }
 
 func TestListCPAFields(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -167,8 +164,7 @@ func TestListCPAFields(t *testing.T) {
 }
 
 func TestCreateCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
@@ -276,8 +272,7 @@ func TestCreateCPAField(t *testing.T) {
 }
 
 func TestPatchCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -409,11 +404,138 @@ func TestPatchCPAField(t *testing.T) {
 		require.Equal(t, "New Option 1.5", updatedOptions[1].Name)
 		require.Equal(t, "#353535", updatedOptions[1].Color)
 	})
+
+	t.Run("Should not delete the values of a field after patching it if the type has not changed", func(t *testing.T) {
+		// Create a select field with options
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Select Field with values",
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{
+						"name":  "Option 1",
+						"color": "#FF5733",
+					},
+					map[string]any{
+						"name":  "Option 2",
+						"color": "#33FF57",
+					},
+				},
+			},
+		})
+		require.NoError(t, err)
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
+
+		// Get the option IDs by converting back to CPA field
+		cpaField, err := model.NewCPAFieldFromPropertyField(createdField)
+		require.NoError(t, err)
+
+		options := cpaField.Attrs.Options
+		require.Len(t, options, 2)
+		optionID := options[0].ID
+		require.NotEmpty(t, optionID)
+
+		// Create values for this field using the first option
+		userID := model.NewId()
+		value, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(fmt.Sprintf(`"%s"`, optionID)), false)
+		require.Nil(t, appErr)
+		require.NotNil(t, value)
+
+		// Patch the field without changing type (just update name and add a new option)
+		patch := &model.PropertyFieldPatch{
+			Name: model.NewPointer("Updated select field name"),
+			Attrs: model.NewPointer(model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{
+						"id":    optionID, // Keep the same ID for the first option
+						"name":  "Updated Option 1",
+						"color": "#FF5733",
+					},
+					map[string]any{
+						"name":  "Option 2",
+						"color": "#33FF57",
+					},
+					map[string]any{
+						"name":  "Option 3",
+						"color": "#5733FF",
+					},
+				},
+			}),
+		}
+		updatedField, appErr := th.App.PatchCPAField(createdField.ID, patch)
+		require.Nil(t, appErr)
+		require.Equal(t, "Updated select field name", updatedField.Name)
+		require.Equal(t, model.PropertyFieldTypeSelect, updatedField.Type)
+
+		// Verify values still exist
+		values, appErr := th.App.ListCPAValues(userID)
+		require.Nil(t, appErr)
+		require.Len(t, values, 1)
+		require.Equal(t, json.RawMessage(fmt.Sprintf(`"%s"`, optionID)), values[0].Value)
+	})
+
+	t.Run("Should delete the values of a field after patching it if the type has changed", func(t *testing.T) {
+		// Create a select field with options
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Select Field with type change",
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{
+						"name":  "Option A",
+						"color": "#FF5733",
+					},
+					map[string]any{
+						"name":  "Option B",
+						"color": "#33FF57",
+					},
+				},
+			},
+		})
+		require.NoError(t, err)
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
+
+		// Get the option IDs by converting back to CPA field
+		cpaField, err := model.NewCPAFieldFromPropertyField(createdField)
+		require.NoError(t, err)
+
+		options := cpaField.Attrs.Options
+		require.Len(t, options, 2)
+		optionID := options[0].ID
+		require.NotEmpty(t, optionID)
+
+		// Create values for this field
+		userID := model.NewId()
+		value, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(fmt.Sprintf(`"%s"`, optionID)), false)
+		require.Nil(t, appErr)
+		require.NotNil(t, value)
+
+		// Verify value exists before type change
+		values, appErr := th.App.ListCPAValues(userID)
+		require.Nil(t, appErr)
+		require.Len(t, values, 1)
+
+		// Patch the field and change type from select to text
+		patch := &model.PropertyFieldPatch{
+			Type: model.NewPointer(model.PropertyFieldTypeText),
+		}
+		updatedField, appErr := th.App.PatchCPAField(createdField.ID, patch)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PropertyFieldTypeText, updatedField.Type)
+
+		// Verify values have been deleted
+		values, appErr = th.App.ListCPAValues(userID)
+		require.Nil(t, appErr)
+		require.Empty(t, values)
+	})
 }
 
 func TestDeleteCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -494,8 +616,7 @@ func TestDeleteCPAField(t *testing.T) {
 }
 
 func TestGetCPAValue(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -571,9 +692,10 @@ func TestGetCPAValue(t *testing.T) {
 }
 
 func TestListCPAValues(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t).InitBasic()
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	}).InitBasic()
 	defer th.TearDown()
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
@@ -628,8 +750,7 @@ func TestListCPAValues(t *testing.T) {
 }
 
 func TestPatchCPAValue(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -754,9 +875,10 @@ func TestPatchCPAValue(t *testing.T) {
 }
 
 func TestDeleteCPAValues(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t).InitBasic()
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	}).InitBasic()
 	defer th.TearDown()
 
 	cpaGroupID, cErr := th.App.CpaGroupID()

@@ -16,6 +16,7 @@ import (
 )
 
 func TestCreateJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	th.LoginSystemManager()
 	defer th.TearDown()
@@ -50,6 +51,7 @@ func TestCreateJob(t *testing.T) {
 }
 
 func TestGetJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -86,6 +88,7 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestGetJobs(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -170,6 +173,7 @@ func TestGetJobs(t *testing.T) {
 }
 
 func TestGetJobsByType(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	th.LoginSystemManager()
 	defer th.TearDown()
@@ -239,6 +243,7 @@ func TestGetJobsByType(t *testing.T) {
 }
 
 func TestDownloadJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	th.LoginSystemManager()
 	defer th.TearDown()
@@ -280,7 +285,7 @@ func TestDownloadJob(t *testing.T) {
 		require.NoError(t, delErr, "Failed to delete job %s", job.Id)
 	}()
 
-	filePath := filepath.Join(*th.App.Config().FileSettings.Directory, "export", job.Id+"/testdat.txt")
+	filePath := filepath.Join(*th.App.Config().FileSettings.Directory, "export/"+job.Id+"/testdat.txt")
 	err = os.MkdirAll(filepath.Dir(filePath), 0770)
 	require.NoError(t, err)
 
@@ -314,7 +319,7 @@ func TestDownloadJob(t *testing.T) {
 
 	// Now we stub the results of the job into the same directory and try to download it again
 	// This time we should successfully retrieve the results without any error
-	filePath = filepath.Join(*th.App.Config().FileSettings.Directory, "export", job.Id+".zip")
+	filePath = filepath.Join(*th.App.Config().FileSettings.Directory, "export/"+job.Id+".zip")
 	err = os.MkdirAll(filepath.Dir(filePath), 0770)
 	require.NoError(t, err)
 
@@ -372,6 +377,7 @@ func TestDownloadJob(t *testing.T) {
 }
 
 func TestCancelJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -422,6 +428,7 @@ func TestCancelJob(t *testing.T) {
 }
 
 func TestUpdateJobStatus(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

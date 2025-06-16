@@ -68,7 +68,7 @@ export const useUserPropertiesTable = (): SectionHook => {
                     <PlusIcon size={16}/>
                     <FormattedMessage
                         id='admin.system_properties.user_properties.add_property'
-                        defaultMessage='Add property'
+                        defaultMessage='Add attribute'
                     />
                 </LinkButton>
             )}
@@ -112,7 +112,7 @@ export function UserPropertiesTable({
                         <ColHeaderLeft>
                             <FormattedMessage
                                 id='admin.system_properties.user_properties.table.property'
-                                defaultMessage='Property'
+                                defaultMessage='Attribute'
                             />
                         </ColHeaderLeft>
                     );
@@ -128,7 +128,7 @@ export function UserPropertiesTable({
                             <FormattedMessage
                                 tagName={DangerText}
                                 id='admin.system_properties.user_properties.table.validation.name_required'
-                                defaultMessage='Please enter a property name.'
+                                defaultMessage='Please enter an attribute name.'
                             />
                         );
                     } else if (warningId === ValidationWarningNameUnique) {
@@ -136,7 +136,7 @@ export function UserPropertiesTable({
                             <FormattedMessage
                                 tagName={DangerText}
                                 id='admin.system_properties.user_properties.table.validation.name_unique'
-                                defaultMessage='Property names must be unique.'
+                                defaultMessage='Attribute names must be unique.'
                             />
                         );
                     } else if (warningId === ValidationWarningNameTaken) {
@@ -144,7 +144,7 @@ export function UserPropertiesTable({
                             <FormattedMessage
                                 tagName={DangerText}
                                 id='admin.system_properties.user_properties.table.validation.name_taken'
-                                defaultMessage='Property name already taken.'
+                                defaultMessage='Attribute name already taken.'
                             />
                         );
                     }
@@ -154,7 +154,7 @@ export function UserPropertiesTable({
                             <EditCell
                                 strong={true}
                                 value={getValue()}
-                                label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Property Name'})}
+                                label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Attribute Name'})}
                                 deleted={toDelete}
                                 borderless={!warning}
                                 testid='property-field-input'

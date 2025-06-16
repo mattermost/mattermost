@@ -393,10 +393,10 @@ const TabsWrapper = styled.div`
             }
 
             &.active {
-                border-bottom: 2px solid var(--denim-button-bg);
+                border-bottom: 2px solid var(--button-bg);
 
                 a {
-                    color: var(--denim-button-bg);
+                    color: var(--button-bg);
                 }
             }
 

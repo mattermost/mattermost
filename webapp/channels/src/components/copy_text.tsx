@@ -33,7 +33,7 @@ const CopyText = ({
         <WithTooltip title={label}>
             <button
                 data-testid='copyText'
-                className='btn btn-link fa fa-copy ml-2'
+                className='btn btn-link icon-content-copy ml-2'
                 aria-label={intl.formatMessage(label)}
                 onClick={copyText}
             />

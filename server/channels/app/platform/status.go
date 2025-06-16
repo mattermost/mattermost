@@ -352,7 +352,7 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 	}
 }
 
-func (ps *PlatformService) SetStatusOffline(userID string, manual bool) {
+func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bool) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -360,7 +360,7 @@ func (ps *PlatformService) SetStatusOffline(userID string, manual bool) {
 	status, err := ps.GetStatus(userID)
 	if err != nil {
 		ps.Log().Warn("Error getting status. Setting it to offline forcefully.", mlog.String("user_id", userID), mlog.Err(err))
-	} else if status.Manual && !manual {
+	} else if !force && status.Manual && !manual {
 		return // manually set status always overrides non-manual one
 	}
 	ps._setStatusOfflineAndNotify(userID, manual)
@@ -385,6 +385,7 @@ func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool) {
 	if err != nil {
 		ps.Log().Warn("Error getting status. Setting it to offline forcefully.", mlog.String("user_id", userID), mlog.Err(err))
 	} else if status.Manual && !manual {
+		// Force will be false here, so no need to add another variable.
 		return // manually set status always overrides non-manual one
 	}
 

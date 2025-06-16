@@ -5,13 +5,15 @@ package docextractor
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/mholt/archiver/v3"
+	"github.com/mholt/archives"
 )
 
 type archiveExtractor struct {
@@ -23,7 +25,7 @@ func (ae *archiveExtractor) Name() string {
 }
 
 func (ae *archiveExtractor) Match(filename string) bool {
-	_, err := archiver.ByExtension(filename)
+	_, _, err := archives.Identify(context.Background(), filename, nil)
 	return err == nil
 }
 
@@ -53,17 +55,37 @@ func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error
 	}
 
 	var text strings.Builder
-	err = archiver.Walk(f.Name(), func(file archiver.File) error {
-		text.WriteString(file.Name() + " ")
+	fsys, err := archives.FileSystem(context.Background(), f.Name(), nil)
+	if err != nil {
+		return "", fmt.Errorf("error creating file system: %w", err)
+	}
+
+	err = fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		text.WriteString(path + " ")
 		if ae.SubExtractor != nil {
-			filename := filepath.Base(file.Name())
+			filename := filepath.Base(path)
 			filename = strings.ReplaceAll(filename, "-", " ")
 			filename = strings.ReplaceAll(filename, ".", " ")
 			filename = strings.ReplaceAll(filename, ",", " ")
-			data, err2 := io.ReadAll(file)
-			if err2 != nil {
-				return err2
+
+			file, err := fsys.Open(path)
+			if err != nil {
+				return err
 			}
+			defer file.Close()
+
+			data, err := io.ReadAll(file)
+			if err != nil {
+				return err
+			}
+
 			subtext, extractErr := ae.SubExtractor.Extract(filename, bytes.NewReader(data))
 			if extractErr == nil {
 				text.WriteString(subtext + " ")

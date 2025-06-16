@@ -43,6 +43,7 @@ func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
 }
 
 func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
+	mainHelper.Parallel(t)
 	for name, tc := range map[string]struct {
 		HTML       string
 		RequestURL string
@@ -128,6 +129,7 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 }
 
 func TestOpenGraphDecodeHTMLEntities(t *testing.T) {
+	mainHelper.Parallel(t)
 	og := opengraph.NewOpenGraph()
 	og.Title = "Test&#39;s are the best.&copy;"
 	og.Description = "Test&#39;s are the worst.&copy;"

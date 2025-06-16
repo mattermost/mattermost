@@ -10,7 +10,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
     <div>
       <Connect(Component)
         className="fa fa-angle-left back"
-        to="/admin_console/user_management/attribute_based_access_control"
+        to="/admin_console/system_attributes/attribute_based_access_control"
       />
       <MemoizedFormattedMessage
         defaultMessage="Edit Access Control Policy"
@@ -28,6 +28,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         className="admin-console__setting-group"
       >
         <TextSetting
+          autoFocus={false}
           id="admin.access_control.policy.edit_policy.policyName"
           inputClassName="col-sm-8"
           label={
@@ -78,13 +79,29 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             }
             isDisabled={false}
             onClick={[Function]}
-            subtitle="Select user attributes and values as rules to restrict channel membership."
-            title="Attribute based access rules"
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Select user attributes and values as rules to restrict channel membership."
+                id="admin.access_control.policy.edit_policy.access_rules.subtitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Attribute-based access rules"
+                id="admin.access_control.policy.edit_policy.access_rules.title"
+              />
+            }
           />
         </CardHeader>
         <CardBody>
           <TableEditor
+            actions={
+              Object {
+                "getVisualAST": [MockFunction],
+              }
+            }
             onChange={[Function]}
+            onParseError={[Function]}
             onValidate={[Function]}
             userAttributes={Array []}
             value=""
@@ -106,7 +123,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             onClick={[Function]}
             subtitle={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Add channels that this property based access policy will apply to."
+                defaultMessage="Add channels that this attribute-based access policy will apply to."
                 id="admin.access_control.policy.edit_policy.channel_selector.subtitle"
               />
             }
@@ -176,7 +193,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
     />
     <Connect(Component)
       className="btn btn-quaternary"
-      to="/admin_console/user_management/attribute_based_access_control"
+      to="/admin_console/system_attributes/attribute_based_access_control"
     >
       <MemoizedFormattedMessage
         defaultMessage="Cancel"
@@ -197,7 +214,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
     <div>
       <Connect(Component)
         className="fa fa-angle-left back"
-        to="/admin_console/user_management/attribute_based_access_control"
+        to="/admin_console/system_attributes/attribute_based_access_control"
       />
       <MemoizedFormattedMessage
         defaultMessage="Edit Access Control Policy"
@@ -215,6 +232,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         className="admin-console__setting-group"
       >
         <TextSetting
+          autoFocus={false}
           id="admin.access_control.policy.edit_policy.policyName"
           inputClassName="col-sm-8"
           label={
@@ -265,13 +283,29 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             }
             isDisabled={false}
             onClick={[Function]}
-            subtitle="Select user attributes and values as rules to restrict channel membership."
-            title="Attribute based access rules"
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Select user attributes and values as rules to restrict channel membership."
+                id="admin.access_control.policy.edit_policy.access_rules.subtitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Attribute-based access rules"
+                id="admin.access_control.policy.edit_policy.access_rules.title"
+              />
+            }
           />
         </CardHeader>
         <CardBody>
           <TableEditor
+            actions={
+              Object {
+                "getVisualAST": [MockFunction],
+              }
+            }
             onChange={[Function]}
+            onParseError={[Function]}
             onValidate={[Function]}
             userAttributes={Array []}
             value=""
@@ -293,7 +327,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             onClick={[Function]}
             subtitle={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Add channels that this property based access policy will apply to."
+                defaultMessage="Add channels that this attribute-based access policy will apply to."
                 id="admin.access_control.policy.edit_policy.channel_selector.subtitle"
               />
             }
@@ -334,7 +368,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
     />
     <Connect(Component)
       className="btn btn-quaternary"
-      to="/admin_console/user_management/attribute_based_access_control"
+      to="/admin_console/system_attributes/attribute_based_access_control"
     >
       <MemoizedFormattedMessage
         defaultMessage="Cancel"

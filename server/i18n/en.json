@@ -2317,6 +2317,10 @@
     "translation": "Unable to count total unique users."
   },
   {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "This license does not support MySQL."
+  },
+  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "No file under 'license' in request."
   },
@@ -2367,6 +2371,10 @@
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
     "translation": "Failed to apply new trial license as your workspace has already applied a trial license. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "Trial licenses are not supported for MySQL databases. Please use PostgreSQL to access trial features."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -4035,6 +4043,10 @@
     "translation": "Unable to create the user, invalid invitation."
   },
   {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Can't create user. Server exceeds maximum licensed users. Contact your administrator with: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
     "id": "api.user.create_user.no_open_server",
     "translation": "This server does not allow open signups.  Please speak with your Administrator to receive an invitation."
   },
@@ -4495,8 +4507,16 @@
     "translation": "Failed to parse request"
   },
   {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Failed to save the batch of acknowledgement objects"
+  },
+  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Unable to delete acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Cannot delete acknowledgement for missing post"
   },
   {
     "id": "app.acknowledgement.get.app_error",
@@ -4505,6 +4525,10 @@
   {
     "id": "app.acknowledgement.getforpost.get.app_error",
     "translation": "Unable to get acknowledgement for post."
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Cannot save acknowledgement for missing post"
   },
   {
     "id": "app.acknowledgement.save.save.app_error",
@@ -5607,6 +5631,10 @@
     "translation": "Failed to read profile image data."
   },
   {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Failed to validate attachment import data. Invalid path: \"{{.Path}}\""
+  },
+  {
     "id": "app.import.validate_bot_import_data.owner_missing.error",
     "translation": "Bot owner is missing"
   },
@@ -5671,6 +5699,10 @@
     "translation": "Direct channel can only be favorited by members. \"{{.Username}}\" is not a member."
   },
   {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Failed to validate direct post attachment data."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "Missing required direct post property: channel_members"
   },
@@ -5715,8 +5747,16 @@
     "translation": "Import emoji image field missing or blank."
   },
   {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Import emoji image field has an invalid path: \"{{.Path}}\""
+  },
+  {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
     "translation": "Import emoji name field missing or blank."
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Failed to validate post attachment data."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -5773,6 +5813,10 @@
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Missing required Reaction property: User."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Failed to validate reply attachment data."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -5937,6 +5981,10 @@
   {
     "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
     "translation": "User roles are not consistent with guest status."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "User profile image path is invalid: \"{{.Path}}\""
   },
   {
     "id": "app.import.validate_user_import_data.last_name_length.error",
@@ -7509,8 +7557,12 @@
     "translation": "Cannot demote last System Admin."
   },
   {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Can't activate user. Server exceeds maximum licensed users. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Can't activate user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Can't activate user. Server exceeds safe user limit. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "app.user.update_active_for_multiple_users.updating.app_error",
@@ -7887,6 +7939,10 @@
   {
     "id": "common.parse_error_int64",
     "translation": "Failed to parse the value:{{.Value}} to int64"
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Failed to extract data from previous job."
   },
   {
     "id": "ent.access_control.sync_job.app_error",
@@ -8709,6 +8765,10 @@
     "translation": "Version is not valid for this access control policy."
   },
   {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
+  },
+  {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
     "translation": "Invalid post id."
   },
@@ -9143,6 +9203,10 @@
   {
     "id": "model.config.is_valid.directory.app_error",
     "translation": "Invalid Local Storage Directory. Must be a non-empty string."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Leading or trailing whitespace detected for {{.Setting}}. Found \"{{.Value}}\"."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
