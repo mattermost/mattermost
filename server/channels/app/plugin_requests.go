@@ -129,7 +129,7 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
 	handleInternalServerError := func(rctx request.CTX, logMsg string, err error) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		rctx.Logger().Error("Internal server error during MFA validation", mlog.Err(err))
+		rctx.Logger().Error(logMsg, mlog.Err(err))
 	}
 
 	context := &plugin.Context{
@@ -281,7 +281,6 @@ func (ch *Channels) validateCSRFForPluginRequest(rctx request.CTX, r *http.Reque
 		// Allow XMLHttpRequest for backward compatibility when not strict
 		rctx.Logger().Debug(csrfErrorMessage, mlog.String("session_id", session.Id))
 		return true
-
 	}
 
 	return false
