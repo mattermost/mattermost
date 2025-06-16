@@ -393,18 +393,11 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             );
 
             await waitFor(() => {
+                // Should warn about element validation errors
                 expect(mockConsole.warn).toHaveBeenCalledWith(
                     '[InteractiveDialogAdapter]',
-                    'Dialog validation errors detected (non-blocking)',
-                    expect.objectContaining({
-                        errorCount: expect.any(Number),
-                        errors: expect.arrayContaining([
-                            expect.objectContaining({
-                                field: 'title',
-                                code: 'TOO_LONG',
-                            }),
-                        ]),
-                    }),
+                    'Element validation errors for unnamed',
+                    expect.any(Object),
                 );
             });
         });
@@ -474,7 +467,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             await waitFor(() => {
                 expect(mockConsole.warn).toHaveBeenCalledWith(
                     '[InteractiveDialogAdapter]',
-                    'Dialog validation errors detected (non-blocking)',
+                    'Element validation errors for ' + 'a'.repeat(301),
                     expect.objectContaining({
                         errors: expect.arrayContaining([
                             expect.objectContaining({
@@ -538,7 +531,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             await waitFor(() => {
                 expect(mockConsole.warn).toHaveBeenCalledWith(
                     '[InteractiveDialogAdapter]',
-                    'Dialog validation errors detected (non-blocking)',
+                    'Element validation errors for test-select',
                     expect.objectContaining({
                         errors: expect.arrayContaining([
                             expect.objectContaining({
@@ -589,7 +582,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             await waitFor(() => {
                 expect(mockConsole.warn).toHaveBeenCalledWith(
                     '[InteractiveDialogAdapter]',
-                    'Dialog validation errors detected (non-blocking)',
+                    'Element validation errors for test-select',
                     expect.objectContaining({
                         errors: expect.arrayContaining([
                             expect.objectContaining({

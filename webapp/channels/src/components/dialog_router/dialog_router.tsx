@@ -1,47 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
+import React, {useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
 import {interactiveDialogAppsFormEnabled} from 'mattermost-redux/selectors/entities/interactive_dialog';
 
+import type {PropsFromRedux} from 'components/interactive_dialog/index';
 import InteractiveDialog from 'components/interactive_dialog/interactive_dialog';
 
 import type {GlobalState} from 'types/store';
 
 import InteractiveDialogAdapter from './interactive_dialog_adapter';
 
-type Props = Record<string, any>;
+type Props = PropsFromRedux & {
+    onExited?: () => void;
+};
 
 const DialogRouter: React.FC<Props> = (props) => {
-    const [Component, setComponent] = useState<React.ComponentType<any> | null>(null);
-    const [loading, setLoading] = useState(true);
-
     const isAppsFormEnabled = useSelector((state: GlobalState) => interactiveDialogAppsFormEnabled(state));
     const hasUrl = Boolean(props.url);
 
-    useEffect(() => {
-        const loadComponent = async () => {
-            setLoading(true);
-
-            if (isAppsFormEnabled && hasUrl) {
-                // Use AppsForm-based adapter for dialogs with URLs when feature flag is enabled
-                setComponent(() => InteractiveDialogAdapter);
-            } else {
-                // Use legacy InteractiveDialog for all other cases
-                setComponent(() => InteractiveDialog);
-            }
-
-            setLoading(false);
-        };
-
-        loadComponent();
+    const Component = useMemo(() => {
+        return (isAppsFormEnabled && hasUrl) ? InteractiveDialogAdapter : InteractiveDialog;
     }, [isAppsFormEnabled, hasUrl]);
-
-    if (loading || !Component) {
-        return null; // Could add a loading spinner here if needed
-    }
 
     return <Component {...props}/>;
 };

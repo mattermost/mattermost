@@ -122,32 +122,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     };
 
     /**
-     * Validate dialog structure and elements
-     */
-    private validateDialog = (): ValidationError[] => {
-        const errors: ValidationError[] = [];
-        const {elements, title} = this.props;
-
-        // Validate dialog properties - relaxed for backwards compatibility
-        // Title is not strictly required in legacy dialogs, only warn if too long
-        if (title && title.length > 24) { // Server limit is 24 chars, not 64
-            errors.push({
-                field: 'title',
-                message: `Dialog title too long: ${title.length} > 24 characters (server limit)`,
-                code: 'TOO_LONG',
-            });
-        }
-
-        // Validate dialog elements
-        elements?.forEach((element, index) => {
-            const elementErrors = this.validateDialogElement(element, index);
-            errors.push(...elementErrors);
-        });
-
-        return errors;
-    };
-
-    /**
      * Validate individual dialog element
      */
     private validateDialogElement = (element: DialogElement, index: number): ValidationError[] => {
@@ -205,44 +179,28 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             });
         }
 
-        // Additional validation for select options
-        if (element.type === 'select' && element.options) {
-            element.options.forEach((option, optIndex) => {
-                if (!option.text?.trim()) {
-                    errors.push({
-                        field: `${fieldPrefix}.options[${optIndex}].text`,
-                        message: 'Option text is required',
-                        code: 'REQUIRED',
-                    });
-                }
-                if (option.value === null || option.value === undefined || String(option.value).trim() === '') {
-                    errors.push({
-                        field: `${fieldPrefix}.options[${optIndex}].value`,
-                        message: 'Option value is required',
-                        code: 'REQUIRED',
-                    });
-                }
-            });
-        }
+        // Optimized validation for select/radio options
+        if ((element.type === 'select' || element.type === 'radio') && element.options) {
+            const optionType = element.type === 'radio' ? 'Radio option' : 'Option';
 
-        // Validation for radio fields (similar to select)
-        if (element.type === 'radio' && element.options) {
-            element.options.forEach((option, optIndex) => {
+            for (let optIndex = 0; optIndex < element.options.length; optIndex++) {
+                const option = element.options[optIndex];
+
                 if (!option.text?.trim()) {
                     errors.push({
                         field: `${fieldPrefix}.options[${optIndex}].text`,
-                        message: 'Radio option text is required',
+                        message: `${optionType} text is required`,
                         code: 'REQUIRED',
                     });
                 }
                 if (option.value === null || option.value === undefined || String(option.value).trim() === '') {
                     errors.push({
                         field: `${fieldPrefix}.options[${optIndex}].value`,
-                        message: 'Radio option value is required',
+                        message: `${optionType} value is required`,
                         code: 'REQUIRED',
                     });
                 }
-            });
+            }
         }
 
         // Validation for text fields with proper server limits
@@ -326,24 +284,62 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     private convertToAppForm = (): AppForm => {
         const {elements, title, introductionText, iconUrl} = this.props;
 
-        // Validate dialog if validation is enabled
+        // Convert elements with validation done per element
+        const convertedFields: AppField[] = [];
+        const validationErrors: ValidationError[] = [];
+
+        // Validate title upfront if validation is enabled
         if (this.conversionContext.validateInputs) {
-            const validationErrors = this.validateDialog();
-            if (validationErrors.length > 0) {
-                this.logWarn('Dialog validation errors detected (non-blocking)', {
-                    errorCount: validationErrors.length,
-                    errors: validationErrors,
-                    note: 'These are warnings - processing will continue for backwards compatibility',
+            if (!title?.trim()) {
+                validationErrors.push({
+                    field: 'title',
+                    message: 'Dialog title is required',
+                    code: 'REQUIRED',
                 });
-                if (this.conversionContext.strictMode) {
-                    const errorMessage = this.props.intl.formatMessage({
-                        id: 'interactive_dialog.validation_failed',
-                        defaultMessage: 'Dialog validation failed: {errors}',
-                    }, {
-                        errors: validationErrors.map((e) => e.message).join(', '),
+            }
+        }
+
+        // Convert elements with single validation pass
+        elements?.forEach((element, index) => {
+            try {
+                const convertedField = this.convertElement(element, index);
+                convertedFields.push(convertedField);
+            } catch (error) {
+                if (this.conversionContext.validateInputs) {
+                    validationErrors.push({
+                        field: `elements[${index}]`,
+                        message: error instanceof Error ? error.message : 'Conversion failed',
+                        code: 'CONVERSION_ERROR',
                     });
-                    throw new Error(errorMessage);
                 }
+
+                // In non-strict mode, continue with a placeholder field
+                if (!this.conversionContext.strictMode) {
+                    convertedFields.push({
+                        name: element.name || `element_${index}`,
+                        type: AppFieldTypes.TEXT,
+                        label: element.display_name || 'Invalid Field',
+                        description: 'This field could not be converted properly',
+                    });
+                }
+            }
+        });
+
+        // Handle validation errors if any
+        if (validationErrors.length > 0 && this.conversionContext.validateInputs) {
+            this.logWarn('Dialog validation errors detected (non-blocking)', {
+                errorCount: validationErrors.length,
+                errors: validationErrors,
+                note: 'These are warnings - processing will continue for backwards compatibility',
+            });
+            if (this.conversionContext.strictMode) {
+                const errorMessage = this.props.intl.formatMessage({
+                    id: 'interactive_dialog.validation_failed',
+                    defaultMessage: 'Dialog validation failed: {errors}',
+                }, {
+                    errors: validationErrors.map((e) => e.message).join(', '),
+                });
+                throw new Error(errorMessage);
             }
         }
 
@@ -355,25 +351,34 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 path: '/submit',
                 expand: {},
             },
-            fields: elements?.map(this.convertElement) || [],
+            fields: convertedFields,
         };
     };
 
     /**
      * Convert DialogElement to AppField with enhanced type safety and validation
      */
-    private convertElement = (element: DialogElement): AppField => {
-        // Validate element before conversion
+    private convertElement = (element: DialogElement, index?: number): AppField => {
+        // Validate element before conversion (single validation pass)
         if (this.conversionContext.validateInputs) {
-            const errors = this.validateDialogElement(element, 0);
-            if (errors.length > 0 && this.conversionContext.strictMode) {
-                const errorMessage = this.props.intl.formatMessage({
-                    id: 'interactive_dialog.element_validation_failed',
-                    defaultMessage: 'Element validation failed: {errors}',
-                }, {
-                    errors: errors.map((e) => e.message).join(', '),
-                });
-                throw new Error(errorMessage);
+            const errors = this.validateDialogElement(element, index ?? 0);
+            if (errors.length > 0) {
+                if (this.conversionContext.strictMode) {
+                    const errorMessage = this.props.intl.formatMessage({
+                        id: 'interactive_dialog.element_validation_failed',
+                        defaultMessage: 'Element validation failed: {errors}',
+                    }, {
+                        errors: errors.map((e) => e.message).join(', '),
+                    });
+                    throw new Error(errorMessage);
+                } else {
+                    // Log validation errors in non-strict mode but continue conversion
+                    this.logWarn(`Element validation errors for ${element.name || 'unnamed'}`, {
+                        errors,
+                        element: element.name,
+                        index,
+                    });
+                }
             }
         }
 
