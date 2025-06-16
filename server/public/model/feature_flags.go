@@ -93,7 +93,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ChannelBookmarks = true
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
-	f.ExperimentalAuditSettingsSystemConsoleUI = false
+	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
 }
