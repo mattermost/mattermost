@@ -205,6 +205,7 @@ describe('LDAP guest', () => {
                     // # Save settings
                     cy.get('#saveSetting').should('be.enabled').click();
                     cy.get('#genericModalLabel > span').should('be.visible').and('have.text', 'Save and remove 1 user?');
+
                     // # Accept confirmation modal
                     cy.get('#confirmModalButton').should('be.visible').click();
                     cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Mattermost Teams');
