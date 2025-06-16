@@ -42,7 +42,7 @@ func TestCheckForClientSideCert(t *testing.T) {
 
 func TestCWSLogin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	license := model.NewTestLicense()
 	license.Features.Cloud = model.NewPointer(true)

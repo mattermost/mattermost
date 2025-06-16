@@ -402,7 +402,7 @@ func TestPrivateServePluginRequest(t *testing.T) {
 
 func TestHandlePluginRequest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -732,7 +732,7 @@ func TestSyncPluginsActiveState(t *testing.T) {
 func TestPluginPanicLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should panic", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -781,7 +781,7 @@ func TestPluginPanicLogs(t *testing.T) {
 func TestPluginStatusActivateError(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return error from OnActivate in plugin statuses", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		pluginSource := `

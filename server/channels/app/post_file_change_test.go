@@ -12,7 +12,7 @@ import (
 
 func TestProcessPostFileChanges(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("no files", func(t *testing.T) {

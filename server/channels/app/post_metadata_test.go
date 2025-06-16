@@ -116,7 +116,7 @@ func TestPreparePostForClient(t *testing.T) {
 	defer server.Close()
 
 	setup := func(t *testing.T) *TestHelper {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableLinkPreviews = true
@@ -866,7 +866,7 @@ func TestPreparePostForClient(t *testing.T) {
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
 	mainHelper.Parallel(t)
 	setup := func(t *testing.T) *TestHelper {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableLinkPreviews = true
@@ -1599,7 +1599,7 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 
 func TestGetCustomEmojisForPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1679,7 +1679,7 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 
 func TestGetFirstLinkAndImages(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	for name, testCase := range map[string]struct {
@@ -1848,7 +1848,7 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 
 func TestGetImagesInMessageAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	for _, test := range []struct {
@@ -2965,7 +2965,7 @@ func TestContainsPermalink(t *testing.T) {
 
 func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
@@ -3090,7 +3090,7 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 
 func TestSanitizePostMetaDataForAudit(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -3143,7 +3143,7 @@ func TestSanitizePostMetaDataForAudit(t *testing.T) {
 
 func TestSanitizePostMetadataForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews

@@ -121,7 +121,7 @@ func TestDoUploadFile(t *testing.T) {
 
 func TestUploadFile(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	channelID := th.BasicChannel.Id
@@ -152,7 +152,7 @@ func TestUploadFile(t *testing.T) {
 
 func TestParseOldFilenames(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	fileID := model.NewId()
@@ -250,7 +250,7 @@ func TestParseOldFilenames(t *testing.T) {
 
 func TestGetInfoForFilename(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	post := th.BasicPost
@@ -262,7 +262,7 @@ func TestGetInfoForFilename(t *testing.T) {
 
 func TestFindTeamIdForFilename(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	teamID := th.App.findTeamIdForFilename(th.Context, th.BasicPost, "someid", "somefile.png")
@@ -277,7 +277,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 
 func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	post := th.BasicPost
@@ -477,7 +477,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 	searchTerm := "searchTerm"
 
 	setup := func(t *testing.T, enableElasticsearch bool) (*TestHelper, []*model.FileInfo) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 
 		fileInfos := make([]*model.FileInfo, 7)
 		for i := 0; i < cap(fileInfos); i++ {
@@ -772,7 +772,7 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 
 func TestSetFileSearchableContent(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	fileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context,
@@ -801,7 +801,7 @@ func TestSetFileSearchableContent(t *testing.T) {
 
 func TestPermanentDeleteFilesByPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("should delete files for post", func(t *testing.T) {

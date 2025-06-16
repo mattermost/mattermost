@@ -197,7 +197,7 @@ func TestMetrics(t *testing.T) {
 		})
 		defer th.TearDown()
 
-		_ = th.CreateUserOrGuest(false)
+		_ = th.CreateUserOrGuest(t, false)
 
 		mockMetricsImpl.AssertExpectations(t)
 	})

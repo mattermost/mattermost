@@ -11,7 +11,7 @@ import (
 
 func TestUserTermsOfService(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	userTermsOfService, err := th.App.GetUserTermsOfService(th.BasicUser.Id)

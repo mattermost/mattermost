@@ -13,7 +13,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -62,9 +61,7 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	updateConfig func(*model.Config), options []Option, tb testing.TB,
 ) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	configStore := config.NewTestMemoryStore()
 	memoryConfig := configStore.Get()
@@ -88,9 +85,11 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 		var signaturePublicKey []byte
 		signaturePublicKey, err = os.ReadFile(signaturePublicKeyFile)
 		require.NoError(tb, err, "failed to read signature public key file %s", signaturePublicKeyFile)
-		configStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
+		err = configStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
+		require.NoError(tb, err)
 	}
-	configStore.Set(memoryConfig)
+	_, _, err = configStore.Set(memoryConfig)
+	require.NoError(tb, err)
 
 	buffer := &mlog.Buffer{}
 
@@ -104,20 +103,18 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
-		panic("failed to configure test logger: " + errCfg.Error())
-	}
-	if errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...); errW != nil {
-		panic("failed to add writer target to test logger: " + errW.Error())
-	}
+	err = testLogger.ConfigureTargets(logCfg, nil)
+	require.NoError(tb, err)
+
+	err = mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...)
+	require.NoError(tb, err)
+
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
 	options = append(options, SetLogger(testLogger))
 
 	s, err := NewServer(options...)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	th := &TestHelper{
 		App:               New(ServerConnector(s.Channels())),
@@ -145,10 +142,8 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 		th.App.UpdateConfig(updateConfig)
 	}
 
-	serverErr := th.Server.Start()
-	if serverErr != nil {
-		panic(serverErr)
-	}
+	err = th.Server.Start()
+	require.NoError(tb, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
@@ -294,50 +289,20 @@ func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *
 	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, true, true, nil, []Option{SetCluster(cluster)}, tb)
 }
 
-var (
-	initBasicOnce sync.Once
-	userCache     struct {
-		SystemAdminUser *model.User
-		BasicUser       *model.User
-		BasicUser2      *model.User
-	}
-)
+func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
+	th.SystemAdminUser = th.CreateUser()
+	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	require.Nil(tb, appErr)
+	th.SystemAdminUser, appErr = th.App.GetUser(th.SystemAdminUser.Id)
+	require.Nil(tb, appErr)
 
-func (th *TestHelper) InitBasic() *TestHelper {
-	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		var err *model.AppError
+	th.BasicUser = th.CreateUser()
+	th.BasicUser, appErr = th.App.GetUser(th.BasicUser.Id)
+	require.Nil(tb, appErr)
 
-		th.SystemAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		th.SystemAdminUser, err = th.App.GetUser(th.SystemAdminUser.Id)
-		if err != nil {
-			panic(err)
-		}
-		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
-
-		th.BasicUser = th.CreateUser()
-		th.BasicUser, err = th.App.GetUser(th.BasicUser.Id)
-		if err != nil {
-			panic(err)
-		}
-		userCache.BasicUser = th.BasicUser.DeepCopy()
-
-		th.BasicUser2 = th.CreateUser()
-		th.BasicUser2, err = th.App.GetUser(th.BasicUser2.Id)
-		if err != nil {
-			panic(err)
-		}
-		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
-	})
-
-	// restore cached users
-	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
-	th.BasicUser = userCache.BasicUser.DeepCopy()
-	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-
-	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	th.Store.User().InsertUsers(users)
+	th.BasicUser2 = th.CreateUser()
+	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
+	require.Nil(tb, appErr)
 
 	th.BasicTeam = th.CreateTeam()
 
@@ -348,10 +313,11 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	return th
 }
 
-func (th *TestHelper) DeleteBots() *TestHelper {
+func (th *TestHelper) DeleteBots(tb testing.TB) *TestHelper {
 	preexistingBots, _ := th.App.GetBots(th.Context, &model.BotGetOptions{Page: 0, PerPage: 100})
 	for _, bot := range preexistingBots {
-		th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		require.Nil(tb, appErr)
 	}
 	return th
 }
@@ -685,7 +651,9 @@ func (th *TestHelper) ShutdownApp() {
 func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
+		appErr := th.App.Srv().InvalidateAllCaches()
+		require.Nil(tb, appErr)
+
 	}
 	th.ShutdownApp()
 	if th.tempWorkspace != "" {

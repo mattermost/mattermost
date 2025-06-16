@@ -61,7 +61,7 @@ func registerDummyWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *
 
 func TestHubStopWithMultipleConnections(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
@@ -84,7 +84,7 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 // block the caller indefinitely.
 func TestHubStopRaceCondition(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.Service.Store.Close()
 	// We do not call TearDown because th.TearDown shuts down the hub again. And hub close is not idempotent.
 	// Making it idempotent is not really important to the server because close only happens once.
@@ -184,7 +184,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 func TestHubConnIndex(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	_, err := th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
@@ -409,7 +409,7 @@ func TestHubConnIndex(t *testing.T) {
 			require.Len(t, slices.Collect(connIndex.ForChannel("notexist")), 0)
 		})
 
-		ch := th.CreateChannel(th.BasicTeam)
+		ch := th.CreateChannel(t, th.BasicTeam)
 		_, err = th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
 			ChannelId:   ch.Id,
 			UserId:      th.BasicUser2.Id,
@@ -588,7 +588,7 @@ func TestReliableWebSocketSend(t *testing.T) {
 
 func TestHubIsRegistered(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	session, err := th.Service.CreateSession(th.Context, &model.Session{
@@ -623,7 +623,7 @@ func TestHubIsRegistered(t *testing.T) {
 
 func TestHubWebConnCount(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	session, err := th.Service.CreateSession(th.Context, &model.Session{
@@ -726,7 +726,7 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 }
 
 func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
-	th := Setup(b).InitBasic()
+	th := Setup(b).InitBasic(b)
 	defer th.TearDown()
 
 	_, err := th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
@@ -789,7 +789,7 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 // Always run this with -benchtime=0.1s
 // See: https://github.com/golang/go/issues/27217.
 func BenchmarkHubConnIndex(b *testing.B) {
-	th := Setup(b).InitBasic()
+	th := Setup(b).InitBasic(b)
 	defer th.TearDown()
 	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
 
@@ -878,7 +878,7 @@ func TestHubConnIndexRemoveMemLeak(t *testing.T) {
 var hubSink *Hub
 
 func BenchmarkGetHubForUserId(b *testing.B) {
-	th := Setup(b).InitBasic()
+	th := Setup(b).InitBasic(b)
 	defer th.TearDown()
 
 	err := th.Service.Start(nil)

@@ -454,7 +454,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 
 	// Reset test server
 	th.TearDown()
-	th = Setup(t).InitBasic()
+	th = Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
@@ -467,7 +467,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 			require.NotNil(t, p)
 		}
 
-		// InitBasic() already creats 5 posts
+		// InitBasic(t) already creats 5 posts
 		packet := generateStats(t)
 		assert.Equal(t, int64(10), packet.Posts)
 	})
@@ -589,7 +589,7 @@ func TestGetSupportPacketJobList(t *testing.T) {
 
 func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)

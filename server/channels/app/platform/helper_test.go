@@ -6,7 +6,6 @@ package platform
 import (
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -35,15 +34,6 @@ type TestHelper struct {
 
 	SystemAdminUser *model.User
 }
-
-var (
-	initBasicOnce sync.Once
-	userCache     struct {
-		SystemAdminUser *model.User
-		BasicUser       *model.User
-		BasicUser2      *model.User
-	}
-)
 
 type mockSuite struct{}
 
@@ -94,31 +84,18 @@ func Setup(tb testing.TB, options ...Option) *TestHelper {
 	return setupTestHelper(dbStore, dbSettings, false, true, tb, options...)
 }
 
-func (th *TestHelper) InitBasic() *TestHelper {
-	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		th.SystemAdminUser = th.CreateAdmin()
-		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
+func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
+	th.SystemAdminUser = th.CreateAdmin(tb)
 
-		th.BasicUser = th.CreateUserOrGuest(false)
-		userCache.BasicUser = th.BasicUser.DeepCopy()
+	th.BasicUser = th.CreateUserOrGuest(tb, false)
 
-		th.BasicUser2 = th.CreateUserOrGuest(false)
-		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
-	})
-	// restore cached users
-	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
-	th.BasicUser = userCache.BasicUser.DeepCopy()
-	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
+	th.BasicUser2 = th.CreateUserOrGuest(tb, false)
 
-	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	th.Store.User().InsertUsers(users)
-
-	th.BasicTeam = th.CreateTeam()
+	th.BasicTeam = th.CreateTeam(tb)
 
 	// th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	// th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
-	th.BasicChannel = th.CreateChannel(th.BasicTeam)
+	th.BasicChannel = th.CreateChannel(tb, th.BasicTeam)
 	// th.BasicPost = th.CreatePost(th.BasicChannel)
 	return th
 }
@@ -145,9 +122,7 @@ func SetupWithCluster(tb testing.TB, cluster einterfaces.ClusterInterface) *Test
 
 func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterprise bool, includeCacheLayer bool, tb testing.TB, options ...Option) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	configStore := config.NewTestMemoryStore()
 
@@ -217,9 +192,7 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 	}
 
 	err = th.Service.Start(nil)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	return th
 }
@@ -230,7 +203,7 @@ func (th *TestHelper) TearDown() {
 	th.Service.ShutdownConfig()
 }
 
-func (th *TestHelper) CreateTeam() *model.Team {
+func (th *TestHelper) CreateTeam(tb testing.TB) *model.Team {
 	id := model.NewId()
 
 	team := &model.Team{
@@ -240,14 +213,13 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	var err error
-	if team, err = th.Service.Store.Team().Save(team); err != nil {
-		panic(err)
-	}
+	team, err := th.Service.Store.Team().Save(team)
+	require.NoError(tb, err)
+
 	return team
 }
 
-func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
+func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -259,16 +231,13 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 		Roles:         model.SystemUserRoleId,
 	}
 
-	var err error
-	user, err = th.Service.Store.User().Save(th.Context, user)
-	if err != nil {
-		panic(err)
-	}
+	user, err := th.Service.Store.User().Save(th.Context, user)
+	require.NoError(tb, err)
 
 	return user
 }
 
-func (th *TestHelper) CreateAdmin() *model.User {
+func (th *TestHelper) CreateAdmin(tb testing.TB) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -280,11 +249,8 @@ func (th *TestHelper) CreateAdmin() *model.User {
 		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 	}
 
-	var err error
-	user, err = th.Service.Store.User().Save(th.Context, user)
-	if err != nil {
-		panic(err)
-	}
+	user, err := th.Service.Store.User().Save(th.Context, user)
+	require.NoError(tb, err)
 
 	return user
 }
@@ -297,7 +263,7 @@ func WithShared(v bool) ChannelOption {
 	}
 }
 
-func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
+func (th *TestHelper) CreateChannel(tb testing.TB, team *model.Team, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -311,11 +277,8 @@ func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) 
 		option(channel)
 	}
 
-	var err error
-	channel, err = th.Service.Store.Channel().Save(th.Context, channel, 999)
-	if err != nil {
-		panic(err)
-	}
+	channel, err := th.Service.Store.Channel().Save(th.Context, channel, 999)
+	require.NoError(tb, err)
 
 	return channel
 }

@@ -15,7 +15,7 @@ import (
 
 func TestRestrictedViewMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).DeleteBots()
+	th := Setup(t).DeleteBots(t)
 	defer th.TearDown()
 
 	user1 := th.CreateUser()

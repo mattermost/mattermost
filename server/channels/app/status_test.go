@@ -18,7 +18,7 @@ import (
 
 func TestCustomStatus(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -114,7 +114,7 @@ func TestCustomStatusErrors(t *testing.T) {
 
 func TestSetCustomStatus(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

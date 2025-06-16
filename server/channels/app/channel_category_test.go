@@ -14,7 +14,7 @@ import (
 
 func TestSidebarCategory(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	basicChannel2 := th.CreateChannel(th.Context, th.BasicTeam)
@@ -89,7 +89,7 @@ func TestSidebarCategory(t *testing.T) {
 func TestGetSidebarCategories(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return the sidebar categories for the given user/team", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		_, err := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
@@ -107,7 +107,7 @@ func TestGetSidebarCategories(t *testing.T) {
 	})
 
 	t.Run("should create the initial categories even if migration hasn't ran yet", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Manually add the user to the team without going through the app layer to simulate a pre-existing user/team
@@ -126,7 +126,7 @@ func TestGetSidebarCategories(t *testing.T) {
 	})
 
 	t.Run("should return a store error if a db table is missing", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Temporarily renaming a table to force a DB error.
@@ -147,7 +147,7 @@ func TestGetSidebarCategories(t *testing.T) {
 func TestUpdateSidebarCategories(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should mute and unmute all channels in a category when it is muted or unmuted", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
@@ -206,7 +206,7 @@ func TestUpdateSidebarCategories(t *testing.T) {
 	})
 
 	t.Run("should mute and unmute channels moved from an unmuted category to a muted one and back", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Create some channels
@@ -296,7 +296,7 @@ func TestUpdateSidebarCategories(t *testing.T) {
 	})
 
 	t.Run("should not mute or unmute channels moved between muted categories", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Create some channels
@@ -392,7 +392,7 @@ func TestUpdateSidebarCategories(t *testing.T) {
 	})
 
 	t.Run("should not mute or unmute channels moved between unmuted categories", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Create some channels

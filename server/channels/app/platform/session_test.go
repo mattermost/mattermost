@@ -157,7 +157,7 @@ func TestUpdateSessionsIsGuest(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("Test session is demoted", func(t *testing.T) {
-		user := th.CreateUserOrGuest(false)
+		user := th.CreateUserOrGuest(t, false)
 
 		session := &model.Session{}
 		session.CreateAt = model.GetMillis()
@@ -182,7 +182,7 @@ func TestUpdateSessionsIsGuest(t *testing.T) {
 	})
 
 	t.Run("Test session is promoted", func(t *testing.T) {
-		user := th.CreateUserOrGuest(true)
+		user := th.CreateUserOrGuest(t, true)
 
 		session := &model.Session{}
 		session.CreateAt = model.GetMillis()

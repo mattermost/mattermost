@@ -100,7 +100,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense())
@@ -409,7 +409,7 @@ func TestGetRemoteClusterSession(t *testing.T) {
 
 func TestSessionsLimit(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -457,7 +457,7 @@ func TestSessionsLimit(t *testing.T) {
 
 func TestSetExtraSessionProps(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	r := &http.Request{}

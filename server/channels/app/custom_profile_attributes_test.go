@@ -16,7 +16,7 @@ import (
 
 func TestGetCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
@@ -121,7 +121,7 @@ func TestGetCPAField(t *testing.T) {
 
 func TestListCPAFields(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
@@ -165,7 +165,7 @@ func TestListCPAFields(t *testing.T) {
 
 func TestCreateCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -218,7 +218,7 @@ func TestCreateCPAField(t *testing.T) {
 	th.TearDown()
 
 	t.Run("CPA should honor the field limit", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		t.Run("should not be able to create CPA fields above the limit", func(t *testing.T) {
@@ -273,7 +273,7 @@ func TestCreateCPAField(t *testing.T) {
 
 func TestPatchCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
@@ -536,7 +536,7 @@ func TestPatchCPAField(t *testing.T) {
 
 func TestDeleteCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
@@ -617,7 +617,7 @@ func TestDeleteCPAField(t *testing.T) {
 
 func TestGetCPAValue(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
@@ -695,7 +695,7 @@ func TestListCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic()
+	}).InitBasic(t)
 	defer th.TearDown()
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
@@ -751,7 +751,7 @@ func TestListCPAValues(t *testing.T) {
 
 func TestPatchCPAValue(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
@@ -878,7 +878,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic()
+	}).InitBasic(t)
 	defer th.TearDown()
 
 	cpaGroupID, cErr := th.App.CpaGroupID()

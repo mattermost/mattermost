@@ -32,7 +32,7 @@ import (
 
 func TestCreateTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -52,7 +52,7 @@ func TestCreateTeam(t *testing.T) {
 
 func TestCreateTeamWithUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -72,7 +72,7 @@ func TestCreateTeamWithUser(t *testing.T) {
 
 func TestUpdateTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.BasicTeam.DisplayName = "Testing 123"
@@ -84,7 +84,7 @@ func TestUpdateTeam(t *testing.T) {
 
 func TestAddUserToTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("add user", func(t *testing.T) {
@@ -228,7 +228,7 @@ func TestAddUserToTeam(t *testing.T) {
 
 func TestAddUserToTeamByToken(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -488,7 +488,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 
 func TestAddUserToTeamByTeamId(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("add user", func(t *testing.T) {
@@ -519,7 +519,7 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 
 func TestAdjustTeamsFromProductLimits(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	teams := []*model.Team{
 		{
@@ -673,7 +673,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 
 func TestPermanentDeleteTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	team, err := th.App.CreateTeam(th.Context, &model.Team{
@@ -1141,7 +1141,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 
 func TestAppUpdateTeamScheme(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	team := th.BasicTeam
@@ -1197,7 +1197,7 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 
 func TestGetTeamMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	var users []model.User
@@ -1309,7 +1309,7 @@ func TestGetTeamMembers(t *testing.T) {
 
 func TestGetTeamStats(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("without view restrictions", func(t *testing.T) {
@@ -1374,7 +1374,7 @@ func TestGetTeamStats(t *testing.T) {
 
 func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("from guest to user", func(t *testing.T) {
@@ -1530,7 +1530,7 @@ func TestClearTeamMembersCache(t *testing.T) {
 
 func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1644,7 +1644,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 
 func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1708,7 +1708,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 }
 
 func TestInviteGuestsToChannelsWithPolicyEnforced(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1755,7 +1755,7 @@ func TestInviteGuestsToChannelsWithPolicyEnforced(t *testing.T) {
 
 func TestTeamSendEvents(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	testCluster := &testlib.FakeClusterInterface{}

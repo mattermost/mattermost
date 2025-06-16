@@ -433,7 +433,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 
 func TestDoesStatusAllowPushNotification(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	userID := model.NewId()
@@ -1032,7 +1032,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 
 func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	team := th.CreateTeam()
@@ -1089,7 +1089,7 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 
 func TestSendPushNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	_, err := th.App.CreateSession(th.Context, &model.Session{
 		UserId:    th.BasicUser.Id,
@@ -1110,7 +1110,7 @@ func TestSendPushNotifications(t *testing.T) {
 
 func TestShouldSendPushNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	t.Run("should return true if forced", func(t *testing.T) {
 		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
@@ -1459,7 +1459,7 @@ func TestAllPushNotifications(t *testing.T) {
 		t.Skip("skipping all push notifications test in short mode")
 	}
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	// Create 10 users, each having 2 sessions.

@@ -157,7 +157,7 @@ func TestUndeleteGroup(t *testing.T) {
 
 func TestCreateOrRestoreGroupMember(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -172,7 +172,7 @@ func TestCreateOrRestoreGroupMember(t *testing.T) {
 
 func TestDeleteGroupMember(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 	groupMember, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
@@ -190,7 +190,7 @@ func TestDeleteGroupMember(t *testing.T) {
 
 func TestUpsertGroupSyncable(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
@@ -217,7 +217,7 @@ func TestUpsertGroupSyncable(t *testing.T) {
 
 func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	group1 := th.CreateGroup()
@@ -246,7 +246,7 @@ func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
 
 func TestGetGroupSyncable(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
@@ -262,7 +262,7 @@ func TestGetGroupSyncable(t *testing.T) {
 
 func TestGetGroupSyncables(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -281,7 +281,7 @@ func TestGetGroupSyncables(t *testing.T) {
 
 func TestDeleteGroupSyncable(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 	groupChannel := model.NewGroupChannel(group.Id, th.BasicChannel.Id, false)
@@ -301,7 +301,7 @@ func TestDeleteGroupSyncable(t *testing.T) {
 
 func TestGetGroupsByChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -336,7 +336,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -376,7 +376,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 
 func TestGetGroupsByTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -415,7 +415,7 @@ func TestGetGroups(t *testing.T) {
 
 func TestUserIsInAdminRoleGroup(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	group1 := th.CreateGroup()
 	group2 := th.CreateGroup()

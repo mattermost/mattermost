@@ -1748,7 +1748,7 @@ func TestImportImportUser(t *testing.T) {
 
 func TestImportUserTeams(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	team2 := th.CreateTeam()
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
@@ -1971,7 +1971,7 @@ func TestImportUserTeams(t *testing.T) {
 
 func TestImportUserChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	customRole := th.CreateRole("test_custom_role")
@@ -3814,7 +3814,7 @@ func TestImportImportPost(t *testing.T) {
 
 func TestImportImportDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	user3 := th.CreateUser()
 
@@ -4186,7 +4186,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 func TestImportImportDirectPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	// Create the DIRECT channel.

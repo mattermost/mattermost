@@ -94,7 +94,7 @@ func TestDisableAutoResponder(t *testing.T) {
 func TestSendAutoResponseIfNecessary(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should send auto response when enabled", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		receiver := th.CreateUser()
@@ -125,7 +125,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 	})
 
 	t.Run("should not send auto response when disabled", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		receiver := th.CreateUser()
@@ -156,7 +156,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 	})
 
 	t.Run("should not send auto response for non-DM channel", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
@@ -174,7 +174,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 	})
 
 	t.Run("should not send auto response for bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		receiver := th.CreateUser()
@@ -215,7 +215,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 	})
 
 	t.Run("should send auto response in dm channel if not already sent today", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		receiver := th.CreateUser()
@@ -257,7 +257,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 
 func TestSendAutoResponseSuccess(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -302,7 +302,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 
 func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -356,7 +356,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 
 func TestSendAutoResponseFailure(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()

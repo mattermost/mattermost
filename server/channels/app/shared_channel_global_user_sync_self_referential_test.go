@@ -40,7 +40,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		cfg.ConnectedWorkspacesSettings.GlobalUserSyncBatchSize = &defaultBatchSize
 		// Enable the feature flag for global user sync
 		cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster = true
-	}).InitBasic()
+	}).InitBasic(t)
 	defer th.TearDown()
 
 	ss := th.App.Srv().Store()

@@ -18,7 +18,7 @@ import (
 //nolint:govet // The setup code leads to a lot of variable shadowing.
 func TestCreateDefaultMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	singersTeam, err := th.App.CreateTeam(th.Context, &model.Team{
@@ -544,7 +544,7 @@ func (us *mokeUserStore) Get(_ context.Context, id string) (*model.User, error) 
 
 func TestDeleteGroupMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	group := th.CreateGroup()
@@ -612,7 +612,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 
 func TestSyncSyncableRoles(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	team := th.CreateTeam()

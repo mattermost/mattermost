@@ -18,7 +18,7 @@ func TestCreateBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("invalid bot", func(t *testing.T) {
 		t.Run("relative to user", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t).InitBasic(t)
 			defer th.TearDown()
 
 			_, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -31,7 +31,7 @@ func TestCreateBot(t *testing.T) {
 		})
 
 		t.Run("relative to bot", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t).InitBasic(t)
 			defer th.TearDown()
 
 			_, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -44,7 +44,7 @@ func TestCreateBot(t *testing.T) {
 		})
 
 		t.Run("username contains . character", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t).InitBasic(t)
 			defer th.TearDown()
 
 			bot, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -58,7 +58,7 @@ func TestCreateBot(t *testing.T) {
 		})
 
 		t.Run("username missing", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t).InitBasic(t)
 			defer th.TearDown()
 			bot, err := th.App.CreateBot(th.Context, &model.Bot{
 				Description: "a bot",
@@ -71,7 +71,7 @@ func TestCreateBot(t *testing.T) {
 	})
 
 	t.Run("create bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -103,7 +103,7 @@ func TestCreateBot(t *testing.T) {
 	})
 
 	t.Run("create bot, username already used by a non-bot user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		_, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -119,7 +119,7 @@ func TestCreateBot(t *testing.T) {
 func TestEnsureBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("ensure bot should pass if already exist bot user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 		pluginId := "pluginId"
 
@@ -153,7 +153,7 @@ func TestEnsureBot(t *testing.T) {
 	})
 
 	t.Run("ensure bot should pass even after delete bot user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 		pluginId := "pluginId"
 
@@ -194,7 +194,7 @@ func TestEnsureBot(t *testing.T) {
 func TestPatchBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("invalid patch for user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -220,7 +220,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("invalid patch for bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -246,7 +246,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		bot := &model.Bot{
@@ -283,7 +283,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch bot, username already used by a non-bot user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -310,7 +310,7 @@ func TestPatchBot(t *testing.T) {
 
 func TestGetBot(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	bot1, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -381,7 +381,7 @@ func TestGetBot(t *testing.T) {
 
 func TestGetBots(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).DeleteBots()
+	th := Setup(t).DeleteBots(t)
 	defer th.TearDown()
 
 	OwnerId1 := model.NewId()
@@ -593,7 +593,7 @@ func TestGetBots(t *testing.T) {
 func TestUpdateBotActive(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("unknown bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		_, err := th.App.UpdateBotActive(th.Context, model.NewId(), false)
@@ -602,7 +602,7 @@ func TestUpdateBotActive(t *testing.T) {
 	})
 
 	t.Run("disable/enable bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -638,7 +638,7 @@ func TestUpdateBotActive(t *testing.T) {
 
 func TestPermanentDeleteBot(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	bot, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -860,7 +860,7 @@ func TestConvertUserToBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("invalid user", func(t *testing.T) {
 		t.Run("invalid user id", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t).InitBasic(t)
 			defer th.TearDown()
 
 			_, err := th.App.ConvertUserToBot(th.Context, &model.User{
@@ -872,7 +872,7 @@ func TestConvertUserToBot(t *testing.T) {
 		})
 
 		t.Run("invalid username", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t).InitBasic(t)
 			defer th.TearDown()
 
 			_, err := th.App.ConvertUserToBot(th.Context, &model.User{
@@ -885,7 +885,7 @@ func TestConvertUserToBot(t *testing.T) {
 	})
 
 	t.Run("valid user and session revoked", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
@@ -915,7 +915,7 @@ func TestConvertUserToBot(t *testing.T) {
 	})
 
 	t.Run("user with oauth credentials", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Create a user first
@@ -966,7 +966,7 @@ func TestConvertUserToBot(t *testing.T) {
 func TestGetSystemBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("An error should be returned if there are no sysadmins in the instance", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
@@ -976,7 +976,7 @@ func TestGetSystemBot(t *testing.T) {
 		require.Equal(t, "app.bot.get_system_bot.empty_admin_list.app_error", err.Id)
 	})
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("The bot should be created the first time it's retrieved", func(t *testing.T) {

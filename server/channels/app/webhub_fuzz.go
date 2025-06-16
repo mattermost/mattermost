@@ -149,7 +149,7 @@ func Fuzz(data []byte) int {
 	// We don't want to close anything down as the fuzzer will keep on running forever.
 	startServerOnce.Do(func() {
 		t := &testing.T{}
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 
 		s := httptest.NewServer(dummyWebsocketHandler())
 
