@@ -123,6 +123,8 @@ export const Preferences = {
     EMOJI_SKINTONE: 'emoji_skintone',
     ONE_CLICK_REACTIONS_ENABLED: 'one_click_reactions_enabled',
     ONE_CLICK_REACTIONS_ENABLED_DEFAULT: 'true',
+    GIF_AUTOPLAY: 'gif_autoplay',
+    GIF_AUTOPLAY_DEFAULT: 'true',
     CLOUD_TRIAL_END_BANNER: 'cloud_trial_end_banner',
     CLOUD_USER_EPHEMERAL_INFO: 'cloud_user_ephemeral_info',
     CATEGORY_CLOUD_LIMITS: 'cloud_limits',
@@ -1018,6 +1020,7 @@ export const VerifyEmailErrors = {
 export const FileTypes = {
     TEXT: 'text',
     IMAGE: 'image',
+    GIF: 'gif',
     AUDIO: 'audio',
     VIDEO: 'video',
     SPREADSHEET: 'spreadsheet',

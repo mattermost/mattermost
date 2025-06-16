@@ -1,0 +1,33 @@
+.gif-viewer {
+    cursor: pointer;
+    
+    &:focus {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
+
+    &__controls {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: flex;
+        width: 80px;
+        height: 80px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        transform: translate(-50%, -50%);
+        transition: opacity 0.2s ease-in-out;
+        
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        
+        svg {
+            pointer-events: none;
+        }
+    }
+
+}

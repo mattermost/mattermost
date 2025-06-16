@@ -25,6 +25,15 @@ export const isSendOnCtrlEnter = (state: GlobalState) => {
     );
 };
 
+export const isGifAutoplayEnabled = (state: GlobalState) => {
+    return getBoolPreference(
+        state,
+        Preferences.CATEGORY_DISPLAY_SETTINGS,
+        Preferences.GIF_AUTOPLAY,
+        Preferences.GIF_AUTOPLAY_DEFAULT !== 'false',
+    );
+};
+
 export const isUseMilitaryTime = (state: GlobalState) => {
     return getBoolPreference(
         state,

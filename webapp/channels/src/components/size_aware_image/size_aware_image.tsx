@@ -9,13 +9,15 @@ import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
+import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon, PlayIcon, PauseIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
+import GifViewer from 'components/gif_viewer';
+import type {GifViewerHandle} from 'components/gif_viewer/gif_viewer';
 import LoadingImagePreview from 'components/loading_image_preview';
 import WithTooltip from 'components/with_tooltip';
 
@@ -93,6 +95,11 @@ export type Props = WrappedComponentProps & {
     * Prevents display of utility buttons when image in a location that makes them inappropriate
     */
     hideUtilities?: boolean;
+
+    /*
+    * Whether GIF auto-play is enabled from user preferences
+    */
+    gifAutoplayEnabled?: boolean;
 }
 
 type State = {
@@ -102,6 +109,8 @@ type State = {
     linkCopyInProgress: boolean;
     error: boolean;
     imageWidth: number;
+    gifIsPlaying?: boolean;
+    gifHasTimedOut?: boolean;
 }
 
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
@@ -110,6 +119,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     public heightTimeout = 0;
     public mounted = false;
     public timeout: NodeJS.Timeout | null = null;
+    private gifViewerRef = React.createRef<GifViewerHandle>();
 
     constructor(props: Props) {
         super(props);
@@ -123,6 +133,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             linkCopyInProgress: false,
             error: false,
             imageWidth: 0,
+            gifIsPlaying: true,
+            gifHasTimedOut: false,
         };
 
         this.heightTimeout = 0;
@@ -170,7 +182,20 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         }
     };
 
-    handleImageClick = (e: MouseEvent<HTMLImageElement>) => {
+    handleGifPlaybackChange = (isPlaying: boolean, hasTimedOut: boolean) => {
+        if (this.mounted) {
+            this.setState({
+                gifIsPlaying: isPlaying,
+                gifHasTimedOut: hasTimedOut,
+            });
+        }
+    };
+
+    toggleGifPlayback = () => {
+        this.gifViewerRef.current?.togglePlayback();
+    };
+
+    handleImageClick = (e: MouseEvent<HTMLImageElement | HTMLDivElement>) => {
         this.props.onClick?.(e, this.props.src);
     };
 
@@ -219,7 +244,20 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
         }
 
-        const fileType = getFileType(fileInfo?.extension ?? '');
+        // Helper function to extract extension from URL
+        const getExtensionFromUrl = (url: string): string => {
+            try {
+                const pathname = new URL(url).pathname;
+                const match = pathname.match(/\.([^./?]+)(?:\?|$)/);
+                return match ? match[1].toLowerCase() : '';
+            } catch {
+                return '';
+            }
+        };
+
+        // Get extension from fileInfo or URL
+        const extension = fileInfo?.extension || getExtensionFromUrl(src);
+        const fileType = getFileType(extension);
 
         let conditionalSVGStyleAttribute;
         if (fileType === FileTypes.SVG) {
@@ -229,7 +267,26 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             };
         }
 
-        const image = (
+        const isGif = fileType === FileTypes.GIF;
+
+        const image = isGif ? (
+            <GifViewer
+                ref={this.gifViewerRef}
+                src={src}
+                alt={ariaLabelImage}
+                className={
+                    this.props.className +
+                    (this.props.handleSmallImageContainer &&
+                        this.state.isSmallImage ? ' small-image--inside-container' : '')}
+                onLoad={this.handleLoad}
+                onError={this.handleError}
+                onClick={this.props.onClick ? this.handleImageClick : undefined}
+                tabIndex={0}
+                style={conditionalSVGStyleAttribute}
+                onPlaybackChange={this.handleGifPlaybackChange}
+                autoplayEnabled={this.props.gifAutoplayEnabled}
+            />
+        ) : (
             <img
                 {...props}
                 aria-label={ariaLabelImage}
@@ -315,6 +372,87 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             </WithTooltip>
         );
 
+        // GIF indicator for paused GIFs
+        let gifIndicator = null;
+        if (isGif && this.state.loaded && !this.state.gifIsPlaying) {
+            gifIndicator = (
+                <span className='gif-indicator'>
+                    {'GIF'}
+                </span>
+            );
+        }
+
+        // GIF control buttons
+        let gifControls = null;
+        if (isGif && this.state.loaded) {
+            let gifTooltipText;
+            if (this.state.gifIsPlaying) {
+                gifTooltipText = (
+                    <FormattedMessage
+                        id={'gif_viewer.pause_tooltip'}
+                        defaultMessage={'Pause'}
+                    />
+                );
+            } else if (this.state.gifHasTimedOut) {
+                gifTooltipText = (
+                    <FormattedMessage
+                        id={'gif_viewer.replay_tooltip'}
+                        defaultMessage={'Replay'}
+                    />
+                );
+            } else {
+                gifTooltipText = (
+                    <FormattedMessage
+                        id={'gif_viewer.play_tooltip'}
+                        defaultMessage={'Play'}
+                    />
+                );
+            }
+
+            let GifIcon;
+            if (this.state.gifIsPlaying) {
+                GifIcon = PauseIcon;
+            } else if (this.state.gifHasTimedOut) {
+                GifIcon = PlayIcon;
+            } else {
+                GifIcon = PlayIcon;
+            }
+
+            gifControls = (
+                <WithTooltip
+                    title={gifTooltipText}
+                >
+                    <button
+                        className='style--none size-aware-image__gif-control'
+                        aria-label={intl.formatMessage({
+                            id: (() => {
+                                if (this.state.gifIsPlaying) {
+                                    return 'gif_viewer.pause_tooltip';
+                                } else if (this.state.gifHasTimedOut) {
+                                    return 'gif_viewer.replay_tooltip';
+                                }
+                                return 'gif_viewer.play_tooltip';
+                            })(),
+                            defaultMessage: (() => {
+                                if (this.state.gifIsPlaying) {
+                                    return 'Pause';
+                                } else if (this.state.gifHasTimedOut) {
+                                    return 'Replay';
+                                }
+                                return 'Play';
+                            })(),
+                        })}
+                        onClick={this.toggleGifPlayback}
+                    >
+                        <GifIcon
+                            className='style--none'
+                            size={20}
+                        />
+                    </button>
+                </WithTooltip>
+            );
+        }
+
         if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
             let className = 'small-image__container cursor--pointer a11y--active';
             if (this.state.imageWidth < MIN_IMAGE_SIZE) {
@@ -352,6 +490,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                         style={wideSmallImageStyle}
                     >
                         {image}
+                        {gifIndicator}
                     </div>
                     <span
                         className={classNames('image-preview-utility-buttons-container', 'image-preview-utility-buttons-container--small-image', {
@@ -359,6 +498,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                         })}
                         style={leftStyle}
                     >
+                        {gifControls}
                         {enablePublicLink && copyLink}
                         {download}
                     </span>
@@ -377,6 +517,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                         'image-preview-utility-buttons-container--small-image-no-copy-button': (!enablePublicLink || !this.isInternalImage) && this.state.imageWidth < MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS,
                     })}
                 >
+                    {gifControls}
                     {(enablePublicLink || !this.isInternalImage) && copyLink}
                     {download}
                 </span>
@@ -384,6 +525,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         return (
             <figure className={classNames('image-loaded-container')}>
                 {image}
+                {gifIndicator}
                 {utilityButtonsWrapper}
             </figure>
         );

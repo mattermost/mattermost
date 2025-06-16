@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage, PostType} from '@mattermost/types/posts';
 
 import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
@@ -84,6 +85,11 @@ export type OwnProps = {
      * Some additional data to pass down to rendered component to aid in rendering decisions
      */
     messageMetadata?: Record<string, string>;
+
+    /**
+     * File information for attached files, used to enable GIF functionality in markdown images
+     */
+    fileInfos?: FileInfo[];
 }
 
 function Markdown({
@@ -103,6 +109,7 @@ function Markdown({
     emojiMap,
     userIds,
     messageMetadata,
+    fileInfos,
     enableFormatting,
     autolinkedUrlSchemes,
     siteURL,
@@ -147,6 +154,7 @@ function Markdown({
         postId,
         userIds,
         messageMetadata,
+        fileInfos,
         channelId,
         postType,
         mentionHighlight: options?.mentionHighlight,

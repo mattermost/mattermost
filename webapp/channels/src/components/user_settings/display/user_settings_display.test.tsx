@@ -98,6 +98,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         emojiPickerEnabled: true,
         clickToReply: '',
         lastActiveTimeEnabled: true,
+        gifAutoplay: 'true',
     };
 
     let store: ReturnType<typeof configureStore>;
@@ -382,6 +383,16 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         (wrapper.instance() as UserSettingsDisplay).handleLastActiveRadio('true');
         expect(wrapper.state('lastActiveDisplay')).toBe('true');
+    });
+
+    test('should update gifAutoplay state', () => {
+        const wrapper = shallow(<UserSettingsDisplay {...requiredProps}/>);
+
+        (wrapper.instance() as UserSettingsDisplay).handleGifAutoplayRadio('false');
+        expect(wrapper.state('gifAutoplay')).toBe('false');
+
+        (wrapper.instance() as UserSettingsDisplay).handleGifAutoplayRadio('true');
+        expect(wrapper.state('gifAutoplay')).toBe('true');
     });
 
     test('should not show last active section', () => {

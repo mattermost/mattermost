@@ -11,6 +11,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
 import messageHtmlToComponent, {convertPropsToReactStandard} from 'utils/message_html_to_component';
+import {TestHelper} from 'utils/test_helper';
 import * as TextFormatting from 'utils/text_formatting';
 
 const emptyEmojiMap = new EmojiMap(new Map());
@@ -99,6 +100,28 @@ const myFunction = () => {
         });
         expect(component).toMatchSnapshot();
         expect(shallow(component).find(MarkdownImage).prop('imageIsLink')).toBe(true);
+    });
+
+    test('Inline markdown image with fileInfo', () => {
+        const options = {markdown: true};
+        const html = TextFormatting.formatText('![Test image](/images/test.gif)', options, emptyEmojiMap);
+        const mockFileInfo = TestHelper.getFileInfoMock({
+            id: 'file123',
+            name: 'test.gif',
+            extension: 'gif',
+            link: '/images/test.gif',
+            has_preview_image: true,
+        });
+
+        const component = messageHtmlToComponent(html, {
+            hasPluginTooltips: false,
+            postId: 'post_id',
+            fileInfos: [mockFileInfo],
+        });
+
+        expect(component).toMatchSnapshot();
+        const markdownImage = shallow(component).find(MarkdownImage);
+        expect(markdownImage.prop('fileInfo')).toEqual(mockFileInfo);
     });
 
     test('At mention', () => {

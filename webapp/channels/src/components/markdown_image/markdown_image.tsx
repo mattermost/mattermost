@@ -4,6 +4,7 @@
 import React, {PureComponent} from 'react';
 import type {KeyboardEvent, MouseEvent} from 'react';
 
+import type {FileInfo} from '@mattermost/types/files';
 import type {Post, PostImage} from '@mattermost/types/posts';
 
 import ExternalImage from 'components/external_image';
@@ -32,6 +33,7 @@ export type Props = {
     onImageLoaded?: ({height, width}: {height: number; width: number}) => void;
     onImageHeightChanged?: (isExpanded: boolean) => void;
     postType?: string;
+    fileInfo?: FileInfo;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
@@ -93,18 +95,21 @@ export default class MarkdownImage extends PureComponent<Props, State> {
         if (!this.props.imageIsLink && extension) {
             e.preventDefault();
 
+            // Use provided fileInfo if available, otherwise create a minimal one
+            const fileInfoToUse = this.props.fileInfo || {
+                has_preview_image: false,
+                link,
+                extension: this.props?.imageMetadata?.format ?? extension,
+                name: this.props.alt,
+            };
+
             this.props.actions.openModal({
                 modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
                 dialogType: FilePreviewModal,
                 dialogProps: {
                     startIndex: 0,
                     postId: this.props.postId,
-                    fileInfos: [{
-                        has_preview_image: false,
-                        link,
-                        extension: this.props?.imageMetadata?.format ?? extension,
-                        name: this.props.alt,
-                    }],
+                    fileInfos: [fileInfoToUse],
                 },
             });
         }
@@ -210,6 +215,7 @@ export default class MarkdownImage extends PureComponent<Props, State> {
                             hideUtilities={hideUtilities}
                             onImageLoadFail={this.handleLoadFail}
                             onImageLoaded={this.handleImageLoaded}
+                            fileInfo={this.props.fileInfo}
                         />
                     );
 

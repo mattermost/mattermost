@@ -166,7 +166,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
     isImageUrl = (url: string): boolean => {
         const fileType = Utils.getFileType(url);
-        return fileType === FileTypes.IMAGE || fileType === FileTypes.SVG;
+        return fileType === FileTypes.IMAGE || fileType === FileTypes.GIF || fileType === FileTypes.SVG;
     };
 
     private getFileTypeFromFileInfo = (fileInfo: FileInfo | LinkInfo): typeof FileTypes[keyof typeof FileTypes] => {
@@ -195,7 +195,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         const fileType = this.getFileTypeFromFileInfo(fileInfo);
 
         // Check if this is an image
-        const isImage = fileType === FileTypes.IMAGE;
+        const isImage = fileType === FileTypes.IMAGE || fileType === FileTypes.GIF;
 
         if (isImage) {
             let previewUrl = '';
@@ -338,7 +338,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
         if (!isFileInfo(fileInfo) || !fileInfo.archived) {
             if (this.state.loaded[this.state.imageIndex]) {
-                if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG) {
+                if (fileType === FileTypes.IMAGE || fileType === FileTypes.GIF || fileType === FileTypes.SVG) {
                     content = (
                         <ImagePreview
                             fileInfo={fileInfo as FileInfo}

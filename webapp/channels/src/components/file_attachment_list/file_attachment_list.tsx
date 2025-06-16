@@ -47,7 +47,7 @@ export default function FileAttachmentList(props: Props) {
     if (fileInfos && fileInfos.length === 1 && !fileInfos[0].archived) {
         const fileType = getFileType(fileInfos[0].extension);
 
-        if (fileType === FileTypes.IMAGE || (fileType === FileTypes.SVG && enableSVGs)) {
+        if (fileType === FileTypes.IMAGE || fileType === FileTypes.GIF || (fileType === FileTypes.SVG && enableSVGs)) {
             return (
                 <SingleImageView
                     fileInfo={fileInfos[0]}

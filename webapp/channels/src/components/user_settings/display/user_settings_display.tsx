@@ -49,6 +49,7 @@ function getDisplayStateFromProps(props: Props) {
         lastActiveDisplay: props.lastActiveDisplay.toString(),
         oneClickReactionsOnPosts: props.oneClickReactionsOnPosts,
         clickToReply: props.clickToReply,
+        gifAutoplay: props.gifAutoplay,
     };
 }
 
@@ -122,6 +123,7 @@ type Props = OwnProps & {
     lastActiveDisplay: boolean;
     lastActiveTimeEnabled: boolean;
     renderEmoticonsAsEmoji: string;
+    gifAutoplay: string;
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         autoUpdateTimezone: (deviceTimezone: string) => void;
@@ -145,6 +147,7 @@ type State = {
     lastActiveDisplay: string;
     oneClickReactionsOnPosts: string;
     clickToReply: string;
+    gifAutoplay: string;
     handleSubmit?: () => void;
     serverError?: string;
 }
@@ -302,6 +305,12 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             name: Preferences.CLICK_TO_REPLY,
             value: this.state.clickToReply,
         };
+        const gifAutoplayPreference = {
+            user_id: userId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: Preferences.GIF_AUTOPLAY,
+            value: this.state.gifAutoplay,
+        };
 
         this.setState({isSaving: true});
 
@@ -317,6 +326,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             availabilityStatusOnPostsPreference,
             oneClickReactionsOnPostsPreference,
             colorizeUsernamesPreference,
+            gifAutoplayPreference,
         ];
 
         this.trackChangeIfNecessary(collapsedReplyThreadsPreference, this.props.collapsedReplyThreads);
@@ -368,6 +378,10 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
     handleClickToReplyRadio = (clickToReply: string) => {
         this.setState({clickToReply});
+    };
+
+    handleGifAutoplayRadio = (gifAutoplay: string) => {
+        this.setState({gifAutoplay});
     };
 
     handleOnChange(e: React.ChangeEvent, display: {[key: string]: any}) {
@@ -1029,6 +1043,39 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }),
         });
 
+        const gifAutoplaySection = this.createSection({
+            section: Preferences.GIF_AUTOPLAY,
+            display: 'gifAutoplay',
+            value: this.state.gifAutoplay,
+            defaultDisplay: 'true',
+            title: defineMessage({
+                id: 'user.settings.display.gifAutoplayTitle',
+                defaultMessage: 'Auto-play GIFs',
+            }),
+            firstOption: {
+                value: 'true',
+                radionButtonText: {
+                    label: defineMessage({
+                        id: 'user.settings.display.gifAutoplayOn',
+                        defaultMessage: 'On',
+                    }),
+                },
+            },
+            secondOption: {
+                value: 'false',
+                radionButtonText: {
+                    label: defineMessage({
+                        id: 'user.settings.display.gifAutoplayOff',
+                        defaultMessage: 'Off',
+                    }),
+                },
+            },
+            description: defineMessage({
+                id: 'user.settings.display.gifAutoplayDescription',
+                defaultMessage: 'When enabled, GIF images will automatically play for 10 seconds when first loaded.',
+            }),
+        });
+
         const channelDisplayModeSection = this.createSection({
             section: Preferences.CHANNEL_DISPLAY_MODE,
             display: 'channelDisplayMode',
@@ -1227,6 +1274,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     {collapseSection}
                     {messageDisplaySection}
                     {clickToReply}
+                    {gifAutoplaySection}
                     {channelDisplayModeSection}
                     {oneClickReactionsOnPostsSection}
                     {renderEmoticonsAsEmojiSection}
