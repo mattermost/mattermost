@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
@@ -2293,7 +2294,6 @@ func TestGetUsersForReporting(t *testing.T) {
 		require.NotNil(t, userReports)
 	})
 }
-<<<<<<< HEAD
 
 func TestCreateUserOrGuest(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -2979,5 +2979,3 @@ func userCreationMocks(t *testing.T, th *TestHelper, userID string, activeUserCo
 
 	require.NoError(t, err)
 }
-=======
->>>>>>> master
