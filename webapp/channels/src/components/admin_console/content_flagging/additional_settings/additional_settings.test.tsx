@@ -1,17 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen, fireEvent} from '@testing-library/react';
+import React from 'react';
 
 import type {ContentFlaggingAdditionalSettings} from '@mattermost/types/config';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import type {SystemConsoleCustomSettingsComponentProps} from 'components/admin_console/schema_admin_settings';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import ContentFlaggingAdditionalSettingsSection from './additional_settings';
 
 describe('ContentFlaggingAdditionalSettingsSection', () => {
-    const defaultProps = {
+    const defaultProps: SystemConsoleCustomSettingsComponentProps = {
         id: 'ContentFlaggingAdditionalSettings',
         onChange: jest.fn(),
         value: {
@@ -20,14 +22,14 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
             ReviewerCommentRequired: true,
             HideFlaggedContent: false,
         } as ContentFlaggingAdditionalSettings,
-    };
+    } as unknown as SystemConsoleCustomSettingsComponentProps;
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
     test('should render with initial values', () => {
-        renderWithIntl(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         expect(screen.getByText('Additional Settings')).toBeInTheDocument();
         expect(screen.getByText('Configure how you want the flagging to behave')).toBeInTheDocument();
@@ -38,14 +40,14 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
     });
 
     test('should render initial reason options', () => {
-        renderWithIntl(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         expect(screen.getByText('Spam')).toBeInTheDocument();
         expect(screen.getByText('Inappropriate')).toBeInTheDocument();
     });
 
     test('should have correct initial radio button states', () => {
-        renderWithIntl(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         // Reporter comment required - should be false
         expect(screen.getByTestId('requireReporterComment_false')).toBeChecked();
@@ -61,34 +63,34 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
     });
 
     test('should call onChange when reporter comment requirement changes', () => {
-        renderWithIntl(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         fireEvent.click(screen.getByTestId('requireReporterComment_true'));
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('ContentFlaggingAdditionalSettings', {
-            ...defaultProps.value,
+            ...(defaultProps.value as ContentFlaggingAdditionalSettings),
             ReporterCommentRequired: true,
         });
     });
 
     test('should call onChange when reviewer comment requirement changes', () => {
-        renderWithIntl(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         fireEvent.click(screen.getByTestId('requireReviewerComment_false'));
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('ContentFlaggingAdditionalSettings', {
-            ...defaultProps.value,
+            ...(defaultProps.value as ContentFlaggingAdditionalSettings),
             ReviewerCommentRequired: false,
         });
     });
 
     test('should call onChange when hide flagged content setting changes', () => {
-        renderWithIntl(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         fireEvent.click(screen.getByTestId('hideFlaggedPosts_true'));
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('ContentFlaggingAdditionalSettings', {
-            ...defaultProps.value,
+            ...(defaultProps.value as ContentFlaggingAdditionalSettings),
             HideFlaggedContent: true,
         });
     });
@@ -97,12 +99,12 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         const propsWithEmptyReasons = {
             ...defaultProps,
             value: {
-                ...defaultProps.value,
+                ...(defaultProps.value as ContentFlaggingAdditionalSettings),
                 Reasons: [],
             },
         };
 
-        renderWithIntl(<ContentFlaggingAdditionalSettingsSection {...propsWithEmptyReasons}/>);
+        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...propsWithEmptyReasons}/>);
 
         expect(screen.getByText('Reasons for flagging')).toBeInTheDocument();
         expect(screen.queryByText('Spam')).not.toBeInTheDocument();
@@ -113,14 +115,14 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         const propsAllTrue = {
             ...defaultProps,
             value: {
-                ...defaultProps.value,
+                ...(defaultProps.value as ContentFlaggingAdditionalSettings),
                 ReporterCommentRequired: true,
                 ReviewerCommentRequired: true,
                 HideFlaggedContent: true,
             },
         };
 
-        renderWithIntl(<ContentFlaggingAdditionalSettingsSection {...propsAllTrue}/>);
+        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...propsAllTrue}/>);
 
         expect(screen.getByTestId('requireReporterComment_true')).toBeChecked();
         expect(screen.getByTestId('requireReviewerComment_true')).toBeChecked();
@@ -131,14 +133,14 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         const propsAllFalse = {
             ...defaultProps,
             value: {
-                ...defaultProps.value,
+                ...(defaultProps.value as ContentFlaggingAdditionalSettings),
                 ReporterCommentRequired: false,
                 ReviewerCommentRequired: false,
                 HideFlaggedContent: false,
             },
         };
 
-        renderWithIntl(<ContentFlaggingAdditionalSettingsSection {...propsAllFalse}/>);
+        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...propsAllFalse}/>);
 
         expect(screen.getByTestId('requireReporterComment_false')).toBeChecked();
         expect(screen.getByTestId('requireReviewerComment_false')).toBeChecked();
@@ -146,7 +148,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
     });
 
     test('should render CreatableReactSelect with correct props', () => {
-        renderWithIntl(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         const selectInput = screen.getByRole('combobox');
         expect(selectInput).toBeInTheDocument();
@@ -154,19 +156,20 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
     });
 
     test('should maintain state consistency across multiple changes', () => {
-        renderWithIntl(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         // Change reporter comment requirement
         fireEvent.click(screen.getByTestId('requireReporterComment_true'));
         expect(defaultProps.onChange).toHaveBeenLastCalledWith('ContentFlaggingAdditionalSettings', {
-            ...defaultProps.value,
+            ...(defaultProps.value as ContentFlaggingAdditionalSettings),
             ReporterCommentRequired: true,
         });
 
         // Change hide flagged content
         fireEvent.click(screen.getByTestId('hideFlaggedPosts_true'));
         expect(defaultProps.onChange).toHaveBeenLastCalledWith('ContentFlaggingAdditionalSettings', {
-            ...defaultProps.value,
+            ...(defaultProps.value as ContentFlaggingAdditionalSettings),
+            ReporterCommentRequired: true,
             HideFlaggedContent: true,
         });
     });
