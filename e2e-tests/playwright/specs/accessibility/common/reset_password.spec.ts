@@ -3,7 +3,10 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('/reset_password accessibility quick check', async ({pw, axe}) => {
+/**
+ * @objective Verify that reset password page meets accessibility standards
+ */
+test('/reset_password accessibility quick check', {tag: '@accessibility'}, async ({pw, axe}) => {
     // Set up the page not to redirect to the landing page
     await pw.hasSeenLandingPage();
 
@@ -20,7 +23,10 @@ test('/reset_password accessibility quick check', async ({pw, axe}) => {
     expect(accessibilityScanResults.violations).toHaveLength(0);
 });
 
-test('/reset_password accessibility tab support', async ({pw}) => {
+/**
+ * @objective Verify that reset password page is fully keyboard accessible through tab navigation
+ */
+test('/reset_password accessibility tab support', {tag: '@accessibility'}, async ({pw}) => {
     // Set up the page not to redirect to the landing page
     await pw.hasSeenLandingPage();
 
