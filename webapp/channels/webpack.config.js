@@ -10,23 +10,20 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const packageJson = require('./package.json');
 
 const NPM_TARGET = process.env.npm_lifecycle_event;
 
-// list of known code editors that set an environment variable.
-const knownCodeEditors = ['VSCODE_CWD', 'INSIDE_EMACS'];
-const isInsideCodeEditor = knownCodeEditors.some((editor) => process.env[editor]);
-
+const targetIsBuild = NPM_TARGET?.startsWith('build');
 const targetIsRun = NPM_TARGET?.startsWith('run');
 const targetIsStats = NPM_TARGET === 'stats';
 const targetIsDevServer = NPM_TARGET?.startsWith('dev-server');
-const targetIsEslint = NPM_TARGET?.startsWith('check') || NPM_TARGET === 'fix' || isInsideCodeEditor;
+const targetIsEsLint = !targetIsBuild && !targetIsRun && !targetIsDevServer;
 
 const DEV = targetIsRun || targetIsStats || targetIsDevServer;
 
@@ -483,7 +480,7 @@ if (process.env.PRODUCTION_PERF_DEBUG) {
     };
 }
 
-if (targetIsEslint) {
+if (targetIsEsLint) {
     // ESLint can't handle setting an async config, so just skip the async part
     module.exports = config;
 } else {

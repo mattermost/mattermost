@@ -5,6 +5,7 @@ package jobs
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -14,6 +15,10 @@ import (
 )
 
 func TestSimpleWorkerPanic(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	jobServer, mockStore, mockMetrics := makeJobServer(t)
 
 	job := &model.Job{

@@ -9102,14 +9102,14 @@ SOFTWARE.
 
 ---
 
-## mholt/archiver
+## mholt/archives
 
-This product contains 'mholt/archiver' by Matt Holt.
+This product contains 'mholt/archives' by Matt Holt.
 
-Easily create & extract archives, and compress & decompress files of various formats
+Cross-platform library to create & extract archives, compress & decompress files, and walk virtual file systems across various formats
 
 * HOMEPAGE:
-  * https://pkg.go.dev/github.com/mholt/archiver/v4
+  * https://pkg.go.dev/github.com/mholt/archives
 
 * LICENSE: MIT License
 

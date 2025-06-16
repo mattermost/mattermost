@@ -136,7 +136,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                         values={{
                             link: (msg: string) => (
                                 <Link
-                                    to='/admin_console/site_config/system_properties'
+                                    to='/admin_console/system_attributes/user_attributes'
                                 >
                                     {msg}
                                 </Link>

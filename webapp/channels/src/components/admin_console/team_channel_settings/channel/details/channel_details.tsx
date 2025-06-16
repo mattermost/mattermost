@@ -579,24 +579,35 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 actions.setNavigationBlocked(saveNeeded);
                 return;
             }
-        }
 
-        if (accessControlPolicies.length > 0) {
-            await actions.assignChannelToAccessControlPolicy(accessControlPolicies[0].id, channelID).catch((error) => {
-                this.setState({
-                    serverError: <FormError error={error.message}/>,
-                    saving: false,
-                    saveNeeded: true,
+            if (accessControlPolicies.length === 0) {
+                serverError = (
+                    <FormError
+                        error={
+                            <FormattedMessage
+                                id='admin.channel_details.policy_required_error'
+                                defaultMessage='You must select an access policy when attribute-based channel access is enabled.'
+                            />}
+                    />
+                );
+                saveNeeded = true;
+                this.setState({serverError, saving: false, saveNeeded});
+                actions.setNavigationBlocked(saveNeeded);
+                return;
+            }
+
+            if (accessControlPolicies.length > 0) {
+                await actions.assignChannelToAccessControlPolicy(accessControlPolicies[0].id, channelID).catch((error) => {
+                    serverError = <FormError error={error.message}/>;
+                    saveNeeded = true;
                 });
-                actions.setNavigationBlocked(true);
-            });
+            }
         } else {
             await actions.deleteAccessControlPolicy(channelID).catch((error) => {
-                this.setState({
-                    serverError: <FormError error={error.message}/>,
-                    saving: false,
-                    saveNeeded: true,
-                });
+                if (error.message && !error.message.includes('not found')) {
+                    serverError = <FormError error={error.message}/>;
+                    saveNeeded = true;
+                }
             });
         }
 

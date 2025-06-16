@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"path/filepath"
 	"slices"
 	"sync"
 
@@ -63,8 +64,21 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 		if err != nil {
 			warnings = multierror.Append(warnings, err)
 		}
-		if files != nil {
-			fileDatas = append(fileDatas, files...)
+
+		if fileDatas != nil {
+			if cluster := a.Cluster(); cluster != nil && *a.Config().ClusterSettings.Enable {
+				hostname := cluster.GetMyClusterInfo().Hostname
+				for _, file := range files {
+					// When running in a cluster, the files are generated with the cluster node name as the directory, e.g. 7917b92f9e4c/mattermost.log
+					fileDatas = append(fileDatas, model.FileData{
+						Filename: filepath.Join(hostname, file.Filename),
+						Body:     file.Body,
+					})
+				}
+			} else {
+				// When running in standalone mode, all files are generated with the same directory name, e.g. mattermost.log.
+				fileDatas = append(fileDatas, files...)
+			}
 		}
 		mut.Unlock()
 	}()

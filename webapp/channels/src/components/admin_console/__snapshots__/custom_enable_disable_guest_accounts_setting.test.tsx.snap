@@ -16,7 +16,7 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
       class="col-sm-8"
     >
       <label
-        class="Label-eIDBis ggzVFA"
+        class="Label-eJcoMl iShgPr"
       >
         <input
           data-testid="MySettingtrue"
@@ -28,7 +28,7 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
         True
       </label>
       <label
-        class="Label-eIDBis ggzVFA"
+        class="Label-eJcoMl iShgPr"
       >
         <input
           checked=""
@@ -73,7 +73,7 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
       class="col-sm-8"
     >
       <label
-        class="Label-eIDBis ggzVFA"
+        class="Label-eJcoMl iShgPr"
       >
         <input
           checked=""
@@ -86,7 +86,7 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
         True
       </label>
       <label
-        class="Label-eIDBis ggzVFA"
+        class="Label-eJcoMl iShgPr"
       >
         <input
           data-testid="MySettingfalse"
