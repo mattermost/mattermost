@@ -1622,6 +1622,10 @@
     "translation": "Shared Channels Service is disabled."
   },
   {
+    "id": "api.command_share.service_inactive",
+    "translation": "Shared Channels Service is enabled but not active."
+  },
+  {
     "id": "api.command_share.share_channel.error",
     "translation": "Cannot share this channel: {{.Error}}"
   },
