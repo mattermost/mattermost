@@ -820,65 +820,6 @@ export default class SuggestionBox extends React.PureComponent {
         );
     }
 
-    // メンション領域の位置を計算してクリック・入力制御レイヤーを作成
-    renderMentionClickBlocker() {
-        const {value} = this.props;
-        if (!value) {
-            return null;
-        }
-
-        const textbox = this.getTextbox();
-        if (!textbox) {
-            return null;
-        }
-
-        const mentionRegex = /@([a-z0-9.\-_]+)/gi;
-        const mentionZones = [];
-        let match;
-
-        while ((match = mentionRegex.exec(value)) !== null) {
-            const mentionStart = match.index;
-            const mentionEnd = match.index + match[0].length;
-            
-            mentionZones.push(
-                <div
-                    key={`mention-zone-${mentionStart}`}
-                    className='mention-zone'
-                    style={{
-                        left: `${this.calculateCharPosition(mentionStart)}px`,
-                        width: `${this.calculateCharPosition(mentionEnd) - this.calculateCharPosition(mentionStart)}px`,
-                        top: 0,
-                        height: '100%',
-                    }}
-                    onClick={(e) => this.handleMentionClick(e, mentionStart, mentionEnd)}
-                />
-            );
-        }
-
-        return mentionZones.length > 0 ? (
-            <div className='mention-click-overlay'>
-                {mentionZones}
-            </div>
-        ) : null;
-    }
-
-    // 文字位置のピクセル計算（改善版）
-    calculateCharPosition(charIndex) {
-        const textbox = this.getTextbox();
-        if (!textbox) {
-            return charIndex * 8; // フォールバック
-        }
-
-        // より正確な文字幅計算のために、実際のレンダリング情報を使用
-        const computedStyle = window.getComputedStyle(textbox);
-        const fontSize = parseInt(computedStyle.fontSize, 10);
-        
-        // フォントサイズに基づく平均文字幅の推定
-        const averageCharWidth = fontSize * 0.6; // 一般的な比率
-        
-        return charIndex * averageCharWidth;
-    }
-
     // メンション領域の範囲を取得
     getMentionRanges() {
         const {value} = this.props;
@@ -965,22 +906,6 @@ export default class SuggestionBox extends React.PureComponent {
 
         console.log('❌ カーソルはメンション領域外:', { cursorPosition });
         return { inArea: false };
-    }
-
-    // カーソル移動がメンション領域に侵入するかチェック（修正版）
-    willMoveCursorIntoMentionArea(currentPos, targetPos) {
-        const mentionRanges = this.getMentionRanges();
-        
-        for (const range of mentionRanges) {
-            // 移動先がメンション領域内（境界を含む）または
-            // メンション領域をまたぐ移動の場合は侵入と判定
-            if ((targetPos >= range.start && targetPos <= range.end) ||
-                (currentPos < range.start && targetPos > range.start)) {
-                return { willEnter: true, range };
-            }
-        }
-        
-        return { willEnter: false };
     }
 
     // メンション領域での入力制御（修正版 + Backspace対応強化）
