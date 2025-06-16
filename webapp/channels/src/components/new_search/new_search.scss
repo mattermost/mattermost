@@ -1,3 +1,5 @@
+@use "utils/variables";
+
 .search-box-floating-overlay {
-    z-index: 1060;
+    z-index: variables.$z-index-modal;
 }
