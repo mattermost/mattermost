@@ -585,7 +585,6 @@ func (ts *TelemetryService) trackConfig() {
 		"max_users_per_team":                      *cfg.TeamSettings.MaxUsersPerTeam,
 		"max_channels_per_team":                   *cfg.TeamSettings.MaxChannelsPerTeam,
 		"teammate_name_display":                   *cfg.TeamSettings.TeammateNameDisplay,
-		"experimental_view_archived_channels":     *cfg.TeamSettings.ExperimentalViewArchivedChannels,
 		"lock_teammate_name_display":              *cfg.TeamSettings.LockTeammateNameDisplay,
 		"isdefault_site_name":                     isDefault(cfg.TeamSettings.SiteName, "Mattermost"),
 		"isdefault_custom_brand_text":             isDefault(*cfg.TeamSettings.CustomBrandText, model.TeamSettingsDefaultCustomBrandText),

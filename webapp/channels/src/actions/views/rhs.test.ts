@@ -93,7 +93,6 @@ describe('rhs view actions', () => {
         entities: {
             general: {
                 config: {
-                    ExperimentalViewArchivedChannels: 'false',
                 },
             },
             channels: {

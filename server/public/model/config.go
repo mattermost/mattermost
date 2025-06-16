@@ -2358,7 +2358,6 @@ type TeamSettings struct {
 	MaxNotificationsPerChannel          *int64   `access:"environment_push_notification_server"`
 	EnableConfirmNotificationsToChannel *bool    `access:"site_notifications"`
 	TeammateNameDisplay                 *string  `access:"site_users_and_teams"`
-	ExperimentalViewArchivedChannels    *bool    `access:"experimental_features,site_users_and_teams"`
 	ExperimentalEnableAutomaticReplies  *bool    `access:"experimental_features"`
 	LockTeammateNameDisplay             *bool    `access:"site_users_and_teams"`
 	ExperimentalPrimaryTeam             *string  `access:"experimental_features"`
@@ -2448,10 +2447,6 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.EnableUserCreation == nil {
 		s.EnableUserCreation = NewPointer(true)
-	}
-
-	if s.ExperimentalViewArchivedChannels == nil {
-		s.ExperimentalViewArchivedChannels = NewPointer(true)
 	}
 
 	if s.LockTeammateNameDisplay == nil {
