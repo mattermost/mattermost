@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import type {SidebarChannelLink as SidebarChannelLinkComponent} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
-import {SidebarChannelLink} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
+import SidebarChannelLink, {type SidebarChannelLink as SidebarChannelLinkComponent} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 
 import {shallowWithIntl, defaultIntl} from 'tests/helpers/intl-test-helper';
 
@@ -130,10 +128,11 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             isSharedChannel: false,
         };
 
-        shallowWithIntl(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...props}/>,
         );
 
+        expect(wrapper).toMatchSnapshot();
         expect(props.actions.fetchChannelRemotes).not.toHaveBeenCalled();
     });
 
@@ -144,10 +143,11 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             remoteNames: [],
         };
 
-        shallow(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...props}/>,
         );
 
+        expect(wrapper).toMatchSnapshot();
         expect(props.actions.fetchChannelRemotes).toHaveBeenCalledWith('channel_id');
     });
 
@@ -155,14 +155,14 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         const props = {
             ...baseProps,
             isSharedChannel: true,
-            remoteNames: ['Remote 1', 'Remote 2'], // Data already exists
+            remoteNames: ['Remote 1', 'Remote 2'],
         };
 
-        shallow(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...props}/>,
         );
 
-        // Should not fetch since data already exists
+        expect(wrapper).toMatchSnapshot();
         expect(props.actions.fetchChannelRemotes).not.toHaveBeenCalled();
     });
 
@@ -173,14 +173,12 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             remoteNames: [],
         };
 
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...props}/>,
         );
 
-        // Clear the mock count from componentDidMount
         props.actions.fetchChannelRemotes.mockClear();
 
-        // Change the channel ID to simulate channel change
         wrapper.setProps({
             ...props,
             channel: {
