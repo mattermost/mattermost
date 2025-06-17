@@ -8,7 +8,7 @@ import {getAdminAccount} from './env';
 Cypress.Commands.add('visitLDAPSettings', () => {
     // # Go to LDAP settings Page
     cy.visit('/admin_console/authentication/ldap');
-    cy.get('.admin-console__header').should('be.visible').and('have.text', 'AD/LDAP');
+    cy.get('.admin-console__header').should('be.visible').and('have.text', 'AD/LDAP Wizard');
 });
 
 Cypress.Commands.add('doLDAPLogin', (settings = {}, useEmail = false) => {

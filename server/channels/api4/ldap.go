@@ -23,6 +23,9 @@ type mixedUnlinkedGroup struct {
 func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/sync", api.APISessionRequired(syncLdap)).Methods(http.MethodPost)
 	api.BaseRoutes.LDAP.Handle("/test", api.APISessionRequired(testLdap)).Methods(http.MethodPost)
+	api.BaseRoutes.LDAP.Handle("/test_connection", api.APISessionRequired(testLdapConnection)).Methods(http.MethodPost)
+	api.BaseRoutes.LDAP.Handle("/test_diagnostics", api.APISessionRequired(testLdapDiagnostics)).Methods(http.MethodPost)
+
 	api.BaseRoutes.LDAP.Handle("/migrateid", api.APISessionRequired(migrateIDLdap)).Methods(http.MethodPost)
 
 	// GET /api/v4/ldap/groups?page=0&per_page=1000
@@ -45,7 +48,7 @@ func (api *API) InitLdap() {
 
 func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAP {
-		c.Err = model.NewAppError("Api4.syncLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("api4.syncLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -73,7 +76,7 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAP {
-		c.Err = model.NewAppError("Api4.testLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("api4.testLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -90,6 +93,71 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
+func testLdapConnection(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !model.SafeDereference(c.App.Channels().License().Features.LDAP) {
+		c.Err = model.NewAppError("api4.testLdapConnection", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestLdap) {
+		c.SetPermissionError(model.PermissionTestLdap)
+		return
+	}
+
+	var settings model.LdapSettings
+	if err := json.NewDecoder(r.Body).Decode(&settings); err != nil {
+		c.SetInvalidParamWithErr("ldap_settings", err)
+		return
+	}
+
+	if err := c.App.TestLdapConnection(c.AppContext, settings); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func testLdapDiagnostics(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAP {
+		c.Err = model.NewAppError("Api4.testLdapDiagnostics", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestLdap) {
+		c.SetPermissionError(model.PermissionTestLdap)
+		return
+	}
+
+	testTypeStr := r.URL.Query().Get("test")
+	if testTypeStr == "" {
+		c.SetInvalidParam("test")
+		return
+	}
+
+	testType := model.LdapDiagnosticTestType(testTypeStr)
+	if !testType.IsValid() {
+		c.SetInvalidParam("test")
+		return
+	}
+
+	var settings model.LdapSettings
+	if err := json.NewDecoder(r.Body).Decode(&settings); err != nil {
+		c.SetInvalidParamWithErr("ldap_settings", err)
+		return
+	}
+
+	res, appErr := c.App.TestLdapDiagnostics(c.AppContext, testType, settings)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
@@ -97,7 +165,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.getLdapGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("api4.getLdapGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -135,7 +203,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		Groups []*mixedUnlinkedGroup `json:"groups"`
 	}{Count: total, Groups: mugs})
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getLdapGroups", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("api4.getLdapGroups", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -160,7 +228,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
 
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("api4.linkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -171,7 +239,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ldapGroup == nil {
-		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_group.not_found", nil, "", http.StatusNotFound)
+		c.Err = model.NewAppError("api4.linkLdapGroup", "api.ldap_group.not_found", nil, "", http.StatusNotFound)
 		return
 	}
 
@@ -234,7 +302,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal(newOrUpdatedGroup)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("api4.linkLdapGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -262,7 +330,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.unlinkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("api4.unlinkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -305,7 +373,7 @@ func migrateIDLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAP {
-		c.Err = model.NewAppError("Api4.idMigrateLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("api4.idMigrateLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
