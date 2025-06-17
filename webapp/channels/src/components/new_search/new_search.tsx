@@ -9,7 +9,6 @@ import {
     useInteractions,
     useRole,
     FloatingFocusManager,
-    FloatingOverlay,
     FloatingPortal,
     offset,
 } from '@floating-ui/react';
@@ -36,8 +35,6 @@ import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import SearchBox from './search_box';
-
-import './new_search.scss';
 
 const SearchTypeBadge = styled.div`
     display: flex;
@@ -112,6 +109,7 @@ const SearchBoxContainer = styled.div`
     overflow-y: auto;
     background: var(--center-channel-bg);
     box-shadow: 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.16), 0 4px 6px rgba(0, 0, 0, 0.12);
+    z-index: 1050;
 `;
 
 const NewSearch = (): JSX.Element => {
@@ -340,33 +338,28 @@ const NewSearch = (): JSX.Element => {
 
             {focused && (
                 <FloatingPortal id={RootHtmlPortalId}>
-                    <FloatingOverlay
-                        className='search-box-floating-overlay'
-                        lockScroll={true}
-                    >
-                        <FloatingFocusManager context={floatingContext}>
-                            <SearchBoxContainer
-                                ref={refs.setFloating}
-                                style={floatingStyles}
-                                {...getFloatingProps()}
-                                aria-label={intl.formatMessage({
-                                    id: 'search_bar.search_box',
-                                    defaultMessage: 'Search box',
-                                })}
-                            >
-                                <SearchBox
-                                    ref={searchBoxRef}
-                                    onClose={closeSearchBox}
-                                    onSearch={runSearch}
-                                    initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
-                                    initialSearchType={searchType}
-                                    initialSearchTeam={searchTeam}
-                                    crossTeamSearchEnabled={crossTeamSearchEnabled}
-                                    myTeams={myTeams}
-                                />
-                            </SearchBoxContainer>
-                        </FloatingFocusManager>
-                    </FloatingOverlay>
+                    <FloatingFocusManager context={floatingContext}>
+                        <SearchBoxContainer
+                            ref={refs.setFloating}
+                            style={floatingStyles}
+                            {...getFloatingProps()}
+                            aria-label={intl.formatMessage({
+                                id: 'search_bar.search_box',
+                                defaultMessage: 'Search box',
+                            })}
+                        >
+                            <SearchBox
+                                ref={searchBoxRef}
+                                onClose={closeSearchBox}
+                                onSearch={runSearch}
+                                initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
+                                initialSearchType={searchType}
+                                initialSearchTeam={searchTeam}
+                                crossTeamSearchEnabled={crossTeamSearchEnabled}
+                                myTeams={myTeams}
+                            />
+                        </SearchBoxContainer>
+                    </FloatingFocusManager>
                 </FloatingPortal>
             )}
         </>
