@@ -13,27 +13,24 @@
 import {attachFile} from '../files_and_attachments/helpers';
 
 describe('Image Gallery', () => {
+    let team;
+    let channel;
+
     before(() => {
-        cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
-            // Save team and channel for use in beforeEach
+        cy.apiInitSetup({loginAfter: true}).then((initData) => {
+            team = initData.team;
             Cypress.env('team', team);
-            Cypress.env('channel', channel);
-            cy.visit(`/${team.name}/channels/${channel.name}`);
-            cy.get('#app-content', {timeout: 30000}).should('be.visible');
-            cy.get('#channel-header', {timeout: 30000}).should('be.visible');
-            cy.get('#channelHeaderTitle', {timeout: 30000}).should('be.visible');
-            cy.get('#post_textbox', {timeout: 30000}).should('be.visible');
-            cy.get('#postListContent', {timeout: 30000}).should('be.visible');
         });
     });
 
     beforeEach(() => {
-        // Reload the channel page before each test to ensure isolation
-        const team = Cypress.env('team');
-        const channel = Cypress.env('channel');
-        cy.visit(`/${team.name}/channels/${channel.name}`);
-        cy.get('#channelHeaderTitle', {timeout: 30000}).should('be.visible');
-        cy.get('#post_textbox', {timeout: 30000}).should('be.visible');
+        // Create a unique channel for each test
+        cy.apiCreateChannel(Cypress.env('team').id, `test-channel-${Date.now()}`, 'Test Channel').then(({channel: newChannel}) => {
+            channel = newChannel;
+            cy.visit(`/${Cypress.env('team').name}/channels/${channel.name}`);
+            cy.get('#channelHeaderTitle', {timeout: 30000}).should('be.visible');
+            cy.get('#post_textbox', {timeout: 30000}).should('be.visible');
+        });
     });
 
     it('MM-T1798 Gallery grid layout with multiple images', () => {
