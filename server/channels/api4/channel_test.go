@@ -1346,13 +1346,42 @@ func TestDeleteDirectChannel(t *testing.T) {
 	user := th.BasicUser
 	user2 := th.BasicUser2
 
-	rgc, resp, err := client.CreateDirectChannel(context.Background(), user.Id, user2.Id)
-	require.NoError(t, err)
-	CheckCreatedStatus(t, resp)
-	require.NotNil(t, rgc, "should have created a direct channel")
+	// Enable API channel deletion
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableAPIChannelDeletion = true
+	})
 
-	_, err = client.DeleteChannel(context.Background(), rgc.Id)
-	require.NoError(t, err)
+	t.Run("Permanent Delete group channel for normal client", func(t *testing.T) {
+		rgc, resp, err := client.CreateDirectChannel(context.Background(), user.Id, user2.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rgc, "should have created a direct channel")
+
+		_, err = client.PermanentDeleteChannel(context.Background(), rgc.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("Soft Delete group channel for normal client", func(t *testing.T) {
+		rgc, resp, err := client.CreateDirectChannel(context.Background(), user.Id, user2.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rgc, "should have created a direct channel")
+
+		_, err = client.DeleteChannel(context.Background(), rgc.Id)
+		require.Error(t, err)
+	})
+
+	t.Run("Delete group permission failure", func(t *testing.T) {
+		rgc, resp, err := client.CreateDirectChannel(context.Background(), user.Id, user2.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rgc, "should have created a direct channel")
+
+		th.LoginTeamAdmin()
+		resp, err = client.PermanentDeleteChannel(context.Background(), rgc.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestCreateGroupChannel(t *testing.T) {
@@ -1496,12 +1525,17 @@ func TestDeleteGroupChannel(t *testing.T) {
 
 	userIds := []string{user.Id, user2.Id, user3.Id}
 
+	// Enable API channel deletion
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableAPIChannelDeletion = true
+	})
+
 	t.Run("Delete group channel for normal client", func(t *testing.T) {
 		rgc, resp, err := th.Client.CreateGroupChannel(context.Background(), userIds)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, rgc, "should have created a group channel")
-		_, err = th.Client.DeleteChannel(context.Background(), rgc.Id)
+		_, err = th.Client.PermanentDeleteChannel(context.Background(), rgc.Id)
 		require.NoError(t, err)
 	})
 
@@ -1510,8 +1544,32 @@ func TestDeleteGroupChannel(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, rgc, "should have created a group channel")
-		_, err = th.SystemAdminClient.DeleteChannel(context.Background(), rgc.Id)
+		_, err = th.SystemAdminClient.PermanentDeleteChannel(context.Background(), rgc.Id)
 		require.NoError(t, err)
+	})
+
+	t.Run("Delete group channel permission failure", func(t *testing.T) {
+		rgc, resp, err := th.Client.CreateGroupChannel(context.Background(), userIds)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rgc, "should have created a group channel")
+
+		th.LoginTeamAdmin()
+		resp, err = th.Client.PermanentDeleteChannel(context.Background(), rgc.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Soft delete group channel", func(t *testing.T) {
+		rgc, resp, err := th.Client.CreateGroupChannel(context.Background(), userIds)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rgc, "should have created a group channel")
+
+		th.LoginTeamAdmin()
+		resp, err = th.Client.DeleteChannel(context.Background(), rgc.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 }
 
