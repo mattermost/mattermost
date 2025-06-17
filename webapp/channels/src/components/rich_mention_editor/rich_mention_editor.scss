@@ -1,0 +1,163 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.rich-mention-editor {
+    position: relative;
+    width: 100%;
+
+    &__input {
+        min-height: 40px;
+        max-height: 200px;
+        padding: 8px 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background-color: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+        overflow-y: auto;
+        word-wrap: break-word;
+        outline: none;
+        resize: none;
+
+        &:focus {
+            border-color: var(--button-bg);
+            box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.25);
+        }
+
+        &:disabled {
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            cursor: not-allowed;
+        }
+
+        &:empty::before {
+            content: attr(data-placeholder);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            pointer-events: none;
+        }
+
+        // メンションチップのスタイル
+        .mention-chip {
+            background-color: var(--button-bg);
+            color: var(--button-color);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 0 2px;
+            display: inline-block;
+            cursor: default;
+            user-select: none;
+            white-space: nowrap;
+
+            &:hover {
+                background-color: rgba(var(--button-bg-rgb), 0.88);
+            }
+        }
+    }
+
+    &__suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background-color: var(--center-channel-bg);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(var(--center-channel-color-rgb), 0.12);
+        max-height: 200px;
+        overflow-y: auto;
+        margin-top: 4px;
+    }
+
+    &__suggestion {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:hover,
+        &--selected {
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        &--selected {
+            background-color: rgba(var(--button-bg-rgb), 0.12);
+        }
+    }
+
+    &__suggestion-user {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    &__suggestion-username {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--center-channel-color);
+    }
+
+    &__suggestion-fullname {
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+}
+
+// ダークテーマ対応
+.theme--dark {
+    .rich-mention-editor {
+        &__input {
+            border-color: rgba(var(--center-channel-color-rgb), 0.24);
+            
+            &:focus {
+                box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.32);
+            }
+        }
+
+        &__suggestions {
+            border-color: rgba(var(--center-channel-color-rgb), 0.24);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+        }
+
+        &__suggestion {
+            border-bottom-color: rgba(var(--center-channel-color-rgb), 0.12);
+
+            &:hover,
+            &--selected {
+                background-color: rgba(var(--button-bg-rgb), 0.12);
+            }
+
+            &--selected {
+                background-color: rgba(var(--button-bg-rgb), 0.16);
+            }
+        }
+    }
+}
+
+// アクセシビリティ対応
+@media (prefers-reduced-motion: reduce) {
+    .rich-mention-editor {
+        &__input {
+            transition: none;
+        }
+    }
+}
+
+// モバイル対応
+@media (max-width: 768px) {
+    .rich-mention-editor {
+        &__suggestions {
+            max-height: 150px;
+        }
+
+        &__suggestion {
+            padding: 12px;
+        }
+    }
+}

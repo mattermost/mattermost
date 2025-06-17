@@ -40,7 +40,7 @@ import {
 } from 'components/file_upload_overlay/file_upload_overlay';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
-import Textbox from 'components/textbox';
+import RichMentionEditor from 'components/rich_mention_editor';
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
@@ -776,33 +776,19 @@ const AdvancedTextEditor = ({
                         className='AdvancedTextEditor__cell a11y__region'
                     >
                         {!isInEditMode && priorityLabels}
-                        <Textbox
-                            hasLabels={isInEditMode ? false : Boolean(priorityLabels)}
-                            suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
-                            onChange={handleChange}
-                            onKeyPress={postMsgKeyPress}
-                            onKeyDown={handleKeyDown}
-                            onMouseUp={handleMouseUpKeyUp}
-                            onKeyUp={handleMouseUpKeyUp}
-                            onComposition={emitTypingEvent}
-                            onHeightChange={handleHeightChange}
-                            handlePostError={handlePostError}
+                        <RichMentionEditor
                             value={messageValue}
-                            onBlur={handleBlur}
-                            onFocus={handleFocus}
-                            emojiEnabled={enableEmojiPicker}
-                            createMessage={createMessage}
-                            channelId={channelId}
-                            id={textboxId}
-                            ref={textboxRef!}
+                            onInput={(value: string) => {
+                                // Only call handleChange when value actually changes
+                                if (value !== messageValue) {
+                                    handleChange({target: {value}} as React.ChangeEvent<TextboxElement>);
+                                }
+                            }}
+                            placeholder={placeholder || formatMessage({id: 'create_post.write', defaultMessage: 'Write a message...'})}
                             disabled={isDisabled}
-                            characterLimit={maxPostSize}
-                            preview={showPreview}
-                            badConnection={badConnection}
-                            useChannelMentions={useChannelMentions}
-                            rootId={rootId}
-                            onWidthChange={handleWidthChange}
-                            isInEditMode={isInEditMode}
+                            onFocus={handleFocus}
+                            onBlur={handleBlur}
+                            onKeyDown={(event) => handleKeyDown(event as any)}
                         />
                         {attachmentPreview}
                         {!isDisabled && (showFormattingBar || showPreview) && (
