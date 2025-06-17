@@ -316,7 +316,7 @@ func TestExportDMChannel(t *testing.T) {
 		require.NoError(t, nErr)
 		assert.Equal(t, 1, len(channels))
 
-		th2 := Setup(t).InitBasic(t)
+		th2 := Setup(t)
 		defer th2.TearDown(t)
 
 		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
@@ -335,8 +335,14 @@ func TestExportDMChannel(t *testing.T) {
 		require.Len(t, channels[0].Members, 2)
 		assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, []string{channels[0].Members[0].Username, channels[0].Members[1].Username})
 
-		// Ensure the favorited channel was retained
-		fav, nErr := th2.App.Srv().Store().Preference().Get(th2.BasicUser2.Id, model.PreferenceCategoryFavoriteChannel, channels[0].Id)
+		// Verify the users were imported and get their IDs in th2
+		_, appErr = th2.App.GetUserByUsername(th1.BasicUser.Username)
+		require.Nil(t, appErr)
+		importedUser2, appErr := th2.App.GetUserByUsername(th1.BasicUser2.Username)
+		require.Nil(t, appErr)
+
+		// Ensure the favorited channel was retained for the imported user
+		fav, nErr := th2.App.Srv().Store().Preference().Get(importedUser2.Id, model.PreferenceCategoryFavoriteChannel, channels[0].Id)
 		require.NoError(t, nErr)
 		require.NotNil(t, fav)
 		require.Equal(t, "true", fav.Value)
