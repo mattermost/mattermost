@@ -119,7 +119,7 @@ func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
 	)
 
 	channels, err := utils.Pager(func(page int) ([]*model.Channel, error) {
-		return s.channel.GetPublicChannelsForTeam(teamID, page, perPage)
+		return s.channel.GetPublicChannelsForTeam(teamID, page*perPage, perPage)
 	}, perPage)
 	if err != nil {
 		rctx.Logger().Warn("Encountered error while retreiving public channels for indexing", mlog.String("team_id", teamID), mlog.Err(err))
