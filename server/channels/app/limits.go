@@ -14,15 +14,6 @@ const (
 	maxUsersHardLimit = 5_000
 )
 
-// calculateGraceLimit calculates a grace limit using the configured extra users.
-// When extraUsers is specified, returns baseLimit + extraUsers.
-// Special case: if baseLimit is 0, always returns 0 regardless of extraUsers.
-func calculateGraceLimit(baseLimit int64, extraUsers int) int64 {
-	if baseLimit == 0 {
-		return 0
-	}
-	return baseLimit + int64(extraUsers)
-}
 
 func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
 	limits := &model.ServerLimits{}
@@ -43,7 +34,7 @@ func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
 			extraUsers = *license.Features.ExtraUsers
 		}
 		
-		limits.MaxUsersHardLimit = calculateGraceLimit(licenseUserLimit, extraUsers)
+		limits.MaxUsersHardLimit = licenseUserLimit + int64(extraUsers)
 	}
 
 	activeUserCount, appErr := a.Srv().Store().User().Count(model.UserCountOptions{})

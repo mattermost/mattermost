@@ -262,7 +262,7 @@ func TestGetServerLimits(t *testing.T) {
 
 		require.Greater(t, serverLimits.ActiveUserCount, int64(0))
 		require.Equal(t, int64(0), serverLimits.MaxUsersLimit)
-		require.Equal(t, int64(0), serverLimits.MaxUsersHardLimit) // No grace for 0 users
+		require.Equal(t, int64(0), serverLimits.MaxUsersHardLimit) // 0 + 0 (default) extra users = 0
 	})
 }
 
@@ -479,11 +479,11 @@ func TestExtraUsersBehavior(t *testing.T) {
 			expectedHardLimit  int64
 		}{
 			{
-				name:               "zero license users gets zero hard limit regardless of extra users",
+				name:               "zero license users with extra users",
 				licenseUserLimit:   0,
 				extraUsers:         func() *int { v := 5; return &v }(),
 				expectedBaseLimit:  0,
-				expectedHardLimit:  0, // Special case: 0 users = 0 hard limit
+				expectedHardLimit:  5, // 0 + 5 extra users = 5
 			},
 			{
 				name:               "license with configured extra users",
@@ -550,63 +550,3 @@ func TestExtraUsersBehavior(t *testing.T) {
 	})
 }
 
-func TestCalculateGraceLimit(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	tests := []struct {
-		name       string
-		baseLimit  int64
-		extraUsers int
-		expected   int64
-	}{
-		{
-			name:       "zero base limit with extra users",
-			baseLimit:  0,
-			extraUsers: 5,
-			expected:   0, // Special case: 0 users = 0 hard limit regardless of extra users
-		},
-		{
-			name:       "zero base limit with zero extra users",
-			baseLimit:  0,
-			extraUsers: 0,
-			expected:   0, // Special case: 0 users = 0 hard limit
-		},
-		{
-			name:       "base limit with zero extra users (hard cap)",
-			baseLimit:  100,
-			extraUsers: 0,
-			expected:   100, // 100 + 0 = 100 (hard cap)
-		},
-		{
-			name:       "base limit with small number of extra users",
-			baseLimit:  10,
-			extraUsers: 2,
-			expected:   12, // 10 + 2 = 12
-		},
-		{
-			name:       "base limit with large number of extra users",
-			baseLimit:  100,
-			extraUsers: 25,
-			expected:   125, // 100 + 25 = 125
-		},
-		{
-			name:       "large base limit with extra users",
-			baseLimit:  1000,
-			extraUsers: 50,
-			expected:   1050, // 1000 + 50 = 1050
-		},
-		{
-			name:       "very large base limit with extra users",
-			baseLimit:  5000,
-			extraUsers: 200,
-			expected:   5200, // 5000 + 200 = 5200
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := calculateGraceLimit(tt.baseLimit, tt.extraUsers)
-			require.Equal(t, tt.expected, result, "calculateGraceLimit(%d, %d) = %d, expected %d", tt.baseLimit, tt.extraUsers, result, tt.expected)
-		})
-	}
-}
