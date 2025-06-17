@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@testing-library/react';
+import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
+import {IntlProvider} from 'react-intl';
 
 import PreviewModalContent from './preview_modal_content';
 import type {PreviewModalContentData} from './preview_modal_content_data';
@@ -20,27 +21,47 @@ jest.mock('components/widgets/icons/mattermost_logo', () => ({
 
 describe('PreviewModalContent', () => {
     const baseContent: PreviewModalContentData = {
-        title: 'Test Title',
-        subtitle: 'Test subtitle with <strong>bold text</strong>',
-        skuLabel: 'Test sku label',
+        title: {
+            id: 'test.title',
+            defaultMessage: 'Test Title',
+        },
+        subtitle: {
+            id: 'test.subtitle',
+            defaultMessage: 'Test subtitle with bold text',
+        },
+        skuLabel: {
+            id: 'test.sku_label',
+            defaultMessage: 'Test sku label',
+        },
         videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA',
         useCase: 'missionops',
     };
 
+    const renderComponent = (content: PreviewModalContentData) => {
+        return render(
+            <IntlProvider locale='en'>
+                <PreviewModalContent content={content}/>
+            </IntlProvider>,
+        );
+    };
+
     it('should render title and subtitle', () => {
-        render(<PreviewModalContent content={baseContent}/>);
+        renderComponent(baseContent);
 
         expect(screen.getByText('Test Title')).toBeInTheDocument();
-        expect(screen.getByText('Test subtitle with <strong>bold text</strong>')).toBeInTheDocument();
+        expect(screen.getByText('Test subtitle with bold text')).toBeInTheDocument();
     });
 
     it('should render SKU label with logo when provided', () => {
         const content = {
             ...baseContent,
-            skuLabel: 'ENTERPRISE',
+            skuLabel: {
+                id: 'test.enterprise',
+                defaultMessage: 'ENTERPRISE',
+            },
         };
 
-        render(<PreviewModalContent content={content}/>);
+        renderComponent(content);
 
         expect(screen.getByText('ENTERPRISE')).toBeInTheDocument();
         expect(screen.getByTestId('mattermost-logo')).toBeInTheDocument();
@@ -49,10 +70,13 @@ describe('PreviewModalContent', () => {
     it('should not render SKU label when not provided', () => {
         const contentWithoutSku = {
             ...baseContent,
-            skuLabel: '',
+            skuLabel: {
+                id: 'test.empty',
+                defaultMessage: '',
+            },
         };
 
-        render(<PreviewModalContent content={contentWithoutSku}/>);
+        renderComponent(contentWithoutSku);
 
         expect(screen.queryByText('ENTERPRISE')).not.toBeInTheDocument();
         expect(screen.queryByTestId('mattermost-logo')).not.toBeInTheDocument();
@@ -64,7 +88,7 @@ describe('PreviewModalContent', () => {
             videoUrl: 'https://example.com/video.mp4',
         };
 
-        render(<PreviewModalContent content={content}/>);
+        renderComponent(content);
 
         const video = screen.getByTestId('video-element') as HTMLVideoElement;
         expect(video).toBeInTheDocument();
@@ -74,13 +98,72 @@ describe('PreviewModalContent', () => {
         expect(video.tagName).toBe('VIDEO');
     });
 
+    it('should render video with poster when videoPoster is provided', () => {
+        const content = {
+            ...baseContent,
+            videoUrl: 'https://example.com/video.mp4',
+            videoPoster: 'https://example.com/poster.jpg',
+        };
+
+        renderComponent(content);
+
+        const video = screen.getByTestId('video-element') as HTMLVideoElement;
+        expect(video).toBeInTheDocument();
+        expect(video.poster).toBe('https://example.com/poster.jpg');
+    });
+
+    it('should render video without poster when videoPoster is not provided', () => {
+        const content = {
+            ...baseContent,
+            videoUrl: 'https://example.com/video.mp4',
+        };
+
+        renderComponent(content);
+
+        const video = screen.getByTestId('video-element') as HTMLVideoElement;
+        expect(video).toBeInTheDocument();
+        expect(video.poster).toBe('');
+    });
+
+    it('should show play button initially for video content', () => {
+        const content = {
+            ...baseContent,
+            videoUrl: 'https://example.com/video.mp4',
+        };
+
+        renderComponent(content);
+
+        const playButton = screen.getByLabelText('Play video');
+        expect(playButton).toBeInTheDocument();
+        expect(playButton).toHaveClass('custom-play-button');
+    });
+
+    it('should hide play button and show controls when play button is clicked', () => {
+        const content = {
+            ...baseContent,
+            videoUrl: 'https://example.com/video.mp4',
+        };
+
+        // Mock video play method
+        const mockPlay = jest.fn();
+        HTMLVideoElement.prototype.play = mockPlay;
+
+        renderComponent(content);
+
+        const playButton = screen.getByLabelText('Play video');
+        fireEvent.click(playButton);
+
+        expect(mockPlay).toHaveBeenCalled();
+        expect(screen.queryByLabelText('Play video')).not.toBeInTheDocument();
+    });
+
     it('should render video when videoUrl is provided with .webm extension', () => {
         const content = {
             ...baseContent,
             videoUrl: 'test-video.webm',
         };
 
-        render(<PreviewModalContent content={content}/>);
+        renderComponent(content);
 
         expect(screen.getByTestId('video-element')).toBeInTheDocument();
         expect(screen.getByTestId('video-element')).toHaveAttribute('src', 'test-video.webm');
@@ -92,7 +175,7 @@ describe('PreviewModalContent', () => {
             videoUrl: 'https://example.com/image.png',
         };
 
-        render(<PreviewModalContent content={content}/>);
+        renderComponent(content);
 
         const image = screen.getByRole('img') as HTMLImageElement;
         expect(image).toBeInTheDocument();
@@ -101,7 +184,7 @@ describe('PreviewModalContent', () => {
     });
 
     it('should not render video container when videoUrl is not provided', () => {
-        render(<PreviewModalContent content={baseContent}/>);
+        renderComponent(baseContent);
 
         expect(screen.queryByRole('video')).not.toBeInTheDocument();
         expect(screen.queryByRole('img')).not.toBeInTheDocument();
@@ -113,7 +196,7 @@ describe('PreviewModalContent', () => {
             videoUrl: 'https://www.youtube.com/watch?v=Zpyy2FqGotM',
         };
 
-        render(<PreviewModalContent content={content}/>);
+        renderComponent(content);
 
         const iframe = screen.getByTestId('youtube-embed');
         expect(iframe).toBeInTheDocument();
@@ -129,7 +212,7 @@ describe('PreviewModalContent', () => {
             videoUrl: 'https://youtu.be/Zpyy2FqGotM',
         };
 
-        render(<PreviewModalContent content={content}/>);
+        renderComponent(content);
 
         const iframe = screen.getByTestId('youtube-embed');
         expect(iframe).toBeInTheDocument();
@@ -143,7 +226,7 @@ describe('PreviewModalContent', () => {
             videoUrl: 'https://www.youtube.com/embed/Zpyy2FqGotM',
         };
 
-        render(<PreviewModalContent content={content}/>);
+        renderComponent(content);
 
         const iframe = screen.getByTestId('youtube-embed');
         expect(iframe).toBeInTheDocument();
@@ -157,7 +240,7 @@ describe('PreviewModalContent', () => {
             videoUrl: 'test-video.mov',
         };
 
-        render(<PreviewModalContent content={content}/>);
+        renderComponent(content);
 
         expect(screen.getByTestId('video-element')).toBeInTheDocument();
         expect(screen.getByTestId('video-element')).toHaveAttribute('src', 'test-video.mov');

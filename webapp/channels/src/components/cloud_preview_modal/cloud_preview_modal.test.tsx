@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 import * as reactRedux from 'react-redux';
-import {fireEvent, screen} from '@testing-library/react';
 
 import type {Subscription} from '@mattermost/types/cloud';
 

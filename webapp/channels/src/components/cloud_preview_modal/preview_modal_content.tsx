@@ -1,20 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useRef, useState} from 'react';
+import {useIntl} from 'react-intl';
 
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
+
+import {getVideoId} from 'utils/youtube';
 
 import type {PreviewModalContentData} from './preview_modal_content_data';
 
 import './preview_modal_content.scss';
-import { getVideoId } from 'utils/youtube';
 
 interface Props {
     content: PreviewModalContentData;
 }
 
 const PreviewModalContent: React.FC<Props> = ({content}) => {
+    const intl = useIntl();
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [showControls, setShowControls] = useState(false);
+
+    const handlePlay = () => {
+        setIsPlaying(true);
+        videoRef.current?.play();
+    };
+
+    const handleVideoClick = () => {
+        if (!isPlaying) {
+            handlePlay();
+        }
+    };
+
+    const handleVideoPause = () => {
+        setIsPlaying(false);
+    };
+
     const renderVideoContent = () => {
         if (!content.videoUrl) {
             return null;
@@ -37,7 +59,7 @@ const PreviewModalContent: React.FC<Props> = ({content}) => {
             return (
                 <iframe
                     src={embedUrl.toString()}
-                    title={content.title}
+                    title={intl.formatMessage(content.title)}
                     width='100%'
                     height='100%'
                     frameBorder='0'
@@ -51,14 +73,53 @@ const PreviewModalContent: React.FC<Props> = ({content}) => {
         // Handle direct video files
         if (content.videoUrl.endsWith('.mp4') || content.videoUrl.endsWith('.webm') || content.videoUrl.endsWith('.mov')) {
             return (
-                <video
-                    src={content.videoUrl}
-                    controls={true}
-                    loop={true}
-                    data-testid='video-element'
+                <div
+                    className='custom-video-wrapper'
+                    onMouseEnter={() => isPlaying && setShowControls(true)}
+                    onMouseLeave={() => setShowControls(false)}
                 >
-                    <track kind='captions'/>
-                </video>
+                    <video
+                        ref={videoRef}
+                        src={content.videoUrl}
+                        poster={content.videoPoster}
+                        controls={isPlaying && showControls}
+                        loop={true}
+                        data-testid='video-element'
+                        onClick={handleVideoClick}
+                        onPause={handleVideoPause}
+                        onPlay={() => setIsPlaying(true)}
+                    >
+                        <track kind='captions'/>
+                    </video>
+                    {!isPlaying && (
+                        <button
+                            className='custom-play-button'
+                            onClick={handlePlay}
+                            aria-label={intl.formatMessage({
+                                id: 'cloud_preview_modal.play_video',
+                                defaultMessage: 'Play video',
+                            })}
+                        >
+                            <svg
+                                width='48'
+                                height='48'
+                                viewBox='0 0 48 48'
+                                fill='none'
+                            >
+                                <circle
+                                    cx='24'
+                                    cy='24'
+                                    r='24'
+                                    fill='rgba(255,255,255,0.9)'
+                                />
+                                <polygon
+                                    points='20,16 34,24 20,32'
+                                    fill='#1e3a8a'
+                                />
+                            </svg>
+                        </button>
+                    )}
+                </div>
             );
         }
 
@@ -67,7 +128,7 @@ const PreviewModalContent: React.FC<Props> = ({content}) => {
             return (
                 <img
                     src={content.videoUrl}
-                    alt={content.title}
+                    alt={intl.formatMessage(content.title)}
                 />
             );
         }
@@ -76,22 +137,22 @@ const PreviewModalContent: React.FC<Props> = ({content}) => {
         return (
             <img
                 src={content.videoUrl}
-                alt={content.title}
+                alt={intl.formatMessage(content.title)}
             />
         );
     };
 
     return (
         <div className='preview-modal-content'>
-            {content.skuLabel && (
+            {content.skuLabel && content.skuLabel.defaultMessage && (
                 <div className='preview-modal-content__sku-label'>
                     <MattermostLogo className='preview-modal-content__sku-label-logo'/>
-                    <span>{content.skuLabel}</span>
+                    <span>{intl.formatMessage(content.skuLabel)}</span>
                 </div>
             )}
-            <h2 className='preview-modal-content__title'>{content.title}</h2>
+            <h2 className='preview-modal-content__title'>{intl.formatMessage(content.title)}</h2>
             <div className='preview-modal-content__subtitle'>
-                {content.subtitle}
+                {intl.formatMessage(content.subtitle)}
             </div>
             {content.videoUrl && (
                 <div className='preview-modal-content__video-container'>

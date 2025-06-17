@@ -32,23 +32,50 @@ describe('PreviewModalController', () => {
 
     const contentData: PreviewModalContentData[] = [
         {
-            title: 'First Slide',
-            subtitle: 'First subtitle',
-            skuLabel: 'First sku label',
+            title: {
+                id: 'test.slide1.title',
+                defaultMessage: 'First Slide',
+            },
+            subtitle: {
+                id: 'test.slide1.subtitle',
+                defaultMessage: 'First subtitle',
+            },
+            skuLabel: {
+                id: 'test.slide1.sku_label',
+                defaultMessage: 'First sku label',
+            },
             videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA',
             useCase: 'missionops',
         },
         {
-            title: 'Second Slide',
-            subtitle: 'Second subtitle',
-            skuLabel: 'Second sku label',
+            title: {
+                id: 'test.slide2.title',
+                defaultMessage: 'Second Slide',
+            },
+            subtitle: {
+                id: 'test.slide2.subtitle',
+                defaultMessage: 'Second subtitle',
+            },
+            skuLabel: {
+                id: 'test.slide2.sku_label',
+                defaultMessage: 'Second sku label',
+            },
             videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA',
             useCase: 'missionops',
         },
         {
-            title: 'Third Slide',
-            subtitle: 'Third subtitle',
-            skuLabel: 'Third sku label',
+            title: {
+                id: 'test.slide3.title',
+                defaultMessage: 'Third Slide',
+            },
+            subtitle: {
+                id: 'test.slide3.subtitle',
+                defaultMessage: 'Third subtitle',
+            },
+            skuLabel: {
+                id: 'test.slide3.sku_label',
+                defaultMessage: 'Third sku label',
+            },
             videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA',
             useCase: 'missionops',
         },

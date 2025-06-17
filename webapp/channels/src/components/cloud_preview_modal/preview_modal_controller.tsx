@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import {ChevronLeftIcon, ChevronRightIcon, CloseIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
@@ -19,6 +19,7 @@ interface Props {
 }
 
 const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) => {
+    const intl = useIntl();
     const [currentIndex, setCurrentIndex] = useState(0);
 
     const handlePrevious = useCallback(() => {
@@ -66,10 +67,10 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                         className='preview-modal-controller__skip-button'
                         onClick={handleSkip}
                     >
-                        <FormattedMessage
-                            id='cloud_preview_modal.skip'
-                            defaultMessage='Skip for now'
-                        />
+                        {intl.formatMessage({
+                            id: 'cloud_preview_modal.skip',
+                            defaultMessage: 'Skip for now',
+                        })}
                     </button>
                 )}
 
@@ -79,10 +80,10 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                         onClick={handlePrevious}
                     >
                         <ChevronLeftIcon size={18}/>
-                        <FormattedMessage
-                            id='cloud_preview_modal.previous'
-                            defaultMessage='Previous'
-                        />
+                        {intl.formatMessage({
+                            id: 'cloud_preview_modal.previous',
+                            defaultMessage: 'Previous',
+                        })}
                     </button>
                 )}
 
@@ -91,16 +92,16 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                     onClick={isLastSlide ? onClose : handleNext}
                 >
                     {isLastSlide ? (
-                        <FormattedMessage
-                            id='cloud_preview_modal.done'
-                            defaultMessage='Finish'
-                        />
+                        intl.formatMessage({
+                            id: 'cloud_preview_modal.done',
+                            defaultMessage: 'Finish',
+                        })
                     ) : (
                         <>
-                            <FormattedMessage
-                                id='cloud_preview_modal.next'
-                                defaultMessage='Next'
-                            />
+                            {intl.formatMessage({
+                                id: 'cloud_preview_modal.next',
+                                defaultMessage: 'Next',
+                            })}
                             <ChevronRightIcon size={18}/>
                         </>
                     )}
@@ -115,7 +116,10 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
             onHide={onClose}
             compassDesign={true}
             enforceFocus={true}
-            ariaLabel='Cloud Preview Introduction'
+            ariaLabel={intl.formatMessage({
+                id: 'cloud_preview_modal.aria_label',
+                defaultMessage: 'Cloud Preview Introduction',
+            })}
             showHeader={false}
             showCloseButton={false}
             bodyPadding={true}
@@ -125,7 +129,10 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
             <button
                 className='preview-modal-controller__close-button'
                 onClick={onClose}
-                aria-label='Close modal'
+                aria-label={intl.formatMessage({
+                    id: 'cloud_preview_modal.close',
+                    defaultMessage: 'Close modal',
+                })}
             >
                 <CloseIcon size={24}/>
             </button>
