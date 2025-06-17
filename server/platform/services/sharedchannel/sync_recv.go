@@ -833,22 +833,49 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 			return match
 		}
 
-		// No suffix - check if user exists locally on receiving cluster
+		// No suffix - check for username collision to decide if cluster suffix is needed
 		username := mention
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Checking if user '%s' exists locally", username))
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Processing unsuffixed mention: %s", username))
 
-		// Check if user exists locally (not from a remote cluster)
-		if localUser, err := scs.server.GetStore().User().GetByUsername(username); err == nil && localUser != nil {
-			if localUser.GetRemoteID() == "" {
-				// User exists locally, keep as-is (was stripped by fixMention)
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  User exists locally, keeping: %s", match))
-				return match
+		// First, check if there's already a remote user from sender's cluster with this username
+		// This indicates the mention was stripped by fixMention and should stay as-is
+		var hasRemoteUserFromSender bool
+		users, err := scs.server.GetStore().User().GetProfilesByUsernames([]string{username}, nil)
+		if err == nil {
+			for _, user := range users {
+				if user.GetRemoteID() == rc.RemoteId {
+					hasRemoteUserFromSender = true
+					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Found remote user from sender: %s", match))
+					break
+				}
 			}
 		}
 
-		// User doesn't exist locally, add sender's cluster name (was originally local on sender)
+		if hasRemoteUserFromSender {
+			// Remote user from sender exists, this was stripped by fixMention - keep as-is
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Keeping mention as-is (was stripped): %s", match))
+			return match
+		}
+
+		// Check if there's a local user with this username (potential collision)
+		var hasLocalUser bool
+		if localUser, err := scs.server.GetStore().User().GetByUsername(username); err == nil && localUser != nil {
+			if localUser.GetRemoteID() == "" {
+				hasLocalUser = true
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Found local user with same name: %s", username))
+			}
+		}
+
+		if hasLocalUser {
+			// Username collision detected - add cluster suffix to disambiguate
+			newMention := fmt.Sprintf("@%s:%s", mention, rc.Name)
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Username collision detected, adding suffix: %s -> %s", match, newMention))
+			return newMention
+		}
+
+		// No collision but still need cluster suffix for cross-cluster mention identification
 		newMention := fmt.Sprintf("@%s:%s", mention, rc.Name)
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  User not local, adding sender cluster suffix: %s -> %s", match, newMention))
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  No collision but adding suffix for cross-cluster identification: %s -> %s", match, newMention))
 		return newMention
 	})
 
