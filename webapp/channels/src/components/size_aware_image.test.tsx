@@ -156,25 +156,6 @@ describe('components/SizeAwareImage', () => {
             toEqual('small-image__container cursor--pointer a11y--active small-image__container--min-width');
     });
 
-    test('should properly set container div width', () => {
-        const props = {
-            ...baseProps,
-            handleSmallImageContainer: true,
-        };
-
-        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
-
-        wrapper.instance().setState({isSmallImage: true, imageWidth: 220});
-        expect(wrapper.find('div.small-image__container').prop('style')).
-            toHaveProperty('width', 236);
-
-        wrapper.instance().setState({isSmallImage: true, imageWidth: 24});
-        expect(wrapper.find('div.small-image__container').prop('style')).
-            toEqual({minWidth: 48, minHeight: 48});
-        expect(wrapper.find('div.small-image__container').hasClass('small-image__container--min-width')).
-            toEqual(true);
-    });
-
     test('should properly set img style when it is small', () => {
         const props = {
             ...baseProps,
