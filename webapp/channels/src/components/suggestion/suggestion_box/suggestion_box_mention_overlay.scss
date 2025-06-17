@@ -26,7 +26,6 @@
         outline: none !important;
         filter: none !important;
         
-        // 擬似要素の背景も消す
         &::before,
         &::after {
             background: none !important;
@@ -35,7 +34,6 @@
             box-shadow: none !important;
         }
         
-        // メンション部分のスタイル調整
         .at-mention {
             display: inline;
             background: rgba(var(--mention-color-rgb, 0, 115, 230), 0.1);
@@ -55,7 +53,6 @@
                 text-decoration: underline;
             }
             
-            // メンション領域の視覚的インジケーター
             &::before {
                 content: '';
                 position: absolute;
@@ -76,7 +73,6 @@
         }
     }
     
-    // メンション部分のクリック領域制御
     .mention-click-overlay {
         position: absolute;
         top: 0;
@@ -108,7 +104,6 @@
         color: transparent !important;
         caret-color: var(--center-channel-color) !important;
         
-        // テキストを完全に非表示にする
         text-shadow: none !important;
         -webkit-text-fill-color: transparent !important;
         
@@ -120,7 +115,6 @@
             background: rgba(0, 115, 230, 0.2);
         }
         
-        // プレースホルダーも透明にする
         &::placeholder {
             color: transparent !important;
         }
@@ -135,16 +129,13 @@
     }
 }
 
-// テキストエリア用の調整
 .form-control.suggestion-box-input-transparent {
     color: transparent;
     caret-color: var(--center-channel-color);
 }
 
-// フォーカス時の調整
 .suggestion-box-input-wrapper:focus-within {
     .suggestion-box-mention-overlay {
-        // フォーカス時も表示を維持
         opacity: 1;
     }
 }
