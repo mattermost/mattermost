@@ -481,21 +481,21 @@ func TestExtraUsersBehavior(t *testing.T) {
 			{
 				name:               "zero license users with extra users",
 				licenseUserLimit:   0,
-				extraUsers:         func() *int { v := 5; return &v }(),
+				extraUsers:         model.NewPointer(5),
 				expectedBaseLimit:  0,
 				expectedHardLimit:  5, // 0 + 5 extra users = 5
 			},
 			{
 				name:               "license with configured extra users",
 				licenseUserLimit:   10,
-				extraUsers:         func() *int { v := 2; return &v }(),
+				extraUsers:         model.NewPointer(2),
 				expectedBaseLimit:  10,
 				expectedHardLimit:  12, // 10 + 2 extra users = 12
 			},
 			{
 				name:               "license with zero extra users (hard cap)",
 				licenseUserLimit:   100,
-				extraUsers:         func() *int { v := 0; return &v }(),
+				extraUsers:         model.NewPointer(0),
 				expectedBaseLimit:  100,
 				expectedHardLimit:  100, // 100 + 0 extra users = 100 (hard cap)
 			},
@@ -509,7 +509,7 @@ func TestExtraUsersBehavior(t *testing.T) {
 			{
 				name:               "license with large number of extra users",
 				licenseUserLimit:   1000,
-				extraUsers:         func() *int { v := 200; return &v }(),
+				extraUsers:         model.NewPointer(200),
 				expectedBaseLimit:  1000,
 				expectedHardLimit:  1200, // 1000 + 200 extra users = 1200
 			},
