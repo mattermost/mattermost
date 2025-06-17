@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
@@ -117,159 +117,153 @@ type Props = {
     buttonType?: 'primary' | 'secondary' | 'tertiary';
 };
 
-type State = {
-    busy: boolean;
-    fail: string;
-    success: boolean;
-}
+const defaultSuccessMessage = defineMessage({
+    id: 'admin.requestButton.requestSuccess',
+    defaultMessage: 'Test Successful',
+});
 
-export default class RequestButton extends React.PureComponent<Props, State> {
-    static defaultProps: Partial<Props> = {
-        disabled: false,
-        saveNeeded: false,
-        showSuccessMessage: true,
-        includeDetailedError: false,
-        successMessage: defineMessage({
-            id: 'admin.requestButton.requestSuccess',
-            defaultMessage: 'Test Successful',
-        }),
-        errorMessage: defineMessage({
-            id: 'admin.requestButton.requestFailure',
-            defaultMessage: 'Test Failure: {error}',
-        }),
-    };
+const defaultErrorMessage = defineMessage({
+    id: 'admin.requestButton.requestFailure',
+    defaultMessage: 'Test Failure: {error}',
+});
 
-    constructor(props: Props) {
-        super(props);
+const RequestButton: React.FC<Props> = ({
+    id,
+    requestAction,
+    helpText,
+    loadingText,
+    buttonText,
+    label,
+    disabled = false,
+    saveNeeded = false,
+    saveConfigAction,
+    showSuccessMessage = true,
+    successMessage = defaultSuccessMessage,
+    errorMessage = defaultErrorMessage,
+    includeDetailedError = false,
+    alternativeActionElement,
+    flushLeft,
+    buttonType = 'tertiary',
+}) => {
+    const [busy, setBusy] = useState(false);
+    const [fail, setFail] = useState('');
+    const [success, setSuccess] = useState(false);
 
-        this.state = {
-            busy: false,
-            fail: '',
-            success: false,
-        };
-    }
-
-    handleRequest = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleRequest = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
-        this.setState({
-            busy: true,
-            fail: '',
-            success: false,
-        });
+        setBusy(true);
+        setFail('');
+        setSuccess(false);
 
-        const doRequest = () => this.props.requestAction(
+        const doRequest = () => requestAction(
             () => {
-                this.setState({
-                    busy: false,
-                    success: true,
-                });
+                setBusy(false);
+                setSuccess(true);
             },
             (err) => {
                 let errMsg = err.message;
-                if (this.props.includeDetailedError && err.detailed_error) {
+                if (includeDetailedError && err.detailed_error) {
                     errMsg += ' - ' + err.detailed_error;
                 }
 
-                this.setState({
-                    busy: false,
-                    fail: errMsg,
-                });
+                setBusy(false);
+                setFail(errMsg);
             },
         );
 
-        if (this.props.saveNeeded && this.props.saveConfigAction) {
-            this.props.saveConfigAction(doRequest);
+        if (saveNeeded && saveConfigAction) {
+            saveConfigAction(doRequest);
         } else {
             doRequest();
         }
     };
 
-    render() {
-        let message = null;
-        if (this.state.fail) {
-            const text = typeof this.props.errorMessage === 'string' ?
-                this.props.errorMessage :
-                (
-                    <FormattedMessage
-                        {...this.props.errorMessage}
-                        values={{
-                            error: this.state.fail,
-                        }}
-                    />
-                );
-            message = (
-                <div>
-                    <div className='alert alert-warning'>
-                        <WarningIcon/>
-                        {text}
-                    </div>
+    let message = null;
+    if (fail) {
+        const text = typeof errorMessage === 'string' ?
+            errorMessage :
+            (
+                <FormattedMessage
+                    {...errorMessage}
+                    values={{
+                        error: fail,
+                    }}
+                />
+            );
+        message = (
+            <div>
+                <div className='alert alert-warning'>
+                    <WarningIcon/>
+                    {text}
                 </div>
-            );
-        } else if (this.state.success && this.props.showSuccessMessage) {
-            const text = typeof this.props.successMessage === 'string' ?
-                this.props.successMessage :
-                (<FormattedMessage {...this.props.successMessage}/>);
-            message = (
-                <div>
-                    <div className='alert alert-success'>
-                        <SuccessIcon/>
-                        {text}
-                    </div>
-                </div>
-            );
-        }
-
-        let widgetClassNames = 'col-sm-8';
-        let label = null;
-        if (this.props.label) {
-            // When there's a label, widget takes remaining 8 columns regardless of flushLeft
-            label = (
-                <label className='control-label col-sm-4'>
-                    {this.props.label}
-                </label>
-            );
-        } else if (this.props.flushLeft) {
-            widgetClassNames = 'col-sm-12';
-        } else {
-            widgetClassNames = 'col-sm-offset-4 ' + widgetClassNames;
-        }
-
-        return (
-            <div
-                className='form-group'
-                id={this.props.id}
-            >
-                {label}
-                <div className={widgetClassNames}>
-                    <div>
-                        <button
-                            type='button'
-                            className={`btn btn-${this.props.buttonType || 'tertiary'}`}
-                            onClick={this.handleRequest}
-                            disabled={this.props.disabled}
-                        >
-                            <LoadingWrapper
-                                loading={this.state.busy}
-                                text={
-                                    this.props.loadingText ||
-                                    (
-                                        <FormattedMessage
-                                            id={'admin.requestButton.loading'}
-                                            defaultMessage={'Loading...'}
-                                        />
-                                    )
-                                }
-                            >
-                                {this.props.buttonText}
-                            </LoadingWrapper>
-                        </button>
-                        {this.props.alternativeActionElement}
-                        {message}
-                    </div>
-                    <div className='help-text'>{this.props.helpText}</div>
+            </div>
+        );
+    } else if (success && showSuccessMessage) {
+        const text = typeof successMessage === 'string' ?
+            successMessage :
+            (<FormattedMessage {...successMessage}/>);
+        message = (
+            <div>
+                <div className='alert alert-success'>
+                    <SuccessIcon/>
+                    {text}
                 </div>
             </div>
         );
     }
-}
+
+    let widgetClassNames = 'col-sm-8';
+    let labelElement = null;
+    if (label) {
+        // When there's a label, widget takes remaining 8 columns regardless of flushLeft
+        labelElement = (
+            <label className='control-label col-sm-4'>
+                {label}
+            </label>
+        );
+    } else if (flushLeft) {
+        widgetClassNames = 'col-sm-12';
+    } else {
+        widgetClassNames = 'col-sm-offset-4 ' + widgetClassNames;
+    }
+
+    return (
+        <div
+            className='form-group'
+            id={id}
+        >
+            {labelElement}
+            <div className={widgetClassNames}>
+                <div>
+                    <button
+                        type='button'
+                        className={`btn btn-${buttonType}`}
+                        onClick={handleRequest}
+                        disabled={disabled}
+                    >
+                        <LoadingWrapper
+                            loading={busy}
+                            text={
+                                loadingText ||
+                                (
+                                    <FormattedMessage
+                                        id={'admin.requestButton.loading'}
+                                        defaultMessage={'Loading...'}
+                                    />
+                                )
+                            }
+                        >
+                            {buttonText}
+                        </LoadingWrapper>
+                    </button>
+                    {alternativeActionElement}
+                    {message}
+                </div>
+                <div className='help-text'>{helpText}</div>
+            </div>
+        </div>
+    );
+};
+
+export default RequestButton;

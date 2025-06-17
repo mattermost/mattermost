@@ -952,7 +952,7 @@ export const JobStatuses = {
     CANCEL_REQUESTED: 'cancel_requested',
     CANCELED: 'canceled',
     WARNING: 'warning',
-};
+} as const;
 
 export const AnnouncementBarTypes = {
     ANNOUNCEMENT: 'announcement',
