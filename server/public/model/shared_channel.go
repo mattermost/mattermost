@@ -118,6 +118,7 @@ type SharedChannelRemote struct {
 	LastPostUpdateID  string `json:"last_post_id"`
 	LastPostCreateAt  int64  `json:"last_post_create_at"`
 	LastPostCreateID  string `json:"last_post_create_id"`
+	LastMembersSyncAt int64  `json:"last_members_sync_at"`
 }
 
 func (sc *SharedChannelRemote) IsValid() *AppError {
@@ -169,12 +170,13 @@ type SharedChannelRemoteStatus struct {
 // SharedChannelUser stores a lastSyncAt timestamp on behalf of a remote cluster for
 // each user that has been synchronized.
 type SharedChannelUser struct {
-	Id         string `json:"id"`
-	UserId     string `json:"user_id"`
-	ChannelId  string `json:"channel_id"`
-	RemoteId   string `json:"remote_id"`
-	CreateAt   int64  `json:"create_at"`
-	LastSyncAt int64  `json:"last_sync_at"`
+	Id                   string `json:"id"`
+	UserId               string `json:"user_id"`
+	ChannelId            string `json:"channel_id"`
+	RemoteId             string `json:"remote_id"`
+	CreateAt             int64  `json:"create_at"`
+	LastSyncAt           int64  `json:"last_sync_at"`
+	LastMembershipSyncAt int64  `json:"last_membership_sync_at"`
 }
 
 func (scu *SharedChannelUser) PreSave() {
@@ -270,15 +272,26 @@ type SharedChannelRemoteFilterOpts struct {
 	IncludeDeleted     bool
 }
 
+// MembershipChangeMsg represents a change in channel membership
+type MembershipChangeMsg struct {
+	ChannelId  string `json:"channel_id"`
+	UserId     string `json:"user_id"`
+	IsAdd      bool   `json:"is_add"`
+	RemoteId   string `json:"remote_id"`
+	ChangeTime int64  `json:"change_time"`
+}
+
 // SyncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
 // It is sent to remote clusters as the payload of a `RemoteClusterMsg`.
 type SyncMsg struct {
-	Id        string           `json:"id"`
-	ChannelId string           `json:"channel_id"`
-	Users     map[string]*User `json:"users,omitempty"`
-	Posts     []*Post          `json:"posts,omitempty"`
-	Reactions []*Reaction      `json:"reactions,omitempty"`
-	Statuses  []*Status        `json:"statuses,omitempty"`
+	Id                string                 `json:"id"`
+	ChannelId         string                 `json:"channel_id"`
+	Users             map[string]*User       `json:"users,omitempty"`
+	Posts             []*Post                `json:"posts,omitempty"`
+	Reactions         []*Reaction            `json:"reactions,omitempty"`
+	Statuses          []*Status              `json:"statuses,omitempty"`
+	MembershipChanges []*MembershipChangeMsg `json:"membership_changes,omitempty"`
+	Acknowledgements  []*PostAcknowledgement `json:"acknowledgements,omitempty"`
 }
 
 func NewSyncMsg(channelID string) *SyncMsg {
@@ -315,6 +328,9 @@ type SyncResponse struct {
 
 	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at"`
 	ReactionErrors        []string `json:"reaction_errors"`
+
+	AcknowledgementsLastUpdateAt int64    `json:"acknowledgements_last_update_at"`
+	AcknowledgementErrors        []string `json:"acknowledgement_errors"`
 
 	StatusErrors []string `json:"status_errors"` // user IDs for which the status sync failed
 }

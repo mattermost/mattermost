@@ -10806,5 +10806,33 @@
   {
     "id": "app.group.delete_invalid_syncable_memberships.error",
     "translation": "Kan ongeldige synchroniseerbare lidmaatschappen van groepen niet verwijderen."
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Fout bij het valideren van de bijlage importgegevens Ongeldig pad: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Het importveld Emoji-afbeelding heeft een ongeldig pad: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Fout bij het valideren van gegevens uit bijlage van direct bericht."
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Fout bij het valideren van gegevens uit bijlage van bericht."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Fout bij het valideren van gegevens uit bijlage van antwoord op een bericht."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "Het pad van de afbeelding voor het gebruikersprofiel is ongeldig: \"{{.Path}}\""
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Het is niet gelukt om gegevens uit de vorige opdracht te halen."
   }
 ]

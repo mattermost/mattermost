@@ -259,7 +259,7 @@ export const adminConsoleNavigation = [
     },
     {
         type: ['team', 'e20', 'cloud_enterprise'],
-        header: 'AD/LDAP',
+        header: 'AD/LDAP Wizard',
         sidebar: 'AD/LDAP',
         url: 'admin_console/authentication/ldap',
     },
