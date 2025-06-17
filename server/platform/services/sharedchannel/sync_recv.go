@@ -818,18 +818,17 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 
 				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Username: %s, ClusterName: %s", username, clusterName))
 
-				// If this cluster name refers to a known remote, keep the suffix
-				isKnown := scs.isKnownRemoteCluster(clusterName)
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  isKnownRemoteCluster(%s) = %v", clusterName, isKnown))
+				// Check if this cluster participates in the current shared channel
+				isParticipant := scs.isChannelParticipant(clusterName, targetChannel.Id)
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  isChannelParticipant(%s, %s) = %v", clusterName, targetChannel.Id, isParticipant))
 
-				if isKnown {
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Keeping suffix - known remote cluster: %s", match))
-					return match // Keep @user:knownRemote
+				if isParticipant {
+					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Keeping suffix - channel participant: %s", match))
+					return match // Keep @user:participatingRemote
 				}
-				newMention := "@" + username
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Stripping suffix - unknown cluster: %s -> %s", match, newMention))
-				// Unknown cluster name - assume it refers to local user
-				return newMention // Strip to @user
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Preserving non-participant mention as text: %s", match))
+				// Cluster doesn't participate in this channel - preserve as plain text, not a mention
+				return match // Keep @user:nonParticipant as-is
 			}
 			return match
 		}
@@ -842,27 +841,29 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("TRANSFORM_MENTIONS COMPLETE: Final message: %s", post.Message))
 }
 
-// isKnownRemoteCluster checks if the given cluster name refers to a known remote cluster
-func (scs *Service) isKnownRemoteCluster(clusterName string) bool {
-	// Get all remote clusters known to this server
-	remotes, err := scs.server.GetStore().RemoteCluster().GetAll(0, 1000, model.RemoteClusterQueryFilter{})
+// isChannelParticipant checks if the given cluster name participates in the specified shared channel
+func (scs *Service) isChannelParticipant(clusterName string, channelId string) bool {
+	// Get all remotes participating in this channel
+	opts := model.SharedChannelRemoteFilterOpts{
+		ChannelId: channelId,
+	}
+	remotes, err := scs.app.GetSharedChannelRemotes(0, 999999, opts)
 	if err != nil {
-		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("    Error getting remote clusters: %v", err))
+		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("    Error getting channel remotes: %v", err))
 		return false
 	}
 
-	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("    Checking %d remote clusters for '%s'", len(remotes), clusterName))
+	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("    Checking %d channel participants for '%s'", len(remotes), clusterName))
 
-	// Check if clusterName matches any remote cluster name
+	// Check if any participating remote has this cluster name
 	for _, remote := range remotes {
-		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("      Remote: '%s' vs '%s'", remote.Name, clusterName))
-		if strings.EqualFold(remote.Name, clusterName) {
-			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("    Found matching remote cluster: %s", clusterName))
-			return true
+		if rc, err := scs.server.GetStore().RemoteCluster().Get(remote.RemoteId, false); err == nil {
+			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("      Comparing '%s' with '%s'", clusterName, rc.Name))
+			if rc.Name == clusterName {
+				return true
+			}
 		}
 	}
-
-	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("    Cluster name '%s' not found in remotes, assuming local", clusterName))
 	return false
 }
 
