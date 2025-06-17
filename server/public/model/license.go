@@ -134,6 +134,7 @@ func (tlr *TrialLicenseRequest) IsValid() bool {
 
 type Features struct {
 	Users                     *int  `json:"users"`
+	ExtraUsers                *int  `json:"extra_users"`
 	LDAP                      *bool `json:"ldap"`
 	LDAPGroups                *bool `json:"ldap_groups"`
 	MFA                       *bool `json:"mfa"`
