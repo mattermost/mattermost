@@ -23,7 +23,7 @@ import type {AdminConsolePluginComponent, AdminConsolePluginCustomSection} from 
 import CustomPluginSettings from './custom_plugin_settings';
 import getEnablePluginSetting from './enable_plugin_setting';
 
-import {it} from '../admin_definition';
+import {it} from '../admin_definition_helpers';
 import {escapePathPart} from '../schema_admin_settings';
 import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema, AdminDefinitionConfigSchemaSection} from '../types';
 
