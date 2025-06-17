@@ -507,3 +507,15 @@ type GroupMessageConversionRequestBody struct {
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
 }
+
+// ChannelMembersGetOptions provides parameters for getting channel members
+type ChannelMembersGetOptions struct {
+	// ChannelID specifies which channel to get members for
+	ChannelID string
+	// Offset for pagination
+	Offset int
+	// Limit for pagination (maximum number of results to return)
+	Limit int
+	// UpdatedAfter filters members updated after the given timestamp (cursor-based pagination)
+	UpdatedAfter int64
+}

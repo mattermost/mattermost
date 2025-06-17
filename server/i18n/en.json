@@ -2277,6 +2277,10 @@
     "translation": "You do not have permission to manage this job type"
   },
   {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Invalid test type: {{.TestType}}"
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
@@ -4507,8 +4511,16 @@
     "translation": "Failed to parse request"
   },
   {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Failed to save the batch of acknowledgement objects"
+  },
+  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Unable to delete acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Cannot delete acknowledgement for missing post"
   },
   {
     "id": "app.acknowledgement.get.app_error",
@@ -4517,6 +4529,10 @@
   {
     "id": "app.acknowledgement.getforpost.get.app_error",
     "translation": "Unable to get acknowledgement for post."
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Cannot save acknowledgement for missing post"
   },
   {
     "id": "app.acknowledgement.save.save.app_error",
@@ -8241,6 +8257,10 @@
     "translation": "ldap interface was nil."
   },
   {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
+  },
+  {
     "id": "ent.ldap.cpa_field_mapping.list_error",
     "translation": "Failed to retrieve CPA fields"
   },
@@ -8751,6 +8771,10 @@
   {
     "id": "model.access_policy.is_valid.version.app_error",
     "translation": "Version is not valid for this access control policy."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
   },
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
