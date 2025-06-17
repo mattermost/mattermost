@@ -242,6 +242,22 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 		th.tempWorkspace = tempWorkspace
 	}
 
+	tb.Cleanup(func() {
+		if th.IncludeCacheLayer {
+			// Clean all the caches
+			appErr := th.App.Srv().InvalidateAllCaches()
+			require.Nil(tb, appErr)
+		}
+
+		th.ShutdownApp()
+
+		// Cleanup the workspace
+		if th.tempWorkspace != "" {
+			err := os.RemoveAll(th.tempWorkspace)
+			require.NoError(tb, err)
+		}
+	})
+
 	return th
 }
 
@@ -442,23 +458,7 @@ func (th *TestHelper) ShutdownApp() {
 }
 
 func (th *TestHelper) TearDown() {
-	if th.IncludeCacheLayer {
-		// Clean all the caches
-		appErr := th.App.Srv().InvalidateAllCaches()
-		if appErr != nil {
-			panic(appErr)
-		}
-	}
 
-	th.ShutdownApp()
-
-	// Cleanup the workspace
-	if th.tempWorkspace != "" {
-		err := os.RemoveAll(th.tempWorkspace)
-		if err != nil {
-			panic(err)
-		}
-	}
 }
 
 func closeBody(r *http.Response) {
