@@ -221,6 +221,68 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(0), serverLimits.MaxUsersLimit)
 		require.Equal(t, int64(0), serverLimits.MaxUsersHardLimit) // No grace for 0 users
 	})
+
+	t.Run("licensed server with configurable extra seats", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		userLimit := 100
+		extraSeats := 10
+		license := model.NewTestLicense("")
+		license.IsSeatCountEnforced = true
+		license.Features.Users = &userLimit
+		license.Features.ExtraSeats = &extraSeats
+		th.App.Srv().SetLicense(license)
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		// InitBasic creates 3 users by default
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
+		require.Equal(t, int64(100), serverLimits.MaxUsersLimit)
+		require.Equal(t, int64(110), serverLimits.MaxUsersHardLimit) // 100 + 10 extra seats
+	})
+
+	t.Run("licensed server with zero extra seats (hard cap)", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		userLimit := 100
+		extraSeats := 0
+		license := model.NewTestLicense("")
+		license.IsSeatCountEnforced = true
+		license.Features.Users = &userLimit
+		license.Features.ExtraSeats = &extraSeats
+		th.App.Srv().SetLicense(license)
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		// InitBasic creates 3 users by default
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
+		require.Equal(t, int64(100), serverLimits.MaxUsersLimit)
+		require.Equal(t, int64(100), serverLimits.MaxUsersHardLimit) // Hard cap: no extra seats
+	})
+
+	t.Run("licensed server without extra seats uses legacy 5% grace", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		userLimit := 100
+		license := model.NewTestLicense("")
+		license.IsSeatCountEnforced = true
+		license.Features.Users = &userLimit
+		// ExtraSeats is nil, should use legacy 5% grace
+		th.App.Srv().SetLicense(license)
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		// InitBasic creates 3 users by default
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
+		require.Equal(t, int64(100), serverLimits.MaxUsersLimit)
+		require.Equal(t, int64(105), serverLimits.MaxUsersHardLimit) // Legacy 5% grace: 100 + 5 = 105
+	})
 }
 
 func TestIsAtUserLimit(t *testing.T) {
@@ -491,52 +553,101 @@ func TestGracePeriodBehavior(t *testing.T) {
 func TestCalculateGraceLimit(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	tests := []struct {
-		name      string
-		baseLimit int64
-		expected  int64
-	}{
-		{
-			name:      "zero base limit",
-			baseLimit: 0,
-			expected:  0, // Special case: 0 users = 0 grace limit
-		},
-		{
-			name:      "one user base limit",
-			baseLimit: 1,
-			expected:  2, // max(1 * 1.05, 1 + 1) = max(1.05 -> 1, 2) = 2
-		},
-		{
-			name:      "small base limit where floor applies",
-			baseLimit: 10,
-			expected:  11, // max(10 * 1.05, 10 + 1) = max(10.5 -> 10, 11) = 11
-		},
-		{
-			name:      "small base limit where percentage applies",
-			baseLimit: 20,
-			expected:  21, // max(20 * 1.05, 20 + 1) = max(21, 21) = 21
-		},
-		{
-			name:      "medium base limit where percentage applies",
-			baseLimit: 100,
-			expected:  105, // max(100 * 1.05, 100 + 1) = max(105, 101) = 105
-		},
-		{
-			name:      "large base limit where percentage applies",
-			baseLimit: 1000,
-			expected:  1050, // max(1000 * 1.05, 1000 + 1) = max(1050, 1001) = 1050
-		},
-		{
-			name:      "very large base limit",
-			baseLimit: 5000,
-			expected:  5250, // max(5000 * 1.05, 5000 + 1) = max(5250, 5001) = 5250
-		},
-	}
+	t.Run("legacy 5% grace behavior (extraSeats = nil)", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			baseLimit int64
+			expected  int64
+		}{
+			{
+				name:      "zero base limit",
+				baseLimit: 0,
+				expected:  0, // Special case: 0 users = 0 grace limit
+			},
+			{
+				name:      "one user base limit",
+				baseLimit: 1,
+				expected:  2, // max(1 * 1.05, 1 + 1) = max(1.05 -> 1, 2) = 2
+			},
+			{
+				name:      "small base limit where floor applies",
+				baseLimit: 10,
+				expected:  11, // max(10 * 1.05, 10 + 1) = max(10.5 -> 10, 11) = 11
+			},
+			{
+				name:      "small base limit where percentage applies",
+				baseLimit: 20,
+				expected:  21, // max(20 * 1.05, 20 + 1) = max(21, 21) = 21
+			},
+			{
+				name:      "medium base limit where percentage applies",
+				baseLimit: 100,
+				expected:  105, // max(100 * 1.05, 100 + 1) = max(105, 101) = 105
+			},
+			{
+				name:      "large base limit where percentage applies",
+				baseLimit: 1000,
+				expected:  1050, // max(1000 * 1.05, 1000 + 1) = max(1050, 1001) = 1050
+			},
+			{
+				name:      "very large base limit",
+				baseLimit: 5000,
+				expected:  5250, // max(5000 * 1.05, 5000 + 1) = max(5250, 5001) = 5250
+			},
+		}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := calculateGraceLimit(tt.baseLimit)
-			require.Equal(t, tt.expected, result, "calculateGraceLimit(%d) = %d, expected %d", tt.baseLimit, result, tt.expected)
-		})
-	}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				result := calculateGraceLimit(tt.baseLimit, nil)
+				require.Equal(t, tt.expected, result, "calculateGraceLimit(%d, nil) = %d, expected %d", tt.baseLimit, result, tt.expected)
+			})
+		}
+	})
+
+	t.Run("configurable extra seats", func(t *testing.T) {
+		tests := []struct {
+			name       string
+			baseLimit  int64
+			extraSeats int
+			expected   int64
+		}{
+			{
+				name:       "zero base limit with extra seats",
+				baseLimit:  0,
+				extraSeats: 5,
+				expected:   0, // Special case: 0 users = 0 grace limit regardless of extra seats
+			},
+			{
+				name:       "base limit with zero extra seats (hard cap)",
+				baseLimit:  100,
+				extraSeats: 0,
+				expected:   100, // Hard cap: no extra seats allowed
+			},
+			{
+				name:       "base limit with small extra seats",
+				baseLimit:  100,
+				extraSeats: 2,
+				expected:   102, // 100 + 2 = 102
+			},
+			{
+				name:       "base limit with large extra seats",
+				baseLimit:  100,
+				extraSeats: 50,
+				expected:   150, // 100 + 50 = 150
+			},
+			{
+				name:       "small base limit with extra seats",
+				baseLimit:  5,
+				extraSeats: 3,
+				expected:   8, // 5 + 3 = 8
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				result := calculateGraceLimit(tt.baseLimit, &tt.extraSeats)
+				require.Equal(t, tt.expected, result, "calculateGraceLimit(%d, %d) = %d, expected %d", tt.baseLimit, tt.extraSeats, result, tt.expected)
+			})
+		}
+	})
 }

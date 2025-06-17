@@ -134,6 +134,7 @@ func (tlr *TrialLicenseRequest) IsValid() bool {
 
 type Features struct {
 	Users                     *int  `json:"users"`
+	ExtraSeats                *int  `json:"extra_seats"`
 	LDAP                      *bool `json:"ldap"`
 	LDAPGroups                *bool `json:"ldap_groups"`
 	MFA                       *bool `json:"mfa"`
@@ -207,6 +208,10 @@ func (f *Features) SetDefaults() {
 
 	if f.Users == nil {
 		f.Users = NewPointer(0)
+	}
+
+	if f.ExtraSeats == nil {
+		f.ExtraSeats = NewPointer(0)
 	}
 
 	if f.LDAP == nil {

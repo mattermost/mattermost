@@ -14,13 +14,21 @@ const (
 	maxUsersHardLimit = 5_000
 )
 
-// calculateGraceLimit calculates a grace limit that is 5% above the base limit
-// or at least 1 user above the base limit, whichever is higher.
+// calculateGraceLimit calculates a grace limit based on the base limit and extra seats.
+// If extraSeats is provided (not nil), it uses baseLimit + extraSeats.
+// Otherwise, it falls back to the legacy 5% grace or at least 1 user above the base limit.
 // Special case: if baseLimit is 0, returns 0.
-func calculateGraceLimit(baseLimit int64) int64 {
+func calculateGraceLimit(baseLimit int64, extraSeats *int) int64 {
 	if baseLimit == 0 {
 		return 0
 	}
+	
+	// If extraSeats is explicitly configured, use it
+	if extraSeats != nil {
+		return baseLimit + int64(*extraSeats)
+	}
+	
+	// Fall back to legacy 5% grace logic for backward compatibility
 	graceFromPercentage := int64(float64(baseLimit) * 1.05)
 	graceFromFloor := baseLimit + 1
 	if graceFromPercentage > graceFromFloor {
@@ -41,7 +49,7 @@ func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
 		// Enforce license limits as required by the license with grace period.
 		licenseUserLimit := int64(*license.Features.Users)
 		limits.MaxUsersLimit = licenseUserLimit
-		limits.MaxUsersHardLimit = calculateGraceLimit(licenseUserLimit)
+		limits.MaxUsersHardLimit = calculateGraceLimit(licenseUserLimit, license.Features.ExtraSeats)
 	}
 
 	activeUserCount, appErr := a.Srv().Store().User().Count(model.UserCountOptions{})
