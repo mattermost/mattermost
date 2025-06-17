@@ -30,8 +30,8 @@ func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
 		
 		// Use ExtraUsers if configured, otherwise default to 0 (no extra users)
 		extraUsers := 0
-		if license.Features.ExtraUsers != nil {
-			extraUsers = *license.Features.ExtraUsers
+		if license.ExtraUsers != nil {
+			extraUsers = *license.ExtraUsers
 		}
 		
 		limits.MaxUsersHardLimit = licenseUserLimit + int64(extraUsers)

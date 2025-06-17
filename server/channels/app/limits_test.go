@@ -177,7 +177,7 @@ func TestGetServerLimits(t *testing.T) {
 		license := model.NewTestLicense("")
 		license.IsSeatCountEnforced = true
 		license.Features.Users = &userLimit
-		license.Features.ExtraUsers = &extraUsers
+		license.ExtraUsers = &extraUsers
 		th.App.Srv().SetLicense(license)
 
 		serverLimits, appErr := th.App.GetServerLimits()
@@ -197,7 +197,7 @@ func TestGetServerLimits(t *testing.T) {
 		license := model.NewTestLicense("")
 		license.IsSeatCountEnforced = true
 		license.Features.Users = &userLimit
-		license.Features.ExtraUsers = nil // Not configured
+		license.ExtraUsers = nil // Not configured
 		th.App.Srv().SetLicense(license)
 
 		serverLimits, appErr := th.App.GetServerLimits()
@@ -218,7 +218,7 @@ func TestGetServerLimits(t *testing.T) {
 		license := model.NewTestLicense("")
 		license.IsSeatCountEnforced = true
 		license.Features.Users = &userLimit
-		license.Features.ExtraUsers = &extraUsers
+		license.ExtraUsers = &extraUsers
 		th.App.Srv().SetLicense(license)
 
 		serverLimits, appErr := th.App.GetServerLimits()
@@ -345,7 +345,7 @@ func TestIsAtUserLimit(t *testing.T) {
 			license := model.NewTestLicense("")
 			license.IsSeatCountEnforced = true
 			license.Features.Users = &userLimit
-			license.Features.ExtraUsers = &extraUsers
+			license.ExtraUsers = &extraUsers
 			th.App.Srv().SetLicense(license)
 
 			// Create 2 additional users to have 5 total (at base limit of 5, but below hard limit of 7)
@@ -366,7 +366,7 @@ func TestIsAtUserLimit(t *testing.T) {
 			license := model.NewTestLicense("")
 			license.IsSeatCountEnforced = true
 			license.Features.Users = &userLimit
-			license.Features.ExtraUsers = &extraUsers
+			license.ExtraUsers = &extraUsers
 			th.App.Srv().SetLicense(license)
 
 			mockUserStore := storemocks.UserStore{}
@@ -388,7 +388,7 @@ func TestIsAtUserLimit(t *testing.T) {
 			license := model.NewTestLicense("")
 			license.IsSeatCountEnforced = true
 			license.Features.Users = &userLimit
-			license.Features.ExtraUsers = &extraUsers
+			license.ExtraUsers = &extraUsers
 			th.App.Srv().SetLicense(license)
 
 			mockUserStore := storemocks.UserStore{}
@@ -523,7 +523,7 @@ func TestExtraUsersBehavior(t *testing.T) {
 				license := model.NewTestLicense("")
 				license.IsSeatCountEnforced = true
 				license.Features.Users = &tt.licenseUserLimit
-				license.Features.ExtraUsers = tt.extraUsers
+				license.ExtraUsers = tt.extraUsers
 				th.App.Srv().SetLicense(license)
 
 				serverLimits, appErr := th.App.GetServerLimits()

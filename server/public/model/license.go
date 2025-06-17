@@ -69,6 +69,7 @@ type License struct {
 	IsGovSku            bool      `json:"is_gov_sku"`
 	IsSeatCountEnforced bool      `json:"is_seat_count_enforced"`
 	SignupJWT           *string   `json:"signup_jwt"`
+	ExtraUsers          *int      `json:"extra_users"`
 }
 
 type Customer struct {
@@ -134,7 +135,6 @@ func (tlr *TrialLicenseRequest) IsValid() bool {
 
 type Features struct {
 	Users                     *int  `json:"users"`
-	ExtraUsers                *int  `json:"extra_users"`
 	LDAP                      *bool `json:"ldap"`
 	LDAPGroups                *bool `json:"ldap_groups"`
 	MFA                       *bool `json:"mfa"`
