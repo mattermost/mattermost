@@ -3897,7 +3897,7 @@ func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgre
 		}).
 		GroupBy("c.Id")
 
-	return s.getQueryBuilder().Select(channelSliceColumns(false, "cc")...).
+	return s.getQueryBuilder().Select(channelSliceColumns(true, "cc")...).
 		FromSelect(cc, "cc").
 		Join("ChannelMembers cm on cc.Id = cm.ChannelId").
 		Join("Users u on u.Id = cm.UserId").
