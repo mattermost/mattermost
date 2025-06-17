@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package app
+package api4
 
 import (
 	"encoding/json"
@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 	"github.com/stretchr/testify/require"
@@ -36,18 +37,15 @@ func writeOKResponse(w http.ResponseWriter) {
 }
 
 // SelfReferentialSyncHandler handles incoming sync messages for self-referential tests.
-// It processes the messages, updates cursors, and returns proper responses.
 type SelfReferentialSyncHandler struct {
 	t                *testing.T
 	service          *sharedchannel.Service
 	selfCluster      *model.RemoteCluster
 	syncMessageCount *int32
-	SimulateUnshared bool // When true, always return ErrChannelIsNotShared for sync messages
 
 	// Callbacks for capturing sync data
-	OnIndividualSync func(userId string, messageNumber int32)
-	OnBatchSync      func(userIds []string, messageNumber int32)
-	OnGlobalUserSync func(userIds []string, messageNumber int32)
+	OnPostSync            func(post *model.Post)
+	OnAcknowledgementSync func(ack *model.PostAcknowledgement)
 }
 
 // NewSelfReferentialSyncHandler creates a new handler for processing sync messages in tests
@@ -62,84 +60,54 @@ func NewSelfReferentialSyncHandler(t *testing.T, service *sharedchannel.Service,
 }
 
 // HandleRequest processes incoming HTTP requests for the test server.
-// This handler includes common remote cluster endpoints to simulate a real remote cluster:
-// - /api/v4/remotecluster/msg: Main sync message endpoint
-// - /api/v4/remotecluster/ping: Ping endpoint to maintain online status (prevents offline after 5 minutes)
-// - /api/v4/remotecluster/confirm_invite: Invitation confirmation endpoint
 func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/api/v4/remotecluster/msg":
-		currentCall := atomic.AddInt32(h.syncMessageCount, 1)
+		atomic.AddInt32(h.syncMessageCount, 1)
 
 		// Read and process the sync message
 		body, _ := io.ReadAll(r.Body)
 
 		// The message is wrapped in a RemoteClusterFrame
 		var frame model.RemoteClusterFrame
-
 		err := json.Unmarshal(body, &frame)
 		if err == nil {
-			// Simulate the remote having unshared if configured to do so
-			if h.SimulateUnshared && frame.Msg.Topic == "sharedchannel_sync" {
-				// Return HTTP error instead of JSON error response
-				w.WriteHeader(http.StatusBadRequest)
-				_, _ = w.Write([]byte("channel is no longer shared"))
-				return
-			}
-
 			// Process the message to update cursor
 			response := &remotecluster.Response{}
 			processErr := h.service.OnReceiveSyncMessageForTesting(frame.Msg, h.selfCluster, response)
 			if processErr != nil {
 				response.Status = "ERROR"
 				response.Err = processErr.Error()
+				h.t.Logf("Sync processing error: %v", processErr)
 			} else {
-				// Success - build a proper sync response
 				response.Status = "OK"
 				response.Err = ""
 
 				var syncMsg model.SyncMsg
 				if unmarshalErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); unmarshalErr == nil {
-					syncResp := &model.SyncResponse{}
-
-					// Handle global user sync
-					if len(syncMsg.Users) > 0 {
-						userIds := make([]string, 0, len(syncMsg.Users))
-						for userId := range syncMsg.Users {
-							userIds = append(userIds, userId)
-							syncResp.UsersSyncd = append(syncResp.UsersSyncd, userId)
-						}
-						if h.OnGlobalUserSync != nil {
-							h.OnGlobalUserSync(userIds, currentCall)
+					// Handle posts - call callback for verification
+					if len(syncMsg.Posts) > 0 && h.OnPostSync != nil {
+						for _, post := range syncMsg.Posts {
+							h.OnPostSync(post)
 						}
 					}
 
-					// Handle membership sync using unified field
-					if len(syncMsg.MembershipChanges) > 0 {
-						batch := make([]string, 0)
-						for _, change := range syncMsg.MembershipChanges {
-							if change.IsAdd {
-								syncResp.UsersSyncd = append(syncResp.UsersSyncd, change.UserId)
-								batch = append(batch, change.UserId)
-							}
-						}
-
-						// Call appropriate callback
-						if len(batch) > 0 {
-							if h.OnBatchSync != nil {
-								h.OnBatchSync(batch, currentCall)
-							}
-							if len(batch) == 1 && h.OnIndividualSync != nil {
-								h.OnIndividualSync(batch[0], currentCall)
-							}
+					// Handle acknowledgements - call callback for verification
+					if len(syncMsg.Acknowledgements) > 0 && h.OnAcknowledgementSync != nil {
+						for _, ack := range syncMsg.Acknowledgements {
+							h.OnAcknowledgementSync(ack)
 						}
 					}
 
+					// Create success response
+					syncResp := &model.SyncResponse{
+						UsersSyncd: make([]string, 0),
+					}
 					_ = response.SetPayload(syncResp)
 				}
 			}
 
-			// Send the proper response
+			// Send the response
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			respBytes, _ := json.Marshal(response)
@@ -165,8 +133,8 @@ func (h *SelfReferentialSyncHandler) GetSyncMessageCount() int32 {
 	return atomic.LoadInt32(h.syncMessageCount)
 }
 
-// EnsureCleanState ensures a clean test state by removing all shared channels, remote clusters,
-// and extra team/channel members. This helps prevent state pollution between tests.
+// ensureCleanState ensures a clean test state by removing all shared channels and remote clusters.
+// This helps prevent state pollution between tests.
 func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 	t.Helper()
 
@@ -194,7 +162,7 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 	allSharedChannels, _ := ss.SharedChannel().GetAll(0, 1000, model.SharedChannelFilterOpts{})
 	for _, sc := range allSharedChannels {
 		// Delete all remotes for this channel
-		remotes, _ := ss.SharedChannel().GetRemotes(0, 999999, model.SharedChannelRemoteFilterOpts{ChannelId: sc.ChannelId})
+		remotes, _ := ss.SharedChannel().GetRemotes(0, 100, model.SharedChannelRemoteFilterOpts{ChannelId: sc.ChannelId})
 		for _, remote := range remotes {
 			_, _ = ss.SharedChannel().DeleteRemote(remote.Id)
 		}
@@ -208,22 +176,11 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 		_, _ = ss.RemoteCluster().Delete(rc.RemoteId)
 	}
 
-	// Clear all SharedChannelUsers sync state - this is critical for test isolation
-	// The SharedChannelUsers table tracks per-user sync timestamps that can interfere between tests
-	_, _ = th.SQLStore.GetMaster().Exec("DELETE FROM SharedChannelUsers WHERE 1=1")
-
-	// Clear all SharedChannelAttachments sync state
-	_, _ = th.SQLStore.GetMaster().Exec("DELETE FROM SharedChannelAttachments WHERE 1=1")
-
-	// Reset sync cursors in any remaining SharedChannelRemotes (before they get deleted)
-	// This ensures cursors don't persist if deletion fails
-	_, _ = th.SQLStore.GetMaster().Exec(`UPDATE SharedChannelRemotes SET 
-		LastPostCreateAt = 0, 
-		LastPostCreateId = '', 
-		LastPostUpdateAt = 0, 
-		LastPostId = '', 
-		LastMembersSyncAt = 0 
-		WHERE 1=1`)
+	// Clear all acknowledgements from previous tests by setting AcknowledgedAt to 0
+	// This uses raw SQL to ensure all acknowledgements are cleared regardless of their state
+	if sqlStore, ok := ss.(*sqlstore.SqlStore); ok {
+		_, _ = sqlStore.GetMaster().Exec("UPDATE PostAcknowledgements SET AcknowledgedAt = 0")
+	}
 
 	// Remove all channel members from test channels (except the basic team/channel setup)
 	channels, _ := ss.Channel().GetAll(th.BasicTeam.Id)
@@ -236,21 +193,6 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 			})
 			for _, member := range members {
 				_ = ss.Channel().RemoveMember(th.Context, channel.Id, member.UserId)
-			}
-		}
-	}
-
-	// Remove all users from teams except the basic test users
-	teams, _ := ss.Team().GetAll()
-	for _, team := range teams {
-		if team.Id == th.BasicTeam.Id {
-			members, _ := ss.Team().GetMembers(team.Id, 0, 10000, nil)
-			for _, member := range members {
-				// Keep only the basic test users
-				if member.UserId != th.BasicUser.Id && member.UserId != th.BasicUser2.Id &&
-					member.UserId != th.SystemAdminUser.Id {
-					_ = ss.Team().RemoveMember(th.Context, team.Id, member.UserId)
-				}
 			}
 		}
 	}
@@ -278,12 +220,6 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 		remoteClusters, _ := ss.RemoteCluster().GetAll(0, 1000, model.RemoteClusterQueryFilter{})
 		return len(sharedChannels) == 0 && len(remoteClusters) == 0
 	}, 2*time.Second, 100*time.Millisecond, "Failed to clean up shared channels and remote clusters")
-
-	// Reset batch size to default to ensure test isolation
-	defaultBatchSize := 20
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ConnectedWorkspacesSettings.GlobalUserSyncBatchSize = &defaultBatchSize
-	})
 
 	// Restart services and ensure they are running and ready
 	if scsInterface != nil {
