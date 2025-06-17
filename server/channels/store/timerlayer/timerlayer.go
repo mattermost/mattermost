@@ -9621,6 +9621,22 @@ func (s *TimerLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 	return err
 }
 
+func (s *TimerLayerStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) error {
+	start := time.Now()
+
+	err := s.StatusStore.SaveOrUpdateMany(statuses)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.SaveOrUpdateMany", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	start := time.Now()
 
