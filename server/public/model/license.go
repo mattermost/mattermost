@@ -68,8 +68,8 @@ type License struct {
 	IsTrial             bool      `json:"is_trial"`
 	IsGovSku            bool      `json:"is_gov_sku"`
 	IsSeatCountEnforced bool      `json:"is_seat_count_enforced"`
-	SignupJWT           *string   `json:"signup_jwt"`
 	ExtraUsers          *int      `json:"extra_users"`
+	SignupJWT           *string   `json:"signup_jwt"`
 }
 
 type Customer struct {
