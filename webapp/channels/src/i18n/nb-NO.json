@@ -4066,6 +4066,7 @@
   "post.ariaLabel.reactionMultiple": ", {reactionCount} reaksjoner",
   "post.ariaLabel.replyMessage": "Klokken {time} {date} svarte {authorName}, {message}",
   "post.reminder.systemBot": "Hei, her er påminnelsen din om denne meldingen fra {username}: {permaLink}",
+  "post_body.check_for_out_of_channel_groups_mentions.message": "ble ikke varslet av denne omtalen fordi de ikke er i kanalen. De kan ikke legges til i kanalen fordi de ikke er medlem av de opplenkede gruppene. For å legge dem til i denne kanalen må de legges til disse gruppene.",
   "post_body.check_for_out_of_channel_mentions.link.and": " and ",
   "post_body.check_for_out_of_channel_mentions.link.private": "legg dem til denne private kanalen",
   "post_body.check_for_out_of_channel_mentions.link.public": "legge dem til kanalen",
