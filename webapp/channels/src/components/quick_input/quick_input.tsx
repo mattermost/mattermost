@@ -3,11 +3,10 @@
 
 import classNames from 'classnames';
 import type {ReactComponentLike} from 'prop-types';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import AutosizeTextarea from 'components/autosize_textarea';
 import WithTooltip from 'components/with_tooltip';
 
 export type Props = {
@@ -83,6 +82,12 @@ export type Props = {
     tabIndex?: number;
 }
 
+const defaultClearableTooltipText = (
+    <FormattedMessage
+        id={'input.clear'}
+        defaultMessage='Clear'
+    />);
+
 // A component that can be used to make controlled inputs that function properly in certain
 // environments (ie. IE11) where typing quickly would sometimes miss inputs
 export const QuickInput = React.memo(({
@@ -98,7 +103,7 @@ export const QuickInput = React.memo(({
     onClear: onClearFromProps,
     ...restProps
 }: Props) => {
-    const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | undefined>();
+    const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
     useEffect(() => {
         if (autoFocus) {
@@ -132,7 +137,7 @@ export const QuickInput = React.memo(({
          **/
     }, [value]);
 
-    const setInputRef = (input: HTMLInputElement) => {
+    const setInputRef = useCallback((input: HTMLInputElement) => {
         if (forwardedRef) {
             if (typeof forwardedRef === 'function') {
                 forwardedRef(input);
@@ -142,9 +147,13 @@ export const QuickInput = React.memo(({
         }
 
         inputRef.current = input;
-    };
 
-    const onClear = (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent) => {
+        /* eslint-disable-next-line react-hooks/exhaustive-deps --
+         * This function should only be memoized once.
+         **/
+    }, []);
+
+    const onClear = useCallback((e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -153,17 +162,13 @@ export const QuickInput = React.memo(({
         }
 
         inputRef.current?.focus();
-    };
+
+        /* eslint-disable-next-line react-hooks/exhaustive-deps --
+         * This function should only be memoized once.
+         **/
+    }, []);
 
     const showClearButton = onClearFromProps && (clearableWithoutValue || (clearable && value));
-
-    Reflect.deleteProperty(restProps, 'channelId');
-    Reflect.deleteProperty(restProps, 'tooltipPosition');
-
-    if (inputComponent !== AutosizeTextarea) {
-        Reflect.deleteProperty(restProps, 'onHeightChange');
-        Reflect.deleteProperty(restProps, 'onWidthChange');
-    }
 
     const inputElement = React.createElement(
         inputComponent || 'input',
@@ -178,15 +183,7 @@ export const QuickInput = React.memo(({
         <div className='input-wrapper'>
             {inputElement}
             {showClearButton && (
-                <WithTooltip
-                    title={
-                        clearableTooltipTextFromProps ||
-                        <FormattedMessage
-                            id={'input.clear'}
-                            defaultMessage='Clear'
-                        />
-                    }
-                >
+                <WithTooltip title={clearableTooltipTextFromProps || defaultClearableTooltipText}>
                     <button
                         data-testid='input-clear'
                         className={classNames(clearClassName, 'input-clear visible')}
