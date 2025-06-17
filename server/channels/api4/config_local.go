@@ -208,5 +208,8 @@ func localGetClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	w.Write([]byte(model.MapToJSON(c.App.Srv().Platform().ClientConfigWithComputed())))
+	_, err := w.Write([]byte(model.MapToJSON(c.App.Srv().Platform().ClientConfigWithComputed())))
+	if err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

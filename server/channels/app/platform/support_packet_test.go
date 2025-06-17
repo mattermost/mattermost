@@ -198,7 +198,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	t.Run("Happy path", func(t *testing.T) {
 		d := getDiagnostics(t)
 
-		assert.Equal(t, 1, d.Version)
+		assert.Equal(t, 2, d.Version)
 
 		/* License */
 		assert.Equal(t, "My awesome Company", d.License.Company)
@@ -360,13 +360,18 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 	require.NoError(t, err)
 
 	// Ensure sensitive fields are redacted
-	assert.Equal(t, model.FakeSetting, *config.SqlSettings.DataSource)
+	assert.Equal(t, model.FakeSetting, *config.FileSettings.PublicLinkSalt)
 
 	// Ensure non-sensitive fields are present
 	assert.Equal(t, "example.com", *config.ServiceSettings.AllowedUntrustedInternalConnections)
 
 	// Ensure feature flags are present
 	assert.Equal(t, "true", config.FeatureFlags.TestFeature)
+
+	// Ensure DataSource is partially sanitized (not completely replaced with FakeSetting)
+	// The default test database connection string should have username/password redacted
+	assert.Contains(t, *config.SqlSettings.DataSource, "****:****")
+	assert.NotEqual(t, model.FakeSetting, *config.SqlSettings.DataSource)
 }
 
 func TestGetCPUProfile(t *testing.T) {

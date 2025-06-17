@@ -91,6 +91,13 @@ type RetentionIdsForDeletion struct {
 	Ids       []string
 }
 
+type RetentionPolicyBatchConfigs struct {
+	Now                 int64
+	GlobalPolicyEndTime int64
+	Limit               int64
+	PreservePinnedPosts bool
+}
+
 func (r *RetentionIdsForDeletion) PreSave() {
 	if r.Id == "" {
 		r.Id = NewId()
