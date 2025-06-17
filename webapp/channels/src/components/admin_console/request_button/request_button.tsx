@@ -85,12 +85,12 @@ type Props = {
     /**
      * The message to show when the request completes successfully.
      */
-    successMessage: string | MessageDescriptor;
+    successMessage?: string | MessageDescriptor;
 
     /**
      * The message to show when the request returns an error.
      */
-    errorMessage: string | MessageDescriptor;
+    errorMessage?: string | MessageDescriptor;
 
     /**
      * True if the {error} placeholder for the `errorMessage` property should include both
