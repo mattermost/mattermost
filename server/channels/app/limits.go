@@ -14,7 +14,6 @@ const (
 	maxUsersHardLimit = 5_000
 )
 
-
 func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
 	limits := &model.ServerLimits{}
 	license := a.License()
@@ -27,13 +26,13 @@ func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
 		// Enforce license limits as required by the license with configurable extra users.
 		licenseUserLimit := int64(*license.Features.Users)
 		limits.MaxUsersLimit = licenseUserLimit
-		
+
 		// Use ExtraUsers if configured, otherwise default to 0 (no extra users)
 		extraUsers := 0
 		if license.ExtraUsers != nil {
 			extraUsers = *license.ExtraUsers
 		}
-		
+
 		limits.MaxUsersHardLimit = licenseUserLimit + int64(extraUsers)
 	}
 

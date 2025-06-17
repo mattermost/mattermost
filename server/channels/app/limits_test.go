@@ -472,46 +472,46 @@ func TestExtraUsersBehavior(t *testing.T) {
 
 	t.Run("extra users examples", func(t *testing.T) {
 		tests := []struct {
-			name               string
-			licenseUserLimit   int
-			extraUsers         *int
-			expectedBaseLimit  int64
-			expectedHardLimit  int64
+			name              string
+			licenseUserLimit  int
+			extraUsers        *int
+			expectedBaseLimit int64
+			expectedHardLimit int64
 		}{
 			{
-				name:               "zero license users with extra users",
-				licenseUserLimit:   0,
-				extraUsers:         model.NewPointer(5),
-				expectedBaseLimit:  0,
-				expectedHardLimit:  5, // 0 + 5 extra users = 5
+				name:              "zero license users with extra users",
+				licenseUserLimit:  0,
+				extraUsers:        model.NewPointer(5),
+				expectedBaseLimit: 0,
+				expectedHardLimit: 5, // 0 + 5 extra users = 5
 			},
 			{
-				name:               "license with configured extra users",
-				licenseUserLimit:   10,
-				extraUsers:         model.NewPointer(2),
-				expectedBaseLimit:  10,
-				expectedHardLimit:  12, // 10 + 2 extra users = 12
+				name:              "license with configured extra users",
+				licenseUserLimit:  10,
+				extraUsers:        model.NewPointer(2),
+				expectedBaseLimit: 10,
+				expectedHardLimit: 12, // 10 + 2 extra users = 12
 			},
 			{
-				name:               "license with zero extra users (hard cap)",
-				licenseUserLimit:   100,
-				extraUsers:         model.NewPointer(0),
-				expectedBaseLimit:  100,
-				expectedHardLimit:  100, // 100 + 0 extra users = 100 (hard cap)
+				name:              "license with zero extra users (hard cap)",
+				licenseUserLimit:  100,
+				extraUsers:        model.NewPointer(0),
+				expectedBaseLimit: 100,
+				expectedHardLimit: 100, // 100 + 0 extra users = 100 (hard cap)
 			},
 			{
-				name:               "license with no extra users configured defaults to zero",
-				licenseUserLimit:   100,
-				extraUsers:         nil,
-				expectedBaseLimit:  100,
-				expectedHardLimit:  100, // 100 + 0 (default) extra users = 100 (hard cap)
+				name:              "license with no extra users configured defaults to zero",
+				licenseUserLimit:  100,
+				extraUsers:        nil,
+				expectedBaseLimit: 100,
+				expectedHardLimit: 100, // 100 + 0 (default) extra users = 100 (hard cap)
 			},
 			{
-				name:               "license with large number of extra users",
-				licenseUserLimit:   1000,
-				extraUsers:         model.NewPointer(200),
-				expectedBaseLimit:  1000,
-				expectedHardLimit:  1200, // 1000 + 200 extra users = 1200
+				name:              "license with large number of extra users",
+				licenseUserLimit:  1000,
+				extraUsers:        model.NewPointer(200),
+				expectedBaseLimit: 1000,
+				expectedHardLimit: 1200, // 1000 + 200 extra users = 1200
 			},
 		}
 
@@ -549,4 +549,3 @@ func TestExtraUsersBehavior(t *testing.T) {
 		require.Equal(t, int64(5000), serverLimits.MaxUsersHardLimit)
 	})
 }
-
