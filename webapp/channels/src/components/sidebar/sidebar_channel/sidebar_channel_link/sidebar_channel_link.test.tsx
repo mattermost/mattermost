@@ -76,7 +76,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         const userAgentMock = jest.requireMock('utils/user_agent');
         userAgentMock.isDesktopApp.mockImplementation(() => false);
 
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...baseProps}/>,
         );
 
@@ -84,7 +84,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     });
 
     test('should match snapshot when tooltip is enabled', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...baseProps}/>,
         );
 
@@ -108,7 +108,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     });
 
     test('should enable tooltip when needed', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...baseProps}/>,
         );
         const instance = wrapper.instance() as SidebarChannelLinkComponent;
