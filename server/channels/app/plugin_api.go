@@ -1486,3 +1486,87 @@ func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
 
 	return nil
 }
+
+func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+	return api.app.PropertyService().CreatePropertyField(field)
+}
+
+func (api *PluginAPI) GetPropertyField(groupID, fieldID string) (*model.PropertyField, error) {
+	return api.app.PropertyService().GetPropertyField(groupID, fieldID)
+}
+
+func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
+	return api.app.PropertyService().GetPropertyFields(groupID, ids)
+}
+
+func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
+	return api.app.PropertyService().UpdatePropertyField(groupID, field)
+}
+
+func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
+	return api.app.PropertyService().DeletePropertyField(groupID, fieldID)
+}
+
+func (api *PluginAPI) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	return api.app.PropertyService().SearchPropertyFields(groupID, targetID, opts)
+}
+
+func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
+	return api.app.PropertyService().CreatePropertyValue(value)
+}
+
+func (api *PluginAPI) GetPropertyValue(groupID, valueID string) (*model.PropertyValue, error) {
+	return api.app.PropertyService().GetPropertyValue(groupID, valueID)
+}
+
+func (api *PluginAPI) GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().GetPropertyValues(groupID, ids)
+}
+
+func (api *PluginAPI) UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	return api.app.PropertyService().UpdatePropertyValue(groupID, value)
+}
+
+func (api *PluginAPI) UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
+	return api.app.PropertyService().UpsertPropertyValue(value)
+}
+
+func (api *PluginAPI) DeletePropertyValue(groupID, valueID string) error {
+	return api.app.PropertyService().DeletePropertyValue(groupID, valueID)
+}
+
+func (api *PluginAPI) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().SearchPropertyValues(groupID, targetID, opts)
+}
+
+func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
+	return api.app.PropertyService().RegisterPropertyGroup(name)
+}
+
+func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
+	return api.app.PropertyService().GetPropertyGroup(name)
+}
+
+func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
+	return api.app.PropertyService().GetPropertyFieldByName(groupID, targetID, name)
+}
+
+func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+	return api.app.PropertyService().UpdatePropertyFields(groupID, fields)
+}
+
+func (api *PluginAPI) UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().UpdatePropertyValues(groupID, values)
+}
+
+func (api *PluginAPI) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().UpsertPropertyValues(values)
+}
+
+func (api *PluginAPI) DeletePropertyValuesForTarget(groupID, targetType, targetID string) error {
+	return api.app.PropertyService().DeletePropertyValuesForTarget(groupID, targetType, targetID)
+}
+
+func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) error {
+	return api.app.PropertyService().DeletePropertyValuesForField(groupID, fieldID)
+}

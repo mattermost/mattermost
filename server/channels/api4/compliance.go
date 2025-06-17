@@ -158,5 +158,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 
 	auditRec.Success()
 
-	w.Write(reportBytes)
+	if _, err := w.Write(reportBytes); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

@@ -19,8 +19,8 @@ export type ExternalLinkQueryParams = {
 
 export function useExternalLink(href: string, location: string = '', overwriteQueryParams: ExternalLinkQueryParams = {}): [string, Record<string, string>] {
     const userId = useSelector(getCurrentUserId);
-    const telemetryId = useSelector((state: GlobalState) => getConfig(state).TelemetryId || '');
-    const isCloud = useSelector((state: GlobalState) => getLicense(state).Cloud === 'true');
+    const telemetryId = useSelector((state: GlobalState) => getConfig(state)?.TelemetryId || '');
+    const isCloud = useSelector((state: GlobalState) => getLicense(state)?.Cloud === 'true');
 
     return useMemo(() => {
         if (!href?.includes('mattermost.com') || href?.startsWith('mailto:')) {

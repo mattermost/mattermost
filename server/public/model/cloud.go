@@ -191,6 +191,7 @@ type Subscription struct {
 	CancelAt                *int64   `json:"cancel_at"`
 	WillRenew               string   `json:"will_renew"`
 	SimulatedCurrentTimeMs  *int64   `json:"simulated_current_time_ms"`
+	IsCloudPreview          bool     `json:"is_cloud_preview"`
 }
 
 func (s *Subscription) DaysToExpiration() int64 {

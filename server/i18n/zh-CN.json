@@ -10764,5 +10764,25 @@
   {
     "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
     "translation": "频道横幅颜色必须为有效的十六进制颜色（例如：#FF0000 或 #F00）"
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "此许可证不支持 MySQL。"
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "无法创建群组同步成员资格。"
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "试用许可证不支持 MySQL 数据库。请使用 PostgreSQL 以访问试用功能。"
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "无法删除无效的群组同步成员资格。"
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "{{.Setting}} 中检测到前导或尾随空格。发现 \"{{.Value}}\"。"
   }
 ]

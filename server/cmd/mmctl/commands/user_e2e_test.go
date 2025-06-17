@@ -477,7 +477,7 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 		var expected error
 
 		expected = multierror.Append(
-			expected, fmt.Errorf("unable to verify user "+user.Id+" email: You do not have the appropriate permissions."),
+			expected, fmt.Errorf("unable to verify user %s email: You do not have the appropriate permissions.", user.Id),
 		)
 
 		s.Require().EqualError(err, expected.Error())

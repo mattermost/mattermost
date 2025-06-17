@@ -1,7 +1,8 @@
 comment:
-  layout: "diff, flags, files"
+  layout: "condensed_header, condensed_files, condensed_footer"
   behavior: default
-  require_changes: false  # if true: only post the comment if coverage changes
+  require_changes: "uncovered_patch" # only post comment if the patch has uncovered lines
+  hide_project_coverage: true # only show coverage on the git diff
 coverage:
   status:
     changes: false
@@ -9,5 +10,8 @@ coverage:
     project:
       default:
         threshold: 1.0
+codecov:
+  notify:
+    after_n_builds: 2 # Server and webapp at this point
 ignore:
   - ^store/storetest.*

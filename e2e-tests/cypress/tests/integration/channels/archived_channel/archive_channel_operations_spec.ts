@@ -56,7 +56,7 @@ describe('Leave an archived channel', () => {
 
         // * The archived channel appears in channel switcher search results
         cy.get('#suggestionList').should('be.visible');
-        cy.get('#suggestionList').find(`#quickSwitchInput_${testChannel.id}`).should('be.visible');
+        cy.get('#suggestionList').find(`#suggestionList_item_${testChannel.id}`).should('be.visible');
 
         // # Reload the app (refresh the web page)
         cy.reload().then(() => {
@@ -67,7 +67,7 @@ describe('Leave an archived channel', () => {
             cy.get('#quickSwitchInput').type(testChannel.display_name).then(() => {
                 // * The archived channel appears in channel switcher search results
                 cy.get('#suggestionList').should('be.visible');
-                cy.get('#suggestionList').find(`#quickSwitchInput_${testChannel.id}`).should('be.visible');
+                cy.get('#suggestionList').find(`#suggestionList_item_${testChannel.id}`).should('be.visible');
             });
         });
     });

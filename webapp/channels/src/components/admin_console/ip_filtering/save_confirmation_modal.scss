@@ -144,22 +144,5 @@
         font-style: normal;
         font-weight: 600;
         line-height: 20px;
-
-        .btn-cancel {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            background: var(--button-bg-8, rgba(28, 88, 217, 0.08));
-            color: var(--button-bg, #1c58d9);
-        }
-
-        .btn-delete {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            margin-left: 8px;
-            background: var(--do-not-disturb-indicator, #d24b4e);
-            color: var(--button-color, #fff);
-        }
     }
 }

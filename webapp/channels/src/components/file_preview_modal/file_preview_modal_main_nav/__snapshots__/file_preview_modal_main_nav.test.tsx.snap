@@ -14,6 +14,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
     }
   >
     <button
+      aria-label="Previous file"
       className="file_preview_modal_main_nav__prev"
       id="previewArrowLeft"
       onClick={[MockFunction]}
@@ -24,6 +25,8 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
     </button>
   </WithTooltip>
   <span
+    aria-atomic="true"
+    aria-live="polite"
     className="modal-bar-file-count"
   >
     <MemoizedFormattedMessage
@@ -47,6 +50,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
     }
   >
     <button
+      aria-label="Next file"
       className="file_preview_modal_main_nav__next"
       id="previewArrowRight"
       onClick={[MockFunction]}

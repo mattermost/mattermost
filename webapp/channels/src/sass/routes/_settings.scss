@@ -210,9 +210,15 @@
 
             .security-links {
                 margin-right: 20px;
+                text-decoration: none;
 
-                .fa {
+                .icon {
                     margin-right: 6px;
+                    font-size: inherit;
+                }
+
+                &.danger {
+                    color: variables.$red;
                 }
             }
 
@@ -294,6 +300,19 @@
                             padding: 0;
                             margin-block-end: 24px;
                             margin-block-start: 24px;
+                        }
+                    }
+
+                    .Input_fieldset {
+                        background: var(--center-channel-bg);
+
+                        .Input_wrapper {
+                            padding: 0 12px;
+
+                            .Input {
+                                height: 28px;
+                                border: none;
+                            }
                         }
                     }
                 }

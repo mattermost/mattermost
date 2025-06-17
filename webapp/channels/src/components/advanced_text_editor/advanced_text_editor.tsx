@@ -307,7 +307,7 @@ const AdvancedTextEditor = ({
     }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
 
     useOrientationHandler(textboxRef, rootId);
-    const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
+    const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
         draft,
@@ -523,7 +523,7 @@ const AdvancedTextEditor = ({
     // Update the caret position in the input box when changed by a side effect
     useEffect(() => {
         const textbox: HTMLInputElement | HTMLTextAreaElement | undefined = textboxRef.current?.getInputBox();
-        if (textbox && textbox.selectionStart !== caretPosition) {
+        if (textbox && textbox === document.activeElement && textbox.selectionStart !== caretPosition) {
             Utils.setCaretPosition(textbox, caretPosition);
         }
     }, [caretPosition]);

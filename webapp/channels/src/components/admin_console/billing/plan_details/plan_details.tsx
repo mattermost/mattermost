@@ -27,7 +27,7 @@ export const PlanDetailsTopElements = ({
     isYearly,
 }: Props) => {
     let productName;
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const {formatMessage} = useIntl();
 
     const userCountDisplay = (
@@ -123,7 +123,7 @@ export const PlanDetailsTopElements = ({
         return monthlyBadge;
     };
 
-    const viewPlansButton = (
+    const viewPlansButton = isAirGapped ? null : (
         <button
             onClick={() => openPricingModal({trackingLocation: 'billing_plan_details_view_plans'})}
             className='btn btn-secondary PlanDetails__viewPlansButton'

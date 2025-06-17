@@ -37,8 +37,17 @@ func newSyncTask(channelID, userID string, remoteID string, existingMsg, retryMs
 		retryID = retryMsg.Id
 	}
 
+	// Generate a unique task ID
+	taskID := channelID + userID + remoteID + retryID // combination of ids to avoid duplicates
+
+	// For batch tasks, add a batch identifier to make the ID unique
+	if existingMsg != nil && len(existingMsg.MembershipChanges) > 1 {
+		batchID := model.NewId()[:8] // Use a short unique ID for the batch
+		taskID = channelID + "batch" + batchID + remoteID + retryID
+	}
+
 	return syncTask{
-		id:          channelID + userID + remoteID + retryID, // combination of ids to avoid duplicates
+		id:          taskID,
 		channelID:   channelID,
 		userID:      userID,
 		remoteID:    remoteID, // empty means update all remote clusters
@@ -235,6 +244,7 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 // addTask adds or re-adds a task to the queue.
 func (scs *Service) addTask(task syncTask) {
 	task.AddedAt = time.Now()
+
 	scs.mux.Lock()
 	if originalTask, ok := scs.tasks[task.id]; ok {
 		// if the task was already scheduled, we only update the
@@ -365,6 +375,16 @@ func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 
 // processTask updates one or more remote clusters with any new channel content.
 func (scs *Service) processTask(task syncTask) error {
+	// Check if this is a membership change task
+	if task.existingMsg != nil && len(task.existingMsg.MembershipChanges) > 0 {
+		// Check if feature flag is enabled
+		if !scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync {
+			return nil
+		}
+		scs.processMembershipChange(task.existingMsg)
+		return nil
+	}
+
 	// map is used to ensure remotes don't get sync'd twice, such as when
 	// they have the autoinvited flag and have explicitly subscribed to a channel.
 	remotesMap := make(map[string]*model.RemoteCluster)
@@ -448,6 +468,9 @@ func (scs *Service) handlePostError(postId string, task syncTask, rc *model.Remo
 		)
 		return
 	}
+
+	// Populate metadata for the retry post
+	post = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
 
 	syncMsg := model.NewSyncMsg(task.channelID)
 	syncMsg.Posts = []*model.Post{post}
@@ -571,14 +594,14 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 		if _, err = scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error adding user to shared channel users",
 				mlog.String("user_id", user.Id),
-				mlog.String("channel_id", user.Id),
+				mlog.String("channel_id", channelID),
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.Err(err),
 			)
 		} else {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Added user to shared channel users",
 				mlog.String("user_id", user.Id),
-				mlog.String("channel_id", user.Id),
+				mlog.String("channel_id", channelID),
 				mlog.String("remote_id", rc.RemoteId),
 			)
 		}

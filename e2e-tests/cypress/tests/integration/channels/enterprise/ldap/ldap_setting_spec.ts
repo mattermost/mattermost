@@ -28,10 +28,10 @@ describe('LDAP settings', () => {
         cy.visitLDAPSettings();
 
         // # Click "AD/LDAP Test"
-        cy.findByRole('button', {name: /ad\/ldap test/i}).click();
+        cy.findByRole('button', {name: /test connection/i}).click();
 
         // * Confirmation message saying the connection is successful.
-        cy.findByText(/ad\/ldap test successful/i).should('be.visible');
+        cy.findByText(/test connection successful/i).should('be.visible');
         cy.findByTitle(/success icon/i).should('be.visible');
     });
 

@@ -2079,11 +2079,18 @@ func (s *SqlPostStore) buildSearchPostFilterClause(teamID string, fromUsers []st
 	}
 
 	// Sub-query builder.
-	sb := s.getSubQueryBuilder().Select("Id").From("Users, TeamMembers").Where(
-		sq.And{
-			sq.Eq{"TeamMembers.TeamId": teamID},
-			sq.Expr("Users.Id = TeamMembers.UserId"),
-		})
+	sb := s.getSubQueryBuilder().Select("Id")
+	if teamID == "" {
+		// Cross-team search: don't filter by team membership
+		sb = sb.From("Users")
+	} else {
+		// Team-scoped search: filter by team membership
+		sb = sb.From("Users, TeamMembers").Where(
+			sq.And{
+				sq.Eq{"TeamMembers.TeamId": teamID},
+				sq.Expr("Users.Id = TeamMembers.UserId"),
+			})
+	}
 	sb = s.buildSearchUserFilterClause(fromUsers, false, userByUsername, sb)
 	sb = s.buildSearchUserFilterClause(excludedUsers, true, userByUsername, sb)
 	subQuery, subQueryArgs, err := sb.ToSql()
@@ -2674,19 +2681,30 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 // PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
 // the global or a granular retention policy.
 // See `genericPermanentDeleteBatchForRetentionPolicies` for details.
-func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	builder := s.getQueryBuilder().
 		Select("Posts.Id").
 		From("Posts")
+
+	if retentionPolicyBatchConfigs.PreservePinnedPosts {
+		builder = builder.Where(sq.Or{
+			sq.Eq{"Posts.IsPinned": false},
+			sq.And{
+				sq.Eq{"Posts.IsPinned": true},
+				sq.Gt{"Posts.DeleteAt": 0},
+			},
+		})
+	}
+
 	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
 		BaseBuilder:         builder,
 		Table:               "Posts",
 		TimeColumn:          "CreateAt",
 		PrimaryKeys:         []string{"Id"},
 		ChannelIDTable:      "Posts",
-		NowMillis:           now,
-		GlobalPolicyEndTime: globalPolicyEndTime,
-		Limit:               limit,
+		NowMillis:           retentionPolicyBatchConfigs.Now,
+		GlobalPolicyEndTime: retentionPolicyBatchConfigs.GlobalPolicyEndTime,
+		Limit:               retentionPolicyBatchConfigs.Limit,
 		StoreDeletedIds:     true,
 	}, s.SqlStore, cursor)
 }

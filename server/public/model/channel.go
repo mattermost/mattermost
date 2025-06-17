@@ -77,29 +77,30 @@ func (c ChannelBannerInfo) Value() (driver.Value, error) {
 }
 
 type Channel struct {
-	Id                string             `json:"id"`
-	CreateAt          int64              `json:"create_at"`
-	UpdateAt          int64              `json:"update_at"`
-	DeleteAt          int64              `json:"delete_at"`
-	TeamId            string             `json:"team_id"`
-	Type              ChannelType        `json:"type"`
-	DisplayName       string             `json:"display_name"`
-	Name              string             `json:"name"`
-	Header            string             `json:"header"`
-	Purpose           string             `json:"purpose"`
-	LastPostAt        int64              `json:"last_post_at"`
-	TotalMsgCount     int64              `json:"total_msg_count"`
-	ExtraUpdateAt     int64              `json:"extra_update_at"`
-	CreatorId         string             `json:"creator_id"`
-	SchemeId          *string            `json:"scheme_id"`
-	Props             map[string]any     `json:"props"`
-	GroupConstrained  *bool              `json:"group_constrained"`
-	Shared            *bool              `json:"shared"`
-	TotalMsgCountRoot int64              `json:"total_msg_count_root"`
-	PolicyID          *string            `json:"policy_id"`
-	LastRootPostAt    int64              `json:"last_root_post_at"`
-	BannerInfo        *ChannelBannerInfo `json:"banner_info"`
-	PolicyEnforced    bool               `json:"policy_enforced"`
+	Id                  string             `json:"id"`
+	CreateAt            int64              `json:"create_at"`
+	UpdateAt            int64              `json:"update_at"`
+	DeleteAt            int64              `json:"delete_at"`
+	TeamId              string             `json:"team_id"`
+	Type                ChannelType        `json:"type"`
+	DisplayName         string             `json:"display_name"`
+	Name                string             `json:"name"`
+	Header              string             `json:"header"`
+	Purpose             string             `json:"purpose"`
+	LastPostAt          int64              `json:"last_post_at"`
+	TotalMsgCount       int64              `json:"total_msg_count"`
+	ExtraUpdateAt       int64              `json:"extra_update_at"`
+	CreatorId           string             `json:"creator_id"`
+	SchemeId            *string            `json:"scheme_id"`
+	Props               map[string]any     `json:"props"`
+	GroupConstrained    *bool              `json:"group_constrained"`
+	Shared              *bool              `json:"shared"`
+	TotalMsgCountRoot   int64              `json:"total_msg_count_root"`
+	PolicyID            *string            `json:"policy_id"`
+	LastRootPostAt      int64              `json:"last_root_post_at"`
+	BannerInfo          *ChannelBannerInfo `json:"banner_info"`
+	PolicyEnforced      bool               `json:"policy_enforced"`
+	DefaultCategoryName string             `json:"default_category_name"`
 }
 
 func (o *Channel) Auditable() map[string]any {
@@ -362,7 +363,7 @@ func (o *Channel) IsOpen() bool {
 
 func (o *Channel) Patch(patch *ChannelPatch) {
 	if patch.DisplayName != nil {
-		o.DisplayName = *patch.DisplayName
+		o.DisplayName = strings.TrimSpace(*patch.DisplayName)
 	}
 
 	if patch.Name != nil {
@@ -505,4 +506,16 @@ type GroupMessageConversionRequestBody struct {
 	TeamID      string `json:"team_id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
+}
+
+// ChannelMembersGetOptions provides parameters for getting channel members
+type ChannelMembersGetOptions struct {
+	// ChannelID specifies which channel to get members for
+	ChannelID string
+	// Offset for pagination
+	Offset int
+	// Limit for pagination (maximum number of results to return)
+	Limit int
+	// UpdatedAfter filters members updated after the given timestamp (cursor-based pagination)
+	UpdatedAfter int64
 }

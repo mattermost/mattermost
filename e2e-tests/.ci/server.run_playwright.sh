@@ -42,7 +42,7 @@ ${MME2E_DC_SERVER} exec -i -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/p
 # Collect run results
 # Documentation on the results.json file: https://playwright.dev/docs/api/class-testcase#test-case-expected-status
 
-jq -f /dev/stdin ../playwright/results/reporter/results.json > ../playwright/results/summary.json <<EOF
+jq -f /dev/stdin ../playwright/results/reporter/results.json >../playwright/results/summary.json <<EOF
 {
   passed: .stats.expected,
   failed: .stats.unexpected,

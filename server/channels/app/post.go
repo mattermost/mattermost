@@ -773,9 +773,14 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, updateP
 	if newPost == nil {
 		return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
 	}
-	// Restore the post metadata that was stripped by the plugin. Set it to
-	// the last known good.
-	newPost.Metadata = oldPost.Metadata
+	// Always use incoming metadata when provided, otherwise retain existing
+	if receivedUpdatedPost.Metadata != nil {
+		newPost.Metadata = receivedUpdatedPost.Metadata.Copy()
+	} else {
+		// Restore the post metadata that was stripped by the plugin. Set it to
+		// the last known good.
+		newPost.Metadata = oldPost.Metadata
+	}
 
 	rpost, nErr := a.Srv().Store().Post().Update(c, newPost, oldPost)
 	if nErr != nil {

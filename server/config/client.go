@@ -52,6 +52,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableInlineLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableInlineLatex)
 	props["ExtendSessionLengthWithActivity"] = strconv.FormatBool(*c.ServiceSettings.ExtendSessionLengthWithActivity)
 	props["ManagedResourcePaths"] = *c.ServiceSettings.ManagedResourcePaths
+	props["DeleteAccountLink"] = *c.ServiceSettings.DeleteAccountLink
 
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
@@ -100,6 +101,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DisableRefetchingOnBrowserFocus"] = strconv.FormatBool(*c.ExperimentalSettings.DisableRefetchingOnBrowserFocus)
 	props["DisableWakeUpReconnectHandler"] = strconv.FormatBool(*c.ExperimentalSettings.DisableWakeUpReconnectHandler)
 	props["UsersStatusAndProfileFetchingPollIntervalMilliseconds"] = strconv.FormatInt(*c.ExperimentalSettings.UsersStatusAndProfileFetchingPollIntervalMilliseconds, 10)
+	props["ExperimentalChannelCategorySorting"] = strconv.FormatBool(*c.ExperimentalSettings.ExperimentalChannelCategorySorting)
 
 	// Here we set the new option, but we also send the old FeatureFlag property for backwards compatibility on mobile < 2.27
 	props["EnableCrossTeamSearch"] = strconv.FormatBool(*c.ServiceSettings.EnableCrossTeamSearch)
