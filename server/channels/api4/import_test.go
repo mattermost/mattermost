@@ -19,41 +19,42 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
+// Helper function to upload a new import file
+func uploadNewImport(th *TestHelper, c *model.Client4, t *testing.T) string {
+	testsDir, _ := fileutils.FindDir("tests")
+	require.NotEmpty(t, testsDir)
+
+	file, err := os.Open(testsDir + "/import_test.zip")
+	require.NoError(t, err)
+
+	info, err := file.Stat()
+	require.NoError(t, err)
+
+	us := &model.UploadSession{
+		Filename: info.Name(),
+		FileSize: info.Size(),
+		Type:     model.UploadTypeImport,
+	}
+
+	if c == th.LocalClient {
+		us.UserId = model.UploadNoUserID
+	}
+
+	u, _, err := c.CreateUpload(context.Background(), us)
+	require.NoError(t, err)
+	require.NotNil(t, u)
+
+	finfo, _, err := c.UploadData(context.Background(), u.Id, file)
+	require.NoError(t, err)
+	require.NotNil(t, finfo)
+
+	return u.Id
+}
+
 func TestListImports(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
-
-	testsDir, _ := fileutils.FindDir("tests")
-	require.NotEmpty(t, testsDir)
-
-	uploadNewImport := func(c *model.Client4, t *testing.T) string {
-		file, err := os.Open(testsDir + "/import_test.zip")
-		require.NoError(t, err)
-
-		info, err := file.Stat()
-		require.NoError(t, err)
-
-		us := &model.UploadSession{
-			Filename: info.Name(),
-			FileSize: info.Size(),
-			Type:     model.UploadTypeImport,
-		}
-
-		if c == th.LocalClient {
-			us.UserId = model.UploadNoUserID
-		}
-
-		u, _, err := c.CreateUpload(context.Background(), us)
-		require.NoError(t, err)
-		require.NotNil(t, u)
-
-		finfo, _, err := c.UploadData(context.Background(), u.Id, file)
-		require.NoError(t, err)
-		require.NotNil(t, finfo)
-
-		return u.Id
-	}
 
 	t.Run("no permissions", func(t *testing.T) {
 		imports, _, err := th.Client.ListImports(context.Background())
@@ -71,8 +72,8 @@ func TestListImports(t *testing.T) {
 	}, "no imports")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		id := uploadNewImport(c, t)
-		id2 := uploadNewImport(c, t)
+		id := uploadNewImport(th, c, t)
+		id2 := uploadNewImport(th, c, t)
 
 		importDir := filepath.Join(dataDir, "import")
 		f, err := os.Create(filepath.Join(importDir, "import.zip.tmp"))
@@ -99,7 +100,7 @@ func TestListImports(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, imports)
 
-		id := uploadNewImport(c, t)
+		id := uploadNewImport(th, c, t)
 		imports, _, err = c.ListImports(context.Background())
 		require.NoError(t, err)
 		require.NotEmpty(t, imports)
@@ -150,4 +151,37 @@ func TestImportInLocalMode(t *testing.T) {
 	require.NoError(t, err)
 	// Just a sanity check to ensure new posts are actually added in the system.
 	require.Greater(t, cnt2, cnt1)
+}
+
+func TestDeleteImport(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("no delete permissions", func(t *testing.T) {
+		response, err := th.Client.DeleteImport(context.Background(), "import_test.zip")
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+		require.Equal(t, 403, response.StatusCode)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		id := uploadNewImport(th, th.SystemAdminClient, t)
+		id2 := uploadNewImport(th, th.SystemAdminClient, t)
+		response, delErr := th.SystemAdminClient.DeleteImport(context.Background(), id+"_import_test.zip")
+		require.Equal(t, 200, response.StatusCode)
+		require.NoError(t, delErr)
+		imports, _, err := th.SystemAdminClient.ListImports(context.Background())
+		require.NoError(t, err)
+		require.NotEmpty(t, imports)
+		require.Len(t, imports, 1)
+		require.Contains(t, imports, id2+"_import_test.zip")
+		require.NotContains(t, imports, id+"_import_test.zip")
+
+		_, err = th.SystemAdminClient.DeleteImport(context.Background(), id2+"_import_test.zip")
+		require.NoError(t, err)
+
+		//idempotency check
+		_, err = th.SystemAdminClient.DeleteImport(context.Background(), id2+"_import_test.zip")
+		require.NoError(t, err)
+	}, "successful deletion")
 }
