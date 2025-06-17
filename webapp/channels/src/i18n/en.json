@@ -1917,6 +1917,8 @@
   "admin.permissions.permission.list_team_channels.name": "List team channels",
   "admin.permissions.permission.list_users_without_team.description": "List users without team",
   "admin.permissions.permission.list_users_without_team.name": "List users without team",
+  "admin.permissions.permission.manage_channel_access_rules.description": "Configure attribute-based access control rules for channels.",
+  "admin.permissions.permission.manage_channel_access_rules.name": "Manage Channel Access Rules",
   "admin.permissions.permission.manage_channel_roles.description": "Manage channel roles",
   "admin.permissions.permission.manage_channel_roles.name": "Manage channel roles",
   "admin.permissions.permission.manage_custom_group_members.description": "Add and remove custom group members.",
