@@ -560,7 +560,18 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 
 		// Transform mentions for proper display on the receiving cluster
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("CALLING transformMentionsOnReceive for post: %s", post.Message))
-		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc)
+
+		// Create mention map to resolve mentions to user IDs
+		sc, err := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
+		if err != nil {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("Could not get shared channel for mention resolution: %v", err))
+		}
+		var mentionMap model.UserMentionMap
+		if sc != nil {
+			mentionMap = scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
+		}
+
+		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
 
 		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
 		if appErr == nil {
@@ -585,7 +596,16 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message {
 		// Transform mentions for proper display on the receiving cluster
-		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc)
+		sc, err := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
+		if err != nil {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("Could not get shared channel for mention resolution: %v", err))
+		}
+		var mentionMap model.UserMentionMap
+		if sc != nil {
+			mentionMap = scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
+		}
+
+		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
 
 		// update post
 		rpost, appErr = scs.app.UpdatePost(request.EmptyContext(scs.server.Log()), post, nil)
@@ -788,10 +808,54 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 	return savedReaction, retErr
 }
 
+// resolveMentionToUserID attempts to resolve a mention string to a user ID using multiple strategies
+func (scs *Service) resolveMentionToUserID(rctx request.CTX, mention string, rc *model.RemoteCluster, mentionMap model.UserMentionMap) string {
+	// Strategy 1: Check if mention is in the mention map (already resolved)
+	if userID, exists := mentionMap[mention]; exists {
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found %s in mentionMap -> %s", mention, userID))
+		return userID
+	}
+
+	// Strategy 2: For mentions with colon, try to resolve by looking up the original user
+	if strings.Contains(mention, ":") {
+		parts := strings.SplitN(mention, ":", 2)
+		if len(parts) == 2 {
+			username := parts[0]
+			clusterName := parts[1]
+
+			// Look for a user with this exact munged username
+			mungedUsername := fmt.Sprintf("%s:%s", username, clusterName)
+			if user, err := scs.server.GetStore().User().GetByUsername(mungedUsername); err == nil && user != nil {
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found munged user %s -> %s", mungedUsername, user.Id))
+				return user.Id
+			}
+
+			// Fallback: try to find the original user on the sender's cluster
+			// This handles cases where the mention format doesn't match exactly
+			if users, err := scs.server.GetStore().User().GetProfilesByUsernames([]string{username}, nil); err == nil {
+				for _, user := range users {
+					if user.GetRemoteID() == rc.RemoteId {
+						scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found original user %s from sender cluster -> %s", username, user.Id))
+						return user.Id
+					}
+				}
+			}
+		}
+	}
+
+	// Strategy 3: For simple mentions, try direct username lookup
+	if user, err := scs.server.GetStore().User().GetByUsername(mention); err == nil && user != nil {
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found direct username %s -> %s", mention, user.Id))
+		return user.Id
+	}
+
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Could not resolve mention: %s", mention))
+	return ""
+}
+
 // transformMentionsOnReceive transforms mentions in received posts to ensure proper display
-// on the receiving cluster. Logic: add sender's cluster suffix to mentions without suffixes,
-// remove cluster suffix if it doesn't refer to a known remote cluster (making it local).
-func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) {
+// on the receiving cluster using user ID-based resolution.
+func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionMap model.UserMentionMap) {
 	// Add stack trace to understand the call path
 	stackTrace := string(debug.Stack())
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("TRANSFORM_MENTIONS CALLED: Message: %s, Remote: %s", post.Message, rc.Name))
@@ -802,6 +866,13 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		return
 	}
 
+	// Debug: Log mention map details
+	mentionMapDetails := make([]string, 0, len(mentionMap))
+	for mention, userID := range mentionMap {
+		mentionMapDetails = append(mentionMapDetails, fmt.Sprintf("%s->%s", mention, userID))
+	}
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("TRANSFORM_MENTIONS: MentionMap: [%s]", strings.Join(mentionMapDetails, ", ")))
+
 	// Use existing atMentionRegexp to find all @mentions
 	atMentionRegexp := regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_:]*`)
 
@@ -809,120 +880,37 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		mention := match[1:] // Remove @
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("Processing mention: %s", match))
 
-		if strings.Contains(mention, ":") {
-			// Has cluster suffix - check if it refers to a known remote cluster
-			parts := strings.SplitN(mention, ":", 2)
-			if len(parts) == 2 {
-				clusterName := parts[1]
-				username := parts[0]
-
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Username: %s, ClusterName: %s", username, clusterName))
-
-				// Check if this cluster participates in the current shared channel
-				isParticipant := scs.isChannelParticipant(clusterName, targetChannel.Id)
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  isChannelParticipant(%s, %s) = %v", clusterName, targetChannel.Id, isParticipant))
-
-				if isParticipant {
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Keeping suffix - channel participant: %s", match))
-					return match // Keep @user:participatingRemote
-				}
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Preserving non-participant mention as text: %s", match))
-				// Cluster doesn't participate in this channel - preserve as plain text, not a mention
-				return match // Keep @user:nonParticipant as-is
-			}
-			return match
+		// Step 1: Resolve mention to user ID
+		userID := scs.resolveMentionToUserID(rctx, mention, rc, mentionMap)
+		if userID == "" {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Could not resolve %s to user ID - preserving as plain text", match))
+			return match // No user ID found - preserve as plain text (no link)
 		}
 
-		// No suffix - check for username collision to decide if cluster suffix is needed
-		username := mention
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Processing unsuffixed mention: %s", username))
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Resolved %s to user ID: %s", match, userID))
 
-		// First, check if there's already a remote user from sender's cluster with this username
-		// This indicates the mention was stripped by fixMention and should stay as-is
-		var hasRemoteUserFromSender bool
-		users, err := scs.server.GetStore().User().GetProfilesByUsernames([]string{username}, nil)
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Checking for remote user from sender - username: %s, sender RemoteId: %s", username, rc.RemoteId))
-		if err == nil {
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Found %d users with username '%s'", len(users), username))
-			for i, user := range users {
-				userRemoteId := user.GetRemoteID()
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: User %d: ID=%s, Username=%s, RemoteID=%s", i, user.Id, user.Username, userRemoteId))
-				if userRemoteId == rc.RemoteId {
-					hasRemoteUserFromSender = true
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Found remote user from sender: %s (RemoteID matches)", match))
-					break
-				}
-			}
-		} else {
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Error getting users by username: %v", err))
-		}
-
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: hasRemoteUserFromSender = %v", hasRemoteUserFromSender))
-
-		if hasRemoteUserFromSender {
-			// Remote user from sender exists, this was stripped by fixMention - keep as-is
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Keeping mention as-is (was stripped): %s", match))
-			return match
-		}
-
-		// Check if there's a local user with this username (potential collision)
-		var hasLocalUser bool
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Checking for local user with username: %s", username))
-		if localUser, err := scs.server.GetStore().User().GetByUsername(username); err == nil && localUser != nil {
+		// Step 2: Check if this user ID exists locally and how it's stored
+		if localUser, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && localUser != nil {
 			localUserRemoteId := localUser.GetRemoteID()
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Found user with username '%s': ID=%s, RemoteID='%s'", username, localUser.Id, localUserRemoteId))
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  User ID %s exists locally: Username=%s, RemoteID='%s'", userID, localUser.Username, localUserRemoteId))
+
+			// Step 3: Display mention based on how the user is stored locally
 			if localUserRemoteId == "" {
-				hasLocalUser = true
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Found local user with same name: %s", username))
-			} else {
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: User '%s' is not local (RemoteID='%s')", username, localUserRemoteId))
+				// Local user - display as @username (Scenario 2)
+				newMention := "@" + localUser.Username
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  SCENARIO2: Local user, displaying as: %s", newMention))
+				return newMention
 			}
-		} else {
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: No user found with username '%s' (err: %v)", username, err))
-		}
-
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: hasLocalUser = %v", hasLocalUser))
-
-		if hasLocalUser {
-			// Username collision detected - add cluster suffix to disambiguate
-			newMention := fmt.Sprintf("@%s:%s", mention, rc.Name)
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Username collision detected, adding suffix: %s -> %s", match, newMention))
+			// Remote user - display as @username:cluster (Scenario 1)
+			newMention := "@" + localUser.Username
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  SCENARIO1: Remote user, displaying as: %s", newMention))
 			return newMention
 		}
-
-		// No collision but still need cluster suffix for cross-cluster mention identification
-		newMention := fmt.Sprintf("@%s:%s", mention, rc.Name)
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  No collision but adding suffix for cross-cluster identification: %s -> %s", match, newMention))
-		return newMention
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  User ID %s does not exist locally - preserving as plain text: %s", userID, match))
+		return match // User doesn't exist locally - preserve as plain text (no link)
 	})
 
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("TRANSFORM_MENTIONS COMPLETE: Final message: %s", post.Message))
-}
-
-// isChannelParticipant checks if the given cluster name participates in the specified shared channel
-func (scs *Service) isChannelParticipant(clusterName string, channelId string) bool {
-	// Get all remotes participating in this channel
-	opts := model.SharedChannelRemoteFilterOpts{
-		ChannelId: channelId,
-	}
-	remotes, err := scs.app.GetSharedChannelRemotes(0, 999999, opts)
-	if err != nil {
-		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("    Error getting channel remotes: %v", err))
-		return false
-	}
-
-	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("    Checking %d channel participants for '%s'", len(remotes), clusterName))
-
-	// Check if any participating remote has this cluster name
-	for _, remote := range remotes {
-		if rc, err := scs.server.GetStore().RemoteCluster().Get(remote.RemoteId, false); err == nil {
-			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("      Comparing '%s' with '%s'", clusterName, rc.Name))
-			if rc.Name == clusterName {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowledgement, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.PostAcknowledgement, error) {
