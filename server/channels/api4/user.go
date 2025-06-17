@@ -1446,8 +1446,8 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			key := "api.user.delete_user.not_enabled.app_error"
 			loggedUser, usrErr := c.App.GetUser(c.AppContext.Session().UserId)
-			if usrErr == nil && loggedUser != nil && model.IsInRole(loggedUser.Roles, model.SystemAdminRoleId) {
-				key = "api.user.delete_user.not_enabled.for_admin.app_error"
+			if usrErr == nil && loggedUser != nil && loggedUser.IsSystemAdmin() {
+				key = "api.user.delete_user.not_enabled.for_admin.app_error" // More verbose error message for system admins
 			}
 			err = model.NewAppError("deleteUser", key, nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		}

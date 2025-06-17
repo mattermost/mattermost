@@ -1400,8 +1400,8 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			key := "api.user.delete_channel.not_enabled.app_error"
 			user, usrErr := c.App.GetUser(c.AppContext.Session().UserId)
-			if usrErr == nil && user != nil && model.IsInRole(user.Roles, model.SystemAdminRoleId) {
-				key = "api.user.delete_channel.not_enabled.for_admin.app_error"
+			if usrErr == nil && user != nil && user.IsSystemAdmin() {
+				key = "api.user.delete_channel.not_enabled.for_admin.app_error" // More verbose error message for system admins
 			}
 			err = model.NewAppError("deleteChannel", key, nil, "channelId="+c.Params.ChannelId, http.StatusUnauthorized)
 		}
