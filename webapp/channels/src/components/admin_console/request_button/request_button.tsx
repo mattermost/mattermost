@@ -103,6 +103,18 @@ type Props = {
      * An element to display adjacent to the request button.
      */
     alternativeActionElement?: React.ReactNode;
+
+    /**
+     * True if the button should be displayed flush left without the col-sm-offset-4 class,
+     * otherwise false.
+     */
+    flushLeft?: boolean;
+
+    /**
+     * The button type/variant to apply. Determines the button's visual style.
+     * Defaults to 'tertiary'.
+     */
+    buttonType?: 'primary' | 'secondary' | 'tertiary';
 };
 
 type State = {
@@ -211,11 +223,14 @@ export default class RequestButton extends React.PureComponent<Props, State> {
         let widgetClassNames = 'col-sm-8';
         let label = null;
         if (this.props.label) {
+            // When there's a label, widget takes remaining 8 columns regardless of flushLeft
             label = (
                 <label className='control-label col-sm-4'>
                     {this.props.label}
                 </label>
             );
+        } else if (this.props.flushLeft) {
+            widgetClassNames = 'col-sm-12';
         } else {
             widgetClassNames = 'col-sm-offset-4 ' + widgetClassNames;
         }
@@ -230,7 +245,7 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                     <div>
                         <button
                             type='button'
-                            className='btn btn-tertiary'
+                            className={`btn btn-${this.props.buttonType || 'tertiary'}`}
                             onClick={this.handleRequest}
                             disabled={this.props.disabled}
                         >
