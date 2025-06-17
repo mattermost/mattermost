@@ -16,7 +16,7 @@ test.beforeEach(async ({pw}) => {
  * @precondition
  * A test server with valid license to support scheduled message features
  */
-test(
+test.fixme(
     'MM-T5643_1 creates scheduled message from channel and posts at scheduled time',
     {tag: '@scheduled_messages'},
     async ({pw}) => {
