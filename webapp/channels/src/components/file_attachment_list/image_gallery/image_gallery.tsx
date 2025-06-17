@@ -84,6 +84,7 @@ function sanitizeFileName(name: string): string {
 
 function isValidUrl(url: string): boolean {
     try {
+        // eslint-disable-next-line no-new
         new URL(url);
         return true;
     } catch {
@@ -148,6 +149,7 @@ const ImageGallery = (props: Props) => {
             const downloadPromises = fileInfos.map((fileInfo) => {
                 return new Promise<void>((resolve) => {
                     let url = '';
+
                     // If fileInfo.link is a Blob, use createObjectURL
                     if (fileInfo.link instanceof Blob) {
                         url = URL.createObjectURL(fileInfo.link);
@@ -201,7 +203,7 @@ const ImageGallery = (props: Props) => {
                             <span id={imageCountId}>
                                 {formatMessage(
                                     {id: 'image_gallery.show_images', defaultMessage: 'Show {count} images'},
-                                    {count: fileInfos.length}
+                                    {count: fileInfos.length},
                                 )}
                             </span>
                         </>
@@ -211,7 +213,7 @@ const ImageGallery = (props: Props) => {
                             <span id={imageCountId}>
                                 {formatMessage(
                                     {id: 'image_gallery.hide_images', defaultMessage: '{count} images'},
-                                    {count: fileInfos.length}
+                                    {count: fileInfos.length},
                                 )}
                             </span>
                         </>
@@ -234,7 +236,7 @@ const ImageGallery = (props: Props) => {
                 className={classNames('image-gallery__body', {
                     collapsed: isCollapsed,
                 })}
-                role="list"
+                role='list'
             >
                 {!isCollapsed && fileInfos.map((fileInfo, idx) => {
                     const isSmall = isSmallImage(fileInfo);
@@ -249,7 +251,7 @@ const ImageGallery = (props: Props) => {
                                 'image-gallery__item--small': isSmall,
                             })}
                             style={itemStyle}
-                            role="listitem"
+                            role='listitem'
                             tabIndex={0}
                             aria-label={`Image ${idx + 1} of ${fileInfos.length}`}
                             onKeyDown={(e) => {
@@ -282,7 +284,10 @@ const ImageGallery = (props: Props) => {
                     );
                 })}
             </div>
-            <div aria-live="polite" style={{position: 'absolute', left: '-9999px', height: '1px', width: '1px', overflow: 'hidden'}}>
+            <div
+                aria-live='polite'
+                style={{position: 'absolute', left: '-9999px', height: '1px', width: '1px', overflow: 'hidden'}}
+            >
                 {ariaLiveMessage}
             </div>
         </div>
