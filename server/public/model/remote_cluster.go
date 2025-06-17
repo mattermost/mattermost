@@ -53,37 +53,39 @@ func (bm *Bitmask) UnsetBit(flag Bitmask) {
 }
 
 type RemoteCluster struct {
-	RemoteId      string  `json:"remote_id"`
-	RemoteTeamId  string  `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
-	Name          string  `json:"name"`
-	DisplayName   string  `json:"display_name"`
-	SiteURL       string  `json:"site_url"`
-	DefaultTeamId string  `json:"default_team_id"`
-	CreateAt      int64   `json:"create_at"`
-	DeleteAt      int64   `json:"delete_at"`
-	LastPingAt    int64   `json:"last_ping_at"`
-	Token         string  `json:"token"`
-	RemoteToken   string  `json:"remote_token"`
-	Topics        string  `json:"topics"`
-	CreatorId     string  `json:"creator_id"`
-	PluginID      string  `json:"plugin_id"` // non-empty when sync message are to be delivered via plugin API
-	Options       Bitmask `json:"options"`   // bit-flag set of options
+	RemoteId             string  `json:"remote_id"`
+	RemoteTeamId         string  `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
+	Name                 string  `json:"name"`
+	DisplayName          string  `json:"display_name"`
+	SiteURL              string  `json:"site_url"`
+	DefaultTeamId        string  `json:"default_team_id"`
+	CreateAt             int64   `json:"create_at"`
+	DeleteAt             int64   `json:"delete_at"`
+	LastPingAt           int64   `json:"last_ping_at"`
+	LastGlobalUserSyncAt int64   `json:"last_global_user_sync_at"` // Timestamp of last global user sync
+	Token                string  `json:"token"`
+	RemoteToken          string  `json:"remote_token"`
+	Topics               string  `json:"topics"`
+	CreatorId            string  `json:"creator_id"`
+	PluginID             string  `json:"plugin_id"` // non-empty when sync message are to be delivered via plugin API
+	Options              Bitmask `json:"options"`   // bit-flag set of options
 }
 
 func (rc *RemoteCluster) Auditable() map[string]any {
 	return map[string]any{
-		"remote_id":       rc.RemoteId,
-		"remote_team_id":  rc.RemoteTeamId,
-		"name":            rc.Name,
-		"display_name":    rc.DisplayName,
-		"site_url":        rc.SiteURL,
-		"default_team_id": rc.DefaultTeamId,
-		"create_at":       rc.CreateAt,
-		"delete_at":       rc.DeleteAt,
-		"last_ping_at":    rc.LastPingAt,
-		"creator_id":      rc.CreatorId,
-		"plugin_id":       rc.PluginID,
-		"options":         rc.Options,
+		"remote_id":                rc.RemoteId,
+		"remote_team_id":           rc.RemoteTeamId,
+		"name":                     rc.Name,
+		"display_name":             rc.DisplayName,
+		"site_url":                 rc.SiteURL,
+		"default_team_id":          rc.DefaultTeamId,
+		"create_at":                rc.CreateAt,
+		"delete_at":                rc.DeleteAt,
+		"last_ping_at":             rc.LastPingAt,
+		"last_global_user_sync_at": rc.LastGlobalUserSyncAt,
+		"creator_id":               rc.CreatorId,
+		"plugin_id":                rc.PluginID,
+		"options":                  rc.Options,
 	}
 }
 
