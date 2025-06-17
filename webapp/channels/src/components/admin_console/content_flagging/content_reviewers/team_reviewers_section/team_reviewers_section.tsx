@@ -134,7 +134,12 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                             content={team.display_name}
                             intl={intl}
                         />
-                        <span className='TeamReviewers__team-name'>{team.display_name}</span>
+                        <span
+                            data-testid='teamName'
+                            className='TeamReviewers__team-name'
+                        >
+                            {team.display_name}
+                        </span>
                     </div>
                 ),
                 reviewers: (

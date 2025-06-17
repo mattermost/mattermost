@@ -274,7 +274,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
                     removed: [],
                     dismissed: [],
                 },
-            } as ContentFlaggingNotificationSettings,
+            } as unknown as ContentFlaggingNotificationSettings,
         };
 
         renderWithIntl(<ContentFlaggingNotificationSettingsSection {...propsWithEmptyArrays}/>);
