@@ -27,11 +27,9 @@
 }
 
 .image-gallery {
-    --max-height: 216px;
-    --min-width: 48px;
-    --max-width: 500px;
-    --small-container-breakpoint: 400px;
-    --large-container-breakpoint: 640px;
+    --gallery-item-max-height: 216px;
+    --gallery-item-min-width: 48px;
+    --gallery-item-max-width: 500px;
     
     margin: 5px 0;
     container-type: inline-size;
@@ -80,7 +78,6 @@
         grid-column-gap: 8px;
         grid-row-gap: 8px;
         grid-template-columns: repeat(auto-fit, 40px);
-        grid-auto-rows: auto;
         opacity: 1;
         transition: all 250ms ease-in-out;
 
@@ -93,8 +90,9 @@
     &__item {
         position: relative;
         display: flex;
+        width: 100%;
         height: 100%;
-        max-height: var(--max-height);
+        max-height: var(--gallery-item-max-height);
         border-radius: 4px;
         margin: 0;
         object-fit: cover;
@@ -109,9 +107,9 @@
 
         // Override SingleImageView styles to fit our grid
         .file-view--single {
-            margin: 0;
             width: 100%;
-            height: 100%;   
+            height: 100%;
+            margin: 0;
 
             .file__image {
                 width: 100%;
@@ -126,10 +124,10 @@
                     display: flex;
                     overflow: hidden;
                     width: 100%;
-                    min-width: var(--min-width);
-                    max-width: var(--max-width);
+                    min-width: var(--gallery-item-min-width);
+                    max-width: var(--gallery-item-max-width);
                     height: 100%;
-                    max-height: var(--max-height);
+                    max-height: var(--gallery-item-max-height);
                     align-items: center;
                     justify-content: center;
                     border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
@@ -171,8 +169,8 @@
                     }
 
                     .image-loaded {
-                        height: 100%;
                         width: 100%;
+                        height: 100%;
 
                         img {
                             height: 100%;
@@ -186,8 +184,8 @@
                         }
                         
                         .small-image__container {
-                            max-width: 100%;
                             width: 100%;
+                            max-width: 100%;
                             height: 100%;
                             max-height: 100%;
                             padding: 8px;
@@ -243,19 +241,19 @@
     /* Container Query: small container breakpoint (width < 400px) */
     @container (max-width: 399px) {
         &__body {
-            grid-template-columns: repeat(2, 1fr);
             grid-auto-rows: unset;
+            grid-template-columns: repeat(2, 1fr);
         }
         
         &__item {
-            height: 0;
-            padding-top: 100%;
-            grid-column: span 1 !important;
-            min-width: 0;
-            min-height: 0;
-            max-width: none;
-            max-height: none;
             display: block;
+            min-width: 0;
+            max-width: none;
+            height: 0;
+            min-height: 0;     
+            max-height: none;
+            padding-top: 100%;
+            grid-column: span 1 !important;           
         }
 
         // Ensure all wrappers fill the grid square
