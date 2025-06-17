@@ -68,8 +68,11 @@ type License struct {
 	IsTrial             bool      `json:"is_trial"`
 	IsGovSku            bool      `json:"is_gov_sku"`
 	IsSeatCountEnforced bool      `json:"is_seat_count_enforced"`
-	ExtraUsers          *int      `json:"extra_users"`
-	SignupJWT           *string   `json:"signup_jwt"`
+	// ExtraUsers provides a grace mechanism that allows a configurable number of users
+	// beyond the base license limit before restricting user creation. When nil, defaults to 0.
+	// For example: 100 licensed users + 5 ExtraUsers = 105 total allowed users.
+	ExtraUsers *int    `json:"extra_users"`
+	SignupJWT  *string `json:"signup_jwt"`
 }
 
 type Customer struct {
