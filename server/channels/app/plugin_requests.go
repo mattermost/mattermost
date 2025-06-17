@@ -141,13 +141,16 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 
 	pluginID := mux.Vars(r)["plugin_id"]
 
+	const headerBearerPrefix = model.HeaderBearer + " "
+	const headerTokenPrefix = model.HeaderToken + " "
+
 	var cookieAuth bool
 	var token string
 	authHeader := r.Header.Get(model.HeaderAuth)
-	if strings.HasPrefix(strings.ToUpper(authHeader), model.HeaderBearer+" ") {
-		token = strings.TrimPrefix(authHeader, model.HeaderBearer+" ")
-	} else if strings.HasPrefix(strings.ToLower(authHeader), model.HeaderToken+" ") {
-		token = strings.TrimPrefix(authHeader, model.HeaderToken+" ")
+	if strings.HasPrefix(strings.ToUpper(authHeader), headerBearerPrefix) {
+		token = authHeader[len(headerBearerPrefix):]
+	} else if strings.HasPrefix(strings.ToLower(authHeader), headerTokenPrefix) {
+		token = authHeader[len(headerTokenPrefix):]
 	} else if cookie, _ := r.Cookie(model.SessionCookieToken); cookie != nil {
 		token = cookie.Value
 		cookieAuth = true
