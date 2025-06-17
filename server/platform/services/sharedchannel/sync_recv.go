@@ -832,9 +832,23 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 			}
 			return match
 		}
-		// No suffix - add sender's cluster name
+
+		// No suffix - check if user exists locally on receiving cluster
+		username := mention
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Checking if user '%s' exists locally", username))
+
+		// Check if user exists locally (not from a remote cluster)
+		if localUser, err := scs.server.GetStore().User().GetByUsername(username); err == nil && localUser != nil {
+			if localUser.GetRemoteID() == "" {
+				// User exists locally, keep as-is (was stripped by fixMention)
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  User exists locally, keeping: %s", match))
+				return match
+			}
+		}
+
+		// User doesn't exist locally, add sender's cluster name (was originally local on sender)
 		newMention := fmt.Sprintf("@%s:%s", mention, rc.Name)
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Adding sender cluster suffix: %s -> %s", match, newMention))
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  User not local, adding sender cluster suffix: %s -> %s", match, newMention))
 		return newMention
 	})
 
