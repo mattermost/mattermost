@@ -225,8 +225,10 @@
             }
         }
 
-        // Show utility buttons on hover
-        &:hover .image-preview-utility-buttons-container {
+        // Show utility buttons on hover or focus
+        &:hover .image-preview-utility-buttons-container,
+        &:focus-within .image-preview-utility-buttons-container,
+        &:focus .image-preview-utility-buttons-container {
             display: inline-flex;
         }
     }

@@ -76,6 +76,21 @@ const getColumnSpan = (fileInfo: FileInfo, isSmall: boolean, containerWidth: num
     return GALLERY_CONFIG.GRID_SPANS.SQUARE;
 };
 
+// Utility function to sanitize file names
+function sanitizeFileName(name: string): string {
+    // Replace any character that is not a-z, A-Z, 0-9, dot, underscore, or hyphen with an underscore
+    return name.replace(/[^a-zA-Z0-9._-]/g, '_');
+}
+
+function isValidUrl(url: string): boolean {
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 type Props = PropsFromRedux & {
     fileInfos: FileInfo[];
     canDownloadFiles?: boolean;
@@ -103,6 +118,8 @@ const ImageGallery = (props: Props) => {
 
     const galleryRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
+    const [ariaLiveMessage, setAriaLiveMessage] = useState('');
+    const imageCountId = 'image-gallery-count';
 
     useEffect(() => {
         const handleResize = () => {
@@ -119,6 +136,7 @@ const ImageGallery = (props: Props) => {
         const newCollapsed = !isCollapsed;
         setIsCollapsed(newCollapsed);
         onToggleCollapse?.(newCollapsed);
+        setAriaLiveMessage(newCollapsed ? 'Gallery collapsed' : 'Gallery expanded');
     };
 
     const handleDownloadAll = async () => {
@@ -129,13 +147,31 @@ const ImageGallery = (props: Props) => {
         try {
             const downloadPromises = fileInfos.map((fileInfo) => {
                 return new Promise<void>((resolve) => {
+                    let url = '';
+                    // If fileInfo.link is a Blob, use createObjectURL
+                    if (fileInfo.link instanceof Blob) {
+                        url = URL.createObjectURL(fileInfo.link);
+                    } else if (typeof fileInfo.link === 'string' && isValidUrl(fileInfo.link)) {
+                        url = fileInfo.link;
+                    } else {
+                        // Invalid link, skip this file
+                        resolve();
+                        return;
+                    }
+
                     const link = document.createElement('a');
-                    link.href = fileInfo.link || '';
-                    link.download = fileInfo.name;
+                    link.href = url;
+                    link.download = sanitizeFileName(fileInfo.name);
                     link.style.display = 'none';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+
+                    // Clean up object URL if used
+                    if (fileInfo.link instanceof Blob) {
+                        setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    }
+
                     setTimeout(resolve, 50);
                 });
             });
@@ -156,28 +192,28 @@ const ImageGallery = (props: Props) => {
                 <button
                     className='image-gallery__toggle'
                     onClick={toggleGallery}
+                    aria-expanded={!isCollapsed}
+                    aria-describedby={imageCountId}
                 >
                     {isCollapsed ? (
                         <>
                             <MenuRightIcon size={16}/>
-                            {formatMessage(
-                                {
-                                    id: 'image_gallery.show_images',
-                                    defaultMessage: 'Show {count} images',
-                                },
-                                {count: fileInfos.length},
-                            )}
+                            <span id={imageCountId}>
+                                {formatMessage(
+                                    {id: 'image_gallery.show_images', defaultMessage: 'Show {count} images'},
+                                    {count: fileInfos.length}
+                                )}
+                            </span>
                         </>
                     ) : (
                         <>
                             <MenuDownIcon size={16}/>
-                            {formatMessage(
-                                {
-                                    id: 'image_gallery.hide_images',
-                                    defaultMessage: '{count} images',
-                                },
-                                {count: fileInfos.length},
-                            )}
+                            <span id={imageCountId}>
+                                {formatMessage(
+                                    {id: 'image_gallery.hide_images', defaultMessage: '{count} images'},
+                                    {count: fileInfos.length}
+                                )}
+                            </span>
                         </>
                     )}
                 </button>
@@ -198,8 +234,9 @@ const ImageGallery = (props: Props) => {
                 className={classNames('image-gallery__body', {
                     collapsed: isCollapsed,
                 })}
+                role="list"
             >
-                {!isCollapsed && fileInfos.map((fileInfo) => {
+                {!isCollapsed && fileInfos.map((fileInfo, idx) => {
                     const isSmall = isSmallImage(fileInfo);
 
                     // For mobile, let CSS handle the span. For others, use getColumnSpan.
@@ -212,6 +249,18 @@ const ImageGallery = (props: Props) => {
                                 'image-gallery__item--small': isSmall,
                             })}
                             style={itemStyle}
+                            role="listitem"
+                            tabIndex={0}
+                            aria-label={`Image ${idx + 1} of ${fileInfos.length}`}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    const startIndex = allFilesForPost?.findIndex((f) => f.id === fileInfo.id) ?? -1;
+                                    if (startIndex >= 0 && allFilesForPost) {
+                                        handleImageClick?.(startIndex, allFilesForPost);
+                                    }
+                                }
+                            }}
                         >
                             <SingleImageView
                                 fileInfo={fileInfo}
@@ -232,6 +281,9 @@ const ImageGallery = (props: Props) => {
                         </div>
                     );
                 })}
+            </div>
+            <div aria-live="polite" style={{position: 'absolute', left: '-9999px', height: '1px', width: '1px', overflow: 'hidden'}}>
+                {ariaLiveMessage}
             </div>
         </div>
     );
