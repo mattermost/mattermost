@@ -6280,6 +6280,7 @@
   "view_image.zoom_out": "Zoom Out",
   "view_image.zoom_reset": "Reset Zoom",
   "view_user_group_header_sub_menu.menuAriaLabel": "User group actions",
+  "view_user_group_list_item.removeUserFromGroup": "Remove {user} from group",
   "view_user_group_modal.ldapSynced": "AD/LDAP SYNCED",
   "view_user_group_modal.memberCount": "{member_count} {member_count, plural, one {Member} other {Members}}",
   "view_user_group_modal.pluginSynced": "Plugin SYNCED",
