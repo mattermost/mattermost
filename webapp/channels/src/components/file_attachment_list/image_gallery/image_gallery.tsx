@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState, useCallback} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 
 import {DownloadOutlineIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
@@ -16,11 +16,21 @@ import './image_gallery.scss';
 
 // Gallery configuration constants
 const GALLERY_CONFIG = {
-    MAX_HEIGHT: 216,
-    MIN_HEIGHT: 48,
-    SMALL_IMAGE_PADDING: 16,
-    MAX_WIDTH: 500,
     SMALL_IMAGE_THRESHOLD: 216,
+    BREAKPOINTS: {
+        MOBILE: 400,
+        TABLET: 640,
+    },
+    ASPECT_RATIOS: {
+        HORIZONTAL_THRESHOLD: 1.2,
+        SQUARE_TOLERANCE: 0.2,
+    },
+    GRID_SPANS: {
+        SMALL: 2,
+        VERTICAL: 3,
+        SQUARE: 5,
+        HORIZONTAL: 7,
+    },
 } as const;
 
 // Utility functions for size calculations
@@ -30,45 +40,40 @@ const isSmallImage = (fileInfo: FileInfo): boolean => {
     return width < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD || height < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD;
 };
 
-const calculateAdjustedHeight = (fileInfo: FileInfo): number => {
-    const imageHeight = fileInfo.height || 0;
+/**
+ * Determines the number of grid columns an image should span based on its dimensions and container width.
+ *
+ * @param fileInfo - Image metadata containing width and height
+ * @param isSmall - Whether the image is considered small (< threshold)
+ * @param containerWidth - Current width of the gallery container
+ * @returns Number of grid columns to span (2-7)
+ */
+const getColumnSpan = (fileInfo: FileInfo, isSmall: boolean, containerWidth: number): number => {
+    const {width = 1, height = 1} = fileInfo;
+    const aspectRatio = width / height;
 
-    // For small images, add padding to account for better spacing in the gallery
-    return isSmallImage(fileInfo) ? imageHeight + GALLERY_CONFIG.SMALL_IMAGE_PADDING : imageHeight;
-};
-
-const calculateGalleryHeight = (fileInfos: FileInfo[]): number => {
-    if (fileInfos.length === 0) {
-        return GALLERY_CONFIG.MIN_HEIGHT;
+    // If width is less than the small image threshold, span 2 columns
+    if (width < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD) {
+        return GALLERY_CONFIG.GRID_SPANS.SMALL;
     }
 
-    // Get the maximum height from all adjusted image heights
-    const adjustedHeights = fileInfos.map(calculateAdjustedHeight);
-    const maxHeight = Math.max(...adjustedHeights, GALLERY_CONFIG.MIN_HEIGHT);
+    // Only for small vertical or small square images on large screens
+    if (containerWidth > GALLERY_CONFIG.BREAKPOINTS.TABLET && isSmall) {
+        const isVertical = aspectRatio < 1 / GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD;
+        const isSquare = Math.abs(aspectRatio - 1) < GALLERY_CONFIG.ASPECT_RATIOS.SQUARE_TOLERANCE;
 
-    // Ensure we don't exceed the maximum allowed height
-    return Math.min(maxHeight, GALLERY_CONFIG.MAX_HEIGHT);
-};
+        if (isVertical || isSquare) {
+            return GALLERY_CONFIG.GRID_SPANS.SMALL;
+        }
+    }
 
-const calculateItemDimensions = (fileInfo: FileInfo, galleryHeight: number) => {
-    const naturalWidth = fileInfo.width || 0;
-    const naturalHeight = fileInfo.height || 0;
-    const aspectRatio = naturalWidth && naturalHeight ? naturalWidth / naturalHeight : 1;
-    const isSmall = isSmallImage(fileInfo);
+    if (aspectRatio > GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD) {
+        return GALLERY_CONFIG.GRID_SPANS.HORIZONTAL;
+    } else if (aspectRatio < 1 / GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD) {
+        return GALLERY_CONFIG.GRID_SPANS.VERTICAL;
+    }
 
-    // Calculate width based on whether it's a small image or not
-    const calculatedWidth = Math.min(galleryHeight * aspectRatio, GALLERY_CONFIG.MAX_WIDTH);
-    const itemWidth = isSmall ? Math.min(naturalWidth + GALLERY_CONFIG.SMALL_IMAGE_PADDING, GALLERY_CONFIG.MAX_WIDTH) : calculatedWidth;
-
-    // Calculate height - use natural height with padding if it's the tallest small image
-    const naturalHeightWithPadding = naturalHeight + GALLERY_CONFIG.SMALL_IMAGE_PADDING;
-    const itemHeight = isSmall && naturalHeightWithPadding === galleryHeight ? naturalHeightWithPadding : galleryHeight;
-
-    return {
-        width: itemWidth,
-        height: itemHeight,
-        isSmall,
-    };
+    return GALLERY_CONFIG.GRID_SPANS.SQUARE;
 };
 
 type Props = PropsFromRedux & {
@@ -96,8 +101,19 @@ const ImageGallery = (props: Props) => {
     const [isDownloading, setIsDownloading] = useState(false);
     const {formatMessage} = useIntl();
 
-    // Calculate the dynamic gallery height using the extracted utility function
-    const galleryHeight = calculateGalleryHeight(fileInfos);
+    const galleryRef = useRef<HTMLDivElement>(null);
+    const [containerWidth, setContainerWidth] = useState(0);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (galleryRef.current) {
+                setContainerWidth(galleryRef.current.offsetWidth);
+            }
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const toggleGallery = () => {
         const newCollapsed = !isCollapsed;
@@ -105,44 +121,36 @@ const ImageGallery = (props: Props) => {
         onToggleCollapse?.(newCollapsed);
     };
 
-    const handleDownloadAll = useCallback(async () => {
+    const handleDownloadAll = async () => {
         if (isDownloading || !canDownloadFiles) {
             return;
         }
         setIsDownloading(true);
         try {
-            // Create and trigger downloads with proper cleanup
             const downloadPromises = fileInfos.map((fileInfo) => {
                 return new Promise<void>((resolve) => {
                     const link = document.createElement('a');
                     link.href = fileInfo.link || '';
                     link.download = fileInfo.name;
                     link.style.display = 'none';
-
-                    // Add to DOM, click, then remove
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-
-                    // Small delay to ensure download starts
                     setTimeout(resolve, 50);
                 });
             });
-
-            // Wait for all downloads to be initiated
             await Promise.all(downloadPromises);
-
-            // Add a small delay to ensure the button stays disabled long enough for testing
             await new Promise((resolve) => setTimeout(resolve, 100));
         } finally {
             setIsDownloading(false);
         }
-    }, [fileInfos, isDownloading, canDownloadFiles]);
+    };
 
     return (
         <div
             className='image-gallery'
             data-testid='fileAttachmentList'
+            ref={galleryRef}
         >
             <div className='image-gallery__header'>
                 <button
@@ -192,7 +200,10 @@ const ImageGallery = (props: Props) => {
                 })}
             >
                 {!isCollapsed && fileInfos.map((fileInfo) => {
-                    const {width, height, isSmall} = calculateItemDimensions(fileInfo, galleryHeight);
+                    const isSmall = isSmallImage(fileInfo);
+
+                    // For mobile, let CSS handle the span. For others, use getColumnSpan.
+                    const itemStyle = containerWidth < GALLERY_CONFIG.BREAKPOINTS.MOBILE ? undefined : {gridColumn: `span ${getColumnSpan(fileInfo, isSmall, containerWidth)}`};
 
                     return (
                         <div
@@ -200,12 +211,7 @@ const ImageGallery = (props: Props) => {
                             className={classNames('image-gallery__item', {
                                 'image-gallery__item--small': isSmall,
                             })}
-                            style={{
-                                width: `${width}px`,
-                                height: `${height}px`,
-                                maxWidth: '500px',
-                                maxHeight: '216px',
-                            }}
+                            style={itemStyle}
                         >
                             <SingleImageView
                                 fileInfo={fileInfo}

@@ -27,7 +27,14 @@
 }
 
 .image-gallery {
+    --max-height: 216px;
+    --min-width: 48px;
+    --max-width: 500px;
+    --small-container-breakpoint: 400px;
+    --large-container-breakpoint: 640px;
+    
     margin: 5px 0;
+    container-type: inline-size;
 
     &__header {
         display: flex;
@@ -65,14 +72,15 @@
     }
 
     &__body {
-        display: flex;
+        display: grid;
         overflow: hidden;
         // Max height calculation: dynamic gallery height + 8px (gap) per row
         // Allow for up to 10 rows of images with dynamic height
         max-height: 2240px;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        gap: 8px;
+        grid-column-gap: 8px;
+        grid-row-gap: 8px;
+        grid-template-columns: repeat(auto-fit, 40px);
+        grid-auto-rows: auto;
         opacity: 1;
         transition: all 250ms ease-in-out;
 
@@ -85,18 +93,15 @@
     &__item {
         position: relative;
         display: flex;
-        min-width: 48px;
-        max-width: 500px;
-        max-height: 216px;
-        flex: 0 0 auto;
+        height: 100%;
+        max-height: var(--max-height);
         border-radius: 4px;
         margin: 0;
+        object-fit: cover;
 
         // Special handling for small images - center them within the gallery height
         &--small {
             display: flex;
-            height: 216px;
-            max-height: 216px;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -104,10 +109,9 @@
 
         // Override SingleImageView styles to fit our grid
         .file-view--single {
-            width: 100%;
-            height: 100%;
             margin: 0;
-
+            width: 100%;
+            height: 100%;   
 
             .file__image {
                 width: 100%;
@@ -122,10 +126,10 @@
                     display: flex;
                     overflow: hidden;
                     width: 100%;
-                    min-width: 48px;
-                    max-width: 500px;
+                    min-width: var(--min-width);
+                    max-width: var(--max-width);
                     height: 100%;
-                    max-height: 216px;
+                    max-height: var(--max-height);
                     align-items: center;
                     justify-content: center;
                     border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
@@ -138,7 +142,8 @@
                     }
 
                     .image-loaded-container {
-                        border-radius: 0;
+                        width: 100%;
+                        height: 100%;
                     }
 
                     // Loading state styling
@@ -167,6 +172,7 @@
 
                     .image-loaded {
                         height: 100%;
+                        width: 100%;
 
                         img {
                             height: 100%;
@@ -181,6 +187,7 @@
                         
                         .small-image__container {
                             max-width: 100%;
+                            width: 100%;
                             height: 100%;
                             max-height: 100%;
                             padding: 8px;
@@ -223,6 +230,60 @@
         // Show utility buttons on hover
         &:hover .image-preview-utility-buttons-container {
             display: inline-flex;
+        }
+    }
+
+    /* Container Query: large container breakpoint (400px <= width < 640px) */
+    @container (max-width: 639px) {
+        &__body {
+            grid-template-columns: repeat(auto-fit, 24px);
+        }
+    }
+
+    /* Container Query: small container breakpoint (width < 400px) */
+    @container (max-width: 399px) {
+        &__body {
+            grid-template-columns: repeat(2, 1fr);
+            grid-auto-rows: unset;
+        }
+        
+        &__item {
+            height: 0;
+            padding-top: 100%;
+            grid-column: span 1 !important;
+            min-width: 0;
+            min-height: 0;
+            max-width: none;
+            max-height: none;
+            display: block;
+        }
+
+        // Ensure all wrappers fill the grid square
+        &__item,
+        &__item > .file-view--single,
+        &__item .file__image,
+        &__item .image-container,
+        &__item .image-loaded-container,
+        &__item .image-loaded,
+        &__item .small-image__container {
+            width: 100%;
+            height: 100%;
+        }
+
+        &__item .file-view--single {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        // The image itself
+        &__item .file-view--single img {
+            width: 100%;
+            height: 100%;
+        }
+        // Force object-fit: cover for small images in mobile grid
+        &__item .file-view--single img.small-image--inside-container {
+            object-fit: cover;
         }
     }
 }

@@ -258,21 +258,14 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         if (handleSmallImageContainer && this.state.isSmallImage) {
             const baseClassName = 'small-image__container cursor--pointer a11y--active';
-
-            // Only add min-width/min-height if the image is smaller than MIN_IMAGE_SIZE
-            const wideSmallImageStyle = (this.state.imageWidth < MIN_IMAGE_SIZE || (fileInfo && fileInfo.height && fileInfo.height < MIN_IMAGE_SIZE)) ? {minWidth: MIN_IMAGE_SIZE, minHeight: MIN_IMAGE_SIZE} : {};
             const needsMinWidth = this.state.imageWidth < MIN_IMAGE_SIZE || (fileInfo && fileInfo.height && fileInfo.height < MIN_IMAGE_SIZE);
             const className = needsMinWidth ? `${baseClassName} small-image__container--min-width` : baseClassName;
-
-            // For small images that need width styling, add 16px padding (8px on each side)
-            const containerStyle = this.state.imageWidth >= MIN_IMAGE_SIZE ? {width: this.state.imageWidth + 16} : wideSmallImageStyle;
 
             return (
                 <figure className={classNames('image-loaded-container')}>
                     <div
                         onClick={this.handleImageClick}
                         className={classNames(className)}
-                        style={containerStyle}
                     >
                         {image}
                     </div>
