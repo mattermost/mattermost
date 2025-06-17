@@ -375,8 +375,8 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     />
                     <ActionsMenuEmptyPopover
                         anchorElement={this.buttonElement}
-                        handleClose={this.closeDropdown}
-                        handleOpenMarketplace={this.handleOpenMarketplace}
+                        onOpenMarketplace={this.handleOpenMarketplace}
+                        onToggle={this.props.handleDropdownOpened}
                         isOpen={this.props.isMenuOpen}
                     />
                 </>

@@ -95,9 +95,9 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
   />
   <ActionsMenuEmptyPopover
     anchorElement={null}
-    handleClose={[Function]}
-    handleOpenMarketplace={[Function]}
     isOpen={true}
+    onOpenMarketplace={[Function]}
+    onToggle={[MockFunction]}
   />
 </Fragment>
 `;
