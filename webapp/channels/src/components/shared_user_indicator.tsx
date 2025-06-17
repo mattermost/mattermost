@@ -20,9 +20,6 @@ type Props = {
     className?: string;
     withTooltip?: boolean;
 
-    /**
-     * List of remote workspace names to display in the tooltip
-     */
     remoteNames?: string[];
 };
 

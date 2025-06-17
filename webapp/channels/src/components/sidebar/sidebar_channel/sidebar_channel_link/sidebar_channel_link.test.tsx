@@ -9,7 +9,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 import type {SidebarChannelLink as SidebarChannelLinkComponent} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 import {SidebarChannelLink} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 
-import {defaultIntl} from 'tests/helpers/intl-test-helper';
+import {shallowWithIntl, defaultIntl} from 'tests/helpers/intl-test-helper';
 
 jest.mock('packages/mattermost-redux/src/selectors/entities/shared_channels', () => ({
     getRemoteNamesForChannel: jest.fn(),
@@ -65,7 +65,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...baseProps}/>,
         );
 
@@ -100,7 +100,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             ariaLabelPrefix: 'aria_label_prefix_',
         };
 
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...props}/>,
         );
 
@@ -130,7 +130,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             isSharedChannel: false,
         };
 
-        shallow(
+        shallowWithIntl(
             <SidebarChannelLink {...props}/>,
         );
 

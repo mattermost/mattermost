@@ -28,7 +28,7 @@ import ChannelPencilIcon from '../channel_pencil_icon';
 import SidebarChannelIcon from '../sidebar_channel_icon';
 import SidebarChannelMenu from '../sidebar_channel_menu';
 
-type OwnProps = WrappedComponentProps & {
+type Props = WrappedComponentProps & {
     channel: Channel;
     link: string;
     label: string;
@@ -81,10 +81,10 @@ type State = {
     showTooltip: boolean;
 };
 
-export class SidebarChannelLink extends React.PureComponent<OwnProps, State> {
+export class SidebarChannelLink extends React.PureComponent<Props, State> {
     labelRef: React.RefObject<HTMLDivElement>;
 
-    constructor(props: OwnProps) {
+    constructor(props: Props) {
         super(props);
 
         this.labelRef = React.createRef();
@@ -103,7 +103,7 @@ export class SidebarChannelLink extends React.PureComponent<OwnProps, State> {
         }
     }
 
-    componentDidUpdate(prevProps: OwnProps): void {
+    componentDidUpdate(prevProps: Props): void {
         if (prevProps.label !== this.props.label) {
             this.enableToolTipIfNeeded();
         }
