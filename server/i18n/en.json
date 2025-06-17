@@ -9497,6 +9497,14 @@
     "translation": "Invalid domain for move thread settings"
   },
   {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Invalid flagging event specified."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Invalid flaggig event target specified."
+  },
+  {
     "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
     "translation": "Notifications for new flagged post cannot be disabled for reviewers."
   },
