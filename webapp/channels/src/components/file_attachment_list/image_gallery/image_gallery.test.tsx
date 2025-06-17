@@ -76,7 +76,7 @@ const defaultProps = {
     allFilesForPost: mockFileInfos,
 };
 
-function renderWithProvider(ui) {
+function renderWithProvider(ui: React.ReactElement) {
     return render(
         <Provider store={store}>
             <IntlProvider locale="en" messages={{}}>
@@ -186,7 +186,7 @@ describe('ImageGallery', () => {
 
     it('handles edge case: invalid fileInfo.link', async () => {
         const badFiles = [
-            TestHelper.getFileInfoMock({id: 'bad', name: 'bad.png', extension: 'png', width: 100, height: 100, link: null}),
+            TestHelper.getFileInfoMock({id: 'bad', name: 'bad.png', extension: 'png', width: 100, height: 100, link: undefined}),
         ];
         const createElementSpy = jest.spyOn(document, 'createElement');
         renderWithProvider(<ImageGallery {...defaultProps} fileInfos={badFiles} allFilesForPost={badFiles} />);

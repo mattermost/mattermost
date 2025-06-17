@@ -151,8 +151,8 @@ const ImageGallery = (props: Props) => {
                     let url = '';
 
                     // If fileInfo.link is a Blob, use createObjectURL
-                    if (fileInfo.link instanceof Blob) {
-                        url = URL.createObjectURL(fileInfo.link);
+                    if ((fileInfo.link as any) instanceof Blob) {
+                        url = URL.createObjectURL(fileInfo.link as unknown as Blob);
                     } else if (typeof fileInfo.link === 'string' && isValidUrl(fileInfo.link)) {
                         url = fileInfo.link;
                     } else {
@@ -170,7 +170,7 @@ const ImageGallery = (props: Props) => {
                     document.body.removeChild(link);
 
                     // Clean up object URL if used
-                    if (fileInfo.link instanceof Blob) {
+                    if ((fileInfo.link as any) instanceof Blob) {
                         setTimeout(() => URL.revokeObjectURL(url), 1000);
                     }
 
