@@ -131,35 +131,3 @@ button {
         }
     }
 }
-
-.call-button__wrapper {
-    height: 32px;
-    margin-top: 16px;
-}
-
-@media screen and (max-width: 768px) {
-    .call-button__wrapper {
-        margin: 9px 10px 0 0;
-    }
-
-    button.call-button {
-        color: rgb(var(--center-channel-bg-rgb)) !important;
-
-        &:hover {
-            background: rgba(var(--center-channel-bg-rgb), 0.08) !important;
-        }
-
-        &:active,
-        &.active {
-            background: rgba(var(--center-channel-bg-rgb), 0.16) !important;
-        }
-
-        &.dropdown {
-            color: rgba(var(--center-channel-bg-rgb), 0.75) !important;
-        }
-
-        &.disabled {
-            color: rgba(var(--center-channel-bg-rgb), 0.32) !important;
-        }
-    }
-}
