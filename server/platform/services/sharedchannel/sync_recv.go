@@ -841,30 +841,47 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		// This indicates the mention was stripped by fixMention and should stay as-is
 		var hasRemoteUserFromSender bool
 		users, err := scs.server.GetStore().User().GetProfilesByUsernames([]string{username}, nil)
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Checking for remote user from sender - username: %s, sender RemoteId: %s", username, rc.RemoteId))
 		if err == nil {
-			for _, user := range users {
-				if user.GetRemoteID() == rc.RemoteId {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Found %d users with username '%s'", len(users), username))
+			for i, user := range users {
+				userRemoteId := user.GetRemoteID()
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: User %d: ID=%s, Username=%s, RemoteID=%s", i, user.Id, user.Username, userRemoteId))
+				if userRemoteId == rc.RemoteId {
 					hasRemoteUserFromSender = true
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Found remote user from sender: %s", match))
+					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Found remote user from sender: %s (RemoteID matches)", match))
 					break
 				}
 			}
+		} else {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Error getting users by username: %v", err))
 		}
+
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: hasRemoteUserFromSender = %v", hasRemoteUserFromSender))
 
 		if hasRemoteUserFromSender {
 			// Remote user from sender exists, this was stripped by fixMention - keep as-is
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Keeping mention as-is (was stripped): %s", match))
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Keeping mention as-is (was stripped): %s", match))
 			return match
 		}
 
 		// Check if there's a local user with this username (potential collision)
 		var hasLocalUser bool
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Checking for local user with username: %s", username))
 		if localUser, err := scs.server.GetStore().User().GetByUsername(username); err == nil && localUser != nil {
-			if localUser.GetRemoteID() == "" {
+			localUserRemoteId := localUser.GetRemoteID()
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Found user with username '%s': ID=%s, RemoteID='%s'", username, localUser.Id, localUserRemoteId))
+			if localUserRemoteId == "" {
 				hasLocalUser = true
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Found local user with same name: %s", username))
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: Found local user with same name: %s", username))
+			} else {
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: User '%s' is not local (RemoteID='%s')", username, localUserRemoteId))
 			}
+		} else {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: No user found with username '%s' (err: %v)", username, err))
 		}
+
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RECV_MENTION_CHECK: hasLocalUser = %v", hasLocalUser))
 
 		if hasLocalUser {
 			// Username collision detected - add cluster suffix to disambiguate
