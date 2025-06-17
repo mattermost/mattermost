@@ -4050,7 +4050,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 					th.BasicUser2.Id,
 					user3.Id,
 				}
-				channel, appErr := th.App.createGroupChannel(th.Context, userIDs)
+				channel, appErr := th.App.createGroupChannel(th.Context, userIDs, th.BasicUser.Id)
 				require.Equal(t, appErr.Id, store.ChannelExistsError)
 				require.Equal(t, channel.Header, *data.Header)
 			})
@@ -4677,7 +4677,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr = th.App.createGroupChannel(th.Context, userIDs)
+	channel, appErr = th.App.createGroupChannel(th.Context, userIDs, th.BasicUser.Id)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	groupChannel = channel
 

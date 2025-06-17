@@ -77,7 +77,6 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
-                      aria-invalid="false"
                       aria-label="Name"
                       class="Input form-control large"
                       id="input_name"
@@ -123,6 +122,8 @@ Object {
                   role="alert"
                 >
                   <i
+                    aria-hidden="true"
+                    aria-label=""
                     class="icon error icon-alert-circle-outline"
                   />
                   <span>
@@ -144,7 +145,6 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
-                      aria-invalid="false"
                       aria-label="Company Name"
                       class="Input form-control large"
                       id="input_company_name"
