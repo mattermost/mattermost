@@ -793,4 +793,27 @@ const defaultServerConfig: AdminConfig = {
         EnableAttributeBasedAccessControl: false,
         EnableChannelScopeAccessControl: false,
     },
+    ContentFlaggingSettings: {
+        NotificationSettings: {
+            ReviewerSettings: {
+                CommonReviewers: false,
+                CommonReviewerIds: [],
+                TeamReviewersSetting: {},
+                SystemAdminsAsReviewers: false,
+                TeamAdminsAsReviewers: false,
+            },
+            EventTargetMapping: {
+                'flagged': ['reviewers', 'author'],
+                'assigned': ['reviewers'],
+                'removed': ['reviewers'],
+                'dismissed': ['reviewers', 'author'],
+            },
+            AdditionalSettings: {
+                Reasons: ['Reason 1', 'Reason 2'],
+                ReporterCommentRequired: false,
+                ReviewerCommentRequired: false,
+                HideFlaggedContent: false,
+            }
+        },
+    },
 };

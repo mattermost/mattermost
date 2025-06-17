@@ -986,7 +986,9 @@ export type AccessControlSettings = {
 };
 
 export type ContentFlaggingNotificationSettings = {
+    ReviewerSettings: ContentFlaggingReviewerSetting;
     EventTargetMapping: Record<ContentFlaggingEvent, NotificationTarget[]>;
+    AdditionalSettings: ContentFlaggingAdditionalSettings;
 }
 
 export type TeamReviewerSetting = {
