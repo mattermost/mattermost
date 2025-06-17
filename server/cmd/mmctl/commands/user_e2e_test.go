@@ -783,7 +783,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		newUser := s.th.CreateUser()
 
 		var expectedErr *multierror.Error
-		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Email,
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
 			fmt.Errorf("You do not have the appropriate permissions.")))
 
 		err := deleteUsersCmdF(s.th.Client, cmd, []string{newUser.Email})
@@ -812,7 +812,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		newUser := s.th.CreateUser()
 
 		var expectedErr *multierror.Error
-		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Email,
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
 			fmt.Errorf("Permanent user deletion feature is not enabled. Please contact your System Administrator.")))
 
 		err := deleteUsersCmdF(s.th.SystemAdminClient, cmd, []string{newUser.Email})

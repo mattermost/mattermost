@@ -749,7 +749,7 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 		if res, err := c.PermanentDeleteUser(context.TODO(), user.Id); err != nil {
 			errs = multierror.Append(errs,
-				fmt.Errorf("unable to delete user %s error: %w", user.Email, err))
+				fmt.Errorf("unable to delete user %s error: %w", user.Username, err))
 		} else {
 			// res.StatusCode is checked for 202 to identify issues with file deletion.
 			if res.StatusCode == http.StatusAccepted {
