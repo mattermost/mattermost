@@ -717,16 +717,52 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		return
 	}
 
+	// Get our cluster name for comparison
+	ourClusterName := scs.server.Config().ClusterSettings.ClusterName
+	if ourClusterName == nil {
+		ourClusterName = &rc.Name // fallback if not set
+	}
+
 	// Process mentions from mentionMap first (already extracted by possibleAtMentions)
 	for mention, userID := range mentionMap {
 		if user, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && user != nil {
-			// Case B: "@user:org1" -> "@user" (same ID means synced from here)
-			if user.GetRemoteID() == "" {
-				post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+user.Username)
+			var replacement string
+
+			if strings.Contains(mention, ":") {
+				// Case B: "@user:org" format - check if it's from our cluster
+				parts := strings.Split(mention, ":")
+				if len(parts) == 2 {
+					baseUsername, suffix := parts[0], parts[1]
+					if suffix == *ourClusterName && user.GetRemoteID() == "" {
+						// Case B1: User from our cluster - display without suffix
+						replacement = "@" + baseUsername
+					} else {
+						// Case B2: Not our cluster or no local user - display as plain text
+						replacement = mention
+					}
+				} else {
+					replacement = mention
+				}
 			} else {
-				// Remote user - display with cluster suffix
-				post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+user.Username)
+				// Case A: "@user" format (originally local from sender)
+				if user.GetRemoteID() == "" {
+					// Case A1: Local user with different ID - add sender cluster suffix
+					if localUser, err := scs.server.GetStore().User().GetByUsername(mention); err == nil && localUser != nil && localUser.Id != userID {
+						replacement = "@" + mention + ":" + rc.Name
+					} else {
+						// Case A2: Same user ID - display normally
+						replacement = "@" + user.Username
+					}
+				} else if user.GetRemoteID() == rc.RemoteId {
+					// Case A2: User synced from sender with same ID - display normally
+					replacement = "@" + user.Username
+				} else {
+					// Different remote user - display with cluster suffix
+					replacement = "@" + user.Username
+				}
 			}
+
+			post.Message = strings.ReplaceAll(post.Message, "@"+mention, replacement)
 		}
 	}
 
@@ -739,14 +775,29 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 			return match
 		}
 
-		// No mentionMap entry - check local users
+		if strings.Contains(mention, ":") {
+			// Case B: "@user:org" format not in mentionMap
+			parts := strings.Split(mention, ":")
+			if len(parts) == 2 {
+				baseUsername, suffix := parts[0], parts[1]
+				if suffix == *ourClusterName {
+					// Check if user exists locally
+					if localUser, err := scs.server.GetStore().User().GetByUsername(baseUsername); err == nil && localUser != nil && localUser.GetRemoteID() == "" {
+						// Case B1: Local user exists - display without suffix
+						return "@" + baseUsername
+					}
+				}
+			}
+			// Case B2: No local user or different cluster - display as plain text
+			return mention
+		}
+		// Case A: "@user" format not in mentionMap
 		if localUser, err := scs.server.GetStore().User().GetByUsername(mention); err == nil && localUser != nil && localUser.GetRemoteID() == "" {
-			// Case A1: Different ID local user exists -> display "@user:senderCluster"
+			// Case A1: Local user exists - add sender cluster suffix
 			return "@" + mention + ":" + rc.Name
 		}
-
-		// Case A3: No user found -> plain text
-		return match
+		// Case A3: No local user - display as plain text
+		return mention
 	})
 }
 

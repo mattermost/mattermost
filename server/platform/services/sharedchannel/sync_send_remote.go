@@ -476,7 +476,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 	}
 
 	merr := merror.New()
-	for userID, v := range userIDs {
+	for userID := range userIDs {
 		user, err := scs.server.GetStore().User().Get(context.Background(), userID)
 		if err != nil {
 			merr.Append(fmt.Errorf("could not get user %s: %w", userID, err))
@@ -495,11 +495,6 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 		if syncImage {
 			sd.profileImages[user.Id] = user
-		}
-
-		// Transform @username:remote to @username when sending to a user's home cluster
-		if v.post != nil && user.RemoteId != nil && *user.RemoteId == sd.rc.RemoteId {
-			fixMention(v.post, v.mentionMap, user)
 		}
 	}
 	return merr.ErrorOrNil()
