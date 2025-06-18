@@ -14,7 +14,7 @@ import (
 )
 
 type BatchMigrationWorkerAppIFace interface {
-	GetClusterStatus(rctx request.CTX) []*model.ClusterInfo
+	GetClusterStatus(rctx request.CTX) ([]*model.ClusterInfo, error)
 }
 
 // BatchMigrationWorker processes database migration jobs in batches to help avoid table locks.
@@ -87,7 +87,11 @@ func (worker *BatchMigrationWorker) doBatch(rctx *request.Context, job *model.Jo
 // checkIsClusterInSync returns true if all nodes in the cluster are running the same version,
 // logging a warning on the first mismatch found.
 func (worker *BatchMigrationWorker) checkIsClusterInSync(rctx request.CTX) bool {
-	clusterStatus := worker.app.GetClusterStatus(rctx)
+	clusterStatus, err := worker.app.GetClusterStatus(rctx)
+	if err != nil {
+		worker.logger.Error("Worker: Failed to get cluster status", mlog.Err(err))
+		return false
+	}
 	for i := 1; i < len(clusterStatus); i++ {
 		if clusterStatus[i].SchemaVersion != clusterStatus[0].SchemaVersion {
 			rctx.Logger().Warn(

@@ -11,6 +11,7 @@ import {
     getConfig,
     getLicense,
 } from 'mattermost-redux/selectors/entities/general';
+import {getReportAProblemLink} from 'mattermost-redux/selectors/entities/report_a_problem';
 import {
     getJoinableTeamIds,
     getCurrentTeam,
@@ -34,7 +35,7 @@ function mapStateToProps(state: GlobalState) {
     const siteName = config.SiteName;
     const experimentalPrimaryTeam = config.ExperimentalPrimaryTeam;
     const helpLink = config.HelpLink;
-    const reportAProblemLink = config.ReportAProblemLink;
+    const reportAProblemLink = getReportAProblemLink(state);
 
     const joinableTeams = getJoinableTeamIds(state);
     const moreTeamsToJoin = joinableTeams && joinableTeams.length > 0;

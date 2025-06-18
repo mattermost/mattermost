@@ -24,6 +24,9 @@ export async function baseGlobalSetup() {
         ({client: adminClient, user: adminUser} = await makeClient(defaultAdmin));
     }
 
+    // Print playwright configs
+    printPlaywrightTestConfig();
+
     await sysadminSetup(adminClient, adminUser);
 }
 
@@ -69,6 +72,14 @@ async function sysadminSetup(client: Client4, user: UserProfile | null) {
     await printPluginDetails(client);
 }
 
+function printPlaywrightTestConfig() {
+    // eslint-disable-next-line no-console
+    console.log(`Playwright Test Config:
+  - Headless  = ${testConfig.headless}
+  - SlowMo    = ${testConfig.slowMo}
+  - Workers   = ${testConfig.workers}`);
+}
+
 async function printLicenseInfo(client: Client4) {
     const license = await client.getClientLicenseOld();
     // eslint-disable-next-line no-console
@@ -94,7 +105,7 @@ async function printClientInfo(client: Client4) {
   - TelemetryId                 = ${config.TelemetryId}
   - ServiceEnvironment          = ${config.ServiceEnvironment}`);
 
-    const {LogSettings, ServiceSettings, FeatureFlags} = await client.getConfig();
+    const {LogSettings, ServiceSettings, PluginSettings, FeatureFlags} = await client.getConfig();
     // eslint-disable-next-line no-console
     console.log(`Notable Server Config:
   - ServiceSettings.EnableSecurityFixAlert  = ${ServiceSettings?.EnableSecurityFixAlert}
@@ -108,6 +119,12 @@ async function printClientInfo(client: Client4) {
             .map(([key, value]) => `  - ${key} = ${value}`)
             .join('\n'),
     );
+
+    // eslint-disable-next-line no-console
+    console.log(`Plugin Settings:
+  - Enable  = ${PluginSettings?.Enable}
+  - EnableUploads  = ${PluginSettings?.EnableUploads}
+  - AutomaticPrepackagedPlugins  = ${PluginSettings?.AutomaticPrepackagedPlugins}`);
 }
 
 async function printPluginDetails(client: Client4) {

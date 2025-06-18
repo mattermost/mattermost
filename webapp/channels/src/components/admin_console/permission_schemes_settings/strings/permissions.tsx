@@ -625,4 +625,24 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Create, edit, and delete outgoing OAuth credentials.',
         },
     }),
+    manage_public_channel_banner: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_public_channel_banner.name',
+            defaultMessage: 'Manage Channel Banner',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_public_channel_banner.description',
+            defaultMessage: 'Enable, disable and edit channel banner.',
+        },
+    }),
+    manage_private_channel_banner: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_private_channel_banner.name',
+            defaultMessage: 'Manage Channel Banner',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_private_channel_banner.description',
+            defaultMessage: 'Enable, disable and edit channel banner.',
+        },
+    }),
 };

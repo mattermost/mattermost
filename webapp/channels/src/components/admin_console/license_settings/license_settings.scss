@@ -45,17 +45,12 @@
     }
 }
 
-.light-blue-btn {
-    height: 40px;
-    padding: 10px 24px !important;
-    border: none !important;
-    background: rgba(28, 88, 217, 0.08) !important;
-    color: #1c58d9 !important;
-    font-weight: 700;
-}
-
 .admin-console__banner_section {
     margin-bottom: 20px;
+
+    &:empty {
+        margin-bottom: 0px;
+    }
 }
 
 .current-plan-legend {

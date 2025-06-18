@@ -34,6 +34,10 @@ export function getOutgoingOAuthConnections(state: GlobalState) {
     return state.entities.integrations.outgoingOAuthConnections;
 }
 
+export function getDialogArguments(state: GlobalState) {
+    return state.entities.integrations.dialogArguments;
+}
+
 export const getFilteredIncomingHooks: (state: GlobalState) => IncomingWebhook[] = createSelector(
     'getFilteredIncomingHooks',
     getCurrentTeamId,

@@ -14,6 +14,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/channels/web"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -25,6 +27,7 @@ import (
 )
 
 func TestCreateChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -170,7 +173,7 @@ func TestCreateChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -180,7 +183,7 @@ func TestCreateChannel(t *testing.T) {
 
 		require.True(t, *createdChannel.BannerInfo.Enabled)
 		require.Equal(t, "banner text", *createdChannel.BannerInfo.Text)
-		require.Equal(t, "color", *createdChannel.BannerInfo.BackgroundColor)
+		require.Equal(t, "#dddddd", *createdChannel.BannerInfo.BackgroundColor)
 	})
 
 	t.Run("Cannot create channel with banner enabled but not configured", func(t *testing.T) {
@@ -201,6 +204,7 @@ func TestCreateChannel(t *testing.T) {
 }
 
 func TestUpdateChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -376,6 +380,7 @@ func TestUpdateChannel(t *testing.T) {
 }
 
 func TestPatchChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -765,7 +770,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -797,7 +802,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -808,9 +813,13 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Should be able to configure channel banner on a channel", func(t *testing.T) {
+		if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+			t.Skip("Channel banner tests are not supported on MySQL")
+		}
+
 		client.Logout(context.Background())
 		th.LoginBasic()
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
@@ -829,7 +838,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -839,13 +848,67 @@ func TestPatchChannel(t *testing.T) {
 		require.NotNil(t, patchedChannel.BannerInfo)
 		require.True(t, *patchedChannel.BannerInfo.Enabled)
 		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
-		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
+		require.Equal(t, "#dddddd", *patchedChannel.BannerInfo.BackgroundColor)
+	})
+
+	t.Run("Should not be able to configure channel banner on a channel as a non-admin channel member", func(t *testing.T) {
+		client.Logout(context.Background())
+		th.LoginBasic()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
+
+		patch := &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled:         model.NewPointer(true),
+				Text:            model.NewPointer("banner text"),
+				BackgroundColor: model.NewPointer("#dddddd"),
+			},
+		}
+
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Should be able to configure channel banner as a team admin", func(t *testing.T) {
+		if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+			t.Skip("Channel banner tests are not supported on MySQL")
+		}
+
+		client.Logout(context.Background())
+		th.LoginTeamAdmin()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
+
+		patch := &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled:         model.NewPointer(true),
+				Text:            model.NewPointer("banner text"),
+				BackgroundColor: model.NewPointer("#dddddd"),
+			},
+		}
+
+		patchedChannel, resp, err := client.PatchChannel(context.Background(), th.BasicChannel2.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, patchedChannel.BannerInfo)
+		require.True(t, *patchedChannel.BannerInfo.Enabled)
+		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
+		require.Equal(t, "#dddddd", *patchedChannel.BannerInfo.BackgroundColor)
 	})
 
 	t.Run("Cannot enable channel banner without configuring it", func(t *testing.T) {
+		if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+			t.Skip("Channel banner tests are not supported on MySQL")
+		}
+
 		client.Logout(context.Background())
 		th.LoginBasic()
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
@@ -875,7 +938,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         nil,
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -885,7 +948,7 @@ func TestPatchChannel(t *testing.T) {
 		require.NotNil(t, patchedChannel.BannerInfo)
 		require.Nil(t, patchedChannel.BannerInfo.Enabled)
 		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
-		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
+		require.Equal(t, "#dddddd", *patchedChannel.BannerInfo.BackgroundColor)
 
 		patch = &model.ChannelPatch{
 			BannerInfo: &model.ChannelBannerInfo{
@@ -899,13 +962,13 @@ func TestPatchChannel(t *testing.T) {
 		require.NotNil(t, patchedChannel.BannerInfo)
 		require.True(t, *patchedChannel.BannerInfo.Enabled)
 		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
-		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
+		require.Equal(t, "#dddddd", *patchedChannel.BannerInfo.BackgroundColor)
 	})
 
 	t.Run("Cannot configure channel banner on a DM channel", func(t *testing.T) {
 		client.Logout(context.Background())
 		th.LoginBasic()
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
@@ -918,7 +981,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -932,7 +995,7 @@ func TestPatchChannel(t *testing.T) {
 	t.Run("Cannot configure channel banner on a GM channel", func(t *testing.T) {
 		client.Logout(context.Background())
 		th.LoginBasic()
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
@@ -946,7 +1009,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -958,7 +1021,153 @@ func TestPatchChannel(t *testing.T) {
 	})
 }
 
+func TestCanEditChannelBanner(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+		t.Skip("Channel banner tests are not supported on MySQL")
+	}
+
+	t.Run("when license is nil", func(t *testing.T) {
+		channel := &model.Channel{
+			Type: model.ChannelTypeOpen,
+		}
+
+		th.App.Srv().SetLicense(nil)
+
+		webContext := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Params: &web.Params{
+				ChannelId: "channel_id",
+			},
+		}
+
+		canEditChannelBanner(webContext, channel)
+
+		require.NotNil(t, webContext.Err)
+		assert.Equal(t, "api.context.permissions.app_error", webContext.Err.Id)
+		assert.Equal(t, http.StatusForbidden, webContext.Err.StatusCode)
+	})
+
+	t.Run("when license is not E20 or Enterprise", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
+		th.App.Srv().SetLicense(license)
+
+		webContext := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Params: &web.Params{
+				ChannelId: "channel_id",
+			},
+		}
+
+		channel := &model.Channel{
+			Type: model.ChannelTypeOpen,
+		}
+
+		canEditChannelBanner(webContext, channel)
+
+		require.NotNil(t, webContext.Err)
+		assert.Equal(t, "api.context.permissions.app_error", webContext.Err.Id)
+		assert.Equal(t, http.StatusForbidden, webContext.Err.StatusCode)
+	})
+
+	t.Run("when channel type is direct message", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
+		th.App.Srv().SetLicense(license)
+
+		webContext := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Params: &web.Params{
+				ChannelId: "channel_id",
+			},
+		}
+
+		channel := &model.Channel{
+			Type: model.ChannelTypeDirect,
+		}
+
+		canEditChannelBanner(webContext, channel)
+
+		require.NotNil(t, webContext.Err)
+		assert.Equal(t, "api.channel.update_channel.banner_info.channel_type.not_allowed", webContext.Err.Id)
+		assert.Equal(t, http.StatusBadRequest, webContext.Err.StatusCode)
+	})
+
+	t.Run("when channel type is group message", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
+		th.App.Srv().SetLicense(license)
+
+		webContext := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Params: &web.Params{
+				ChannelId: "channel_id",
+			},
+		}
+
+		channel := &model.Channel{
+			Type: model.ChannelTypeGroup,
+		}
+
+		canEditChannelBanner(webContext, channel)
+		require.NotNil(t, webContext.Err)
+		assert.Equal(t, "api.channel.update_channel.banner_info.channel_type.not_allowed", webContext.Err.Id)
+		assert.Equal(t, http.StatusBadRequest, webContext.Err.StatusCode)
+	})
+
+	t.Run("when channel type is open and license is valid", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
+		th.App.Srv().SetLicense(license)
+
+		channel := th.CreatePublicChannel()
+		th.MakeUserChannelAdmin(th.BasicUser, channel)
+
+		webContext := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Params: &web.Params{
+				ChannelId: channel.Id,
+			},
+		}
+
+		webContext.AppContext = webContext.AppContext.WithSession(&model.Session{
+			UserId: th.BasicUser.Id,
+		})
+
+		canEditChannelBanner(webContext, channel)
+		assert.Nil(t, webContext.Err)
+	})
+
+	t.Run("when channel type is private and license is valid", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
+		th.App.Srv().SetLicense(license)
+
+		channel := th.CreatePrivateChannel()
+		th.MakeUserChannelAdmin(th.BasicUser, channel)
+
+		webContext := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Params: &web.Params{
+				ChannelId: channel.Id,
+			},
+		}
+
+		webContext.AppContext = webContext.AppContext.WithSession(&model.Session{
+			UserId: th.BasicUser.Id,
+		})
+
+		canEditChannelBanner(webContext, channel)
+		assert.Nil(t, webContext.Err)
+	})
+}
+
 func TestChannelUnicodeNames(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1018,6 +1227,7 @@ func TestChannelUnicodeNames(t *testing.T) {
 }
 
 func TestCreateDirectChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1080,6 +1290,7 @@ func TestCreateDirectChannel(t *testing.T) {
 }
 
 func TestCreateDirectChannelAsGuest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1128,6 +1339,7 @@ func TestCreateDirectChannelAsGuest(t *testing.T) {
 }
 
 func TestDeleteDirectChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1144,6 +1356,7 @@ func TestDeleteDirectChannel(t *testing.T) {
 }
 
 func TestCreateGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1206,6 +1419,7 @@ func TestCreateGroupChannel(t *testing.T) {
 }
 
 func TestCreateGroupChannelAsGuest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1273,6 +1487,7 @@ func TestCreateGroupChannelAsGuest(t *testing.T) {
 }
 
 func TestDeleteGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.BasicUser
@@ -1292,6 +1507,7 @@ func TestDeleteGroupChannel(t *testing.T) {
 }
 
 func TestGetChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1342,6 +1558,7 @@ func TestGetChannel(t *testing.T) {
 }
 
 func TestGetDeletedChannelsForTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1417,6 +1634,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 }
 
 func TestGetPrivateChannelsForTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	team := th.BasicTeam
@@ -1455,6 +1673,7 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 }
 
 func TestGetPublicChannelsForTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1531,6 +1750,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 }
 
 func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1588,6 +1808,7 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 }
 
 func TestGetChannelsForTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1668,6 +1889,7 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 }
 
 func TestGetChannelsForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1720,6 +1942,7 @@ func TestGetChannelsForUser(t *testing.T) {
 }
 
 func TestGetAllChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	th.LoginSystemManager()
 	defer th.TearDown()
@@ -1881,6 +2104,7 @@ func TestGetAllChannels(t *testing.T) {
 }
 
 func TestGetAllChannelsWithCount(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1913,6 +2137,7 @@ func TestGetAllChannelsWithCount(t *testing.T) {
 }
 
 func TestSearchChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2046,6 +2271,7 @@ func TestSearchChannels(t *testing.T) {
 }
 
 func TestSearchArchivedChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2136,6 +2362,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 }
 
 func TestSearchAllChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := setupForSharedChannels(t).InitBasic()
 	th.LoginSystemManager()
 	defer th.TearDown()
@@ -2426,6 +2653,7 @@ func TestSearchAllChannels(t *testing.T) {
 }
 
 func TestSearchAllChannelsPaged(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2445,6 +2673,7 @@ func TestSearchAllChannelsPaged(t *testing.T) {
 }
 
 func TestSearchGroupChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2513,6 +2742,7 @@ func TestSearchGroupChannels(t *testing.T) {
 }
 
 func TestDeleteChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := th.Client
@@ -2601,6 +2831,7 @@ func TestDeleteChannel(t *testing.T) {
 }
 
 func TestDeleteChannel2(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2680,6 +2911,7 @@ func TestDeleteChannel2(t *testing.T) {
 }
 
 func TestPermanentDeleteChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2718,6 +2950,7 @@ func TestPermanentDeleteChannel(t *testing.T) {
 }
 
 func TestUpdateChannelPrivacy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2812,6 +3045,7 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 }
 
 func TestRestoreChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2870,6 +3104,7 @@ func TestRestoreChannel(t *testing.T) {
 }
 
 func TestGetChannelByName(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2935,6 +3170,7 @@ func TestGetChannelByName(t *testing.T) {
 }
 
 func TestGetChannelByNameForTeamName(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2996,6 +3232,7 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 }
 
 func TestGetChannelMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -3044,6 +3281,7 @@ func TestGetChannelMembers(t *testing.T) {
 }
 
 func TestGetChannelMembersByIds(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3086,6 +3324,7 @@ func TestGetChannelMembersByIds(t *testing.T) {
 }
 
 func TestGetChannelMember(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := th.Client
@@ -3135,6 +3374,7 @@ func TestGetChannelMember(t *testing.T) {
 }
 
 func TestGetChannelMembersForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3183,6 +3423,7 @@ func TestGetChannelMembersForUser(t *testing.T) {
 }
 
 func TestViewChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3261,6 +3502,7 @@ func TestViewChannel(t *testing.T) {
 }
 
 func TestReadMultipleChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3340,6 +3582,7 @@ func TestReadMultipleChannels(t *testing.T) {
 }
 
 func TestGetChannelUnread(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3388,6 +3631,7 @@ func TestGetChannelUnread(t *testing.T) {
 }
 
 func TestGetChannelStats(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3446,6 +3690,7 @@ func TestGetChannelStats(t *testing.T) {
 }
 
 func TestGetPinnedPosts(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3482,6 +3727,7 @@ func TestGetPinnedPosts(t *testing.T) {
 }
 
 func TestUpdateChannelRoles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3561,6 +3807,7 @@ func TestUpdateChannelRoles(t *testing.T) {
 }
 
 func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3715,6 +3962,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 }
 
 func TestUpdateChannelNotifyProps(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3760,6 +4008,7 @@ func TestUpdateChannelNotifyProps(t *testing.T) {
 }
 
 func TestAddChannelMember(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3978,6 +4227,7 @@ func TestAddChannelMember(t *testing.T) {
 }
 
 func TestAddChannelMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4008,6 +4258,7 @@ func TestAddChannelMembers(t *testing.T) {
 }
 
 func TestAddChannelMemberFromThread(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Skip("MM-41285")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4129,6 +4380,7 @@ func TestAddChannelMemberGuestAccessControl(t *testing.T) {
 }
 
 func TestAddChannelMemberAddMyself(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4204,6 +4456,7 @@ func TestAddChannelMemberAddMyself(t *testing.T) {
 }
 
 func TestRemoveChannelMember(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
@@ -4424,6 +4677,7 @@ func TestRemoveChannelMember(t *testing.T) {
 }
 
 func TestAutocompleteChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -4492,6 +4746,7 @@ func TestAutocompleteChannels(t *testing.T) {
 }
 
 func TestAutocompleteChannelsForSearch(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -4605,6 +4860,7 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 }
 
 func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -4734,6 +4990,7 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 }
 
 func TestUpdateChannelScheme(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -4817,6 +5074,7 @@ func TestUpdateChannelScheme(t *testing.T) {
 }
 
 func TestGetChannelMembersTimezones(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4860,6 +5118,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 }
 
 func TestChannelMembersMinusGroupMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -4954,6 +5213,7 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 }
 
 func TestGetChannelModerations(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5168,6 +5428,7 @@ func TestGetChannelModerations(t *testing.T) {
 }
 
 func TestPatchChannelModerations(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5352,6 +5613,7 @@ func TestPatchChannelModerations(t *testing.T) {
 }
 
 func TestGetChannelMemberCountsByGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5444,6 +5706,7 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 }
 
 func TestGetChannelsMemberCount(t *testing.T) {
+	mainHelper.Parallel(t)
 	// Setup
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -5528,6 +5791,7 @@ func TestGetChannelsMemberCount(t *testing.T) {
 }
 
 func TestMoveChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5659,6 +5923,7 @@ func TestMoveChannel(t *testing.T) {
 }
 
 func TestRootMentionsCount(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5700,6 +5965,7 @@ func TestRootMentionsCount(t *testing.T) {
 }
 
 func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5736,76 +6002,4 @@ func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
 	threads, _, err = client.GetUserThreads(context.Background(), user.Id, team.Id, model.GetUserThreadsOpts{})
 	require.NoError(t, err)
 	require.Zero(t, threads.TotalUnreadMentions)
-}
-
-func TestCanEditChannelBanner(t *testing.T) {
-	t.Run("when license is nil", func(t *testing.T) {
-		channel := &model.Channel{
-			Type: model.ChannelTypeOpen,
-		}
-
-		err := canEditChannelBanner(nil, channel)
-
-		require.NotNil(t, err)
-		assert.Equal(t, "license_error.feature_unavailable", err.Id)
-		assert.Equal(t, http.StatusForbidden, err.StatusCode)
-	})
-
-	t.Run("when license is not E20 or Enterprise", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
-		channel := &model.Channel{
-			Type: model.ChannelTypeOpen,
-		}
-
-		err := canEditChannelBanner(license, channel)
-
-		require.NotNil(t, err)
-		assert.Equal(t, "license_error.feature_unavailable", err.Id)
-		assert.Equal(t, http.StatusForbidden, err.StatusCode)
-	})
-
-	t.Run("when channel type is direct message", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuPremium)
-		channel := &model.Channel{
-			Type: model.ChannelTypeDirect,
-		}
-
-		err := canEditChannelBanner(license, channel)
-
-		require.NotNil(t, err)
-		assert.Equal(t, "api.channel.update_channel.banner_info.channel_type.not_allowed", err.Id)
-		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
-	})
-
-	t.Run("when channel type is group message", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuPremium)
-		channel := &model.Channel{
-			Type: model.ChannelTypeGroup,
-		}
-
-		err := canEditChannelBanner(license, channel)
-		require.NotNil(t, err)
-		assert.Equal(t, "api.channel.update_channel.banner_info.channel_type.not_allowed", err.Id)
-		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
-	})
-
-	t.Run("when channel type is open and license is valid", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuPremium)
-		channel := &model.Channel{
-			Type: model.ChannelTypeOpen,
-		}
-
-		err := canEditChannelBanner(license, channel)
-		assert.Nil(t, err)
-	})
-
-	t.Run("when channel type is private and license is valid", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuPremium)
-		channel := &model.Channel{
-			Type: model.ChannelTypePrivate,
-		}
-
-		err := canEditChannelBanner(license, channel)
-		assert.Nil(t, err)
-	})
 }

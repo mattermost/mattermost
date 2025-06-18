@@ -472,8 +472,6 @@
   "channel_header.pinnedPosts": "Закачене поруке",
   "channel_header.recentMentions": "Недавна спомињања",
   "channel_header.search": "Претрага",
-  "channel_header.setHeader": "Уреди заглавље канала",
-  "channel_header.setPurpose": "Уреди опис сврхе канала",
   "channel_header.userHelpGuide": "Помоћ",
   "channel_members_modal.addNew": "Сви чланови тима",
   "create_comment.addComment": "Додај коментар...",

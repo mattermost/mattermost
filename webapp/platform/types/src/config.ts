@@ -112,6 +112,7 @@ export type ClientConfig = {
     EnableUserDeactivation: string;
     EnableUserTypingMessages: string;
     EnforceMultifactorAuthentication: string;
+    ExperimentalChannelCategorySorting: string;
     ExperimentalClientSideCertCheck: string;
     ExperimentalClientSideCertEnable: string;
     ExperimentalEnableAuthenticationTransfer: string;
@@ -125,6 +126,7 @@ export type ClientConfig = {
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagCustomProfileAttributes: string;
+    FeatureFlagAttributeBasedAccessControl: string;
     FeatureFlagWebSocketEventScope: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -168,6 +170,9 @@ export type ClientConfig = {
     PostEditTimeLimit: string;
     PrivacyPolicyLink: string;
     ReportAProblemLink: string;
+    ReportAProblemType: string;
+    ReportAProblemMail: string;
+    AllowDownloadLogs: string;
     RequireEmailVerification: string;
     RestrictDirectMessage: string;
     RunJobs: string;
@@ -217,6 +222,7 @@ export type ClientConfig = {
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: string;
     YoutubeReferrerPolicy: 'true' | 'false';
     ScheduledPosts: string;
+    DeleteAccountLink: string;
 };
 
 export type License = {
@@ -405,6 +411,7 @@ export type ServiceSettings = {
     ScheduledPosts: boolean;
     EnableWebHubChannelIteration: boolean;
     FrameAncestors: string;
+    DeleteAccountLink: string;
 };
 
 export type TeamSettings = {
@@ -627,6 +634,9 @@ export type SupportSettings = {
     AboutLink: string;
     HelpLink: string;
     ReportAProblemLink: string;
+    ReportAProblemType: string;
+    ReportAProblemMail: string;
+    AllowDownloadLogs: boolean;
     ForgotPasswordLink: string;
     SupportEmail: string;
     CustomTermsOfServiceEnabled: boolean;
@@ -815,6 +825,7 @@ export type ExperimentalSettings = {
     DisableWakeUpReconnectHandler: boolean;
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: number;
     YoutubeReferrerPolicy: boolean;
+    ExperimentalChannelCategorySorting: boolean;
 };
 
 export type AnalyticsSettings = {

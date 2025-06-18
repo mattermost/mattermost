@@ -22,7 +22,7 @@ test('Profile popover should show correct fields after at-mention autocomplete @
     });
 
     // Create and add another user using admin client
-    const testUser2 = await adminClient.createUser(pw.random.user(), '', '');
+    const testUser2 = await adminClient.createUser(pw.random.user('other'), '', '');
     await adminClient.addToTeam(team.id, testUser2.id);
 
     // 1. Login as the first user
@@ -40,7 +40,7 @@ test('Profile popover should show correct fields after at-mention autocomplete @
     const currentUserProfilePopover = channelsPage.userProfilePopover;
 
     // * Verify all fields are visible for current user in the profile popover
-    await expect(currentUserProfilePopover.container.getByText(`@${user.username}`)).toBeVisible(); // TODO: Fix this
+    await expect(currentUserProfilePopover.container.getByText(`@${user.username}`)).toBeVisible();
     await expect(currentUserProfilePopover.container.getByText(`${user.first_name} ${user.last_name}`)).toBeVisible();
     await expect(currentUserProfilePopover.container.getByText(user.email)).toBeVisible();
 

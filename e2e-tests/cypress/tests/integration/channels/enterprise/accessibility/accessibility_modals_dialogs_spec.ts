@@ -71,7 +71,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
             });
 
             // * Verify if the reader is able to read out the selected row
-            cy.get('.filtered-user-list .sr-only').
+            cy.get('.filtered-user-list div.sr-only:not([role="status"])').
                 should('have.attr', 'aria-live', 'polite').
                 and('have.attr', 'aria-atomic', 'true').
                 invoke('text').then((text) => {
@@ -120,8 +120,8 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                     // # Hide already joined channels
                     cy.findByText('Hide Joined').click();
 
-                    // # Focus on the Create Channel button and TAB four time
-                    cy.get('#createNewChannelButton').focus().tab().tab().tab().tab();
+                    // # Focus on the Create Channel button and TAB five time
+                    cy.get('#createNewChannelButton').focus().tab().tab().tab().tab().tab();
 
                     // * Verify channel name is highlighted and reader reads the channel name and channel description
                     cy.get('#moreChannelsList').within(() => {
@@ -181,7 +181,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 });
 
             // * Verify if the reader is able to read out the selected row
-            cy.get('.filtered-user-list .sr-only').
+            cy.get('.filtered-user-list div.sr-only:not([role="status"])').
                 should('have.attr', 'aria-live', 'polite').
                 and('have.attr', 'aria-atomic', 'true').
                 invoke('text').then((text) => {

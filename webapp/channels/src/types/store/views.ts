@@ -130,6 +130,10 @@ export type ViewsState = {
 
     lhs: LhsViewState;
 
+    readout: {
+        message: string | null;
+    };
+
     search: {
         modalSearch: string;
         popoverSearch: string;
@@ -217,5 +221,7 @@ export type ViewsState = {
         shouldShowPreviewOnCreatePost: boolean;
         shouldShowPreviewOnEditChannelHeaderModal: boolean;
         shouldShowPreviewOnEditPostModal: boolean;
+        shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
+        shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
     };
 };

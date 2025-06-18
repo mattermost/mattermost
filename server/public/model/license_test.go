@@ -512,9 +512,9 @@ func TestMinimumProfessionalLicense(t *testing.T) {
 			true,
 		},
 		{
-			"premium license",
+			"enterprise advanced license",
 			&License{
-				SkuShortName: LicenseShortSkuPremium,
+				SkuShortName: LicenseShortSkuEnterpriseAdvanced,
 			},
 			true,
 		},
@@ -574,9 +574,9 @@ func TestMinimumEnterpriseLicense(t *testing.T) {
 			true,
 		},
 		{
-			"premium license",
+			"enterprise advanced license",
 			&License{
-				SkuShortName: LicenseShortSkuPremium,
+				SkuShortName: LicenseShortSkuEnterpriseAdvanced,
 			},
 			true,
 		},
@@ -610,7 +610,7 @@ func TestMinimumEnterpriseLicense(t *testing.T) {
 	}
 }
 
-func TestMinimumPremiumLicense(t *testing.T) {
+func TestMinimumEnterpriseAdvancedLicense(t *testing.T) {
 	testCases := []struct {
 		description   string
 		license       *License
@@ -636,9 +636,9 @@ func TestMinimumPremiumLicense(t *testing.T) {
 			false,
 		},
 		{
-			"premium license",
+			"enterprise advanced license",
 			&License{
-				SkuShortName: LicenseShortSkuPremium,
+				SkuShortName: LicenseShortSkuEnterpriseAdvanced,
 			},
 			true,
 		},
@@ -667,7 +667,7 @@ func TestMinimumPremiumLicense(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
-			assert.Equal(t, testCase.expectedValue, MinimumPremiumLicense(testCase.license))
+			assert.Equal(t, testCase.expectedValue, MinimumEnterpriseAdvancedLicense(testCase.license))
 		})
 	}
 }

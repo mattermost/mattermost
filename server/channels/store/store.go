@@ -96,6 +96,7 @@ type Store interface {
 	PropertyField() PropertyFieldStore
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
+	Attributes() AttributesStore
 }
 
 type RetentionPolicyStore interface {
@@ -188,7 +189,7 @@ type TeamStore interface {
 }
 
 type ChannelStore interface {
-	Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error)
+	Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error)
 	CreateDirectChannel(ctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error)
 	SaveDirectChannel(ctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
 	Update(ctx request.CTX, channel *model.Channel) (*model.Channel, error)
@@ -232,7 +233,7 @@ type ChannelStore interface {
 	// It replaces existing fields and creates new ones which don't exist.
 	UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (*model.ChannelMember, error)
 	PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error)
-	GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error)
+	GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error)
 	GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
 	GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
@@ -267,6 +268,7 @@ type ChannelStore interface {
 	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
 	GetTeamMembersForChannel(channelID string) ([]string, error)
 	GetMembersForUserWithPagination(userID string, page, perPage int) (model.ChannelMembersWithTeamData, error)
+	GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string) (model.ChannelMembersWithTeamData, error)
 	Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error)
 	AutocompleteInTeam(rctx request.CTX, teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error)
 	AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error)
@@ -326,7 +328,7 @@ type ChannelMemberHistoryStore interface {
 	LogLeaveEvent(userID string, channelID string, leaveTime int64) error
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelID []string) ([]*model.ChannelMemberHistoryResult, error)
 	GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error)
-	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
+	PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetChannelsLeftSince(userID string, since int64) ([]string, error)
@@ -354,8 +356,8 @@ type ThreadStore interface {
 	GetMembershipForUser(userID, postID string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userID, postID string) error
 	MaintainMembership(userID, postID string, opts ThreadMembershipOpts) (*model.ThreadMembership, error)
-	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
-	PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
+	PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
+	PermanentDeleteBatchThreadMembershipsForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error)
 	DeleteMembershipsForChannel(userID, channelID string) error
@@ -400,7 +402,7 @@ type PostStore interface {
 	GetPostsByIds(postIds []string) ([]*model.Post, error)
 	GetEditHistoryForPost(postID string) ([]*model.Post, error)
 	GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error)
-	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
+	PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetOldest() (*model.Post, error)
 	GetMaxPostSize() int
@@ -561,6 +563,7 @@ type RemoteClusterStore interface {
 	GetAll(offset, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
 	UpdateTopics(remoteClusterID string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterID string) error
+	UpdateLastGlobalUserSyncAt(remoteID string, syncAt int64) error
 }
 
 type ComplianceStore interface {
@@ -715,6 +718,7 @@ type EmojiStore interface {
 
 type StatusStore interface {
 	SaveOrUpdate(status *model.Status) error
+	SaveOrUpdateMany(statuses map[string]*model.Status) error
 	Get(userID string) (*model.Status, error)
 	GetByIds(userIds []string) ([]*model.Status, error)
 	ResetAll() error
@@ -914,17 +918,17 @@ type GroupStore interface {
 	// based on the groups configurations. The returned list can be optionally scoped to a single given team.
 	//
 	// Typically since will be the last successful group sync time.
-	// If includeRemovedMembers is true, then team members who left or were removed from the team will
+	// If reAddRemovedMembers is true, then team members who left or were removed from the team will
 	// be included; otherwise, they will be excluded.
-	TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error)
+	TeamMembersToAdd(since int64, teamID *string, reAddRemovedMembers bool) ([]*model.UserTeamIDPair, error)
 
 	// ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
 	// based on the groups configurations. The returned list can be optionally scoped to a single given channel.
 	//
 	// Typically since will be the last successful group sync time.
-	// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+	// If reAddRemovedMembers is true, then channel members who left or were removed from the channel will
 	// be included; otherwise, they will be excluded.
-	ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error)
+	ChannelMembersToAdd(since int64, channelID *string, reAddRemovedMembers bool) ([]*model.UserChannelIDPair, error)
 
 	// TeamMembersToRemove returns all team members that should be removed based on group constraints.
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, error)
@@ -1012,6 +1016,7 @@ type SharedChannelStore interface {
 	GetRemoteByIds(channelID string, remoteID string) (*model.SharedChannelRemote, error)
 	GetRemotes(offset, limit int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
 	UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
+	UpdateRemoteMembershipCursor(id string, syncTime int64) error
 	DeleteRemote(remoteID string) (bool, error)
 	GetRemotesStatus(channelID string) ([]*model.SharedChannelRemoteStatus, error)
 
@@ -1019,7 +1024,9 @@ type SharedChannelStore interface {
 	GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
 	GetUsersForUser(userID string) ([]*model.SharedChannelUser, error)
 	GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error)
+	GetUserChanges(userID string, channelID string, afterTime int64) ([]*model.SharedChannelUser, error)
 	UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error
+	UpdateUserLastMembershipSyncAt(userID string, channelID string, remoteID string, syncTime int64) error
 
 	SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error)
 	UpsertAttachment(remote *model.SharedChannelAttachment) (string, error)
@@ -1030,6 +1037,8 @@ type SharedChannelStore interface {
 type PostPriorityStore interface {
 	GetForPost(postID string) (*model.PostPriority, error)
 	GetForPosts(ids []string) ([]*model.PostPriority, error)
+	Save(priority *model.PostPriority) (*model.PostPriority, error)
+	Delete(postID string) error
 }
 
 type DraftStore interface {
@@ -1048,8 +1057,12 @@ type PostAcknowledgementStore interface {
 	Get(postID, userID string) (*model.PostAcknowledgement, error)
 	GetForPost(postID string) ([]*model.PostAcknowledgement, error)
 	GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error)
-	Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
+	GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.PostAcknowledgement, error)
+	GetSingle(userID, postID, remoteID string) (*model.PostAcknowledgement, error)
+	SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error)
+	BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
+	BatchDelete(acknowledgements []*model.PostAcknowledgement) error
 }
 
 type PostPersistentNotificationStore interface {
@@ -1092,6 +1105,7 @@ type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
 	Get(groupID, id string) (*model.PropertyField, error)
 	GetMany(groupID string, ids []string) ([]*model.PropertyField, error)
+	GetFieldByName(groupID, targetID, name string) (*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
@@ -1106,7 +1120,7 @@ type PropertyValueStore interface {
 	Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(groupID string, id string) error
-	DeleteForField(id string) error
+	DeleteForField(groupID, fieldID string) error
 	DeleteForTarget(groupID string, targetType string, targetID string) error
 }
 
@@ -1115,7 +1129,14 @@ type AccessControlPolicyStore interface {
 	Delete(c request.CTX, id string) error
 	SetActiveStatus(c request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
 	Get(c request.CTX, id string) (*model.AccessControlPolicy, error)
-	GetAll(rctxc request.CTX, opts GetPolicyOptions) ([]*model.AccessControlPolicy, error)
+	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
+}
+
+type AttributesStore interface {
+	RefreshAttributes() error
+	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
+	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
+	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.
@@ -1128,27 +1149,30 @@ type AccessControlPolicyStore interface {
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
 type ChannelSearchOpts struct {
-	Term                     string
-	NotAssociatedToGroup     string
-	IncludeDeleted           bool
-	Deleted                  bool
-	ExcludeChannelNames      []string
-	TeamIds                  []string
-	GroupConstrained         bool
-	ExcludeGroupConstrained  bool
-	PolicyID                 string
-	ExcludePolicyConstrained bool
-	IncludePolicyID          bool
-	IncludeTeamInfo          bool
-	IncludeSearchByID        bool
-	ExcludeRemote            bool
-	CountOnly                bool
-	Public                   bool
-	Private                  bool
-	Page                     *int
-	PerPage                  *int
-	LastDeleteAt             int
-	LastUpdateAt             int
+	Term                               string
+	NotAssociatedToGroup               string
+	IncludeDeleted                     bool
+	Deleted                            bool
+	ExcludeChannelNames                []string
+	TeamIds                            []string
+	GroupConstrained                   bool
+	ExcludeGroupConstrained            bool
+	PolicyID                           string
+	ExcludePolicyConstrained           bool
+	IncludePolicyID                    bool
+	IncludeTeamInfo                    bool
+	IncludeSearchByID                  bool
+	ExcludeRemote                      bool
+	CountOnly                          bool
+	Public                             bool
+	Private                            bool
+	Page                               *int
+	PerPage                            *int
+	LastDeleteAt                       int
+	LastUpdateAt                       int
+	AccessControlPolicyEnforced        bool
+	ExcludeAccessControlPolicyEnforced bool
+	ParentAccessControlPolicyId        string
 }
 
 func (c *ChannelSearchOpts) IsPaginated() bool {
@@ -1209,12 +1233,4 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
-}
-
-// GetPolicyOptions contains options for filtering policy records.
-type GetPolicyOptions struct {
-	// ParentID will filter policy records where they inherit parent with PolicyID.
-	ParentID string
-	// Type will filter policy records where they are associated with the Type.
-	Type string
 }

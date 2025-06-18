@@ -95,7 +95,7 @@ const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchTyp
     const clearSearch = useCallback(() => {
         setSearchTerms('');
         dispatch(updateSearchTerms(''));
-        dispatch(updateSearchType('messages'));
+        dispatch(updateSearchType(''));
         focus(0);
     }, [focus, setSearchTerms]);
 
@@ -116,6 +116,7 @@ const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchTyp
                 autoFocus={true}
                 onKeyDown={onKeyDown}
                 tabIndex={0}
+                role='searchbox'
             />
             {searchTerms.length > 0 && (
                 <ClearButton

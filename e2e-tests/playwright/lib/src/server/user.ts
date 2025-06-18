@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {Client4} from '@mattermost/client';
-import {UserProfile} from '@mattermost/types/users';
+import {UserProfile, UserTimezone} from '@mattermost/types/users';
+import {DateTime} from 'luxon';
 
 import {getRandomId} from '@/util';
 import {testConfig} from '@/test_config';
+import {REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY, REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY} from '@/constant';
 
 export async function createNewUserProfile(client: Client4, prefix = 'user') {
     const randomUser = createRandomUser(prefix);
@@ -41,4 +43,16 @@ export function getDefaultAdminUser() {
     };
 
     return admin as UserProfile;
+}
+
+export function isOutsideRemoteUserHour(userTz: UserTimezone | undefined) {
+    const timezone = (userTz?.useAutomaticTimezone ? userTz?.automaticTimezone : userTz?.manualTimezone) || 'UTC';
+
+    const teammateUserDate = DateTime.local().setZone(timezone);
+
+    const currentHour = teammateUserDate.hour;
+    return (
+        currentHour >= REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY ||
+        currentHour < REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY
+    );
 }

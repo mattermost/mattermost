@@ -10,7 +10,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {LicenseSkus, Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import ChannelBanner from './index';
+import ChannelBanner from './channel_banner';
 
 describe('components/channel_banner', () => {
     const channel1 = TestHelper.getChannelMock({
@@ -86,7 +86,7 @@ describe('components/channel_banner', () => {
             general: {
                 license: {
                     IsLicensed: 'true',
-                    SkuShortName: LicenseSkus.Premium,
+                    SkuShortName: LicenseSkus.EnterpriseAdvanced,
                 },
             },
             channels: {

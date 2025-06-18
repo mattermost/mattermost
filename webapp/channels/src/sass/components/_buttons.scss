@@ -157,7 +157,7 @@ button {
     &.btn-xs {
         height: 24px;
         padding: 0 10px;
-        font-size: 11px;
+        font-size: 12px;
         gap: 6px;
 
         i {
@@ -230,6 +230,19 @@ button {
             color: rgba(var(--center-channel-color-rgb), 0.32) !important;
             opacity: 1;
         }
+
+        &.btn-success {
+            background-color: var(--online-indicator);
+            color: var(--button-color-rgb);
+
+            &:hover {
+                background-color: var(--online-indicator);
+            }
+
+            &:active {
+                background-color: var(--online-indicator);
+            }
+        }
     }
 
     &.btn-secondary {
@@ -254,6 +267,14 @@ button {
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
                 color: var(--error-text);
             }
+        }
+
+        &:disabled,
+        &:disabled:hover,
+        &:disabled:active {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            background: transparent;
+            color: rgba(var(--center-channel-color-rgb), 0.32) !important;
         }
 
         &:hover {

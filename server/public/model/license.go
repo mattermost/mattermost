@@ -19,21 +19,21 @@ const (
 	LicenseGracePeriod  = DayInMilliseconds * 10 //10 days
 	LicenseRenewalLink  = "https://mattermost.com/renew/"
 
-	LicenseShortSkuE10          = "E10"
-	LicenseShortSkuE20          = "E20"
-	LicenseShortSkuProfessional = "professional"
-	LicenseShortSkuEnterprise   = "enterprise"
-	LicenseShortSkuPremium      = "premium"
+	LicenseShortSkuE10                = "E10"
+	LicenseShortSkuE20                = "E20"
+	LicenseShortSkuProfessional       = "professional"
+	LicenseShortSkuEnterprise         = "enterprise"
+	LicenseShortSkuEnterpriseAdvanced = "advanced"
 
-	ProfessionalTier = 10
-	EnterpriseTier   = 20
-	PremiumTier      = 30
+	ProfessionalTier       = 10
+	EnterpriseTier         = 20
+	EnterpriseAdvancedTier = 30
 )
 
 var LicenseToLicenseTier = map[string]int{
-	LicenseShortSkuProfessional: ProfessionalTier,
-	LicenseShortSkuEnterprise:   EnterpriseTier,
-	LicenseShortSkuPremium:      PremiumTier,
+	LicenseShortSkuProfessional:       ProfessionalTier,
+	LicenseShortSkuEnterprise:         EnterpriseTier,
+	LicenseShortSkuEnterpriseAdvanced: EnterpriseAdvancedTier,
 }
 
 const (
@@ -57,17 +57,22 @@ type LicenseRecord struct {
 }
 
 type License struct {
-	Id           string    `json:"id"`
-	IssuedAt     int64     `json:"issued_at"`
-	StartsAt     int64     `json:"starts_at"`
-	ExpiresAt    int64     `json:"expires_at"`
-	Customer     *Customer `json:"customer"`
-	Features     *Features `json:"features"`
-	SkuName      string    `json:"sku_name"`
-	SkuShortName string    `json:"sku_short_name"`
-	IsTrial      bool      `json:"is_trial"`
-	IsGovSku     bool      `json:"is_gov_sku"`
-	SignupJWT    *string   `json:"signup_jwt"`
+	Id                  string    `json:"id"`
+	IssuedAt            int64     `json:"issued_at"`
+	StartsAt            int64     `json:"starts_at"`
+	ExpiresAt           int64     `json:"expires_at"`
+	Customer            *Customer `json:"customer"`
+	Features            *Features `json:"features"`
+	SkuName             string    `json:"sku_name"`
+	SkuShortName        string    `json:"sku_short_name"`
+	IsTrial             bool      `json:"is_trial"`
+	IsGovSku            bool      `json:"is_gov_sku"`
+	IsSeatCountEnforced bool      `json:"is_seat_count_enforced"`
+	// ExtraUsers provides a grace mechanism that allows a configurable number of users
+	// beyond the base license limit before restricting user creation. When nil, defaults to 0.
+	// For example: 100 licensed users + 5 ExtraUsers = 105 total allowed users.
+	ExtraUsers *int    `json:"extra_users"`
+	SignupJWT  *string `json:"signup_jwt"`
 }
 
 type Customer struct {
@@ -91,6 +96,7 @@ type TrialLicenseRequest struct {
 	CompanyName           string `json:"company_name"`
 	CompanyCountry        string `json:"company_country"`
 	CompanySize           string `json:"company_size"`
+	ServerVersion         string `json:"server_version"`
 }
 
 // If any of the below fields are set, this is not a legacy request, and all fields should be validated
@@ -349,6 +355,11 @@ func (l *License) IsStarted() bool {
 	return l.StartsAt < GetMillis()
 }
 
+// Cloud preview is a cloud license, that is also a trial, and the difference between the start and end date is exactly 1 hour.
+func (l *License) IsCloudPreview() bool {
+	return l.IsCloud() && l.IsTrialLicense() && l.ExpiresAt-l.StartsAt == 1*time.Hour.Milliseconds()
+}
+
 func (l *License) IsCloud() bool {
 	return l != nil && l.Features != nil && l.Features.Cloud != nil && *l.Features.Cloud
 }
@@ -474,7 +485,7 @@ func MinimumEnterpriseLicense(license *License) bool {
 	return license != nil && LicenseToLicenseTier[license.SkuShortName] >= EnterpriseTier
 }
 
-// MinimumPremiumLicense returns true if the provided license is at least a premium license.
-func MinimumPremiumLicense(license *License) bool {
-	return license != nil && LicenseToLicenseTier[license.SkuShortName] >= PremiumTier
+// MinimumEnterpriseAdvancedLicense returns true if the provided license is at least an Enterprise Advanced license.
+func MinimumEnterpriseAdvancedLicense(license *License) bool {
+	return license != nil && LicenseToLicenseTier[license.SkuShortName] >= EnterpriseAdvancedTier
 }

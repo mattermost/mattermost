@@ -88,7 +88,7 @@ export const isEnterpriseLicense = (license?: ClientLicense) => {
     switch (license?.SkuShortName) {
     case LicenseSkus.Enterprise:
     case LicenseSkus.E20:
-    case LicenseSkus.Premium:
+    case LicenseSkus.EnterpriseAdvanced:
         return true;
     }
 
@@ -127,4 +127,12 @@ export function isMinimumEnterpriseLicense(license: ClientLicense): boolean {
     }
 
     return getLicenseTier(license.SkuShortName) >= getLicenseTier(LicenseSkus.Enterprise);
+}
+
+export function isMinimumEnterpriseAdvancedLicense(license?: ClientLicense): boolean {
+    if (!license) {
+        return false;
+    }
+
+    return getLicenseTier(license.SkuShortName) >= getLicenseTier(LicenseSkus.EnterpriseAdvanced);
 }

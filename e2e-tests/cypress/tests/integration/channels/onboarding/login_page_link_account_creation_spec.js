@@ -53,7 +53,7 @@ describe('Onboarding', () => {
             // # Enable any user with an account on the server to join the team
             cy.get('input.mm-modal-generic-section-item__input-checkbox').last().should('be.visible').click();
 
-            cy.findAllByTestId('mm-save-changes-panel__save-btn').should('be.visible').click();
+            cy.get('[data-testid="SaveChangesPanel__save-btn"]').should('be.visible').click();
 
             // # Close the modal
             cy.findByLabelText('Close').should('be.visible').click();

@@ -96,7 +96,9 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 
 		if !session.IsExpired() {
-			a.ch.srv.platform.AddSessionToCache(session)
+			if err := a.ch.srv.platform.AddSessionToCache(session); err != nil {
+				c.Logger().Error("Failed to add session to cache", mlog.Err(err))
+			}
 		}
 	}
 
@@ -205,7 +207,9 @@ func (a *App) RevokeAllSessions(c request.CTX, userID string) *model.AppError {
 }
 
 func (a *App) AddSessionToCache(session *model.Session) {
-	a.ch.srv.platform.AddSessionToCache(session)
+	if err := a.ch.srv.platform.AddSessionToCache(session); err != nil {
+		a.Srv().Platform().Log().Error("Failed to add session to cache", mlog.String("session_id", session.Id), mlog.String("user_id", session.UserId), mlog.Err(err))
+	}
 }
 
 // RevokeSessionsFromAllUsers will go through all the sessions active
@@ -228,7 +232,9 @@ func (a *App) ClearSessionCacheForUser(userID string) {
 }
 
 func (a *App) ClearSessionCacheForAllUsers() {
-	a.ch.srv.platform.ClearAllUsersSessionCache()
+	if err := a.ch.srv.platform.ClearAllUsersSessionCache(); err != nil {
+		a.Srv().Platform().Log().Error("Failed to clear session cache for all users", mlog.Err(err))
+	}
 }
 
 func (a *App) ClearSessionCacheForUserSkipClusterSend(userID string) {
@@ -490,7 +496,9 @@ func (a *App) createSessionForUserAccessToken(c request.CTX, tokenString string)
 		}
 	}
 
-	a.ch.srv.platform.AddSessionToCache(session)
+	if err := a.ch.srv.platform.AddSessionToCache(session); err != nil {
+		a.ch.srv.Log().Error("Failed to add session to cache", mlog.String("session_id", session.Id), mlog.Err(err))
+	}
 
 	return session, nil
 }

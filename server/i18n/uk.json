@@ -208,10 +208,6 @@
     "translation": "Неможливо покинути канал приватних повідомлень."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Ви єдиний учасник, який залишився, спробуйте видалити приватний канал замість того, щоб виходити."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v покинув канал."
   },
@@ -4605,15 +4601,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версія 119+"
+    "translation": "Версія 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версія 132+"
+    "translation": "Версія 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версія 132+"
+    "translation": "Версія 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10622,5 +10618,33 @@
   {
     "id": "ent.saml.update_cpa.multiple_errors",
     "translation": "Помилки під час оновлення значень CPA"
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "На сервері AD/LDAP не зареєстровано користувача, який відповідає користувачеві SAML."
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Не вдалося підрахувати щомісячну кількість активних користувачів."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "Функція {{.Feature}} недоступна для поточної ліцензії"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Недійсне посилання для повідомлення про проблему. Має бути дійсна URL-адреса та починатися з http:// або https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Недійсний лист для повідомлення про проблему. Повинна бути дійсна адреса електронної пошти."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Посилання для повідомлення про проблему обов'язкове."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Потрібно надіслати електронного листа для повідомлення про проблему."
   }
 ]

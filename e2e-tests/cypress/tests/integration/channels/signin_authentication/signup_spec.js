@@ -75,7 +75,7 @@ describe('Signup Email page', () => {
         cy.findByText('You can use lowercase letters, numbers, periods, dashes, and underscores.').should('be.visible');
 
         cy.get('#input_password-input').should('be.visible').and('have.attr', 'placeholder', 'Choose a Password');
-        cy.findByText('Must be 5-72 characters long.').should('be.visible');
+        cy.findByText('Your password must be 5-72 characters long.').should('be.visible');
 
         cy.get('#saveSetting').scrollIntoView().should('be.visible');
         cy.get('#saveSetting').should('contain', 'Create Account');

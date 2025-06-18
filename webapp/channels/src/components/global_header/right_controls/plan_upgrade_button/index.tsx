@@ -4,7 +4,6 @@
 import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import styled from 'styled-components';
 
 import {getCloudProducts, getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct as selectSubscriptionProduct, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
@@ -12,34 +11,15 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import WithTooltip from 'components/with_tooltip';
 
 import {CloudProducts} from 'utils/constants';
-
-const UpgradeButton = styled.button`
-background: var(--denim-button-bg);
-border-radius: 4px;
-border: none;
-box-shadow: none;
-height: 24px;
-width: auto;
-font-family: 'Open Sans';
-font-style: normal;
-font-weight: 600;
-font-size: 11px !important;
-line-height: 10px;
-letter-spacing: 0.02em;
-color: var(--button-color);
-`;
-
-let openPricingModal: (telemetryProps?: TelemetryProps) => void;
 
 const PlanUpgradeButton = (): JSX.Element | null => {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
-    openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const isCloud = useSelector(isCurrentLicenseCloud);
 
     useEffect(() => {
@@ -82,19 +62,24 @@ const PlanUpgradeButton = (): JSX.Element | null => {
         return null;
     }
 
+    // Don't show the button if air-gapped
+    if (isAirGapped) {
+        return null;
+    }
+
     return (
         <WithTooltip
             title={formatMessage({id: 'pricing_modal.btn.tooltip', defaultMessage: 'Only visible to system admins'})}
         >
-            <UpgradeButton
+            <button
                 id='UpgradeButton'
                 aria-haspopup='dialog'
                 onClick={() => openPricingModal({trackingLocation: 'global_header_plan_upgrade_button'})}
+                className='btn btn-primary btn-xs'
             >
                 {formatMessage({id: 'pricing_modal.btn.viewPlans', defaultMessage: 'View plans'})}
-            </UpgradeButton>
+            </button>
         </WithTooltip>);
 };
 
 export default PlanUpgradeButton;
-export {openPricingModal};

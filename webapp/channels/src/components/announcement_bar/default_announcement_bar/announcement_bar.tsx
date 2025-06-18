@@ -174,6 +174,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 <button
                     onClick={this.props.onButtonClick}
                     disabled={this.props.ctaDisabled}
+                    className='btn btn-tertiary btn-xs btn-inverted'
                 >
                     <FormattedMessage
                         {...this.props.modalButtonText}
@@ -185,6 +186,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 <button
                     onClick={this.props.onButtonClick}
                     disabled={this.props.ctaDisabled}
+                    className='btn btn-tertiary btn-xs btn-inverted'
                 >
                     {this.props.ctaText}
                 </button>

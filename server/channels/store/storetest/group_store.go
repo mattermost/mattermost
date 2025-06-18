@@ -34,6 +34,7 @@ func TestGroupStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Update", func(t *testing.T) { testGroupStoreUpdate(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, rctx, ss) })
 	t.Run("Restore", func(t *testing.T) { testGroupStoreRestore(t, rctx, ss) })
+	t.Run("ToModelChannelAssociations", func(t *testing.T) { testGroupStoreToModelChannelAssociations(t, rctx, ss) })
 
 	t.Run("GetMemberUsers", func(t *testing.T) { testGroupGetMemberUsers(t, rctx, ss) })
 	t.Run("GetMemberUsersPage", func(t *testing.T) { testGroupGetMemberUsersPage(t, rctx, ss) })
@@ -50,6 +51,7 @@ func TestGroupStore(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("CreateGroupSyncable", func(t *testing.T) { testCreateGroupSyncable(t, rctx, ss) })
 	t.Run("GetGroupSyncable", func(t *testing.T) { testGetGroupSyncable(t, rctx, ss) })
+	t.Run("GetGroupSyncableErrors", func(t *testing.T) { testGetGroupSyncableErrors(t, rctx, ss) })
 	t.Run("GetAllGroupSyncablesByGroupId", func(t *testing.T) { testGetAllGroupSyncablesByGroup(t, rctx, ss) })
 	t.Run("UpdateGroupSyncable", func(t *testing.T) { testUpdateGroupSyncable(t, rctx, ss) })
 	t.Run("DeleteGroupSyncable", func(t *testing.T) { testDeleteGroupSyncable(t, rctx, ss) })
@@ -74,6 +76,7 @@ func TestGroupStore(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("TeamMembersMinusGroupMembers", func(t *testing.T) { testTeamMembersMinusGroupMembers(t, rctx, ss) })
 	t.Run("ChannelMembersMinusGroupMembers", func(t *testing.T) { testChannelMembersMinusGroupMembers(t, rctx, ss) })
+	t.Run("CountMembersMinusGroupMembers", func(t *testing.T) { testCountMembersMinusGroupMembers(t, rctx, ss) })
 
 	t.Run("GetMemberCount", func(t *testing.T) { groupTestGetMemberCount(t, rctx, ss) })
 
@@ -1618,6 +1621,44 @@ func testGetGroupSyncable(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Zero(t, gt1.DeleteAt)
 }
 
+func testGetGroupSyncableErrors(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Create a group
+	g1 := &model.Group{
+		Name:        model.NewPointer(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewPointer(model.NewId()),
+	}
+	group, err := ss.Group().Create(g1)
+	require.NoError(t, err)
+
+	// Test with invalid syncable type
+	invalidSyncableType := model.GroupSyncableType("invalid")
+	_, err = ss.Group().GetGroupSyncable(group.Id, model.NewId(), invalidSyncableType)
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr), "expected ErrNotFound, got %v", err)
+
+	// Test with empty group ID
+	_, err = ss.Group().GetGroupSyncable("", model.NewId(), model.GroupSyncableTypeTeam)
+	require.True(t, errors.As(err, &nfErr), "expected ErrNotFound, got %v", err)
+
+	// Test with empty syncable ID
+	_, err = ss.Group().GetGroupSyncable(group.Id, "", model.GroupSyncableTypeTeam)
+	require.True(t, errors.As(err, &nfErr), "expected ErrNotFound, got %v", err)
+
+	// Test with completely non-existent IDs
+	randomGroupId := model.NewId()
+	randomTeamId := model.NewId()
+	_, err = ss.Group().GetGroupSyncable(randomGroupId, randomTeamId, model.GroupSyncableTypeTeam)
+	require.True(t, errors.As(err, &nfErr), "expected ErrNotFound, got %v", err)
+
+	// Test with valid group ID but non-existent syncable
+	_, err = ss.Group().GetGroupSyncable(group.Id, model.NewId(), model.GroupSyncableTypeTeam)
+	require.True(t, errors.As(err, &nfErr))
+}
+
 func testGetAllGroupSyncablesByGroup(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("team", func(t *testing.T) { testGetAllGroupSyncablesByGroupTeam(t, rctx, ss) })
 	t.Run("channel", func(t *testing.T) { testGetAllGroupSyncablesByGroupChannel(t, rctx, ss) })
@@ -2046,7 +2087,7 @@ func testTeamMembersToAdd(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	require.Empty(t, teamMembers)
 
-	// If includeRemovedMembers is set to true, removed members should be added back in
+	// If reAddRemovedMembers is set to true, removed members should be added back in
 	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, true)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 1)
@@ -2304,14 +2345,17 @@ func testChannelMembersToAdd(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Empty(t, channelMembers)
 
 	// Purging ChannelMemberHistory re-returns the result
-	_, _, nErr = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-		0, model.GetMillis()+1, 100, model.RetentionPolicyCursor{})
+	_, _, nErr = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: model.GetMillis() + 1,
+		Limit:               100,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 1)
 
-	// If includeRemovedMembers is set to true, removed members should be added back in
+	// If reAddRemovedMembers is set to true, removed members should be added back in
 	nErr = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
 	require.NoError(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, true)
@@ -4174,17 +4218,14 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
 				for _, group := range groups {
-					fmt.Println(group.Id, group.ChannelMemberCount)
 					var channelMemberCount int
 					if group.ChannelMemberCount != nil {
 						channelMemberCount = *group.ChannelMemberCount
 					}
 					if group.Id == group1.Id && channelMemberCount != 2 {
-						fmt.Println("group1", group.Id, channelMemberCount)
 						return false
 					}
 					if group.Id == group2.Id && channelMemberCount != 1 {
-						fmt.Println("group2", group.Id, channelMemberCount)
 						return false
 					}
 				}
@@ -4205,11 +4246,9 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 						channelMemberCount = *group.ChannelMemberCount
 					}
 					if group.Id == group1.Id && channelMemberCount != 1 {
-						fmt.Println("group1", group.Id, channelMemberCount)
 						return false
 					}
 					if group.Id == group2.Id && channelMemberCount != 2 {
-						fmt.Println("group2", group.Id, channelMemberCount)
 						return false
 					}
 				}
@@ -5301,7 +5340,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 			}
 			assert.ElementsMatch(t, tt.expectedUpdatedUsers, updatedUserIDs)
 
-			members, err := ss.Channel().GetMembers(channel.Id, 0, 100)
+			members, err := ss.Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: channel.Id, Offset: 0, Limit: 100})
 			require.NoError(t, err)
 			assert.GreaterOrEqual(t, len(members), 4) // sanity check for channel membership
 
@@ -5799,4 +5838,267 @@ func groupTestGroupCountBySource(t *testing.T, rctx request.CTX, ss store.Store)
 	ldapSourceCountAfterDelete, err := ss.Group().GroupCountBySource(model.GroupSourceLdap)
 	require.NoError(t, err)
 	require.Equal(t, ldapSourceCountAfter-1, ldapSourceCountAfterDelete)
+}
+
+func testCountMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Create test users
+	u1, err := ss.User().Save(rctx, &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	})
+	require.NoError(t, err)
+
+	u2, err := ss.User().Save(rctx, &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	})
+	require.NoError(t, err)
+
+	u3, err := ss.User().Save(rctx, &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	})
+	require.NoError(t, err)
+
+	// Create test team
+	team := &model.Team{
+		DisplayName:     "Name",
+		Description:     "Some description",
+		CompanyName:     "Some company name",
+		AllowOpenInvite: false,
+		InviteId:        "inviteid0",
+		Name:            "z-z-" + model.NewId() + "a",
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TeamOpen,
+	}
+	team, err = ss.Team().Save(team)
+	require.NoError(t, err)
+
+	// Create a second team to test team-specific counts
+	team2 := &model.Team{
+		DisplayName:     "Name 2",
+		Description:     "Some description 2",
+		CompanyName:     "Some company name 2",
+		AllowOpenInvite: false,
+		InviteId:        "inviteid1",
+		Name:            "z-z-" + model.NewId() + "b",
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TeamOpen,
+	}
+	team2, err = ss.Team().Save(team2)
+	require.NoError(t, err)
+
+	// Create test channel in team 1
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Display Name",
+		Name:        "z-z-" + model.NewId() + "a",
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr := ss.Channel().Save(rctx, channel, -1)
+	require.NoError(t, nErr)
+
+	// Create test channel in team 2
+	channel2 := &model.Channel{
+		TeamId:      team2.Id,
+		DisplayName: "Display Name 2",
+		Name:        "z-z-" + model.NewId() + "b",
+		Type:        model.ChannelTypeOpen,
+	}
+	channel2, nErr = ss.Channel().Save(rctx, channel2, -1)
+	require.NoError(t, nErr)
+
+	// Add users to teams and channels
+	// u1 and u2 in team 1
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: team.Id, UserId: u1.Id}, -1)
+	require.NoError(t, nErr)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: team.Id, UserId: u2.Id}, -1)
+	require.NoError(t, nErr)
+
+	// u3 in team 2
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: team2.Id, UserId: u3.Id}, -1)
+	require.NoError(t, nErr)
+
+	// u1 and u2 in channel 1
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: u1.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	require.NoError(t, nErr)
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: u2.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	require.NoError(t, nErr)
+
+	// u3 in channel 2
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel2.Id, UserId: u3.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	require.NoError(t, nErr)
+
+	// Create groups
+	group1, err := ss.Group().Create(&model.Group{
+		Name:        model.NewPointer(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewPointer(model.NewId()),
+	})
+	require.NoError(t, err)
+
+	group2, err := ss.Group().Create(&model.Group{
+		Name:        model.NewPointer(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewPointer(model.NewId()),
+	})
+	require.NoError(t, err)
+
+	// Add u1 to group1, u3 to group2
+	_, err = ss.Group().UpsertMember(group1.Id, u1.Id)
+	require.NoError(t, err)
+	_, err = ss.Group().UpsertMember(group2.Id, u3.Id)
+	require.NoError(t, err)
+
+	// Test CountTeamMembersMinusGroupMembers with empty groupIDs
+	count, err := ss.Group().CountTeamMembersMinusGroupMembers(team.Id, []string{})
+	require.NoError(t, err)
+	require.Equal(t, int64(2), count) // Both u1 and u2 are counted when no groups are excluded
+
+	// Test CountTeamMembersMinusGroupMembers with group1 ID
+	count, err = ss.Group().CountTeamMembersMinusGroupMembers(team.Id, []string{group1.Id})
+	require.NoError(t, err)
+	require.Equal(t, int64(1), count) // Only u2 should be counted (not in the group)
+
+	// Test with non-existent team ID
+	count, err = ss.Group().CountTeamMembersMinusGroupMembers(model.NewId(), []string{group1.Id})
+	require.NoError(t, err)
+	require.Equal(t, int64(0), count) // No members in a non-existent team
+
+	// Test with multiple group IDs
+	count, err = ss.Group().CountTeamMembersMinusGroupMembers(team.Id, []string{group1.Id, group2.Id})
+	require.NoError(t, err)
+	require.Equal(t, int64(1), count) // Only u2 should be counted
+
+	// Test team 2
+	count, err = ss.Group().CountTeamMembersMinusGroupMembers(team2.Id, []string{group2.Id})
+	require.NoError(t, err)
+	require.Equal(t, int64(0), count) // No one should be counted (u3 is in group2)
+
+	// Test CountChannelMembersMinusGroupMembers with empty groupIDs
+	count, err = ss.Group().CountChannelMembersMinusGroupMembers(channel.Id, []string{})
+	require.NoError(t, err)
+	require.Equal(t, int64(2), count) // Both users are counted when no groups are excluded
+
+	// Test CountChannelMembersMinusGroupMembers with the group ID
+	count, err = ss.Group().CountChannelMembersMinusGroupMembers(channel.Id, []string{group1.Id})
+	require.NoError(t, err)
+	require.Equal(t, int64(1), count) // Only u2 should be counted (not in the group)
+
+	// Test with multiple group IDs
+	count, err = ss.Group().CountChannelMembersMinusGroupMembers(channel.Id, []string{group1.Id, group2.Id})
+	require.NoError(t, err)
+	require.Equal(t, int64(1), count) // u2 should be counted
+
+	// Test channel 2
+	count, err = ss.Group().CountChannelMembersMinusGroupMembers(channel2.Id, []string{group2.Id})
+	require.NoError(t, err)
+	require.Equal(t, int64(0), count) // No one should be counted (u3 is in group2)
+
+	// Test with non-existent channel ID
+	count, err = ss.Group().CountChannelMembersMinusGroupMembers(model.NewId(), []string{group1.Id})
+	require.NoError(t, err)
+	require.Equal(t, int64(0), count) // No members in a non-existent channel
+
+	// Test error cases - passing invalid parameters
+	// 1. Empty team ID
+	count, err = ss.Group().CountTeamMembersMinusGroupMembers("", []string{group1.Id})
+	require.NoError(t, err) // Should handle this gracefully
+	require.Equal(t, int64(0), count)
+
+	// 2. Empty channel ID
+	count, err = ss.Group().CountChannelMembersMinusGroupMembers("", []string{group1.Id})
+	require.NoError(t, err) // Should handle this gracefully
+	require.Equal(t, int64(0), count)
+}
+
+func testGroupStoreToModelChannelAssociations(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Create test group
+	group, err := ss.Group().Create(&model.Group{
+		Name:        model.NewPointer(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewPointer(model.NewId()),
+	})
+	require.NoError(t, err)
+	require.NotNil(t, group)
+
+	// Create test team
+	team := &model.Team{
+		DisplayName:     "Name",
+		Description:     "Some description",
+		CompanyName:     "Some company name",
+		AllowOpenInvite: false,
+		InviteId:        "inviteid0",
+		Name:            "z-z-" + model.NewId() + "a",
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TeamOpen,
+	}
+	team, err = ss.Team().Save(team)
+	require.NoError(t, err)
+	require.NotNil(t, team)
+
+	// Create test channel 1
+	channel1 := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Display Name 1",
+		Name:        "z-z-" + model.NewId() + "a",
+		Type:        model.ChannelTypeOpen,
+	}
+	channel1, nErr := ss.Channel().Save(rctx, channel1, -1)
+	require.NoError(t, nErr)
+	require.NotNil(t, channel1)
+
+	// Create test channel 2
+	channel2 := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Display Name 2",
+		Name:        "z-z-" + model.NewId() + "b",
+		Type:        model.ChannelTypeOpen,
+	}
+	channel2, nErr = ss.Channel().Save(rctx, channel2, -1)
+	require.NoError(t, nErr)
+	require.NotNil(t, channel2)
+
+	// Create group channel syncables
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:     group.Id,
+		SyncableId:  channel1.Id,
+		Type:        model.GroupSyncableTypeChannel,
+		SchemeAdmin: true,
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:     group.Id,
+		SyncableId:  channel2.Id,
+		Type:        model.GroupSyncableTypeChannel,
+		SchemeAdmin: false,
+	})
+	require.NoError(t, err)
+
+	// Test the GetGroupsAssociatedToChannelsByTeam function
+	// This exercises the groupsAssociatedToChannelWithSchemeAdmin.ToModel method
+	result, err := ss.Group().GetGroupsAssociatedToChannelsByTeam(team.Id, model.GroupSearchOpts{})
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	// Verify channel 1 results
+	require.Contains(t, result, channel1.Id)
+	require.NotEmpty(t, result[channel1.Id])
+	require.Equal(t, group.Id, result[channel1.Id][0].Id)
+	require.NotNil(t, result[channel1.Id][0].SchemeAdmin)
+	require.True(t, *result[channel1.Id][0].SchemeAdmin)
+
+	// Verify channel 2 results (with different SchemeAdmin value)
+	require.Contains(t, result, channel2.Id)
+	require.NotEmpty(t, result[channel2.Id])
+	require.Equal(t, group.Id, result[channel2.Id][0].Id)
+	require.NotNil(t, result[channel2.Id][0].SchemeAdmin)
+	require.False(t, *result[channel2.Id][0].SchemeAdmin)
 }

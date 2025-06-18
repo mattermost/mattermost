@@ -58,7 +58,13 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
     };
 
     private renderPluginItems = () => {
-        const {fileInfo} = this.props;
+        const {fileInfo, channel, enableSharedChannelsPlugins} = this.props;
+        const isSharedChannel = channel?.shared || false;
+
+        if (isSharedChannel && !enableSharedChannelsPlugins) {
+            return null;
+        }
+
         const pluginItems = this.props.pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
             return (
                 <Menu.ItemAction

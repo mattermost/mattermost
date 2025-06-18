@@ -1,0 +1,510 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/server_logs/Logs should display the logs correctly after loading 1`] = `
+<div>
+  <div
+    class="wrapper--admin"
+  >
+    <div
+      class="admin-console__header"
+    >
+      Server Logs
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-logs-content admin-console__content"
+      >
+        <div
+          class="logs-banner"
+        >
+          <div
+            class="banner"
+          >
+            <div
+              class="banner__content"
+            >
+              To look up users by User ID or Token ID, go to User Management &gt; Users and paste the ID into the search filter.
+            </div>
+          </div>
+          <div
+            class="banner-buttons"
+          >
+            <div
+              aria-labelledby="admin.logs.LogFormat.legend"
+              class="banner-buttons__log-format"
+              id="admin.logs.LogFormat"
+              role="radiogroup"
+            >
+              <span
+                id="admin.logs.LogFormat.legend"
+              >
+                Log Format:
+              </span>
+              <label>
+                <input
+                  checked=""
+                  id="admin.logs.LogFormat.json"
+                  name="log-format"
+                  type="radio"
+                  value="json"
+                />
+                JSON
+              </label>
+              <label>
+                <input
+                  id="admin.logs.LogFormat.plain"
+                  name="log-format"
+                  type="radio"
+                  value="plain"
+                />
+                Plain text
+              </label>
+            </div>
+            <button
+              class="btn btn-primary"
+              type="submit"
+            >
+              Reload Logs
+            </button>
+            <a
+              class="btn btn-primary"
+              href="/api/v4/logs/download"
+              location="download_logs"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Download Logs
+            </a>
+          </div>
+        </div>
+        <div
+          class="LogTable"
+        >
+          <div
+            class="DataGrid"
+          >
+            <div
+              class="DataGrid_search"
+            >
+              <div
+                class="DataGrid_searchBar"
+              >
+                <span
+                  aria-hidden="true"
+                  class="DataGrid_searchIcon"
+                >
+                  <i
+                    class="fa fa-search"
+                    title="Search Icon"
+                  />
+                </span>
+                <input
+                  data-testid="searchInput"
+                  placeholder="Search"
+                  type="text"
+                  value=""
+                />
+                <i
+                  class="DataGrid_clearButton fa fa-times-circle hidden"
+                  data-testid="clear-search"
+                />
+              </div>
+              <div
+                class="Filter"
+              >
+                <button
+                  class="Filter_button"
+                  type="button"
+                >
+                  <i
+                    class="Icon icon-filter-variant"
+                  />
+                  Filters
+                </button>
+                <div
+                  class="Filter_content"
+                >
+                  <div
+                    class="Filter_header"
+                  >
+                    <div
+                      class="Filter_title"
+                    >
+                      Filter by
+                    </div>
+                    <a
+                      class="Filter_reset"
+                    >
+                      Reset filters
+                    </a>
+                  </div>
+                  <hr />
+                  <div
+                    class="Filter_lists"
+                  >
+                    <div
+                      class="FilterList"
+                    >
+                      <div
+                        class="FilterList_name"
+                      >
+                        Levels
+                      </div>
+                      <div
+                        class="FilterList_item"
+                      >
+                        <div
+                          class="FilterList_checkbox"
+                        >
+                          <label>
+                            <input
+                              checked=""
+                              id="all"
+                              name="all"
+                              type="checkbox"
+                            />
+                            All levels
+                          </label>
+                        </div>
+                      </div>
+                      <div
+                        class="FilterList_item"
+                      >
+                        <div
+                          class="FilterList_checkbox"
+                        >
+                          <label>
+                            <input
+                              id="error"
+                              name="error"
+                              type="checkbox"
+                            />
+                            Error
+                          </label>
+                        </div>
+                      </div>
+                      <div
+                        class="FilterList_item"
+                      >
+                        <div
+                          class="FilterList_checkbox"
+                        >
+                          <label>
+                            <input
+                              id="info"
+                              name="info"
+                              type="checkbox"
+                            />
+                            Info
+                          </label>
+                        </div>
+                      </div>
+                      <div
+                        class="FilterList_item"
+                      >
+                        <div
+                          class="FilterList_checkbox"
+                        >
+                          <label>
+                            <input
+                              id="debug"
+                              name="debug"
+                              type="checkbox"
+                            />
+                            Debug
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    class="btn btn-primary btn-sm Filter_apply"
+                    disabled=""
+                    type="button"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+              <button
+                class="btn btn-tertiary btn-sm ml-2"
+              >
+                Show last 0 errors
+              </button>
+            </div>
+            <div
+              class="DataGrid_header"
+            >
+              <div
+                class="DataGrid_cell"
+                style="flex-grow: 1.5;"
+              >
+                <div
+                  class="timestamp"
+                >
+                  Timestamp
+                  <svg
+                    fill="currentColor"
+                    height="18"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M13,20H11V8L5.5,13.5L4.08,12.08L12,4.16L19.92,12.08L18.5,13.5L13,8V20Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="DataGrid_cell"
+                style="flex-grow: 0.5;"
+              >
+                Level
+              </div>
+              <div
+                class="DataGrid_cell"
+                style="flex-grow: 2.5;"
+              >
+                Message
+              </div>
+              <div
+                class="DataGrid_cell"
+                style="flex-grow: 1.5;"
+              >
+                Caller
+              </div>
+              <div
+                class="DataGrid_cell"
+                style="flex-grow: 1;"
+              >
+                Options
+              </div>
+            </div>
+            <div
+              class="DataGrid_rows"
+              style="min-height: 120px;"
+            >
+              <div
+                class="DataGrid_row"
+              >
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 1.5; text-align: left;"
+                >
+                  <span
+                    class="group-name overflow--ellipsis row-content"
+                    data-testid="timestamp"
+                  >
+                    <span
+                      class="group-description row-content"
+                    >
+                      timestamp 1
+                    </span>
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 0.5; text-align: left;"
+                >
+                  <span
+                    class="group-description adjusted row-content"
+                  >
+                    info
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 2.5; text-align: left;"
+                >
+                  <span
+                    class="group-description row-content"
+                    title="msg 1"
+                  >
+                    msg 1
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 1.5; text-align: left;"
+                >
+                  <span
+                    class="group-description row-content"
+                  >
+                    caller 1
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 1; text-align: left;"
+                >
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    type="submit"
+                  >
+                    Full Log event
+                  </button>
+                </div>
+              </div>
+              <div
+                class="DataGrid_row"
+              >
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 1.5; text-align: left;"
+                >
+                  <span
+                    class="group-name overflow--ellipsis row-content"
+                    data-testid="timestamp"
+                  >
+                    <span
+                      class="group-description row-content"
+                    >
+                      timestamp 2
+                    </span>
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 0.5; text-align: left;"
+                >
+                  <span
+                    class="group-description adjusted row-content"
+                  >
+                    info
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 2.5; text-align: left;"
+                >
+                  <span
+                    class="group-description row-content"
+                    title="msg 2"
+                  >
+                    msg 2
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 1.5; text-align: left;"
+                >
+                  <span
+                    class="group-description row-content"
+                  >
+                    caller 2
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 1; text-align: left;"
+                >
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    type="submit"
+                  >
+                    Full Log event
+                  </button>
+                </div>
+              </div>
+              <div
+                class="DataGrid_row"
+              >
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 1.5; text-align: left;"
+                >
+                  <span
+                    class="group-name overflow--ellipsis row-content"
+                    data-testid="timestamp"
+                  >
+                    <span
+                      class="group-description row-content"
+                    >
+                      filtered
+                    </span>
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 0.5; text-align: left;"
+                >
+                  <span
+                    class="group-description adjusted row-content"
+                  >
+                    info
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 2.5; text-align: left;"
+                >
+                  <span
+                    class="group-description row-content"
+                    title="filtered message"
+                  >
+                    filtered message
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 1.5; text-align: left;"
+                >
+                  <span
+                    class="group-description row-content"
+                  >
+                    filtered
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 1; text-align: left;"
+                >
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    type="submit"
+                  >
+                    Full Log event
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="DataGrid_footer"
+            >
+              <div
+                class="DataGrid_cell"
+              >
+                1 - 3 of 3
+                <button
+                  class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+                  disabled=""
+                  type="button"
+                >
+                  <i
+                    class="icon icon-chevron-left"
+                    title="Previous Icon"
+                  />
+                </button>
+                <button
+                  class="btn btn-quaternary btn-icon btn-sm next disabled"
+                  disabled=""
+                  type="button"
+                >
+                  <i
+                    class="icon icon-chevron-right"
+                    title="Next Icon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

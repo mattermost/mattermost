@@ -202,6 +202,7 @@ const defaultServerConfig: AdminConfig = {
         ScheduledPosts: true,
         EnableWebHubChannelIteration: false,
         FrameAncestors: '',
+        DeleteAccountLink: '',
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -396,6 +397,9 @@ const defaultServerConfig: AdminConfig = {
         AboutLink: 'https://mattermost.com/pl/about-mattermost',
         HelpLink: 'https://mattermost.com/pl/help/',
         ReportAProblemLink: 'https://mattermost.com/pl/report-a-bug',
+        ReportAProblemType: 'default',
+        ReportAProblemMail: '',
+        AllowDownloadLogs: true,
         ForgotPasswordLink: '',
         SupportEmail: '',
         CustomTermsOfServiceEnabled: false,
@@ -605,6 +609,7 @@ const defaultServerConfig: AdminConfig = {
         DisableWakeUpReconnectHandler: false,
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
+        ExperimentalChannelCategorySorting: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,

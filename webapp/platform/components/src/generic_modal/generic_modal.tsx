@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
+import {useFocusTrap} from '../hooks/useFocusTrap';
 import './generic_modal.scss';
 
 export type ModalLocation = 'top' | 'center' | 'bottom';
@@ -28,7 +29,7 @@ export type Props = {
     cancelButtonClassName?: string;
     isConfirmDisabled?: boolean;
     isDeleteModal?: boolean;
-    id: string;
+    id?: string;
     autoCloseOnCancelButton?: boolean;
     autoCloseOnConfirmButton?: boolean;
     enforceFocus?: boolean;
@@ -67,249 +68,292 @@ export type Props = {
      * in tests (Cypress, Playwright, etc.)
      */
     dataTestId?: string;
+
+    /**
+     * Whether to delay activating the focus trap.
+     *
+     * This is useful for modals with dynamic content that might not be fully
+     * rendered when the modal is opened. The delay allows the DOM to settle
+     * before the focus trap identifies focusable elements. ie. MultiSelect
+     *
+     * When true, applies a 500ms delay.
+     */
+    delayFocusTrap?: boolean;
 };
 
-type State = {
-    show: boolean;
-    isFocalTrapActive: boolean;
-}
-export class GenericModal extends React.PureComponent<Props, State> {
-    static defaultProps: Partial<Props> = {
-        show: true,
-        id: 'genericModal',
-        autoCloseOnCancelButton: true,
-        autoCloseOnConfirmButton: true,
-        enforceFocus: true,
-        keyboardEscape: true,
-        bodyPadding: true,
-        showCloseButton: true,
-        showHeader: true,
-        modalLocation: 'center',
-    };
+export const GenericModal: React.FC<Props> = ({
+    show = true,
+    id = 'genericModal',
+    autoCloseOnCancelButton = true,
+    autoCloseOnConfirmButton = true,
+    enforceFocus = true,
+    keyboardEscape = true,
+    bodyPadding = true,
+    showCloseButton = true,
+    showHeader = true,
+    modalLocation = 'center',
+    className,
+    onExited,
+    onEntered,
+    onHide,
+    modalHeaderText,
+    modalSubheaderText,
+    handleCancel,
+    handleConfirm,
+    handleEnterKeyPress,
+    handleKeydown,
+    confirmButtonText,
+    confirmButtonClassName,
+    cancelButtonText,
+    cancelButtonClassName,
+    isConfirmDisabled,
+    isDeleteModal,
+    container,
+    ariaLabel,
+    ariaLabelledby,
+    errorText,
+    compassDesign,
+    backdrop,
+    backdropClassName,
+    tabIndex,
+    children,
+    autoFocusConfirmButton,
+    headerInput,
+    bodyDivider,
+    bodyOverflowVisible,
+    footerContent,
+    footerDivider,
+    appendedContent,
+    headerButton,
+    dataTestId,
+    delayFocusTrap,
+}) => {
+    const intl = useIntl();
 
-    constructor(props: Props) {
-        super(props);
+    // Create a ref for the modal container
+    const containerRef = useRef<HTMLDivElement>(null);
 
-        this.state = {
-            show: props.show!,
-            isFocalTrapActive: false,
-        };
-    }
+    const [showState, setShowState] = useState(show);
 
-    componentDidUpdate(prevProps: Props) {
-        if (prevProps.show !== this.props.show) {
-            this.setState({show: Boolean(this.props.show)});
-        }
-    }
+    // Use focus trap to keep focus within the modal when it's open
+    useFocusTrap(showState, containerRef, {
+        delayMs: delayFocusTrap ? 500 : undefined,
+    });
 
-    onHide = () => {
-        this.setState({show: false});
-        this.props.onHide?.();
-    };
+    useEffect(() => {
+        setShowState(show);
+    }, [show]);
 
-    handleCancel = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    const onHideCallback = useCallback(() => {
+        setShowState(false);
+        onHide?.();
+    }, [onHide]);
+
+    const handleCancelCallback = useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         event.preventDefault();
-        if (this.props.autoCloseOnCancelButton) {
-            this.onHide();
+        if (autoCloseOnCancelButton) {
+            onHideCallback();
         }
-        if (this.props.handleCancel) {
-            this.props.handleCancel();
-        }
-    };
+        handleCancel?.();
+    }, [autoCloseOnCancelButton, onHideCallback, handleCancel]);
 
-    handleConfirm = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    const handleConfirmCallback = useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         event.preventDefault();
-        if (this.props.autoCloseOnConfirmButton) {
-            this.onHide();
+        if (autoCloseOnConfirmButton) {
+            onHideCallback();
         }
-        if (this.props.handleConfirm) {
-            this.props.handleConfirm();
-        }
-    };
+        handleConfirm?.();
+    }, [autoCloseOnConfirmButton, onHideCallback, handleConfirm]);
 
-    private onEnterKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const onEnterKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
         if (event.key === 'Enter') {
             if (event.nativeEvent.isComposing) {
                 return;
             }
-            if (this.props.handleConfirm && this.props.autoCloseOnConfirmButton) {
-                this.onHide();
+            if (handleConfirm && autoCloseOnConfirmButton) {
+                onHideCallback();
             }
-            if (this.props.handleEnterKeyPress) {
-                this.props.handleEnterKeyPress();
-            }
+            handleEnterKeyPress?.();
         }
-        this.props.handleKeydown?.(event);
-    };
+        handleKeydown?.(event);
+    }, [handleConfirm, autoCloseOnConfirmButton, onHideCallback, handleEnterKeyPress, handleKeydown]);
 
-    render() {
-        let confirmButton;
-        if (this.props.handleConfirm) {
-            const isConfirmOrDeleteClassName = this.props.isDeleteModal ? 'delete' : 'confirm';
-            let confirmButtonText: React.ReactNode = (
-                <FormattedMessage
-                    id='generic_modal.confirm'
-                    defaultMessage='Confirm'
-                />
-            );
-            if (this.props.confirmButtonText) {
-                confirmButtonText = this.props.confirmButtonText;
-            }
-
-            confirmButton = (
-                <button
-                    autoFocus={this.props.autoFocusConfirmButton}
-                    type='submit'
-                    className={classNames('GenericModal__button btn btn-primary', isConfirmOrDeleteClassName, this.props.confirmButtonClassName, {
-                        disabled: this.props.isConfirmDisabled,
-                    })}
-                    onClick={this.handleConfirm}
-                    disabled={this.props.isConfirmDisabled}
-                >
-                    {confirmButtonText}
-                </button>
-            );
-        }
-
-        let cancelButton;
-        if (this.props.handleCancel) {
-            let cancelButtonText: React.ReactNode = (
-                <FormattedMessage
-                    id='generic_modal.cancel'
-                    defaultMessage='Cancel'
-                />
-            );
-            if (this.props.cancelButtonText) {
-                cancelButtonText = this.props.cancelButtonText;
-            }
-
-            cancelButton = (
-                <button
-                    type='button'
-                    className={classNames('GenericModal__button btn btn-tertiary', this.props.cancelButtonClassName)}
-                    onClick={this.handleCancel}
-                >
-                    {cancelButtonText}
-                </button>
-            );
-        }
-
-        const headerText = this.props.modalHeaderText && (
-            <div className='GenericModal__header'>
-                <h1
-                    id='genericModalLabel'
-                    className='modal-title'
-                >
-                    {this.props.modalHeaderText}
-                </h1>
-                {this.props.headerButton}
-            </div>
+    // Build confirm button if provided.
+    let confirmButtonElement;
+    if (handleConfirm) {
+        const buttonTypeClass = isDeleteModal ? 'delete' : 'confirm';
+        let confirmButtonTextContent: React.ReactNode = (
+            <FormattedMessage
+                id='generic_modal.confirm'
+                defaultMessage='Confirm'
+            />
         );
-
-        const locationClassMapping: Record<Required<Props>['modalLocation'], string> = {
-            top: 'GenericModal__location--top',
-            center: 'GenericModal__location--center',
-            bottom: 'GenericModal__location--bottom',
-        };
-
-        const modalLocationClass = locationClassMapping[this.props.modalLocation ?? 'center'];
-
-        // Accessibility labeling strategy:
-        // 1. We always set aria-labelledby to ensure the modal has a proper label
-        //    - First try to use the provided ariaLabeledBy prop
-        //    - Fall back to 'genericModalLabel' which references the modal title
-        // 2. We also support aria-label as a secondary option
-        //    - This will only be used by screen readers if the element referenced by aria-labelledby doesn't exist
-        //    - This provides a fallback for accessibility in case the referenced element is missing
-        // Note: When both aria-labelledby and aria-label are present, aria-labelledby takes precedence
-        const ariaLabelledby = this.props.ariaLabelledby || 'genericModalLabel';
-
-        return (
-            <Modal
-                id={this.props.id}
-                role='none'
-                aria-label={this.props.ariaLabel}
-                aria-labelledby={ariaLabelledby}
-                aria-modal='true'
-                dialogClassName={classNames(
-                    modalLocationClass,
-                    'a11y__modal GenericModal',
-                    {
-                        GenericModal__compassDesign: this.props.compassDesign,
-                        'modal--overflow': this.props.bodyOverflowVisible,
-                    },
-                    this.props.className,
-                )}
-                show={this.state.show}
-                restoreFocus={true}
-                enforceFocus={this.props.enforceFocus}
-                onHide={this.onHide}
-                onExited={this.props.onExited}
-                backdrop={this.props.backdrop}
-                backdropClassName={this.props.backdropClassName}
-                container={this.props.container}
-                keyboard={this.props.keyboardEscape}
-                onEntered={this.props.onEntered}
-                data-testid={this.props.dataTestId}
+        if (confirmButtonText) {
+            confirmButtonTextContent = confirmButtonText;
+        }
+        confirmButtonElement = (
+            <button
+                autoFocus={autoFocusConfirmButton}
+                type='submit'
+                className={classNames('GenericModal__button btn btn-primary', buttonTypeClass, confirmButtonClassName, {
+                    disabled: isConfirmDisabled,
+                })}
+                onClick={handleConfirmCallback}
+                disabled={isConfirmDisabled}
             >
-                <div
-                    onKeyDown={this.onEnterKeyDown}
-                    tabIndex={this.props.tabIndex || 0}
-                    className='GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher'
-                >
-                    {this.props.showHeader && <Modal.Header closeButton={this.props.showCloseButton}>
-                        <div
-                            className='GenericModal__header__text_container'
-                        >
-                            {this.props.compassDesign && (
-                                <>
-                                    {headerText}
-                                    {this.props.headerInput}
-                                </>
-                            )}
-                            {
-                                this.props.modalSubheaderText &&
-                                <div className='modal-subheading-container'>
-                                    <div
-                                        id='genericModalSubheading'
-                                        className='modal-subheading'
-                                    >
-                                        {this.props.modalSubheaderText}
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </Modal.Header>}
-                    <Modal.Body className={classNames({divider: this.props.bodyDivider, 'overflow-visible': this.props.bodyOverflowVisible})}>
-                        {this.props.compassDesign ? (
-                            this.props.errorText && (
-                                <div className='genericModalError'>
-                                    <i className='icon icon-alert-outline'/>
-                                    <span>{this.props.errorText}</span>
-                                </div>
-                            )
-                        ) : (
-                            headerText
-                        )}
-                        <div className={classNames('GenericModal__body', {padding: this.props.bodyPadding})}>
-                            {this.props.children}
-                        </div>
-                    </Modal.Body>
-                    {(cancelButton || confirmButton || this.props.footerContent) && (
-                        <Modal.Footer className={classNames({divider: this.props.footerDivider})}>
-                            {(cancelButton || confirmButton) ? (
-                                <>
-                                    {cancelButton}
-                                    {confirmButton}
-                                </>
-                            ) : (
-                                this.props.footerContent
-                            )}
-                        </Modal.Footer>
-                    )}
-                    {Boolean(this.props.appendedContent) && this.props.appendedContent}
-                </div>
-            </Modal>
+                {confirmButtonTextContent}
+            </button>
         );
     }
-}
+
+    // Build cancel button if provided.
+    let cancelButtonElement;
+    if (handleCancel) {
+        let cancelButtonTextContent: React.ReactNode = (
+            <FormattedMessage
+                id='generic_modal.cancel'
+                defaultMessage='Cancel'
+            />
+        );
+        if (cancelButtonText) {
+            cancelButtonTextContent = cancelButtonText;
+        }
+        cancelButtonElement = (
+            <button
+                type='button'
+                className={classNames('GenericModal__button btn btn-tertiary', cancelButtonClassName)}
+                onClick={handleCancelCallback}
+            >
+                {cancelButtonTextContent}
+            </button>
+        );
+    }
+
+    // Build header text if provided.
+    const headerText = modalHeaderText && (
+        <div className='GenericModal__header'>
+            <h1 id='genericModalLabel' className='modal-title'>
+                {modalHeaderText}
+            </h1>
+            {headerButton}
+        </div>
+    );
+
+    // Map modalLocation to a CSS class.
+    const locationClassMapping: Record<ModalLocation, string> = {
+        top: 'GenericModal__location--top',
+        center: 'GenericModal__location--center',
+        bottom: 'GenericModal__location--bottom',
+    };
+    const modalLocationClass = locationClassMapping[modalLocation];
+
+    // Accessibility labeling strategy:
+    // 1. We always set aria-labelledby to ensure the modal has a proper label
+    //    - First try to use the provided ariaLabeledBy prop
+    //    - Fall back to 'genericModalLabel' which references the modal title
+    // 2. We also support aria-label as a secondary option
+    //    - This will only be used by screen readers if the element referenced by aria-labelledby doesn't exist
+    //    - This provides a fallback for accessibility in case the referenced element is missing
+    // Note: When both aria-labelledby and aria-label are present, aria-labelledby takes precedence
+    const ariaLabelledbyValue = ariaLabelledby || 'genericModalLabel';
+
+    return (
+        <Modal
+            id={id}
+            role='none'
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledbyValue}
+            aria-modal='true'
+            dialogClassName={classNames(
+                modalLocationClass,
+                'a11y__modal GenericModal',
+                {
+                    GenericModal__compassDesign: compassDesign,
+                    'modal--overflow': bodyOverflowVisible,
+                },
+                className,
+            )}
+            show={showState}
+            restoreFocus={true}
+            enforceFocus={enforceFocus}
+            onHide={onHideCallback}
+            onExited={onExited}
+            backdrop={backdrop}
+            backdropClassName={backdropClassName}
+            container={container}
+            keyboard={keyboardEscape}
+            onEntered={onEntered}
+            data-testid={dataTestId}
+        >
+            <div
+                ref={containerRef}
+                onKeyDown={onEnterKeyDown}
+                tabIndex={tabIndex || 0}
+                className='GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher'
+            >
+                {showHeader && (
+                    <Modal.Header closeButton={false}>
+                        <div className='GenericModal__header__text_container'>
+                            {compassDesign && (
+                                <>
+                                    {headerText}
+                                    {headerInput}
+                                </>
+                            )}
+                            {modalSubheaderText && (
+                                <div className='modal-subheading-container'>
+                                    <div id='genericModalSubheading' className='modal-subheading'>
+                                        {modalSubheaderText}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        {showCloseButton && (
+                            <button
+                                type='button'
+                                className='close'
+                                onClick={onHideCallback}
+                                aria-label={intl.formatMessage({id: 'generic_modal.close', defaultMessage: 'Close'})}
+                            >
+                                <span aria-hidden='true'>{'×'}</span>
+                                <span className='sr-only'>
+                                    <FormattedMessage id='generic_modal.close' defaultMessage='Close' />
+                                </span>
+                            </button>
+                        )}
+                    </Modal.Header>
+                )}
+                <Modal.Body className={classNames({divider: bodyDivider, 'overflow-visible': bodyOverflowVisible})}>
+                    {compassDesign ? (
+                        errorText && (
+                            <div className='genericModalError'>
+                                <i className='icon icon-alert-outline'/>
+                                <span>{errorText}</span>
+                            </div>
+                        )
+                    ) : (
+                        headerText
+                    )}
+                    <div className={classNames('GenericModal__body', {padding: bodyPadding})}>
+                        {children}
+                    </div>
+                </Modal.Body>
+                {(cancelButtonElement || confirmButtonElement || footerContent) && (
+                    <Modal.Footer className={classNames({divider: footerDivider})}>
+                        {(cancelButtonElement || confirmButtonElement) ? (
+                            <>
+                                {cancelButtonElement}
+                                {confirmButtonElement}
+                            </>
+                        ) : (
+                            footerContent
+                        )}
+                    </Modal.Footer>
+                )}
+                {Boolean(appendedContent) && appendedContent}
+            </div>
+        </Modal>
+    );
+};
+
+export default GenericModal;

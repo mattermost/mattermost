@@ -186,6 +186,12 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// MySQL is not supported for trial licenses
+	if c.App.Config().SqlSettings.DriverName != nil && *c.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.mysql.app_error", nil, "mysql is not supported for trial licenses", http.StatusBadRequest)
+		return
+	}
+
 	if c.App.Srv().Platform().LicenseManager() == nil {
 		c.Err = model.NewAppError("requestTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
 		return
