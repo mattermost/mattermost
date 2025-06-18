@@ -26,6 +26,25 @@ describe('components/datetime_input/DateTimeInput', () => {
         timezone: 'UTC',
     };
 
+    const defaultState = {
+        entities: {
+            general: {
+                config: {
+                    BuildEnterpriseReady: 'true',
+                    Version: '10.6.0',
+                    BuildNumber: 'dev',
+                    TelemetryId: 'test-telemetry-id',
+                },
+                license: {
+                    Cloud: 'false',
+                },
+            },
+            users: {
+                currentUserId: 'test-user-id',
+            },
+        },
+    };
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T10:00:00.000Z'));
@@ -39,6 +58,7 @@ describe('components/datetime_input/DateTimeInput', () => {
     test('should match snapshot', () => {
         const {container} = renderWithContext(
             <DateTimeInput {...baseProps}/>,
+            defaultState,
         );
 
         expect(container).toMatchSnapshot();
@@ -47,6 +67,7 @@ describe('components/datetime_input/DateTimeInput', () => {
     test('should render date and time selectors', () => {
         renderWithContext(
             <DateTimeInput {...baseProps}/>,
+            defaultState,
         );
 
         expect(screen.getByText('Date')).toBeInTheDocument();
@@ -70,7 +91,7 @@ describe('components/datetime_input/DateTimeInput', () => {
                 setIsInteracting: mockSetIsInteracting,
             };
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            renderWithContext(<DateTimeInput {...props}/>, defaultState);
 
             const dateButton = screen.getByText('Date').closest('.date-time-input');
 
@@ -88,7 +109,7 @@ describe('components/datetime_input/DateTimeInput', () => {
                 setIsInteracting: mockSetIsInteracting,
             };
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            renderWithContext(<DateTimeInput {...props}/>, defaultState);
 
             const timeButton = screen.getByLabelText('Time');
 
@@ -106,7 +127,7 @@ describe('components/datetime_input/DateTimeInput', () => {
                 setIsInteracting: mockSetIsInteracting,
             };
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            renderWithContext(<DateTimeInput {...props}/>, defaultState);
 
             // Open date picker first
             const dateButton = screen.getByText('Date').closest('.date-time-input');
@@ -129,7 +150,7 @@ describe('components/datetime_input/DateTimeInput', () => {
             mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00.000Z'));
             mockIsBeforeTime.mockReturnValue(true);
 
-            renderWithContext(<DateTimeInput {...baseProps}/>);
+            renderWithContext(<DateTimeInput {...baseProps}/>, defaultState);
 
             const dateButton = screen.getByText('Date').closest('.date-time-input');
 
@@ -150,7 +171,7 @@ describe('components/datetime_input/DateTimeInput', () => {
         test('should handle day selection for future date', async () => {
             mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00.000Z'));
 
-            renderWithContext(<DateTimeInput {...baseProps}/>);
+            renderWithContext(<DateTimeInput {...baseProps}/>, defaultState);
 
             const dateButton = screen.getByText('Date').closest('.date-time-input');
 
@@ -176,7 +197,7 @@ describe('components/datetime_input/DateTimeInput', () => {
                 timezone: 'America/New_York',
             };
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            renderWithContext(<DateTimeInput {...props}/>, defaultState);
 
             expect(mockGetCurrentMomentForTimezone).toHaveBeenCalledWith('America/New_York');
         });
@@ -189,7 +210,7 @@ describe('components/datetime_input/DateTimeInput', () => {
                 timePickerInterval: 15,
             };
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            renderWithContext(<DateTimeInput {...props}/>, defaultState);
 
             // Component should render without errors with custom interval
             expect(screen.getByLabelText('Time')).toBeInTheDocument();
@@ -201,7 +222,7 @@ describe('components/datetime_input/DateTimeInput', () => {
                 relativeDate: true,
             };
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            renderWithContext(<DateTimeInput {...props}/>, defaultState);
 
             // Component should render without errors with relative formatting
             expect(screen.getByText('Date')).toBeInTheDocument();
