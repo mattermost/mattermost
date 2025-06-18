@@ -50,24 +50,26 @@ Object {
                       class="modal-title"
                       id="genericModalLabel"
                     >
-                      <header
+                      <div
                         class="mm-modal-header"
                       >
-                        <h1
+                        <h2
                           class="mm-modal-header__title"
                           id="mm-modal-header-channelNotificationModalLabel"
                         >
-                          Notification Preferences
-                        </h1>
-                        <div
-                          class="mm-modal-header__vertical-divider"
-                        />
-                        <p
-                          class="mm-modal-header__subtitle"
-                        >
-                          channel_display_name
-                        </p>
-                      </header>
+                          <span>
+                            Notification Preferences
+                          </span>
+                          <span
+                            class="mm-modal-header__vertical-divider"
+                          />
+                          <span
+                            class="mm-modal-header__subtitle"
+                          >
+                            channel_display_name
+                          </span>
+                        </h2>
+                      </div>
                     </h1>
                   </div>
                 </div>
@@ -532,24 +534,26 @@ Object {
                       class="modal-title"
                       id="genericModalLabel"
                     >
-                      <header
+                      <div
                         class="mm-modal-header"
                       >
-                        <h1
+                        <h2
                           class="mm-modal-header__title"
                           id="mm-modal-header-channelNotificationModalLabel"
                         >
-                          Notification Preferences
-                        </h1>
-                        <div
-                          class="mm-modal-header__vertical-divider"
-                        />
-                        <p
-                          class="mm-modal-header__subtitle"
-                        >
-                          channel_display_name
-                        </p>
-                      </header>
+                          <span>
+                            Notification Preferences
+                          </span>
+                          <span
+                            class="mm-modal-header__vertical-divider"
+                          />
+                          <span
+                            class="mm-modal-header__subtitle"
+                          >
+                            channel_display_name
+                          </span>
+                        </h2>
+                      </div>
                     </h1>
                   </div>
                 </div>
@@ -1174,24 +1178,26 @@ Object {
                       class="modal-title"
                       id="genericModalLabel"
                     >
-                      <header
+                      <div
                         class="mm-modal-header"
                       >
-                        <h1
+                        <h2
                           class="mm-modal-header__title"
                           id="mm-modal-header-channelNotificationModalLabel"
                         >
-                          Notification Preferences
-                        </h1>
-                        <div
-                          class="mm-modal-header__vertical-divider"
-                        />
-                        <p
-                          class="mm-modal-header__subtitle"
-                        >
-                          channel_display_name
-                        </p>
-                      </header>
+                          <span>
+                            Notification Preferences
+                          </span>
+                          <span
+                            class="mm-modal-header__vertical-divider"
+                          />
+                          <span
+                            class="mm-modal-header__subtitle"
+                          >
+                            channel_display_name
+                          </span>
+                        </h2>
+                      </div>
                     </h1>
                   </div>
                 </div>
@@ -1535,24 +1541,26 @@ Object {
                       class="modal-title"
                       id="genericModalLabel"
                     >
-                      <header
+                      <div
                         class="mm-modal-header"
                       >
-                        <h1
+                        <h2
                           class="mm-modal-header__title"
                           id="mm-modal-header-channelNotificationModalLabel"
                         >
-                          Notification Preferences
-                        </h1>
-                        <div
-                          class="mm-modal-header__vertical-divider"
-                        />
-                        <p
-                          class="mm-modal-header__subtitle"
-                        >
-                          channel_display_name
-                        </p>
-                      </header>
+                          <span>
+                            Notification Preferences
+                          </span>
+                          <span
+                            class="mm-modal-header__vertical-divider"
+                          />
+                          <span
+                            class="mm-modal-header__subtitle"
+                          >
+                            channel_display_name
+                          </span>
+                        </h2>
+                      </div>
                     </h1>
                   </div>
                 </div>
@@ -2115,24 +2123,26 @@ Object {
                       class="modal-title"
                       id="genericModalLabel"
                     >
-                      <header
+                      <div
                         class="mm-modal-header"
                       >
-                        <h1
+                        <h2
                           class="mm-modal-header__title"
                           id="mm-modal-header-channelNotificationModalLabel"
                         >
-                          Notification Preferences
-                        </h1>
-                        <div
-                          class="mm-modal-header__vertical-divider"
-                        />
-                        <p
-                          class="mm-modal-header__subtitle"
-                        >
-                          channel_display_name
-                        </p>
-                      </header>
+                          <span>
+                            Notification Preferences
+                          </span>
+                          <span
+                            class="mm-modal-header__vertical-divider"
+                          />
+                          <span
+                            class="mm-modal-header__subtitle"
+                          >
+                            channel_display_name
+                          </span>
+                        </h2>
+                      </div>
                     </h1>
                   </div>
                 </div>
@@ -2695,24 +2705,26 @@ Object {
                       class="modal-title"
                       id="genericModalLabel"
                     >
-                      <header
+                      <div
                         class="mm-modal-header"
                       >
-                        <h1
+                        <h2
                           class="mm-modal-header__title"
                           id="mm-modal-header-channelNotificationModalLabel"
                         >
-                          Notification Preferences
-                        </h1>
-                        <div
-                          class="mm-modal-header__vertical-divider"
-                        />
-                        <p
-                          class="mm-modal-header__subtitle"
-                        >
-                          channel_display_name
-                        </p>
-                      </header>
+                          <span>
+                            Notification Preferences
+                          </span>
+                          <span
+                            class="mm-modal-header__vertical-divider"
+                          />
+                          <span
+                            class="mm-modal-header__subtitle"
+                          >
+                            channel_display_name
+                          </span>
+                        </h2>
+                      </div>
                     </h1>
                   </div>
                 </div>

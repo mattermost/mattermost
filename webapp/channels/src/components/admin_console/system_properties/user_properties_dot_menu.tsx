@@ -229,7 +229,7 @@ const DotMenu = ({
                         labels={(
                             <FormattedMessage
                                 id='admin.system_properties.user_properties.dotmenu.duplicate.label'
-                                defaultMessage={'Duplicate property'}
+                                defaultMessage={'Duplicate attribute'}
                             />
                         )}
                     />
@@ -242,7 +242,7 @@ const DotMenu = ({
                     labels={(
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.delete.label'
-                            defaultMessage={'Delete property'}
+                            defaultMessage={'Delete attribute'}
                         />
                     )}
                 />

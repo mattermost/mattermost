@@ -214,7 +214,7 @@ function ThreadItem({
                 onKeyDown={selectHandler}
                 ref={ref}
             >
-                <header>
+                <div className='thread-item-header'>
                     {Boolean(newMentions || newReplies) && (
                         <div className='indicator'>
                             {newMentions ? (
@@ -249,7 +249,7 @@ function ThreadItem({
                         className='alt-hidden'
                         value={lastReplyAt}
                     />
-                </header>
+                </div>
                 <div className='menu-anchor alt-visible'>
                     <ThreadMenu
                         threadId={threadId}
@@ -335,7 +335,6 @@ function ThreadItem({
                     />
                     <Timestamp
                         {...THREADING_TIME}
-                        className='alt-hidden'
                         value={lastReplyAt}
                     />
                 </span>

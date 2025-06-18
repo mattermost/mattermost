@@ -26,6 +26,7 @@ function mapStateToProps(state: GlobalState) {
         totalUsers: selectFilteredUserStats(state)?.total_users_count || 0,
         upgradedFromTE: config.UpgradedFromTE === 'true',
         prevTrialLicense: state.entities.admin.prevTrialLicense,
+        isMySql: config.SQLDriverName === 'mysql',
     };
 }
 

@@ -28,7 +28,6 @@ export interface Item extends UserProfile {
     name: string;
     isCurrentUser: boolean;
     type: string;
-    textboxId?: string;
 }
 
 interface Group extends Item {
@@ -188,10 +187,8 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
     return (
         <SuggestionContainer
             ref={ref}
-            role='option'
             {...props}
             data-testid={`mentionSuggestion_${itemname}`}
-            id={`${item.textboxId}_@${itemname}`}
         >
             {icon}
             <span className='suggestion-list__ellipsis'>

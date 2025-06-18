@@ -112,7 +112,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
 
         props.registerSaveAction(handleSave);
         return () => props.unRegisterSaveAction(handleSave);
-    }, [props.registerSaveAction, props.unRegisterSaveAction, attributes, originalAttributes, attributeKey, props]);
+    }, [props.registerSaveAction, props.unRegisterSaveAction, attributes, originalAttributes, attributeKey]);
 
     if (attributes.length === 0) {
         return null;
@@ -136,7 +136,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                         values={{
                             link: (msg: string) => (
                                 <Link
-                                    to='/admin_console/site_config/system_properties'
+                                    to='/admin_console/system_attributes/user_attributes'
                                 >
                                     {msg}
                                 </Link>

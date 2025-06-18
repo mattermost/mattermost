@@ -410,23 +410,22 @@ ol.markdown__list {
 
 blockquote {
     position: relative;
-    padding: 10px 10px 10px 38px;
-    border: none;
-    margin-bottom: 0;
+    padding: 2px 12px 2px 12px;
+    border-left: 2px solid rgba(var(--center-channel-color-rgb), 0.20);
+    margin: 6px 0 0 0;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
     font-size: inherit;
 
-    &::before {
-        position: absolute;
-        top: 5px;
-        left: 8px;
-        display: inline-block;
-        content: '\f10d';
-        font-family: FontAwesome, sans-serif;
-        font-size: 20px;
-        font-style: normal;
-        font-weight: normal;
-        opacity: 0.73;
-        text-decoration: inherit;
+    &:first-child {
+        margin-top: 0;
+    }
+    
+    +p {
+        margin-top: 6px;
+
+        .post & {
+            margin-top: 6px;
+        }
     }
 }
 

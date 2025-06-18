@@ -4,15 +4,21 @@
 package platform
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	mocks2 "github.com/mattermost/mattermost/server/v8/channels/utils/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 func TestLoadLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -21,6 +27,7 @@ func TestLoadLicense(t *testing.T) {
 }
 
 func TestSaveLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -30,7 +37,47 @@ func TestSaveLicense(t *testing.T) {
 	require.NotNil(t, err, "shouldn't have saved license")
 }
 
+func TestSaveEnterpriseAdvancedLicense(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	defer testutils.ResetLicenseValidator()
+	mockLicenseValidator := mocks2.LicenseValidatorIface{}
+
+	license := &model.License{
+		Id: model.NewId(),
+		Features: &model.Features{
+			Users: model.NewPointer(100),
+		},
+		Customer: &model.Customer{
+			Name:  "TestName",
+			Email: "test@example.com",
+		},
+		SkuName:      "SKU NAME",
+		SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+		StartsAt:     model.GetMillis() - 1000,
+		ExpiresAt:    model.GetMillis() + 100000,
+	}
+
+	mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(license, nil).Once()
+	licenseBytes, err := json.Marshal(license)
+	require.NoError(t, err)
+
+	mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseBytes), nil)
+	utils.LicenseValidator = &mockLicenseValidator
+
+	_, appErr := th.Service.SaveLicense(licenseBytes)
+
+	if *th.Service.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
+		require.NotNil(t, appErr, "shouldn't have saved license")
+		require.Equal(t, "addLicense: api.license.add_license.mysql.app_error, mysql is not supported for this license", appErr.Error())
+	} else {
+		require.Nil(t, appErr, "should have saved license")
+	}
+}
+
 func TestRemoveLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -39,6 +86,7 @@ func TestRemoveLicense(t *testing.T) {
 }
 
 func TestSetLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -60,6 +108,7 @@ func TestSetLicense(t *testing.T) {
 }
 
 func TestGetSanitizedClientLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

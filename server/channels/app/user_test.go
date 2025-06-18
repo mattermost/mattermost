@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
-	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
@@ -30,6 +29,7 @@ import (
 )
 
 func TestCreateOAuthUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -87,6 +87,7 @@ func TestCreateOAuthUser(t *testing.T) {
 }
 
 func TestUpdateDefaultProfileImage(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	startTime := model.GetMillis()
@@ -109,6 +110,7 @@ func TestUpdateDefaultProfileImage(t *testing.T) {
 }
 
 func TestAdjustProfileImage(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -134,6 +136,7 @@ func TestAdjustProfileImage(t *testing.T) {
 }
 
 func TestUpdateUserToRestrictedDomain(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -194,6 +197,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -237,6 +241,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestUpdateUserMissingFields(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -270,6 +275,7 @@ func TestUpdateUserMissingFields(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -340,6 +346,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestUpdateUserActive(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -358,6 +365,7 @@ func TestUpdateUserActive(t *testing.T) {
 }
 
 func TestUpdateActiveBotsSideEffect(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -410,6 +418,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 }
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -519,6 +528,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 }
 
 func TestCreateUserConflict(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -559,6 +569,7 @@ func TestCreateUserConflict(t *testing.T) {
 }
 
 func TestUpdateUserEmail(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -739,6 +750,7 @@ func createGitlabUser(t *testing.T, a *App, c request.CTX, id int64, username st
 }
 
 func TestGetUsersByStatus(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -869,6 +881,7 @@ func TestGetUsersByStatus(t *testing.T) {
 }
 
 func TestCreateUserWithInviteId(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -897,6 +910,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 }
 
 func TestCreateUserWithToken(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1091,6 +1105,7 @@ func TestCreateUserWithToken(t *testing.T) {
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 
@@ -1116,8 +1131,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	bots1 := []*model.Bot{}
 	bots2 := []*model.Bot{}
 
-	sqlStore := mainHelper.GetSQLStore()
-	err1 := sqlStore.GetMaster().Select(&bots1, "SELECT * FROM Bots")
+	err1 := th.SQLStore.GetMaster().Select(&bots1, "SELECT * FROM Bots")
 	assert.NoError(t, err1)
 	assert.Equal(t, 1, len(bots1))
 
@@ -1128,7 +1142,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	err = th.App.PermanentDeleteUser(th.Context, retUser1)
 	assert.Nil(t, err)
 
-	err1 = sqlStore.GetMaster().Select(&bots2, "SELECT * FROM Bots")
+	err1 = th.SQLStore.GetMaster().Select(&bots2, "SELECT * FROM Bots")
 	assert.NoError(t, err1)
 	assert.Equal(t, 0, len(bots2))
 
@@ -1187,6 +1201,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 }
 
 func TestPasswordRecovery(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1242,6 +1257,7 @@ func TestPasswordRecovery(t *testing.T) {
 }
 
 func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1280,6 +1296,7 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 }
 
 func TestPasswordChangeSessionTermination(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1427,6 +1444,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 }
 
 func TestGetViewUsersRestrictions(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1562,6 +1580,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 }
 
 func TestPromoteGuestToUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1698,6 +1717,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 }
 
 func TestDemoteUserToGuest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1883,6 +1903,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 }
 
 func TestDeactivateGuests(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1907,6 +1928,7 @@ func TestDeactivateGuests(t *testing.T) {
 }
 
 func TestUpdateUserRolesWithUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	// InitBasic is used to let the first CreateUser call not be
 	// a system_admin
 	th := Setup(t).InitBasic()
@@ -1932,6 +1954,7 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 }
 
 func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	// InitBasic is used to let the first CreateUser call not be
 	// a system_admin
 	th := Setup(t).InitBasic()
@@ -1970,6 +1993,7 @@ func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
 }
 
 func TestDeactivateMfa(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("MFA is disabled", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -1985,6 +2009,7 @@ func TestDeactivateMfa(t *testing.T) {
 }
 
 func TestPatchUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2023,6 +2048,7 @@ func TestPatchUser(t *testing.T) {
 }
 
 func TestUpdateThreadReadForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Ensure thread membership exists before updating read", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -2051,6 +2077,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 }
 
 func TestCreateUserWithInitialPreferences(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2107,6 +2134,7 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 }
 
 func TestSendSubscriptionHistoryEvent(t *testing.T) {
+	mainHelper.Parallel(t)
 	cloudProduct := &model.Product{
 		ID:                "prod_test1",
 		Name:              "name1",
@@ -2188,6 +2216,7 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 }
 
 func TestGetUsersForReporting(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("should throw error on invalid date range", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -2261,161 +2290,4 @@ func TestGetUsersForReporting(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, userReports)
 	})
-}
-
-func TestCreateUserOrGuest(t *testing.T) {
-	t.Run("base case - you can create a user", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-
-	t.Run("cannot create user when user count has exceeded the permissible limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		mockUserStore := storemocks.UserStore{}
-		mockUserStore.On("Count", mock.Anything).Return(int64(12000), nil)
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockStore.On("User").Return(&mockUserStore)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.NotNil(t, appErr)
-		require.Nil(t, createdUser)
-	})
-
-	t.Run("can create user when server is exactly on limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		id := NewTestId()
-		userCreationMocks(t, th, id, 5000)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-
-	t.Run("licensed server can create user when server is OVER limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		id := NewTestId()
-		userCreationMocks(t, th, id, 20000)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-
-		th.App.Srv().SetLicense(model.NewTestLicense(""))
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-
-	t.Run("licensed server can create user when server is UNDER limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		id := NewTestId()
-		userCreationMocks(t, th, id, 10)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-
-		th.App.Srv().SetLicense(model.NewTestLicense(""))
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-}
-
-func userCreationMocks(t *testing.T, th *TestHelper, userID string, activeUserCount int64) {
-	mockUserStore := storemocks.UserStore{}
-	mockUserStore.On("Count", mock.Anything).Return(activeUserCount, nil)
-	mockUserStore.On("IsEmpty", mock.Anything).Return(false, nil)
-	mockUserStore.On("VerifyEmail", mock.Anything, "TestCreateUserOrGuest@example.com").Return("", nil)
-	mockUserStore.On("InvalidateProfilesInChannelCacheByUser", mock.Anything).Return()
-	mockUserStore.On("InvalidateProfileCacheForUser", mock.Anything).Return()
-	mockUserStore.On("Save", mock.Anything, mock.Anything).Return(&model.User{
-		Id:            userID,
-		Email:         "TestCreateUserOrGuest@example.com",
-		Username:      "username_123",
-		Nickname:      "nn_username_123",
-		Password:      "Password1",
-		EmailVerified: true,
-	}, nil)
-
-	mockUserStore.On("Get", mock.Anything, userID).Return(&model.User{
-		Id:            userID,
-		Email:         "TestCreateUserOrGuest@example.com",
-		Username:      "username_123",
-		Nickname:      "nn_username_123",
-		Password:      "Password1",
-		EmailVerified: true,
-	}, nil)
-
-	mockGroupStore := storemocks.GroupStore{}
-	mockGroupStore.On("GetByName", "username_123", mock.Anything).Return(nil, nil)
-
-	mockChannelStore := storemocks.ChannelStore{}
-	mockChannelStore.On("InvalidateAllChannelMembersForUser", mock.Anything).Return()
-
-	mockPreferencesStore := storemocks.PreferenceStore{}
-	mockPreferencesStore.On("Save", mock.Anything).Return(nil)
-
-	mockProductNoticeStore := storemocks.ProductNoticesStore{}
-	mockProductNoticeStore.On("View", userID, mock.Anything).Return(nil)
-
-	mockStore := th.App.Srv().Store().(*storemocks.Store)
-	mockStore.On("User").Return(&mockUserStore)
-	mockStore.On("Group").Return(&mockGroupStore)
-	mockStore.On("Channel").Return(&mockChannelStore)
-	mockStore.On("Preference").Return(&mockPreferencesStore)
-	mockStore.On("ProductNotices").Return(&mockProductNoticeStore)
-
-	var err error
-	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
-		UserStore:    &mockUserStore,
-		SessionStore: &storemocks.SessionStore{},
-		OAuthStore:   &storemocks.OAuthStore{},
-		ConfigFn:     th.App.ch.srv.platform.Config,
-		LicenseFn:    th.App.ch.srv.License,
-	})
-
-	require.NoError(t, err)
 }

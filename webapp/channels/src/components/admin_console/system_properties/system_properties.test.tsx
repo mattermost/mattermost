@@ -73,7 +73,7 @@ describe('SystemProperties', () => {
                 expect(screen.queryByText('Loading')).not.toBeInTheDocument();
             });
 
-            expect(screen.getByRole('heading', {name: 'User Properties'})).toBeInTheDocument();
+            expect(screen.getByRole('heading', {name: 'Configure user attributes'})).toBeInTheDocument();
 
             expect(screen.queryByDisplayValue('test attribute 0')).toBeInTheDocument();
             expect(screen.queryByDisplayValue('test attribute 1')).toBeInTheDocument();
