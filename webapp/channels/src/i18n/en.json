@@ -2796,6 +2796,7 @@
   "admin.system_properties.user_properties.add_property": "Add attribute",
   "admin.system_properties.user_properties.dotmenu.ad_ldap.edit_link.label": "Edit LDAP link",
   "admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label": "Link attribute to AD/LDAP",
+  "admin.system_properties.user_properties.dotmenu.ad_ldap.modal.helpText": "The attribute in the AD/LDAP server used to sync as a custom attribute in user's profile in Mattermost.",
   "admin.system_properties.user_properties.dotmenu.delete.label": "Delete attribute",
   "admin.system_properties.user_properties.dotmenu.duplicate.label": "Duplicate attribute",
   "admin.system_properties.user_properties.dotmenu.duplicate.name_copy": "{fieldName} (copy)",

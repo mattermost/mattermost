@@ -76,7 +76,7 @@ const AttributeModal = ({
                     style={{marginTop: '12px'}}
                 >
                     <FormattedMessage
-                        id='admin.system_properties.user_properties.attribute_modal.type_conversion_warning'
+                        id='admin.customProfileAttribWarning'
                         defaultMessage='(Warning) This attribute will be converted to a TEXT attribute, if the field is set to synchronize.'
                     />
                 </div>

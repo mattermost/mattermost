@@ -12,8 +12,6 @@ import CreatableSelect from 'react-select/creatable';
 import {SyncIcon} from '@mattermost/compass-icons/components';
 import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
 
-import {Client4} from 'mattermost-redux/client';
-
 import Constants from 'utils/constants';
 
 import AttributeModal from './attribute_modal';
@@ -86,15 +84,14 @@ const UserPropertyValues = ({
     const handleLdapSave = async (value: string) => {
         setError('');
         try {
-            const updatedAttr = {
-                type: field.type,
+            updateField({
+                ...field,
+                type: 'text',
                 attrs: {
                     ...field.attrs,
                     ldap: value,
                 },
-            };
-            await Client4.patchCustomProfileAttributeField(field.id, updatedAttr);
-            updateField({...field, attrs: {...field.attrs, ldap: value}});
+            });
             setShowLdapModal(false);
         } catch (err: any) {
             setError('Failed to update LDAP attribute.');
@@ -104,15 +101,14 @@ const UserPropertyValues = ({
     const handleSamlSave = async (value: string) => {
         setErrorSaml('');
         try {
-            const updatedAttr = {
-                type: field.type,
+            updateField({
+                ...field,
+                type: 'text',
                 attrs: {
                     ...field.attrs,
                     saml: value,
                 },
-            };
-            await Client4.patchCustomProfileAttributeField(field.id, updatedAttr);
-            updateField({...field, attrs: {...field.attrs, saml: value}});
+            });
             setShowSamlModal(false);
         } catch (err: any) {
             setErrorSaml('Failed to update SAML attribute.');
@@ -168,6 +164,7 @@ const UserPropertyValues = ({
                 {showLdapModal && (
                     <AttributeModal
                         initialValue={field.attrs.ldap || ''}
+                        fieldType={field.type}
                         onExited={() => {
                             setShowLdapModal(false);
                             setError('');
@@ -182,7 +179,7 @@ const UserPropertyValues = ({
                         }
                         modalHeaderText={
                             <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.ad_ldap.modal.title'
+                                id='admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label'
                                 defaultMessage='Link attribute to AD/LDAP'
                             />
                         }
@@ -191,6 +188,7 @@ const UserPropertyValues = ({
                 {showSamlModal && (
                     <AttributeModal
                         initialValue={field.attrs.saml || ''}
+                        fieldType={field.type}
                         onExited={() => {
                             setShowSamlModal(false);
                             setErrorSaml('');
