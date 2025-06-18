@@ -25,6 +25,8 @@ var (
 	ErrChannelNotShared  = errors.New("channel is no longer shared")
 )
 
+var atMentionRegexp = regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_:]*`)
+
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	if msg.Topic != TopicSync && msg.Topic != TopicChannelMembership && msg.Topic != TopicGlobalUserSync {
 		return fmt.Errorf("wrong topic, expected sync-related topic, got `%s`", msg.Topic)
@@ -715,24 +717,25 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		return
 	}
 
-	// Use existing atMentionRegexp to find all @mentions
-	atMentionRegexp := regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_:]*`)
+	// Process mentions from mentionMap first (already extracted by possibleAtMentions)
+	for mention, userID := range mentionMap {
+		if user, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && user != nil {
+			// Case B: "@user:org1" -> "@user" (same ID means synced from here)
+			if user.GetRemoteID() == "" {
+				post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+user.Username)
+			} else {
+				// Remote user - display with cluster suffix
+				post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+user.Username)
+			}
+		}
+	}
 
+	// Handle remaining mentions not in mentionMap using regex
 	post.Message = atMentionRegexp.ReplaceAllStringFunc(post.Message, func(match string) string {
 		mention := match[1:] // Remove @
 
-		// Matrix implementation:
-		// If mentionMap has this mention, use that user ID (from sender)
-		if userID, found := mentionMap[mention]; found {
-			if user, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && user != nil {
-				// Case B: "@user:org1" -> "@user" (same ID means synced from here)
-				if user.GetRemoteID() == "" {
-					return "@" + user.Username
-				}
-				// Remote user - display with cluster suffix
-				return "@" + user.Username
-			}
-			// mentionMap found but user doesn't exist - treat as plain text
+		// Skip if already processed in mentionMap
+		if _, found := mentionMap[mention]; found {
 			return match
 		}
 
