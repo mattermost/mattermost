@@ -25,7 +25,7 @@ export type Props = {
     /**
      * The string value displayed in this input
      */
-    value: string;
+    value?: string;
 
     /**
      * When true, and an onClear callback is defined, show an X on the input field that clears
@@ -99,7 +99,7 @@ export const QuickInput = React.memo(({
     inputComponent,
     clearClassName,
     clearableWithoutValue,
-    clearableTooltipText: clearableTooltipTextFromProps,
+    clearableTooltipText,
     onClear: onClearFromProps,
     ...restProps
 }: Props) => {
@@ -147,11 +147,7 @@ export const QuickInput = React.memo(({
         }
 
         inputRef.current = input;
-
-        /* eslint-disable-next-line react-hooks/exhaustive-deps --
-         * This function should only be memoized once.
-         **/
-    }, []);
+    }, [forwardedRef]);
 
     const onClear = useCallback((e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent) => {
         e.preventDefault();
@@ -162,11 +158,7 @@ export const QuickInput = React.memo(({
         }
 
         inputRef.current?.focus();
-
-        /* eslint-disable-next-line react-hooks/exhaustive-deps --
-         * This function should only be memoized once.
-         **/
-    }, []);
+    }, [onClearFromProps]);
 
     const showClearButton = onClearFromProps && (clearableWithoutValue || (clearable && value));
 
@@ -183,7 +175,7 @@ export const QuickInput = React.memo(({
         <div className='input-wrapper'>
             {inputElement}
             {showClearButton && (
-                <WithTooltip title={clearableTooltipTextFromProps || defaultClearableTooltipText}>
+                <WithTooltip title={clearableTooltipText || defaultClearableTooltipText}>
                     <button
                         data-testid='input-clear'
                         className={classNames(clearClassName, 'input-clear visible')}

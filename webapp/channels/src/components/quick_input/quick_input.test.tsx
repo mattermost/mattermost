@@ -9,10 +9,10 @@ import {QuickInput} from './quick_input';
 
 describe('components/QuickInput', () => {
     test.each([
-        ['in default state', {value: ''}],
+        ['in default state', {}],
         ['when not clearable', {value: 'value', clearable: false, onClear: () => {}}],
         ['when no onClear callback', {value: 'value', clearable: true}],
-        ['when value undefined', {value: '', clearable: true, onClear: () => {}}],
+        ['when value undefined', {clearable: true, onClear: () => {}}],
         ['when value empty', {value: '', clearable: true, onClear: () => {}}],
     ])('should not render clear button', (_description, props) => {
         renderWithContext(
