@@ -6,7 +6,7 @@ import React from 'react';
 import * as reactRedux from 'react-redux';
 
 import type {Subscription} from '@mattermost/types/cloud';
-import type {Team, TeamType} from '@mattermost/types/teams';
+import type {TeamType} from '@mattermost/types/teams';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
