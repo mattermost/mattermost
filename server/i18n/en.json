@@ -2277,6 +2277,10 @@
     "translation": "You do not have permission to manage this job type"
   },
   {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Invalid test type: {{.TestType}}"
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
@@ -2873,6 +2877,10 @@
   {
     "id": "api.remote_cluster.get.not_found",
     "translation": "Remote Cluster not found"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Remote cluster import is not allowed"
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
@@ -8251,6 +8259,10 @@
   {
     "id": "ent.ldap.app_error",
     "translation": "ldap interface was nil."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
   },
   {
     "id": "ent.ldap.cpa_field_mapping.list_error",
