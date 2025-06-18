@@ -75,3 +75,13 @@
         font-weight: 500;
     }
 }
+
+@media screen and (max-width: 640px) {
+    .app__body {
+        &.announcement-bar--fixed {
+            .new-channel-modal .modal-content .GenericModal__wrapper {
+                height: calc(100vh - 40px);
+            }
+        }
+    }
+}
