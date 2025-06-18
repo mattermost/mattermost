@@ -27,7 +27,7 @@ const Header = ({
 }: Props & HTMLAttributes<HTMLElement>) => {
     const H = Headings[level];
     return (
-        <header
+        <div
             {...attrs}
             className={classNames('Header', attrs.className)}
         >
@@ -37,7 +37,7 @@ const Header = ({
             </div>
             <div className='spacer'/>
             {right}
-        </header>
+        </div>
     );
 };
 
