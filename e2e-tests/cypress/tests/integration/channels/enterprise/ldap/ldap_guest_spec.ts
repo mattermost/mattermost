@@ -70,6 +70,9 @@ describe('LDAP guest', () => {
     it('MM-T1422 LDAP Guest Filter', () => {
         // # Go to LDAP settings page and update guest filter as user1
         gotoLDAPSettings();
+
+        // # expand the filters section
+        cy.findByTestId('LdapSettings.AdditionalFiltersbutton').click();
         updateGuestFilter(`(uid=${user1.username})`);
 
         // # Login as LDAP user1
@@ -89,6 +92,7 @@ describe('LDAP guest', () => {
 
             // # Go to LDAP settings page and EMPTY guest filter value
             gotoLDAPSettings();
+            cy.findByTestId('LdapSettings.AdditionalFiltersbutton').click();
             updateGuestFilter('');
 
             // # Login again as LDAP user1
@@ -122,6 +126,7 @@ describe('LDAP guest', () => {
 
         // # Go to LDAP settings page and update guest filter as user1
         gotoLDAPSettings();
+        cy.findByTestId('LdapSettings.AdditionalFiltersbutton').click();
         updateGuestFilter(`(uid=${user1.username})`);
 
         // # Go to Guest access page and disable guest access
@@ -241,7 +246,7 @@ function gotoGuestAccessSettings() {
 function gotoLDAPSettings() {
     // # Go to settings page and wait until page is loaded
     cy.visit('/admin_console/authentication/ldap');
-    cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'AD/LDAP');
+    cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'AD/LDAP Wizard');
 }
 
 function promoteGuestToUser(user) {
