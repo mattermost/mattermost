@@ -316,7 +316,11 @@ func (ch *Channels) syncPlugins() *model.AppError {
 		wg.Add(1)
 		go func(plugin *pluginSignaturePath) {
 			defer wg.Done()
-			logger := ch.srv.Log().With(mlog.String("plugin_id", plugin.pluginID), mlog.String("bundle_path", plugin.bundlePath))
+			logger := ch.srv.Log().With(
+				mlog.String("plugin_id", plugin.pluginID),
+				mlog.String("bundle_path", plugin.bundlePath),
+				mlog.String("signature_path", plugin.signaturePath),
+			)
 
 			bundle, appErr := ch.srv.fileReader(plugin.bundlePath)
 			if appErr != nil {
@@ -333,7 +337,7 @@ func (ch *Channels) syncPlugins() *model.AppError {
 				}
 				defer signature.Close()
 
-				if appErr = ch.verifyPlugin(bundle, signature); appErr != nil {
+				if appErr = ch.verifyPlugin(logger, bundle, signature); appErr != nil {
 					logger.Error("Failed to validate plugin signature", mlog.Err(appErr))
 					return
 				}
@@ -1004,7 +1008,10 @@ var SemVerV2 = semver.MustParse("2.0.0")
 // processPrepackagedPlugin will return the prepackaged plugin metadata and will also
 // install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
 func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
-	logger := ch.srv.Log().With(mlog.String("bundle_path", pluginPath.bundlePath))
+	logger := ch.srv.Log().With(
+		mlog.String("bundle_path", pluginPath.bundlePath),
+		mlog.String("signature_path", pluginPath.signaturePath),
+	)
 
 	logger.Info("Processing prepackaged plugin")
 
@@ -1020,7 +1027,7 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 	defer os.RemoveAll(tmpDir)
 
-	plugin, pluginDir, err := ch.buildPrepackagedPlugin(pluginPath, fileReader, tmpDir)
+	plugin, pluginDir, err := ch.buildPrepackagedPlugin(logger, pluginPath, fileReader, tmpDir)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.bundlePath)
 	}
@@ -1231,7 +1238,30 @@ func (ch *Channels) persistTransitionallyPrepackagedPlugins() {
 }
 
 // buildPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.
-func (ch *Channels) buildPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSeeker, tmpDir string) (*plugin.PrepackagedPlugin, string, error) {
+func (ch *Channels) buildPrepackagedPlugin(logger *mlog.Logger, pluginPath *pluginSignaturePath, pluginFile io.ReadSeeker, tmpDir string) (*plugin.PrepackagedPlugin, string, error) {
+	// Always require signature for prepackaged plugins
+	if pluginPath.signaturePath == "" {
+		return nil, "", errors.Errorf("Prepackaged plugin missing required signature file")
+	}
+
+	// Read signature file
+	signatureBytes, sigErr := os.ReadFile(pluginPath.signaturePath)
+	if sigErr != nil {
+		return nil, "", errors.Wrapf(sigErr, "Failed to read prepackaged plugin signature %s", pluginPath.signaturePath)
+	}
+
+	// Verify signature extraction
+	if _, err := pluginFile.Seek(0, io.SeekStart); err != nil {
+		return nil, "", errors.Wrapf(err, "Failed to seek to start of plugin file for signature verification: %s", pluginPath.bundlePath)
+	}
+	if appErr := ch.verifyPlugin(logger, pluginFile, bytes.NewReader(signatureBytes)); appErr != nil {
+		return nil, "", errors.Wrapf(appErr, "Prepackaged plugin signature verification failed for %s", pluginPath.bundlePath)
+	}
+
+	// Extract plugin after signature verification
+	if _, err := pluginFile.Seek(0, io.SeekStart); err != nil {
+		return nil, "", errors.Wrapf(err, "Failed to seek to start of plugin file for extraction: %s", pluginPath.bundlePath)
+	}
 	manifest, pluginDir, appErr := extractPlugin(pluginFile, tmpDir)
 	if appErr != nil {
 		return nil, "", errors.Wrapf(appErr, "Failed to extract plugin with path %s", pluginPath.bundlePath)
@@ -1240,24 +1270,12 @@ func (ch *Channels) buildPrepackagedPlugin(pluginPath *pluginSignaturePath, plug
 	plugin := new(plugin.PrepackagedPlugin)
 	plugin.Manifest = manifest
 	plugin.Path = pluginPath.bundlePath
-
-	if pluginPath.signaturePath != "" {
-		sig := pluginPath.signaturePath
-		sigReader, sigErr := os.Open(sig)
-		if sigErr != nil {
-			return nil, "", errors.Wrapf(sigErr, "Failed to open prepackaged plugin signature %s", sig)
-		}
-		bytes, sigErr := io.ReadAll(sigReader)
-		if sigErr != nil {
-			return nil, "", errors.Wrapf(sigErr, "Failed to read prepackaged plugin signature %s", sig)
-		}
-		plugin.Signature = bytes
-	}
+	plugin.Signature = signatureBytes
 
 	if manifest.IconPath != "" {
 		iconData, err := getIcon(filepath.Join(pluginDir, manifest.IconPath))
 		if err != nil {
-			ch.srv.Log().Warn("Error loading local plugin icon", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
+			logger.Warn("Error loading local plugin icon", mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
 		}
 		plugin.IconData = iconData
 	}
