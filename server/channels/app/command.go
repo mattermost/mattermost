@@ -343,12 +343,6 @@ func (a *App) MentionsToPublicChannels(c request.CTX, message, teamID string) mo
 	return channelMentionMap
 }
 
-// PossibleAtMentions returns all substrings in message that look like valid @
-// mentions.
-func (a *App) PossibleAtMentions(message string) []string {
-	return possibleAtMentions(message)
-}
-
 // tryExecuteBuiltInCommand attempts to run a built in command based on the given arguments. If no such command can be
 // found, returns nil for all arguments.
 func (a *App) tryExecuteBuiltInCommand(c request.CTX, args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {

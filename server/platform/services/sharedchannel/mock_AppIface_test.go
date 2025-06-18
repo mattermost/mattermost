@@ -590,26 +590,6 @@ func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Cha
 	return r0
 }
 
-// PossibleAtMentions provides a mock function with given fields: message
-func (_m *MockAppIface) PossibleAtMentions(message string) []string {
-	ret := _m.Called(message)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PossibleAtMentions")
-	}
-
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(string) []string); ok {
-		r0 = rf(message)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	return r0
-}
-
 // PreparePostForClient provides a mock function with given fields: c, post, isNewPost, includeDeleted, includePriority
 func (_m *MockAppIface) PreparePostForClient(c request.CTX, post *model.Post, isNewPost bool, includeDeleted bool, includePriority bool) *model.Post {
 	ret := _m.Called(c, post, isNewPost, includeDeleted, includePriority)

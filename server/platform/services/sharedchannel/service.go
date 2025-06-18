@@ -73,7 +73,6 @@ type AppIface interface {
 	CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	MentionsToTeamMembers(c request.CTX, message, teamID string) model.UserMentionMap
-	PossibleAtMentions(message string) []string
 	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
 	NotifySharedChannelUserUpdate(user *model.User)
 	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
