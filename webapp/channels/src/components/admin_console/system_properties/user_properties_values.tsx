@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {FocusEventHandler, KeyboardEventHandler} from 'react';
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {FormattedList, FormattedMessage, useIntl} from 'react-intl';
 import type {GroupBase} from 'react-select';
 import {components} from 'react-select';
@@ -12,12 +12,14 @@ import CreatableSelect from 'react-select/creatable';
 import {SyncIcon} from '@mattermost/compass-icons/components';
 import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
 
+import {Client4} from 'mattermost-redux/client';
+
 import Constants from 'utils/constants';
 
+import AttributeModal from './attribute_modal';
 import {DangerText} from './controls';
 
 import './user_properties_values.scss';
-import BlockableLink from '../blockable_link';
 
 type Props = {
     field: UserPropertyField;
@@ -34,6 +36,11 @@ const UserPropertyValues = ({
     const {formatMessage} = useIntl();
 
     const [query, setQuery] = React.useState('');
+    const [showLdapModal, setShowLdapModal] = useState(false);
+    const [showSamlModal, setShowSamlModal] = useState(false);
+    const [error, setError] = useState('');
+    const [errorSaml, setErrorSaml] = useState('');
+
     const isQueryValid = useMemo(() => !checkForDuplicates(field.attrs.options, query.trim()), [field?.attrs?.options, query]);
 
     const addOption = (name: string) => {
@@ -76,49 +83,135 @@ const UserPropertyValues = ({
         event.preventDefault();
     };
 
+    const handleLdapSave = async (value: string) => {
+        setError('');
+        try {
+            const updatedAttr = {
+                type: field.type,
+                attrs: {
+                    ...field.attrs,
+                    ldap: value,
+                },
+            };
+            await Client4.patchCustomProfileAttributeField(field.id, updatedAttr);
+            updateField({...field, attrs: {...field.attrs, ldap: value}});
+            setShowLdapModal(false);
+        } catch (err: any) {
+            setError('Failed to update LDAP attribute.');
+        }
+    };
+
+    const handleSamlSave = async (value: string) => {
+        setErrorSaml('');
+        try {
+            const updatedAttr = {
+                type: field.type,
+                attrs: {
+                    ...field.attrs,
+                    saml: value,
+                },
+            };
+            await Client4.patchCustomProfileAttributeField(field.id, updatedAttr);
+            updateField({...field, attrs: {...field.attrs, saml: value}});
+            setShowSamlModal(false);
+        } catch (err: any) {
+            setErrorSaml('Failed to update SAML attribute.');
+        }
+    };
+
     if (field.attrs.ldap || field.attrs.saml) {
         const syncedProperties = [
 
             field.attrs.ldap && (
-                <BlockableLink
+                <span
                     className='user-property-field-values__chip-link'
-                    to={`/admin_console/authentication/ldap#custom_profile_attribute-${field.name}`}
                     key={`${field.name}-ldap`}
                     data-testid={`user-property-field-values__ldap-${field.name}`}
+                    onClick={() => setShowLdapModal(true)}
+                    style={{cursor: 'pointer'}}
                 >
                     <FormattedMessage
                         id='admin.system_properties.user_properties.table.values.synced_with.ldap'
                         defaultMessage='AD/LDAP: {propertyName}'
                         values={{propertyName: field.attrs.ldap}}
                     />
-                </BlockableLink>
+                </span>
             ),
             field.attrs.saml && (
-                <BlockableLink
+                <span
                     className='user-property-field-values__chip-link'
-                    to={`/admin_console/authentication/saml#custom_profile_attribute-${field.name}`}
                     key={`${field.name}-saml`}
                     data-testid={`user-property-field-values__saml-${field.name}`}
+                    onClick={() => setShowSamlModal(true)}
+                    style={{cursor: 'pointer'}}
                 >
                     <FormattedMessage
                         id='admin.system_properties.user_properties.table.values.synced_with.saml'
                         defaultMessage='SAML: {propertyName}'
                         values={{propertyName: field.attrs.saml}}
                     />
-                </BlockableLink>
+                </span>
             ),
 
         ].filter(Boolean);
 
         return (
-            <span className='user-property-field-values'>
-                <SyncIcon size={18}/>
-                <FormattedMessage
-                    id='admin.system_properties.user_properties.table.values.synced_with'
-                    defaultMessage='Synced with: {syncedProperties}'
-                    values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
-                />
-            </span>
+            <>
+                <span className='user-property-field-values'>
+                    <SyncIcon size={18}/>
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.table.values.synced_with'
+                        defaultMessage='Synced with: {syncedProperties}'
+                        values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
+                    />
+                </span>
+                {showLdapModal && (
+                    <AttributeModal
+                        initialValue={field.attrs.ldap || ''}
+                        onExited={() => {
+                            setShowLdapModal(false);
+                            setError('');
+                        }}
+                        onSave={handleLdapSave}
+                        error={error}
+                        helpText={
+                            <FormattedMessage
+                                id='admin.system_properties.user_properties.dotmenu.ad_ldap.modal.helpText'
+                                defaultMessage="The attribute in the AD/LDAP server used to sync as a custom attribute in user's profile in Mattermost."
+                            />
+                        }
+                        modalHeaderText={
+                            <FormattedMessage
+                                id='admin.system_properties.user_properties.dotmenu.ad_ldap.modal.title'
+                                defaultMessage='Link attribute to AD/LDAP'
+                            />
+                        }
+                    />
+                )}
+                {showSamlModal && (
+                    <AttributeModal
+                        initialValue={field.attrs.saml || ''}
+                        onExited={() => {
+                            setShowSamlModal(false);
+                            setErrorSaml('');
+                        }}
+                        onSave={handleSamlSave}
+                        error={errorSaml}
+                        helpText={
+                            <FormattedMessage
+                                id='admin.system_properties.user_properties.dotmenu.saml.modal.helpText'
+                                defaultMessage="The attribute in the SAML server used to sync as a custom attribute in user's profile in Mattermost."
+                            />
+                        }
+                        modalHeaderText={
+                            <FormattedMessage
+                                id='admin.system_properties.user_properties.dotmenu.saml.modal.title'
+                                defaultMessage='Link attribute to SAML'
+                            />
+                        }
+                    />
+                )}
+            </>
         );
     }
 

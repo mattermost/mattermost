@@ -1,15 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
 
-import {Client4} from 'mattermost-redux/client';
+import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import AttributeModal from './attribute_modal';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
@@ -25,6 +28,82 @@ type Props = {
     deleteField: (id: string) => void;
 }
 
+const useAttributeLinkModal = () => {
+    const dispatch = useDispatch();
+
+    const promptEditLdapLink = (field: UserPropertyField, updateField: (field: UserPropertyField) => void) => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.ATTRIBUTE_MODAL_LDAP,
+            dialogType: AttributeModal,
+            dialogProps: {
+                initialValue: field.attrs.ldap || '',
+                fieldType: field.type,
+                onExited: () => {},
+                onSave: async (newValue: string) => {
+                    updateField({
+                        ...field,
+                        type: 'text',
+                        attrs: {
+                            ...field.attrs,
+                            ldap: newValue,
+                        },
+                    });
+                },
+                error: null,
+                helpText: (
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.ad_ldap.modal.helpText'
+                        defaultMessage="The attribute in the AD/LDAP server used to sync as a custom attribute in user's profile in Mattermost."
+                    />
+                ),
+                modalHeaderText: (
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.ad_ldap.modal.title'
+                        defaultMessage='Link attribute to AD/LDAP'
+                    />
+                ),
+            },
+        }));
+    };
+
+    const promptEditSamlLink = (field: UserPropertyField, updateField: (field: UserPropertyField) => void) => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.ATTRIBUTE_MODAL_SAML,
+            dialogType: AttributeModal,
+            dialogProps: {
+                initialValue: field.attrs.saml || '',
+                fieldType: field.type,
+                onExited: () => {},
+                onSave: async (newValue: string) => {
+                    updateField({
+                        ...field,
+                        type: 'text',
+                        attrs: {
+                            ...field.attrs,
+                            saml: newValue,
+                        },
+                    });
+                },
+                error: null,
+                helpText: (
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.saml.modal.helpText'
+                        defaultMessage="The attribute in the SAML server used to sync as a custom attribute in user's profile in Mattermost."
+                    />
+                ),
+                modalHeaderText: (
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.saml.modal.title'
+                        defaultMessage='Link property to SAML'
+                    />
+                ),
+            },
+        }));
+    };
+
+    return {promptEditLdapLink, promptEditSamlLink};
+};
+
 const menuId = 'user-property-field_dotmenu';
 
 const DotMenu = ({
@@ -36,10 +115,7 @@ const DotMenu = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const {promptDelete} = useUserPropertyFieldDelete();
-    const [showLdapModal, setShowLdapModal] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [showSamlModal, setShowSamlModal] = useState(false);
-    const [errorSaml, setErrorSaml] = useState<string | null>(null);
+    const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal();
 
     const handleDuplicate = () => {
         const name = formatMessage({
@@ -89,237 +165,163 @@ const DotMenu = ({
     }
 
     return (
-        <>
-            <Menu.Container
-                menuButton={{
-                    id: `${menuId}-${field.id}`,
-                    class: 'btn btn-transparent user-property-field-dotmenu-menu-button',
-                    children: (
-                        <>
-                            <DotsHorizontalIcon size={18}/>
-                        </>
-                    ),
-                    dataTestId: `${menuId}-${field.id}`,
-                    disabled: field.delete_at !== 0,
-                }}
-                menu={{
-                    id: `${menuId}-menu`,
-                    'aria-label': 'Select an action',
-                    className: 'user-property-field-dotmenu-menu',
-                }}
-            >
-                <Menu.SubMenu
-                    id={`${menuId}-${field.id}-visibility`}
-                    menuId={`${menuId}-${field.id}-visibility-menu`}
-                    leadingElement={<EyeOutlineIcon size='18'/>}
-                    labels={(
-                        <FormattedMessage
-                            id='admin.system_properties.user_properties.dotmenu.visibility.label'
-                            defaultMessage='Visibility'
-                        />
-                    )}
-                    trailingElements={(
-                        <>
-                            {selectedVisibilityLabel}
-                            <ChevronRightIcon size={16}/>
-                        </>
-                    )}
-                    forceOpenOnLeft={false}
-                >
-                    <Menu.Item
-                        id={`${menuId}_visibility-always`}
-                        role='menuitemradio'
-                        forceCloseOnSelect={true}
-                        aria-checked={field.attrs.visibility === 'always'}
-                        onClick={() => handleVisibilityChange('always')}
-                        labels={(
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.visibility.always.label'
-                                defaultMessage='Always show'
-                            />
-                        )}
-                        trailingElements={field.attrs.visibility === 'always' && (
-                            <CheckIcon
-                                size={16}
-                                color='var(--button-bg, #1c58d9)'
-                            />
-                        )}
-                    />
-                    <Menu.Item
-                        id={`${menuId}_visibility-when_set`}
-                        role='menuitemradio'
-                        forceCloseOnSelect={true}
-                        aria-checked={field.attrs.visibility === 'when_set'}
-                        onClick={() => handleVisibilityChange('when_set')}
-                        labels={(
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.visibility.when_set.label'
-                                defaultMessage='Hide when empty'
-                            />
-                        )}
-                        trailingElements={field.attrs.visibility === 'when_set' && (
-                            <CheckIcon
-                                size={16}
-                                color='var(--button-bg, #1c58d9)'
-                            />
-                        )}
-                    />
-                    <Menu.Item
-                        id={`${menuId}_visibility-hidden`}
-                        role='menuitemradio'
-                        forceCloseOnSelect={true}
-                        aria-checked={field.attrs.visibility === 'hidden'}
-                        onClick={() => handleVisibilityChange('hidden')}
-                        labels={(
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.visibility.hidden.label'
-                                defaultMessage='Always hide'
-                            />
-                        )}
-                        trailingElements={field.attrs.visibility === 'hidden' && (
-                            <CheckIcon
-                                size={16}
-                                color='var(--button-bg, #1c58d9)'
-                            />
-                        )}
-                    />
-                </Menu.SubMenu>
-                {field.create_at !== 0 && ([
-                    <Menu.Item
-                        key={`${menuId}_link_ad-ldap`}
-                        id={`${menuId}_link_ad-ldap`}
-                        leadingElement={<SyncIcon size={18}/>}
-                        onClick={() => setShowLdapModal(true)}
-                        labels={field.attrs.ldap ? (
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.ad_ldap.edit_link.label'
-                                defaultMessage='Edit LDAP link'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label'
-                                defaultMessage='Link property to AD/LDAP'
-                            />
-                        )}
-                    />,
-                    <Menu.Item
-                        key={`${menuId}_link_saml`}
-                        id={`${menuId}_link_saml`}
-                        leadingElement={<SyncIcon size={18}/>}
-                        onClick={() => setShowSamlModal(true)}
-                        labels={field.attrs.saml ? (
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.saml.edit_link.label'
-                                defaultMessage='Edit SAML link'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.saml.link_property.label'
-                                defaultMessage='Link property to SAML'
-                            />
-                        )}
-                    />,
-                ])}
-                <Menu.Separator/>
-                {canCreate && (
-                    <Menu.Item
-                        id={`${menuId}_duplicate`}
-                        onClick={handleDuplicate}
-                        leadingElement={<ContentCopyIcon size={18}/>}
-                        labels={(
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.duplicate.label'
-                                defaultMessage={'Duplicate attribute'}
-                            />
-                        )}
+        <Menu.Container
+            menuButton={{
+                id: `${menuId}-${field.id}`,
+                class: 'btn btn-transparent user-property-field-dotmenu-menu-button',
+                children: (
+                    <>
+                        <DotsHorizontalIcon size={18}/>
+                    </>
+                ),
+                dataTestId: `${menuId}-${field.id}`,
+                disabled: field.delete_at !== 0,
+            }}
+            menu={{
+                id: `${menuId}-menu`,
+                'aria-label': 'Select an action',
+                className: 'user-property-field-dotmenu-menu',
+            }}
+        >
+            <Menu.SubMenu
+                id={`${menuId}-${field.id}-visibility`}
+                menuId={`${menuId}-${field.id}-visibility-menu`}
+                leadingElement={<EyeOutlineIcon size='18'/>}
+                labels={(
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.visibility.label'
+                        defaultMessage='Visibility'
                     />
                 )}
+                trailingElements={(
+                    <>
+                        {selectedVisibilityLabel}
+                        <ChevronRightIcon size={16}/>
+                    </>
+                )}
+                forceOpenOnLeft={false}
+            >
                 <Menu.Item
-                    id={`${menuId}_delete`}
-                    onClick={handleDelete}
-                    isDestructive={true}
-                    leadingElement={<TrashCanOutlineIcon size={18}/>}
+                    id={`${menuId}_visibility-always`}
+                    role='menuitemradio'
+                    forceCloseOnSelect={true}
+                    aria-checked={field.attrs.visibility === 'always'}
+                    onClick={() => handleVisibilityChange('always')}
                     labels={(
                         <FormattedMessage
-                            id='admin.system_properties.user_properties.dotmenu.delete.label'
-                            defaultMessage={'Delete attribute'}
+                            id='admin.system_properties.user_properties.dotmenu.visibility.always.label'
+                            defaultMessage='Always show'
+                        />
+                    )}
+                    trailingElements={field.attrs.visibility === 'always' && (
+                        <CheckIcon
+                            size={16}
+                            color='var(--button-bg, #1c58d9)'
                         />
                     )}
                 />
-            </Menu.Container>
-            {showLdapModal && (
-                <AttributeModal
-                    initialValue={field.attrs.ldap || ''}
-                    onExited={() => setShowLdapModal(false)}
-                    onSave={async (newValue) => {
-                        setError(null);
-                        try {
-                            const updatedAttr = {
-                                type: field.type,
-                                attrs: {
-                                    ...field.attrs,
-                                    ldap: newValue,
-                                },
-                            };
-                            await Client4.patchCustomProfileAttributeField(field.id, updatedAttr);
-                            updateField({...field, attrs: {...field.attrs, ldap: newValue}});
-                            setShowLdapModal(false);
-                        } catch (err) {
-                            setError('Failed to update LDAP attribute.');
-                        }
-                    }}
-                    error={error}
-                    helpText={
+                <Menu.Item
+                    id={`${menuId}_visibility-when_set`}
+                    role='menuitemradio'
+                    forceCloseOnSelect={true}
+                    aria-checked={field.attrs.visibility === 'when_set'}
+                    onClick={() => handleVisibilityChange('when_set')}
+                    labels={(
                         <FormattedMessage
-                            id='admin.system_properties.user_properties.dotmenu.ad_ldap.modal.helpText'
-                            defaultMessage="The attribute in the AD/LDAP server used to sync as a custom attribute in user's profile in Mattermost."
+                            id='admin.system_properties.user_properties.dotmenu.visibility.when_set.label'
+                            defaultMessage='Hide when empty'
                         />
-                    }
-                    modalHeaderText={
+                    )}
+                    trailingElements={field.attrs.visibility === 'when_set' && (
+                        <CheckIcon
+                            size={16}
+                            color='var(--button-bg, #1c58d9)'
+                        />
+                    )}
+                />
+                <Menu.Item
+                    id={`${menuId}_visibility-hidden`}
+                    role='menuitemradio'
+                    forceCloseOnSelect={true}
+                    aria-checked={field.attrs.visibility === 'hidden'}
+                    onClick={() => handleVisibilityChange('hidden')}
+                    labels={(
                         <FormattedMessage
-                            id='admin.system_properties.user_properties.dotmenu.ad_ldap.modal.title'
-                            defaultMessage='Link property to AD/LDAP'
+                            id='admin.system_properties.user_properties.dotmenu.visibility.hidden.label'
+                            defaultMessage='Always hide'
                         />
-                    }
+                    )}
+                    trailingElements={field.attrs.visibility === 'hidden' && (
+                        <CheckIcon
+                            size={16}
+                            color='var(--button-bg, #1c58d9)'
+                        />
+                    )}
+                />
+            </Menu.SubMenu>
+            {field.create_at !== 0 && ([
+                <Menu.Item
+                    key={`${menuId}_link_ad-ldap`}
+                    id={`${menuId}_link_ad-ldap`}
+                    leadingElement={<SyncIcon size={18}/>}
+                    onClick={() => promptEditLdapLink(field, updateField)}
+                    labels={field.attrs.ldap ? (
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.ad_ldap.edit_link.label'
+                            defaultMessage='Edit LDAP link'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label'
+                            defaultMessage='Link attribute to AD/LDAP'
+                        />
+                    )}
+                />,
+                <Menu.Item
+                    key={`${menuId}_link_saml`}
+                    id={`${menuId}_link_saml`}
+                    leadingElement={<SyncIcon size={18}/>}
+                    onClick={() => promptEditSamlLink(field, updateField)}
+                    labels={field.attrs.saml ? (
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.saml.edit_link.label'
+                            defaultMessage='Edit SAML link'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.saml.link_property.label'
+                            defaultMessage='Link attribute to SAML'
+                        />
+                    )}
+                />,
+            ])}
+            <Menu.Separator/>
+            {canCreate && (
+                <Menu.Item
+                    id={`${menuId}_duplicate`}
+                    onClick={handleDuplicate}
+                    leadingElement={<ContentCopyIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.duplicate.label'
+                            defaultMessage={'Duplicate attribute'}
+                        />
+                    )}
                 />
             )}
-            {showSamlModal && (
-                <AttributeModal
-                    initialValue={field.attrs.saml || ''}
-                    onExited={() => setShowSamlModal(false)}
-                    onSave={async (newValue) => {
-                        setErrorSaml(null);
-                        try {
-                            const updatedAttr = {
-                                type: field.type,
-                                attrs: {
-                                    ...field.attrs,
-                                    saml: newValue,
-                                },
-                            };
-                            await Client4.patchCustomProfileAttributeField(field.id, updatedAttr);
-                            updateField({...field, attrs: {...field.attrs, saml: newValue}});
-                            setShowSamlModal(false);
-                        } catch (err) {
-                            setErrorSaml('Failed to update SAML attribute.');
-                        }
-                    }}
-                    error={errorSaml}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.system_properties.user_properties.dotmenu.saml.modal.helpText'
-                            defaultMessage="The attribute in the SAML server used to sync as a custom attribute in user's profile in Mattermost."
-                        />
-                    }
-                    modalHeaderText={
-                        <FormattedMessage
-                            id='admin.system_properties.user_properties.dotmenu.saml.modal.title'
-                            defaultMessage='Link property to SAML'
-                        />
-                    }
-                />
-            )}
-        </>
+            <Menu.Item
+                id={`${menuId}_delete`}
+                onClick={handleDelete}
+                isDestructive={true}
+                leadingElement={<TrashCanOutlineIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.delete.label'
+                        defaultMessage={'Delete attribute'}
+                    />
+                )}
+            />
+        </Menu.Container>
     );
 };
 

@@ -10,8 +10,9 @@ import QuickInput, {MaxLengthInput} from 'components/quick_input';
 
 const MAX_LDAP_LENGTH = 64;
 
-type AttributeModalProps = {
+type Props = {
     initialValue: string;
+    fieldType: string;
     onExited: () => void;
     onSave: (value: string) => Promise<void>;
     error: string | null;
@@ -19,13 +20,24 @@ type AttributeModalProps = {
     modalHeaderText: JSX.Element;
 };
 
-const AttributeModal: React.FC<AttributeModalProps> = ({initialValue, onExited, onSave, error, helpText, modalHeaderText}) => {
+const AttributeModal = ({
+    initialValue,
+    fieldType,
+    onExited,
+    onSave,
+    error,
+    helpText,
+    modalHeaderText,
+}: Props) => {
     const [value, setValue] = useState(initialValue);
     const handleClear = () => setValue('');
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value);
     const handleCancel = () => onExited();
     const handleConfirm = () => onSave(value);
     const isConfirmDisabled = () => value.length > MAX_LDAP_LENGTH;
+
+    const showTypeWarning = fieldType !== 'text';
+
     return (
         <GenericModal
             id='attributeModal'
@@ -54,11 +66,21 @@ const AttributeModal: React.FC<AttributeModalProps> = ({initialValue, onExited, 
                 clearable={true}
                 onClear={handleClear}
                 onChange={handleChange}
-                maxLength={MAX_LDAP_LENGTH}
             />
             <span className='help-text'>
                 {helpText}
             </span>
+            {showTypeWarning && (
+                <div
+                    className='alert alert-warning'
+                    style={{marginTop: '12px'}}
+                >
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.attribute_modal.type_conversion_warning'
+                        defaultMessage='(Warning) This attribute will be converted to a TEXT attribute, if the field is set to synchronize.'
+                    />
+                </div>
+            )}
             {error && <div className='error-text'>{error}</div>}
         </GenericModal>
     );
