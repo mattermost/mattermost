@@ -7,11 +7,14 @@ import {useSelector, useDispatch} from 'react-redux';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {modalContent, PreviewModalContentData} from './preview_modal_content_data';
 import PreviewModalController from './preview_modal_controller';
 import { getCurrentTeam } from 'mattermost-redux/selectors/entities/teams';
+
+import type {GlobalState} from 'types/store';
 
 const CLOUD_PREVIEW_MODAL_SHOWN_PREF = 'cloud_preview_modal_shown';
 
@@ -26,7 +29,7 @@ const CloudPreviewModal: React.FC = () => {
     const isCloudPreview = subscription?.is_cloud_preview === true;
 
     // Check if modal has been shown before
-    const hasModalBeenShown = false;
+    const hasModalBeenShown = useSelector((state: GlobalState) => getPreference(state, CLOUD_PREVIEW_MODAL_SHOWN_PREF, CLOUD_PREVIEW_MODAL_SHOWN_PREF)) === 'true';
 
     const [showModal, setShowModal] = useState(false);
 

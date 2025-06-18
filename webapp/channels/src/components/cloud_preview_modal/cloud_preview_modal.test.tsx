@@ -135,27 +135,26 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 
-    // Skip for now.
-    // it('should not show modal when modal has been shown before', () => {
-    //     const state = JSON.parse(JSON.stringify(initialState));
-    //     state.entities.preferences.myPreferences = {
-    //         'cloud_preview_modal_shown--cloud_preview_modal_shown': {
-    //             category: 'cloud_preview_modal_shown',
-    //             name: 'cloud_preview_modal_shown',
-    //             value: 'true',
-    //         },
-    //     };
+    it('should not show modal when modal has been shown before', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.preferences.myPreferences = {
+            'cloud_preview_modal_shown--cloud_preview_modal_shown': {
+                category: 'cloud_preview_modal_shown',
+                name: 'cloud_preview_modal_shown',
+                value: 'true',
+            },
+        };
 
-    //     const dummyDispatch = jest.fn();
-    //     useDispatchMock.mockReturnValue(dummyDispatch);
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
 
-    //     renderWithContext(
-    //         <CloudPreviewModal/>,
-    //         state,
-    //     );
+        renderWithContext(
+            <CloudPreviewModal/>,
+            state,
+        );
 
-    //     expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
-    // });
+        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+    });
 
     it('should save preference when modal is closed', () => {
         const dummyDispatch = jest.fn();
