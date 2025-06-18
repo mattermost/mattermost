@@ -127,6 +127,11 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 		updateConfig(memoryConfig)
 	}
 	memoryStore.Set(memoryConfig)
+	for _, signaturePublicKeyFile := range memoryConfig.PluginSettings.SignaturePublicKeyFiles {
+		signaturePublicKey, err := os.ReadFile(signaturePublicKeyFile)
+		require.NoError(tb, err, "failed to read signature public key file %s", signaturePublicKeyFile)
+		memoryStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
+	}
 
 	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
 	require.NoError(tb, err)

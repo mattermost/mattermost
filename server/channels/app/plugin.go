@@ -927,13 +927,19 @@ func (ch *Channels) getPluginsFromFilePaths(fileStorePaths []string) map[string]
 // If enabled, prepackaged plugins are installed or upgraded locally. A list of transitionally
 // prepackaged plugins is also collected for later persistence to the filestore.
 func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) error {
+	logger := ch.srv.Log()
+	logger.Info("Processing prepackaged plugin")
+
 	prepackagedPluginsPath, found := fileutils.FindDir(prepackagedPluginsDir)
 	if !found {
-		ch.srv.Log().Debug("No prepackaged plugins directory found")
+		logger.Debug("No prepackaged plugins directory found")
 		return nil
 	}
 
-	ch.srv.Log().Debug("Processing prepackaged plugins in directory", mlog.String("path", prepackagedPluginsPath))
+	logger = logger.With(
+		mlog.String("prepackaged_plugins_path", prepackagedPluginsPath),
+	)
+	ch.srv.Log().Debug("Processing prepackaged plugins in directory")
 
 	var fileStorePaths []string
 	err := filepath.Walk(prepackagedPluginsPath, func(walkPath string, info os.FileInfo, err error) error {
@@ -975,7 +981,7 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 				if errors.As(err, &appErr) && appErr.Id == "app.plugin.skip_installation.app_error" {
 					return
 				}
-				ch.srv.Log().Error("Failed to install prepackaged plugin", mlog.String("bundle_path", psPath.bundlePath), mlog.Err(err))
+				logger.Error("Failed to install prepackaged plugin", mlog.String("bundle_path", psPath.bundlePath), mlog.Err(err))
 				return
 			}
 
@@ -1255,7 +1261,7 @@ func (ch *Channels) buildPrepackagedPlugin(logger *mlog.Logger, pluginPath *plug
 		return nil, "", errors.Wrapf(err, "Failed to seek to start of plugin file for signature verification: %s", pluginPath.bundlePath)
 	}
 	if appErr := ch.verifyPlugin(logger, pluginFile, bytes.NewReader(signatureBytes)); appErr != nil {
-		return nil, "", errors.Wrapf(appErr, "Prepackaged plugin signature verification failed for %s", pluginPath.bundlePath)
+		return nil, "", errors.Wrapf(appErr, "Prepackaged plugin signature verification failed for %s using %s", pluginPath.bundlePath, pluginPath.signaturePath)
 	}
 
 	// Extract plugin after signature verification
