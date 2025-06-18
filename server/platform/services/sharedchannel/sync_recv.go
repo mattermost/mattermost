@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"runtime/debug"
 	"strconv"
 	"strings"
 
@@ -808,80 +807,10 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 	return savedReaction, retErr
 }
 
-// resolveMentionToUserID attempts to resolve a mention string to a user ID using multiple strategies
-func (scs *Service) resolveMentionToUserID(rctx request.CTX, mention string, rc *model.RemoteCluster, mentionMap model.UserMentionMap) string {
-	// Strategy 1: Check if mention is in the mention map (already resolved)
-	if userID, exists := mentionMap[mention]; exists {
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found %s in mentionMap -> %s", mention, userID))
-
-		// Check for username collision: if this resolved to local user but there's also a remote user from sender
-		if localUser, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil {
-			if localUser.GetRemoteID() == "" { // This is a local user
-				// Check if there's also a remote user from sender with same name
-				remoteUserMunged := fmt.Sprintf("%s:%s", mention, rc.Name)
-				if remoteUser, err := scs.server.GetStore().User().GetByUsername(remoteUserMunged); err == nil && remoteUser != nil {
-					// Collision detected! Prioritize remote user from sender (Scenario 1)
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Username collision detected! Prioritizing remote user %s (ID: %s) over local user %s (ID: %s)", remoteUserMunged, remoteUser.Id, mention, userID))
-					return remoteUser.Id
-				}
-			}
-		}
-
-		return userID // No collision, use original resolution
-	}
-
-	// Strategy 2: For mentions with colon, try to resolve by looking up the original user
-	if strings.Contains(mention, ":") {
-		parts := strings.SplitN(mention, ":", 2)
-		if len(parts) == 2 {
-			username := parts[0]
-			clusterName := parts[1]
-
-			// Look for a user with this exact munged username
-			mungedUsername := fmt.Sprintf("%s:%s", username, clusterName)
-			if user, err := scs.server.GetStore().User().GetByUsername(mungedUsername); err == nil && user != nil {
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found munged user %s -> %s", mungedUsername, user.Id))
-				return user.Id
-			}
-
-			// Fallback: try to find the original user on the sender's cluster
-			// This handles cases where the mention format doesn't match exactly
-			if users, err := scs.server.GetStore().User().GetProfilesByUsernames([]string{username}, nil); err == nil {
-				for _, user := range users {
-					if user.GetRemoteID() == rc.RemoteId {
-						scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found original user %s from sender cluster -> %s", username, user.Id))
-						return user.Id
-					}
-				}
-			}
-		}
-	}
-
-	// Strategy 3: For simple mentions, check for collision and prioritize remote user from sender
-	remoteUserMunged := fmt.Sprintf("%s:%s", mention, rc.Name)
-	if remoteUser, err := scs.server.GetStore().User().GetByUsername(remoteUserMunged); err == nil && remoteUser != nil {
-		// Remote user from sender exists - prioritize it (Scenario 1)
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found remote user from sender %s -> %s", remoteUserMunged, remoteUser.Id))
-		return remoteUser.Id
-	}
-
-	// Fallback: check for local user
-	if localUser, err := scs.server.GetStore().User().GetByUsername(mention); err == nil && localUser != nil && localUser.GetRemoteID() == "" {
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found local user %s -> %s", mention, localUser.Id))
-		return localUser.Id
-	}
-
-	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Could not resolve mention: %s", mention))
-	return ""
-}
-
 // transformMentionsOnReceive transforms mentions in received posts to ensure proper display
 // on the receiving cluster using user ID-based resolution.
 func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionMap model.UserMentionMap) {
-	// Add stack trace to understand the call path
-	stackTrace := string(debug.Stack())
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("TRANSFORM_MENTIONS CALLED: Message: %s, Remote: %s", post.Message, rc.Name))
-	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("TRANSFORM_MENTIONS STACK: %s", stackTrace))
 
 	if post.Message == "" || !strings.Contains(post.Message, "@") {
 		scs.app.PostDebugToTownSquare(rctx, "TRANSFORM_MENTIONS: No mentions to transform")
@@ -902,34 +831,35 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		mention := match[1:] // Remove @
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("Processing mention: %s", match))
 
-		// Step 1: Resolve mention to user ID
-		userID := scs.resolveMentionToUserID(rctx, mention, rc, mentionMap)
-		if userID == "" {
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Could not resolve %s to user ID - preserving as plain text", match))
-			return match // No user ID found - preserve as plain text (no link)
-		}
-
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Resolved %s to user ID: %s", match, userID))
-
-		// Step 2: Check if this user ID exists locally and how it's stored
-		if localUser, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && localUser != nil {
-			localUserRemoteId := localUser.GetRemoteID()
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  User ID %s exists locally: Username=%s, RemoteID='%s'", userID, localUser.Username, localUserRemoteId))
-
-			// Step 3: Display mention based on how the user is stored locally
-			if localUserRemoteId == "" {
-				// Local user - display as @username (Scenario 2)
-				newMention := "@" + localUser.Username
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  SCENARIO2: Local user, displaying as: %s", newMention))
-				return newMention
+		// Matrix implementation:
+		// If mentionMap has this mention, use that user ID (from sender)
+		if userID, found := mentionMap[mention]; found {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  Found in mentionMap: %s -> %s", mention, userID))
+			if user, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && user != nil {
+				// Case B: "@user:org1" -> "@user" (same ID means synced from here)
+				if user.GetRemoteID() == "" {
+					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  CASE B1: Local user from mentionMap, displaying as: @%s", user.Username))
+					return "@" + user.Username
+				}
+				// Remote user - display with cluster suffix
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  CASE B1: Remote user from mentionMap, displaying as: @%s", user.Username))
+				return "@" + user.Username
 			}
-			// Remote user - display as @username:cluster (Scenario 1)
-			newMention := "@" + localUser.Username
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  SCENARIO1: Remote user, displaying as: %s", newMention))
-			return newMention
+			// mentionMap found but user doesn't exist - treat as plain text
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  ERROR: mentionMap user ID %s not found, displaying as plain text: %s", userID, match))
+			return match
 		}
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  User ID %s does not exist locally - preserving as plain text: %s", userID, match))
-		return match // User doesn't exist locally - preserve as plain text (no link)
+
+		// No mentionMap entry - check local users
+		if localUser, err := scs.server.GetStore().User().GetByUsername(mention); err == nil && localUser != nil && localUser.GetRemoteID() == "" {
+			// Case A1: Different ID local user exists -> display "@user:senderCluster"
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  CASE A1: Local user name collision, displaying as: @%s:%s", mention, rc.Name))
+			return "@" + mention + ":" + rc.Name
+		}
+
+		// Case A3: No user found -> plain text
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("  CASE A3: No user found, displaying as plain text: %s", match))
+		return match
 	})
 
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("TRANSFORM_MENTIONS COMPLETE: Final message: %s", post.Message))
