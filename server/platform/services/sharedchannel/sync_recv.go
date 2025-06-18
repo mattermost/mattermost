@@ -486,12 +486,10 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 
 		// Create mention map to resolve mentions to user IDs
 		sc, _ := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
-		var mentionMap model.UserMentionMap
 		if sc != nil {
-			mentionMap = scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
+			mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
+			scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
 		}
-
-		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
 
 		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
 		if appErr == nil {
@@ -516,12 +514,10 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			// Continue without mention resolution if SharedChannel lookup fails
 			sc = nil
 		}
-		var mentionMap model.UserMentionMap
 		if sc != nil {
-			mentionMap = scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
+			mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
+			scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
 		}
-
-		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
 
 		// update post
 		rpost, appErr = scs.app.UpdatePost(request.EmptyContext(scs.server.Log()), post, nil)
