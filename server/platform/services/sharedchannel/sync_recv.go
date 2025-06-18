@@ -507,27 +507,15 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 				mlog.String("channel_id", post.ChannelId),
 			)
 		}
-	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message {
-		// Transform mentions for proper display on the receiving cluster
-		sc, err := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
-		if err != nil {
-			// Continue without mention resolution if SharedChannel lookup fails
-			sc = nil
-		}
-		if sc != nil {
-			mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
-			scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
-		}
-
-		// update post
-		rpost, appErr = scs.app.UpdatePost(request.EmptyContext(scs.server.Log()), post, nil)
-		if appErr == nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
-				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-			)
-		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.UpdateAt > rpost.UpdateAt || post.Metadata != nil {
+		// Handle mention transformation if message changed
+		if post.Message != rpost.Message {
+			sc, err := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
+			if err == nil && sc != nil {
+				mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
+				scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
+			}
+		}
 		var priority *model.PostPriority
 		var acknowledgements []*model.PostAcknowledgement
 
