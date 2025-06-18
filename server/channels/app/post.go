@@ -447,6 +447,10 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		return nil, err
 	}
 
+	if setupErr := a.SetupContentFlaggingProperties(); setupErr != nil {
+		c.Logger().Error("SETUP ERROR", mlog.Err(setupErr))
+	}
+
 	return rpost, nil
 }
 
@@ -1879,7 +1883,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 		user,
 		map[string]string{},
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
-		true, // Assume channel mentions are always allowed for simplicity
+		true,                                      // Assume channel mentions are always allowed for simplicity
 	)
 
 	posts, nErr := a.Srv().Store().Post().GetPostsByThread(post.Id, timestamp)
@@ -1964,7 +1968,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		user,
 		members[user.Id],
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
-		true, // Assume channel mentions are always allowed for simplicity
+		true,                                      // Assume channel mentions are always allowed for simplicity
 	)
 	commentMentions := user.NotifyProps[model.CommentsNotifyProp]
 	checkForCommentMentions := commentMentions == model.CommentsNotifyRoot || commentMentions == model.CommentsNotifyAny
