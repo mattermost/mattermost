@@ -813,7 +813,21 @@ func (scs *Service) resolveMentionToUserID(rctx request.CTX, mention string, rc 
 	// Strategy 1: Check if mention is in the mention map (already resolved)
 	if userID, exists := mentionMap[mention]; exists {
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found %s in mentionMap -> %s", mention, userID))
-		return userID
+
+		// Check for username collision: if this resolved to local user but there's also a remote user from sender
+		if localUser, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil {
+			if localUser.GetRemoteID() == "" { // This is a local user
+				// Check if there's also a remote user from sender with same name
+				remoteUserMunged := fmt.Sprintf("%s:%s", mention, rc.Name)
+				if remoteUser, err := scs.server.GetStore().User().GetByUsername(remoteUserMunged); err == nil && remoteUser != nil {
+					// Collision detected! Prioritize remote user from sender (Scenario 1)
+					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Username collision detected! Prioritizing remote user %s (ID: %s) over local user %s (ID: %s)", remoteUserMunged, remoteUser.Id, mention, userID))
+					return remoteUser.Id
+				}
+			}
+		}
+
+		return userID // No collision, use original resolution
 	}
 
 	// Strategy 2: For mentions with colon, try to resolve by looking up the original user
@@ -843,10 +857,18 @@ func (scs *Service) resolveMentionToUserID(rctx request.CTX, mention string, rc 
 		}
 	}
 
-	// Strategy 3: For simple mentions, try direct username lookup
-	if user, err := scs.server.GetStore().User().GetByUsername(mention); err == nil && user != nil {
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found direct username %s -> %s", mention, user.Id))
-		return user.Id
+	// Strategy 3: For simple mentions, check for collision and prioritize remote user from sender
+	remoteUserMunged := fmt.Sprintf("%s:%s", mention, rc.Name)
+	if remoteUser, err := scs.server.GetStore().User().GetByUsername(remoteUserMunged); err == nil && remoteUser != nil {
+		// Remote user from sender exists - prioritize it (Scenario 1)
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found remote user from sender %s -> %s", remoteUserMunged, remoteUser.Id))
+		return remoteUser.Id
+	}
+
+	// Fallback: check for local user
+	if localUser, err := scs.server.GetStore().User().GetByUsername(mention); err == nil && localUser != nil && localUser.GetRemoteID() == "" {
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Found local user %s -> %s", mention, localUser.Id))
+		return localUser.Id
 	}
 
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("RESOLVE_MENTION: Could not resolve mention: %s", mention))
