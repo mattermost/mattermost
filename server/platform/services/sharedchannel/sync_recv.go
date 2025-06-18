@@ -296,9 +296,6 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 		}
 	}
 
-	// Check for username collision - a different user with same username
-	_, _ = scs.server.GetStore().User().GetByUsername(user.Username)
-
 	var userSaved *model.User
 	if euser == nil {
 		// new user.  Make sure the remoteID is correct and insert the record
@@ -502,8 +499,6 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 				mlog.String("post_id", post.Id),
 				mlog.String("channel_id", post.ChannelId),
 			)
-
-			mlog.String("channel_id", post.ChannelId)
 		}
 	} else if post.DeleteAt > 0 {
 		// delete post

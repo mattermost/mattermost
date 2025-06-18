@@ -586,7 +586,6 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 		}
 
 		// user not in the SharedChannelUsers table, so we must add them.
-
 		scu = &model.SharedChannelUser{
 			UserId:    user.Id,
 			RemoteId:  rc.RemoteId,
@@ -609,10 +608,7 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 		return true, true, nil
 	}
 
-	syncUser := user.UpdateAt > scu.LastSyncAt
-	syncImage = user.LastPictureUpdate > scu.LastSyncAt
-
-	return syncUser, syncImage, nil
+	return user.UpdateAt > scu.LastSyncAt, user.LastPictureUpdate > scu.LastSyncAt, nil
 }
 
 func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *model.RemoteCluster) {

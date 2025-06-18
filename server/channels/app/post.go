@@ -180,13 +180,6 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 }
 
 func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError) {
-	// Debug: Log post creation with mentions
-	if strings.Contains(post.Message, "@") && channel.IsShared() {
-		a.postDebugToTownSquareWithContext(c, channel.Id, post.UserId,
-			fmt.Sprintf("RECV_CREATE_POST_DEBUG: Creating post - Channel: %s, Message: %s",
-				channel.Name, post.Message))
-	}
-
 	if !a.Config().FeatureFlags.EnableSharedChannelsDMs && channel.IsShared() && (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
 		return nil, model.NewAppError("CreatePost", "app.post.create_post.shared_dm_or_gm.app_error", nil, "", http.StatusBadRequest)
 	}
