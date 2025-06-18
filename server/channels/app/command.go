@@ -6,7 +6,6 @@ package app
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -247,9 +246,6 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 		wg.Add(1)
 		go func(mention string) {
 			defer wg.Done()
-
-			a.PostDebugToTownSquare(c,
-				fmt.Sprintf("RECV_MENTION_RESOLVE: Processing mention: %s", mention))
 
 			// Standard mention resolution - try to find user by username
 			user, nErr := a.Srv().Store().User().GetByUsername(mention)

@@ -574,36 +574,18 @@ func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 // User should be synchronized if it has no entry in the SharedChannelUsers table for the specified channel,
 // or there is an entry but the LastSyncAt is less than user.UpdateAt
 func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model.RemoteCluster) (sync bool, syncImage bool, err error) {
-	// Debug: Log function entry
-	remoteIdStr := "nil"
-	if user.RemoteId != nil {
-		remoteIdStr = *user.RemoteId
-	}
-	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-		fmt.Sprintf("SEND_SHOULD_USER_SYNC: Entry - User: %s, UserID: %s, RemoteId: %s, ChannelID: %s, RC: %s",
-			user.Username, user.Id, remoteIdStr, channelID, rc.Name))
-
 	// don't sync users with the remote they originated from.
 	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
-		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("SEND_SHOULD_USER_SYNC: Skipping - User %s originated from remote %s",
-				user.Username, rc.Name))
 		return false, false, nil
 	}
 
 	scu, err := scs.server.GetStore().SharedChannel().GetSingleUser(user.Id, channelID, rc.RemoteId)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
-			scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-				fmt.Sprintf("SEND_SHOULD_USER_SYNC: Error getting SCU - User: %s, Error: %v",
-					user.Username, err))
 			return false, false, err
 		}
 
 		// user not in the SharedChannelUsers table, so we must add them.
-		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("SEND_SHOULD_USER_SYNC: User not in SCU table, adding - User: %s, IsLocal: %v",
-				user.Username, !user.IsRemote()))
 
 		scu = &model.SharedChannelUser{
 			UserId:    user.Id,
@@ -624,18 +606,11 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 				mlog.String("remote_id", rc.RemoteId),
 			)
 		}
-		scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-			fmt.Sprintf("SEND_SHOULD_USER_SYNC: Returning true,true for new user - User: %s",
-				user.Username))
 		return true, true, nil
 	}
 
 	syncUser := user.UpdateAt > scu.LastSyncAt
 	syncImage = user.LastPictureUpdate > scu.LastSyncAt
-
-	scs.app.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()),
-		fmt.Sprintf("SEND_SHOULD_USER_SYNC: Result - User: %s, sync: %v, syncImage: %v, UpdateAt: %d, LastSyncAt: %d",
-			user.Username, syncUser, syncImage, user.UpdateAt, scu.LastSyncAt))
 
 	return syncUser, syncImage, nil
 }
