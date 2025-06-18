@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
@@ -93,7 +94,15 @@ const SearchSuggestions = ({searchType, searchTeam, searchTerms, suggestionsHead
                         className='sr-only'
                         key={providerResults.terms[selectedOption]}
                     >
-                        {generateLabel(providerResults.items[selectedOption])}
+                        <FormattedMessage
+                            id='search_box_suggestions.suggestions_readout'
+                            defaultMessage='{label} ({idx} of {total} results available)'
+                            values={{
+                                label: generateLabel(providerResults.items[selectedOption]),
+                                idx: selectedOption + 1,
+                                total: providerResults.items.length,
+                            }}
+                        />
                     </div>
                 )}
                 {providerResults.items.map((item, idx) => {

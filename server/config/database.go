@@ -409,7 +409,7 @@ func (ds *DatabaseStore) RemoveFile(name string) error {
 func (ds *DatabaseStore) String() string {
 	// This is called during the running of MM, so we expect the parsing of DSN
 	// to be successful.
-	sanitized, _ := sqlUtils.SanitizeDataSource(ds.driverName, ds.originalDsn)
+	sanitized, _ := model.SanitizeDataSource(ds.driverName, ds.originalDsn)
 	return sanitized
 }
 
