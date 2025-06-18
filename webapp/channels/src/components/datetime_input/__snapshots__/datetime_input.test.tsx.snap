@@ -31,7 +31,7 @@ exports[`components/datetime_input/DateTimeInput should match snapshot 1`] = `
           <span
             class="date-time-input__value"
           >
-            2025-06-08
+            6/8/2025
           </span>
         </div>
       </div>
