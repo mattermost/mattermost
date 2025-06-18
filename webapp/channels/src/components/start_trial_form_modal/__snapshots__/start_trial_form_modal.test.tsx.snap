@@ -66,10 +66,11 @@ Object {
               <div
                 class="Input_container"
               >
-                <fieldset
+                <div
                   class="Input_fieldset name_input"
+                  data-testid="input-wrapper"
                 >
-                  <legend
+                  <label
                     class="Input_legend"
                   />
                   <div
@@ -85,19 +86,20 @@ Object {
                       value=""
                     />
                   </div>
-                </fieldset>
+                </div>
               </div>
               <div
                 class="Input_container"
               >
-                <fieldset
+                <div
                   class="Input_fieldset email_input Input_fieldset___error Input_fieldset___legend"
+                  data-testid="input-wrapper"
                 >
-                  <legend
+                  <label
                     class="Input_legend Input_legend___focus"
                   >
                     Business Email
-                  </legend>
+                  </label>
                   <div
                     class="Input_wrapper"
                   >
@@ -113,7 +115,7 @@ Object {
                       value="test@mattermost.com"
                     />
                   </div>
-                </fieldset>
+                </div>
                 <div
                   class="Input___customMessage Input___error"
                   id="error_email"
@@ -132,10 +134,11 @@ Object {
               <div
                 class="Input_container"
               >
-                <fieldset
+                <div
                   class="Input_fieldset company_name_input"
+                  data-testid="input-wrapper"
                 >
-                  <legend
+                  <label
                     class="Input_legend"
                   />
                   <div
@@ -151,7 +154,7 @@ Object {
                       value=""
                     />
                   </div>
-                </fieldset>
+                </div>
               </div>
               <div
                 class="DropdownInput Input_container"
