@@ -58,7 +58,7 @@ const useAttributeLinkModal = () => {
                 ),
                 modalHeaderText: (
                     <FormattedMessage
-                        id='admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label"'
+                        id='admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label'
                         defaultMessage='Link attribute to AD/LDAP'
                     />
                 ),
