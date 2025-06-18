@@ -545,7 +545,7 @@
         border: none;
     }
 
-    .multi-select__container {
+    .multi-select__container, .multi-select__error {
         .btn {
             display: block;
             min-width: 50px;
