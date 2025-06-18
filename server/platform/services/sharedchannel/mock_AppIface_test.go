@@ -419,36 +419,6 @@ func (_m *MockAppIface) GetProfileImage(user *model.User) ([]byte, bool, *model.
 	return r0, r1, r2
 }
 
-// GetSharedChannelRemotes provides a mock function with given fields: page, perPage, opts
-func (_m *MockAppIface) GetSharedChannelRemotes(page int, perPage int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
-	ret := _m.Called(page, perPage, opts)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetSharedChannelRemotes")
-	}
-
-	var r0 []*model.SharedChannelRemote
-	var r1 error
-	if rf, ok := ret.Get(0).(func(int, int, model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)); ok {
-		return rf(page, perPage, opts)
-	}
-	if rf, ok := ret.Get(0).(func(int, int, model.SharedChannelRemoteFilterOpts) []*model.SharedChannelRemote); ok {
-		r0 = rf(page, perPage, opts)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.SharedChannelRemote)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(int, int, model.SharedChannelRemoteFilterOpts) error); ok {
-		r1 = rf(page, perPage, opts)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // MentionsToTeamMembers provides a mock function with given fields: c, message, teamID
 func (_m *MockAppIface) MentionsToTeamMembers(c request.CTX, message string, teamID string) model.UserMentionMap {
 	ret := _m.Called(c, message, teamID)

@@ -246,7 +246,6 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 		wg.Add(1)
 		go func(mention string) {
 			defer wg.Done()
-
 			user, nErr := a.Srv().Store().User().GetByUsername(mention)
 
 			var nfErr *store.ErrNotFound
