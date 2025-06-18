@@ -64,3 +64,7 @@ func (ps *PropertyService) DeletePropertyValuesForTarget(groupID string, targetT
 func (ps *PropertyService) DeletePropertyValuesForField(groupID, fieldID string) error {
 	return ps.valueStore.DeleteForField(groupID, fieldID)
 }
+
+//func (ps *PropertyService) GetByTarget(targetID string) ([]*model.PropertyValue, error) {
+//	return ps.valueStore.GetByTarget(targetID)
+//}

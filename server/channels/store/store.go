@@ -1121,6 +1121,7 @@ type PropertyValueStore interface {
 	Delete(groupID string, id string) error
 	DeleteForField(groupID, fieldID string) error
 	DeleteForTarget(groupID string, targetType string, targetID string) error
+	//GetByTarget(targetID string) ([]*model.PropertyValue, error)
 }
 
 type AccessControlPolicyStore interface {

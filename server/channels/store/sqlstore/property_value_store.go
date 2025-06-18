@@ -366,3 +366,21 @@ func (s *SqlPropertyValueStore) DeleteForTarget(groupID string, targetType strin
 
 	return nil
 }
+
+//func (s *SqlPropertyValueStore) GetByTarget(targetID string) ([]*model.PropertyValue, error) {
+//	if targetID == "" {
+//		return nil, store.NewErrInvalidInput("PropertyValue", "target_id", "empty")
+//	}
+//
+//	builder := s.tableSelectQuery.Where(sq.Eq{
+//		"TargetID": targetID,
+//		"DeleteAt": 0,
+//	})
+//
+//	var values []*model.PropertyValue
+//	if err := s.GetReplica().SelectBuilder(&values, builder); err != nil {
+//		return nil, errors.Wrap(err, "property_value_get_by_target_query")
+//	}
+//
+//	return values, nil
+//}
