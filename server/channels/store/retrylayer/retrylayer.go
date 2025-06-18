@@ -12230,6 +12230,27 @@ func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 
 }
 
+func (s *RetryLayerStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) error {
+
+	tries := 0
+	for {
+		err := s.StatusStore.SaveOrUpdateMany(statuses)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 
 	tries := 0

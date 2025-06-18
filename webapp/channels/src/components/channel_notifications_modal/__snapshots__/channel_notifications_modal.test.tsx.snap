@@ -49,7 +49,7 @@ Object {
                       class="modal-title"
                       id="genericModalLabel"
                     >
-                      <header
+                      <div
                         class="mm-modal-header"
                       >
                         <h2
@@ -68,7 +68,7 @@ Object {
                             channel_display_name
                           </span>
                         </h2>
-                      </header>
+                      </div>
                     </h1>
                   </div>
                 </div>
@@ -532,7 +532,7 @@ Object {
                       class="modal-title"
                       id="genericModalLabel"
                     >
-                      <header
+                      <div
                         class="mm-modal-header"
                       >
                         <h2
@@ -551,7 +551,7 @@ Object {
                             channel_display_name
                           </span>
                         </h2>
-                      </header>
+                      </div>
                     </h1>
                   </div>
                 </div>
@@ -1175,7 +1175,7 @@ Object {
                       class="modal-title"
                       id="genericModalLabel"
                     >
-                      <header
+                      <div
                         class="mm-modal-header"
                       >
                         <h2
@@ -1194,7 +1194,7 @@ Object {
                             channel_display_name
                           </span>
                         </h2>
-                      </header>
+                      </div>
                     </h1>
                   </div>
                 </div>
@@ -1537,7 +1537,7 @@ Object {
                       class="modal-title"
                       id="genericModalLabel"
                     >
-                      <header
+                      <div
                         class="mm-modal-header"
                       >
                         <h2
@@ -1556,7 +1556,7 @@ Object {
                             channel_display_name
                           </span>
                         </h2>
-                      </header>
+                      </div>
                     </h1>
                   </div>
                 </div>
@@ -2118,7 +2118,7 @@ Object {
                       class="modal-title"
                       id="genericModalLabel"
                     >
-                      <header
+                      <div
                         class="mm-modal-header"
                       >
                         <h2
@@ -2137,7 +2137,7 @@ Object {
                             channel_display_name
                           </span>
                         </h2>
-                      </header>
+                      </div>
                     </h1>
                   </div>
                 </div>
@@ -2699,7 +2699,7 @@ Object {
                       class="modal-title"
                       id="genericModalLabel"
                     >
-                      <header
+                      <div
                         class="mm-modal-header"
                       >
                         <h2
@@ -2718,7 +2718,7 @@ Object {
                             channel_display_name
                           </span>
                         </h2>
-                      </header>
+                      </div>
                     </h1>
                   </div>
                 </div>
