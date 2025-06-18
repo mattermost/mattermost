@@ -115,7 +115,6 @@ export const GenericModal: React.FC<Props> = ({
     compassDesign,
     backdrop,
     backdropClassName,
-    tabIndex,
     children,
     autoFocusConfirmButton,
     headerInput,
@@ -288,7 +287,6 @@ export const GenericModal: React.FC<Props> = ({
             <div
                 ref={containerRef}
                 onKeyDown={onEnterKeyDown}
-                tabIndex={tabIndex || 0}
                 className='GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher'
             >
                 {showHeader && (

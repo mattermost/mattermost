@@ -448,7 +448,11 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, rctx request.CTX, ss store.S
 	nErr := ss.Preference().Save(model.Preferences{preference1, preference2})
 	require.NoError(t, nErr)
 
-	_, _, nErr = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
+	_, _, nErr = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: 2000,
+		Limit:               limit,
+	}, model.RetentionPolicyCursor{})
 	assert.NoError(t, nErr)
 
 	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)

@@ -140,29 +140,6 @@
         .buttons {
             margin-top: 32px;
             text-align: right;
-
-            .confirm-btn {
-                &:hover,
-                &:active,
-                &:focus,
-                &:active:focus {
-                    background:
-                        linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)),
-                        var(--button-bg);
-                }
-
-                height: 40px;
-                flex: none;
-                padding: 12px 20px;
-                border: none;
-                border-radius: 4px;
-                margin-left: 8px;
-                background: var(--button-bg);
-                color: var(--sys-button-color);
-                font-size: 14px;
-                font-weight: 600;
-                line-height: 14px;
-            }
         }
     }
 
@@ -175,28 +152,5 @@
         font-style: normal;
         font-weight: 600;
         line-height: 20px;
-
-        .btn-cancel {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            background: var(--button-bg-8, rgba(28, 88, 217, 0.08));
-            color: var(--button-bg, #1c58d9);
-        }
-
-        .btn-save {
-            &:disabled {
-                background: rgba(63, 67, 80, 0.08);
-                color: rgba(63, 67, 80, 0.32);
-                cursor: not-allowed;
-            }
-
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            margin-left: 8px;
-            background: var(--button-bg, #1c58d9);
-            color: var(--button-color, #fff);
-        }
     }
 }

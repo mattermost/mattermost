@@ -45,7 +45,7 @@ const EditSectionHeader = ({
                 </div>
                 <div className='AddIPFilterButton'>
                     <button
-                        className='Button'
+                        className='btn btn-primary'
                         onClick={() => {
                             setShowAddModal(true);
                         }}

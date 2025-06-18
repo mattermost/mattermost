@@ -236,12 +236,16 @@ func (a *App) CreateGuest(c request.CTX, user *model.User) (*model.User, *model.
 }
 
 func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*model.User, *model.AppError) {
-	exceeded, limitErr := a.isHardUserLimitExceeded()
+	atUserLimit, limitErr := a.isAtUserLimit()
 	if limitErr != nil {
 		return nil, limitErr
 	}
 
-	if exceeded {
+	if atUserLimit {
+		// Use different error messages based on whether server is licensed
+		if a.License() != nil {
+			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.license_user_limits.exceeded", nil, "", http.StatusBadRequest)
+		}
 		return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.user_limits.exceeded", nil, "", http.StatusBadRequest)
 	}
 
@@ -332,7 +336,12 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		c.Logger().Error("Error fetching user limits in createUserOrGuest", mlog.Err(limitErr))
 	} else {
 		if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-			c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			// Use different warning messages based on whether server is licensed
+			if a.License() != nil {
+				c.Logger().Warn("ERROR_LICENSED_USERS_LIMIT_EXCEEDED: Created user exceeds the maximum licensed users.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			} else {
+				c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			}
 		}
 	}
 
@@ -1013,12 +1022,16 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 
 func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
 	if active {
-		exceeded, appErr := a.isHardUserLimitExceeded()
+		atUserLimit, appErr := a.isAtUserLimit()
 		if appErr != nil {
 			return nil, appErr
 		}
 
-		if exceeded {
+		if atUserLimit {
+			// Use different error messages based on whether server is licensed
+			if a.License() != nil {
+				return nil, model.NewAppError("UpdateActive", "app.user.update_active.license_user_limit.exceeded", nil, "", http.StatusBadRequest)
+			}
 			return nil, model.NewAppError("UpdateActive", "app.user.update_active.user_limit.exceeded", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -1076,7 +1089,12 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 			c.Logger().Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
 		} else {
 			if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-				c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+				// Use different warning messages based on whether server is licensed
+				if a.License() != nil {
+					c.Logger().Warn("ERROR_LICENSED_USERS_LIMIT_EXCEEDED: Activated user exceeds the maximum licensed users.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+				} else {
+					c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+				}
 			}
 		}
 	}

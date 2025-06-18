@@ -34,7 +34,6 @@ exports[`GenericModal should match snapshot for base case 1`] = `
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"

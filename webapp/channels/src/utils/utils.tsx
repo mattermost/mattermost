@@ -1297,65 +1297,63 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
 
             let isReply = false;
 
-            if (isSystemAdmin(user.roles)) {
-                if (match) {
-                    // Get team by name
-                    const {teamName} = match;
-                    let team = getTeamByName(state, teamName);
-                    if (!team) {
-                        const {data: teamData} = await store.dispatch(getTeamByNameAction(teamName));
-                        team = teamData;
-                    }
-                    if (team && team.delete_at === 0) {
-                        let channel;
+            if (match) {
+                // Get team by name
+                const {teamName} = match;
+                let team = getTeamByName(state, teamName);
+                if (!team) {
+                    const {data: teamData} = await store.dispatch(getTeamByNameAction(teamName));
+                    team = teamData;
+                }
+                if (team && team.delete_at === 0) {
+                    let channel;
 
-                        // Handle channel url - Get channel data from channel name
-                        if (match.type === 'channel') {
-                            const {channelName} = match;
-                            channel = getChannelsNameMapInTeam(state, team.id)[channelName as string];
+                    // Handle channel url - Get channel data from channel name
+                    if (match.type === 'channel') {
+                        const {channelName} = match;
+                        channel = getChannelsNameMapInTeam(state, team.id)[channelName as string];
+                        if (!channel) {
+                            const {data: channelData} = await store.dispatch(getChannelByNameAndTeamName(teamName, channelName!, true));
+                            channel = channelData;
+                        }
+                    } else { // Handle permalink - Get channel data from post
+                        const {postId} = match;
+                        let post = getPost(state, postId!);
+                        if (!post) {
+                            const {data: postData} = await store.dispatch(getPostAction(match.postId!));
+                            post = postData!;
+                        }
+                        if (post) {
+                            isReply = Boolean(post.root_id);
+
+                            channel = getChannel(state, post.channel_id);
                             if (!channel) {
-                                const {data: channelData} = await store.dispatch(getChannelByNameAndTeamName(teamName, channelName!, true));
+                                const {data: channelData} = await store.dispatch(getChannelAction(post.channel_id));
                                 channel = channelData;
                             }
-                        } else { // Handle permalink - Get channel data from post
-                            const {postId} = match;
-                            let post = getPost(state, postId!);
-                            if (!post) {
-                                const {data: postData} = await store.dispatch(getPostAction(match.postId!));
-                                post = postData!;
-                            }
-                            if (post) {
-                                isReply = Boolean(post.root_id);
-
-                                channel = getChannel(state, post.channel_id);
-                                if (!channel) {
-                                    const {data: channelData} = await store.dispatch(getChannelAction(post.channel_id));
-                                    channel = channelData;
-                                }
+                        }
+                    }
+                    if (channel && channel.type === Constants.PRIVATE_CHANNEL) {
+                        let member = getMyChannelMemberships(state)[channel.id];
+                        if (!member) {
+                            const membership = await store.dispatch(getChannelMember(channel.id, getCurrentUserId(state)));
+                            if ('data' in membership) {
+                                member = membership.data!;
                             }
                         }
-                        if (channel && channel.type === Constants.PRIVATE_CHANNEL) {
-                            let member = getMyChannelMemberships(state)[channel.id];
-                            if (!member) {
-                                const membership = await store.dispatch(getChannelMember(channel.id, getCurrentUserId(state)));
-                                if ('data' in membership) {
-                                    member = membership.data!;
+                        if (!member) {
+                            const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
+                            if (data!.join) {
+                                let error = false;
+                                if (!getTeamMemberships(state)[team.id]) {
+                                    const joinTeamResult = await store.dispatch(addUserToTeam(team.id, user.id));
+                                    error = joinTeamResult.error;
                                 }
-                            }
-                            if (!member) {
-                                const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
-                                if (data!.join) {
-                                    let error = false;
-                                    if (!getTeamMemberships(state)[team.id]) {
-                                        const joinTeamResult = await store.dispatch(addUserToTeam(team.id, user.id));
-                                        error = joinTeamResult.error;
-                                    }
-                                    if (!error) {
-                                        await store.dispatch(joinChannel(user.id, team.id, channel.id, channel.name));
-                                    }
-                                } else {
-                                    return;
+                                if (!error) {
+                                    await store.dispatch(joinChannel(user.id, team.id, channel.id, channel.name));
                                 }
+                            } else {
+                                return;
                             }
                         }
                     }

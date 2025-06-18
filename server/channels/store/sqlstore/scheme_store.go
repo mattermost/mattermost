@@ -418,7 +418,26 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 	schemes := []*model.Scheme{}
 
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(
+			"Id",
+			"Name",
+			"DisplayName",
+			"Description",
+			"Scope",
+			"DefaultTeamAdminRole",
+			"DefaultTeamUserRole",
+			"DefaultTeamGuestRole",
+			"DefaultChannelAdminRole",
+			"DefaultChannelUserRole",
+			"DefaultChannelGuestRole",
+			"CreateAt",
+			"UpdateAt",
+			"DeleteAt",
+			"DefaultPlaybookAdminRole",
+			"DefaultPlaybookMemberRole",
+			"DefaultRunAdminRole",
+			"DefaultRunMemberRole",
+		).
 		From("Schemes").
 		Where(sq.Eq{"DeleteAt": 0}).
 		OrderBy("CreateAt DESC").

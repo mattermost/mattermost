@@ -239,3 +239,77 @@ func (p PropertyOptions[T]) IsValid() error {
 
 	return nil
 }
+
+// PluginPropertyOption provides a simple implementation of PropertyOption for plugins
+// using a map[string]string for flexible key-value storage
+type PluginPropertyOption struct {
+	Data map[string]string `json:"data"`
+}
+
+func NewPluginPropertyOption(id, name string) *PluginPropertyOption {
+	return &PluginPropertyOption{
+		Data: map[string]string{
+			"id":   id,
+			"name": name,
+		},
+	}
+}
+
+func (p *PluginPropertyOption) GetID() string {
+	if p.Data == nil {
+		return ""
+	}
+	return p.Data["id"]
+}
+
+func (p *PluginPropertyOption) GetName() string {
+	if p.Data == nil {
+		return ""
+	}
+	return p.Data["name"]
+}
+
+func (p *PluginPropertyOption) SetID(id string) {
+	if p.Data == nil {
+		p.Data = make(map[string]string)
+	}
+	p.Data["id"] = id
+}
+
+func (p *PluginPropertyOption) IsValid() error {
+	if p.Data == nil {
+		return errors.New("data cannot be nil")
+	}
+
+	id := p.GetID()
+	if id == "" {
+		return errors.New("id cannot be empty")
+	}
+
+	if !IsValidId(id) {
+		return errors.New("id is not a valid ID")
+	}
+
+	name := p.GetName()
+	if name == "" {
+		return errors.New("name cannot be empty")
+	}
+
+	return nil
+}
+
+// GetValue retrieves a custom value from the option data
+func (p *PluginPropertyOption) GetValue(key string) string {
+	if p.Data == nil {
+		return ""
+	}
+	return p.Data[key]
+}
+
+// SetValue sets a custom value in the option data
+func (p *PluginPropertyOption) SetValue(key, value string) {
+	if p.Data == nil {
+		p.Data = make(map[string]string)
+	}
+	p.Data[key] = value
+}

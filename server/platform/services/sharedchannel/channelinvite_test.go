@@ -29,6 +29,18 @@ var (
 	mockTypeContext    = mock.MatchedBy(func(ctx context.Context) bool { return true })
 )
 
+// setupMockServerWithConfig sets up the standard mocks that all tests need
+func setupMockServerWithConfig(mockServer *MockServerIface) {
+	// Mock Config for feature flag check - disable membership sync to avoid complex mocking
+	mockConfig := model.Config{}
+	mockConfig.SetDefaults()
+	mockConfig.FeatureFlags.EnableSharedChannelsMemberSync = false
+	mockServer.On("Config").Return(&mockConfig)
+
+	// Mock GetRemoteClusterService for feature flag check
+	mockServer.On("GetRemoteClusterService").Return(nil)
+}
+
 func TestOnReceiveChannelInvite(t *testing.T) {
 	t.Run("when msg payload is empty, it does nothing", func(t *testing.T) {
 		mockServer := &MockServerIface{}
@@ -92,6 +104,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
 
 		mockServer.On("GetStore").Return(mockStore)
+		setupMockServerWithConfig(mockServer)
+
 		createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
 		createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
 		updateMap := model.ChannelModeratedRolesPatch{
@@ -216,6 +230,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
 
 		mockServer.On("GetStore").Return(mockStore)
+		setupMockServerWithConfig(mockServer)
+
 		defer mockApp.AssertExpectations(t)
 
 		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
@@ -351,6 +367,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 
 				mockServer = scs.server.(*MockServerIface)
 				mockServer.On("GetStore").Return(mockStore)
+				setupMockServerWithConfig(mockServer)
 
 				mockApp.On("GetOrCreateDirectChannel", mockTypeReqContext, mockTypeString, mockTypeString, mock.AnythingOfType("model.ChannelOption")).
 					Return(channel, nil).Maybe()

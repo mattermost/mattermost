@@ -252,7 +252,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
       saving={false}
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
       to="/admin_console/compliance/data_retention_settings"
     >
       <MemoizedFormattedMessage

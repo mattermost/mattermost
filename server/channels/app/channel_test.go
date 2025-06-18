@@ -2513,8 +2513,16 @@ func TestClearChannelMembersCache(t *testing.T) {
 			ChannelId: "1",
 		})
 	}
-	mockChannelStore.On("GetMembers", "channelID", 0, 100).Return(cms, nil)
-	mockChannelStore.On("GetMembers", "channelID", 100, 100).Return(model.ChannelMembers{
+	mockChannelStore.On("GetMembers", model.ChannelMembersGetOptions{
+		ChannelID: "channelID",
+		Offset:    0,
+		Limit:     100,
+	}).Return(cms, nil)
+	mockChannelStore.On("GetMembers", model.ChannelMembersGetOptions{
+		ChannelID: "channelID",
+		Offset:    100,
+		Limit:     100,
+	}).Return(model.ChannelMembers{
 		model.ChannelMember{
 			ChannelId: "1",
 		},
@@ -3394,4 +3402,140 @@ func TestPatchChannel(t *testing.T) {
 		require.Equal(t, appErr.StatusCode, http.StatusBadRequest)
 		require.Equal(t, "model.channel.is_valid.banner_info.channel_type.app_error", appErr.Id)
 	})
+}
+
+func TestCreateChannelWithCategorySorting(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Enable ExperimentalChannelCategorySorting
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.ExperimentalChannelCategorySorting = true
+	})
+
+	t.Run("should set category when adding user to channel with category and trim white spaces", func(t *testing.T) {
+		channel := &model.Channel{
+			DisplayName: "  Category  /  Channel Name  ",
+			Name:        "name1",
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		channel, appErr := th.App.CreateChannelWithUser(th.Context, channel, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "Channel Name", channel.DisplayName)
+		require.Equal(t, "Category", channel.DefaultCategoryName)
+
+		// Verify channel is in default category
+		categories, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+
+		foundCategory := false
+		for _, category := range categories.Categories {
+			if category.DisplayName == "Category" {
+				foundCategory = true
+				assert.Contains(t, category.Channels, channel.Id)
+				break
+			}
+		}
+		assert.True(t, foundCategory, "Category 'Category' not found in sidebar categories")
+
+		// Add user to channel
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
+		require.Nil(t, appErr)
+
+		// Verify channel is in default category
+		categories2, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser2.Id, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+
+		foundCategory2 := false
+		for _, category := range categories2.Categories {
+			if category.DisplayName == "Category" {
+				foundCategory2 = true
+				assert.Contains(t, category.Channels, channel.Id)
+				break
+			}
+		}
+		assert.True(t, foundCategory2, "Category 'Category' not found in sidebar categories")
+	})
+
+	t.Run("should not set category when feature is disabled", func(t *testing.T) {
+		channel := &model.Channel{
+			DisplayName: "Category2/Channel Name",
+			Name:        "name2",
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		channel, appErr := th.App.CreateChannel(th.Context, channel, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "Channel Name", channel.DisplayName)
+		require.Equal(t, "Category2", channel.DefaultCategoryName)
+
+		// Disable ExperimentalChannelCategorySorting
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.ExperimentalChannelCategorySorting = false
+		})
+
+		// Add user to channel
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+		require.Nil(t, appErr)
+
+		// Verify channel is in default category
+		categories, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+
+		foundCategory := false
+		for _, category := range categories.Categories {
+			if category.DisplayName == "Category2" {
+				foundCategory = true
+				break
+			}
+		}
+		assert.False(t, foundCategory, "Category 'Category2' not found in sidebar categories")
+	})
+}
+
+func TestPatchChannelWithCategorySorting(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Enable ExperimentalChannelCategorySorting
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.ExperimentalChannelCategorySorting = true
+	})
+
+	// Create initial channel
+	channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+	channel.DisplayName = "Initial Name"
+	channel, appErr := th.App.UpdateChannel(th.Context, channel)
+	require.Nil(t, appErr)
+
+	// Add user to channel
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+	require.Nil(t, appErr)
+
+	// Patch channel with new display name containing category
+	patch := &model.ChannelPatch{
+		DisplayName: model.NewPointer("  New Category  /  New Channel Name  "),
+	}
+
+	patchedChannel, appErr := th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+	require.Nil(t, appErr)
+	require.Equal(t, "New Channel Name", patchedChannel.DisplayName)
+	require.Equal(t, "New Category", patchedChannel.DefaultCategoryName)
+
+	// Test that category is not updated when feature is disabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.ExperimentalChannelCategorySorting = false
+	})
+
+	patch = &model.ChannelPatch{
+		DisplayName: model.NewPointer("Disabled Category/Channel Name"),
+	}
+
+	patchedChannel, appErr = th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+	require.Nil(t, appErr)
+	require.Equal(t, "Disabled Category/Channel Name", patchedChannel.DisplayName)
+	require.Equal(t, "New Category", patchedChannel.DefaultCategoryName)
 }

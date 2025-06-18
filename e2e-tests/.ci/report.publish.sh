@@ -16,7 +16,7 @@ cd "$(dirname "$0")"
 if [ "$TYPE" = "PR" ]; then
   # In this case, we expect the PR number to be present in the BRANCH variable
   BRANCH_REGEX='^server-pr-[0-9]+$'
-  if ! grep -qE "${BRANCH_REGEX}"<<<"$BRANCH"; then
+  if ! grep -qE "${BRANCH_REGEX}" <<<"$BRANCH"; then
     mme2e_log "Error: when using TYPE=PR, the BRANCH variable should respect regex '$BRANCH_REGEX'. Aborting." >&2
     exit 1
   fi
@@ -24,7 +24,7 @@ if [ "$TYPE" = "PR" ]; then
 fi
 
 # Env vars used during the test. Their values will be included in the report
-: ${TEST:?} # See E2E tests' readme
+: ${TEST:?}   # See E2E tests' readme
 : ${BRANCH:?} # May be either a ref, a commit hash, or 'server-pr-PR_NUMBER' (if TYPE=PR)
 : ${BUILD_ID:?}
 : ${SERVER:?} # May be either 'onprem' or 'cloud'
@@ -56,20 +56,27 @@ if [ -n "${TM4J_API_KEY:-}" ]; then
   # Assert that the test type is among the ones supported by Zephyr, and select the corresponding folderId
   case "${SERVER}-${TYPE}" in
   onprem-RELEASE)
-    export TM4J_FOLDER_ID="2014475" ;;
+    export TM4J_FOLDER_ID="2014475"
+    ;;
   onprem-MASTER)
-    export TM4J_FOLDER_ID="2014476" ;;
+    export TM4J_FOLDER_ID="2014476"
+    ;;
   onprem-MASTER_UNSTABLE)
-    export TM4J_FOLDER_ID="2014478" ;;
+    export TM4J_FOLDER_ID="2014478"
+    ;;
   cloud-RELEASE)
-    export TM4J_FOLDER_ID="2014474" ;;
+    export TM4J_FOLDER_ID="2014474"
+    ;;
   cloud-CLOUD)
-    export TM4J_FOLDER_ID="2014479" ;;
+    export TM4J_FOLDER_ID="2014479"
+    ;;
   cloud-CLOUD_UNSTABLE)
-    export TM4J_FOLDER_ID="2014481" ;;
+    export TM4J_FOLDER_ID="2014481"
+    ;;
   *)
     mme2e_log "Error: unsupported Zephyr environment for the requested report (SERVER=${SERVER}, TYPE=${TYPE}). Aborting." >&2
     exit 1
+    ;;
   esac
   : ${TEST_CYCLE_LINK_PREFIX:?}
   : ${TM4J_CYCLE_KEY:-}  # Optional. Populated automatically by the reporting script
@@ -97,15 +104,15 @@ if [ ! -d "results/" ]; then
 fi
 
 case "$TEST" in
-  cypress)
-    npm i
-    node save_report.js
-    ;;
-  playwright)
-    if [ -n "$WEBHOOK_URL" ]; then
-      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i
-      # Utilize environment data and report files to generate the webhook body
-      node report.webhookgen.js | curl -X POST -fsSL -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"
-    fi
-    ;;
+cypress)
+  npm i
+  node save_report.js
+  ;;
+playwright)
+  if [ -n "$WEBHOOK_URL" ]; then
+    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i
+    # Utilize environment data and report files to generate the webhook body
+    node report.webhookgen.js | curl -X POST -fsSL -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"
+  fi
+  ;;
 esac

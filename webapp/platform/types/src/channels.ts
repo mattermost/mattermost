@@ -69,6 +69,7 @@ export type Channel = {
     policy_id?: string | null;
     banner_info?: ChannelBanner;
     policy_enforced?: boolean;
+    default_category_name?: string;
 };
 
 export type ServerChannel = Channel & {

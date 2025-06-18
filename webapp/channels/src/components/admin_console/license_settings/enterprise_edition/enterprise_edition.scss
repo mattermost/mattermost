@@ -1,6 +1,4 @@
 .EnterpriseEditionRightPannel {
-    font-family: Metropolis;
-
     .svg-image {
         text-align: center;
 
@@ -12,6 +10,7 @@
     .upgrade-title {
         margin: 10px 0;
         color: #3f4350;
+        font-family: Metropolis, sans-serif;
         font-size: 16px;
         font-weight: 700;
         line-height: 24px;
@@ -37,18 +36,11 @@
 
     button {
         width: 100%;
-        border-radius: 4px;
         margin: 5px auto;
     }
 
     .purchase_buttons {
         margin-top: 20px;
-
-        button {
-            height: 48px !important;
-            padding: 7px 12px !important;
-            margin: 0 5px !important;
-        }
     }
 
     .upgrade-error {
@@ -57,14 +49,8 @@
 }
 
 .EnterpriseEditionLeftPanel {
-    font-family: Metropolis;
-
     &__Grid {
         display: flex;
-    }
-
-    .PlanDetails__viewPlansButton {
-        height: 33px;
     }
 
     .pre-title {
@@ -78,6 +64,7 @@
     .title {
         display: flex;
         color: #3f4350;
+        font-family: Metropolis, sans-serif;
         font-size: 18px;
         font-weight: 700;
         gap: 4px;
@@ -91,7 +78,6 @@
 
     .license-notices {
         font-size: 12px;
-        text-align: justify;
     }
 
     .licenseInformation {
@@ -110,13 +96,6 @@
             span.title {
                 display: inline-block;
                 color: #3f4350;
-            }
-
-            .add-seats-button {
-                border-radius: 4px;
-                font-family: 'Open Sans', sans-serif;
-                font-size: 12px;
-                font-weight: 600;
             }
         }
 
@@ -169,22 +148,6 @@
                     &-danger {
                         color: var(--dnd-indicator);
                     }
-                }
-            }
-
-            .add-new-licence-btn {
-                display: block;
-                padding: 12px 20px;
-                border: 1px solid var(--sys-button-bg);
-                border-radius: 4px;
-                margin-top: 15px;
-                background-color: var(--sys-center-channel-bg);
-                color: var(--sys-button-bg);
-
-                span {
-                    font-size: 14px;
-                    font-weight: 600;
-                    line-height: 14px;
                 }
             }
         }

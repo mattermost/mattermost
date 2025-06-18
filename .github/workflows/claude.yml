@@ -34,4 +34,5 @@ jobs:
         uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-
+          model: claude-sonnet-4-20250514
+          allowed_tools: "Bash(cd:*),Bash(git:*),Bash(make:*),Bash(npm:*),Bash(go:*)"

@@ -2277,6 +2277,10 @@
     "translation": "You do not have permission to manage this job type"
   },
   {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Invalid test type: {{.TestType}}"
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
@@ -2873,6 +2877,10 @@
   {
     "id": "api.remote_cluster.get.not_found",
     "translation": "Remote Cluster not found"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Remote cluster import is not allowed"
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
@@ -4043,6 +4051,10 @@
     "translation": "Unable to create the user, invalid invitation."
   },
   {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Can't create user. Server exceeds maximum licensed users. Contact your administrator with: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
     "id": "api.user.create_user.no_open_server",
     "translation": "This server does not allow open signups.  Please speak with your Administrator to receive an invitation."
   },
@@ -4503,8 +4515,16 @@
     "translation": "Failed to parse request"
   },
   {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Failed to save the batch of acknowledgement objects"
+  },
+  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Unable to delete acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Cannot delete acknowledgement for missing post"
   },
   {
     "id": "app.acknowledgement.get.app_error",
@@ -4513,6 +4533,10 @@
   {
     "id": "app.acknowledgement.getforpost.get.app_error",
     "translation": "Unable to get acknowledgement for post."
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Cannot save acknowledgement for missing post"
   },
   {
     "id": "app.acknowledgement.save.save.app_error",
@@ -7541,8 +7565,12 @@
     "translation": "Cannot demote last System Admin."
   },
   {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Can't activate user. Server exceeds maximum licensed users. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Can't activate user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Can't activate user. Server exceeds safe user limit. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "app.user.update_active_for_multiple_users.updating.app_error",
@@ -8233,6 +8261,10 @@
     "translation": "ldap interface was nil."
   },
   {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
+  },
+  {
     "id": "ent.ldap.cpa_field_mapping.list_error",
     "translation": "Failed to retrieve CPA fields"
   },
@@ -8743,6 +8775,10 @@
   {
     "id": "model.access_policy.is_valid.version.app_error",
     "translation": "Version is not valid for this access control policy."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
   },
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",

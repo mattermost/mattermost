@@ -71,7 +71,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
             });
 
             // * Verify if the reader is able to read out the selected row
-            cy.get('.filtered-user-list .sr-only').
+            cy.get('.filtered-user-list div.sr-only:not([role="status"])').
                 should('have.attr', 'aria-live', 'polite').
                 and('have.attr', 'aria-atomic', 'true').
                 invoke('text').then((text) => {
@@ -181,7 +181,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 });
 
             // * Verify if the reader is able to read out the selected row
-            cy.get('.filtered-user-list .sr-only').
+            cy.get('.filtered-user-list div.sr-only:not([role="status"])').
                 should('have.attr', 'aria-live', 'polite').
                 and('have.attr', 'aria-atomic', 'true').
                 invoke('text').then((text) => {

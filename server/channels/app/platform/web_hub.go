@@ -65,6 +65,8 @@ type webConnCountMessage struct {
 	result chan int
 }
 
+var hubSemaphoreCount = runtime.NumCPU() * 4
+
 // Hub is the central place to manage all websocket connections in the server.
 // It handles different websocket events and sending messages to individual
 // user connections.
@@ -87,6 +89,9 @@ type Hub struct {
 	checkConn       chan *webConnCheckMessage
 	connCount       chan *webConnCountMessage
 	broadcastHooks  map[string]BroadcastHook
+
+	// Hub-specific semaphore for limiting concurrent goroutines
+	hubSemaphore chan struct{}
 }
 
 // newWebHub creates a new Hub.
@@ -104,6 +109,7 @@ func newWebHub(ps *PlatformService) *Hub {
 		checkRegistered: make(chan *webConnSessionMessage),
 		checkConn:       make(chan *webConnCheckMessage),
 		connCount:       make(chan *webConnCountMessage),
+		hubSemaphore:    make(chan struct{}, hubSemaphoreCount),
 	}
 }
 
@@ -469,10 +475,39 @@ func (h *Hub) SendMessage(conn *WebConn, msg model.WebSocketMessage) {
 	}
 }
 
+// ProcessAsync executes a function with hub-specific concurrency control
+func (h *Hub) ProcessAsync(f func()) {
+	h.hubSemaphore <- struct{}{}
+	go func() {
+		defer func() {
+			<-h.hubSemaphore
+		}()
+
+		// Add timeout protection
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			f()
+		}()
+
+		select {
+		case <-done:
+			// Function completed normally
+		case <-time.After(5 * time.Second):
+			h.platform.Log().Warn("ProcessAsync function timed out after 5 seconds")
+		}
+	}()
+}
+
 // Stop stops the hub.
 func (h *Hub) Stop() {
 	close(h.stop)
 	<-h.didStop
+	// Ensure that all remaining elements are processed
+	// before shutting down.
+	for i := 0; i < hubSemaphoreCount; i++ {
+		h.hubSemaphore <- struct{}{}
+	}
 }
 
 // Start starts the hub.
@@ -561,7 +596,7 @@ func (h *Hub) Start() {
 				// which is intentional.
 				if areAllInactive(conns) {
 					userID := webConn.UserId
-					h.platform.Go(func() {
+					h.ProcessAsync(func() {
 						// If this is an HA setup, get count for this user
 						// from other nodes.
 						var clusterCnt int
@@ -580,7 +615,7 @@ func (h *Hub) Start() {
 						// Only set to offline if there are no
 						// active connections in other nodes as well.
 						if clusterCnt == 0 {
-							h.platform.SetStatusOffline(userID, false, false)
+							h.platform.QueueSetStatusOffline(userID, false)
 						}
 					})
 					continue

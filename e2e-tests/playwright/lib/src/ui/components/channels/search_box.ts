@@ -3,7 +3,7 @@
 
 import {Locator, expect} from '@playwright/test';
 
-export default class SearchPopover {
+export default class SearchBox {
     readonly container: Locator;
 
     readonly messagesButton;
@@ -30,6 +30,7 @@ export default class SearchPopover {
     async clearIfPossible() {
         if (await this.clearButton.isVisible()) {
             await this.clearButton.click();
+            await expect(this.searchInput).toHaveValue('');
             return true;
         }
         return false;

@@ -236,7 +236,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		th.App.Srv().SetLicense(l)
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-			file, filename, _, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
+			file, filename, resp, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
 			require.NoError(t, err)
 
 			assert.Contains(t, filename, "mm_support_packet_My_awesome_Company_")
@@ -244,6 +244,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 			d, err := io.ReadAll(file)
 			require.NoError(t, err)
 			assert.NotZero(t, len(d))
+
+			// Verify that the Cache-Control header is set to prevent caching
+			assert.Equal(t, "no-cache, no-store, must-revalidate", resp.Header.Get("Cache-Control"))
 		})
 	})
 
