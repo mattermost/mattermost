@@ -220,10 +220,9 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Apply same security restrictions as normal upload API
 	if us.Type == model.UploadTypeImport {
-		if c.App.Srv().License().IsCloud() {
-			c.Err = model.NewAppError("uploadRemoteData", "api.file.cloud_upload.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
+		c.Err = model.NewAppError("uploadRemoteData", "api.remote_cluster.import_not_allowed.app_error",
+			nil, "", http.StatusBadRequest)
+		return
 	}
 
 	info, err := doUploadData(c, us, r)
