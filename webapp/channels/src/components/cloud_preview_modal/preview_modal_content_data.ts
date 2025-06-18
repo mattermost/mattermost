@@ -35,7 +35,7 @@ export const modalContent: PreviewModalContentData[] = [
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/Mattermost_TMM_Demo_Mission+Ops_20250307.mp4',
         videoPoster: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/modal-assets/Mattermost_TMM_Demo_MissionOps_Poster.jpg',
-        useCase: 'missionops',
+        useCase: 'mission-ops',
     },
     {
         skuLabel: {
@@ -51,7 +51,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Bring conversations and context together in one secure platform. Communicate with urgency using priority levels, persistent notifications, and acknowledgments—so critical messages are seen and acted on when every second counts.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/modal-assets/priority-messages.jpg',
-        useCase: 'missionops',
+        useCase: 'mission-ops',
     },
     {
         skuLabel: {
@@ -67,7 +67,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Supercharge collaboration with Agents. Instantly summarize calls, surface action items, and find answers fast—all using the model you trust.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/modal-assets/ai-search.jpg',
-        useCase: 'missionops',
+        useCase: 'mission-ops',
     },
     {
         skuLabel: {
@@ -83,7 +83,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Create tailored user profiles with custom attributes like role, location, or clearance level to reflect your organization\'s structure. Help teams understand who they\'re working with and how to collaborate more effectively.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/modal-assets/custom-profile-attributes.jpg',
-        useCase: 'missionops',
+        useCase: 'mission-ops',
     },
     {
         skuLabel: {
@@ -99,7 +99,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Unlock powerful workflows tailored to real-world complexity. When conditions change, define tasks for the Playbook to evolve with your dynamic processes.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/modal-assets/playbook-properties.jpg',
-        useCase: 'missionops',
+        useCase: 'mission-ops',
     },
     {
         skuLabel: {
@@ -115,7 +115,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Prevent accidental exposure by giving anyone the power to flag risky messages. Flagged content is instantly hidden and routed to security teams for review—helping you contain data leaks in real time.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/modal-assets/flag-messages.jpg',
-        useCase: 'missionops',
+        useCase: 'mission-ops',
     },
     {
         skuLabel: {
@@ -131,7 +131,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Define granular access to content using attribute-based policies, and display classification banners and labels to guide user behavior. Limit exposure based on role, clearance level, or operational context.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/modal-assets/zero-trust.jpg',
-        useCase: 'missionops',
+        useCase: 'mission-ops',
     },
     {
         skuLabel: {
@@ -148,7 +148,7 @@ export const modalContent: PreviewModalContentData[] = [
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/Mattermost_TMM_Demo_DevSecOps_20260610.mp4',
         videoPoster: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/modal-assets/Mattermost_TMM_Demo_DevSecOps_Poster.jpg',
-        useCase: 'devsecops',
+        useCase: 'dev-sec-ops',
     },
     {
         skuLabel: {
@@ -164,7 +164,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Bring conversations and context together in one secure platform. Communicate with urgency using priority levels, persistent notifications, and acknowledgments—so critical messages are seen and acted on when every second counts.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/modal-assets/priority-messages.jpg',
-        useCase: 'devsecops',
+        useCase: 'dev-sec-ops',
     },
     {
         skuLabel: {
@@ -180,7 +180,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Supercharge collaboration with Agents. Instantly summarize calls, surface action items, and find answers fast—all using the model you trust.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/modal-assets/ai-search.jpg',
-        useCase: 'devsecops',
+        useCase: 'dev-sec-ops',
     },
     {
         skuLabel: {
@@ -196,7 +196,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Create tailored user profiles with custom attributes like role, location, or clearance level to reflect your organization\'s structure. Help teams understand who they\'re working with and how to collaborate more effectively.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/modal-assets/custom-profile-attributes.jpg',
-        useCase: 'devsecops',
+        useCase: 'dev-sec-ops',
     },
     {
         skuLabel: {
@@ -212,7 +212,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Unlock powerful workflows tailored to real-world complexity. When conditions change, define tasks for the Playbook to evolve with your dynamic processes.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/modal-assets/playbook-properties.jpg',
-        useCase: 'devsecops',
+        useCase: 'dev-sec-ops',
     },
     {
         skuLabel: {
@@ -228,7 +228,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Prevent accidental exposure by giving anyone the power to flag risky messages. Flagged content is instantly hidden and routed to security teams for review—helping you contain data leaks in real time.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/modal-assets/flag-messages.jpg',
-        useCase: 'devsecops',
+        useCase: 'dev-sec-ops',
     },
     {
         skuLabel: {
@@ -244,7 +244,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Define granular access to content using attribute-based policies, and display classification banners and labels to guide user behavior. Limit exposure based on role, clearance level, or operational context.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/modal-assets/zero-trust.jpg',
-        useCase: 'devsecops',
+        useCase: 'dev-sec-ops',
     },
     {
         skuLabel: {
@@ -261,7 +261,7 @@ export const modalContent: PreviewModalContentData[] = [
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/Mattermost_TMM_Demo_Cyber_Defense_20250417.mp4',
         videoPoster: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/Mattermost_TMM_Demo_Cyber_Defense_Poster.jpg',
-        useCase: 'cyberdefense',
+        useCase: 'cyber-defense',
     },
     {
         skuLabel: {
@@ -277,7 +277,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Bring conversations and context together in one secure platform. Communicate with urgency using priority levels, persistent notifications, and acknowledgments—so critical messages are seen and acted on when every second counts.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/priority-messages.jpg',
-        useCase: 'cyberdefense',
+        useCase: 'cyber-defense',
     },
     {
         skuLabel: {
@@ -293,7 +293,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Supercharge collaboration with Agents. Instantly summarize calls, surface action items, and find answers fast—all using the model you trust.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/ai-search.jpg',
-        useCase: 'cyberdefense',
+        useCase: 'cyber-defense',
     },
     {
         skuLabel: {
@@ -309,7 +309,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Create tailored user profiles with custom attributes like role, location, or clearance level to reflect your organization\'s structure. Help teams understand who they\'re working with and how to collaborate more effectively.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/custom-profile-attributes.jpg',
-        useCase: 'cyberdefense',
+        useCase: 'cyber-defense',
     },
     {
         skuLabel: {
@@ -325,7 +325,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Unlock powerful workflows tailored to real-world complexity. When conditions change, define tasks for the Playbook to evolve with your dynamic processes.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/playbook-properties.jpg',
-        useCase: 'cyberdefense',
+        useCase: 'cyber-defense',
     },
     {
         skuLabel: {
@@ -341,7 +341,7 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Prevent accidental exposure by giving anyone the power to flag risky messages. Flagged content is instantly hidden and routed to security teams for review—helping you contain data leaks in real time.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/flag-messages.jpg',
-        useCase: 'cyberdefense',
+        useCase: 'cyber-defense',
     },
     {
         skuLabel: {
@@ -357,6 +357,6 @@ export const modalContent: PreviewModalContentData[] = [
             defaultMessage: 'Define granular access to content using attribute-based policies, and display classification banners and labels to guide user behavior. Limit exposure based on role, clearance level, or operational context.',
         },
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/zero-trust.jpg',
-        useCase: 'cyberdefense',
+        useCase: 'cyber-defense',
     },
 ];
