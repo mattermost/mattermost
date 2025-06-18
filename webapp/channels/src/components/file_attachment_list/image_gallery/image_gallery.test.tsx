@@ -1,11 +1,16 @@
-import React from 'react';
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import {render, screen, fireEvent, act} from '@testing-library/react';
+import React from 'react';
 import '@testing-library/jest-dom';
+import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import configureStore from 'redux-mock-store';
-import ImageGallery from './image_gallery';
+
 import {TestHelper} from 'utils/test_helper';
-import {IntlProvider} from 'react-intl';
+
+import ImageGallery from './image_gallery';
 
 const mockStore = configureStore([]);
 const store = mockStore({
@@ -79,10 +84,13 @@ const defaultProps = {
 function renderWithProvider(ui: React.ReactElement) {
     return render(
         <Provider store={store}>
-            <IntlProvider locale="en" messages={{}}>
+            <IntlProvider
+                locale='en'
+                messages={{}}
+            >
                 {ui}
             </IntlProvider>
-        </Provider>
+        </Provider>,
     );
 }
 
@@ -92,24 +100,35 @@ describe('ImageGallery', () => {
     });
 
     it('renders with images', () => {
-        renderWithProvider(<ImageGallery {...defaultProps} />);
+        renderWithProvider(<ImageGallery {...defaultProps}/>);
         expect(screen.getByTestId('fileAttachmentList')).toBeInTheDocument();
         expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
 
     it('renders with no images', () => {
-        renderWithProvider(<ImageGallery {...defaultProps} fileInfos={[]} allFilesForPost={[]} />);
+        renderWithProvider(
+            <ImageGallery
+                {...defaultProps}
+                fileInfos={[]}
+                allFilesForPost={[]}
+            />,
+        );
         expect(screen.getByTestId('fileAttachmentList')).toBeInTheDocument();
         expect(screen.queryAllByRole('listitem')).toHaveLength(0);
     });
 
     it('renders collapsed state', () => {
-        renderWithProvider(<ImageGallery {...defaultProps} isEmbedVisible={false} />);
+        renderWithProvider(
+            <ImageGallery
+                {...defaultProps}
+                isEmbedVisible={false}
+            />,
+        );
         expect(screen.getByRole('list')).toHaveClass('collapsed');
     });
 
     it('calls handleImageClick on Enter/Space', () => {
-        renderWithProvider(<ImageGallery {...defaultProps} />);
+        renderWithProvider(<ImageGallery {...defaultProps}/>);
         const items = screen.getAllByRole('listitem');
         fireEvent.keyDown(items[0], {key: 'Enter'});
         expect(defaultProps.handleImageClick).toHaveBeenCalled();
@@ -118,14 +137,14 @@ describe('ImageGallery', () => {
     });
 
     it('calls onToggleCollapse when toggled', () => {
-        renderWithProvider(<ImageGallery {...defaultProps} />);
+        renderWithProvider(<ImageGallery {...defaultProps}/>);
         const toggleBtn = screen.getByRole('button', {name: /images/i});
         fireEvent.click(toggleBtn);
         expect(defaultProps.onToggleCollapse).toHaveBeenCalled();
     });
 
     it('disables download button when downloading', async () => {
-        renderWithProvider(<ImageGallery {...defaultProps} />);
+        renderWithProvider(<ImageGallery {...defaultProps}/>);
         const downloadBtn = screen.getByRole('button', {name: /download all/i});
         await act(async () => {
             fireEvent.click(downloadBtn);
@@ -134,13 +153,18 @@ describe('ImageGallery', () => {
     });
 
     it('disables download button when not allowed', () => {
-        renderWithProvider(<ImageGallery {...defaultProps} canDownloadFiles={false} />);
+        renderWithProvider(
+            <ImageGallery
+                {...defaultProps}
+                canDownloadFiles={false}
+            />,
+        );
         const downloadBtn = screen.getByRole('button', {name: /download all/i});
         expect(downloadBtn).toBeDisabled();
     });
 
     it('shows correct aria attributes', () => {
-        renderWithProvider(<ImageGallery {...defaultProps} />);
+        renderWithProvider(<ImageGallery {...defaultProps}/>);
         const toggleBtn = screen.getByRole('button', {name: /images/i});
         expect(toggleBtn).toHaveAttribute('aria-expanded');
         expect(screen.getByRole('list')).toBeInTheDocument();
@@ -155,7 +179,7 @@ describe('ImageGallery', () => {
             }
             originalError(msg, ...args);
         };
-        
+
         // Spy on document.createElement and check the anchor's properties
         const aStub = document.createElement('a');
         aStub.click = jest.fn();
@@ -167,17 +191,18 @@ describe('ImageGallery', () => {
         });
         const appendChildSpy = jest.spyOn(document.body, 'appendChild');
         const removeChildSpy = jest.spyOn(document.body, 'removeChild');
-        renderWithProvider(<ImageGallery {...defaultProps} />);
+        renderWithProvider(<ImageGallery {...defaultProps}/>);
         const downloadBtn = screen.getByRole('button', {name: /download all/i});
         await act(async () => {
             fireEvent.click(downloadBtn);
         });
-        
+
         // Check that the download handler logic was triggered for each file
-        expect(createElementSpy.mock.calls.filter(call => call[0] === 'a').length).toBe(defaultProps.fileInfos.length);
+        expect(createElementSpy.mock.calls.filter((call) => call[0] === 'a').length).toBe(defaultProps.fileInfos.length);
         expect(aStub.click).toHaveBeenCalledTimes(defaultProps.fileInfos.length);
         expect(appendChildSpy).toHaveBeenCalled();
         expect(removeChildSpy).toHaveBeenCalled();
+
         // Optionally, check that the anchor's download attribute is set to the sanitized filename
         expect(aStub.download).toBe('image2.jpg'); // last file in mockFileInfos
         expect(aStub.href).toBe('http://example.com/image2.jpg'); // last file in mockFileInfos
@@ -189,11 +214,18 @@ describe('ImageGallery', () => {
             TestHelper.getFileInfoMock({id: 'bad', name: 'bad.png', extension: 'png', width: 100, height: 100, link: undefined}),
         ];
         const createElementSpy = jest.spyOn(document, 'createElement');
-        renderWithProvider(<ImageGallery {...defaultProps} fileInfos={badFiles} allFilesForPost={badFiles} />);
+        renderWithProvider(
+            <ImageGallery
+                {...defaultProps}
+                fileInfos={badFiles}
+                allFilesForPost={badFiles}
+            />,
+        );
         const downloadBtn = screen.getByRole('button', {name: /download all/i});
         await act(async () => {
             fireEvent.click(downloadBtn);
         });
+
         // Should be disabled for invalid link
         expect(downloadBtn).toBeDisabled();
         expect(createElementSpy).not.toHaveBeenCalledWith('a');
@@ -201,7 +233,7 @@ describe('ImageGallery', () => {
     });
 
     it('updates aria-live region on collapse/expand', () => {
-        renderWithProvider(<ImageGallery {...defaultProps} />);
+        renderWithProvider(<ImageGallery {...defaultProps}/>);
         const toggleBtn = screen.getByRole('button', {name: /images/i});
         fireEvent.click(toggleBtn);
         const liveRegion = screen.getByText(/gallery (collapsed|expanded)/i);
@@ -213,9 +245,9 @@ describe('ImageGallery', () => {
         // Mock offsetWidth for mobile
         const refMock = {current: {offsetWidth: 350}};
         jest.spyOn(React, 'useRef').mockReturnValueOnce(refMock as any);
-        renderWithProvider(<ImageGallery {...defaultProps} />);
-        
+        renderWithProvider(<ImageGallery {...defaultProps}/>);
+
         // Should render without error
         expect(screen.getByTestId('fileAttachmentList')).toBeInTheDocument();
     });
-}); 
+});
