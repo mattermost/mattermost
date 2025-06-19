@@ -44,6 +44,95 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/ldap/test_connection:
+    post:
+      tags:
+        - LDAP
+      summary: Test LDAP connection with specific settings
+      description: >
+        Test the LDAP connection using the provided settings without modifying
+        the current server configuration.
+
+        ##### Permissions
+
+        Must have `sysconsole_read_authentication_ldap` or `manage_system` permission.
+      operationId: TestLdapConnection
+      requestBody:
+        description: LDAP settings to test
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LdapSettings"
+      responses:
+        "200":
+          description: LDAP connection test successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/ldap/test_diagnostics:
+    post:
+      tags:
+        - LDAP
+      summary: Test LDAP diagnostics with specific settings
+      description: >
+        Test LDAP diagnostics using the provided settings to validate configuration
+        and see sample results without modifying the current server configuration.
+        Use the `test` query parameter to specify which diagnostic to run.
+
+        ##### Permissions
+
+        Must have `sysconsole_read_authentication_ldap` or `manage_system` permission.
+      operationId: TestLdapDiagnostics
+      parameters:
+        - in: query
+          name: test
+          required: true
+          description: Type of LDAP diagnostic test to run
+          schema:
+            type: string
+            enum:
+              - filters
+              - attributes
+              - group_attributes
+            example: filters
+      requestBody:
+        description: LDAP settings to test diagnostics with
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LdapSettings"
+      responses:
+        "200":
+          description: LDAP diagnostic test results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LdapDiagnosticResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/ldap/groups:
     get:
       tags:

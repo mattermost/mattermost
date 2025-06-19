@@ -27,6 +27,7 @@ type channelInviteMsg struct {
 	Header               string            `json:"header"`
 	Purpose              string            `json:"purpose"`
 	Type                 model.ChannelType `json:"type"`
+	CreatorID            string            `json:"creator_id"`
 	DirectParticipantIDs []string          `json:"direct_participant_ids"`
 	DirectParticipants   []*model.User     `json:"direct_participants"`
 }
@@ -41,13 +42,21 @@ func (cim channelInviteMsg) DirectParticipantsMap() map[string]*model.User {
 
 type InviteOption func(msg *channelInviteMsg)
 
-func WithDirectParticipant(participant *model.User) InviteOption {
+func WithDirectParticipant(participant *model.User, remoteID string) InviteOption {
 	return func(msg *channelInviteMsg) {
 		msg.DirectParticipantIDs = append(msg.DirectParticipantIDs, participant.Id)
-		// if the participant is local, send it as part of the invite payload
-		if !participant.IsRemote() {
+		// if the participant doesn't belong to the remote we're
+		// sending the invite to, send it as part of the invite
+		// payload
+		if participant.GetRemoteID() != remoteID {
 			msg.DirectParticipants = append(msg.DirectParticipants, sanitizeUserForSync(participant))
 		}
+	}
+}
+
+func WithCreator(creatorID string) InviteOption {
+	return func(msg *channelInviteMsg) {
+		msg.CreatorID = creatorID
 	}
 }
 
@@ -80,6 +89,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 			RemoteId:          rc.RemoteId,
 			IsInviteAccepted:  true,
 			IsInviteConfirmed: false,
+			LastMembersSyncAt: 0,
 		}
 		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error saving channel invite for %s: %v", rc.DisplayName, err))
@@ -125,6 +135,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		}
 
 		curTime := model.GetMillis()
+		var sharedChannelRemote *model.SharedChannelRemote
 		if existingScr != nil {
 			if existingScr.DeleteAt == 0 && existingScr.IsInviteConfirmed {
 				// the shared channel remote exists and is not
@@ -144,6 +155,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, sErr))
 				return
 			}
+			sharedChannelRemote = existingScr
 		} else {
 			// the shared channel remote doesn't exists, so we create it
 			scr := &model.SharedChannelRemote{
@@ -154,15 +166,26 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				IsInviteConfirmed: true,
 				LastPostCreateAt:  curTime,
 				LastPostUpdateAt:  curTime,
+				LastMembersSyncAt: 0,
 			}
 			if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
 				return
 			}
+			sharedChannelRemote = scr
 		}
 
 		scs.NotifyChannelChanged(sc.ChannelId)
 		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
+
+		// Sync all channel members to the remote now that the remote entry exists
+		if syncErr := scs.SyncAllChannelMembers(sc.ChannelId, rc.RemoteId, sharedChannelRemote); syncErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync channel members after invite confirmation",
+				mlog.String("channel_id", sc.ChannelId),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(syncErr),
+			)
+		}
 	}
 
 	if rc.IsPlugin() {
@@ -241,9 +264,9 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		// sanity check to ensure the channel returned has the expected id. Otherwise sync will not work as expected and will fail
 		// silently.
 		if invite.ChannelId != channel.Id {
-			// as of this writing, this scenario should only be possible if the invite included a DM channel invitation with a
-			// combination of two user ids (one remote, one local) that already have a DM on this server. Very unlikely unless
-			// the remote is compromised AND has knowledge of the local user id.
+			// as of this writing, this scenario should only be possible if the invite included a DM or GM channel
+			// invitation with a combination of user ids that already have a DM or GM on this server. Very unlikely
+			// unless the remote is compromised AND has knowledge of the local user ids.
 			// Another possibility would be an actual user ID collision between two servers, where the likelihood is
 			// infinitesimally small
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Channel invite failed - channel created/fetched with wrong id",
@@ -254,7 +277,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 				mlog.String("team_id", invite.TeamId),
 				mlog.Array("dm_partics", invite.DirectParticipantIDs),
 			)
-			return fmt.Errorf("cannot create shared channel (DM channel_id=%s): %w", invite.ChannelId, model.ErrChannelAlreadyExists)
+			return fmt.Errorf("cannot create shared channel (channel_id=%s channel_type=%s): %w", invite.ChannelId, invite.Type, model.ErrChannelAlreadyExists)
 		}
 
 		// mark the newly created channel read-only if requested in the invite
@@ -302,16 +325,30 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		if _, err := scs.server.GetStore().SharedChannel().UpdateRemote(existingScr); err != nil {
 			return fmt.Errorf("cannot restore deleted shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
 		}
+
+		// Sync local channel members to the remote after restoring the shared channel
+		if syncErr := scs.SyncAllChannelMembers(channel.Id, rc.RemoteId, existingScr); syncErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync local channel members after restoring shared channel",
+				mlog.String("channel_id", channel.Id),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(syncErr),
+			)
+		}
 	} else {
+		creatorID := channel.CreatorId
+		if creatorID == "" {
+			creatorID = invite.CreatorID
+		}
 		scr := &model.SharedChannelRemote{
 			Id:                model.NewId(),
 			ChannelId:         channel.Id,
-			CreatorId:         channel.CreatorId,
+			CreatorId:         creatorID,
 			IsInviteAccepted:  true,
 			IsInviteConfirmed: true,
 			RemoteId:          rc.RemoteId,
 			LastPostCreateAt:  model.GetMillis(),
 			LastPostUpdateAt:  model.GetMillis(),
+			LastMembersSyncAt: 0,
 		}
 
 		if _, err := scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
@@ -323,6 +360,15 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 			scs.server.GetStore().SharedChannel().Delete(sharedChannel.ChannelId)
 			return fmt.Errorf("cannot create shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
 		}
+
+		// Sync local channel members to the remote after accepting the invitation
+		if syncErr := scs.SyncAllChannelMembers(channel.Id, rc.RemoteId, scr); syncErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync local channel members after accepting invitation",
+				mlog.String("channel_id", channel.Id),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(syncErr),
+			)
+		}
 	}
 	return nil
 }
@@ -333,6 +379,10 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.RemoteCluster) (*model.Channel, bool, error) {
 	if invite.Type == model.ChannelTypeDirect {
 		return scs.createDirectChannel(invite, rc)
+	}
+
+	if invite.Type == model.ChannelTypeGroup {
+		return scs.createGroupChannel(invite, rc)
 	}
 
 	teamId := rc.DefaultTeamId
@@ -468,6 +518,65 @@ func (scs *Service) createDirectChannel(invite channelInviteMsg, rc *model.Remot
 	channel, appErr := scs.app.GetOrCreateDirectChannel(request.EmptyContext(scs.server.Log()), userRemote.Id, userLocal.Id, model.WithID(invite.ChannelId))
 	if appErr != nil {
 		return nil, false, fmt.Errorf("cannot create direct channel `%s`: %w", invite.ChannelId, appErr)
+	}
+
+	return channel, true, nil
+}
+
+// createGroupChannel creates a DM channel, or fetches an existing channel, and returns the channel plus a boolean
+// indicating if the channel is new.
+func (scs *Service) createGroupChannel(invite channelInviteMsg, rc *model.RemoteCluster) (*model.Channel, bool, error) {
+	if len(invite.DirectParticipantIDs) > model.ChannelGroupMaxUsers || len(invite.DirectParticipantIDs) < model.ChannelGroupMinUsers {
+		return nil, false, fmt.Errorf("cannot create group channel `%s` bad participant count `%d`", invite.ChannelId, len(invite.DirectParticipantIDs))
+	}
+
+	participantsMap := invite.DirectParticipantsMap()
+
+	remoteIDMap := map[string]bool{}
+	hasLocalUsers := false
+	for _, participantID := range invite.DirectParticipantIDs {
+		user, err := scs.getOrCreateUser(participantID, participantsMap, rc)
+		if err != nil {
+			return nil, false, fmt.Errorf("cannot create group channel `%s` from invite: %w", invite.ChannelId, err)
+		}
+
+		// we keep track of the origin of the users to check if the
+		// invite is valid
+		if user.IsRemote() {
+			remoteIDMap[user.GetRemoteID()] = true
+		} else {
+			hasLocalUsers = true
+		}
+	}
+
+	// if the invite doesn't contain remote users, GM should not be created via remote invite
+	if len(remoteIDMap) == 0 {
+		return nil, false, fmt.Errorf("cannot create group channel `%s` there are no remote users", invite.ChannelId)
+	}
+
+	// if the channel doesn't contain local users, the GM channel doesn't belong to this server
+	if !hasLocalUsers {
+		return nil, false, fmt.Errorf("cannot create group channel `%s` there are no local users", invite.ChannelId)
+	}
+
+	// check if this DM already exists.
+	channelName := model.GetGroupNameFromUserIds(invite.DirectParticipantIDs)
+	channelExists, err := scs.server.GetStore().Channel().GetByName("", channelName, true)
+	if err != nil && !isNotFoundError(err) {
+		return nil, false, fmt.Errorf("cannot check GM channel exists (%s): %w", channelName, err)
+	}
+	if channelExists != nil {
+		if channelExists.Id == invite.ChannelId {
+			return channelExists, false, nil
+		}
+
+		return nil, false, fmt.Errorf("cannot create group channel `%s`: channel exists with wrong id", channelName)
+	}
+
+	// create the channel
+	channel, appErr := scs.app.CreateGroupChannel(request.EmptyContext(scs.server.Log()), invite.DirectParticipantIDs, invite.CreatorID, model.WithID(invite.ChannelId))
+	if appErr != nil {
+		return nil, false, fmt.Errorf("cannot create group channel `%s`: %w", invite.ChannelId, appErr)
 	}
 
 	return channel, true, nil
