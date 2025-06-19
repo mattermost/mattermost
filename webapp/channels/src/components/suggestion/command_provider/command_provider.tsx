@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessages} from 'react-intl';
+import {defineMessage} from 'react-intl';
 import type {Store} from 'redux';
 
 import {DockWindowIcon} from '@mattermost/compass-icons/components';
@@ -19,6 +19,7 @@ import * as UserAgent from 'utils/user_agent';
 import type {GlobalState} from 'types/store';
 
 import {AppCommandParser} from './app_command_parser/app_command_parser';
+import type {ExtendedAutocompleteSuggestion} from './app_command_parser/app_command_parser_dependencies';
 import {intlShim} from './app_command_parser/app_command_parser_dependencies';
 
 import Provider from '../provider';
@@ -119,11 +120,9 @@ export default class CommandProvider extends Provider {
                     Suggestion: '/' + suggestion.Suggestion,
                 }));
 
-                const terms = matches.map((suggestion) => suggestion.Complete);
                 resultCallback({
                     matchedPretext: pretext,
-                    terms,
-                    items: matches,
+                    groups: [commandsGroup(matches)],
                     component: CommandSuggestion,
                 });
             });
@@ -183,13 +182,9 @@ export default class CommandProvider extends Provider {
 
                 matches = matches.sort((a, b) => a.Suggestion.localeCompare(b.Suggestion));
 
-                // pull out the suggested commands from the returned data
-                const terms = matches.map((suggestion) => suggestion.Suggestion);
-
                 resultCallback({
                     matchedPretext: command,
-                    terms,
-                    items: matches,
+                    groups: [commandsGroup(matches)],
                     component: CommandSuggestion,
                 });
             },
@@ -260,13 +255,9 @@ export default class CommandProvider extends Provider {
                     });
                 }
 
-                // pull out the suggested commands from the returned data
-                const terms = matches.map((suggestion) => suggestion.Complete);
-
                 resultCallback({
                     matchedPretext: command,
-                    terms,
-                    items: matches,
+                    groups: [commandsGroup(matches)],
                     component: CommandSuggestion,
                 });
             }),
@@ -290,9 +281,12 @@ export default class CommandProvider extends Provider {
     }
 }
 
-defineMessages({
-    commandsDivider: {
-        id: 'suggestion.commands',
-        defaultMessage: 'Commands',
-    },
-});
+export function commandsGroup(items: ExtendedAutocompleteSuggestion[]) {
+    const terms = items.map((suggestion) => suggestion.Complete);
+
+    return {
+        label: defineMessage({id: 'suggestion.commands', defaultMessage: 'Commands'}),
+        terms,
+        items,
+    };
+}
