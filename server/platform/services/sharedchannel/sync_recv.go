@@ -807,9 +807,8 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		}
 
 		// Simple @user format not in mentionMap
-		if _, exists := scs.isLocalUser(mention); exists {
-			// Local user exists - add sender cluster suffix
-			return "@" + mention + ":" + rc.Name
+		if user, exists := scs.isLocalUser(mention); exists {
+			return scs.transformSimpleMention(mention, user, user.Id, rc)
 		}
 		// No local user - display as plain text
 		return mention
