@@ -20,7 +20,6 @@ import jobs from './jobs';
 import limits from './limits';
 import posts from './posts';
 import preferences from './preferences';
-import remoteClusters from './remote_clusters';
 import roles from './roles';
 import scheduledPosts from './scheduled_posts';
 import schemes from './schemes';
@@ -60,5 +59,4 @@ export default combineReducers({
     channelBookmarks,
     scheduledPosts,
     sharedChannels,
-    remoteClusters,
 });

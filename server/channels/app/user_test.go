@@ -2294,319 +2294,125 @@ func TestGetUsersForReporting(t *testing.T) {
 	})
 }
 
+// Helper functions for remote user testing
+func setupRemoteClusterTest(t *testing.T) (*TestHelper, store.Store) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS", "true")
+	t.Cleanup(func() { os.Unsetenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS") })
+	th := setupSharedChannels(t).InitBasic()
+	t.Cleanup(th.TearDown)
+	return th, th.App.Srv().Store()
+}
+
+func createTestRemoteCluster(t *testing.T, th *TestHelper, ss store.Store, name, siteURL string, confirmed bool) *model.RemoteCluster {
+	cluster := &model.RemoteCluster{
+		RemoteId:   model.NewId(),
+		Name:       name,
+		SiteURL:    siteURL,
+		CreateAt:   model.GetMillis(),
+		LastPingAt: model.GetMillis(),
+		Token:      model.NewId(),
+		CreatorId:  th.BasicUser.Id,
+	}
+	if confirmed {
+		cluster.RemoteToken = model.NewId()
+	}
+	savedCluster, err := ss.RemoteCluster().Save(cluster)
+	require.NoError(t, err)
+	return savedCluster
+}
+
+func createRemoteUser(t *testing.T, th *TestHelper, remoteCluster *model.RemoteCluster) *model.User {
+	user := th.CreateUser()
+	user.RemoteId = &remoteCluster.RemoteId
+	updatedUser, appErr := th.App.UpdateUser(th.Context, user, false)
+	require.Nil(t, appErr)
+	return updatedUser
+}
+
+func ensureRemoteClusterConnected(t *testing.T, ss store.Store, cluster *model.RemoteCluster, connected bool) {
+	if connected {
+		cluster.SiteURL = "https://example.com"
+		cluster.RemoteToken = model.NewId()
+		cluster.LastPingAt = model.GetMillis()
+	} else {
+		cluster.SiteURL = model.SiteURLPending + "example.com"
+		cluster.RemoteToken = ""
+	}
+	_, err := ss.RemoteCluster().Update(cluster)
+	require.NoError(t, err)
+}
+
 // TestRemoteUserDirectChannelCreation tests direct channel creation with remote users
 func TestRemoteUserDirectChannelCreation(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS")
-	th := setupSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th, ss := setupRemoteClusterTest(t)
 
-	// Use a real store
-	ss := th.App.Srv().Store()
+	connectedRC := createTestRemoteCluster(t, th, ss, "connected-cluster", "https://example-connected.com", true)
+	nonConnectedRC := createTestRemoteCluster(t, th, ss, "non-connected-cluster", model.SiteURLPending+"https://example-nonconnected.com", false)
 
-	// Create remote clusters in the database
-	connectedCluster := &model.RemoteCluster{
-		RemoteId:    model.NewId(),
-		Name:        "connected-cluster",
-		SiteURL:     "https://example-connected.com",
-		CreateAt:    model.GetMillis(),
-		LastPingAt:  model.GetMillis(), // Recent ping time (online)
-		Token:       model.NewId(),
-		CreatorId:   th.BasicUser.Id,
-		RemoteToken: model.NewId(), // Has a remote token (is confirmed)
-	}
-
-	nonConnectedCluster := &model.RemoteCluster{
-		RemoteId:    model.NewId(),
-		Name:        "non-connected-cluster",
-		SiteURL:     model.SiteURLPending + "https://example-nonconnected.com", // Pending site URL means not confirmed
-		CreateAt:    model.GetMillis(),
-		LastPingAt:  model.GetMillis(), // Can be online but still not confirmed
-		Token:       model.NewId(),
-		CreatorId:   th.BasicUser.Id,
-		RemoteToken: "", // No remote token
-	}
-
-	// Save remote clusters to the database
-	connectedRC, rcErr1 := ss.RemoteCluster().Save(connectedCluster)
-	require.NoError(t, rcErr1)
-	require.NotNil(t, connectedRC)
-
-	nonConnectedRC, rcErr2 := ss.RemoteCluster().Save(nonConnectedCluster)
-	require.NoError(t, rcErr2)
-	require.NotNil(t, nonConnectedRC)
-
-	// Create a user from Server Connected
-	user1 := th.CreateUser()
-	// Set RemoteId after user creation to avoid the duplicate key issue
-	user1.RemoteId = &connectedRC.RemoteId
-	// Use App.UpdateUser to update the user in the database correctly
-	user1, appErr := th.App.UpdateUser(th.Context, user1, false)
-	require.Nil(t, appErr)
-	require.NotNil(t, user1)
-
-	user1, appErr = th.App.GetUser(user1.Id)
-	require.Nil(t, appErr)
-	require.NotNil(t, user1)
-	require.NotNil(t, user1.RemoteId)
-	require.Equal(t, connectedRC.RemoteId, *user1.RemoteId)
-
-	// Create a user from Server NonConnected
-	user2 := th.CreateUser()
-	// Set RemoteId after user creation to avoid the duplicate key issue
-	user2.RemoteId = &nonConnectedRC.RemoteId
-	// Use App.UpdateUser to update the user in the database correctly
-	user2, appErr = th.App.UpdateUser(th.Context, user2, false)
-	require.Nil(t, appErr)
-	require.NotNil(t, user2)
-
-	user2, appErr = th.App.GetUser(user2.Id)
-	require.Nil(t, appErr)
-	require.NotNil(t, user2)
-	require.NotNil(t, user2.RemoteId)
-	require.Equal(t, nonConnectedRC.RemoteId, *user2.RemoteId)
+	user1 := createRemoteUser(t, th, connectedRC)
+	user2 := createRemoteUser(t, th, nonConnectedRC)
 
 	t.Run("Can create DM with user from connected remote", func(t *testing.T) {
-		// Get the shared channel service
+		ensureRemoteClusterConnected(t, ss, connectedRC, true)
+
 		scs := th.App.Srv().GetSharedChannelSyncService()
 		service, ok := scs.(*sharedchannel.Service)
-		require.True(t, ok, "Expected sharedchannel.Service type")
+		require.True(t, ok)
+		require.True(t, service.IsRemoteClusterDirectlyConnected(connectedRC.RemoteId))
 
-		// Ensure connected cluster is properly configured as online and confirmed
-		connectedRC.SiteURL = "https://example-connected.com"
-		connectedRC.RemoteToken = model.NewId()
-		connectedRC.LastPingAt = model.GetMillis()
-		_, err := ss.RemoteCluster().Update(connectedRC)
-		require.NoError(t, err)
-
-		// Verify our setup is correct
-		fetchedRemote1, err := ss.RemoteCluster().Get(connectedRC.RemoteId, false)
-		require.NoError(t, err)
-		require.True(t, fetchedRemote1.IsOnline(), "Remote cluster should be online")
-		require.True(t, fetchedRemote1.IsConfirmed(), "Remote cluster should be confirmed")
-
-		connected := service.IsRemoteClusterDirectlyConnected(connectedRC.RemoteId)
-		require.True(t, connected, "Remote cluster should be directly connected")
-
-		// Create the direct channel
 		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user1.Id)
 		assert.NotNil(t, channel)
 		assert.Nil(t, appErr)
-
-		// Verify the channel was created properly
-		fetchedChannel, err := ss.Channel().Get(channel.Id, false)
-		assert.NoError(t, err)
-		assert.NotNil(t, fetchedChannel)
-		assert.Equal(t, model.ChannelTypeDirect, fetchedChannel.Type)
-
-		// Clean up for next test
-		err = ss.Channel().Delete(channel.Id, model.GetMillis())
-		require.NoError(t, err)
+		assert.Equal(t, model.ChannelTypeDirect, channel.Type)
 	})
 
 	t.Run("Cannot see user from unconfirmed remote", func(t *testing.T) {
-		// Get the shared channel service
+		ensureRemoteClusterConnected(t, ss, nonConnectedRC, false)
+
 		scs := th.App.Srv().GetSharedChannelSyncService()
 		service, ok := scs.(*sharedchannel.Service)
-		require.True(t, ok, "Expected sharedchannel.Service type")
+		require.True(t, ok)
+		require.False(t, service.IsRemoteClusterDirectlyConnected(nonConnectedRC.RemoteId))
 
-		// Verify our setup is correct - the remote should not be confirmed
-		fetchedRemote2, err := ss.RemoteCluster().Get(nonConnectedRC.RemoteId, false)
-		require.NoError(t, err)
-		require.False(t, fetchedRemote2.IsConfirmed(), "Remote cluster should not be confirmed")
-
-		connected := service.IsRemoteClusterDirectlyConnected(nonConnectedRC.RemoteId)
-		require.False(t, connected, "Remote cluster should not be directly connected")
-
-		// Check if the user can see the other user - this is what the API would check before
-		// trying to create a direct channel
 		canSee, viewErr := th.App.UserCanSeeOtherUser(th.Context, th.BasicUser.Id, user2.Id)
 		assert.False(t, canSee)
 		assert.NotNil(t, viewErr)
 		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", viewErr.Id)
-
-		// The API layer handles visibility checks now, so we don't test direct channel
-		// creation at the app layer in this case
 	})
 }
 
 // TestUserCanSeeOtherUserWithRemotesDB tests user visibility with actual database interactions
 func TestUserCanSeeOtherUserWithRemotesDB(t *testing.T) {
-	// Skip this test in short mode as it requires full database setup
 	if testing.Short() {
 		t.Skip("skipping database test in short mode")
 	}
 
-	os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS")
-	// Create test servers with real DB interactions and enterprise license
-	th := setupSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th, ss := setupRemoteClusterTest(t)
 
-	// Use a real store
-	ss := th.App.Srv().Store()
+	rc1 := createTestRemoteCluster(t, th, ss, "remote-cluster-confirmed-online", "https://example1.com", true)
+	rc2 := createTestRemoteCluster(t, th, ss, "remote-cluster-not-confirmed", model.SiteURLPending+"example2.com", false)
 
-	// Create test remote clusters in the database with different states
-	// 1. First remote cluster - confirmed and online
-	remoteCluster1 := &model.RemoteCluster{
-		RemoteId:    model.NewId(),
-		Name:        "remote-cluster-confirmed-online",
-		SiteURL:     "https://example1.com", // Normal URL indicates confirmed
-		CreateAt:    model.GetMillis(),
-		LastPingAt:  model.GetMillis(), // Recent ping time (online)
-		Token:       model.NewId(),
-		CreatorId:   th.BasicUser.Id,
-		RemoteToken: model.NewId(), // Has a remote token (is confirmed)
-		Topics:      "*",           // All topics
-	}
+	user1 := createRemoteUser(t, th, rc1)
+	user2 := createRemoteUser(t, th, rc2)
 
-	// 2. Second remote cluster - not confirmed
-	remoteCluster2 := &model.RemoteCluster{
-		RemoteId:    model.NewId(),
-		Name:        "remote-cluster-not-confirmed",
-		SiteURL:     model.SiteURLPending + "example2.com", // Pending URL means not confirmed
-		CreateAt:    model.GetMillis(),
-		LastPingAt:  model.GetMillis(),
-		Token:       model.NewId(),
-		CreatorId:   th.BasicUser.Id,
-		RemoteToken: "", // Empty remote token (not confirmed)
-		Topics:      "", // No topics
-	}
-
-	// 3. Third remote cluster - confirmed but offline
-	remoteCluster3 := &model.RemoteCluster{
-		RemoteId:    model.NewId(),
-		Name:        "remote-cluster-offline",
-		SiteURL:     "https://example3.com", // Normal URL indicates confirmed
-		CreateAt:    model.GetMillis(),
-		LastPingAt:  0, // Old ping time (offline)
-		Token:       model.NewId(),
-		CreatorId:   th.BasicUser.Id,
-		RemoteToken: model.NewId(), // Has a remote token (is confirmed)
-		Topics:      "*",           // All topics
-	}
-
-	// Save remote clusters to the database
-	rc1, rcErr1 := ss.RemoteCluster().Save(remoteCluster1)
-	require.NoError(t, rcErr1)
-	require.NotNil(t, rc1)
-
-	rc2, rcErr2 := ss.RemoteCluster().Save(remoteCluster2)
-	require.NoError(t, rcErr2)
-	require.NotNil(t, rc2)
-
-	rc3, rcErr3 := ss.RemoteCluster().Save(remoteCluster3)
-	require.NoError(t, rcErr3)
-	require.NotNil(t, rc3)
-
-	// Create test users associated with each remote cluster
-	// User from remote1 (confirmed and online)
-	user1 := th.CreateUser()
-	// Set RemoteId after user creation to avoid the duplicate key issue
-	user1.RemoteId = &rc1.RemoteId
-	// Use App.UpdateUser to update the user in the database correctly
-	user1, appErr := th.App.UpdateUser(th.Context, user1, false)
-	require.Nil(t, appErr)
-	require.NotNil(t, user1)
-
-	user1, appErr = th.App.GetUser(user1.Id)
-	require.Nil(t, appErr)
-	require.NotNil(t, user1)
-	require.NotNil(t, user1.RemoteId)
-
-	// User from remote2 (not confirmed)
-	user2 := th.CreateUser()
-	// Set RemoteId after user creation
-	user2.RemoteId = &rc2.RemoteId
-	// Directly update the store to avoid validation
-	user2, appErr = th.App.UpdateUser(th.Context, user2, false)
-	require.Nil(t, appErr)
-	require.NotNil(t, user2)
-
-	user2, appErr = th.App.GetUser(user2.Id)
-	require.Nil(t, appErr)
-	require.NotNil(t, user2)
-	require.NotNil(t, user2.RemoteId)
-
-	// User from remote3 (confirmed but offline)
-	user3 := th.CreateUser()
-	// Set RemoteId after user creation
-	user3.RemoteId = &rc3.RemoteId
-	// Directly update the store to avoid validation
-	user3, appErr = th.App.UpdateUser(th.Context, user3, false)
-	require.Nil(t, appErr)
-	require.NotNil(t, user3)
-
-	user3, appErr = th.App.GetUser(user3.Id)
-	require.Nil(t, appErr)
-	require.NotNil(t, user3)
-	require.NotNil(t, user3.RemoteId)
-
-	// Run tests with actual database interactions
 	t.Run("Local user can always see local user", func(t *testing.T) {
 		canSee, appErr := th.App.UserCanSeeOtherUser(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 		assert.True(t, canSee)
 		assert.Nil(t, appErr)
 	})
 
-	t.Run("User can see remote user from confirmed and online cluster", func(t *testing.T) {
-		// Force remote1 to be confirmed and online
-		rc1.SiteURL = "https://example1.com" // Regular URL (not pending)
-		rc1.RemoteToken = model.NewId()      // Has a token
-		rc1.LastPingAt = model.GetMillis()   // Recent ping time
-		_, err := ss.RemoteCluster().Update(rc1)
-		require.NoError(t, err)
-
-		// Verify the database state shows it as online and confirmed
-		fetchedRemote1, err := ss.RemoteCluster().Get(rc1.RemoteId, false)
-		require.NoError(t, err)
-		require.True(t, fetchedRemote1.IsOnline(), "Remote cluster 1 should be online")
-		require.True(t, fetchedRemote1.IsConfirmed(), "Remote cluster 1 should be confirmed")
-
-		// Now check if the user can see the remote user
+	t.Run("User can see remote user from confirmed cluster", func(t *testing.T) {
+		ensureRemoteClusterConnected(t, ss, rc1, true)
 		canSee, appErr := th.App.UserCanSeeOtherUser(th.Context, th.BasicUser.Id, user1.Id)
 		assert.True(t, canSee)
 		assert.Nil(t, appErr)
 	})
 
 	t.Run("User cannot see remote user from unconfirmed cluster", func(t *testing.T) {
-		// Force remote2 to be unconfirmed by ensuring its SiteURL starts with SiteURLPending
-		rc2.SiteURL = model.SiteURLPending + "example2.com"
-		_, err := ss.RemoteCluster().Update(rc2)
-		require.NoError(t, err)
-
-		// Empty the RemoteToken which also indicates it's not confirmed
-		rc2.RemoteToken = ""
-		_, err = ss.RemoteCluster().Update(rc2)
-		require.NoError(t, err)
-
-		// Verify the database state now shows it as not confirmed
-		fetchedRemote2, err := ss.RemoteCluster().Get(rc2.RemoteId, false)
-		require.NoError(t, err)
-		require.False(t, fetchedRemote2.IsConfirmed(), "Remote cluster 2 should not be confirmed")
-
-		// Now check if the user cannot see the remote user
+		ensureRemoteClusterConnected(t, ss, rc2, false)
 		canSee, appErr := th.App.UserCanSeeOtherUser(th.Context, th.BasicUser.Id, user2.Id)
 		assert.False(t, canSee)
-		assert.NotNil(t, appErr)
 		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErr.Id)
-	})
-
-	t.Run("Cannot see user from indirectly connected remote", func(t *testing.T) {
-		// Remote2 is already not confirmed in our setup
-		fetchedRemote2, err := ss.RemoteCluster().Get(rc2.RemoteId, false)
-		require.NoError(t, err)
-		require.False(t, fetchedRemote2.IsConfirmed())
-
-		// Verify that visibility check fails - this is what the API layer would use
-		// before attempting to create a direct channel
-		canSee, viewErr := th.App.UserCanSeeOtherUser(th.Context, th.BasicUser.Id, user2.Id)
-		assert.False(t, canSee)
-		assert.NotNil(t, viewErr)
-		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", viewErr.Id)
-
-		// Note: After our change, the app layer's GetOrCreateDirectChannel no longer checks visibility
-		// The API layer is responsible for that check before calling GetOrCreateDirectChannel
 	})
 }
 
@@ -2617,191 +2423,44 @@ func TestIndirectRemoteUserCommunication(t *testing.T) {
 		t.Skip("skipping database test in short mode")
 	}
 
-	os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS")
+	th, ss := setupRemoteClusterTest(t)
 
-	// Use setupSharedChannels to ensure Enterprise features are enabled
-	th := setupSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	remoteB := createTestRemoteCluster(t, th, ss, "server-B", "https://server-b.example.com", true)
+	remoteC := createTestRemoteCluster(t, th, ss, "server-C", "https://server-c.example.com", true)
 
-	// Use a real store
-	ss := th.App.Srv().Store()
-
-	// Create remote clusters in the database representing the different servers
-	// Server B - directly connected to local server A
-	clusterB := &model.RemoteCluster{
-		RemoteId:    model.NewId(),
-		Name:        "server-B",
-		SiteURL:     "https://server-b.example.com",
-		CreateAt:    model.GetMillis(),
-		LastPingAt:  model.GetMillis(), // Online
-		Token:       model.NewId(),
-		CreatorId:   th.BasicUser.Id,
-		RemoteToken: model.NewId(), // Has a remote token (is confirmed)
-	}
-
-	// Server C - directly connected to local server A
-	clusterC := &model.RemoteCluster{
-		RemoteId:    model.NewId(),
-		Name:        "server-C",
-		SiteURL:     "https://server-c.example.com",
-		CreateAt:    model.GetMillis(),
-		LastPingAt:  model.GetMillis(), // Online
-		Token:       model.NewId(),
-		CreatorId:   th.BasicUser.Id,
-		RemoteToken: model.NewId(), // Has a remote token (is confirmed)
-	}
-
-	// Save remote clusters to the database
-	remoteB, rcErr1 := ss.RemoteCluster().Save(clusterB)
-	require.NoError(t, rcErr1)
-	require.NotNil(t, remoteB)
-
-	remoteC, rcErr2 := ss.RemoteCluster().Save(clusterC)
-	require.NoError(t, rcErr2)
-	require.NotNil(t, remoteC)
-
-	// Create a user from Server B
-	userB := th.CreateUser()
-	// Set RemoteId after user creation to avoid the duplicate key issue
-	userB.RemoteId = &remoteB.RemoteId
-	// Use App.UpdateUser to update the user in the database correctly
-	userB, appErr := th.App.UpdateUser(th.Context, userB, false)
-	require.Nil(t, appErr)
-	require.NotNil(t, userB)
-
-	userB, appErr = th.App.GetUser(userB.Id)
-	require.Nil(t, appErr)
-	require.NotNil(t, userB)
-	require.NotNil(t, userB.RemoteId)
-
-	// Create a user from Server C
-	userC := th.CreateUser()
-	// Set RemoteId after user creation to avoid the duplicate key issue
-	userC.RemoteId = &remoteC.RemoteId
-	// Use App.UpdateUser to update the user in the database correctly
-	userC, appErr = th.App.UpdateUser(th.Context, userC, false)
-	require.Nil(t, appErr)
-	require.NotNil(t, userC)
-
-	userC, appErr = th.App.GetUser(userC.Id)
-	require.Nil(t, appErr)
-	require.NotNil(t, userC)
-	require.NotNil(t, userC.RemoteId)
+	userB := createRemoteUser(t, th, remoteB)
+	userC := createRemoteUser(t, th, remoteC)
 
 	t.Run("Users from different remote clusters cannot see each other even when both are online", func(t *testing.T) {
-		// Get the shared channel service
+		ensureRemoteClusterConnected(t, ss, remoteB, true)
+		ensureRemoteClusterConnected(t, ss, remoteC, true)
+
 		scs := th.Server.GetSharedChannelSyncService()
 		service, ok := scs.(*sharedchannel.Service)
-		require.True(t, ok, "Expected sharedchannel.Service type")
+		require.True(t, ok)
+		require.True(t, service.IsRemoteClusterDirectlyConnected(remoteB.RemoteId))
+		require.True(t, service.IsRemoteClusterDirectlyConnected(remoteC.RemoteId))
 
-		// Ensure both remotes are online and confirmed
-		remoteB.LastPingAt = model.GetMillis()
-		remoteB.RemoteToken = model.NewId() // Has a remote token (is confirmed)
-		_, err := ss.RemoteCluster().Update(remoteB)
-		require.NoError(t, err)
-
-		remoteC.LastPingAt = model.GetMillis()
-		remoteC.RemoteToken = model.NewId() // Has a remote token (is confirmed)
-		_, err = ss.RemoteCluster().Update(remoteC)
-		require.NoError(t, err)
-
-		// Verify both remotes are online and confirmed to server A
-		b := service.IsRemoteClusterDirectlyConnected(remoteB.RemoteId)
-		c := service.IsRemoteClusterDirectlyConnected(remoteC.RemoteId)
-		require.True(t, b, "Remote B should be directly connected to server A")
-		require.True(t, c, "Remote C should be directly connected to server A")
-
-		// Here's the key part: Even though both remote clusters are online and properly
-		// connected to Server A, users from different remote clusters should not be able to
-		// see each other because there's no direct connection between B and C
-
-		// User B on Server B cannot see User C on Server C
+		// Users from different remote clusters cannot see each other
 		canSeeBC, appErrBC := th.App.UserCanSeeOtherUser(th.Context, userB.Id, userC.Id)
-		assert.False(t, canSeeBC, "User B should not be able to see User C even though both clusters are online")
-		if assert.NotNil(t, appErrBC, "Should get an error when user from Server B tries to see user from Server C") {
-			assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErrBC.Id)
-		}
+		assert.False(t, canSeeBC)
+		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErrBC.Id)
 
-		// User C on Server C cannot see User B on Server B
 		canSeeCB, appErrCB := th.App.UserCanSeeOtherUser(th.Context, userC.Id, userB.Id)
-		assert.False(t, canSeeCB, "User C should not be able to see User B even though both clusters are online")
-		if assert.NotNil(t, appErrCB, "Should get an error when user from Server C tries to see user from Server B") {
-			assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErrCB.Id)
-		}
+		assert.False(t, canSeeCB)
+		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErrCB.Id)
 	})
 
-	t.Run("User from Server B cannot see or message user from Server C when offline", func(t *testing.T) {
-		// Get the shared channel sync service
+	t.Run("User cannot see user from unconfirmed remote cluster", func(t *testing.T) {
+		ensureRemoteClusterConnected(t, ss, remoteC, false)
+
 		scs := th.Server.GetSharedChannelSyncService()
 		service, ok := scs.(*sharedchannel.Service)
-		require.True(t, ok, "Expected sharedchannel.Service type")
+		require.True(t, ok)
+		require.False(t, service.IsRemoteClusterDirectlyConnected(*userC.RemoteId))
 
-		// Manipulate the database record to make remoteC offline
-		// This will cause IsRemoteClusterDirectlyConnected to return false
-		originalLastPingAt := remoteC.LastPingAt
-		remoteC.LastPingAt = 0 // Make it appear offline
-		_, err := ss.RemoteCluster().Update(remoteC)
-		require.NoError(t, err)
-
-		// Use the test helper to verify our setup worked
-		connected := service.IsRemoteClusterDirectlyConnected(*userC.RemoteId)
-		require.False(t, connected, "Remote C should not be directly connected")
-
-		// User B should not be able to see User C
 		canSee, appErr := th.App.UserCanSeeOtherUser(th.Context, userB.Id, userC.Id)
 		assert.False(t, canSee)
-		assert.NotNil(t, appErr)
 		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErr.Id)
-
-		// Users should still be able to create a DM at the app layer because
-		// we removed the visibility check, but in practice the API layer
-		// would prevent this from happening
-		channel, directErr := th.App.GetOrCreateDirectChannel(th.Context, userB.Id, userC.Id)
-		assert.NotNil(t, channel)
-		assert.Nil(t, directErr)
-
-		// Clean up the created channel
-		if channel != nil {
-			err = ss.Channel().Delete(channel.Id, model.GetMillis())
-			require.NoError(t, err)
-		}
-
-		// Restore remoteC to original state for other tests
-		remoteC.LastPingAt = originalLastPingAt
-		_, err = ss.RemoteCluster().Update(remoteC)
-		require.NoError(t, err)
-	})
-
-	t.Run("User from Server C cannot see or message user from Server B when offline", func(t *testing.T) {
-		// Get the shared channel sync service
-		scs := th.Server.GetSharedChannelSyncService()
-		service, ok := scs.(*sharedchannel.Service)
-		require.True(t, ok, "Expected sharedchannel.Service type")
-
-		// Manipulate the database record to make remoteB offline
-		// This will cause IsRemoteClusterDirectlyConnected to return false
-		originalLastPingAt := remoteB.LastPingAt
-		remoteB.LastPingAt = 0 // Make it appear offline
-		_, err := ss.RemoteCluster().Update(remoteB)
-		require.NoError(t, err)
-
-		// Use the test helper to verify our setup worked
-		connected := service.IsRemoteClusterDirectlyConnected(*userB.RemoteId)
-		require.False(t, connected, "Remote B should not be directly connected")
-
-		// User C should not be able to see User B
-		canSee, appErr := th.App.UserCanSeeOtherUser(th.Context, userC.Id, userB.Id)
-		assert.False(t, canSee)
-		assert.NotNil(t, appErr)
-		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErr.Id)
-
-		// In API layer, the visibility check would prevent creation of a DM
-		// but we're not testing the direct channel creation at the app layer anymore
-
-		// Restore remoteB to original state for other tests
-		remoteB.LastPingAt = originalLastPingAt
-		_, err = ss.RemoteCluster().Update(remoteB)
-		require.NoError(t, err)
 	})
 }

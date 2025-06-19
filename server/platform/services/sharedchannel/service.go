@@ -335,7 +335,7 @@ func (scs *Service) IsRemoteClusterDirectlyConnected(remoteId string) bool {
 		return true // Local server is always "directly connected"
 	}
 
-	// Check if the remote cluster exists, is online, and confirmed
+	// Check if the remote cluster exists and confirmed
 	rc, err := scs.server.GetStore().RemoteCluster().Get(remoteId, false)
 	if err != nil {
 		return false

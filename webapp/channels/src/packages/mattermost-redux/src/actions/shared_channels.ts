@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
-import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {logError} from 'mattermost-redux/actions/errors';
@@ -11,14 +10,6 @@ import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import SharedChannelTypes from '../action_types/shared_channels';
-import {ActionTypes} from '../reducers/entities/remote_clusters';
-
-export function receivedRemoteClusters(remoteClusters: RemoteCluster[]) {
-    return {
-        type: ActionTypes.RECEIVED_REMOTE_CLUSTERS,
-        data: remoteClusters,
-    };
-}
 
 export function receivedChannelRemotes(channelId: string, remotes: RemoteClusterInfo[]) {
     return {
@@ -95,29 +86,21 @@ export function fetchRemoteClusterInfo(remoteId: string, forceRefresh = false): 
     };
 }
 
-export function fetchRemoteClusters(): ActionFuncAsync<RemoteCluster[]> {
+export function fetchRemoteClusters(): ActionFuncAsync<RemoteClusterInfo[]> {
     return async (dispatch: any, getState: () => GlobalState) => {
-        // Check if we already have the data in the Redux store
+        // Check if we already have remote cluster data in the existing state
         const state = getState();
-        const remoteClusters = state.entities?.remoteClusters;
+        const remotesByRemoteId = state.entities?.sharedChannels?.remotesByRemoteId;
 
-        // If we already have the data, no need to fetch it again
-        if (remoteClusters && Object.keys(remoteClusters).length > 0) {
-            return {data: Object.values(remoteClusters)};
+        // If we already have some data, return it (individual remotes can be fetched as needed)
+        if (remotesByRemoteId && Object.keys(remotesByRemoteId).length > 0) {
+            return {data: Object.values(remotesByRemoteId)};
         }
 
-        let data;
-        try {
-            data = await Client4.getRemoteClusters({excludePlugins: false});
-        } catch (error) {
-            // In case of failures, we just skip and don't update the remote data
-            return {error};
-        }
-
-        if (data) {
-            dispatch(receivedRemoteClusters(data));
-        }
-
-        return {data};
+        // For initial load, we don't need to fetch all remote clusters
+        // The individual remote cluster info will be fetched on-demand via fetchRemoteClusterInfo
+        // when users with remote_id are encountered
+        return {data: []};
     };
 }
+

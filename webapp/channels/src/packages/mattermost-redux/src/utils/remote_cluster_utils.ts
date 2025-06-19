@@ -3,11 +3,11 @@
 
 import {DateTime, Interval} from 'luxon';
 
-import type {RemoteCluster} from '@mattermost/types/remote_clusters';
+import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
 
 const SiteURLPendingPrefix = 'pending_';
-export const isConfirmed = (rc: RemoteCluster) => Boolean(rc.site_url && !rc.site_url.startsWith(SiteURLPendingPrefix));
-export const isConnected = (rc: RemoteCluster) => {
+export const isConfirmed = (rc: RemoteClusterInfo) => Boolean(rc.site_url && !rc.site_url.startsWith(SiteURLPendingPrefix));
+export const isConnected = (rc: RemoteClusterInfo) => {
     // Check if last_ping_at is recent enough (within last 5 minutes) to consider the connection active
     if (!rc.last_ping_at) {
         return false;

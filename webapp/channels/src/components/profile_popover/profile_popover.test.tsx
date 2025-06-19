@@ -288,21 +288,17 @@ describe('components/ProfilePopover', () => {
                 ...initialState.entities!.general!.config,
                 ExperimentalSharedChannels: 'true',
             };
-            initialState.entities!.remoteClusters = {
-                remote1: {
-                    remote_id: 'remote1',
-                    site_url: 'https://remote1.example.com',
-                    create_at: 1234567890,
-                    last_ping_at: Date.now(),
-                    creator_id: 'user1',
-                    default_team_id: 'currentTeam',
-                    name: 'remote1',
-                    display_name: 'Remote Server 1',
-                    topics: 'posts,system',
-                    remote_team_id: 'remoteteam1',
-                    plugin_id: '',
-                    options: 0,
-                    delete_at: 0,
+            initialState.entities!.sharedChannels = {
+                ...initialState.entities!.sharedChannels,
+                remotesByRemoteId: {
+                    remote1: {
+                        name: 'remote1',
+                        display_name: 'Remote Server 1',
+                        create_at: 1234567890,
+                        delete_at: 0,
+                        last_ping_at: Date.now(),
+                        site_url: 'https://remote1.example.com',
+                    },
                 },
             };
 
@@ -324,21 +320,17 @@ describe('components/ProfilePopover', () => {
                 ...initialState.entities!.general!.config,
                 ExperimentalSharedChannels: 'true',
             };
-            initialState.entities!.remoteClusters = {
-                remote1: {
-                    remote_id: 'remote1',
-                    site_url: 'https://remote1.example.com',
-                    create_at: 1234567890,
-                    last_ping_at: Date.now(),
-                    creator_id: 'user1',
-                    default_team_id: 'currentTeam',
-                    name: 'remote1',
-                    display_name: 'Remote Server 1',
-                    topics: 'posts,system',
-                    remote_team_id: 'remoteteam1',
-                    plugin_id: '',
-                    options: 0,
-                    delete_at: 0,
+            initialState.entities!.sharedChannels = {
+                ...initialState.entities!.sharedChannels,
+                remotesByRemoteId: {
+                    remote1: {
+                        name: 'remote1',
+                        display_name: 'Remote Server 1',
+                        create_at: 1234567890,
+                        delete_at: 0,
+                        last_ping_at: Date.now(),
+                        site_url: 'https://remote1.example.com',
+                    },
                 },
             };
 

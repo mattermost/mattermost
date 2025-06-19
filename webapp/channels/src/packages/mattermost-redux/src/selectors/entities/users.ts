@@ -862,15 +862,13 @@ export const getLastActiveTimestampUnits: (state: GlobalState, userId: string) =
     },
 );
 
-export const getRemoteClusters = (state: GlobalState) => state.entities.remoteClusters || {};
-
 export const userCanSeeOtherUser: (state: GlobalState, userId: string) => boolean = createSelector(
     'userCanSeeOtherUser',
     (state: GlobalState, userId: string) => userId,
     (state: GlobalState, userId: string) => getUser(state, userId),
     (state: GlobalState) => state.entities.general.config,
-    getRemoteClusters,
-    (userId, user, config, remoteClusters) => {
+    (state: GlobalState) => state.entities.sharedChannels?.remotesByRemoteId || {},
+    (userId, user, config, remotesByRemoteId) => {
         if (!user) {
             return false;
         }
@@ -887,12 +885,12 @@ export const userCanSeeOtherUser: (state: GlobalState, userId: string) => boolea
         }
 
         // Check if the user's remote cluster is directly connected
-        const remoteCluster = remoteClusters[user.remote_id];
-        if (!remoteCluster) {
+        const remoteClusterInfo = remotesByRemoteId[user.remote_id];
+        if (!remoteClusterInfo) {
             return false;
         }
 
-        // A remote is directly connected if it's both confirmed and connected
-        return isConfirmed(remoteCluster);
+        // A remote is directly connected if it's confirmed
+        return isConfirmed(remoteClusterInfo);
     },
 );

@@ -53,48 +53,52 @@ const ProfilePopoverOtherUserRow = ({
 
     return (
         <div className='user-popover__bottom-row-container'>
-            {showMessageButton && canMessage ? (
-                <button
-                    type='button'
-                    className='btn btn-primary btn-sm'
-                    onClick={handleShowDirectChannel}
-                    aria-label={intl.formatMessage({
-                        id: 'user_profile.send.dm.aria_label',
-                        defaultMessage: 'Send message to {user}',
-                    }, {user: user.username})}
-                >
-                    <i
-                        className='icon icon-send'
-                        aria-hidden='true'
-                    />
-                    <FormattedMessage
-                        id='user_profile.send.dm'
-                        defaultMessage='Message'
-                    />
-                </button>
-            ) : (
-                <button
-                    type='button'
-                    className='btn btn-primary btn-sm disabled'
-                    disabled={true}
-                    title={intl.formatMessage({
-                        id: 'user_profile.send.dm.no_connection',
-                        defaultMessage: 'Cannot message users from indirectly connected servers',
-                    })}
-                    aria-label={intl.formatMessage({
-                        id: 'user_profile.send.dm.no_connection.aria_label',
-                        defaultMessage: 'Cannot message {user}. Their server is not directly connected.',
-                    }, {user: user.username})}
-                >
-                    <i
-                        className='icon icon-send'
-                        aria-hidden='true'
-                    />
-                    <FormattedMessage
-                        id='user_profile.send.dm'
-                        defaultMessage='Message'
-                    />
-                </button>
+            {showMessageButton && (
+                <>
+                    {canMessage ? (
+                        <button
+                            type='button'
+                            className='btn btn-primary btn-sm'
+                            onClick={handleShowDirectChannel}
+                            aria-label={intl.formatMessage({
+                                id: 'user_profile.send.dm.aria_label',
+                                defaultMessage: 'Send message to {user}',
+                            }, {user: user.username})}
+                        >
+                            <i
+                                className='icon icon-send'
+                                aria-hidden='true'
+                            />
+                            <FormattedMessage
+                                id='user_profile.send.dm'
+                                defaultMessage='Message'
+                            />
+                        </button>
+                    ) : (
+                        <button
+                            type='button'
+                            className='btn btn-primary btn-sm disabled'
+                            disabled={true}
+                            title={intl.formatMessage({
+                                id: 'user_profile.send.dm.no_connection',
+                                defaultMessage: 'Cannot message users from indirectly connected servers',
+                            })}
+                            aria-label={intl.formatMessage({
+                                id: 'user_profile.send.dm.no_connection.aria_label',
+                                defaultMessage: 'Cannot message {user}. Their server is not directly connected.',
+                            }, {user: user.username})}
+                        >
+                            <i
+                                className='icon icon-send'
+                                aria-hidden='true'
+                            />
+                            <FormattedMessage
+                                id='user_profile.send.dm'
+                                defaultMessage='Message'
+                            />
+                        </button>
+                    )}
+                </>
             )}
             <div className='user-popover__bottom-row-end'>
                 <ProfilePopoverAddToChannel

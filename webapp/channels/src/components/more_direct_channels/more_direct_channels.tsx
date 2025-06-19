@@ -58,7 +58,7 @@ export type Props = {
         searchProfiles: (term: string, options: any) => Promise<ActionResult<UserProfile[]>>;
         searchGroupChannels: (term: string) => Promise<ActionResult<Channel[]>>;
         setModalSearchTerm: (term: string) => void;
-        fetchRemoteClusters: () => Promise<ActionResult>;
+        fetchRemoteClusterInfo: (remoteId: string) => Promise<ActionResult>;
     };
     focusOriginElement: string;
 }
@@ -109,12 +109,18 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         this.props.actions.getTotalUsersStats();
         this.props.actions.loadProfilesMissingStatus(this.props.users);
 
-        // Load remote clusters data if any remote users exist
+        // Load remote cluster info for any remote users
         // This is needed for the userCanSeeOtherUser selector to work properly
-        const hasRemoteUsers = this.props.users.some((user) => user.remote_id);
-        if (hasRemoteUsers) {
-            this.props.actions.fetchRemoteClusters();
-        }
+        const remoteUserIds = this.props.users.filter((user) => user.remote_id).
+            map((user) => user.remote_id).
+            filter((remoteId, index, arr) => arr.
+                indexOf(remoteId) === index); // Remove duplicates
+
+        remoteUserIds.forEach((remoteId) => {
+            if (remoteId) {
+                this.props.actions.fetchRemoteClusterInfo(remoteId);
+            }
+        });
     };
 
     updateFromProps(prevProps: Props) {
@@ -151,11 +157,17 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         if (prevProps.users.length !== this.props.users.length) {
             this.props.actions.loadProfilesMissingStatus(this.props.users);
 
-            // Check if we have any remote users and load remote clusters data if needed
-            const hasRemoteUsers = this.props.users.some((user) => user.remote_id);
-            if (hasRemoteUsers) {
-                this.props.actions.fetchRemoteClusters();
-            }
+            // Load remote cluster info for any new remote users
+            const remoteUserIds = this.props.users.
+                filter((user) => user.remote_id).
+                map((user) => user.remote_id).
+                filter((remoteId, index, arr) => arr.indexOf(remoteId) === index); // Remove duplicates
+
+            remoteUserIds.forEach((remoteId) => {
+                if (remoteId) {
+                    this.props.actions.fetchRemoteClusterInfo(remoteId);
+                }
+            });
         }
     }
 

@@ -8,7 +8,7 @@ import type {Dispatch} from 'redux';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {searchGroupChannels} from 'mattermost-redux/actions/channels';
-import {fetchRemoteClusters} from 'mattermost-redux/actions/shared_channels';
+import {fetchRemoteClusterInfo} from 'mattermost-redux/actions/shared_channels';
 import {
     getProfiles,
     getProfilesInTeam,
@@ -110,7 +110,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             searchProfiles,
             searchGroupChannels,
             setModalSearchTerm,
-            fetchRemoteClusters,
+            fetchRemoteClusterInfo,
         }, dispatch),
     };
 }

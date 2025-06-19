@@ -24,13 +24,3 @@ export function getRemoteDisplayName(state: GlobalState, remoteId: string): stri
     const remote = getRemoteClusterInfo(state, remoteId);
     return remote?.display_name || null;
 }
-
-export function getAllRemoteClusters(state: GlobalState): RemoteCluster[] {
-    return state.entities?.remoteClusters ?
-        Object.values(state.entities.remoteClusters) :
-        [];
-}
-
-export function getRemoteClusterById(state: GlobalState, remoteId: string): RemoteCluster | undefined {
-    return state.entities?.remoteClusters?.[remoteId];
-}

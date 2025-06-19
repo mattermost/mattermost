@@ -73,7 +73,7 @@ describe('components/MoreDirectChannels', () => {
                     process.nextTick(() => resolve());
                 });
             }),
-            fetchRemoteClusters: jest.fn().mockResolvedValue({data: true}),
+            fetchRemoteClusterInfo: jest.fn().mockResolvedValue({data: true}),
         },
     };
 
@@ -263,7 +263,7 @@ describe('components/MoreDirectChannels', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should fetch remote clusters when there are remote users', () => {
+    test('should fetch remote cluster info when there are remote users', () => {
         const remoteUser1 = {
             ...mockedUser,
             id: 'remote_user_1',
@@ -282,7 +282,7 @@ describe('components/MoreDirectChannels', () => {
         const props = {...baseProps, users};
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
 
-        // Manually call updateFromProps to trigger fetchRemoteClusters on mount
+        // Manually call updateFromProps to trigger fetchRemoteClusterInfo on mount
         wrapper.instance().updateFromProps({
             users: [],
             currentUserId: props.currentUserId,
@@ -294,8 +294,8 @@ describe('components/MoreDirectChannels', () => {
             focusOriginElement: props.focusOriginElement,
         });
 
-        // Initial update should trigger fetch
-        expect(props.actions.fetchRemoteClusters).toHaveBeenCalledTimes(1);
+        // Initial update should trigger fetch for remote1
+        expect(props.actions.fetchRemoteClusterInfo).toHaveBeenCalledWith('remote1');
 
         // Simulate component update with new users containing remote users
         const moreUsers = [...users, {
@@ -318,8 +318,8 @@ describe('components/MoreDirectChannels', () => {
             focusOriginElement: props.focusOriginElement,
         });
 
-        // Should have called fetchRemoteClusters again
-        expect(props.actions.fetchRemoteClusters).toHaveBeenCalled();
+        // Should have called fetchRemoteClusterInfo for both remotes
+        expect(props.actions.fetchRemoteClusterInfo).toHaveBeenCalledWith('remote2');
     });
 
     test('should not fetch remote clusters when there are no remote users', () => {
@@ -353,7 +353,7 @@ describe('components/MoreDirectChannels', () => {
         });
 
         // Initial component mount should not trigger fetch since no remote users
-        expect(props.actions.fetchRemoteClusters).not.toHaveBeenCalled();
+        expect(props.actions.fetchRemoteClusterInfo).not.toHaveBeenCalled();
 
         // Simulate component update with new users, still without remote users
         const moreUsers = [...users, {
@@ -375,8 +375,8 @@ describe('components/MoreDirectChannels', () => {
             focusOriginElement: props.focusOriginElement,
         });
 
-        // Still should not have called fetchRemoteClusters
-        expect(props.actions.fetchRemoteClusters).not.toHaveBeenCalled();
+        // Still should not have called fetchRemoteClusterInfo
+        expect(props.actions.fetchRemoteClusterInfo).not.toHaveBeenCalled();
     });
 
     test('should handle remote connection not allowed error when trying to open DM', (done) => {
