@@ -297,7 +297,6 @@ describe('components/ProfilePopover', () => {
                         create_at: 1234567890,
                         delete_at: 0,
                         last_ping_at: Date.now(),
-                        site_url: 'https://remote1.example.com',
                     },
                 },
             };
@@ -329,7 +328,6 @@ describe('components/ProfilePopover', () => {
                         create_at: 1234567890,
                         delete_at: 0,
                         last_ping_at: Date.now(),
-                        site_url: 'https://remote1.example.com',
                     },
                 },
             };

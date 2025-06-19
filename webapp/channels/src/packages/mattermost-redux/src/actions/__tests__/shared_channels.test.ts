@@ -20,7 +20,6 @@ describe('shared_channels actions', () => {
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
-                site_url: 'https://remote1.example.com',
             },
             {
                 name: 'remote2',
@@ -28,7 +27,6 @@ describe('shared_channels actions', () => {
                 create_at: 789,
                 last_ping_at: 101,
                 delete_at: 0,
-                site_url: 'https://remote2.example.com',
             },
         ];
 
@@ -52,7 +50,6 @@ describe('shared_channels actions', () => {
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
-                site_url: 'https://remote1.example.com',
             },
             {
                 name: 'remote2',
@@ -60,7 +57,6 @@ describe('shared_channels actions', () => {
                 create_at: 789,
                 last_ping_at: 101,
                 delete_at: 0,
-                site_url: 'https://remote2.example.com',
             },
         ];
 
@@ -101,7 +97,6 @@ describe('shared_channels actions', () => {
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
-                site_url: 'https://remote1.example.com',
             },
         ];
 
@@ -135,7 +130,6 @@ describe('shared_channels actions', () => {
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
-                site_url: 'https://remote1.example.com',
             },
         ];
 
@@ -146,7 +140,6 @@ describe('shared_channels actions', () => {
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
-                site_url: 'https://remote1.example.com',
             },
             {
                 name: 'remote2',
@@ -154,7 +147,6 @@ describe('shared_channels actions', () => {
                 create_at: 789,
                 last_ping_at: 101,
                 delete_at: 0,
-                site_url: 'https://remote2.example.com',
             },
         ];
 

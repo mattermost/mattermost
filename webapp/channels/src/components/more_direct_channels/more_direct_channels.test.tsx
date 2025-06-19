@@ -73,6 +73,7 @@ describe('components/MoreDirectChannels', () => {
                     process.nextTick(() => resolve());
                 });
             }),
+            canUserDirectMessage: jest.fn().mockResolvedValue({data: {can_dm: true}}),
         },
     };
 
@@ -260,51 +261,5 @@ describe('components/MoreDirectChannels', () => {
         const props = {...baseProps, users, myDirectChannels, currentChannelMembers};
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
         expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should handle remote connection not allowed error when trying to open DM', (done) => {
-        jest.useFakeTimers({legacyFakeTimers: true});
-        const user: UserProfile = {
-            ...mockedUser,
-            id: 'remote_user_1',
-            remote_id: 'remote1',
-        };
-
-        // Mock the error that would be returned
-        const mockOpenDirectChannelError = jest.fn().mockResolvedValue({
-            error: {
-                server_error_id: 'api.user.remote_connection_not_allowed.app_error',
-                message: 'Cannot message this user because their server is not directly connected to yours.',
-            },
-        });
-
-        const props = {
-            ...baseProps,
-            currentChannelMembers: [user],
-            actions: {
-                ...baseProps.actions,
-                openDirectChannelToUserId: mockOpenDirectChannelError,
-            },
-        };
-
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
-        const handleHide = jest.fn();
-
-        wrapper.instance().handleHide = handleHide;
-        wrapper.instance().handleSubmit();
-
-        expect(wrapper.state('saving')).toEqual(true);
-        expect(props.actions.openDirectChannelToUserId).toHaveBeenCalledTimes(1);
-        expect(props.actions.openDirectChannelToUserId).toHaveBeenCalledWith('remote_user_1');
-
-        process.nextTick(() => {
-            // Should have reset saving state even though there was an error
-            expect(wrapper.state('saving')).toEqual(false);
-
-            // Should not have tried to navigate since the channel creation failed
-            expect(wrapper.instance().exitToChannel).toBeFalsy();
-
-            done();
-        });
     });
 });

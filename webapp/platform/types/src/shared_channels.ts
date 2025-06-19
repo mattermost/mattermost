@@ -24,7 +24,6 @@ export type RemoteClusterInfo = {
     create_at: number;
     delete_at: number;
     last_ping_at: number;
-    site_url: string;
 };
 
 export type SharedChannelsState = {

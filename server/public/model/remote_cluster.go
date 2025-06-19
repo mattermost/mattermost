@@ -280,7 +280,6 @@ func (rc *RemoteCluster) ToRemoteClusterInfo() RemoteClusterInfo {
 		CreateAt:    rc.CreateAt,
 		DeleteAt:    rc.DeleteAt,
 		LastPingAt:  rc.LastPingAt,
-		SiteURL:     rc.GetSiteURL(),
 	}
 }
 
@@ -295,7 +294,6 @@ type RemoteClusterInfo struct {
 	CreateAt    int64  `json:"create_at"`
 	DeleteAt    int64  `json:"delete_at"`
 	LastPingAt  int64  `json:"last_ping_at"`
-	SiteURL     string `json:"site_url"`
 }
 
 // RemoteClusterFrame wraps a `RemoteClusterMsg` with credentials specific to a remote cluster.
