@@ -510,13 +510,11 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			)
 		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.UpdateAt > rpost.UpdateAt || post.Metadata != nil {
-		// Handle mention transformation if message changed
-		if post.Message != rpost.Message {
-			sc, err := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
-			if err == nil && sc != nil {
-				mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
-				scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
-			}
+		// Handle mention transformation for ALL sync messages, not just message changes
+		sc, err := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
+		if err == nil && sc != nil {
+			mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
+			scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
 		}
 		var priority *model.PostPriority
 		var acknowledgements []*model.PostAcknowledgement
@@ -550,6 +548,13 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			rpost = scs.syncRemoteAcknowledgementsMetadata(rctx, post, acknowledgements, rpost)
 		}
 	} else {
+		// Even when no update is needed, we should still transform mentions for cross-cluster display
+		sc, err := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
+		if err == nil && sc != nil {
+			mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
+			scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
+		}
+
 		// nothing to update
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Update to sync post ignored",
 			mlog.String("post_id", post.Id),
@@ -788,8 +793,8 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 					}
 				}
 			}
-			// Case B2: No local user or different cluster - display as plain text
-			return mention
+			// Case B2: No local user or different cluster - keep original mention
+			return match
 		}
 		// Case A: "@user" format not in mentionMap
 		if localUser, err := scs.server.GetStore().User().GetByUsername(mention); err == nil && localUser != nil && localUser.GetRemoteID() == "" {

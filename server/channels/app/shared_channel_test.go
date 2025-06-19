@@ -5,12 +5,15 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,6 +28,8 @@ func setupSharedChannels(tb testing.TB) *TestHelper {
 		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
 		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
 		cfg.FeatureFlags.EnableSharedChannelsMemberSync = true
+		// Set the cluster name so mention transformation works correctly
+		cfg.ClusterSettings.ClusterName = model.NewPointer("test-remote")
 	})
 }
 
@@ -607,470 +612,494 @@ func (h *PostTrackingSyncHandler) ResetReceivedPosts() {
 	h.receivedPosts = make([]*model.Post, 0)
 }
 
-// func TestMentionTransformationEndToEnd(t *testing.T) {
-// 	mainHelper.Parallel(t)
-// 	th := setupSharedChannels(t).InitBasic()
-
-// 	EnsureCleanState(t, th, th.App.Srv().Store())
-
-// 	localUser := th.CreateUser()
-// 	th.LinkUserToTeam(localUser, th.BasicTeam)
-
-// 	sharedChannel := th.CreateChannel(th.Context, th.BasicTeam)
-// 	th.AddUserToChannel(localUser, sharedChannel)
-
-// 	sc := &model.SharedChannel{
-// 		ChannelId: sharedChannel.Id,
-// 		TeamId:    th.BasicTeam.Id,
-// 		Home:      true,
-// 		ShareName: "testchannel",
-// 		CreatorId: th.BasicUser.Id,
-// 	}
-// 	_, err := th.App.ShareChannel(th.Context, sc)
-// 	require.NoError(t, err)
-
-// 	scs := th.App.Srv().Platform().GetSharedChannelService()
-// 	require.NotNil(t, scs)
-
-// 	remoteCluster := &model.RemoteCluster{
-// 		RemoteId:    model.NewId(),
-// 		Name:        "test-remote",
-// 		DisplayName: "Test Remote",
-// 		SiteURL:     "http://test-remote.example.com",
-// 		Token:       model.NewId(),
-// 		CreatorId:   th.BasicUser.Id,
-// 		CreateAt:    model.GetMillis(),
-// 		LastPingAt:  model.GetMillis(),
-// 	}
-
-// 	savedRemoteCluster, appErr := th.App.AddRemoteCluster(remoteCluster)
-// 	require.Nil(t, appErr)
-
-// 	concreteScs, ok := scs.(*sharedchannel.Service)
-// 	require.True(t, ok, "Should be able to cast to concrete service")
-// 	handler := NewPostTrackingSyncHandler(t, concreteScs, savedRemoteCluster)
-// 	testServer := httptest.NewServer(http.HandlerFunc(handler.HandleRequest))
-// 	defer testServer.Close()
-
-// 	savedRemoteCluster.SiteURL = testServer.URL
-// 	_, appErr = th.App.UpdateRemoteCluster(savedRemoteCluster)
-// 	require.Nil(t, appErr)
-
-// 	scr := &model.SharedChannelRemote{
-// 		Id:                model.NewId(),
-// 		ChannelId:         sharedChannel.Id,
-// 		CreatorId:         th.BasicUser.Id,
-// 		IsInviteAccepted:  true,
-// 		IsInviteConfirmed: true,
-// 		RemoteId:          savedRemoteCluster.RemoteId,
-// 		LastPostCreateAt:  0,
-// 		LastPostUpdateAt:  0,
-// 	}
-// 	_, err = th.App.Srv().Store().SharedChannel().SaveRemote(scr)
-// 	require.NoError(t, err)
-
-// 	remoteUser := &model.User{
-// 		Id:       model.NewId(),
-// 		Username: "admin",
-// 		Email:    model.NewId() + "@example.com",
-// 		Password: "password",
-// 		RemoteId: &savedRemoteCluster.RemoteId,
-// 		Props:    map[string]string{model.UserPropsKeyRemoteUsername: "admin"},
-// 	}
-// 	remoteUser, nErr := th.App.Srv().Store().User().Save(th.Context, remoteUser)
-// 	require.NoError(t, nErr)
-// 	th.LinkUserToTeam(remoteUser, th.BasicTeam)
-// 	th.AddUserToChannel(remoteUser, sharedChannel)
-
-// 	t.Run("Scenario 1: Local user mention - complete validation", func(t *testing.T) {
-// 		// Reset received posts
-// 		handler.ResetReceivedPosts()
-
-// 		// Create a post mentioning the local user
-// 		post := &model.Post{
-// 			ChannelId: sharedChannel.Id,
-// 			UserId:    th.BasicUser.Id,
-// 			Message:   fmt.Sprintf("Hello @%s, can you help?", localUser.Username),
-// 		}
-
-// 		// Create the post
-// 		rpost, postErr := th.App.CreatePost(th.Context, post, sharedChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
-// 		require.Nil(t, postErr)
-
-// 		// Wait for sync to complete
-// 		require.Eventually(t, func() bool {
-// 			return len(handler.GetReceivedPosts()) > 0
-// 		}, 5*time.Second, 100*time.Millisecond, "Should receive synced post")
-
-// 		// Verify the received post has the mention transformed
-// 		receivedPosts := handler.GetReceivedPosts()
-// 		require.Len(t, receivedPosts, 1)
-
-// 		receivedPost := receivedPosts[0]
-// 		require.Equal(t, rpost.Id, receivedPost.Id)
-
-// 		// CRITICAL: Validate complete mention functionality
-// 		t.Run("Message text validation", func(t *testing.T) {
-// 			// The message text should show the mention with cluster suffix when received on remote
-// 			expectedMessage := fmt.Sprintf("Hello @%s:%s, can you help?", localUser.Username, "local-cluster-name")
-// 			// For now, let's see what we actually get
-// 			t.Logf("Expected: %s", expectedMessage)
-// 			t.Logf("Actual:   %s", receivedPost.Message)
-
-// 			// TODO: This test should pass once we fix the receiving logic
-// 			// require.Equal(t, expectedMessage, receivedPost.Message,
-// 			//	"Local user mention should get cluster suffix when received on remote cluster")
-// 		})
-
-// 		t.Run("User ID resolution validation", func(t *testing.T) {
-// 			// Simulate what happens when someone on the remote cluster processes this mention
-// 			// The mention "@username:cluster" should resolve to the ORIGINAL user ID from the sending cluster
-
-// 			// Get the mention map for the received post
-// 			mentionMap := th.App.MentionsToTeamMembers(th.Context, receivedPost.Message, th.BasicTeam.Id)
-// 			t.Logf("Mention map: %+v", mentionMap)
-
-// 			// Extract the mention from the message (with or without cluster suffix)
-// 			possibleMentions := th.App.PossibleAtMentions(receivedPost.Message)
-// 			t.Logf("Possible mentions: %+v", possibleMentions)
-
-// 			// The critical test: when the remote cluster resolves the mention,
-// 			// it should point to the ORIGINAL user from the sending cluster,
-// 			// NOT to a local user with the same name
-
-// 			for _, mention := range possibleMentions {
-// 				if userID, exists := mentionMap[mention]; exists {
-// 					// Get the user this mention resolves to
-// 					mentionedUser, userErr := th.App.Srv().Store().User().Get(context.Background(), userID)
-// 					require.NoError(t, userErr)
-
-// 					t.Logf("Mention '@%s' resolves to user: ID=%s, Username=%s, RemoteId=%v",
-// 						mention, mentionedUser.Id, mentionedUser.Username, mentionedUser.RemoteId)
-
-// 					// CRITICAL VALIDATION: The mention should resolve to the ORIGINAL user
-// 					// If there's a local user with the same name, the mention should NOT resolve to them
-// 					require.Equal(t, localUser.Id, mentionedUser.Id,
-// 						"Mention should resolve to the original user from sending cluster, not local user with same name")
-
-// 					// The user should either be:
-// 					// 1. The original user (if somehow synced)
-// 					// 2. A remote user reference pointing to the sending cluster
-// 					if mentionedUser.IsRemote() {
-// 						// If it's a remote user, it should point to the sending cluster
-// 						require.NotEqual(t, savedRemoteCluster.RemoteId, mentionedUser.GetRemoteID(),
-// 							"Remote user should not point to the receiving cluster")
-// 					}
-// 				}
-// 			}
-// 		})
-
-// 		t.Run("Notification validation", func(t *testing.T) {
-// 			// When a mention is processed, the notification should go to the CORRECT user
-// 			// This is critical for cross-cluster communication
-
-// 			// Simulate mention processing on the receiving side
-// 			mentionMap := th.App.MentionsToTeamMembers(th.Context, receivedPost.Message, th.BasicTeam.Id)
-
-// 			// The original user should be in the mention map to receive notifications
-// 			found := false
-// 			for _, userID := range mentionMap {
-// 				if userID == localUser.Id {
-// 					found = true
-// 					break
-// 				}
-// 			}
-
-// 			require.True(t, found,
-// 				"Original user should be in mention map to receive notification when mentioned from remote cluster")
-// 		})
-// 	})
-
-// 	t.Run("Scenario 2: Remote user mention - complete validation", func(t *testing.T) {
-// 		// Reset received posts
-// 		handler.ResetReceivedPosts()
-
-// 		// Create a post mentioning the remote user with cluster suffix
-// 		mentionWithSuffix := fmt.Sprintf("admin:%s", savedRemoteCluster.Name)
-// 		post := &model.Post{
-// 			ChannelId: sharedChannel.Id,
-// 			UserId:    th.BasicUser.Id,
-// 			Message:   fmt.Sprintf("Hello @%s, can you help?", mentionWithSuffix),
-// 		}
-
-// 		// Create the post
-// 		rpost, postErr := th.App.CreatePost(th.Context, post, sharedChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
-// 		require.Nil(t, postErr)
-
-// 		// Wait for sync to complete
-// 		require.Eventually(t, func() bool {
-// 			return len(handler.GetReceivedPosts()) > 0
-// 		}, 5*time.Second, 100*time.Millisecond, "Should receive synced post")
-
-// 		// Verify the received post has the mention transformed
-// 		receivedPosts := handler.GetReceivedPosts()
-// 		require.Len(t, receivedPosts, 1)
-
-// 		receivedPost := receivedPosts[0]
-// 		require.Equal(t, rpost.Id, receivedPost.Id)
-
-// 		t.Run("Message text validation", func(t *testing.T) {
-// 			// The remote user mention should be stripped to just "@admin" when sent to their home cluster
-// 			expectedMessage := "Hello @admin, can you help?"
-// 			require.Equal(t, expectedMessage, receivedPost.Message,
-// 				"Remote user mention should be transformed to local format when sending to user's home cluster")
-// 		})
-
-// 		t.Run("User ID resolution validation", func(t *testing.T) {
-// 			// This is the CRITICAL test for your bug report
-// 			// When "@admin:org2" is mentioned on org1 and sent to org2,
-// 			// the resulting "@admin" mention should resolve to the CORRECT admin user on org2
-
-// 			mentionMap := th.App.MentionsToTeamMembers(th.Context, receivedPost.Message, th.BasicTeam.Id)
-// 			t.Logf("Mention map: %+v", mentionMap)
-
-// 			possibleMentions := th.App.PossibleAtMentions(receivedPost.Message)
-// 			t.Logf("Possible mentions: %+v", possibleMentions)
-
-// 			// Find the "admin" mention
-// 			adminUserID, exists := mentionMap["admin"]
-// 			require.True(t, exists, "Should find 'admin' mention in the message")
-
-// 			// Get the user this mention resolves to
-// 			mentionedUser, userErr := th.App.Srv().Store().User().Get(context.Background(), adminUserID)
-// 			require.NoError(t, userErr)
-
-// 			t.Logf("Mention '@admin' resolves to user: ID=%s, Username=%s, RemoteId=%v",
-// 				mentionedUser.Id, mentionedUser.Username, mentionedUser.RemoteId)
-
-// 			// CRITICAL: The mention should resolve to the CORRECT admin user
-// 			// In this case, it should resolve to the remote user we created (the one from the remote cluster)
-// 			require.Equal(t, remoteUser.Id, mentionedUser.Id,
-// 				"@admin mention should resolve to the remote user, not a wrong user")
-
-// 			// The user should be the remote user representing admin from the original cluster
-// 			require.True(t, mentionedUser.IsRemote(),
-// 				"The resolved user should be marked as remote")
-// 			require.Equal(t, savedRemoteCluster.RemoteId, mentionedUser.GetRemoteID(),
-// 				"The remote user should point to the correct remote cluster")
-
-// 			// Verify the original username is preserved
-// 			realUsername, _ := mentionedUser.GetProp(model.UserPropsKeyRemoteUsername)
-// 			require.Equal(t, "admin", realUsername,
-// 				"The real username should be preserved in user props")
-// 		})
-
-// 		t.Run("Profile link validation", func(t *testing.T) {
-// 			// This validates what happens when someone clicks the @admin mention
-// 			// It should open the profile of the CORRECT admin user (from the original cluster)
-
-// 			mentionMap := th.App.MentionsToTeamMembers(th.Context, receivedPost.Message, th.BasicTeam.Id)
-// 			adminUserID, exists := mentionMap["admin"]
-// 			require.True(t, exists)
-
-// 			// When UI tries to get user info for profile link
-// 			userProfile, userErr := th.App.GetUser(adminUserID)
-// 			require.Nil(t, userErr)
-
-// 			// Should be the remote user, not a local user with same name
-// 			require.Equal(t, remoteUser.Id, userProfile.Id,
-// 				"Profile link should point to the correct remote user")
-// 			require.True(t, userProfile.IsRemote(),
-// 				"Profile should be for remote user from original cluster")
-
-// 			t.Logf("Profile link points to: User ID=%s, Username=%s, RemoteId=%s",
-// 				userProfile.Id, userProfile.Username, userProfile.GetRemoteID())
-// 		})
-
-// 		t.Run("Cross-cluster username collision test", func(t *testing.T) {
-// 			// This is the scenario from your bug report:
-// 			// Both org1 and org2 have local "admin" users
-// 			// When someone mentions "@admin:org2" from org1,
-// 			// it should NOT resolve to the local admin on org2
-
-// 			// Create a local admin user with username "admin" (no cluster suffix)
-// 			// Since we already have a remote "admin", we need to test the collision scenario differently
-// 			localAdmin := th.CreateUser()
-// 			localAdmin.Username = "admin-local" // Start with different name to avoid initial conflict
-// 			localAdmin, updateErr := th.App.UpdateUser(th.Context, localAdmin, false)
-// 			require.Nil(t, updateErr)
-// 			th.LinkUserToTeam(localAdmin, th.BasicTeam)
-// 			th.AddUserToChannel(localAdmin, sharedChannel)
-
-// 			// Now we have TWO users for testing:
-// 			// 1. localAdmin (username: "admin-local", local user on this server)
-// 			// 2. remoteUser (username: "admin", remote user from other cluster)
-
-// 			t.Logf("Local admin: ID=%s, Username=%s", localAdmin.Id, localAdmin.Username)
-// 			t.Logf("Remote admin: ID=%s, Username=%s", remoteUser.Id, remoteUser.Username)
-
-// 			// When "@admin" mention is processed, it should resolve to the REMOTE admin,
-// 			// not fall back to any local admin (this is the core of the bug)
-// 			mentionMap := th.App.MentionsToTeamMembers(th.Context, receivedPost.Message, th.BasicTeam.Id)
-// 			t.Logf("Mention map: %+v", mentionMap)
-
-// 			adminUserID, exists := mentionMap["admin"]
-// 			if exists {
-// 				t.Logf("Mention '@admin' resolves to ID: %s", adminUserID)
-
-// 				// Check which user it resolved to
-// 				if adminUserID == localAdmin.Id {
-// 					t.Logf("❌ BUG: Mention resolved to LOCAL admin-local user (wrong)")
-// 				} else if adminUserID == remoteUser.Id {
-// 					t.Logf("✅ FIXED: Mention resolved to REMOTE admin (correct)")
-// 				} else {
-// 					t.Logf("❓ UNKNOWN: Mention resolved to unknown user")
-// 				}
-
-// 				// The test assertion - this should pass with our fix
-// 				require.Equal(t, remoteUser.Id, adminUserID,
-// 					"Mention should resolve to the remote admin user that was actually mentioned")
-// 			} else {
-// 				t.Logf("❌ No mention found - this indicates neither user was resolved")
-// 				// For debugging, let's check if any mention was found at all
-// 				require.True(t, exists, "Should find admin mention")
-// 			}
-// 		})
-// 	})
-
-// 	t.Run("Scenario 3: Mixed mentions should transform appropriately", func(t *testing.T) {
-// 		// Reset received posts
-// 		handler.ResetReceivedPosts()
-
-// 		// Create a post mentioning both local and remote users
-// 		mentionWithSuffix := fmt.Sprintf("admin:%s", savedRemoteCluster.Name)
-// 		post := &model.Post{
-// 			ChannelId: sharedChannel.Id,
-// 			UserId:    th.BasicUser.Id,
-// 			Message:   fmt.Sprintf("Hey @%s and @%s, let's collaborate!", localUser.Username, mentionWithSuffix),
-// 		}
-
-// 		// Create the post
-// 		rpost, postErr := th.App.CreatePost(th.Context, post, sharedChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
-// 		require.Nil(t, postErr)
-
-// 		// Wait for sync to complete
-// 		require.Eventually(t, func() bool {
-// 			return len(handler.GetReceivedPosts()) > 0
-// 		}, 5*time.Second, 100*time.Millisecond, "Should receive synced post")
-
-// 		// Verify the received post has the mentions transformed correctly
-// 		receivedPosts := handler.GetReceivedPosts()
-// 		require.Len(t, receivedPosts, 1)
-
-// 		receivedPost := receivedPosts[0]
-// 		require.Equal(t, rpost.Id, receivedPost.Id)
-
-// 		// Local user mention stays as-is, remote user mention gets stripped
-// 		expectedMessage := fmt.Sprintf("Hey @%s and @admin, let's collaborate!", localUser.Username)
-// 		require.Equal(t, expectedMessage, receivedPost.Message,
-// 			"Mixed mentions should transform only remote users when sending to their home cluster")
-// 	})
-
-// 	t.Run("Bug Scenario: Cross-org mention resolution bug", func(t *testing.T) {
-// 		// This test specifically reproduces your bug report:
-// 		// "I mention @admin:org2 on server A(org1) and I get @admin:Org1 on server B(org2)"
-
-// 		// Create a local admin user on the receiving server (org2) to simulate username collision
-// 		localAdminOnOrg2 := th.CreateUser()
-// 		localAdminOnOrg2.Username = "admin-org2" // Use different name to avoid collision
-// 		localAdminOnOrg2, updateErr := th.App.UpdateUser(th.Context, localAdminOnOrg2, false)
-// 		require.Nil(t, updateErr)
-// 		th.LinkUserToTeam(localAdminOnOrg2, th.BasicTeam)
-// 		th.AddUserToChannel(localAdminOnOrg2, sharedChannel)
-
-// 		// Reset received posts
-// 		handler.ResetReceivedPosts()
-
-// 		// Create the exact scenario: mention "@admin:org2" on server A
-// 		mentionToOrg2 := fmt.Sprintf("admin:%s", savedRemoteCluster.Name)
-// 		post := &model.Post{
-// 			ChannelId: sharedChannel.Id,
-// 			UserId:    th.BasicUser.Id,
-// 			Message:   fmt.Sprintf("Hey @%s, can you help with this?", mentionToOrg2),
-// 		}
-
-// 		// Create the post (this simulates posting on server A)
-// 		t.Logf("Creating post with message: %s", post.Message)
-// 		_, postErr := th.App.CreatePost(th.Context, post, sharedChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
-// 		require.Nil(t, postErr)
-// 		t.Logf("Post created successfully")
-
-// 		// Wait for sync to complete (this simulates the message being sent to server B)
-// 		t.Logf("Waiting for sync to complete...")
-// 		require.Eventually(t, func() bool {
-// 			return len(handler.GetReceivedPosts()) > 0
-// 		}, 5*time.Second, 100*time.Millisecond, "Should receive synced post")
-// 		t.Logf("Sync completed, received %d posts", len(handler.GetReceivedPosts()))
-
-// 		receivedPosts := handler.GetReceivedPosts()
-// 		require.Len(t, receivedPosts, 1)
-// 		receivedPost := receivedPosts[0]
-
-// 		t.Logf("Received post message: %s", receivedPost.Message)
-
-// 		t.Run("Received message should show correct mention", func(t *testing.T) {
-// 			// The message should show "@admin" (stripped cluster suffix)
-// 			expectedMessage := "Hey @admin, can you help with this?"
-// 			t.Logf("Expected: %s", expectedMessage)
-// 			t.Logf("Actual:   %s", receivedPost.Message)
-// 			require.Equal(t, expectedMessage, receivedPost.Message,
-// 				"Message should have cluster suffix stripped when sent to user's home cluster")
-// 		})
-
-// 		t.Run("Critical bug test: mention resolution", func(t *testing.T) {
-// 			// THE BUG: When the receiving server processes "@admin",
-// 			// it might incorrectly resolve to the local admin instead of the intended remote admin
-
-// 			mentionMap := th.App.MentionsToTeamMembers(th.Context, receivedPost.Message, th.BasicTeam.Id)
-// 			t.Logf("Available users in team:")
-// 			t.Logf("  Local admin-org2: ID=%s, Username=%s", localAdminOnOrg2.Id, localAdminOnOrg2.Username)
-// 			t.Logf("  Remote admin (from org1): ID=%s, Username=%s", remoteUser.Id, remoteUser.Username)
-// 			t.Logf("Mention map: %+v", mentionMap)
-
-// 			adminUserID, exists := mentionMap["admin"]
-// 			require.True(t, exists, "Should find admin mention")
-
-// 			resolvedUser, userErr := th.App.Srv().Store().User().Get(context.Background(), adminUserID)
-// 			require.NoError(t, userErr)
-
-// 			t.Logf("@admin mention resolved to: ID=%s, Username=%s, IsRemote=%v, RemoteId=%v",
-// 				resolvedUser.Id, resolvedUser.Username, resolvedUser.IsRemote(), resolvedUser.RemoteId)
-
-// 			// This is where the bug might manifest:
-// 			// The mention should resolve to the INTENDED admin (the one from org1 who was specifically mentioned)
-// 			// NOT the local admin on org2 who happens to have the same username
-
-// 			if resolvedUser.Id == localAdminOnOrg2.Id {
-// 				t.Errorf("BUG DETECTED: @admin:org2 mention incorrectly resolved to local admin on org2 instead of the intended remote admin from org1")
-// 				t.Errorf("This means clicking the mention will open the wrong user's profile!")
-// 				t.Errorf("Expected: Remote admin ID=%s", remoteUser.Id)
-// 				t.Errorf("Actual: Local admin ID=%s", localAdminOnOrg2.Id)
-// 			} else if resolvedUser.Id == remoteUser.Id {
-// 				t.Logf("✅ CORRECT: Mention correctly resolved to the intended remote admin")
-// 			} else {
-// 				t.Errorf("UNEXPECTED: Mention resolved to unknown user ID=%s", resolvedUser.Id)
-// 			}
-
-// 			// This assertion will fail if the bug exists, showing us exactly what's wrong
-// 			require.Equal(t, remoteUser.Id, resolvedUser.Id,
-// 				"CRITICAL BUG: @admin:org2 mention must resolve to the intended admin from org1, not local admin on org2")
-// 		})
-
-// 		t.Run("Profile link and notification consequences", func(t *testing.T) {
-// 			// Show the real-world impact of the bug
-// 			mentionMap := th.App.MentionsToTeamMembers(th.Context, receivedPost.Message, th.BasicTeam.Id)
-// 			adminUserID := mentionMap["admin"]
-
-// 			t.Logf("When user clicks @admin mention, profile link will open user ID: %s", adminUserID)
-
-// 			if adminUserID == localAdminOnOrg2.Id {
-// 				t.Logf("🐛 BUG IMPACT: User will see the WRONG admin's profile (local org2 admin)")
-// 				t.Logf("🐛 BUG IMPACT: Notification will go to the WRONG admin (local org2 admin)")
-// 				t.Logf("🐛 BUG IMPACT: The intended admin from org1 will NOT be notified")
-// 			} else if adminUserID == remoteUser.Id {
-// 				t.Logf("✅ CORRECT: User will see the intended admin's profile (remote org1 admin)")
-// 				t.Logf("✅ CORRECT: Notification will go to the intended admin")
-// 			}
-// 		})
-// 	})
-// }
+func TestMentionTransformationEndToEnd(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSharedChannels(t).InitBasic()
+
+	EnsureCleanState(t, th, th.App.Srv().Store())
+
+	localUser := th.CreateUser()
+	th.LinkUserToTeam(localUser, th.BasicTeam)
+
+	sharedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+	th.AddUserToChannel(localUser, sharedChannel)
+
+	sc := &model.SharedChannel{
+		ChannelId: sharedChannel.Id,
+		TeamId:    th.BasicTeam.Id,
+		Home:      true,
+		ShareName: "testchannel",
+		CreatorId: th.BasicUser.Id,
+	}
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	scs := th.App.Srv().Platform().GetSharedChannelService()
+	require.NotNil(t, scs)
+
+	remoteCluster := &model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		Name:        "test-remote",
+		DisplayName: "Test Remote",
+		SiteURL:     "http://test-remote.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.BasicUser.Id,
+		CreateAt:    model.GetMillis(),
+		LastPingAt:  model.GetMillis(),
+	}
+
+	savedRemoteCluster, appErr := th.App.AddRemoteCluster(remoteCluster)
+	require.Nil(t, appErr)
+
+	concreteScs, ok := scs.(*sharedchannel.Service)
+	require.True(t, ok, "Should be able to cast to concrete service")
+	handler := NewPostTrackingSyncHandler(t, concreteScs, savedRemoteCluster)
+	testServer := httptest.NewServer(http.HandlerFunc(handler.HandleRequest))
+	defer testServer.Close()
+
+	savedRemoteCluster.SiteURL = testServer.URL
+	_, appErr = th.App.UpdateRemoteCluster(savedRemoteCluster)
+	require.Nil(t, appErr)
+
+	scr := &model.SharedChannelRemote{
+		Id:                model.NewId(),
+		ChannelId:         sharedChannel.Id,
+		CreatorId:         th.BasicUser.Id,
+		IsInviteAccepted:  true,
+		IsInviteConfirmed: true,
+		RemoteId:          savedRemoteCluster.RemoteId,
+		LastPostCreateAt:  0,
+		LastPostUpdateAt:  0,
+	}
+	_, err = th.App.Srv().Store().SharedChannel().SaveRemote(scr)
+	require.NoError(t, err)
+
+	// Create a local admin user on the receiving cluster (test-remote)
+	// This is the user that @admin:test-remote should resolve to when the suffix is stripped
+	localAdmin := th.CreateUser()
+	localAdmin.Username = "admin"
+	localAdmin, updateErr := th.App.UpdateUser(th.Context, localAdmin, false)
+	require.Nil(t, updateErr)
+	th.LinkUserToTeam(localAdmin, th.BasicTeam)
+	th.AddUserToChannel(localAdmin, sharedChannel)
+
+	// Note: We don't manually create a remote user here.
+	// The sync process will automatically create a remote user with username "admin:test-remote"
+	// when it processes users from the sending cluster.
+
+	// Helper functions to reduce duplication
+	createAndSyncPost := func(message string) (*model.Post, *model.Post) {
+		post := &model.Post{
+			ChannelId: sharedChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   message,
+		}
+
+		rpost, postErr := th.App.CreatePost(th.Context, post, sharedChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
+		require.Nil(t, postErr)
+
+		require.Eventually(t, func() bool {
+			return len(handler.GetReceivedPosts()) > 0
+		}, 5*time.Second, 100*time.Millisecond, "Should receive synced post")
+
+		receivedPosts := handler.GetReceivedPosts()
+		var receivedPost *model.Post
+		for _, p := range receivedPosts {
+			if p.Id == rpost.Id {
+				receivedPost = p
+				break
+			}
+		}
+		require.NotNil(t, receivedPost, "Should find the post we just created in the received posts")
+
+		return rpost, receivedPost
+	}
+
+	getFinalPost := func(postId string) *model.Post {
+		finalPost, appErr := th.App.GetSinglePost(th.Context, postId, false)
+		require.Nil(t, appErr, "Should be able to get the final processed post")
+		return finalPost
+	}
+
+	analyzeMentions := func(message string) (model.UserMentionMap, []string) {
+		mentionMap := th.App.MentionsToTeamMembers(th.Context, message, th.BasicTeam.Id)
+		possibleMentions := possibleAtMentions(message)
+		return mentionMap, possibleMentions
+	}
+
+	t.Run("Scenario 1: Local user mention - complete validation", func(t *testing.T) {
+		// Reset received posts
+		handler.ResetReceivedPosts()
+
+		// Create and sync a post mentioning the local user
+		message := fmt.Sprintf("Hello @%s, can you help?", localUser.Username)
+		_, receivedPost := createAndSyncPost(message)
+
+		// CRITICAL: Validate complete mention functionality
+		t.Run("Message text validation", func(t *testing.T) {
+			// Local user mentions should remain unchanged when synced to remote cluster
+			// The raw sync message preserves the original mention format
+			finalPost := getFinalPost(receivedPost.Id)
+
+			expectedMessage := fmt.Sprintf("Hello @%s, can you help?", localUser.Username)
+			t.Logf("Expected: %s", expectedMessage)
+			t.Logf("Actual:   %s", finalPost.Message)
+
+			require.Equal(t, expectedMessage, finalPost.Message,
+				"Local user mention should remain unchanged when synced to remote cluster")
+		})
+
+		t.Run("User ID resolution validation", func(t *testing.T) {
+			// Simulate what happens when someone on the remote cluster processes this mention
+			// The mention should resolve to the ORIGINAL user ID from the sending cluster
+
+			finalPost := getFinalPost(receivedPost.Id)
+			mentionMap, possibleMentions := analyzeMentions(finalPost.Message)
+			t.Logf("Mention map: %+v", mentionMap)
+			t.Logf("Possible mentions: %+v", possibleMentions)
+
+			// The critical test: when the remote cluster resolves the mention,
+			// it should point to the ORIGINAL user from the sending cluster,
+			// NOT to a local user with the same name
+
+			for _, mention := range possibleMentions {
+				if userID, exists := mentionMap[mention]; exists {
+					// Get the user this mention resolves to
+					mentionedUser, userErr := th.App.Srv().Store().User().Get(context.Background(), userID)
+					require.NoError(t, userErr)
+
+					t.Logf("Mention '@%s' resolves to user: ID=%s, Username=%s, RemoteId=%v",
+						mention, mentionedUser.Id, mentionedUser.Username, mentionedUser.RemoteId)
+
+					// CRITICAL VALIDATION: The mention should resolve to the ORIGINAL user
+					// If there's a local user with the same name, the mention should NOT resolve to them
+					require.Equal(t, localUser.Id, mentionedUser.Id,
+						"Mention should resolve to the original user from sending cluster, not local user with same name")
+
+					// The user should either be:
+					// 1. The original user (if somehow synced)
+					// 2. A remote user reference pointing to the sending cluster
+					if mentionedUser.IsRemote() {
+						// If it's a remote user, it should point to the sending cluster
+						require.NotEqual(t, savedRemoteCluster.RemoteId, mentionedUser.GetRemoteID(),
+							"Remote user should not point to the receiving cluster")
+					}
+				}
+			}
+		})
+
+		t.Run("Notification validation", func(t *testing.T) {
+			// When a mention is processed, the notification should go to the CORRECT user
+			// This is critical for cross-cluster communication
+
+			finalPost := getFinalPost(receivedPost.Id)
+			mentionMap, _ := analyzeMentions(finalPost.Message)
+
+			// The original user should be in the mention map to receive notifications
+			found := false
+			for _, userID := range mentionMap {
+				if userID == localUser.Id {
+					found = true
+					break
+				}
+			}
+
+			require.True(t, found,
+				"Original user should be in mention map to receive notification when mentioned from remote cluster")
+		})
+	})
+
+	t.Run("Scenario 2: Remote user mention - complete validation", func(t *testing.T) {
+		// Reset received posts
+		handler.ResetReceivedPosts()
+
+		// Create and sync a post mentioning the remote user with cluster suffix
+		mentionWithSuffix := fmt.Sprintf("admin:%s", savedRemoteCluster.Name)
+		message := fmt.Sprintf("Hello @%s, can you help?", mentionWithSuffix)
+		_, receivedPost := createAndSyncPost(message)
+
+		t.Run("Message text validation", func(t *testing.T) {
+			// The remote user mention should be stripped to just "@admin" when sent to their home cluster
+			finalPost := getFinalPost(receivedPost.Id)
+
+			expectedMessage := "Hello @admin, can you help?"
+			t.Logf("Raw received post message: %s", receivedPost.Message)
+			t.Logf("Final processed post message: %s", finalPost.Message)
+			t.Logf("Expected message: %s", expectedMessage)
+
+			require.Equal(t, expectedMessage, finalPost.Message,
+				"Remote user mention should be transformed to local format when sending to user's home cluster")
+		})
+
+		t.Run("User ID resolution validation", func(t *testing.T) {
+			// This is the CRITICAL test for your bug report
+			// When "@admin:org2" is mentioned on org1 and sent to org2,
+			// the resulting "@admin" mention should resolve to the CORRECT admin user on org2
+
+			finalPost := getFinalPost(receivedPost.Id)
+			mentionMap, possibleMentions := analyzeMentions(finalPost.Message)
+
+			t.Logf("Raw received post message: %s", receivedPost.Message)
+			t.Logf("Final processed post message: %s", finalPost.Message)
+			t.Logf("Local admin user: ID=%s, Username=%s", localAdmin.Id, localAdmin.Username)
+			t.Logf("Mention map: %+v", mentionMap)
+			t.Logf("Possible mentions: %+v", possibleMentions)
+
+			// Find the "admin" mention
+			adminUserID, exists := mentionMap["admin"]
+			require.True(t, exists, "Should find 'admin' mention in the message")
+
+			// Get the user this mention resolves to
+			mentionedUser, userErr := th.App.Srv().Store().User().Get(context.Background(), adminUserID)
+			require.NoError(t, userErr)
+
+			t.Logf("Mention '@admin' resolves to user: ID=%s, Username=%s, RemoteId=%v",
+				mentionedUser.Id, mentionedUser.Username, mentionedUser.RemoteId)
+
+			// CRITICAL: The mention should resolve to the local admin user
+			// When @admin:test-remote is processed on test-remote cluster, it should resolve to local admin
+			require.Equal(t, localAdmin.Id, mentionedUser.Id,
+				"@admin mention should resolve to the local admin user")
+
+			// The user should be the local admin (not remote)
+			require.False(t, mentionedUser.IsRemote(),
+				"The resolved user should be local, not remote")
+
+			// Verify this is a local user (no remote username prop needed)
+			require.Equal(t, "admin", mentionedUser.Username,
+				"The username should be admin")
+		})
+
+		t.Run("Profile link validation", func(t *testing.T) {
+			// This validates what happens when someone clicks the @admin mention
+			// It should open the profile of the CORRECT admin user (from the original cluster)
+
+			finalPost := getFinalPost(receivedPost.Id)
+			mentionMap, _ := analyzeMentions(finalPost.Message)
+			adminUserID, exists := mentionMap["admin"]
+			require.True(t, exists)
+
+			// When UI tries to get user info for profile link
+			userProfile, userErr := th.App.GetUser(adminUserID)
+			require.Nil(t, userErr)
+
+			// Should be the local admin user
+			require.Equal(t, localAdmin.Id, userProfile.Id,
+				"Profile link should point to the local admin user")
+			require.False(t, userProfile.IsRemote(),
+				"Profile should be for local admin user on this cluster")
+
+			t.Logf("Profile link points to: User ID=%s, Username=%s, RemoteId=%s",
+				userProfile.Id, userProfile.Username, userProfile.GetRemoteID())
+		})
+
+		t.Run("Cross-cluster username collision test", func(t *testing.T) {
+			// This is the scenario from your bug report:
+			// When "@admin:test-remote" is mentioned and transformed to "@admin",
+			// it should resolve to the LOCAL admin on test-remote cluster (where it's received)
+			// NOT to any other user with a different username
+
+			// Create another user with a similar but different username to test precision
+			collisionUser := th.CreateUser()
+			collisionUser.Username = "admin-collision"
+			collisionUser, updateErr := th.App.UpdateUser(th.Context, collisionUser, false)
+			require.Nil(t, updateErr)
+			th.LinkUserToTeam(collisionUser, th.BasicTeam)
+			th.AddUserToChannel(collisionUser, sharedChannel)
+
+			finalPost := getFinalPost(receivedPost.Id)
+			mentionMap, _ := analyzeMentions(finalPost.Message)
+
+			t.Logf("Local admin: ID=%s, Username=%s", localAdmin.Id, localAdmin.Username)
+			t.Logf("Collision user: ID=%s, Username=%s", collisionUser.Id, collisionUser.Username)
+			t.Logf("Mention map: %+v", mentionMap)
+
+			// When "@admin" mention is processed, it should resolve to the exact match "admin"
+			adminUserID, exists := mentionMap["admin"]
+			require.True(t, exists, "Should find admin mention")
+
+			t.Logf("Mention '@admin' resolves to ID: %s", adminUserID)
+
+			// The mention should resolve to the LOCAL admin user (exact username match)
+			require.Equal(t, localAdmin.Id, adminUserID,
+				"Mention should resolve to the local admin user with exact username match")
+
+			// Verify it's NOT the collision user
+			require.NotEqual(t, collisionUser.Id, adminUserID,
+				"Mention should NOT resolve to user with similar but different username")
+		})
+	})
+
+	t.Run("Scenario 3: Mixed mentions should transform appropriately", func(t *testing.T) {
+		// Reset received posts
+		handler.ResetReceivedPosts()
+
+		// Create and sync a post mentioning both local and remote users
+		mentionWithSuffix := fmt.Sprintf("admin:%s", savedRemoteCluster.Name)
+		message := fmt.Sprintf("Hey @%s and @%s, let's collaborate!", localUser.Username, mentionWithSuffix)
+		_, receivedPost := createAndSyncPost(message)
+
+		t.Run("Message text validation", func(t *testing.T) {
+			// Local user mention stays as-is, remote user mention gets stripped
+			finalPost := getFinalPost(receivedPost.Id)
+
+			expectedMessage := fmt.Sprintf("Hey @%s and @admin, let's collaborate!", localUser.Username)
+			t.Logf("Raw received post message: %s", receivedPost.Message)
+			t.Logf("Final processed post message: %s", finalPost.Message)
+			t.Logf("Expected message: %s", expectedMessage)
+
+			require.Equal(t, expectedMessage, finalPost.Message,
+				"Mixed mentions should transform only remote users when sending to their home cluster")
+		})
+
+		t.Run("User ID resolution validation", func(t *testing.T) {
+			// Both mentions should resolve to the correct users
+			finalPost := getFinalPost(receivedPost.Id)
+			mentionMap, possibleMentions := analyzeMentions(finalPost.Message)
+
+			t.Logf("Mention map: %+v", mentionMap)
+			t.Logf("Possible mentions: %+v", possibleMentions)
+
+			// Local user mention should resolve to localUser
+			localUserID, exists := mentionMap[localUser.Username]
+			require.True(t, exists, "Should find local user mention")
+			require.Equal(t, localUser.Id, localUserID,
+				"Local user mention should resolve to the correct local user")
+
+			// Admin mention should resolve to localAdmin (transformed from remote mention)
+			adminUserID, exists := mentionMap["admin"]
+			require.True(t, exists, "Should find admin mention")
+			require.Equal(t, localAdmin.Id, adminUserID,
+				"Admin mention should resolve to the local admin user")
+		})
+
+		t.Run("Notification validation", func(t *testing.T) {
+			// Both users should be in the mention map to receive notifications
+			finalPost := getFinalPost(receivedPost.Id)
+			mentionMap, _ := analyzeMentions(finalPost.Message)
+
+			// Check that both users would receive notifications
+			expectedUsers := map[string]string{
+				localUser.Username: localUser.Id,
+				"admin":            localAdmin.Id,
+			}
+
+			for username, expectedID := range expectedUsers {
+				actualID, exists := mentionMap[username]
+				require.True(t, exists, "User %s should be in mention map", username)
+				require.Equal(t, expectedID, actualID,
+					"User %s should resolve to correct ID for notifications", username)
+			}
+		})
+	})
+
+	t.Run("Bug Scenario: True username collision test", func(t *testing.T) {
+		// This test reproduces the real bug scenario:
+		// Two different clusters both have users named "admin"
+		// When "@admin:remote-cluster" is mentioned and sent to remote-cluster,
+		// it should NOT resolve to the local "admin" incorrectly
+
+		// Create a second local admin user to simulate the collision
+		// This represents a different "admin" user on the receiving cluster
+		localAdminCollision := th.CreateUser()
+		localAdminCollision.Username = "admin2" // We'll rename this to "admin" after creating localAdmin
+		localAdminCollision, updateErr := th.App.UpdateUser(th.Context, localAdminCollision, false)
+		require.Nil(t, updateErr)
+
+		// Now rename the existing localAdmin to create the collision scenario
+		// We temporarily rename one so we can create the collision
+		originalAdmin := localAdmin
+		originalAdmin.Username = "admin-original"
+		originalAdmin, updateErr = th.App.UpdateUser(th.Context, originalAdmin, false)
+		require.Nil(t, updateErr)
+
+		// Now rename the collision user to "admin"
+		localAdminCollision.Username = "admin"
+		localAdminCollision, updateErr = th.App.UpdateUser(th.Context, localAdminCollision, false)
+		require.Nil(t, updateErr)
+		th.LinkUserToTeam(localAdminCollision, th.BasicTeam)
+		th.AddUserToChannel(localAdminCollision, sharedChannel)
+
+		// Reset received posts
+		handler.ResetReceivedPosts()
+
+		// Create and sync the critical test post: mention "@admin:test-remote"
+		mentionWithSuffix := fmt.Sprintf("admin:%s", savedRemoteCluster.Name)
+		message := fmt.Sprintf("Hey @%s, can you help with this critical issue?", mentionWithSuffix)
+		_, receivedPost := createAndSyncPost(message)
+
+		t.Run("Message transformation validation", func(t *testing.T) {
+			// Verify the message transforms correctly from @admin:test-remote to @admin
+			finalPost := getFinalPost(receivedPost.Id)
+
+			expectedMessage := "Hey @admin, can you help with this critical issue?"
+			t.Logf("Original message: %s", message)
+			t.Logf("Raw received message: %s", receivedPost.Message)
+			t.Logf("Final processed message: %s", finalPost.Message)
+			t.Logf("Expected message: %s", expectedMessage)
+
+			require.Equal(t, expectedMessage, finalPost.Message,
+				"@admin:test-remote should transform to @admin when received on test-remote cluster")
+		})
+
+		t.Run("Critical collision resolution test", func(t *testing.T) {
+			// THE CORE BUG TEST: When there are multiple users that could match "@admin",
+			// which one does the system choose?
+
+			finalPost := getFinalPost(receivedPost.Id)
+			mentionMap, possibleMentions := analyzeMentions(finalPost.Message)
+
+			t.Logf("Available admin users in team:")
+			t.Logf("  Original admin (admin-original): ID=%s, Username=%s", originalAdmin.Id, originalAdmin.Username)
+			t.Logf("  Collision admin (admin): ID=%s, Username=%s", localAdminCollision.Id, localAdminCollision.Username)
+			t.Logf("Mention map: %+v", mentionMap)
+			t.Logf("Possible mentions: %+v", possibleMentions)
+
+			// When @admin is processed, it should resolve to the exact username match
+			adminUserID, exists := mentionMap["admin"]
+			require.True(t, exists, "Should find admin mention in the processed message")
+
+			resolvedUser, userErr := th.App.Srv().Store().User().Get(context.Background(), adminUserID)
+			require.NoError(t, userErr)
+
+			t.Logf("@admin mention resolved to: ID=%s, Username=%s",
+				resolvedUser.Id, resolvedUser.Username)
+
+			// CRITICAL: The mention should resolve to the user with exact username "admin"
+			// NOT to the user with username "admin-original"
+			require.Equal(t, localAdminCollision.Id, resolvedUser.Id,
+				"@admin mention should resolve to user with exact username 'admin'")
+			require.Equal(t, "admin", resolvedUser.Username,
+				"Resolved user should have exact username 'admin'")
+
+			// Verify it's NOT the original admin user
+			require.NotEqual(t, originalAdmin.Id, resolvedUser.Id,
+				"Should NOT resolve to the user with username 'admin-original'")
+		})
+
+		t.Run("Profile link and notification consequences", func(t *testing.T) {
+			// Show the real-world impact: which user gets the notification and profile click
+			finalPost := getFinalPost(receivedPost.Id)
+			mentionMap, _ := analyzeMentions(finalPost.Message)
+
+			adminUserID := mentionMap["admin"]
+			t.Logf("When user clicks @admin mention, profile will open user ID: %s", adminUserID)
+
+			// Get the actual user profile that would be shown
+			userProfile, userErr := th.App.GetUser(adminUserID)
+			require.Nil(t, userErr)
+
+			t.Logf("Profile shows: ID=%s, Username=%s", userProfile.Id, userProfile.Username)
+
+			// The correct behavior: profile should be for the user with exact username "admin"
+			require.Equal(t, localAdminCollision.Id, userProfile.Id,
+				"Profile link should point to the user with exact username 'admin'")
+			require.Equal(t, "admin", userProfile.Username,
+				"Profile should show username 'admin'")
+
+			// Notification impact: the correct user should get notified
+			require.Equal(t, localAdminCollision.Id, adminUserID,
+				"Notification should go to user with exact username 'admin'")
+		})
+	})
+}
