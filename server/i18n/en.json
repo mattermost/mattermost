@@ -2779,6 +2779,10 @@
     "translation": "Remote Cluster not found"
   },
   {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Remote cluster import is not allowed"
+  },
+  {
     "id": "api.remote_cluster.invalid_id.app_error",
     "translation": "Invalid id."
   },
