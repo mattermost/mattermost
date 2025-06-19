@@ -23,7 +23,7 @@ export interface Props {
     pretext: string;
     cleared: boolean;
     matchedPretext: string[];
-    suggestionGroups: Array<SuggestionGroup<any>>;
+    groups: Array<SuggestionGroup<any>>;
     selection: string;
     components: Array<React.ComponentType<any>>;
     wrapperHeight?: number;
@@ -65,7 +65,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             this.scrollToItem(this.props.selection);
         }
 
-        if (this.props.suggestionGroups.length > 0 && prevProps.suggestionGroups.length === 0) {
+        if (this.props.groups.length > 0 && prevProps.groups.length === 0) {
             this.updateMaxHeight();
         }
     }
@@ -196,7 +196,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
 
         const contents = [];
 
-        for (const group of this.props.suggestionGroups) {
+        for (const group of this.props.groups) {
             if ('items' in group) {
                 const items = [];
 
@@ -283,7 +283,7 @@ const SuggestionListList = React.forwardRef<HTMLUListElement, React.HTMLAttribut
     );
 });
 
-function SuggestionListStatus({suggestionGroups}: Pick<Props, 'suggestionGroups'>) {
+function SuggestionListStatus({groups}: Pick<Props, 'groups'>) {
     const {formatMessage} = useIntl();
 
     const statusText = formatMessage(
@@ -292,7 +292,7 @@ function SuggestionListStatus({suggestionGroups}: Pick<Props, 'suggestionGroups'
             defaultMessage: '{count, number} {count, plural, one {suggestion} other {suggestions}} available',
         },
         {
-            count: suggestionGroups.reduce((groupLength, group) => groupLength + group.items.length, 0),
+            count: groups.reduce((groupLength, group) => groupLength + group.items.length, 0),
         },
     );
 

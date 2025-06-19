@@ -213,7 +213,7 @@ export default class SuggestionBox extends React.PureComponent {
             focused: false,
             cleared: true,
             matchedPretext: [],
-            suggestionGroups: [],
+            groups: [],
             items: [],
             terms: [],
             components: [],
@@ -666,11 +666,11 @@ export default class SuggestionBox extends React.PureComponent {
             cleared: false,
             selection,
 
-            // Flattened versions of suggestionGroups to more easily handle selection and keyboard input
+            // Flattened versions of groups to more easily handle selection and keyboard input
             terms,
             items,
 
-            suggestionGroups: suggestions.groups,
+            groups: suggestions.groups,
             components: newComponents,
             matchedPretext: newPretext,
         });
@@ -850,7 +850,7 @@ export default class SuggestionBox extends React.PureComponent {
                         onItemHover={this.setSelection}
                         cleared={this.state.cleared}
                         matchedPretext={this.state.matchedPretext}
-                        suggestionGroups={this.state.suggestionGroups}
+                        groups={this.state.groups}
                         suggestionBoxAlgn={this.state.suggestionBoxAlgn}
                         selection={this.state.selection}
                         components={this.state.components}
