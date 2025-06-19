@@ -2,16 +2,26 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+<<<<<<< HEAD
 import {FormattedMessage, useIntl} from 'react-intl';
+=======
+import {FormattedMessage} from 'react-intl';
+>>>>>>> master
 import {useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
+<<<<<<< HEAD
 import {userCanSeeOtherUser} from 'mattermost-redux/selectors/entities/users';
+=======
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+>>>>>>> master
 
 import ProfilePopoverAddToChannel from 'components/profile_popover/profile_popover_add_to_channel';
 import ProfilePopoverCallButtonWrapper from 'components/profile_popover/profile_popover_call_button_wrapper';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     user: UserProfile;
@@ -40,14 +50,19 @@ const ProfilePopoverOtherUserRow = ({
     const canMessage = useSelector((state: GlobalState) =>
         userCanSeeOtherUser(state, user.id),
     );
+    const isSharedChannelsDMsEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
 
     if (user.id === currentUserId || haveOverrideProp) {
         return null;
     }
 
+    // Hide Message button for remote users when EnableSharedChannelsDMs feature flag is off
+    const isRemoteUser = Boolean(user.remote_id);
+    const showMessageButton = isSharedChannelsDMsEnabled || !isRemoteUser;
+
     return (
         <div className='user-popover__bottom-row-container'>
-            {canMessage ? (
+            {showMessageButton && canMessage ? (
                 <button
                     type='button'
                     className='btn btn-primary btn-sm'
