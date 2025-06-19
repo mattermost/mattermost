@@ -713,6 +713,15 @@ func (scs *Service) handleMentionTransformation(rctx request.CTX, post *model.Po
 		mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("handleMentionTransformation: MentionMap extracted - %d mentions found: %v", len(mentionMap), mentionMap))
 
+		// Debug: For each mention in the map, get the user details
+		for mention, userID := range mentionMap {
+			if user, userErr := scs.server.GetStore().User().Get(context.Background(), userID); userErr == nil && user != nil {
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("handleMentionTransformation: MentionMap entry - mention='%s' -> userID='%s' (Username=%s, RemoteId='%s', Email=%s)", mention, userID, user.Username, user.GetRemoteID(), user.Email))
+			} else {
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("handleMentionTransformation: MentionMap entry - mention='%s' -> userID='%s' (USER NOT FOUND: %v)", mention, userID, userErr))
+			}
+		}
+
 		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
 
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("handleMentionTransformation: COMPLETED - FinalMessage=%s", post.Message))
@@ -731,9 +740,18 @@ func parseMentionWithColon(mention string) (username, suffix string, valid bool)
 }
 
 // isLocalUser checks if a user exists locally (not remote)
-func (scs *Service) isLocalUser(username string) (*model.User, bool) {
-	if user, err := scs.server.GetStore().User().GetByUsername(username); err == nil && user != nil && user.GetRemoteID() == "" {
-		return user, true
+func (scs *Service) isLocalUser(rctx request.CTX, username string) (*model.User, bool) {
+	user, err := scs.server.GetStore().User().GetByUsername(username)
+	if err != nil {
+		return nil, false
+	}
+	if user != nil {
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("isLocalUser: Found user by username='%s' - ID=%s, Username=%s, RemoteId='%s', Email=%s", username, user.Id, user.Username, user.GetRemoteID(), user.Email))
+		if user.GetRemoteID() == "" {
+			scs.app.PostDebugToTownSquare(rctx, "isLocalUser: User is LOCAL (empty RemoteId) - returning true")
+			return user, true
+		}
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("isLocalUser: User is REMOTE (RemoteId='%s') - returning false", user.GetRemoteID()))
 	}
 	return nil, false
 }
@@ -759,7 +777,7 @@ func (scs *Service) transformColonMention(rctx request.CTX, mention, ourClusterN
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Suffix matches our cluster, checking for local user='%s'", username))
 		// This is a mention of someone from our cluster
 		// Check if we have a local user with this name
-		if localUser, exists := scs.isLocalUser(username); exists {
+		if localUser, exists := scs.isLocalUser(rctx, username); exists {
 			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Local user found - LocalUserId=%s, ProvidedUserId=%s", localUser.Id, func() string {
 				if user != nil {
 					return user.Id
@@ -796,7 +814,7 @@ func (scs *Service) transformSimpleMention(rctx request.CTX, mention string, use
 	}()))
 
 	// Check if there's a local user with this mention name (name clash detection)
-	if localUserByName, exists := scs.isLocalUser(mention); exists {
+	if localUserByName, exists := scs.isLocalUser(rctx, mention); exists {
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformSimpleMention: Local user found by name - LocalUserId=%s, LocalUsername=%s, ProvidedUserId=%s", localUserByName.Id, localUserByName.Username, userID))
 
 		if localUserByName.Id == userID {
@@ -818,12 +836,13 @@ func (scs *Service) transformSimpleMention(rctx request.CTX, mention string, use
 	// (handles case where synced user has different username like "bob:remote2")
 	localUserById, err := scs.server.GetStore().User().Get(context.Background(), userID)
 	if err == nil && localUserById != nil {
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformSimpleMention: Local user found by ID='%s' - ID=%s, Username=%s, RemoteId='%s', Email=%s", userID, localUserById.Id, localUserById.Username, localUserById.GetRemoteID(), localUserById.Email))
 		result := "@" + localUserById.Username
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformSimpleMention: Local user found by ID - LocalUsername=%s, returning='%s'", localUserById.Username, result))
 		// Same ID - previously synced from sender, display their local username
 		return result
 	}
-	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformSimpleMention: No local user found by ID, err=%v", err))
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformSimpleMention: No local user found by ID='%s', err=%v", userID, err))
 
 	// No local user exists - display as plain text
 	result := "@" + mention
@@ -893,7 +912,7 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Colon mention - username='%s', suffix='%s', valid=%t", username, suffix, valid))
 
 			if valid && suffix == *ourClusterName {
-				if _, exists := scs.isLocalUser(username); exists {
+				if _, exists := scs.isLocalUser(rctx, username); exists {
 					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Local user exists for username='%s', removing suffix", username))
 					// Local user exists - display without suffix
 					return "@" + username
@@ -905,7 +924,7 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		}
 
 		// Simple @user format not in mentionMap
-		if user, exists := scs.isLocalUser(mention); exists {
+		if user, exists := scs.isLocalUser(rctx, mention); exists {
 			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Local user exists for simple mention='%s'", mention))
 			replacement := scs.transformSimpleMention(rctx, mention, user, user.Id, rc)
 			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Simple mention replacement='%s'", replacement))
