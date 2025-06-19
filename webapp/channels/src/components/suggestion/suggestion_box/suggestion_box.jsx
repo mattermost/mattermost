@@ -191,7 +191,6 @@ export default class SuggestionBox extends React.PureComponent {
 
     constructor(props) {
         super(props);
-        this.suggestionReadOut = React.createRef();
 
         // Keep track of whether we're composing a CJK character so we can make suggestions for partial characters
         this.composing = false;
@@ -493,6 +492,7 @@ export default class SuggestionBox extends React.PureComponent {
                 });
                 if (e) {
                     e.preventDefault();
+                    e.stopPropagation();
                 }
             }
             this.props.onKeyPress(ke);
@@ -506,6 +506,11 @@ export default class SuggestionBox extends React.PureComponent {
                 }
             }
         }
+
+        if (e) {
+            e.stopPropagation();
+        }
+
         return false;
     };
 
@@ -578,6 +583,7 @@ export default class SuggestionBox extends React.PureComponent {
                 this.selectNext();
                 e.preventDefault();
             } else if ((Keyboard.isKeyPressed(e, KeyCodes.ENTER) && !ctrlOrMetaKeyPressed) || (this.props.completeOnTab && Keyboard.isKeyPressed(e, KeyCodes.TAB))) {
+                e.stopPropagation();
                 let matchedPretext = '';
                 for (let i = 0; i < this.state.terms.length; i++) {
                     if (this.state.terms[i] === this.state.selection) {
@@ -810,22 +816,15 @@ export default class SuggestionBox extends React.PureComponent {
                 ref={this.setContainerRef}
                 className={this.props.containerClass}
             >
-                <div
-                    ref={this.suggestionReadOut}
-                    aria-live='polite'
-                    role='alert'
-                    className='sr-only'
-                />
                 <QuickInput
                     ref={this.inputRef}
                     autoComplete='off'
                     {...props}
                     aria-controls='suggestionList'
                     role='combobox'
-                    {...(this.state.selection && {'aria-activedescendant': `${props.id}_${this.state.selection}`}
-                    )}
+                    aria-activedescendant={this.state.selection ? `suggestionList_item_${this.state.selection}` : undefined}
                     aria-autocomplete='list'
-                    aria-expanded={this.state.focused || this.props.forceSuggestionsWhenBlur}
+                    aria-expanded={(this.state.focused || this.props.forceSuggestionsWhenBlur) && this.state.items.length > 0}
                     onInput={this.handleChange}
                     onCompositionStart={this.handleCompositionStart}
                     onCompositionUpdate={this.handleCompositionUpdate}
@@ -834,7 +833,6 @@ export default class SuggestionBox extends React.PureComponent {
                 />
                 {(this.props.openWhenEmpty || this.props.value.length >= this.props.requiredCharacters) && this.state.presentationType === 'text' && (
                     <SuggestionListComponent
-                        ariaLiveRef={this.suggestionReadOut}
                         open={this.state.focused || this.props.forceSuggestionsWhenBlur}
                         pretext={this.pretext}
                         position={this.getListPosition(listPosition)}

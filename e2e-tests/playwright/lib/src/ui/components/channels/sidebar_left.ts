@@ -6,26 +6,17 @@ import {Locator, expect} from '@playwright/test';
 export default class ChannelsSidebarLeft {
     readonly container: Locator;
     readonly findChannelButton;
-    readonly scheduledDraftCountonLHS;
+    readonly scheduledPostBadge;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.findChannelButton = container.getByRole('button', {name: 'Find Channels'});
-        this.scheduledDraftCountonLHS = container.locator('span.scheduledPostBadge');
+        this.scheduledPostBadge = container.locator('span.scheduledPostBadge');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
-    }
-
-    async assertNoPendingScheduledDraft() {
-        await expect(this.scheduledDraftCountonLHS).not.toBeVisible();
-    }
-
-    async assertscheduledDraftCountLHS(count: string) {
-        await expect(this.scheduledDraftCountonLHS).toBeVisible();
-        await expect(this.scheduledDraftCountonLHS).toHaveText(count);
     }
 
     /**

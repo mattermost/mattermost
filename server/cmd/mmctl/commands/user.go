@@ -775,6 +775,13 @@ func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	return nil
 }
 
+// userOut is the output format for users.
+type userOut struct {
+	*model.User
+	Deactivated bool
+	AuthData    string
+}
+
 func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
@@ -789,19 +796,29 @@ func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	for i, user := range users {
+		uout := userOut{
+			User:        user,
+			Deactivated: !(user.DeleteAt == 0),
+		}
+		if user.AuthData != nil {
+			uout.AuthData = *user.AuthData
+		}
+
 		tpl := `id: {{.Id}}
+deactivated: {{.Deactivated}}
 username: {{.Username}}
 nickname: {{.Nickname}}
 position: {{.Position}}
 first_name: {{.FirstName}}
 last_name: {{.LastName}}
 email: {{.Email}}
-auth_service: {{.AuthService}}`
+auth_service: {{.AuthService}}
+auth_data: {{.AuthData}}`
 		if i > 0 {
 			tpl = "------------------------------\n" + tpl
 		}
 
-		printer.PrintT(tpl, user)
+		printer.PrintT(tpl, uout)
 	}
 
 	return nil

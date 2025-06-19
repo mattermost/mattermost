@@ -28,6 +28,7 @@ export default {
         '@axe-core/playwright',
         '@percy/playwright',
         'dotenv',
+        'luxon',
         'node:fs/promises',
         'node:path',
         'node:fs',

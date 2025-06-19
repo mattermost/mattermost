@@ -33,46 +33,6 @@
                 }
             }
         }
-
-        .dateTime__calendar-input {
-            border: 2px solid var(--button-bg);
-            font-size: 14px;
-
-            &:hover {
-                border: 2px solid var(--button-bg);
-                cursor: pointer;
-            }
-
-            &:focus-within {
-                box-shadow: 0;
-            }
-
-            .Input_wrapper {
-                padding: 0 10px;
-            }
-
-            button.dateTime__calendar-icon {
-                margin: 0 8px 0 0;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
-            }
-
-            input#customStatus__calendar-input {
-                &.form-control {
-                    height: auto;
-                    padding: 0;
-                    border: 0;
-                    font-weight: 400;
-
-                    &[readonly] {
-                        background: transparent;
-                    }
-
-                    &:hover {
-                        cursor: pointer;
-                    }
-                }
-            }
-        }
     }
 
     .GenericModal {
@@ -283,7 +243,8 @@ span.emoticon[style]:hover {
 
 .statusExpiry {
     display: inline-block;
-    margin-top: 12px;
+    margin: 12px 0 24px 0;
+    
     font-size: 14px;
 
     &__menu {
@@ -292,74 +253,6 @@ span.emoticon[style]:hover {
         .expiry-value {
             margin-right: 4px;
             font-weight: 600;
-        }
-    }
-}
-
-.dateTime {
-    display: flex;
-    margin: 24px 0 8px;
-    gap: 16px;
-
-    & &__date {
-        position: relative;
-        width: 100%;
-
-        &-icon {
-            position: absolute;
-            top: 11.3px;
-            left: 15px;
-        }
-    }
-
-    & &__time {
-        position: relative;
-        width: 100%;
-
-        .style--none {
-            width: 100%;
-        }
-
-        #expiryTimeMenu .dropdown-menu {
-            overflow: auto;
-            min-width: 266px;
-            max-height: 268px;
-        }
-
-        &-icon {
-            position: absolute;
-            top: 9.5px;
-            left: 15px;
-        }
-
-        .dateTime__input {
-            display: flex;
-            align-items: center;
-        }
-    }
-
-    & &__input {
-        width: 266px;
-        height: 40px;
-        padding: 10px 40px;
-        border: 2px solid var(--button-bg);
-        border-radius: 4px;
-        background: var(--center-channel-bg);
-        color: var(--center-channel-color);
-        cursor: pointer;
-        font-size: 14px;
-        text-align: left;
-
-        &-title {
-            position: absolute;
-            bottom: 32px;
-            left: 12px;
-            padding: 0 4px;
-            background: var(--center-channel-bg);
-            color: rgba(var(--center-channel-color-rgb), 0.75);
-            font-size: 10px;
-            letter-spacing: 0.03em;
-            line-height: 16px;
         }
     }
 }

@@ -40,6 +40,7 @@ const PasswordInput = React.forwardRef((
         createMode,
         disabled,
         inputSize,
+        ...otherProps
     }: PasswordInputProps,
     ref?: React.Ref<HTMLInputElement>,
 ) => {
@@ -66,7 +67,10 @@ const PasswordInput = React.forwardRef((
                 <button
                     id='password_toggle'
                     type='button'
-                    aria-label={formatMessage({id: 'widget.passwordInput.passwordToggle', defaultMessage: 'Show or hide password'})}
+                    aria-label={formatMessage({
+                        id: showPassword ? 'widget.passwordInput.hidePassword' : 'widget.passwordInput.showPassword',
+                        defaultMessage: showPassword ? 'Hide password' : 'Show password',
+                    })}
                     className='password-input-toggle'
                     onClick={toggleShowPassword}
                     disabled={disabled}
@@ -86,6 +90,7 @@ const PasswordInput = React.forwardRef((
             customMessage={error || info ? customMessage : undefined}
             disabled={disabled}
             ref={ref}
+            {...otherProps}
         />
     );
 });

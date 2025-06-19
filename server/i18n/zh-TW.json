@@ -208,10 +208,6 @@
     "translation": "無法退出私人訊息頻道。"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "您是最後一位成員，請移除私人頻道而不是退出。"
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v 已離開頻道。"
   },

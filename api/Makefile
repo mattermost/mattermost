@@ -59,13 +59,15 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/metrics.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/scheduled_post.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/custom_profile_attributes.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/audit_logging.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/access_control.yaml >> $(V4_YAML)
 	@if [ -r $(PLAYBOOKS_SRC)/paths.yaml ]; then cat $(PLAYBOOKS_SRC)/paths.yaml >> $(V4_YAML); fi
 	@if [ -r $(PLAYBOOKS_SRC)/merged-definitions.yaml ]; then cat $(PLAYBOOKS_SRC)/merged-definitions.yaml >> $(V4_YAML); else cat $(V4_SRC)/definitions.yaml >> $(V4_YAML); fi
 	@echo Extracting code samples
 	cd server && go run . $(V4_YAML)
 
 	@node_modules/.bin/swagger-cli validate $(V4_YAML)
-	@node_modules/.bin/redocly -t ./v4/html/ssr_template.hbs build-docs ./v4/html/static/mattermost-openapi-v4.yaml -o ./v4/html/index.html
+	@cp ./v4/html/ssr_template.hbs ./v4/html/index.html
 	@echo Complete
 
 node_modules: package.json $(wildcard package-lock.json)
@@ -75,9 +77,8 @@ node_modules: package.json $(wildcard package-lock.json)
 	touch $@
 
 run:
-	@echo Starting redoc server
-
-	@node_modules/.bin/redocly preview-docs ./v4/html/static/mattermost-openapi-v4.yaml
+	@echo Starting local server
+	python3 -m http.server 8080 --directory ./v4/html
 
 clean:
 	@echo Cleaning

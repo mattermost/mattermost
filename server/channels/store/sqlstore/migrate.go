@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"path"
 	"sort"
@@ -60,7 +61,7 @@ func NewMigrator(settings model.SqlSettings, logger mlog.LoggerIFace, dryRun boo
 		return nil, fmt.Errorf("error while checking DB collation: %w", err)
 	}
 
-	engine, err := ss.initMorph(dryRun)
+	engine, err := ss.initMorph(dryRun, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize morph: %w", err)
 	}
@@ -95,7 +96,7 @@ func (m *Migrator) GetFileName(plan *models.Plan) (string, error) {
 	return fmt.Sprintf("migration_plan_%d_%d", from, to), nil
 }
 
-func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, error) {
+func (ss *SqlStore) initMorph(dryRun, enableLogging bool) (*morph.Morph, error) {
 	assets := db.Assets()
 
 	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
@@ -149,8 +150,15 @@ func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, error) {
 		return nil, err
 	}
 
+	var logWriter io.Writer
+	if enableLogging {
+		logWriter = &morphWriter{}
+	} else {
+		logWriter = io.Discard
+	}
+
 	opts := []morph.EngineOption{
-		morph.WithLogger(log.New(&morphWriter{}, "", log.Lshortfile)),
+		morph.WithLogger(log.New(logWriter, "", log.Lshortfile)),
 		morph.WithLock("mm-lock-key"),
 		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
 		morph.SetDryRun(dryRun),
@@ -164,8 +172,8 @@ func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, error) {
 	return engine, nil
 }
 
-func (ss *SqlStore) migrate(direction migrationDirection, dryRun bool) error {
-	engine, err := ss.initMorph(dryRun)
+func (ss *SqlStore) migrate(direction migrationDirection, dryRun, enableMorphLogging bool) error {
+	engine, err := ss.initMorph(dryRun, enableMorphLogging)
 	if err != nil {
 		return err
 	}

@@ -66,17 +66,17 @@ Object {
               <div
                 class="Input_container"
               >
-                <fieldset
+                <div
                   class="Input_fieldset name_input"
+                  data-testid="input-wrapper"
                 >
-                  <legend
+                  <label
                     class="Input_legend"
                   />
                   <div
                     class="Input_wrapper"
                   >
                     <input
-                      aria-invalid="false"
                       aria-label="Name"
                       class="Input form-control large"
                       id="input_name"
@@ -86,19 +86,20 @@ Object {
                       value=""
                     />
                   </div>
-                </fieldset>
+                </div>
               </div>
               <div
                 class="Input_container"
               >
-                <fieldset
+                <div
                   class="Input_fieldset email_input Input_fieldset___error Input_fieldset___legend"
+                  data-testid="input-wrapper"
                 >
-                  <legend
+                  <label
                     class="Input_legend Input_legend___focus"
                   >
                     Business Email
-                  </legend>
+                  </label>
                   <div
                     class="Input_wrapper"
                   >
@@ -114,7 +115,7 @@ Object {
                       value="test@mattermost.com"
                     />
                   </div>
-                </fieldset>
+                </div>
                 <div
                   class="Input___customMessage Input___error"
                   id="error_email"
@@ -122,7 +123,9 @@ Object {
                 >
                   <i
                     aria-hidden="true"
+                    aria-label=""
                     class="icon error icon-alert-circle-outline"
+                    role="img"
                   />
                   <span>
                     Please enter a valid business email address.
@@ -132,17 +135,17 @@ Object {
               <div
                 class="Input_container"
               >
-                <fieldset
+                <div
                   class="Input_fieldset company_name_input"
+                  data-testid="input-wrapper"
                 >
-                  <legend
+                  <label
                     class="Input_legend"
                   />
                   <div
                     class="Input_wrapper"
                   >
                     <input
-                      aria-invalid="false"
                       aria-label="Company Name"
                       class="Input form-control large"
                       id="input_company_name"
@@ -152,7 +155,7 @@ Object {
                       value=""
                     />
                   </div>
-                </fieldset>
+                </div>
               </div>
               <div
                 class="DropdownInput Input_container"
@@ -353,7 +356,7 @@ Object {
                 class="buttons"
               >
                 <button
-                  class="confirm-btn btn btn-default"
+                  class="btn btn-primary btn btn-default"
                   disabled=""
                   type="button"
                 >

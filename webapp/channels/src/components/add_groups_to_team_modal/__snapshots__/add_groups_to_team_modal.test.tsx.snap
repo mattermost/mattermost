@@ -140,6 +140,7 @@ exports[`components/AddGroupsToTeamModal should match snapshot 1`] = `
           "id": "multiselect.addGroupsPlaceholder",
         }
       }
+      required={false}
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}

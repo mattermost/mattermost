@@ -3250,10 +3250,6 @@
     "translation": "Tên nhóm quá dài."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Bạn là thành viên duy nhất còn lại, hãy thử loại bỏ các Kênh Riêng tư thay vì để lại."
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nNgười dùng đã tạo:\n"
   },

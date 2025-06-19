@@ -3,29 +3,38 @@
 
 import {test} from '@mattermost/playwright-lib';
 
-test('/login', async ({pw, page, browserName, viewport}, testInfo) => {
-    // Set up the page not to redirect to the landing page
-    await pw.hasSeenLandingPage();
+/**
+ * @objective Capture visual snapshots of the login page in normal and error states
+ */
+test(
+    'login page visual check',
+    {tag: ['@visual', '@login_page']},
+    async ({pw, page, browserName, viewport}, testInfo) => {
+        // # Set up the page not to redirect to the landing page
+        await pw.hasSeenLandingPage();
 
-    // Go to login page
-    const {adminClient} = await pw.getAdminClient();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
+        // # Go to login page
+        const {adminClient} = await pw.getAdminClient();
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
 
-    // Click to other element to remove focus from email input
-    await pw.loginPage.title.click();
+        // # Click to other element to remove focus from email input
+        await pw.loginPage.title.click();
 
-    // Match snapshot of login page
-    const testArgs = {page, browserName, viewport};
-    const license = await adminClient.getClientLicenseOld();
-    const editionSuffix = license.IsLicensed === 'true' ? '' : 'free edition';
-    await pw.matchSnapshot({...testInfo, title: `${testInfo.title} ${editionSuffix}`}, testArgs);
+        // # Get license information and prepare test args
+        const testArgs = {page, browserName, viewport};
+        const license = await adminClient.getClientLicenseOld();
+        const editionSuffix = license.IsLicensed === 'true' ? '' : 'free edition';
 
-    // Click sign in button without entering user credential
-    await pw.loginPage.signInButton.click();
-    await pw.loginPage.userErrorLabel.waitFor();
-    await pw.waitForAnimationEnd(pw.loginPage.bodyCard);
+        // * Verify login page appears as expected
+        await pw.matchSnapshot({...testInfo, title: `${testInfo.title} ${editionSuffix}`}, testArgs);
 
-    // Match snapshot of login page with error
-    await pw.matchSnapshot({...testInfo, title: `${testInfo.title} error ${editionSuffix}`}, testArgs);
-});
+        // # Click sign in button without entering user credential
+        await pw.loginPage.signInButton.click();
+        await pw.loginPage.userErrorLabel.waitFor();
+        await pw.waitForAnimationEnd(pw.loginPage.bodyCard);
+
+        // * Verify login page with error appears as expected
+        await pw.matchSnapshot({...testInfo, title: `${testInfo.title} error ${editionSuffix}`}, testArgs);
+    },
+);

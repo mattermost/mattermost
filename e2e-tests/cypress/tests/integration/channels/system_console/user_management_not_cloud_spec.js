@@ -66,7 +66,7 @@ describe('User Management', () => {
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // # Open team menu and click View Members
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
 
         // * Check View Members modal dialog
         cy.get('#teamMembersModal').should('be.visible').within(() => {

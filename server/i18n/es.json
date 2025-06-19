@@ -208,10 +208,6 @@
     "translation": "No puedes abandonar un canal de mensaje directo."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Eres el último miembro que queda, intenta eliminar el Canal Privado en vez de salirte."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v abandonó el canal."
   },
@@ -8906,10 +8902,6 @@
   {
     "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
     "translation": "Ocurrió un error al actualizar la conexión OAuth saliente."
-  },
-  {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "intentando modificar un campo que no existe"
   },
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",

@@ -17,7 +17,7 @@ describe('Selectors.ChannelBanner', () => {
         entities: {
             general: {
                 license: {
-                    SkuShortName: General.SKUPremium,
+                    SkuShortName: General.SKUEnterpriseAdvanced,
                 },
             },
             channels: {
@@ -37,7 +37,7 @@ describe('Selectors.ChannelBanner', () => {
         },
     };
 
-    test('should return false when license is not premium', () => {
+    test('should return false when license is not enterprise advanced', () => {
         const state: DeepPartial<GlobalState> = {
             ...baseState,
             entities: {

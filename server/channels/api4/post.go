@@ -671,6 +671,27 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var fromUpdateAt int64
+	if fromUpdateAtStr := r.URL.Query().Get("fromUpdateAt"); fromUpdateAtStr != "" {
+		var err error
+		fromUpdateAt, err = strconv.ParseInt(fromUpdateAtStr, 10, 64)
+		if err != nil {
+			c.SetInvalidParamWithErr("fromUpdateAt", err)
+			return
+		}
+	}
+
+	if fromUpdateAt != 0 && fromCreateAt != 0 {
+		c.SetInvalidParamWithDetails("fromUpdateAt", "both fromUpdateAt and fromCreateAt cannot be set")
+		return
+	}
+
+	updatesOnly := r.URL.Query().Get("updatesOnly") == "true"
+	if updatesOnly && fromUpdateAt == 0 {
+		c.SetInvalidParamWithDetails("fromUpdateAt", "fromUpdateAt must be set if updatesOnly is set")
+		return
+	}
+
 	direction := ""
 	if dir := r.URL.Query().Get("direction"); dir != "" {
 		if dir != "up" && dir != "down" {
@@ -679,14 +700,22 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		direction = dir
 	}
+
+	if updatesOnly && direction == "up" {
+		c.SetInvalidParamWithDetails("updatesOnly", "updatesOnly flag cannot be used with up direction")
+		return
+	}
+
 	opts := model.GetPostsOptions{
 		SkipFetchThreads:         r.URL.Query().Get("skipFetchThreads") == "true",
 		CollapsedThreads:         r.URL.Query().Get("collapsedThreads") == "true",
 		CollapsedThreadsExtended: r.URL.Query().Get("collapsedThreadsExtended") == "true",
+		UpdatesOnly:              updatesOnly,
 		PerPage:                  perPage,
 		Direction:                direction,
 		FromPost:                 fromPost,
 		FromCreateAt:             fromCreateAt,
+		FromUpdateAt:             fromUpdateAt,
 	}
 	list, err := c.App.GetPostThread(c.Params.PostId, opts, c.AppContext.Session().UserId)
 	if err != nil {

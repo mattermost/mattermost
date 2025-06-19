@@ -208,10 +208,6 @@
     "translation": "ダイレクトメッセージチャンネルから脱退することはできません。"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "あなたが最後のメンバーです。脱退する代わりに非公開チャンネルを削除しましょう。"
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v がチャンネルから脱退しました。"
   },
@@ -4595,15 +4591,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Version 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7775,7 +7771,7 @@
   },
   {
     "id": "api.command_share.share_read_only.help",
-    "translation": "チャンネルは読取専用モードで共有されます"
+    "translation": "チャンネルは読み取り専用モードで共有されます"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -8191,7 +8187,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "新しいトライアルライセンスを適用できませんでした。あなたは、以前このMattermostインスタンスにトライアルライセンスを適用したことがあります。トライアル期間の延長をご希望の場合は[営業までご連絡ください](https://mattermost.com/contact-us/)。"
+    "translation": "すでにワークスペースにトライアルライセンスが適用されているため、新しいトライアルライセンスを適用できませんでした。トライアル期間の延長をご希望の場合は[営業までご連絡ください](https://mattermost.com/contact-us/)。"
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -10394,10 +10390,6 @@
     "translation": "チャンネルブックマークのソート順を更新できませんでした。"
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "存在しないフィールドにパッチを当てようとしています"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "アーカイブされたチャンネルのブックマークを取得できませんでした"
   },
@@ -10448,5 +10440,201 @@
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
     "translation": "チャンネルバナー情報テキストが長すぎます。最大長は{{.maxLength}}文字です。"
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "無効なカスタムプロフィール属性フィールドのパッチ"
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "ログイン試行回数のリセットに失敗しました。"
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "ユーザー取得に失敗しました。"
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "この機能は現在のライセンスでは利用できません"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "パスワードの試行回数が多すぎるため、アカウントがロックされました。システム管理者に連絡してください。"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "ユーザ認証サービスはLDAP または電子メールでなければなりません。"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "このリソースを更新する権限がありません。"
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "ユーザーの下書きを削除できません。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "プロパティフィールドをカスタムプロフィール属性フィールドに変換できません"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "無効なプロパティ値属性 : {{.AttributeName}} ({{.Reason}})。"
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAPライセンスが必要です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "無効なポリシーIDです。"
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "ポリシーのインポートが無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "ポリシーの名前が無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "ポリシーのリビジョンが無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "ルールは無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "ポリシーはルールをインポートするか定義しなければなりません。"
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "ユーザーのカスタムプロフィール属性の値を削除できません"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "プロパティ値を検証できませんでした"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "CPAフィールドを取得できませんでした"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "CPAフィールドを取得できませんでした"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAMLアサーション属性文が不正です"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "証明書を追加できませんでした。"
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "リクエスト内の'certificate'のファイルが多すぎます。"
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "証明書を削除できませんでした。"
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "プロフィール画像ファイルを開けませんでした: {{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "プロフィール画像データを読み込めませんでした。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "インタラクティブダイアログ送信情報のJSONレスポンスをデコードする際にエラーが発生しました。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "インタラクティブダイアログ送信情報のレスポンスボディを読み取る際にエラーが発生しました。"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "空のLDAP属性値です"
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "不正なAD/LDAP Idです"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "CPA値に対するパッチ適用エラー"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "不正なAD/LDAP Idです"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "CPA値の更新エラー"
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "ウェブフック {{.hook_id}} のフォームを解析できませんでした。"
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "ウェブフック {{.hook_id}} のマルチパートフォームを解析できませんでした。"
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "このアクセスコントロールポリシーではバージョンは無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "不正なポリシー種別です。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "GlobalSearchPrefixが設定されている場合、IndexPrefixを空にできません。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} は IndexPrefix {{.IndexPrefix}} の接頭辞となるはずです。"
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "LDAP設定の最大ログイン試行回数が不正です。正の数でなくてはなりません。"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "月間アクティブユーザーを計算できませんでした。"
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "SAML ユーザと一致するユーザが AD/LDAP サーバに登録されていません。"
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} 機能は現在のライセンスでは利用できません"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "不正な問題報告リンクです。http://もしくはhttps://で始まる有効なURLでなければなりません。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "問題報告リンクは必須です。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "不正な問題報告用メールアドレスです。有効な電子メールアドレスでなければなりません。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "問題報告用メールアドレスは必須です。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "同期されたカスタムプロフィール属性のフィールドの値を更新できません"
   }
 ]

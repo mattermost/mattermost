@@ -21,7 +21,7 @@ type ClusterInterface interface {
 	// and zero means "totally healthy".
 	HealthScore() int
 	GetMyClusterInfo() *model.ClusterInfo
-	GetClusterInfos() []*model.ClusterInfo
+	GetClusterInfos() ([]*model.ClusterInfo, error)
 	SendClusterMessage(msg *model.ClusterMessage)
 	SendClusterMessageToNode(nodeID string, msg *model.ClusterMessage) error
 	NotifyMsg(buf []byte)

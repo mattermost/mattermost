@@ -128,10 +128,12 @@ function DesktopNotificationSoundsSettings({
                             checked={desktopSound === 'true'}
                             onChange={handleChangeForMessageNotificationSoundCheckbox}
                         />
-                        <FormattedMessage
-                            id='user.settings.notifications.desktopNotificationSound.messageNotificationSound'
-                            defaultMessage='Message notification sound'
-                        />
+                        <span id='messageNotificationSoundLabel'>
+                            <FormattedMessage
+                                id='user.settings.notifications.desktopNotificationSound.messageNotificationSound'
+                                defaultMessage='Message notification sound'
+                            />
+                        </span>
                     </label>
                     <ReactSelect
                         id='messageNotificationSoundSelect'
@@ -149,6 +151,7 @@ function DesktopNotificationSoundsSettings({
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
                         value={getValueOfNotificationSoundsSelect(desktopNotificationSound)}
                         onChange={handleChangeForMessageNotificationSoundSelect}
+                        aria-labelledby='messageNotificationSoundLabel'
                         getOptionLabel={(option) => getOptionLabel(option, intl)}
 
                     />

@@ -68,6 +68,8 @@ export type Channel = {
     props?: Record<string, any>;
     policy_id?: string | null;
     banner_info?: ChannelBanner;
+    policy_enforced?: boolean;
+    default_category_name?: string;
 };
 
 export type ServerChannel = Channel & {
@@ -230,4 +232,7 @@ export type ChannelSearchOpts = {
     deleted?: boolean;
     page?: number;
     per_page?: number;
+    access_control_policy_enforced?: boolean;
+    exclude_access_control_policy_enforced?: boolean;
+    parent_access_control_policy_id?: string;
 };

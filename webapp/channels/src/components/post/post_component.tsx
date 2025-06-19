@@ -69,6 +69,7 @@ export type Props = {
     isReadOnly?: boolean;
     pluginPostTypes?: {[postType: string]: PostPluginComponent};
     channelIsArchived?: boolean;
+    channelIsShared?: boolean;
     isConsecutivePost?: boolean;
     isLastPost?: boolean;
     recentEmojis: Emoji[];
@@ -407,6 +408,7 @@ function PostComponent(props: Props) {
             <CommentedOn
                 onCommentClick={handleCommentClick}
                 rootId={post.root_id}
+                enablePostUsernameOverride={props.enablePostUsernameOverride}
             />
         );
     }
@@ -505,7 +507,7 @@ function PostComponent(props: Props) {
     };
 
     let priority;
-    if (post.metadata?.priority && props.isPostPriorityEnabled) {
+    if (post.metadata?.priority && props.isPostPriorityEnabled && post.state !== Posts.POST_DELETED) {
         priority = <span className='d-flex mr-2 ml-1'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
     }
 

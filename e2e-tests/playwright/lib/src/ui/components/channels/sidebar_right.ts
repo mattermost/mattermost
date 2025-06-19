@@ -6,6 +6,7 @@ import {Locator, expect} from '@playwright/test';
 import ChannelsPostCreate from './post_create';
 import ChannelsPostEdit from './post_edit';
 import ChannelsPost from './post';
+import ScheduledPostIndicator from './scheduled_post_indicator';
 
 export default class ChannelsSidebarRight {
     readonly container: Locator;
@@ -13,7 +14,7 @@ export default class ChannelsSidebarRight {
     readonly closeButton;
     readonly postCreate;
     readonly rhsPostBody;
-    readonly postBoxIndicator;
+    readonly scheduledPostIndicator;
     readonly scheduledDraftChannelInfoMessage;
     readonly scheduledDraftSeeAllLink;
     readonly scheduledDraftChannelInfoMessageText;
@@ -25,7 +26,7 @@ export default class ChannelsSidebarRight {
     constructor(container: Locator) {
         this.container = container;
 
-        this.postBoxIndicator = container.locator('div.postBoxIndicator');
+        this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
         this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
         this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
         this.scheduledDraftChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
@@ -43,6 +44,10 @@ export default class ChannelsSidebarRight {
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async postMessage(message: string) {
+        await this.postCreate.postMessage(message);
     }
 
     /**
@@ -78,11 +83,6 @@ export default class ChannelsSidebarRight {
         await this.closeButton.click();
 
         await expect(this.container).not.toBeVisible();
-    }
-
-    async clickOnSeeAllscheduledDrafts() {
-        await this.scheduledDraftSeeAllLink.isVisible();
-        await this.scheduledDraftSeeAllLink.click();
     }
 
     async toContainText(text: string) {

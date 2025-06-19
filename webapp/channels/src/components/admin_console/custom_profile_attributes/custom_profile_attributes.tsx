@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, memo} from 'react';
+import './custom_profile_attributes.scss';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
@@ -111,71 +112,74 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
 
         props.registerSaveAction(handleSave);
         return () => props.unRegisterSaveAction(handleSave);
-    }, [props.registerSaveAction, props.unRegisterSaveAction, attributes, originalAttributes, attributeKey, props]);
+    }, [props.registerSaveAction, props.unRegisterSaveAction, attributes, originalAttributes, attributeKey]);
 
     if (attributes.length === 0) {
         return null;
     }
 
     return (
-        <SettingsGroup
-            id={props.id}
-            title={
-                <FormattedMessage
-                    id='admin.customProfileAttributes.title'
-                    defaultMessage='Custom profile attributes sync'
-                />
-            }
-            subtitle={
-                <FormattedMessage
-                    id='admin.customProfileAttributes.subtitle'
-                    defaultMessage='You can add or remove custom profile attributes by going to the <link>system properties page</link>.'
-                    values={{
-                        link: (msg: string) => (
-                            <Link
-                                to='/admin_console/site_config/system_properties'
-                            >
-                                {msg}
-                            </Link>
-                        ),
-                    }}
-                />
-            }
-        >
-            {attributes.map((attr) => (
-                <TextSetting
-                    key={attr.id}
-                    id={`custom_profile_attribute-${attr.name}`}
-                    label={attr.name}
-                    value={attr.attrs?.[attributeKey] as string || ''}
-                    onChange={(id, newValue) => {
-                        setAttributes((prevAttrs) => prevAttrs.map((a) => {
-                            if (a.id === attr.id) {
-                                return {
-                                    ...a,
-                                    attrs: {
-                                        ...a.attrs,
-                                        [attributeKey]: newValue,
-                                    },
-                                };
-                            }
-                            return a;
-                        }));
-                        props.setSaveNeeded();
-                    }}
-                    setByEnv={false}
-                    disabled={props.isDisabled}
-                    placeholder={{id: 'admin.customProfileAttr.placeholder', defaultMessage: 'E.g.: "fieldName"'}}
-                    helpText={
-                        <AttributeHelpText
-                            attributeKey={attributeKey}
-                            attributeName={attr.name}
-                            attributeType={attr.type}
-                        />
-                    }
-                />
-            ))}
-        </SettingsGroup>
+        <div className='custom-profile-attributes'>
+            <SettingsGroup
+                id={props.id}
+                title={
+                    <FormattedMessage
+                        id='admin.customProfileAttributes.title'
+                        defaultMessage='Custom profile attributes sync'
+                    />
+                }
+                container={false}
+                subtitle={
+                    <FormattedMessage
+                        id='admin.customProfileAttributes.subtitle'
+                        defaultMessage='You can add or remove custom profile attributes by going to the <link>system properties page</link>.'
+                        values={{
+                            link: (msg: string) => (
+                                <Link
+                                    to='/admin_console/system_attributes/user_attributes'
+                                >
+                                    {msg}
+                                </Link>
+                            ),
+                        }}
+                    />
+                }
+            >
+                {attributes.map((attr) => (
+                    <TextSetting
+                        key={attr.id}
+                        id={`custom_profile_attribute-${attr.name}`}
+                        label={attr.name}
+                        value={attr.attrs?.[attributeKey] as string || ''}
+                        onChange={(id, newValue) => {
+                            setAttributes((prevAttrs) => prevAttrs.map((a) => {
+                                if (a.id === attr.id) {
+                                    return {
+                                        ...a,
+                                        attrs: {
+                                            ...a.attrs,
+                                            [attributeKey]: newValue,
+                                        },
+                                    };
+                                }
+                                return a;
+                            }));
+                            props.setSaveNeeded();
+                        }}
+                        setByEnv={false}
+                        disabled={props.isDisabled}
+                        placeholder={{id: 'admin.customProfileAttr.placeholder', defaultMessage: 'E.g.: "fieldName"'}}
+                        helpText={
+                            <AttributeHelpText
+                                attributeKey={attributeKey}
+                                attributeName={attr.name}
+                                attributeType={attr.type}
+                            />
+                        }
+                    />
+                ))}
+            </SettingsGroup>
+        </div>
     );
 };
 

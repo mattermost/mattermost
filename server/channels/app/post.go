@@ -26,9 +26,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
+var pendingPostIDsCacheTTL = 30 * time.Second
+
 const (
 	PendingPostIDsCacheSize = 25000
-	PendingPostIDsCacheTTL  = 30 * time.Second
 	PageDefault             = 0
 )
 
@@ -146,14 +147,14 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 	var postID string
 	nErr := a.Srv().seenPendingPostIdsCache.Get(post.PendingPostId, &postID)
 	if nErr == cache.ErrKeyNotFound {
-		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PendingPostIDsCacheTTL); appErr != nil {
+		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, pendingPostIDsCacheTTL); appErr != nil {
 			return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 		return nil, nil
 	}
 
 	if nErr != nil {
-		return nil, model.NewAppError("errorGetPostId", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return nil, model.NewAppError("deduplicateCreatePost", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	// If another thread saved the cache record, but hasn't yet updated it with the actual post
@@ -165,8 +166,11 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 
 	// If the other thread finished creating the post, return the created post back to the
 	// client, making the API call feel idempotent.
-	actualPost, err := a.GetSinglePost(rctx, postID, false)
-	if err != nil {
+	actualPost, err := a.GetPostIfAuthorized(rctx, postID, rctx.Session(), false)
+	if err != nil && err.StatusCode == http.StatusForbidden {
+		rctx.Logger().Warn("Ignoring pending_post_id for which the user is unauthorized", mlog.String("pending_post_id", post.PendingPostId), mlog.String("post_id", postID), mlog.Err(err))
+		return nil, nil
+	} else if err != nil {
 		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -202,7 +206,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 			return
 		}
 
-		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PendingPostIDsCacheTTL); appErr != nil {
+		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, pendingPostIDsCacheTTL); appErr != nil {
 			err = model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 	}()
@@ -368,7 +372,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
-	if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PendingPostIDsCacheTTL); appErr != nil {
+	if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, pendingPostIDsCacheTTL); appErr != nil {
 		return nil, model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
@@ -769,9 +773,14 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, updateP
 	if newPost == nil {
 		return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
 	}
-	// Restore the post metadata that was stripped by the plugin. Set it to
-	// the last known good.
-	newPost.Metadata = oldPost.Metadata
+	// Always use incoming metadata when provided, otherwise retain existing
+	if receivedUpdatedPost.Metadata != nil {
+		newPost.Metadata = receivedUpdatedPost.Metadata.Copy()
+	} else {
+		// Restore the post metadata that was stripped by the plugin. Set it to
+		// the last known good.
+		newPost.Metadata = oldPost.Metadata
+	}
 
 	rpost, nErr := a.Srv().Store().Post().Update(c, newPost, oldPost)
 	if nErr != nil {
@@ -1380,6 +1389,7 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	originalList.NextPostId = nextPostId
 	originalList.PrevPostId = prevPostId
 }
+
 func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	var lastViewedAt int64
 	var err *model.AppError
@@ -2153,7 +2163,6 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 
 func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError) {
 	posts, err := a.Srv().Store().Post().GetEditHistoryForPost(postID)
-
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

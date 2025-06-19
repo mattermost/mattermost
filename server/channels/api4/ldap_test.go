@@ -101,6 +101,7 @@ MCOV5SHi05kD42JSSbmw190VAa4QRGikaeWRhDsj
 -----END CERTIFICATE-----`
 
 func TestTestLdap(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -127,6 +128,7 @@ func TestTestLdap(t *testing.T) {
 }
 
 func TestSyncLdap(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -147,34 +149,35 @@ func TestSyncLdap(t *testing.T) {
 		"StartSynchronizeJob",
 		mock.AnythingOfType("*request.Context"),
 		mock.AnythingOfType("bool"),
-		mock.AnythingOfType("bool"),
+		mock.AnythingOfType("*bool"),
 	).Return(nil, nil)
 	ready := make(chan bool)
-	includeRemovedMembers := false
+	reAddRemovedMembers := false
 	mockCall.RunFn = func(args mock.Arguments) {
-		includeRemovedMembers = args[2].(bool)
+		reAddRemovedMembers = *args[2].(*bool)
 		ready <- true
 	}
 	th.App.Channels().Ldap = ldapMock
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, err := client.SyncLdap(context.Background(), false)
+		_, err := client.SyncLdap(context.Background(), model.NewPointer(false))
 		<-ready
 		require.NoError(t, err)
-		require.False(t, includeRemovedMembers)
+		require.False(t, reAddRemovedMembers)
 
-		_, err = client.SyncLdap(context.Background(), true)
+		_, err = client.SyncLdap(context.Background(), model.NewPointer(true))
 		<-ready
 		require.NoError(t, err)
-		require.True(t, includeRemovedMembers)
+		require.True(t, reAddRemovedMembers)
 	})
 
-	resp, err := th.Client.SyncLdap(context.Background(), false)
+	resp, err := th.Client.SyncLdap(context.Background(), model.NewPointer(false))
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetLdapGroups(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -190,6 +193,7 @@ func TestGetLdapGroups(t *testing.T) {
 }
 
 func TestLinkLdapGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	const entryUUID string = "foo"
 
 	th := Setup(t)
@@ -205,6 +209,7 @@ func TestLinkLdapGroup(t *testing.T) {
 }
 
 func TestUnlinkLdapGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	const entryUUID string = "foo"
 
 	th := Setup(t)
@@ -220,6 +225,7 @@ func TestUnlinkLdapGroup(t *testing.T) {
 }
 
 func TestMigrateIdLdap(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -239,6 +245,7 @@ func TestMigrateIdLdap(t *testing.T) {
 }
 
 func TestUploadPublicCertificate(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -260,6 +267,7 @@ func TestUploadPublicCertificate(t *testing.T) {
 }
 
 func TestUploadPrivateCertificate(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -281,6 +289,7 @@ func TestUploadPrivateCertificate(t *testing.T) {
 }
 
 func TestAddUserToGroupSyncables(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

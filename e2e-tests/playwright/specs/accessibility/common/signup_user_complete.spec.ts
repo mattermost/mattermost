@@ -79,14 +79,6 @@ test('/signup_user_complete accessibility tab support', async ({pw}, testInfo) =
     await pw.signupPage.emailInput.focus();
     expect(await pw.signupPage.emailInput).toBeFocused();
 
-    // * Should move focus to sign up body after shift+tab
-    await pw.signupPage.emailInput.press('Shift+Tab');
-    expect(await pw.signupPage.bodyCard).toBeFocused();
-
-    // * Should move focus to sign up body after shift+tab
-    await pw.signupPage.emailInput.press('Shift+Tab');
-    expect(await pw.signupPage.bodyCard).toBeFocused();
-
     if (testInfo.project.name === 'ipad') {
         // * Should move focus to header back button after shift+tab
         await pw.signupPage.bodyCard.press('Shift+Tab');

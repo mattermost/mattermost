@@ -4276,19 +4276,19 @@
   },
   {
     "id": "api.command_groupmsg.hint",
-    "translation": "@[kayttaja1],@[kayttaja2] 'viesti'"
+    "translation": "@[käyttäjänimi1],@[käyttäjänimi2] 'viesti'"
   },
   {
     "id": "api.command_groupmsg.group_fail.app_error",
-    "translation": "Ryhmäviestin luonnissa tapahtui virhe."
+    "translation": "Ryhmäviestiä luotaessa tapahtui virhe."
   },
   {
     "id": "api.command_groupmsg.fail.app_error",
-    "translation": "Viestin lähettäminen käyttäjälle epäonnistui."
+    "translation": "Virhe lähetettäessä viestiä käyttäjille."
   },
   {
     "id": "api.command_groupmsg.desc",
-    "translation": "Lähetä ryhmäviesti tietyille käyttäjille"
+    "translation": "Lähettää ryhmäviestin määritetyille käyttäjille"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -4296,27 +4296,27 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Kuvien linkit näytetään oletuksena"
+    "translation": "Kuvalinkit laajenevat nyt oletuksena"
   },
   {
     "id": "api.command_expand.name",
-    "translation": "laajenna"
+    "translation": "expand"
   },
   {
     "id": "api.command_expand.desc",
-    "translation": "Poista käytöstä kuvien automaattinen esikatselu"
+    "translation": "Poista kuvien esikatselujen automaattinen tiivistäminen käytöstä"
   },
   {
     "id": "api.command_echo.name",
-    "translation": "kaiku"
+    "translation": "echo"
   },
   {
     "id": "api.command_echo.message.app_error",
-    "translation": "Viesti pitää toimittaa /echo komennolla."
+    "translation": "Viesti tulee toimittaa /echo-komennon kanssa."
   },
   {
     "id": "api.command_echo.hint",
-    "translation": "'viesti' [viive sekunneissa]"
+    "translation": "'viesti' [viive sekunteina]"
   },
   {
     "id": "api.command_echo.high_volume.app_error",
@@ -4324,7 +4324,7 @@
   },
   {
     "id": "api.command_echo.desc",
-    "translation": "Kopioi teksti takaisin tililtäsi"
+    "translation": "Toista tekstiä tililtäsi"
   },
   {
     "id": "api.command_echo.delay.app_error",
@@ -4332,7 +4332,7 @@
   },
   {
     "id": "api.command_dnd.success",
-    "translation": "Älä häiritse on päällä. Et vastaanota työpöytä- tai mobiilisovelluksen push-viestejä kunnes Älä häiritse on otettu pois."
+    "translation": "Älä häiritse -vaihtoehto on päällä. Et vastaanota työpöytä- tai mobiilisovelluksen push-viestejä kunnes Älä häiritse -vaihtoehto on otettu pois päältä."
   },
   {
     "id": "api.command_dnd.name",
@@ -4340,11 +4340,11 @@
   },
   {
     "id": "api.command_dnd.desc",
-    "translation": "Älä häiritse poistaa työpöytä- ja mobiiliohjelmien push-viestit."
+    "translation": "Älä häiritse -vaihtoehto poistaa työpöydän ja mobiilin push-ilmoitukset käytöstä."
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Kuvien linkit avataan oletuksena"
+    "translation": "Kuvalinkit tiivistyvät nyt oletuksena"
   },
   {
     "id": "api.command_collapse.name",
@@ -4352,7 +4352,7 @@
   },
   {
     "id": "api.command_collapse.desc",
-    "translation": "Laita kuvien esikatselun automaattikatselu päälle"
+    "translation": "Ota kuvien esikatselujen automaattinen tiivistäminen käyttöön"
   },
   {
     "id": "api.command_code.name",
@@ -4360,7 +4360,7 @@
   },
   {
     "id": "api.command_code.message.app_error",
-    "translation": "Viesti pitää toimittaa /code komennon avulla."
+    "translation": "Viesti tulee toimittaa /code-komennon kanssa."
   },
   {
     "id": "api.command_code.hint",
@@ -4368,11 +4368,11 @@
   },
   {
     "id": "api.command_code.desc",
-    "translation": "Näytä teksti koodiblokkina"
+    "translation": "Näytä teksti koodilohkona"
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
-    "translation": "Virhe päivittäessä kanavaa."
+    "translation": "Virhe päivitettäessä nykyistä kanavaa."
   },
   {
     "id": "api.command_channel_rename.too_short.app_error",
@@ -4384,7 +4384,7 @@
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
-    "translation": "Sinulla ei ole oikeuksia uudelleennimetä kanavaa."
+    "translation": "Sinulla ei ole tarvittavia oikeuksia kanavan uudelleennimeämiseksi."
   },
   {
     "id": "api.command_channel_rename.name",
@@ -4392,7 +4392,7 @@
   },
   {
     "id": "api.command_channel_rename.message.app_error",
-    "translation": "Viesti pitää olla /rename komennon mukana."
+    "translation": "Viesti tulee toimittaa /rename-komennon kanssa."
   },
   {
     "id": "api.command_channel_rename.hint",
@@ -4400,7 +4400,7 @@
   },
   {
     "id": "api.command_channel_rename.direct_group.app_error",
-    "translation": "Et voi uudelleennimetä suoraviestikanavaa."
+    "translation": "Suoraviestikanavia ei voi nimetä uudelleen."
   },
   {
     "id": "api.command_channel_rename.desc",
@@ -4408,19 +4408,19 @@
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
-    "translation": "Virhe avatessa kanavaa."
+    "translation": "Virhe noudettaessa nykyistä kanavaa."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
-    "translation": "Virhe noudettaessa kanavaa."
+    "translation": "Virhe noudettaessa nykyistä kanavaa."
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Virhe päivittäessä kanavaa."
+    "translation": "Virhe päivitettäessä kanavan tarkoitusta."
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
-    "translation": "Sinulla ei ole oikeuksia muokata kanavan tarkoitusta."
+    "translation": "Sinulla ei ole tarvittavia oikeuksia kanavan tarkoituksen muokkaamiseksi."
   },
   {
     "id": "api.command_channel_purpose.name",
@@ -4428,7 +4428,7 @@
   },
   {
     "id": "api.command_channel_purpose.message.app_error",
-    "translation": "Viesti pitää lähettää /purpose komennolla."
+    "translation": "Viesti tulee toimittaa /purpose-komennon kanssa."
   },
   {
     "id": "api.command_channel_purpose.hint",
@@ -4436,7 +4436,7 @@
   },
   {
     "id": "api.command_channel_purpose.direct_group.app_error",
-    "translation": "Ei voida määritellä tarkoitusta suoraviestikanavalle. Käytä /header asettaaksesi otsikko."
+    "translation": "Suoran viestikanavien tarkoitusta ei voi määrittää. Käytä /header asettaaksesi otsikon sen sijaan."
   },
   {
     "id": "api.command_channel_purpose.desc",
@@ -4444,15 +4444,15 @@
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
-    "translation": "Virhe avatessa kanavaa."
+    "translation": "Virhe noudettaessa nykyistä kanavaa."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Virhe päivittäessä kanavaa."
+    "translation": "Virhe päivitettäessä kanavan ylätunnistetta."
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "Sinulla ei ole oikeuksia muokata kanavan otsikkoa."
+    "translation": "Sinulla ei ole tarvittavia oikeuksia kanavan ylätunnisteen muokkaamiseksi."
   },
   {
     "id": "api.command_channel_header.name",
@@ -4460,7 +4460,7 @@
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "Teksti pitää kirjoittaa /header komennolla."
+    "translation": "Teksti tulee toimittaa /header-komennolla."
   },
   {
     "id": "api.command_channel_header.hint",
@@ -4472,11 +4472,11 @@
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "Virhe noudettaessa kanavaa."
+    "translation": "Virhe noudettaessa nykyistä kanavaa."
   },
   {
     "id": "api.command_away.success",
-    "translation": "Olet nyt poissa"
+    "translation": "Olet nyt poissaoleva"
   },
   {
     "id": "api.command_away.name",
@@ -4492,11 +4492,11 @@
   },
   {
     "id": "api.command.invite_people.sent",
-    "translation": "Sähköpostikutsut lähetettiin"
+    "translation": "Sähköpostikutsut lähetetty"
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Anna yksi tai useampi oikeellinen sähköpostiosoite"
+    "translation": "Määritä yksi tai useampi kelvollinen sähköpostiosoite"
   },
   {
     "id": "api.command.invite_people.name",
@@ -4504,15 +4504,15 @@
   },
   {
     "id": "api.command.invite_people.invite_off",
-    "translation": "Käyttäjien luonti on poistettu käytöstä, kutsuja ei lähetetty"
+    "translation": "Käyttäjien luominen on poistettu käytöstä tällä palvelimella, kutsuja ei lähetetty"
   },
   {
     "id": "api.command.invite_people.hint",
-    "translation": "[nimi@osoite.com ...]"
+    "translation": "[nimi@toimialue.com ...]"
   },
   {
     "id": "api.command.invite_people.fail",
-    "translation": "Kutsuja lähetettäessä tapahtui virhe"
+    "translation": "Virhe lähetettäessä sähköpostikutsuja"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -4520,11 +4520,11 @@
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
-    "translation": "Sähköpostikutsut kytketty pois, kutsuja ei lähetetty"
+    "translation": "Sähköpostikutsut on poistettu käytöstä. kutsuja ei lähetetty"
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Kutsu käyttäjiä Mattermost-ryhmääsi"
+    "translation": "Lähetä sähköpostikutsu Mattermost-joukkueellesi"
   },
   {
     "id": "api.command.execute_command.start.app_error",
@@ -4532,7 +4532,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Komentoa '{{.Trigger}}' ei löytynyt. Lähettääksesi viestin \"/\" -merkillä, lisää tyhjä välilyönti viestin alkuun."
+    "translation": "Komentoa, jonka laukaisin on '{{.Trigger}}', ei löydy. Jotta \"/\":lla alkaavan viestin voidaan lähettää, yritä lisätä tyhjä väli viestin alkuun."
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
@@ -4548,7 +4548,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Komento '{{.Trigger}}' ei postannut vastausta. Ota yhteys järjestelmänvalvojaan."
+    "translation": "Komento '{{.Trigger}}' epäonnistui toimittamaan vastausta. Ota yhteyttä järjestelmänvalvojaan."
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
@@ -4556,31 +4556,31 @@
   },
   {
     "id": "api.command.disabled.app_error",
-    "translation": "Pääkäyttäjä on estänyt komentojen käyttämisen."
+    "translation": "Järjestelmänvalvoja on poistanut komennot käytöstä."
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
-    "translation": "Valittu käyttäjä ei ole valitun kanavan jäsen."
+    "translation": "Määritetty käyttäjä ei ole määritetyn kanavan jäsen."
   },
   {
     "id": "api.command.admin_only.app_error",
-    "translation": "Vain pääkäyttäjät voivat luoda rajapintaintegraatioita."
+    "translation": "Integraatiot on rajoitettu vain järjestelmänvalvojille."
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "Järjestely hallinnoi annettua roolia eikä sitä siksi voida antaa suoraan tiimin jäsenelle."
+    "translation": "Ilmoitettua roolia hallinnoi järjestelmä, eikä sitä siksi voida soveltaa suoraan joukkueen jäseneen."
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
-    "translation": "Järjestelyä ei voida asettaa kanavalle koska annettu järjestely ei ole kanavajärjestely."
+    "translation": "Järjestelmää ei voida asettaa kanavalle, koska ilmoitettu järjestelmä ei ole kanavajärjestelmä."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
-    "translation": "Lisenssisi ei mahdollista kanavan järjestelyn muuttamista"
+    "translation": "Lisenssisi ei tue kanavan järjestelmän päivittämistä"
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "Järjestely hallinnoi annettua roolia eikä sitä siksi voida määrittää suoraan kanavan jäsenelle."
+    "translation": "ILmoitettua roolia hallinnoi järjestelmä, joten sitä ei voida soveltaa suoraan kanavan jäseneen."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -4665,10 +4665,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v poistui kanavalta."
-  },
-  {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Olet ainoa jäsen jäljellä. Kokeile yksityisen kanavan poistamista poistumisen sijaan."
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -4916,15 +4912,15 @@
   },
   {
     "id": "api.cloud.request_error",
-    "translation": "Virhe CWS-pyynnön käsittelyssä."
+    "translation": "Virhe käsiteltäessä pyyntöä CWS:lle."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
-    "translation": "Ylläpidolle on jo ilmoitettu"
+    "translation": "Ilmoitettu jo järjestelmänvalvojalle"
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
-    "translation": "Webhook tapahtumaa ei käsitelty. Se puuttuu tai on virheellinen."
+    "translation": "Webhook-tapahtumaa ei käsitelty. Se joko puuttuu tai ei kelpaa."
   },
   {
     "id": "api.cloud.app_error",
@@ -4936,7 +4932,7 @@
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "Oletuskanavaa ei voi asettaa yksityiseksi."
+    "translation": "Oletuskanavaa ei voi tehdä yksityiseksi."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
@@ -4948,11 +4944,11 @@
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
-    "translation": "Tätä kanavatyyppiä ei voida päivittää."
+    "translation": "Kanavan tyyppiä ei voi päivittää."
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} poisti kanavan arkistoinnin."
+    "translation": "{{.Username}} kumosi kanavan arkistoinnin."
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",

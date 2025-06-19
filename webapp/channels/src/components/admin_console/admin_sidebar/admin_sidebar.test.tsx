@@ -359,6 +359,7 @@ describe('components/AdminSidebar', () => {
             license: {
                 IsLicensed: 'true',
                 SkuShortName: 'enterprise',
+                Cloud: 'true',
             },
             config: {
                 ...defaultProps.config,
@@ -384,6 +385,13 @@ describe('components/AdminSidebar', () => {
                     Secret: 'office365Secret',
                     Scope: 'scope',
                 } as Office365Settings,
+                FeatureFlags: {
+                    AttributeBasedAccessControl: true,
+                    CustomProfileAttributes: true,
+                    CloudDedicatedExportUI: true,
+                    CloudIPFiltering: true,
+                    ExperimentalAuditSettingsSystemConsoleUI: true,
+                },
             },
             adminDefinition: AdminDefinition,
             buildEnterpriseReady: true,
@@ -448,6 +456,78 @@ describe('components/AdminSidebar', () => {
                     Secret: 'office365Secret',
                     Scope: 'scope',
                 } as Office365Settings,
+            },
+            adminDefinition: AdminDefinition,
+            buildEnterpriseReady: true,
+            navigationBlocked: false,
+            siteName: 'test snap',
+            subscriptionProduct: undefined,
+            plugins: {
+                plugin_0: {
+                    active: false,
+                    description: 'The plugin 0.',
+                    id: 'plugin_0',
+                    name: 'Plugin 0',
+                    version: '0.1.0',
+                    settings_schema: {
+                        footer: '',
+                        header: '',
+                        settings: [],
+                    },
+                    webapp: {bundle_path: 'webapp/dist/main.js'},
+                },
+            },
+            onSearchChange: jest.fn(),
+            actions: {
+                getPlugins: jest.fn(),
+            },
+            consoleAccess: {...defaultProps.consoleAccess},
+            cloud: {...defaultProps.cloud},
+            showTaskList: false,
+        };
+
+        const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot with license with enterprise advanced SKU', () => {
+        const props: Props = {
+            license: {
+                IsLicensed: 'true',
+                SkuShortName: 'advanced',
+                Cloud: 'true',
+            },
+            config: {
+                ...defaultProps.config,
+                ExperimentalSettings: {
+                    RestrictSystemAdmin: false,
+                } as ExperimentalSettings,
+                PluginSettings: {
+                    Enable: true,
+                    EnableUploads: true,
+                } as PluginSettings,
+                GoogleSettings: {
+                    Id: 'googleID',
+                    Secret: 'googleSecret',
+                    Scope: 'scope',
+                } as SSOSettings,
+                GitLabSettings: {
+                    Id: 'gitlabID',
+                    Secret: 'gitlabSecret',
+                    Scope: 'scope',
+                } as SSOSettings,
+                Office365Settings: {
+                    Id: 'office365ID',
+                    Secret: 'office365Secret',
+                    Scope: 'scope',
+                } as Office365Settings,
+                FeatureFlags: {
+                    AttributeBasedAccessControl: true,
+                    CustomProfileAttributes: true,
+                    CloudDedicatedExportUI: true,
+                    CloudIPFiltering: true,
+                    ExperimentalAuditSettingsSystemConsoleUI: true,
+                },
             },
             adminDefinition: AdminDefinition,
             buildEnterpriseReady: true,

@@ -11,10 +11,30 @@ type Subject struct {
 	ID string `json:"id"`
 	// Type specifies the type of the Subject, eg. user, bot, etc.
 	Type string `json:"type"`
-	// Properties are the key-value pairs assicuated with the subject.
+	// Attributes are the key-value pairs assicuated with the subject.
 	// An attribute may be single-valued or multi-valued and can be a primitive type
 	// (string, boolean, number) or a complex type like a JSON object or array.
-	Properties map[string]any `json:"properties"`
+	Attributes map[string]any `json:"attributes"`
+}
+
+type SubjectSearchOptions struct {
+	Term   string `json:"term"`
+	TeamID string `json:"team_id"`
+	// Query and Args should be generated within the Access Control Service
+	// and passed here wrt database driver
+	Query         string        `json:"query"`
+	Args          []any         `json:"args"`
+	Limit         int           `json:"limit"`
+	Cursor        SubjectCursor `json:"cursor"`
+	AllowInactive bool          `json:"allow_inactive"`
+	IgnoreCount   bool          `json:"ignore_count"`
+	// ExcludeChannelMembers is used to exclude members from the search results
+	// specifically used when syncing channel members
+	ExcludeChannelMembers string `json:"exclude_members"`
+}
+
+type SubjectCursor struct {
+	TargetID string `json:"target_id"`
 }
 
 // Resource is the target of an access request.
@@ -40,4 +60,11 @@ type AccessRequest struct {
 type AccessDecision struct {
 	Decision bool           `json:"decision"`
 	Context  map[string]any `json:"context,omitempty"`
+}
+
+type QueryExpressionParams struct {
+	Expression string `json:"expression"`
+	Term       string `json:"term"`
+	Limit      int    `json:"limit"`
+	After      string `json:"after"`
 }

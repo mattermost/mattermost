@@ -53,6 +53,7 @@ describe('UserPropertiesTable', () => {
         },
     ];
 
+    const createField = jest.fn();
     const updateField = jest.fn();
     const deleteField = jest.fn();
     const reorderField = jest.fn();
@@ -67,6 +68,8 @@ describe('UserPropertiesTable', () => {
         return renderWithContext(
             <UserPropertiesTable
                 data={collection}
+                canCreate={true}
+                createField={createField}
                 updateField={updateField}
                 deleteField={deleteField}
                 reorderField={reorderField}
@@ -74,11 +77,11 @@ describe('UserPropertiesTable', () => {
         );
     };
 
-    it('renders table with correct property fields', () => {
+    it('renders table with correct attribute fields', () => {
         renderComponent();
 
         // Check column headers
-        expect(screen.getByText('Property')).toBeInTheDocument();
+        expect(screen.getByText('Attribute')).toBeInTheDocument();
         expect(screen.getByText('Type')).toBeInTheDocument();
         expect(screen.getByText('Values')).toBeInTheDocument();
         expect(screen.getByText('Actions')).toBeInTheDocument();
@@ -149,6 +152,8 @@ describe('UserPropertiesTable', () => {
         renderWithContext(
             <UserPropertiesTable
                 data={collection}
+                canCreate={true}
+                createField={createField}
                 updateField={updateField}
                 deleteField={deleteField}
                 reorderField={reorderField}
@@ -157,7 +162,7 @@ describe('UserPropertiesTable', () => {
 
         // Validation error should be shown
         await waitFor(() => {
-            expect(screen.getByText('Please enter a property name.')).toBeInTheDocument();
+            expect(screen.getByText('Please enter an attribute name.')).toBeInTheDocument();
         });
     });
 });

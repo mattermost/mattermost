@@ -23,15 +23,14 @@
 
     .section-body {
         padding: 28px 32px;
-
-        .section-header {
-            padding: 24px 0px;
-            border-top: 1px solid rgba(61, 60, 64, 0.08);
-            border-bottom: none;
-        }
     }
 }
 
 .config-section:nth-child(1) {
     margin-top: 0;
+}
+
+.admin-header-beta-badge {
+    margin-right: auto;
+    margin-inline-start: 8px;
 }

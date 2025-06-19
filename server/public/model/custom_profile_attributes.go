@@ -46,11 +46,13 @@ const (
 	CustomProfileAttributesVisibilityWhenSet = "when_set"
 	CustomProfileAttributesVisibilityAlways  = "always"
 	CustomProfileAttributesVisibilityDefault = CustomProfileAttributesVisibilityWhenSet
-)
 
-const (
+	// CPA options
 	CPAOptionNameMaxLength  = 128
 	CPAOptionColorMaxLength = 128
+
+	// CPA value constraints
+	CPAValueTypeTextMaxLength = 64
 )
 
 func IsKnownCPAValueType(valueType string) bool {
@@ -119,7 +121,7 @@ func (c CustomProfileAttributesSelectOption) IsValid() error {
 
 type CPAField struct {
 	PropertyField
-	Attrs CPAAttrs
+	Attrs CPAAttrs `json:"attrs"`
 }
 
 type CPAAttrs struct {
@@ -129,6 +131,10 @@ type CPAAttrs struct {
 	ValueType  string                                                `json:"value_type"`
 	LDAP       string                                                `json:"ldap"`
 	SAML       string                                                `json:"saml"`
+}
+
+func (c *CPAField) IsSynced() bool {
+	return c.Attrs.LDAP != "" || c.Attrs.SAML != ""
 }
 
 func (c *CPAField) ToPropertyField() *PropertyField {
@@ -146,7 +152,28 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 	return &pf
 }
 
+// SupportsOptions checks the CPAField type and determines if the type
+// supports the use of options
+func (c *CPAField) SupportsOptions() bool {
+	return c.Type == PropertyFieldTypeSelect || c.Type == PropertyFieldTypeMultiselect
+}
+
+// SupportsSyncing checks the CPAField type and determines if it
+// supports syncing with external sources of truth
+func (c *CPAField) SupportsSyncing() bool {
+	return c.Type == PropertyFieldTypeText
+}
+
 func (c *CPAField) SanitizeAndValidate() *AppError {
+	// first we clean unused attributes depending on the field type
+	if !c.SupportsOptions() {
+		c.Attrs.Options = nil
+	}
+	if !c.SupportsSyncing() {
+		c.Attrs.LDAP = ""
+		c.Attrs.SAML = ""
+	}
+
 	switch c.Type {
 	case PropertyFieldTypeText:
 		if valueType := strings.TrimSpace(c.Attrs.ValueType); valueType != "" {
@@ -211,7 +238,8 @@ func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 	}, nil
 }
 
-// SanitizeAndValidatePropertyValue validates and sanitizes the given property value based on the field type
+// SanitizeAndValidatePropertyValue validates and sanitizes the given
+// property value based on the field type
 func SanitizeAndValidatePropertyValue(cpaField *CPAField, rawValue json.RawMessage) (json.RawMessage, error) {
 	fieldType := cpaField.Type
 
@@ -230,6 +258,10 @@ func SanitizeAndValidatePropertyValue(cpaField *CPAField, rawValue json.RawMessa
 		value = strings.TrimSpace(value)
 
 		if fieldType == PropertyFieldTypeText {
+			if len(value) > CPAValueTypeTextMaxLength {
+				return nil, fmt.Errorf("value too long")
+			}
+
 			if cpaField.Attrs.ValueType == CustomProfileAttributesValueTypeEmail && !IsValidEmail(value) {
 				return nil, fmt.Errorf("invalid email")
 			}

@@ -55,7 +55,7 @@ func (s *BleveEngineTestSuite) setupStore() {
 	s.SQLSettings = storetest.MakeSqlSettings(driverName, false)
 
 	var err error
-	s.SQLStore, err = sqlstore.New(*s.SQLSettings, s.Context.Logger(), nil)
+	s.SQLStore, err = sqlstore.New(*s.SQLSettings, s.Context.Logger(), nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		s.Require().FailNow("Cannot initialize store: %s", err.Error())
 	}

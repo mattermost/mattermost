@@ -13,9 +13,9 @@ test('MM-T5654_1 should be able to add attachments while editing a post', async 
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage);
+    await channelsPage.postMessage(originalMessage);
 
-    const post = await channelsPage.centerView.getLastPost();
+    const post = await channelsPage.getLastPost();
     await post.toBeVisible();
     await post.hover();
     await post.postMenu.toBeVisible();
@@ -28,7 +28,7 @@ test('MM-T5654_1 should be able to add attachments while editing a post', async 
     await channelsPage.centerView.postEdit.writeMessage('Edited message');
     await channelsPage.centerView.postEdit.sendMessage();
 
-    const updatedPost = await channelsPage.centerView.getLastPost();
+    const updatedPost = await channelsPage.getLastPost();
     await updatedPost.toBeVisible();
     await updatedPost.toContainText('Edited message');
 });
@@ -41,9 +41,9 @@ test('MM-T5654_2 should be able to add attachments while editing a threaded post
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage);
+    await channelsPage.postMessage(originalMessage);
 
-    const post = await channelsPage.centerView.getLastPost();
+    const post = await channelsPage.getLastPost();
     await post.toBeVisible();
     await post.hover();
     await post.postMenu.toBeVisible();
@@ -54,7 +54,7 @@ test('MM-T5654_2 should be able to add attachments while editing a threaded post
     await channelsPage.postDotMenu.replyMenuItem.click();
     await channelsPage.sidebarRight.toBeVisible();
     await channelsPage.sidebarRight.postCreate.toBeVisible();
-    await channelsPage.sidebarRight.postCreate.postMessage('Replying to the post');
+    await channelsPage.sidebarRight.postMessage('Replying to the post');
     await channelsPage.sidebarRight.toContainText('Replying to the post');
 
     const replyPost = await channelsPage.sidebarRight.getLastPost();
@@ -119,9 +119,9 @@ test('MM-T5654_3 should be able to edit post message originally containing files
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage, ['sample_text_file.txt']);
+    await channelsPage.postMessage(originalMessage, ['sample_text_file.txt']);
 
-    const post = await channelsPage.centerView.getLastPost();
+    const post = await channelsPage.getLastPost();
     await post.toBeVisible();
     await post.hover();
     await post.postMenu.toBeVisible();
@@ -134,7 +134,7 @@ test('MM-T5654_3 should be able to edit post message originally containing files
     await channelsPage.centerView.postEdit.writeMessage('Edited message');
     await channelsPage.centerView.postEdit.sendMessage();
 
-    const updatedPost = await channelsPage.centerView.getLastPost();
+    const updatedPost = await channelsPage.getLastPost();
     await updatedPost.toBeVisible();
     await updatedPost.toContainText('Edited message');
 });
@@ -147,9 +147,9 @@ test('MM-T5654_4 should be able to add files when editing a post', async ({pw}) 
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage);
+    await channelsPage.postMessage(originalMessage);
 
-    const post = await channelsPage.centerView.getLastPost();
+    const post = await channelsPage.getLastPost();
     await post.toBeVisible();
     await post.hover();
     await post.postMenu.toBeVisible();
@@ -163,7 +163,7 @@ test('MM-T5654_4 should be able to add files when editing a post', async ({pw}) 
     await channelsPage.centerView.postEdit.addFiles(['sample_text_file.txt']);
     await channelsPage.centerView.postEdit.sendMessage();
 
-    const updatedPost = await channelsPage.centerView.getLastPost();
+    const updatedPost = await channelsPage.getLastPost();
     await updatedPost.toBeVisible();
     await updatedPost.toContainText('Edited message');
     await updatedPost.toContainText('sample_text_file.txt');
@@ -176,7 +176,7 @@ test('MM-T5654_4 should be able to add files when editing a post', async ({pw}) 
     await channelsPage.centerView.postEdit.addFiles(['mattermost.png', 'archive.zip']);
     await channelsPage.centerView.postEdit.sendMessage();
 
-    const secondUpdatedPost = await channelsPage.centerView.getLastPost();
+    const secondUpdatedPost = await channelsPage.getLastPost();
     await secondUpdatedPost.toBeVisible();
     await secondUpdatedPost.toContainText('Edited message');
     await secondUpdatedPost.toContainText('sample_text_file.txt');
@@ -192,13 +192,9 @@ test('MM-5654_5 should be able to remove attachments while editing a post', asyn
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage, [
-        'sample_text_file.txt',
-        'mattermost.png',
-        'archive.zip',
-    ]);
+    await channelsPage.postMessage(originalMessage, ['sample_text_file.txt', 'mattermost.png', 'archive.zip']);
 
-    const post = await channelsPage.centerView.getLastPost();
+    const post = await channelsPage.getLastPost();
     await post.toBeVisible();
     await post.toContainText(originalMessage);
     await post.toContainText('sample_text_file.txt');
@@ -216,7 +212,7 @@ test('MM-5654_5 should be able to remove attachments while editing a post', asyn
     await channelsPage.centerView.postEdit.removeFile('sample_text_file.txt');
     await channelsPage.centerView.postEdit.sendMessage();
 
-    const updatedPost = await channelsPage.centerView.getLastPost();
+    const updatedPost = await channelsPage.getLastPost();
     await updatedPost.toBeVisible();
     await updatedPost.toContainText(originalMessage);
     await updatedPost.toContainText('mattermost.png');
@@ -232,9 +228,9 @@ test('MM-T5655_1 removing message content and files should delete the post', asy
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage, ['sample_text_file.txt']);
+    await channelsPage.postMessage(originalMessage, ['sample_text_file.txt']);
 
-    const post = await channelsPage.centerView.getLastPost();
+    const post = await channelsPage.getLastPost();
     await post.toBeVisible();
     await post.toContainText(originalMessage);
     await post.toContainText('sample_text_file.txt');
@@ -266,13 +262,9 @@ test('MM-T5655_2 should be able to remove all files when editing a post', async 
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage, [
-        'sample_text_file.txt',
-        'mattermost.png',
-        'archive.zip',
-    ]);
+    await channelsPage.postMessage(originalMessage, ['sample_text_file.txt', 'mattermost.png', 'archive.zip']);
 
-    const post = await channelsPage.centerView.getLastPost();
+    const post = await channelsPage.getLastPost();
     await post.toBeVisible();
     await post.toContainText(originalMessage);
     await post.toContainText('sample_text_file.txt');
@@ -292,7 +284,7 @@ test('MM-T5655_2 should be able to remove all files when editing a post', async 
     await channelsPage.centerView.postEdit.removeFile('archive.zip');
     await channelsPage.centerView.postEdit.sendMessage();
 
-    const updatedPost = await channelsPage.centerView.getLastPost();
+    const updatedPost = await channelsPage.getLastPost();
     await updatedPost.toBeVisible();
     await updatedPost.toContainText(originalMessage);
     expect(updatedPost).not.toContain('archive.zip');
@@ -309,9 +301,9 @@ test('MM-T5656_1 should be able to restore previously edited post version that c
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage, ['sample_text_file.txt']);
+    await channelsPage.postMessage(originalMessage, ['sample_text_file.txt']);
 
-    const post = await channelsPage.centerView.getLastPost();
+    const post = await channelsPage.getLastPost();
     await post.toBeVisible();
     await post.toContainText(originalMessage);
     await post.toContainText('sample_text_file.txt');
@@ -327,7 +319,7 @@ test('MM-T5656_1 should be able to restore previously edited post version that c
     await channelsPage.centerView.postEdit.writeMessage(newMessage);
     await channelsPage.centerView.postEdit.sendMessage();
 
-    const updatedPost = await channelsPage.centerView.getLastPost();
+    const updatedPost = await channelsPage.getLastPost();
     await updatedPost.toBeVisible();
     await updatedPost.toContainText(newMessage);
     expect(updatedPost).not.toContain('sample_text_file.txt');
@@ -344,7 +336,7 @@ test('MM-T5656_1 should be able to restore previously edited post version that c
     await channelsPage.centerView.postEdit.restorePostConfirmationDialog.confirmRestore();
     await channelsPage.centerView.postEdit.restorePostConfirmationDialog.notToBeVisible();
 
-    const restoredPost = await channelsPage.centerView.getLastPost();
+    const restoredPost = await channelsPage.getLastPost();
     await restoredPost.toBeVisible();
     expect(restoredPost.toContainText('sample_text_file.txt'));
 });

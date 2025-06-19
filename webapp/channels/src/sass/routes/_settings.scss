@@ -210,9 +210,15 @@
 
             .security-links {
                 margin-right: 20px;
+                text-decoration: none;
 
-                .fa {
+                .icon {
                     margin-right: 6px;
+                    font-size: inherit;
+                }
+
+                &.danger {
+                    color: variables.$red;
                 }
             }
 
@@ -296,6 +302,19 @@
                             margin-block-start: 24px;
                         }
                     }
+
+                    .Input_fieldset {
+                        background: var(--center-channel-bg);
+
+                        .Input_wrapper {
+                            padding: 0 12px;
+
+                            .Input {
+                                height: 28px;
+                                border: none;
+                            }
+                        }
+                    }
                 }
 
                 .timezone-container {
@@ -353,9 +372,11 @@
                             white-space: nowrap;
                         }
 
-                        .premadeThemeButton{
+                        .premadeThemeButton {
+                            padding: 0;
                             border: none;
                             background: none;
+                            text-align: start;
                         }
 
                         label {
@@ -702,6 +723,11 @@
 
 .no-resize {
     resize: none;
+}
+
+.user-settings__radio-group-inline {
+    // Counteract the margin-left added by Bootstrap's radio-inline class
+    margin-left: -20px;
 }
 
 .user-settings__submit-checkbox {

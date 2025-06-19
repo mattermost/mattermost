@@ -16,6 +16,8 @@ describe('admin_console/team_channel_settings/channel/ChannelModes', () => {
                 isDefault={false}
                 isDisabled={false}
                 groupsSupported={true}
+                policyEnforced={false}
+                policyEnforcedToggleAvailable={false}
             />,
         );
         expect(wrapper).toMatchSnapshot();
@@ -30,6 +32,8 @@ describe('admin_console/team_channel_settings/channel/ChannelModes', () => {
                 isDefault={false}
                 isDisabled={false}
                 groupsSupported={false}
+                policyEnforced={false}
+                policyEnforcedToggleAvailable={false}
             />,
         );
         expect(wrapper).toMatchSnapshot();

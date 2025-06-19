@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
-	dbsql "database/sql"
 	"fmt"
 	"path"
 	"strconv"
@@ -119,6 +118,7 @@ type SqlStoreStores struct {
 	propertyField              store.PropertyFieldStore
 	propertyValue              store.PropertyValueStore
 	accessControlPolicy        store.AccessControlPolicyStore
+	Attributes                 store.AttributesStore
 }
 
 type SqlStore struct {
@@ -133,7 +133,7 @@ type SqlStore struct {
 
 	searchReplicaXs []*atomic.Pointer[sqlxDBWrapper]
 
-	replicaLagHandles []*dbsql.DB
+	replicaLagHandles []*sql.DB
 	stores            SqlStoreStores
 	settings          *model.SqlSettings
 	lockedToMaster    bool
@@ -146,6 +146,7 @@ type SqlStore struct {
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
 	skipMigrations            bool
+	disableMorphLogging       bool
 
 	quitMonitor chan struct{}
 	wgMonitor   *sync.WaitGroup
@@ -154,6 +155,13 @@ type SqlStore struct {
 func SkipMigrations() Option {
 	return func(s *SqlStore) error {
 		s.skipMigrations = true
+		return nil
+	}
+}
+
+func DisableMorphLogging() Option {
+	return func(s *SqlStore) error {
+		s.disableMorphLogging = true
 		return nil
 	}
 }
@@ -199,7 +207,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	}
 
 	if !store.skipMigrations {
-		err = store.migrate(migrationsDirectionUp, false)
+		err = store.migrate(migrationsDirectionUp, false, !store.disableMorphLogging)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to apply database migrations")
 		}
@@ -265,6 +273,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.propertyField = newPropertyFieldStore(store)
 	store.stores.propertyValue = newPropertyValueStore(store)
 	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
+	store.stores.Attributes = newSqlAttributesStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -343,7 +352,7 @@ func (ss *SqlStore) initConnection() error {
 	}
 
 	if len(ss.settings.ReplicaLagSettings) > 0 {
-		ss.replicaLagHandles = make([]*dbsql.DB, 0, len(ss.settings.ReplicaLagSettings))
+		ss.replicaLagHandles = make([]*sql.DB, 0, len(ss.settings.ReplicaLagSettings))
 		for i, src := range ss.settings.ReplicaLagSettings {
 			if src.DataSource == nil {
 				continue
@@ -525,7 +534,7 @@ func (ss *SqlStore) monitorReplicas() {
 	}
 }
 
-func (ss *SqlStore) setDB(replica *atomic.Pointer[sqlxDBWrapper], handle *dbsql.DB, name string) {
+func (ss *SqlStore) setDB(replica *atomic.Pointer[sqlxDBWrapper], handle *sql.DB, name string) {
 	replica.Store(newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace))
@@ -640,7 +649,6 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
 			strings.ToLower(tableName),
 		)
-
 		if err != nil {
 			mlog.Fatal("Failed to check if table exists", mlog.Err(err))
 		}
@@ -659,7 +667,6 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		    `,
 			tableName,
 		)
-
 		if err != nil {
 			mlog.Fatal("Failed to check if table exists", mlog.Err(err))
 		}
@@ -682,7 +689,6 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 			strings.ToLower(tableName),
 			strings.ToLower(columnName),
 		)
-
 		if err != nil {
 			if err.Error() == "pq: relation \""+strings.ToLower(tableName)+"\" does not exist" {
 				return false
@@ -706,7 +712,6 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 			tableName,
 			columnName,
 		)
-
 		if err != nil {
 			mlog.Fatal("Failed to check if column exists", mlog.Err(err))
 		}
@@ -728,7 +733,6 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 			WHERE
 				tgname = $1
 		`, triggerName)
-
 		if err != nil {
 			mlog.Fatal("Failed to check if trigger exists", mlog.Err(err))
 		}
@@ -745,7 +749,6 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 				trigger_schema = DATABASE()
 			AND	trigger_name = ?
 		`, triggerName)
-
 		if err != nil {
 			mlog.Fatal("Failed to check if trigger exists", mlog.Err(err))
 		}
@@ -1083,6 +1086,10 @@ func (ss *SqlStore) PropertyValue() store.PropertyValueStore {
 
 func (ss *SqlStore) AccessControlPolicy() store.AccessControlPolicyStore {
 	return ss.stores.accessControlPolicy
+}
+
+func (ss *SqlStore) Attributes() store.AttributesStore {
+	return ss.stores.Attributes
 }
 
 func (ss *SqlStore) DropAllTables() {

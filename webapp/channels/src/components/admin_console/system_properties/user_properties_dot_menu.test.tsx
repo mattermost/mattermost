@@ -3,6 +3,7 @@
 
 import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
+import type {ComponentProps} from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -30,19 +31,23 @@ describe('UserPropertyDotMenu', () => {
 
     const updateField = jest.fn();
     const deleteField = jest.fn();
+    const createField = jest.fn();
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    const renderComponent = (field: UserPropertyField = baseField) => {
+    const renderComponent = (field: UserPropertyField = baseField, dotMenuProps?: Partial<ComponentProps<typeof DotMenu>>) => {
         return renderWithContext(
             (
                 <div>
                     <DotMenu
                         field={field}
+                        canCreate={true}
+                        {...dotMenuProps}
                         updateField={updateField}
                         deleteField={deleteField}
+                        createField={createField}
                     />
                     <ModalController/>
                 </div>
@@ -105,6 +110,106 @@ describe('UserPropertyDotMenu', () => {
         });
     });
 
+    it('displays LDAP and SAML link menu options for existing fields', async () => {
+        renderComponent();
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
+        fireEvent.click(menuButton);
+
+        // Verify both link options are shown
+        expect(screen.getByText('Link attribute to AD/LDAP')).toBeInTheDocument();
+        expect(screen.getByText('Link attribute to SAML')).toBeInTheDocument();
+    });
+
+    it('hides LDAP and SAML link menu options for pending fields', async () => {
+        const pendingField = {
+            ...baseField,
+            create_at: 0, // Mark as pending creation
+        };
+
+        renderComponent(pendingField);
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${pendingField.id}`);
+        fireEvent.click(menuButton);
+
+        // Verify both link options are not shown
+        expect(screen.queryByText('Link attribute to AD/LDAP')).not.toBeInTheDocument();
+        expect(screen.queryByText('Link attribute to SAML')).not.toBeInTheDocument();
+    });
+
+    it('shows "Edit link with" text when LDAP attribute is linked', async () => {
+        const linkedField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'employeeID',
+            },
+        };
+
+        renderComponent(linkedField);
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${linkedField.id}`);
+        fireEvent.click(menuButton);
+
+        // Verify the LDAP link text shows the linked property
+        expect(screen.getByText('Edit link with:')).toBeInTheDocument();
+        expect(screen.getByText('AD/LDAP: employeeID')).toBeInTheDocument();
+    });
+
+    it('shows "Edit link with" text when SAML attribute is linked', async () => {
+        const linkedField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                saml: 'position',
+            },
+        };
+
+        renderComponent(linkedField);
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${linkedField.id}`);
+        fireEvent.click(menuButton);
+
+        // Verify the SAML link text shows the linked property
+        expect(screen.getByText('Edit link with:')).toBeInTheDocument();
+        expect(screen.getByText('SAML: position')).toBeInTheDocument();
+    });
+
+    it('handles field duplication', async () => {
+        renderComponent();
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
+        fireEvent.click(menuButton);
+
+        // Click the duplicate option
+        fireEvent.click(screen.getByText(/Duplicate attribute/));
+
+        // Wait for createField to be called
+        await waitFor(() => {
+            // Verify createField was called with the correct parameters
+            expect(createField).toHaveBeenCalledWith(expect.objectContaining({
+                id: baseField.id,
+                name: 'Test Field (copy)',
+            }));
+        });
+    });
+
+    it('hides field duplication when at field limit', async () => {
+        renderComponent(undefined, {canCreate: false});
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
+        fireEvent.click(menuButton);
+
+        // Verify duplicate option is not shown
+        expect(screen.queryByText(/Duplicate attribute/)).not.toBeInTheDocument();
+    });
+
     it('handles field deletion with confirmation when field exists in DB', async () => {
         renderComponent();
 
@@ -113,12 +218,12 @@ describe('UserPropertyDotMenu', () => {
         fireEvent.click(menuButton);
 
         // Click delete option
-        const deleteOption = screen.getByRole('menuitem', {name: /Delete property/});
+        const deleteOption = screen.getByRole('menuitem', {name: /Delete attribute/});
         fireEvent.click(deleteOption);
 
         await waitFor(() => {
             // Verify the delete modal is shown
-            expect(screen.getByText('Delete Test Field property')).toBeInTheDocument();
+            expect(screen.getByText('Delete Test Field attribute')).toBeInTheDocument();
         });
 
         // click delete confirm button
@@ -145,7 +250,7 @@ describe('UserPropertyDotMenu', () => {
         fireEvent.click(menuButton);
 
         // Click delete option
-        const deleteOption = screen.getByRole('menuitem', {name: /Delete property/});
+        const deleteOption = screen.getByRole('menuitem', {name: /Delete attribute/});
         fireEvent.click(deleteOption);
 
         await waitFor(() => {

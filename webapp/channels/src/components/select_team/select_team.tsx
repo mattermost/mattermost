@@ -18,8 +18,8 @@ import AnnouncementBar from 'components/announcement_bar';
 import BackButton from 'components/common/back_button';
 import InfiniteScroll from 'components/common/infinite_scroll';
 import SiteNameAndDescription from 'components/common/site_name_and_description';
+import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
-import LearnAboutTeamsLink from 'components/main_menu/learn_about_teams_link';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
@@ -28,10 +28,12 @@ import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
 import SelectTeamItem from './components/select_team_item';
+
 import './select_team.scss';
 
 export const TEAMS_PER_PAGE = 30;
 const TEAM_MEMBERSHIP_DENIAL_ERROR_ID = 'api.team.add_members.user_denied';
+const MATTERMOST_ACADEMY_TEAM_TRAINING_LINK = 'https://mattermost.com/pl/mattermost-academy-team-training';
 
 type Actions = {
     getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => any;
@@ -289,7 +291,20 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                                 defaultMessage='Teams you can join: '
                             />
                         </h4>
-                        <LearnAboutTeamsLink/>
+                        <ExternalLink
+                            location='learn_about_teams'
+                            href={MATTERMOST_ACADEMY_TEAM_TRAINING_LINK}
+                            className='LearnAboutTeamsLink'
+                        >
+                            <i
+                                className='icon icon-lightbulb-outline'
+                                aria-hidden={true}
+                            />
+                            <FormattedMessage
+                                id='learn_about_teams'
+                                defaultMessage='Learn about teams'
+                            />
+                        </ExternalLink>
                     </div>
                     <InfiniteScroll
                         callBack={this.fetchMoreTeams}
