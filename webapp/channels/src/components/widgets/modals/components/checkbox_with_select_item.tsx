@@ -4,14 +4,13 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import {useIntl} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue} from 'react-select';
 
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
 import type {FieldsetCheckbox} from './checkbox_setting_item';
-import {getOptionLabel, type FieldsetReactSelect, type Option} from './react_select_item';
+import {getOptionLabel, type FieldsetReactSelect, type SelectOption} from './react_select_item';
 
 type Props = BaseSettingItemProps & {
     containerClassName?: string;
@@ -21,8 +20,8 @@ type Props = BaseSettingItemProps & {
     checkboxFieldValue: boolean;
     handleCheckboxChange: (e: boolean) => void;
     selectFieldData: FieldsetReactSelect;
-    selectFieldValue?: Option;
-    handleSelectChange: (selected: OnChangeValue<Option, boolean>) => void;
+    selectFieldValue?: SelectOption;
+    handleSelectChange: (selected: OnChangeValue<SelectOption, boolean>) => void;
     isSelectDisabled?: boolean;
     selectPlaceholder?: string;
 }
@@ -98,8 +97,3 @@ export default function CheckboxWithSelectSettingItem({
 function NoIndicatorSeparatorComponent() {
     return null;
 }
-
-export type SelectOption = {
-    value: string;
-    label: string | MessageDescriptor;
-};

@@ -4,7 +4,6 @@
 import React, {Fragment, useCallback, useEffect, useMemo, useRef, memo} from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
 import {FormattedMessage, useIntl, defineMessage} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, Options} from 'react-select';
 
@@ -15,17 +14,12 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 import NotificationPermissionSectionNotice from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_section_notice';
 import NotificationPermissionTitleTag from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_title_tag';
-import {getOptionLabel} from 'components/widgets/modals/components/react_select_item';
+import {getOptionLabel, type SelectOption} from 'components/widgets/modals/components/react_select_item';
 
 import Constants, {NotificationLevels, UserSettingsNotificationSections} from 'utils/constants';
 import {formatAsComponent} from 'utils/i18n';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
-
-export type SelectOption = {
-    label: string | MessageDescriptor;
-    value: string;
-};
 
 export type Props = {
     active: boolean;

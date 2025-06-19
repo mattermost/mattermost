@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {defineMessage} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
 
 import type {ChannelNotifyProps} from '@mattermost/types/channels';
 import type {UserNotifyProps} from '@mattermost/types/users';
+
+import type {SelectOption} from 'components/widgets/modals/components/react_select_item';
 
 import bing from 'sounds/bing.mp3';
 import calls_calm from 'sounds/calls_calm.mp3';
@@ -41,7 +42,7 @@ export const notificationSounds = new Map<string, string>([
 
 export const notificationSoundKeys = Array.from(notificationSounds.keys());
 
-export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; label: string | MessageDescriptor}> = notificationSoundKeys.map((soundName) => {
+export const optionsOfMessageNotificationSoundsSelect: SelectOption[] = notificationSoundKeys.map((soundName) => {
     if (soundName === DesktopNotificationSounds.BING) {
         return {
             value: soundName,
@@ -116,7 +117,7 @@ export const callsNotificationSounds = new Map([
 
 export const callNotificationSoundKeys = Array.from(callsNotificationSounds.keys());
 
-export const optionsOfIncomingCallSoundsSelect: Array<{value: string; label: string | MessageDescriptor}> = callNotificationSoundKeys.map((soundName) => {
+export const optionsOfIncomingCallSoundsSelect: SelectOption[] = callNotificationSoundKeys.map((soundName) => {
     if (soundName === 'Dynamic') {
         return {
             value: soundName,

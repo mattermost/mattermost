@@ -4,7 +4,6 @@
 import type {ChangeEvent} from 'react';
 import React, {memo, useEffect, useRef, Fragment, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
 import ReactSelect from 'react-select';
 
@@ -13,7 +12,7 @@ import type {UserNotifyProps} from '@mattermost/types/users';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
-import {getOptionLabel} from 'components/widgets/modals/components/react_select_item';
+import {getOptionLabel, type SelectOption} from 'components/widgets/modals/components/react_select_item';
 
 import {UserSettingsNotificationSections} from 'utils/constants';
 import {
@@ -29,11 +28,6 @@ import {
 } from 'utils/notification_sounds';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
-
-export type SelectOption = {
-    value: string;
-    label: string | MessageDescriptor;
-};
 
 export type Props = {
     active: boolean;

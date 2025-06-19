@@ -12,7 +12,7 @@ import {formatAsString} from 'utils/i18n';
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
 
-export type Option = {
+export type SelectOption = {
     value: string;
     label: string | MessageDescriptor;
 };
@@ -24,17 +24,17 @@ export type FieldsetReactSelect = {
     dataTestId?: string;
     ariaLabelledby?: string;
     clearable?: boolean;
-    options: Option[];
+    options: SelectOption[];
 }
 
 type Props = BaseSettingItemProps & {
     inputFieldData: FieldsetReactSelect;
-    inputFieldValue: Option;
-    handleChange: (selected: OnChangeValue<Option, boolean>) => void;
+    inputFieldValue: SelectOption;
+    handleChange: (selected: OnChangeValue<SelectOption, boolean>) => void;
 }
 
 // Function to extract text from MessageDescriptor or return string as-is
-export const getOptionLabel = (option: Option, intl: ReturnType<typeof useIntl>): string => {
+export const getOptionLabel = (option: SelectOption, intl: ReturnType<typeof useIntl>): string => {
     return formatAsString(intl.formatMessage, option.label) || '';
 };
 
