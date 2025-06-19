@@ -9,14 +9,16 @@
         .new-channel-modal-purpose-textarea {
             width: 100%;
             box-sizing: border-box;
-            padding: 12px 16px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            border-radius: 4px;
             background: var(--center-channel-bg);
             color: var(--center-channel-color);
             font-size: 14px;
             line-height: 20px;
             resize: none;
+
+            .Input_wrapper textarea.form-control {
+                height: auto;
+                border: none;
+            }
 
             &:hover {
                 border-color: rgba(var(--center-channel-color-rgb), 0.48);
@@ -43,24 +45,16 @@
             line-height: 16px;
             text-align: left;
         }
+    }
 
-        .new-channel-modal-purpose-error {
+    @media screen and (max-width: 640px) {
+        .modal-content .GenericModal__wrapper {
             display: flex;
-            margin-top: 5px;
-            color: var(--error-text);
-            font-size: 12px;
-            line-height: 16px;
-            text-align: left;
+            height: 100vh;
+            flex-direction: column;
 
-            i {
-                height: 14px;
-                align-self: baseline;
-                margin-right: 7px;
-                font-size: 14px;
-
-                &::before {
-                    margin: 0;
-                }
+            > .modal-body {
+                flex: 1
             }
         }
     }
@@ -79,5 +73,15 @@
 
     .description {
         font-weight: 500;
+    }
+}
+
+@media screen and (max-width: 640px) {
+    .app__body {
+        &.announcement-bar--fixed {
+            .new-channel-modal .modal-content .GenericModal__wrapper {
+                height: calc(100vh - 40px);
+            }
+        }
     }
 }

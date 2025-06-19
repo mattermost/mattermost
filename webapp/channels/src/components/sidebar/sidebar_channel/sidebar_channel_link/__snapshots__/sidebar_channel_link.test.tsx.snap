@@ -1,5 +1,92 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`components/sidebar/sidebar_channel/sidebar_channel_link should fetch shared channels data when channel is shared 1`] = `
+<Link
+  aria-label="channel_label"
+  className="SidebarLink"
+  id="sidebarItem_"
+  onClick={[Function]}
+  tabIndex={0}
+  to="http://a.fake.link"
+>
+  <SidebarChannelIcon
+    icon={null}
+    isDeleted={false}
+  />
+  <div
+    className="SidebarChannelLinkLabel_wrapper"
+  >
+    <span
+      className="SidebarChannelLinkLabel"
+    >
+      channel_label
+    </span>
+    <Pluggable
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      pluggableName="SidebarChannelLinkLabel"
+    />
+    <SharedChannelIndicator
+      className="icon"
+      remoteNames={Array []}
+      withTooltip={true}
+    />
+  </div>
+  <Connect(Component)
+    id="channel_id"
+  />
+  <ChannelMentionBadge
+    hasUrgent={false}
+    unreadMentions={0}
+  />
+  <div
+    className="SidebarMenu MenuWrapper"
+  >
+    <Connect(Component)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      channelLink="http://a.fake.link"
+      isUnread={false}
+      onMenuToggle={[Function]}
+    />
+  </div>
+</Link>
+`;
+
 exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match snapshot 1`] = `
 <Link
   aria-label="channel_label"
@@ -326,6 +413,180 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
       }
       channelLink="http://a.fake.link"
       isUnread={true}
+      onMenuToggle={[Function]}
+    />
+  </div>
+</Link>
+`;
+
+exports[`components/sidebar/sidebar_channel/sidebar_channel_link should not fetch shared channels data when data already exists 1`] = `
+<Link
+  aria-label="channel_label"
+  className="SidebarLink"
+  id="sidebarItem_"
+  onClick={[Function]}
+  tabIndex={0}
+  to="http://a.fake.link"
+>
+  <SidebarChannelIcon
+    icon={null}
+    isDeleted={false}
+  />
+  <div
+    className="SidebarChannelLinkLabel_wrapper"
+  >
+    <span
+      className="SidebarChannelLinkLabel"
+    >
+      channel_label
+    </span>
+    <Pluggable
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      pluggableName="SidebarChannelLinkLabel"
+    />
+    <SharedChannelIndicator
+      className="icon"
+      remoteNames={
+        Array [
+          "Remote 1",
+          "Remote 2",
+        ]
+      }
+      withTooltip={true}
+    />
+  </div>
+  <Connect(Component)
+    id="channel_id"
+  />
+  <ChannelMentionBadge
+    hasUrgent={false}
+    unreadMentions={0}
+  />
+  <div
+    className="SidebarMenu MenuWrapper"
+  >
+    <Connect(Component)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      channelLink="http://a.fake.link"
+      isUnread={false}
+      onMenuToggle={[Function]}
+    />
+  </div>
+</Link>
+`;
+
+exports[`components/sidebar/sidebar_channel/sidebar_channel_link should not fetch shared channels for non-shared channels 1`] = `
+<Link
+  aria-label="channel_label"
+  className="SidebarLink"
+  id="sidebarItem_"
+  onClick={[Function]}
+  tabIndex={0}
+  to="http://a.fake.link"
+>
+  <SidebarChannelIcon
+    icon={null}
+    isDeleted={false}
+  />
+  <div
+    className="SidebarChannelLinkLabel_wrapper"
+  >
+    <span
+      className="SidebarChannelLinkLabel"
+    >
+      channel_label
+    </span>
+    <Pluggable
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      pluggableName="SidebarChannelLinkLabel"
+    />
+  </div>
+  <Connect(Component)
+    id="channel_id"
+  />
+  <ChannelMentionBadge
+    hasUrgent={false}
+    unreadMentions={0}
+  />
+  <div
+    className="SidebarMenu MenuWrapper"
+  >
+    <Connect(Component)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      channelLink="http://a.fake.link"
+      isUnread={false}
       onMenuToggle={[Function]}
     />
   </div>

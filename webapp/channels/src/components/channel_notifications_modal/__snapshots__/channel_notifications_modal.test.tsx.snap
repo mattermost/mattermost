@@ -35,7 +35,6 @@ Object {
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"
@@ -519,7 +518,6 @@ Object {
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"
@@ -1163,7 +1161,6 @@ Object {
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"
@@ -1526,7 +1523,6 @@ Object {
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"
@@ -2108,7 +2104,6 @@ Object {
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"
@@ -2690,7 +2685,6 @@ Object {
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"

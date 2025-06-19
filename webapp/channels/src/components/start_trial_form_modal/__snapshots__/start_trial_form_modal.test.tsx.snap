@@ -125,6 +125,7 @@ Object {
                     aria-hidden="true"
                     aria-label=""
                     class="icon error icon-alert-circle-outline"
+                    role="img"
                   />
                   <span>
                     Please enter a valid business email address.

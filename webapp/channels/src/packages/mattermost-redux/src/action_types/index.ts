@@ -28,6 +28,7 @@ import RoleTypes from './roles';
 import SchemeTypes from './schemes';
 import ScheduledPostTypes from './scheudled_posts';
 import SearchTypes from './search';
+import SharedChannelTypes from './shared_channels';
 import TeamTypes from './teams';
 import ThreadTypes from './threads';
 import UserTypes from './users';
@@ -61,6 +62,7 @@ export {
     PlaybookType,
     ChannelBookmarkTypes,
     ScheduledPostTypes,
+    SharedChannelTypes,
 };
 
 /**
