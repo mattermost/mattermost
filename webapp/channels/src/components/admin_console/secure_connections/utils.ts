@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {LocationDescriptor} from 'history';
+import {DateTime, Interval} from 'luxon';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -17,7 +18,6 @@ import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {Client4} from 'mattermost-redux/client';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getActiveTeamsList, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {isConfirmed, isConnected} from 'mattermost-redux/utils/remote_cluster_utils';
 
 import type {ActionFuncAsync} from 'types/store';
 
@@ -241,7 +241,9 @@ export const getCreateLocation = (): LocationDescriptor<RemoteCluster> => {
     return {pathname: '/admin_console/site_config/secure_connections/create'};
 };
 
-export {isConfirmed, isConnected};
+const SiteURLPendingPrefix = 'pending_';
+export const isConfirmed = (rc: RemoteCluster) => Boolean(rc.site_url && !rc.site_url.startsWith(SiteURLPendingPrefix));
+export const isConnected = (rc: RemoteCluster) => Interval.before(DateTime.now(), {minutes: 5}).contains(DateTime.fromMillis(rc.last_ping_at));
 
 export type TLoadingState<TError extends Error = ClientError> = boolean | TError;
 export const isPendingState = <T extends Error>(loadingState: TLoadingState<T>) => loadingState === true;
