@@ -120,22 +120,12 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                 id: 'cloud_preview_modal.aria_label',
                 defaultMessage: 'Cloud Preview Introduction',
             })}
-            showHeader={false}
-            showCloseButton={false}
+            showHeader={true}
+            showCloseButton={true}
             bodyPadding={true}
             footerContent={footerContent}
             className='preview-modal-controller'
         >
-            <button
-                className='preview-modal-controller__close-button'
-                onClick={onClose}
-                aria-label={intl.formatMessage({
-                    id: 'cloud_preview_modal.close',
-                    defaultMessage: 'Close modal',
-                })}
-            >
-                <CloseIcon size={24}/>
-            </button>
             <PreviewModalContent content={contentData[currentIndex]}/>
         </GenericModal>
     );

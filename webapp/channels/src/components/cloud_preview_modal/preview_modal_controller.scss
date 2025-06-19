@@ -136,6 +136,9 @@
 
     .modal-content {
         border-radius: 8px !important;
+        .modal-header {
+            min-height: 0;
+        }
     }
 
     .modal-body {
