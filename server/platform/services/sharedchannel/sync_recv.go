@@ -290,7 +290,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
 
-	// Check if user already exists by ID
+	// Check if user already exists
 	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
@@ -731,30 +731,41 @@ func (scs *Service) transformColonMention(mention, ourClusterName string, user *
 		return mention
 	}
 
-	if suffix == ourClusterName && user.GetRemoteID() == "" {
-		// User from our cluster - display without suffix
-		return "@" + username
+	if suffix == ourClusterName {
+		// This is a mention of someone from our cluster
+		// Check if we have a local user with this name
+		if localUser, exists := scs.isLocalUser(username); exists {
+			if user != nil && localUser.Id == user.Id {
+				// Same ID - this is our local user, strip the cluster suffix
+				return "@" + username
+			}
+		}
 	}
-	// Not our cluster or no local user - display as plain text
-	return mention
+	// Different cluster or no matching local user - keep as-is
+	return "@" + mention
 }
 
 // transformSimpleMention handles @user format mentions
 func (scs *Service) transformSimpleMention(mention string, user *model.User, userID string, rc *model.RemoteCluster) string {
-	if user.GetRemoteID() == "" {
-		// Local user - check if there's a collision
-		if localUser, exists := scs.isLocalUser(mention); exists && localUser.Id != userID {
-			// Different local user with same username - add sender cluster suffix
-			return "@" + mention + ":" + rc.Name
+	// Check if there's a local user with this mention name (name clash detection)
+	if localUserByName, exists := scs.isLocalUser(mention); exists {
+		if localUserByName.Id == userID {
+			// Same ID - previously synced from sender, display their local username
+			return localUserByName.Username
 		}
-		// Same user ID - display normally
-		return "@" + user.Username
-	} else if user.GetRemoteID() == rc.RemoteId {
-		// User synced from sender with same ID - display normally
-		return "@" + user.Username
+		// Different ID - name clash, add sender cluster suffix
+		return "@" + mention + ":" + rc.Name
 	}
-	// Different remote user - display with cluster suffix
-	return "@" + user.Username
+
+	// No local user with mention name exists, but check if the resolved userID exists locally
+	// (handles case where synced user has different username like "bob:remote2")
+	if localUserById, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && localUserById != nil {
+		// Same ID - previously synced from sender, display their local username
+		return localUserById.Username
+	}
+
+	// No local user exists - display as plain text (no @)
+	return mention
 }
 
 // transformMentionsOnReceive transforms mentions in received posts to ensure proper display

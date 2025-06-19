@@ -380,3 +380,8 @@ func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, r
 func (scs *Service) HandleChannelNotSharedErrorForTesting(msg *model.SyncMsg, rc *model.RemoteCluster) {
 	scs.handleChannelNotSharedError(msg, rc)
 }
+
+// HandleMentionTransformationForTesting allows testing mention transformation with controlled mentionMap
+func (scs *Service) HandleMentionTransformationForTesting(ctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionMap model.UserMentionMap) {
+	scs.transformMentionsOnReceive(ctx, post, targetChannel, rc, mentionMap)
+}
