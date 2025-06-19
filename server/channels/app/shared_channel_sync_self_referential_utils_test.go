@@ -102,12 +102,6 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 				if unmarshalErr := json.Unmarshal(frame.Msg.Payload, &syncMsg); unmarshalErr == nil {
 					syncResp := &model.SyncResponse{}
 
-					// Handle posts for callbacks
-					if len(syncMsg.Posts) > 0 {
-						// This is a post sync - just acknowledge
-						_ = syncMsg.Posts // acknowledge posts without processing
-					}
-
 					// Handle global user sync
 					if len(syncMsg.Users) > 0 {
 						userIds := make([]string, 0, len(syncMsg.Users))

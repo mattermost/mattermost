@@ -28,7 +28,6 @@ func setupSharedChannels(tb testing.TB) *TestHelper {
 		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
 		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
 		cfg.FeatureFlags.EnableSharedChannelsMemberSync = true
-		// Set the cluster name so mention transformation works correctly
 		cfg.ClusterSettings.ClusterName = model.NewPointer("test-remote")
 	})
 }
@@ -735,7 +734,7 @@ func TestMentionTransformationEndToEnd(t *testing.T) {
 		message := fmt.Sprintf("Hello @%s, can you help?", localUser.Username)
 		_, receivedPost := createAndSyncPost(message)
 
-		// CRITICAL: Validate complete mention functionality
+		// Validate complete mention functionality
 		t.Run("Message text validation", func(t *testing.T) {
 			// Local user mentions should remain unchanged when synced to remote cluster
 			// The raw sync message preserves the original mention format
@@ -758,7 +757,7 @@ func TestMentionTransformationEndToEnd(t *testing.T) {
 			t.Logf("Mention map: %+v", mentionMap)
 			t.Logf("Possible mentions: %+v", possibleMentions)
 
-			// The critical test: when the remote cluster resolves the mention,
+			// When the remote cluster resolves the mention,
 			// it should point to the ORIGINAL user from the sending cluster,
 			// NOT to a local user with the same name
 
@@ -771,7 +770,7 @@ func TestMentionTransformationEndToEnd(t *testing.T) {
 					t.Logf("Mention '@%s' resolves to user: ID=%s, Username=%s, RemoteId=%v",
 						mention, mentionedUser.Id, mentionedUser.Username, mentionedUser.RemoteId)
 
-					// CRITICAL VALIDATION: The mention should resolve to the ORIGINAL user
+					// The mention should resolve to the ORIGINAL user
 					// If there's a local user with the same name, the mention should NOT resolve to them
 					require.Equal(t, localUser.Id, mentionedUser.Id,
 						"Mention should resolve to the original user from sending cluster, not local user with same name")
@@ -790,7 +789,6 @@ func TestMentionTransformationEndToEnd(t *testing.T) {
 
 		t.Run("Notification validation", func(t *testing.T) {
 			// When a mention is processed, the notification should go to the CORRECT user
-			// This is critical for cross-cluster communication
 
 			finalPost := getFinalPost(receivedPost.Id)
 			mentionMap, _ := analyzeMentions(finalPost.Message)
@@ -832,7 +830,6 @@ func TestMentionTransformationEndToEnd(t *testing.T) {
 		})
 
 		t.Run("User ID resolution validation", func(t *testing.T) {
-			// This is the CRITICAL test for your bug report
 			// When "@admin:org2" is mentioned on org1 and sent to org2,
 			// the resulting "@admin" mention should resolve to the CORRECT admin user on org2
 
@@ -856,7 +853,6 @@ func TestMentionTransformationEndToEnd(t *testing.T) {
 			t.Logf("Mention '@admin' resolves to user: ID=%s, Username=%s, RemoteId=%v",
 				mentionedUser.Id, mentionedUser.Username, mentionedUser.RemoteId)
 
-			// CRITICAL: The mention should resolve to the local admin user
 			// When @admin:test-remote is processed on test-remote cluster, it should resolve to local admin
 			require.Equal(t, localAdmin.Id, mentionedUser.Id,
 				"@admin mention should resolve to the local admin user")
@@ -1023,7 +1019,7 @@ func TestMentionTransformationEndToEnd(t *testing.T) {
 		// Reset received posts
 		handler.ResetReceivedPosts()
 
-		// Create and sync the critical test post: mention "@admin:test-remote"
+		// Create and sync the test post: mention "@admin:test-remote"
 		mentionWithSuffix := fmt.Sprintf("admin:%s", savedRemoteCluster.Name)
 		message := fmt.Sprintf("Hey @%s, can you help with this critical issue?", mentionWithSuffix)
 		_, receivedPost := createAndSyncPost(message)
@@ -1042,7 +1038,7 @@ func TestMentionTransformationEndToEnd(t *testing.T) {
 				"@admin:test-remote should transform to @admin when received on test-remote cluster")
 		})
 
-		t.Run("Critical collision resolution test", func(t *testing.T) {
+		t.Run("Collision resolution test", func(t *testing.T) {
 			// THE CORE BUG TEST: When there are multiple users that could match "@admin",
 			// which one does the system choose?
 
@@ -1065,7 +1061,7 @@ func TestMentionTransformationEndToEnd(t *testing.T) {
 			t.Logf("@admin mention resolved to: ID=%s, Username=%s",
 				resolvedUser.Id, resolvedUser.Username)
 
-			// CRITICAL: The mention should resolve to the user with exact username "admin"
+			// The mention should resolve to the user with exact username "admin"
 			// NOT to the user with username "admin-original"
 			require.Equal(t, localAdminCollision.Id, resolvedUser.Id,
 				"@admin mention should resolve to user with exact username 'admin'")
