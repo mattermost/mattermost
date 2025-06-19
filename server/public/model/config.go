@@ -1574,6 +1574,10 @@ func (s *ExperimentalAuditSettings) isValid() *AppError {
 			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_name_empty", nil, "", http.StatusBadRequest)
 		}
 
+		if strings.HasSuffix(*s.FileName, `\`) {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_name_is_directory", nil, "", http.StatusBadRequest)
+		}
+
 		if *s.FileMaxSizeMB <= 0 {
 			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_size_invalid", nil, "", http.StatusBadRequest)
 		}

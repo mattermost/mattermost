@@ -9317,6 +9317,10 @@
     "translation": "When audit file logging is enabled, a file name must be specified."
   },
   {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "The file name must not be a directory."
+  },
+  {
     "id": "model.config.is_valid.export.directory.app_error",
     "translation": "Value for Directory should not be empty."
   },
