@@ -751,7 +751,7 @@ func (scs *Service) transformSimpleMention(mention string, user *model.User, use
 	if localUserByName, exists := scs.isLocalUser(mention); exists {
 		if localUserByName.Id == userID {
 			// Same ID - previously synced from sender, display their local username
-			return localUserByName.Username
+			return "@" + localUserByName.Username
 		}
 		// Different ID - name clash, add sender cluster suffix
 		return "@" + mention + ":" + rc.Name
@@ -761,11 +761,11 @@ func (scs *Service) transformSimpleMention(mention string, user *model.User, use
 	// (handles case where synced user has different username like "bob:remote2")
 	if localUserById, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && localUserById != nil {
 		// Same ID - previously synced from sender, display their local username
-		return localUserById.Username
+		return "@" + localUserById.Username
 	}
 
-	// No local user exists - display as plain text (no @)
-	return mention
+	// No local user exists - display as plain text
+	return "@" + mention
 }
 
 // transformMentionsOnReceive transforms mentions in received posts to ensure proper display
@@ -821,8 +821,8 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		if user, exists := scs.isLocalUser(mention); exists {
 			return scs.transformSimpleMention(mention, user, user.Id, rc)
 		}
-		// No local user - display as plain text
-		return mention
+		// No local user - display as plain text with @ symbol
+		return "@" + mention
 	})
 }
 
