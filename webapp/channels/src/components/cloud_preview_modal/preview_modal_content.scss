@@ -63,15 +63,16 @@
         }
     }
 
-    &__video-container {
+    &__media-container {
         display: flex;
         overflow: hidden;
         height: 306px;
         flex: 0 0 306px;
         align-items: center;
         justify-content: center;
+        border: solid
         border-radius: 4px;
-        background: rgba(var(--center-channel-color-rgb), 0.04);
+        border: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
 
         video {
             width: 100%;
