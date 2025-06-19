@@ -22,7 +22,7 @@ const GALLERY_CONFIG = {
         TABLET: 640,
     },
     ASPECT_RATIOS: {
-        HORIZONTAL_THRESHOLD: 1.2,
+        HORIZONTAL_THRESHOLD: 1.05,
         SQUARE_TOLERANCE: 0.2,
     },
     GRID_SPANS: {
@@ -67,12 +67,16 @@ const getColumnSpan = (fileInfo: FileInfo, isSmall: boolean, containerWidth: num
         }
     }
 
-    if (aspectRatio > GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD) {
-        return GALLERY_CONFIG.GRID_SPANS.HORIZONTAL;
-    } else if (aspectRatio < 1 / GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD) {
+    // Determine span based on aspect ratio
+    // For vertical images: ratio < 1/threshold
+    if (aspectRatio < 1 / GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD) {
         return GALLERY_CONFIG.GRID_SPANS.VERTICAL;
     }
-
+    // For horizontal images: ratio > threshold
+    if (aspectRatio > GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD) {
+        return GALLERY_CONFIG.GRID_SPANS.HORIZONTAL;
+    }
+    // For square-ish images
     return GALLERY_CONFIG.GRID_SPANS.SQUARE;
 };
 

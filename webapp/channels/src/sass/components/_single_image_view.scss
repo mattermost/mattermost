@@ -109,6 +109,7 @@
             }
 
             .image-loaded-container {
+                display: inline-flex;
                 overflow: hidden;
                 height: 100%;
                 border-radius: 4px;
@@ -118,9 +119,10 @@
                 }
 
                 img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
+                    width: auto;
+                    height: auto;
+                    max-width: 100%;
+                    object-fit: contain;
 
                     &.small-image--inside-container {
                         width: auto;

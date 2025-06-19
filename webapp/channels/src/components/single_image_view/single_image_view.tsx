@@ -106,20 +106,19 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         };
 
         if (imageWidth > 0 && imageHeight > 0) {
-            // First check if we need to scale based on width
-            const maxWidth = Math.min(1024, viewPortWidth - 50); // Maximum width we want to allow, accounting for viewport
-            let widthRatio = 1;
-            if (imageWidth > maxWidth) {
-                widthRatio = maxWidth / imageWidth;
-                dimensions.width = maxWidth;
-                dimensions.height = imageHeight * widthRatio;
+            // First check if we need to scale based on height for tall images
+            if (imageHeight > MAX_HEIGHT) {
+                const heightRatio = MAX_HEIGHT / imageHeight;
+                dimensions.height = MAX_HEIGHT;
+                dimensions.width = Math.round(imageWidth * heightRatio);
             }
 
-            // Then check if we still need to scale based on height
-            if (dimensions.height > MAX_HEIGHT) {
-                const heightRatio = MAX_HEIGHT / dimensions.height;
-                dimensions.height = MAX_HEIGHT;
-                dimensions.width = dimensions.width * heightRatio;
+            // Then check if we still need to scale based on width
+            const maxWidth = Math.min(1024, viewPortWidth - 50);
+            if (dimensions.width > maxWidth) {
+                const widthRatio = maxWidth / dimensions.width;
+                dimensions.width = maxWidth;
+                dimensions.height = Math.round(dimensions.height * widthRatio);
             }
         }
 

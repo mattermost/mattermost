@@ -243,34 +243,10 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         const fileType = getFileType(fileInfo?.extension ?? '');
 
-        // Calculate scaling while maintaining aspect ratio
-        const imageHeight = dimensions?.height ?? 0;
-        const imageWidth = dimensions?.width ?? 0;
-        let scaledWidth = imageWidth;
-        let scaledHeight = imageHeight;
-
-        if (imageWidth > 0 && imageHeight > 0) {
-            // First check if we need to scale based on width
-            const maxWidth = 1024; // Maximum width we want to allow
-            let widthRatio = 1;
-            if (imageWidth > maxWidth) {
-                widthRatio = maxWidth / imageWidth;
-                scaledWidth = maxWidth;
-                scaledHeight = imageHeight * widthRatio;
-            }
-
-            // Then check if we still need to scale based on height
-            if (scaledHeight > MAX_IMAGE_HEIGHT) {
-                const heightRatio = MAX_IMAGE_HEIGHT / scaledHeight;
-                scaledHeight = MAX_IMAGE_HEIGHT;
-                scaledWidth = scaledWidth * heightRatio;
-            }
-        }
-
         let conditionalSVGStyleAttribute;
         if (fileType === FileTypes.SVG) {
             conditionalSVGStyleAttribute = {
-                width: scaledWidth || MIN_IMAGE_SIZE,
+                width: '100%',
                 height: 'auto',
             };
         }
@@ -288,10 +264,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 onLoad={this.handleLoad}
                 style={{
                     ...conditionalSVGStyleAttribute,
-                    width: handleSmallImageContainer && this.state.isSmallImage ? scaledWidth : scaledWidth || undefined,
-                    height: handleSmallImageContainer && this.state.isSmallImage ? scaledHeight : scaledHeight || undefined,
-                    maxWidth: '100%',
-                    // Do NOT set minWidth/minHeight on the image itself
+                    objectFit: 'cover',
                 }}
             />
         );

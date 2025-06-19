@@ -7,8 +7,8 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
     style={
       Object {
         "height": 200,
-        "minHeight": 48,
-        "minWidth": 48,
+        "minHeight": 50,
+        "minWidth": 50,
         "width": 300,
       }
     }
@@ -58,8 +58,8 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
     style={
       Object {
         "height": 200,
-        "minHeight": 48,
-        "minWidth": 48,
+        "minHeight": 50,
+        "minWidth": 50,
         "width": 300,
       }
     }
@@ -84,20 +84,52 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
       }
     }
   >
-    <figure
-      className="image-loaded-container"
+    <div
+      className="small-image__container"
+      style={
+        Object {
+          "alignItems": "center",
+          "display": "flex",
+          "justifyContent": "center",
+          "maxHeight": 350,
+          "maxWidth": "100%",
+          "minHeight": 50,
+          "minWidth": 50,
+        }
+      }
     >
-      <img
-        aria-label="file thumbnail photo-1533709752211-118fcaf03312"
-        className="class"
-        onClick={[Function]}
-        onError={[Function]}
-        onKeyDown={[Function]}
-        onLoad={[Function]}
-        src="https://example.com/image.png"
-        tabIndex={0}
-      />
-    </figure>
+      <figure
+        className="image-loaded-container"
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "height": "100%",
+            "justifyContent": "center",
+            "margin": 0,
+            "width": "100%",
+          }
+        }
+      >
+        <img
+          aria-label="file thumbnail photo-1533709752211-118fcaf03312"
+          className="class small-image--inside-container"
+          onClick={[Function]}
+          onError={[Function]}
+          onKeyDown={[Function]}
+          onLoad={[Function]}
+          src="https://example.com/image.png"
+          style={
+            Object {
+              "height": 200,
+              "maxWidth": "100%",
+              "width": 300,
+            }
+          }
+          tabIndex={0}
+        />
+      </figure>
+    </div>
   </div>
 </Fragment>
 `;
@@ -109,8 +141,8 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
     style={
       Object {
         "height": 200,
-        "minHeight": 48,
-        "minWidth": 48,
+        "minHeight": 50,
+        "minWidth": 50,
         "width": 300,
       }
     }
@@ -160,6 +192,13 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
+        style={
+          Object {
+            "height": 200,
+            "maxWidth": "100%",
+            "width": 300,
+          }
+        }
         tabIndex={0}
       />
     </figure>

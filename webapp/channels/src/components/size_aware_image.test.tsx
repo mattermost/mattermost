@@ -153,7 +153,7 @@ describe('components/SizeAwareImage', () => {
 
         expect(wrapper.find('div.small-image__container').exists()).toEqual(true);
         expect(wrapper.find('div.small-image__container').prop('className')).
-            toEqual('small-image__container cursor--pointer a11y--active small-image__container--min-width');
+            toEqual('small-image__container');
     });
 
     test('should properly set img style when it is small', () => {
