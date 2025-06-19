@@ -12,6 +12,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
+import type {ProviderResult} from 'components/suggestion/provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
@@ -26,13 +27,6 @@ import * as Utils from 'utils/utils';
 import type {RhsState} from 'types/store/rhs';
 
 const CHANNEL_MODE = 'channel';
-
-type ProviderSuggestions = {
-    matchedPretext: any;
-    terms: string[];
-    items: any[];
-    component: React.ReactNode;
-};
 
 export type Props = WrappedComponentProps & {
     onExited: () => void;
@@ -147,12 +141,12 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
         }
     };
 
-    private handleSuggestionsReceived = (suggestions: ProviderSuggestions): void => {
-        const loadingPropPresent = suggestions.items.some((item: any) => item.loading);
+    private handleSuggestionsReceived = (suggestions: ProviderResult<unknown>): void => {
+        const loadingPropPresent = suggestions.groups.some((group) => 'loading' in group);
         this.setState({
             shouldShowLoadingSpinner: loadingPropPresent,
             pretext: suggestions.matchedPretext,
-            hasSuggestions: suggestions.items.length > 0,
+            hasSuggestions: suggestions.groups.some((group) => 'items' in group && group.items.length > 0),
         });
     };
 

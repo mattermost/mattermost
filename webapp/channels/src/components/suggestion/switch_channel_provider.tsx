@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessages, injectIntl} from 'react-intl';
+import {defineMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
@@ -66,7 +66,7 @@ import * as Utils from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import Provider from './provider';
-import type {ResultsCallback} from './provider';
+import type {ProviderResult, ResultsCallback, SuggestionGroup} from './provider';
 import {SuggestionContainer} from './suggestion';
 import type {SuggestionProps} from './suggestion';
 
@@ -457,9 +457,9 @@ export default class SwitchChannelProvider extends Provider {
             let channels = getChannelsInAllTeams(this.store.getState()).concat(getDirectAndGroupChannels(this.store.getState())).filter((c) => c.delete_at === 0);
             channels = this.removeChannelsFromArchivedTeams(channels);
             const users = searchProfilesMatchingWithTerm(this.store.getState(), channelPrefix, false);
-            const formattedData = this.formatList(channelPrefix, [ThreadsChannel, ...channels], users, true, true);
+            const formattedData = this.formatGroup(channelPrefix, [ThreadsChannel, ...channels], users, true);
             if (formattedData) {
-                resultsCallback(formattedData);
+                resultsCallback(this.initialFilteredList(channelPrefix, formattedData));
             }
 
             // Fetch data from the server and dispatch
@@ -469,6 +469,32 @@ export default class SwitchChannelProvider extends Provider {
         }
 
         return true;
+    }
+
+    private initialFilteredList(channelPrefix: string, {items, terms}: {items: WrappedChannel[]; terms: string[]}): ProviderResult<WrappedChannel> {
+        let groups: Array<SuggestionGroup<WrappedChannel>>;
+
+        if (items) {
+            groups = [{
+                hideLabel: true,
+                key: 'channels',
+                label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
+                items,
+                terms,
+            }];
+        } else {
+            groups = [{
+                key: 'moreChannels',
+                label: defineMessage({id: 'suggestion.mention.morechannels', defaultMessage: 'Other Channels'}),
+                loading: true,
+            }];
+        }
+
+        return {
+            matchedPretext: channelPrefix,
+            groups,
+            component: ConnectedSwitchChannelSuggestion,
+        };
     }
 
     async fetchUsersAndChannels(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
@@ -511,12 +537,12 @@ export default class SwitchChannelProvider extends Provider {
         let localChannelData = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state)).filter((c) => c.delete_at === 0) || [];
         localChannelData = this.removeChannelsFromArchivedTeams(localChannelData);
         const localUserData = searchProfilesMatchingWithTerm(state, channelPrefix, false);
-        const localFormattedData = this.formatList(channelPrefix, [ThreadsChannel, ...localChannelData], localUserData);
+        const localFormattedData = this.formatGroup(channelPrefix, [ThreadsChannel, ...localChannelData], localUserData);
         let remoteChannelData = channelsFromServer.concat(getGroupChannels(state)) || [];
         remoteChannelData = this.removeChannelsFromArchivedTeams(remoteChannelData);
 
         const remoteUserData = usersFromServer.users || [];
-        const remoteFormattedData = this.formatList(channelPrefix, remoteChannelData, remoteUserData, false);
+        const remoteFormattedData = this.formatGroup(channelPrefix, remoteChannelData, remoteUserData, false);
 
         this.store.dispatch({
             type: UserTypes.RECEIVED_PROFILES_LIST,
@@ -526,9 +552,15 @@ export default class SwitchChannelProvider extends Provider {
         const combinedItems = [...localFormattedData.items, ...remoteFormattedData.items.filter((item: any) => !localFormattedData.terms.includes((item.channel as FakeDirectChannel).userId || item.channel.id))];
 
         resultsCallback({
-            ...localFormattedData,
-            items: combinedItems,
-            terms: combinedTerms,
+            matchedPretext: channelPrefix,
+            groups: [{
+                hideLabel: true,
+                key: 'channels',
+                label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
+                items: combinedItems,
+                terms: combinedTerms,
+            }],
+            component: ConnectedSwitchChannelSuggestion,
         });
     }
 
@@ -571,7 +603,7 @@ export default class SwitchChannelProvider extends Provider {
         };
     }
 
-    formatList(channelPrefix: string, allChannels: ChannelItem[], users: UserProfile[], skipNotMember = true, localData = false) {
+    formatGroup(channelPrefix: string, allChannels: ChannelItem[], users: UserProfile[], skipNotMember = true) {
         const channels = [];
 
         const members = getMyChannelMemberships(this.store.getState());
@@ -693,18 +725,9 @@ export default class SwitchChannelProvider extends Provider {
                 return wrappedChannel.channel.id;
             });
 
-        if (localData && !channels.length) {
-            channels.push({
-                type: Constants.MENTION_MORE_CHANNELS,
-                loading: true,
-            });
-        }
-
         return {
-            matchedPretext: channelPrefix,
-            terms: channelNames,
             items: channels,
-            component: ConnectedSwitchChannelSuggestion,
+            terms: channelNames,
         };
     }
 
@@ -744,12 +767,22 @@ export default class SwitchChannelProvider extends Provider {
         if (threadsItem) {
             sortedUnreadChannels = [threadsItem, ...sortedUnreadChannels].slice(0, 5);
         }
-        const sortedChannels = [...sortedUnreadChannels, ...sortedRecentChannels];
-        const channelNames = sortedChannels.map((wrappedChannel) => wrappedChannel.channel.id);
         resultsCallback({
             matchedPretext: '',
-            terms: channelNames,
-            items: sortedChannels,
+            groups: [
+                {
+                    key: 'recent',
+                    label: defineMessage({id: 'suggestion.mention.recent.channels', defaultMessage: 'Recent'}),
+                    terms: sortedRecentChannels.map((wrappedChannel) => wrappedChannel.channel.id),
+                    items: sortedRecentChannels,
+                },
+                {
+                    key: 'unread',
+                    label: defineMessage({id: 'suggestion.mention.unread', defaultMessage: 'Unread'}),
+                    terms: sortedUnreadChannels.map((wrappedChannel) => wrappedChannel.channel.id),
+                    items: sortedUnreadChannels,
+                },
+            ],
             component: ConnectedSwitchChannelSuggestion,
         });
     }
@@ -864,28 +897,14 @@ export default class SwitchChannelProvider extends Provider {
 
         resultsCallback({
             matchedPretext: '',
-            terms: channelNames,
-            items: sortedChannels,
+            groups: [{
+                hideLabel: true,
+                key: 'channels',
+                label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
+                items: sortedChannels,
+                terms: channelNames,
+            }],
             component: ConnectedSwitchChannelSuggestion,
         });
     }
 }
-
-defineMessages({
-    moreChannels: {
-        id: 'suggestion.mention.morechannels',
-        defaultMessage: 'Other Channels',
-    },
-    privateChannelsDivider: {
-        id: 'suggestion.mention.private.channels',
-        defaultMessage: 'Private Channels',
-    },
-    recentChannels: {
-        id: 'suggestion.mention.recent.channels',
-        defaultMessage: 'Recent',
-    },
-    unreadChannels: {
-        id: 'suggestion.mention.unread',
-        defaultMessage: 'Unread',
-    },
-});
