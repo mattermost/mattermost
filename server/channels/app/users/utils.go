@@ -51,6 +51,7 @@ func (us *UserService) GetSanitizeOptions(asAdmin bool) map[string]bool {
 		options["email"] = true
 		options["fullname"] = true
 		options["authservice"] = true
+		options["authdata"] = true
 	}
 	return options
 }
