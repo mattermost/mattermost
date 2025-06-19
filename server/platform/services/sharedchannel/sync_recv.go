@@ -486,12 +486,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
 		}
 
-		// Create mention map to resolve mentions to user IDs
-		sc, _ := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
-		if sc != nil {
-			mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
-			scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
-		}
+		scs.handleMentionTransformation(rctx, post, targetChannel, rc)
 
 		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
 		if appErr == nil {
@@ -510,12 +505,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			)
 		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.UpdateAt > rpost.UpdateAt || post.Metadata != nil {
-		// Handle mention transformation for ALL sync messages, not just message changes
-		sc, err := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
-		if err == nil && sc != nil {
-			mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
-			scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
-		}
+		scs.handleMentionTransformation(rctx, post, targetChannel, rc)
 		var priority *model.PostPriority
 		var acknowledgements []*model.PostAcknowledgement
 
@@ -548,13 +538,6 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			rpost = scs.syncRemoteAcknowledgementsMetadata(rctx, post, acknowledgements, rpost)
 		}
 	} else {
-		// Even when no update is needed, we should still transform mentions for cross-cluster display
-		sc, err := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
-		if err == nil && sc != nil {
-			mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
-			scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
-		}
-
 		// nothing to update
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Update to sync post ignored",
 			mlog.String("post_id", post.Id),
@@ -715,6 +698,65 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 	return savedReaction, retErr
 }
 
+// handleMentionTransformation handles mention transformation with shared channel lookup
+func (scs *Service) handleMentionTransformation(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) {
+	sc, err := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
+	if err == nil && sc != nil {
+		mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
+		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
+	}
+}
+
+// parseMentionWithColon extracts username and cluster suffix from @user:cluster format
+func parseMentionWithColon(mention string) (username, suffix string, valid bool) {
+	parts := strings.Split(mention, ":")
+	if len(parts) == 2 {
+		return parts[0], parts[1], true
+	}
+	return "", "", false
+}
+
+// isLocalUser checks if a user exists locally (not remote)
+func (scs *Service) isLocalUser(username string) (*model.User, bool) {
+	if user, err := scs.server.GetStore().User().GetByUsername(username); err == nil && user != nil && user.GetRemoteID() == "" {
+		return user, true
+	}
+	return nil, false
+}
+
+// transformColonMention handles @user:cluster format mentions
+func (scs *Service) transformColonMention(mention, ourClusterName string, user *model.User) string {
+	username, suffix, valid := parseMentionWithColon(mention)
+	if !valid {
+		return mention
+	}
+
+	if suffix == ourClusterName && user.GetRemoteID() == "" {
+		// User from our cluster - display without suffix
+		return "@" + username
+	}
+	// Not our cluster or no local user - display as plain text
+	return mention
+}
+
+// transformSimpleMention handles @user format mentions
+func (scs *Service) transformSimpleMention(mention string, user *model.User, userID string, rc *model.RemoteCluster) string {
+	if user.GetRemoteID() == "" {
+		// Local user - check if there's a collision
+		if localUser, exists := scs.isLocalUser(mention); exists && localUser.Id != userID {
+			// Different local user with same username - add sender cluster suffix
+			return "@" + mention + ":" + rc.Name
+		}
+		// Same user ID - display normally
+		return "@" + user.Username
+	} else if user.GetRemoteID() == rc.RemoteId {
+		// User synced from sender with same ID - display normally
+		return "@" + user.Username
+	}
+	// Different remote user - display with cluster suffix
+	return "@" + user.Username
+}
+
 // transformMentionsOnReceive transforms mentions in received posts to ensure proper display
 // on the receiving cluster using user ID-based resolution.
 func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionMap model.UserMentionMap) {
@@ -734,37 +776,9 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 			var replacement string
 
 			if strings.Contains(mention, ":") {
-				// Case B: "@user:org" format - check if it's from our cluster
-				parts := strings.Split(mention, ":")
-				if len(parts) == 2 {
-					baseUsername, suffix := parts[0], parts[1]
-					if suffix == *ourClusterName && user.GetRemoteID() == "" {
-						// Case B1: User from our cluster - display without suffix
-						replacement = "@" + baseUsername
-					} else {
-						// Case B2: Not our cluster or no local user - display as plain text
-						replacement = mention
-					}
-				} else {
-					replacement = mention
-				}
+				replacement = scs.transformColonMention(mention, *ourClusterName, user)
 			} else {
-				// Case A: "@user" format (originally local from sender)
-				if user.GetRemoteID() == "" {
-					// Case A1: Local user with different ID - add sender cluster suffix
-					if localUser, err := scs.server.GetStore().User().GetByUsername(mention); err == nil && localUser != nil && localUser.Id != userID {
-						replacement = "@" + mention + ":" + rc.Name
-					} else {
-						// Case A2: Same user ID - display normally
-						replacement = "@" + user.Username
-					}
-				} else if user.GetRemoteID() == rc.RemoteId {
-					// Case A2: User synced from sender with same ID - display normally
-					replacement = "@" + user.Username
-				} else {
-					// Different remote user - display with cluster suffix
-					replacement = "@" + user.Username
-				}
+				replacement = scs.transformSimpleMention(mention, user, userID, rc)
 			}
 
 			post.Message = strings.ReplaceAll(post.Message, "@"+mention, replacement)
@@ -781,27 +795,23 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		}
 
 		if strings.Contains(mention, ":") {
-			// Case B: "@user:org" format not in mentionMap
-			parts := strings.Split(mention, ":")
-			if len(parts) == 2 {
-				baseUsername, suffix := parts[0], parts[1]
-				if suffix == *ourClusterName {
-					// Check if user exists locally
-					if localUser, err := scs.server.GetStore().User().GetByUsername(baseUsername); err == nil && localUser != nil && localUser.GetRemoteID() == "" {
-						// Case B1: Local user exists - display without suffix
-						return "@" + baseUsername
-					}
+			username, suffix, valid := parseMentionWithColon(mention)
+			if valid && suffix == *ourClusterName {
+				if _, exists := scs.isLocalUser(username); exists {
+					// Local user exists - display without suffix
+					return "@" + username
 				}
 			}
-			// Case B2: No local user or different cluster - keep original mention
+			// No local user or different cluster - keep original mention
 			return match
 		}
-		// Case A: "@user" format not in mentionMap
-		if localUser, err := scs.server.GetStore().User().GetByUsername(mention); err == nil && localUser != nil && localUser.GetRemoteID() == "" {
-			// Case A1: Local user exists - add sender cluster suffix
+
+		// Simple @user format not in mentionMap
+		if _, exists := scs.isLocalUser(mention); exists {
+			// Local user exists - add sender cluster suffix
 			return "@" + mention + ":" + rc.Name
 		}
-		// Case A3: No local user - display as plain text
+		// No local user - display as plain text
 		return mention
 	})
 }
