@@ -17,7 +17,6 @@ import (
 func TestMessageExportJobEnabled(t *testing.T) {
 	t.Run("MessageExport job is enabled only if feature is enabled", func(t *testing.T) {
 		th := api4.SetupEnterpriseWithStoreMock(t)
-		defer th.TearDown()
 
 		th.Server.SetLicense(model.NewTestLicense("message_export"))
 
@@ -35,7 +34,6 @@ func TestMessageExportJobEnabled(t *testing.T) {
 
 	t.Run("MessageExport job is disabled if there is no license", func(t *testing.T) {
 		th := api4.SetupEnterpriseWithStoreMock(t)
-		defer th.TearDown()
 
 		th.Server.SetLicense(nil)
 
@@ -54,7 +52,6 @@ func TestMessageExportJobEnabled(t *testing.T) {
 
 func TestMessageExportJobPending(t *testing.T) {
 	th := api4.SetupEnterpriseWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Platform().Store.(*mocks.Store)
 	mockUserStore := mocks.UserStore{}

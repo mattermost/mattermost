@@ -139,7 +139,6 @@ func (h *testHelper) SetAutoConfig(autoConfig bool) {
 
 // TearDown cleans up temporary files and assets created during the life of the test helper.
 func (h *testHelper) TearDown() {
-	h.TestHelper.TearDown()
 	os.RemoveAll(h.tempDir)
 }
 

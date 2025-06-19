@@ -38,7 +38,6 @@ func TestCreatePost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	basicPost := func() *model.Post {
@@ -310,7 +309,6 @@ func TestCreatePostForPriority(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
@@ -484,7 +482,6 @@ func TestCreatePostForPriority(t *testing.T) {
 func TestCreatePostWithOAuthClient(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	originalOAuthSetting := *th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -554,7 +551,6 @@ func TestCreatePostEphemeral(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.SystemAdminClient
 
 	ephemeralPost := &model.PostEphemeral{
@@ -594,7 +590,6 @@ func testCreatePostWithOutgoingHook(
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	user := th.SystemAdminUser
 	team := th.BasicTeam
 	channel := th.BasicChannel
@@ -818,7 +813,6 @@ func TestMoveThread(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_MOVETHREADSENABLED", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_MOVETHREADSENABLED")
 	th := SetupEnterprise(t).InitBasic(t)
-	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
@@ -1153,7 +1147,6 @@ func TestCreatePostPublic(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
@@ -1212,7 +1205,6 @@ func TestCreatePostAll(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
@@ -1280,7 +1272,6 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	WebSocketClient := th.CreateConnectedWebSocketClient(t)
@@ -1344,7 +1335,6 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	api, err := Init(th.Server)
 	require.NoError(t, err)
@@ -1412,7 +1402,6 @@ func TestUpdatePost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -1767,7 +1756,6 @@ func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 	// channel without a team (DM/GM). This indirectly checks for the proper cascading all the way to system-wide roles
 	// on the user object of permissions based on a post in a channel with no team ID.
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	dmChannel := th.CreateDmChannel(t, th.SystemAdminUser)
 
@@ -1791,7 +1779,6 @@ func TestPatchPost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -2119,7 +2106,6 @@ func TestPinPost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	post := th.BasicPost
@@ -2152,7 +2138,6 @@ func TestUnpinPost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	pinnedPost := th.CreatePinnedPost()
@@ -2185,7 +2170,6 @@ func TestGetPostsForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	post1 := th.CreatePost()
@@ -2430,7 +2414,6 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 	user := th.BasicUser
 	team1 := th.BasicTeam
@@ -2638,7 +2621,6 @@ func TestGetPostsBefore(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	post1 := th.CreatePost()
@@ -2807,7 +2789,6 @@ func TestGetPostsAfter(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	post1 := th.CreatePost()
@@ -2957,7 +2938,6 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 	userId := th.BasicUser.Id
 	channelId := th.BasicChannel.Id
@@ -3212,7 +3192,6 @@ func TestGetPost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	// TODO: migrate this entirely to the subtest's client
 	// once the other methods are migrated too.
 	client := th.Client
@@ -3313,7 +3292,6 @@ func TestDeletePost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("Post not found", func(t *testing.T) {
@@ -3371,7 +3349,6 @@ func TestPermanentDeletePost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	enableAPIPostDeletion := *th.App.Config().ServiceSettings.EnableAPIPostDeletion
@@ -3455,7 +3432,6 @@ func TestWebHubMembership(t *testing.T) {
 		th := SetupConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableWebHubChannelIteration = true
 		}).InitBasic(t)
-		defer th.TearDown()
 
 		_testWebHubMembership(th, t)
 	})
@@ -3464,7 +3440,6 @@ func TestWebHubMembership(t *testing.T) {
 		mainHelper.Parallel(t)
 
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		_testWebHubMembership(th, t)
 	})
@@ -3597,7 +3572,6 @@ func TestWebHubCloseConnOnDBFail(t *testing.T) {
 		*cfg.ServiceSettings.EnableWebHubChannelIteration = true
 	}).InitBasic(t)
 	defer func() {
-		th.TearDown()
 		_, err := th.Server.Store().GetInternalMasterDB().Exec(`ALTER TABLE dummy RENAME to ChannelMembers`)
 		require.NoError(t, err)
 		// Asserting that the error message is present in the log
@@ -3629,7 +3603,6 @@ func TestDeletePostEvent(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
@@ -3656,13 +3629,11 @@ func TestDeletePostEvent(t *testing.T) {
 
 func TestDeletePostMessage(t *testing.T) {
 	mainHelper.Parallel(t)
-
 	th := Setup(t).InitBasic(t)
+
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 	_, appErr := th.App.AddUserToChannel(th.Context, th.SystemAdminUser, th.BasicChannel, false)
 	require.Nil(t, appErr)
-
-	defer th.TearDown()
 
 	testCases := []struct {
 		description string
@@ -3706,7 +3677,6 @@ func TestGetPostThread(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", RootId: th.BasicPost.Id}
@@ -3837,7 +3807,6 @@ func TestSearchPosts(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -3991,7 +3960,6 @@ func TestSearchHashtagPosts(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	th.LoginBasic()
 	client := th.Client
 
@@ -4019,7 +3987,6 @@ func TestSearchPostsInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	th.LoginBasic()
 	client := th.Client
 
@@ -4075,7 +4042,6 @@ func TestSearchPostsFromUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	th.LoginTeamAdmin()
@@ -4145,7 +4111,6 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	th.LoginBasic()
 	client := th.Client
 
@@ -4198,7 +4163,6 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 func TestGetFileInfosForPost(t *testing.T) {
 	t.Skip("MM-46902")
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	fileIds := make([]string, 3)
@@ -4290,7 +4254,6 @@ func TestSetChannelUnread(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
@@ -4466,7 +4429,6 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -4563,7 +4525,6 @@ func TestGetPostsByIds(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	post1 := th.CreatePost()
@@ -4589,7 +4550,6 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	post := &model.Post{
@@ -4711,7 +4671,6 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	rpost := th.CreatePost()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -4864,7 +4823,6 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	post := &model.Post{
@@ -4918,7 +4876,6 @@ func TestPostReminder(t *testing.T) {
 	t.Skip("MM-60329")
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	client := th.Client
 	userWSClient := th.CreateConnectedWebSocketClient(t)
@@ -4977,7 +4934,6 @@ func TestPostGetInfo(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	defaultPerms := th.SaveDefaultRolePermissions()
 	defer th.RestoreDefaultRolePermissions(defaultPerms)
@@ -5248,7 +5204,6 @@ func TestAcknowledgePost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 	client := th.Client
 
@@ -5291,7 +5246,6 @@ func TestUnacknowledgePost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 	client := th.Client
 
@@ -5338,7 +5292,6 @@ func TestRestorePostVersion(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("should restore post version successfully", func(t *testing.T) {

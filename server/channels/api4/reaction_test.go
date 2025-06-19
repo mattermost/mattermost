@@ -17,7 +17,6 @@ import (
 func TestSaveReaction(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 	userId := th.BasicUser.Id
 	postId := th.BasicPost.Id
@@ -198,7 +197,6 @@ func TestSaveReaction(t *testing.T) {
 func TestGetReactions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 	userId := th.BasicUser.Id
 	user2Id := th.BasicUser2.Id
@@ -282,7 +280,6 @@ func TestGetReactions(t *testing.T) {
 func TestDeleteReaction(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 	userId := th.BasicUser.Id
 	user2Id := th.BasicUser2.Id
@@ -524,7 +521,6 @@ func TestDeleteReaction(t *testing.T) {
 func TestGetBulkReactions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 	userId := th.BasicUser.Id
 	user2Id := th.BasicUser2.Id

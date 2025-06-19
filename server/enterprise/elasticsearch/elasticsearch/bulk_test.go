@@ -15,7 +15,6 @@ import (
 
 func TestBulkProcessor(t *testing.T) {
 	th := api4.SetupEnterprise(t)
-	defer th.TearDown()
 
 	client := createTestClient(t, th.Context, th.App.Config(), th.App.FileBackend())
 	bulk := NewBulk(th.App.Config().ElasticsearchSettings,

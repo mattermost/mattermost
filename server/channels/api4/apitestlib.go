@@ -457,10 +457,6 @@ func (th *TestHelper) ShutdownApp() {
 	}
 }
 
-func (th *TestHelper) TearDown() {
-
-}
-
 func closeBody(r *http.Response) {
 	if r.Body != nil {
 		_, _ = io.Copy(io.Discard, r.Body)

@@ -17,7 +17,6 @@ import (
 func TestGetUserStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("offline status", func(t *testing.T) {
@@ -105,7 +104,6 @@ func TestGetUserStatus(t *testing.T) {
 func TestGetUsersStatusesByIds(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	usersIds := []string{th.BasicUser.Id, th.BasicUser2.Id}
@@ -189,7 +187,6 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 func TestUpdateUserStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("set online status", func(t *testing.T) {
@@ -254,7 +251,6 @@ func TestUpdateUserStatus(t *testing.T) {
 func TestUpdateUserCustomStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("set custom status", func(t *testing.T) {
@@ -357,7 +353,6 @@ func TestUpdateUserCustomStatus(t *testing.T) {
 func TestRemoveUserCustomStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("remove custom status successfully", func(t *testing.T) {

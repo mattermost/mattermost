@@ -21,7 +21,6 @@ import (
 func TestWebSocket(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.NoError(t, err)
 	defer WebSocketClient.Close()

@@ -15,7 +15,6 @@ import (
 func TestAPIRestrictedViewMembers(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Create first account for system admin
 	_, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user0", Password: "test-password-0", Username: "test-user-0", Roles: model.SystemUserRoleId})

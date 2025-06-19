@@ -15,7 +15,6 @@ import (
 func TestBlevePurgeIndexes(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
 		resp, err := th.Client.PurgeBleveIndexes(context.Background())

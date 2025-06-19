@@ -19,7 +19,6 @@ import (
 func TestDataRetentionGetPolicy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	_, resp, err := th.Client.GetDataRetentionPolicy(context.Background())
 	require.Error(t, err)
@@ -29,7 +28,6 @@ func TestDataRetentionGetPolicy(t *testing.T) {
 func TestGetPolicies(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
@@ -116,7 +114,6 @@ func TestGetPolicies(t *testing.T) {
 func TestGetDataRetentionPoliciesCount(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
@@ -164,7 +161,6 @@ func TestGetDataRetentionPoliciesCount(t *testing.T) {
 func TestGetPolicy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
@@ -250,7 +246,6 @@ func TestGetPolicy(t *testing.T) {
 func TestCreatePolicy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
 	require.True(t, ok, "SetLicense should return true")
@@ -347,7 +342,6 @@ func TestCreatePolicy(t *testing.T) {
 func TestPatchPolicy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
@@ -463,7 +457,6 @@ func TestPatchPolicy(t *testing.T) {
 func TestDeletePolicy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
@@ -531,7 +524,6 @@ func TestDeletePolicy(t *testing.T) {
 func TestGetTeamPoliciesForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
@@ -617,7 +609,6 @@ func TestGetTeamPoliciesForUser(t *testing.T) {
 func TestGetChannelPoliciesForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
@@ -703,7 +694,6 @@ func TestGetChannelPoliciesForUser(t *testing.T) {
 func TestGetTeamsForPolicy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
@@ -794,7 +784,6 @@ func TestGetTeamsForPolicy(t *testing.T) {
 func TestAddTeamsToPolicy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
@@ -865,7 +854,6 @@ func TestAddTeamsToPolicy(t *testing.T) {
 func TestRemoveTeamsFromPolicy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
@@ -936,7 +924,6 @@ func TestRemoveTeamsFromPolicy(t *testing.T) {
 func TestGetChannelsForPolicy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
@@ -1037,7 +1024,6 @@ func TestGetChannelsForPolicy(t *testing.T) {
 func TestAddChannelsToPolicy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
@@ -1157,7 +1143,6 @@ func TestAddChannelsToPolicy(t *testing.T) {
 func TestRemoveChannelsFromPolicy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
 	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))

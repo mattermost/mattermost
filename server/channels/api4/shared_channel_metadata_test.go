@@ -116,7 +116,6 @@ func createSharedChannelSetup(t *testing.T, th *TestHelper, service *sharedchann
 
 func TestSharedChannelPostMetadataSync(t *testing.T) {
 	th, service := setupTestEnvironment(t)
-	defer th.TearDown()
 
 	t.Run("Post Priority Metadata Self-Referential Sync", func(t *testing.T) {
 		t.Skip("MM-64687")

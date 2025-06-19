@@ -48,7 +48,6 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 
 	t.Run("no permissions", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		session := model.Session{
 			Id:     model.NewId(),
@@ -66,7 +65,6 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 
 	t.Run("with management permissions", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		session := model.Session{
 			Id:     model.NewId(),
@@ -89,7 +87,6 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 
 	t.Run("with slash command management permissions", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		session := model.Session{
 			Id:     model.NewId(),
@@ -109,7 +106,6 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 
 	t.Run("with outgoing webhooks management permissions", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		session := model.Session{
 			Id:     model.NewId(),
@@ -133,7 +129,6 @@ func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
 
 	t.Run("no permissions", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		session := model.Session{
 			Id:     model.NewId(),
@@ -151,7 +146,6 @@ func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
 
 	t.Run("with permissions", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		session := model.Session{
 			Id:     model.NewId(),
@@ -179,7 +173,6 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION", "true")
 		defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION")
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 		defaultRolePermissions := th.SaveDefaultRolePermissions()
 		defer func() {
 			th.RestoreDefaultRolePermissions(defaultRolePermissions)
@@ -209,7 +202,6 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 
 	t.Run("license but no config enabled returns 501", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		defaultRolePermissions := th.SaveDefaultRolePermissions()
 		defer func() {
@@ -252,7 +244,6 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
@@ -456,7 +447,6 @@ func TestClientGetOutgoingOAuthConnection(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	defer func() {
 		appErr := th.App.Srv().RemoveLicense()
 		require.Nil(t, appErr)
@@ -533,7 +523,6 @@ func TestClientCreateOutgoingOAuthConnection(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	defer func() {
 		appErr := th.App.Srv().RemoveLicense()
 		require.Nil(t, appErr)
@@ -611,7 +600,6 @@ func TestClientUpdateOutgoingOAuthConnection(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	defer func() {
 		appErr := th.App.Srv().RemoveLicense()
 		require.Nil(t, appErr)
@@ -695,7 +683,6 @@ func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	defer func() {
 		appErr := th.App.Srv().RemoveLicense()
 		require.Nil(t, appErr)
@@ -772,7 +759,6 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 
 	t.Run("no feature flag, no interface, no license", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		c := &Context{}
 		c.AppContext = th.Context
@@ -787,7 +773,6 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 
 	t.Run("config, no interface, no license", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
 		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewPointer(true)
@@ -808,7 +793,6 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 
 	t.Run("feature flag, interface defined, no license", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
@@ -831,7 +815,6 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 
 	t.Run("feature flag, interface defined, valid license", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
@@ -868,7 +851,6 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
@@ -996,7 +978,6 @@ func TestHandlerOutgoingOAuthConnectionListReadOnly(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
@@ -1095,7 +1076,6 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
@@ -1310,7 +1290,6 @@ func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
@@ -1461,7 +1440,6 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"

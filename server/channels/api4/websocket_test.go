@@ -23,7 +23,6 @@ import (
 func TestWebSocketTrailingSlash(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
 	_, _, err := websocket.DefaultDialer.Dial(url+model.APIURLSuffix+"/websocket/", nil)
@@ -33,7 +32,6 @@ func TestWebSocketTrailingSlash(t *testing.T) {
 func TestWebSocketEvent(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
@@ -99,7 +97,6 @@ func TestWebSocketEvent(t *testing.T) {
 func TestCreateDirectChannelWithSocket(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	client := th.Client
 	user2 := th.BasicUser2
@@ -155,7 +152,6 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 func TestWebsocketOriginSecurity(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
 
@@ -206,7 +202,6 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 func TestWebSocketReconnectRace(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.NoError(t, err)
@@ -241,7 +236,6 @@ func TestWebSocketReconnectRace(t *testing.T) {
 func TestWebSocketSendBinary(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	client := th.CreateClient()
 	th.LoginBasicWithClient(client)
@@ -281,7 +275,6 @@ func TestWebSocketSendBinary(t *testing.T) {
 func TestWebSocketStatuses(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	client := th.Client
 	WebSocketClient := th.CreateConnectedWebSocketClient(t)
@@ -421,7 +414,6 @@ func TestWebSocketStatuses(t *testing.T) {
 func TestWebSocketPresence(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	wsClient := th.CreateConnectedWebSocketClient(t)
 
@@ -452,7 +444,6 @@ func TestWebSocketPresence(t *testing.T) {
 func TestWebSocketUpgrade(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	buffer := &mlog.Buffer{}
 	err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)

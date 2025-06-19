@@ -34,7 +34,6 @@ import (
 func TestPlugin(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		statesJson, err := json.Marshal(th.App.Config().PluginSettings.PluginStates)
@@ -289,7 +288,6 @@ func TestPlugin(t *testing.T) {
 func TestNotifyClusterPluginEvent(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	testCluster := &testlib.FakeClusterInterface{}
 	th.Server.Platform().SetCluster(testCluster)
@@ -400,7 +398,6 @@ func TestDisableOnRemove(t *testing.T) {
 	}
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
@@ -483,7 +480,6 @@ func TestDisableOnRemove(t *testing.T) {
 
 func TestGetMarketplacePlugins(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
@@ -739,7 +735,6 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 
 	t.Run("marketplace client returns not-installed plugin", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
@@ -801,7 +796,6 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 
 	t.Run("marketplace client returns installed plugin", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
@@ -886,7 +880,6 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 
 	t.Run("search installed plugin", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
@@ -981,7 +974,6 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 
 func TestGetLocalPluginInMarketplace(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	samplePlugins := []*model.MarketplacePlugin{
 		{
@@ -1144,7 +1136,6 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 func TestGetRemotePluginInMarketplace(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	samplePlugins := []*model.MarketplacePlugin{
 		{
@@ -1201,7 +1192,6 @@ func TestGetRemotePluginInMarketplace(t *testing.T) {
 
 func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	marketplacePlugins := []*model.MarketplacePlugin{
 		{
@@ -1334,7 +1324,6 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 func TestGetPrepackagedPlaybooksPluginIn(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
@@ -1416,7 +1405,6 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			filepath.Join(path, "development-private-key.asc"),
 		}
 	}).InitBasic(t)
-	defer th.TearDown()
 
 	signatureFilename := "testplugin2.tar.gz.sig"
 	signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
@@ -1829,7 +1817,6 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 				filepath.Join(path, "development-private-key.asc"),
 			}
 		}).InitBasic(t)
-		defer th.TearDown()
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			expectedSignaturePath := filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig")
@@ -1999,7 +1986,6 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 				filepath.Join(path, "development-private-key.asc"),
 			}
 		}).InitBasic(t)
-		defer th.TearDown()
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -2072,7 +2058,6 @@ func findClusterMessages(event model.ClusterEvent, msgs []*model.ClusterMessage)
 func TestPluginWebSocketSession(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	pluginID := "com.mattermost.websocket_session_test"
 
@@ -2125,7 +2110,6 @@ func TestPluginWebSocketSession(t *testing.T) {
 func TestPluginWebSocketRemoteAddress(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	pluginID := "com.mattermost.websocket_remote_address_test"
 

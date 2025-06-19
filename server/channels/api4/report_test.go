@@ -16,7 +16,6 @@ import (
 func TestGetUsersForReporting(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()

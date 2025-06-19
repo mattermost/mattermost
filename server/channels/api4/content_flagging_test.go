@@ -19,7 +19,6 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t)
 	defer func() {
-		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
 	}()
 
@@ -58,7 +57,6 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t)
 	defer func() {
-		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
 	}()
 

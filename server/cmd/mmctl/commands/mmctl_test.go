@@ -51,13 +51,8 @@ func (s *MmctlE2ETestSuite) SetupTest() {
 }
 
 func (s *MmctlE2ETestSuite) TearDownTest() {
-	// if a test helper was used, we run the teardown and remove it
-	// from the structure to avoid reusing the same helper between
-	// tests
-	if s.th != nil {
-		s.th.TearDown()
-		s.th = nil
-	}
+	// Remove the test helper from the structure to avoid reusing the same helper between tests
+	s.th = nil
 }
 
 func (s *MmctlE2ETestSuite) SetupTestHelper() *api4.TestHelper {

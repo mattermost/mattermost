@@ -24,7 +24,6 @@ import (
 func TestCreateEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
@@ -215,7 +214,6 @@ func TestCreateEmoji(t *testing.T) {
 func TestGetEmojiList(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
@@ -309,7 +307,6 @@ func TestGetEmojiList(t *testing.T) {
 func TestGetEmojisByNames(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 
 	// Set up some custom emojis
 	adminClient := th.SystemAdminClient
@@ -390,7 +387,6 @@ func TestGetEmojisByNames(t *testing.T) {
 func TestDeleteEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
@@ -561,7 +557,6 @@ func TestDeleteEmoji(t *testing.T) {
 func TestGetEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
@@ -590,7 +585,6 @@ func TestGetEmoji(t *testing.T) {
 func TestGetEmojiByName(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
@@ -621,7 +615,6 @@ func TestGetEmojiByName(t *testing.T) {
 func TestGetEmojiImage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
@@ -717,7 +710,6 @@ func TestGetEmojiImage(t *testing.T) {
 func TestSearchEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
@@ -820,7 +812,6 @@ func TestSearchEmoji(t *testing.T) {
 func TestAutocompleteEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
