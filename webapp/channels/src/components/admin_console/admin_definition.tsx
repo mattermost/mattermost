@@ -5626,6 +5626,11 @@ const AdminDefinition: AdminDefinitionType = {
                     name: 'Audit logging (Beta)',
                     settings: [
                         {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.rate.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
+                            banner_type: 'info',
+                        },
+                        {
                             type: 'bool',
                             key: 'ExperimentalAuditSettings.FileEnabled',
                             label: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.title', defaultMessage: 'File Enabled'}),
