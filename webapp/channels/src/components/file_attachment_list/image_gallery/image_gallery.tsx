@@ -273,6 +273,7 @@ const ImageGallery = (props: Props) => {
                                 isInPermalink={false}
                                 disableActions={false}
                                 smallImageThreshold={GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD}
+                                isGallery={true}
                                 handleImageClick={() => {
                                     const startIndex = allFilesForPost?.findIndex((f) => f.id === fileInfo.id) ?? -1;
                                     if (startIndex >= 0 && allFilesForPost) {

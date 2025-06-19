@@ -42,8 +42,8 @@
             &--expanded {
                 position: absolute;
                 z-index: 3;
-                top: -6px;
-                left: -2px;
+                top: 4px;
+                left: 4px;
 
                 button.single-image-view__toggle {
                     display: none;
@@ -72,7 +72,7 @@
             display: block;
             overflow: hidden;
             height: 100%;
-            max-height: 1000px;
+            max-height: 350px;
             margin: 5px 0;
             opacity: 1;
             transition: all 250ms ease-in-out;
@@ -96,9 +96,9 @@
                 position: relative;
                 display: inline-flex;
                 width: fit-content;
+                max-height: 350px;
 
                 &:hover {
-
                     img {
                         transform: scale(1.05);
                         transition: transform 0.15s ease-in-out;
@@ -114,6 +114,7 @@
                 overflow: hidden;
                 height: 100%;
                 border-radius: 4px;
+                max-height: 350px;
 
                 &.image-permalink {
                     margin: 5px 0 0;
@@ -123,6 +124,11 @@
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
+
+                    &.disproportionate {
+                        object-fit: contain;
+                        background: rgba(var(--center-channel-color-rgb), 0.04);
+                    }
                 }
             }
         }

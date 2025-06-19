@@ -188,9 +188,9 @@ $max-image-height: 350px;
 
             .image-loaded {
                 bottom: 0;
-                min-width: 40px;
+                min-width: 50px;
                 max-width: 100%;
-                min-height: 40px;
+                min-height: 50px;
                 max-height: $max-image-height;
                 
                 transition: all 0.1s linear;
@@ -230,10 +230,12 @@ $max-image-height: 350px;
                     }
 
                     &.small-image--inside-container {
-                        width: unset;
-                        max-height: inherit;
+                        width: auto;
+                        max-width: 100%;
+                        height: auto;
+                        max-height: 100%;
                         border-width: 0;
-                        border-radius: 0;
+                        border-radius: var(--radius-s);
                         margin: 0;
                         box-shadow: none;
                     }
@@ -680,29 +682,6 @@ $max-image-height: 350px;
     height: 100%;
     max-height: inherit;
     vertical-align: top;
-}
-
-.small-image__container {
-    display: flex;
-    min-width: 48px;
-    min-height: 48px;
-    max-height: inherit;
-    align-items: center;
-    justify-content: center;
-
-    &:hover {
-        z-index: 2;
-        box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 5px 0 rgba(variables.$black, 0.1);
-        transition: all 0.1s linear;
-    }
-
-    &:hover .image-preview-utility-buttons-container {
-        display: inline-block;
-    }
-}
-
-.small-image__container--min-width {
-    width: 48px;
 }
 
 // Add keyframes for the modal transition

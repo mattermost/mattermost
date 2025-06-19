@@ -22,9 +22,10 @@ import WithTooltip from 'components/with_tooltip';
 import {FileTypes} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';
 
-const MIN_IMAGE_SIZE = 48;
+const MIN_IMAGE_SIZE = 50;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
 const MAX_IMAGE_HEIGHT = 350;
+const MIN_CONTAINER_SIZE = 50;
 
 export type Props = WrappedComponentProps & {
 
@@ -95,9 +96,14 @@ export type Props = WrappedComponentProps & {
     hideUtilities?: boolean;
 
     /*
-    * Custom threshold for determining if an image is considered "small" (defaults to 48px)
+    * Custom threshold for determining if an image is considered "small" (defaults to 216px)
     */
     smallImageThreshold?: number;
+
+    /*
+    * Custom minimum size for the container (defaults to 48px)
+    */
+    minContainerSize?: number;
 }
 
 type State = {
@@ -146,8 +152,12 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     };
 
     isSmallImage = (width: number, height: number) => {
-        const threshold = this.props.smallImageThreshold ?? MIN_IMAGE_SIZE;
+        const threshold = this.props.smallImageThreshold ?? 216;
         return width < threshold || height < threshold;
+    };
+
+    getContainerSize = () => {
+        return this.props.minContainerSize ?? MIN_CONTAINER_SIZE;
     };
 
     handleLoad = (event: SyntheticEvent<HTMLImageElement, Event>) => {
@@ -257,19 +267,17 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         );
 
         if (handleSmallImageContainer && this.state.isSmallImage) {
-            const baseClassName = 'small-image__container cursor--pointer a11y--active';
-            const needsMinWidth = this.state.imageWidth < MIN_IMAGE_SIZE || (fileInfo && fileInfo.height && fileInfo.height < MIN_IMAGE_SIZE);
-            const className = needsMinWidth ? `${baseClassName} small-image__container--min-width` : baseClassName;
+            const minSize = this.getContainerSize();
 
             return (
-                <figure className={classNames('image-loaded-container')}>
-                    <div
-                        onClick={this.handleImageClick}
-                        className={classNames(className)}
-                    >
+                <div
+                    className='small-image__container'
+                    style={{minWidth: minSize, minHeight: minSize}}
+                >
+                    <figure className={classNames('image-loaded-container')}>
                         {image}
-                    </div>
-                </figure>
+                    </figure>
+                </div>
             );
         }
 

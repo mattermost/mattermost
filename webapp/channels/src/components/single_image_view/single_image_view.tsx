@@ -22,7 +22,9 @@ import {
 import type {PropsFromRedux} from './index';
 
 const PREVIEW_IMAGE_MIN_DIMENSION = 50;
+const SMALL_IMAGE_THRESHOLD = 216;
 const DISPROPORTIONATE_HEIGHT_RATIO = 20;
+const MAX_HEIGHT = 350;
 
 export interface Props extends PropsFromRedux {
     postId: string;
@@ -36,6 +38,7 @@ export interface Props extends PropsFromRedux {
     disableActions?: boolean;
     handleImageClick?: () => void;
     smallImageThreshold?: number;
+    isGallery?: boolean;
     actions: {
         toggleEmbedVisibility: (postId: string) => void;
         getFilePublicLink: (fileId: string) => Promise<ActionResult<{link: string}>>;
@@ -129,7 +132,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {fileInfo, compactDisplay, isInPermalink} = this.props;
+        const {fileInfo, compactDisplay, isInPermalink, isGallery = false} = this.props;
         const {
             loaded,
         } = this.state;
@@ -161,6 +164,11 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         // Add compact display class to image class if in compact mode
         if (compactDisplay) {
             minPreviewClass += ' compact-display';
+        }
+
+        // Add disproportionate class for very tall images
+        if (hasDisproportionateHeight) {
+            minPreviewClass += ' disproportionate';
         }
 
         const toggle = (
@@ -231,6 +239,13 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
             }
         }
 
+        // Always enforce min width/height for the image container
+        imageContainerStyle = {
+            ...imageContainerStyle,
+            minWidth: PREVIEW_IMAGE_MIN_DIMENSION,
+            minHeight: PREVIEW_IMAGE_MIN_DIMENSION,
+        };
+
         if (loaded) {
             fadeInClass = 'image-fade-in';
         }
@@ -260,18 +275,17 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                 <div className={classNames(permalinkClass)}>
                                     <SizeAwareImage
                                         onClick={this.handleImageClick}
-                                        className={classNames(minPreviewClass, permalinkClass)}
+                                        className={`${minPreviewClass} single-image-view__image`}
                                         src={previewURL}
                                         dimensions={this.state.dimensions}
-                                        fileInfo={this.props.fileInfo}
+                                        fileInfo={fileInfo}
                                         fileURL={fileURL}
-                                        onImageLoaded={this.imageLoaded}
-                                        showLoader={this.props.isEmbedVisible}
                                         handleSmallImageContainer={true}
+                                        smallImageThreshold={SMALL_IMAGE_THRESHOLD}
+                                        minContainerSize={PREVIEW_IMAGE_MIN_DIMENSION}
+                                        showLoader={true}
                                         enablePublicLink={this.props.enablePublicLink}
                                         getFilePublicLink={this.getFilePublicLink}
-                                        hideUtilities={this.props.disableActions}
-                                        smallImageThreshold={this.props.smallImageThreshold}
                                     />
                                 </div>
                             </div>
