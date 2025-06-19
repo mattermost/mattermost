@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -221,8 +222,13 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
 
         resultsCallback({
             matchedPretext: channelPrefix,
-            terms: channelNames,
-            items: channels,
+            groups: [{
+                hideLabel: true,
+                key: 'addUserToChannel',
+                label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
+                terms: channelNames,
+                items: channels,
+            }],
             component: SearchChannelWithPermissionsSuggestion,
         });
     }

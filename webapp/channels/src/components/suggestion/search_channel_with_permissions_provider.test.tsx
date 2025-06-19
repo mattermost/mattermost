@@ -151,8 +151,8 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
         searchProvider.handlePretextChanged(searchText, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
-        expect(args.items[0].channel.id).toEqual('somePublicMemberChannelId');
-        expect(args.items.length).toEqual(1);
+        expect(args.groups[0].items[0].channel.id).toEqual('somePublicMemberChannelId');
+        expect(args.groups[0].items.length).toEqual(1);
     });
 
     it('should show private channels if user has private channel manage permission', () => {
@@ -183,8 +183,8 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
 
-        expect(args.items[0].channel.id).toEqual('somePrivateMemberChannelId');
-        expect(args.items.length).toEqual(1);
+        expect(args.groups[0].items[0].channel.id).toEqual('somePrivateMemberChannelId');
+        expect(args.groups[0].items.length).toEqual(1);
     });
 
     it('should show both public and private channels if user has public and private channel manage permission', () => {
@@ -215,9 +215,9 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
 
-        expect(args.items[0].channel.id).toEqual('somePublicMemberChannelId');
-        expect(args.items[1].channel.id).toEqual('somePrivateMemberChannelId');
-        expect(args.items.length).toEqual(2);
+        expect(args.groups[0].items[0].channel.id).toEqual('somePublicMemberChannelId');
+        expect(args.groups[0].items[1].channel.id).toEqual('somePrivateMemberChannelId');
+        expect(args.groups[0].items.length).toEqual(2);
     });
 
     it('should show nothing if the user does not have permissions to manage channels', () => {
@@ -248,7 +248,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
 
-        expect(args.items.length).toEqual(0);
+        expect(args.groups[0].items.length).toEqual(0);
     });
 
     it('should show nothing if the search does not match', () => {
@@ -279,6 +279,6 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
 
-        expect(args.items.length).toEqual(0);
+        expect(args.groups[0].items.length).toEqual(0);
     });
 });
