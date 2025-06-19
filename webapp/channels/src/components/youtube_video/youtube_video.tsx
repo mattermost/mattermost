@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import type {OpenGraphMetadata} from '@mattermost/types/posts';
 
@@ -32,13 +33,33 @@ type YouTubeThumbnailProps = {
     useMaxResThumbnail: boolean;
 };
 
+function YouTubePrefix() {
+    const {formatMessage} = useIntl();
+    
+    return (
+        <span className='video-type'>
+            {formatMessage({
+                id: 'youtube_video.type',
+                defaultMessage: 'YouTube - ',
+            })}
+        </span>
+    );
+}
+
 function YouTubeThumbnail({play, videoTitle, onError, thumbnailUrl}: YouTubeThumbnailProps) {
+    const {formatMessage} = useIntl();
+    
     return (
         <div
             className='video-thumbnail__container'
             onClick={play}
             role='button'
-            aria-label={`Play ${videoTitle} on YouTube`}
+            aria-label={formatMessage({
+                id: 'youtube_video.play.aria_label',
+                defaultMessage: 'Play {videoTitle} on YouTube',
+            }, {
+                videoTitle,
+            })}
             tabIndex={0}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -52,7 +73,12 @@ function YouTubeThumbnail({play, videoTitle, onError, thumbnailUrl}: YouTubeThum
                     <img
                         className='video-thumbnail'
                         src={src}
-                        alt={`Thumbnail for ${videoTitle} on YouTube`}
+                        alt={formatMessage({
+                            id: 'youtube_video.thumbnail.alt_text',
+                            defaultMessage: 'Thumbnail for {videoTitle} on YouTube',
+                        }, {
+                            videoTitle,
+                        })}
                         onError={onError}
                     />
                 )}
@@ -60,7 +86,10 @@ function YouTubeThumbnail({play, videoTitle, onError, thumbnailUrl}: YouTubeThum
             <div
                 className='play-button'
                 role='presentation'
-                aria-label='Play video'
+                aria-label={formatMessage({
+                    id: 'youtube_video.play_button.aria_label',
+                    defaultMessage: 'Play video',
+                })}
             >
                 <i
                     className='icon-play'
@@ -130,7 +159,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 
         const header = (
             <h4>
-                <span className='video-type'>{'YouTube - '}</span>
+                <YouTubePrefix />
                 <span className='video-title'>
                     <ExternalLink
                         href={this.props.link}
