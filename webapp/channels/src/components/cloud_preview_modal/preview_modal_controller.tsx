@@ -4,7 +4,7 @@
 import React, {useState, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
-import {ChevronLeftIcon, ChevronRightIcon, CloseIcon} from '@mattermost/compass-icons/components';
+import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 
 import PreviewModalContent from './preview_modal_content';

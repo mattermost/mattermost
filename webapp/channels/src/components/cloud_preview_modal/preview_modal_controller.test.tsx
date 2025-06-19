@@ -10,9 +10,24 @@ import PreviewModalController from './preview_modal_controller';
 
 // Mock the GenericModal component
 jest.mock('@mattermost/components', () => ({
-    GenericModal: ({children, show, footerContent}: {children: React.ReactNode; show: boolean; footerContent?: React.ReactNode}) => (
+    GenericModal: ({children, show, onHide, showCloseButton, footerContent}: {
+        children: React.ReactNode;
+        show: boolean;
+        onHide?: () => void;
+        showCloseButton?: boolean;
+        footerContent?: React.ReactNode;
+    }) => (
         show ? (
             <div data-testid='modal'>
+                {showCloseButton && (
+                    <button
+                        aria-label='Close'
+                        onClick={onHide}
+                        data-testid='close-button'
+                    >
+                        <span data-testid='close-icon'>{'24'}</span>
+                    </button>
+                )}
                 <div>{children}</div>
                 {footerContent && <div data-testid='modal-footer'>{footerContent}</div>}
             </div>
@@ -220,7 +235,7 @@ describe('PreviewModalController', () => {
     it('should call onClose when close button is clicked', () => {
         renderComponent();
 
-        const closeButton = screen.getByLabelText('Close modal');
+        const closeButton = screen.getByLabelText('Close');
         fireEvent.click(closeButton);
 
         expect(mockOnClose).toHaveBeenCalledTimes(1);
