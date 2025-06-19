@@ -63,11 +63,13 @@ export const useAdminSettingState = <T extends Record<string, any>>(
 
         if (data) {
             setSettingValues(getStateFromConfig(data, license));
-            setSaveNeeded(false);
             setSaving(false);
 
             dispatch(setNavigationBlocked(false));
             handleSaved?.(configToPatch, handleChange);
+
+            // We set the save needed at the end in case handleSaved changes the state
+            setSaveNeeded(false);
         } else if (error) {
             setSaving(false);
             setServerError(error.message);
