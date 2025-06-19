@@ -860,11 +860,3 @@ export const getLastActiveTimestampUnits: (state: GlobalState, userId: string) =
         return timestampUnits;
     },
 );
-
-// userCanDMOtherUser should use the server action canUserDirectMessage()
-// to get real-time, authoritative DM permission data from the server.
-// This ensures synthetic users from non-directly-connected servers cannot be DMed.
-//
-// Usage:
-// const {data} = await dispatch(canUserDirectMessage(currentUserId, otherUserId));
-// const canDM = data?.can_dm || false;

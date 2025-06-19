@@ -4,7 +4,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {fetchRemoteClusters} from 'mattermost-redux/actions/shared_channels';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -148,14 +147,6 @@ const ProfilePopover = ({
             ));
         }
     }, [channelId, userId, currentTeamId, dispatch]);
-
-    // Load remote clusters data if needed for shared DMs feature
-    const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs'));
-    useEffect(() => {
-        if (enableSharedChannelsDMs === 'true' && user?.remote_id) {
-            dispatch(fetchRemoteClusters());
-        }
-    }, [user?.remote_id, enableSharedChannelsDMs, dispatch]);
 
     if (!user) {
         return null;

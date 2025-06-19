@@ -58,7 +58,6 @@ export type Props = {
         searchProfiles: (term: string, options: any) => Promise<ActionResult<UserProfile[]>>;
         searchGroupChannels: (term: string) => Promise<ActionResult<Channel[]>>;
         setModalSearchTerm: (term: string) => void;
-        fetchRemoteClusterInfo: (remoteId: string) => Promise<ActionResult>;
     };
     focusOriginElement: string;
 }
@@ -108,19 +107,6 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         this.getUserProfiles();
         this.props.actions.getTotalUsersStats();
         this.props.actions.loadProfilesMissingStatus(this.props.users);
-
-        // Load remote cluster info for any remote users
-        // This is needed for remote user data to be available
-        const remoteUserIds = this.props.users.filter((user) => user.remote_id).
-            map((user) => user.remote_id).
-            filter((remoteId, index, arr) => arr.
-                indexOf(remoteId) === index); // Remove duplicates
-
-        remoteUserIds.forEach((remoteId) => {
-            if (remoteId) {
-                this.props.actions.fetchRemoteClusterInfo(remoteId);
-            }
-        });
     };
 
     updateFromProps(prevProps: Props) {
@@ -156,18 +142,6 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
 
         if (prevProps.users.length !== this.props.users.length) {
             this.props.actions.loadProfilesMissingStatus(this.props.users);
-
-            // Load remote cluster info for any new remote users
-            const remoteUserIds = this.props.users.
-                filter((user) => user.remote_id).
-                map((user) => user.remote_id).
-                filter((remoteId, index, arr) => arr.indexOf(remoteId) === index); // Remove duplicates
-
-            remoteUserIds.forEach((remoteId) => {
-                if (remoteId) {
-                    this.props.actions.fetchRemoteClusterInfo(remoteId);
-                }
-            });
         }
     }
 

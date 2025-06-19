@@ -98,22 +98,3 @@ export function fetchRemoteClusterInfo(remoteId: string, forceRefresh = false): 
         return {data};
     };
 }
-
-export function fetchRemoteClusters(): ActionFuncAsync<RemoteClusterInfo[]> {
-    return async (dispatch: any, getState: () => GlobalState) => {
-        // Check if we already have remote cluster data in the existing state
-        const state = getState();
-        const remotesByRemoteId = state.entities?.sharedChannels?.remotesByRemoteId;
-
-        // If we already have some data, return it (individual remotes can be fetched as needed)
-        if (remotesByRemoteId && Object.keys(remotesByRemoteId).length > 0) {
-            return {data: Object.values(remotesByRemoteId)};
-        }
-
-        // For initial load, we don't need to fetch all remote clusters
-        // The individual remote cluster info will be fetched on-demand via fetchRemoteClusterInfo
-        // when users with remote_id are encountered
-        return {data: []};
-    };
-}
-

@@ -73,7 +73,6 @@ describe('components/MoreDirectChannels', () => {
                     process.nextTick(() => resolve());
                 });
             }),
-            fetchRemoteClusterInfo: jest.fn().mockResolvedValue({data: true}),
         },
     };
 
@@ -261,122 +260,6 @@ describe('components/MoreDirectChannels', () => {
         const props = {...baseProps, users, myDirectChannels, currentChannelMembers};
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
         expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should fetch remote cluster info when there are remote users', () => {
-        const remoteUser1 = {
-            ...mockedUser,
-            id: 'remote_user_1',
-            remote_id: 'remote1',
-        };
-
-        const users: UserProfile[] = [
-            {
-                ...mockedUser,
-                id: 'user_id_1',
-            },
-            remoteUser1,
-        ];
-
-        // We need to manually trigger updateFromProps since shallow rendering doesn't call componentDidMount
-        const props = {...baseProps, users};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
-
-        // Manually call updateFromProps to trigger fetchRemoteClusterInfo on mount
-        wrapper.instance().updateFromProps({
-            users: [],
-            currentUserId: props.currentUserId,
-            searchTerm: props.searchTerm,
-            totalCount: props.totalCount,
-            isExistingChannel: props.isExistingChannel,
-            restrictDirectMessage: props.restrictDirectMessage,
-            actions: props.actions,
-            focusOriginElement: props.focusOriginElement,
-        });
-
-        // Initial update should trigger fetch for remote1
-        expect(props.actions.fetchRemoteClusterInfo).toHaveBeenCalledWith('remote1');
-
-        // Simulate component update with new users containing remote users
-        const moreUsers = [...users, {
-            ...mockedUser,
-            id: 'remote_user_2',
-            remote_id: 'remote2',
-        }];
-
-        wrapper.setProps({users: moreUsers});
-
-        // Manually trigger updateFromProps to simulate componentDidUpdate
-        wrapper.instance().updateFromProps({
-            users,
-            currentUserId: props.currentUserId,
-            searchTerm: props.searchTerm,
-            totalCount: props.totalCount,
-            isExistingChannel: props.isExistingChannel,
-            restrictDirectMessage: props.restrictDirectMessage,
-            actions: props.actions,
-            focusOriginElement: props.focusOriginElement,
-        });
-
-        // Should have called fetchRemoteClusterInfo for both remotes
-        expect(props.actions.fetchRemoteClusterInfo).toHaveBeenCalledWith('remote2');
-    });
-
-    test('should not fetch remote clusters when there are no remote users', () => {
-        const users: UserProfile[] = [
-            {
-                ...mockedUser,
-                id: 'user_id_1',
-            },
-            {
-                ...mockedUser,
-                id: 'user_id_2',
-            },
-        ];
-
-        const props = {...baseProps, users};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
-
-        // Reset the mock counter from previous test
-        jest.clearAllMocks();
-
-        // Manually call updateFromProps to simulate componentDidMount
-        wrapper.instance().updateFromProps({
-            users: [],
-            currentUserId: props.currentUserId,
-            searchTerm: props.searchTerm,
-            totalCount: props.totalCount,
-            isExistingChannel: props.isExistingChannel,
-            restrictDirectMessage: props.restrictDirectMessage,
-            actions: props.actions,
-            focusOriginElement: props.focusOriginElement,
-        });
-
-        // Initial component mount should not trigger fetch since no remote users
-        expect(props.actions.fetchRemoteClusterInfo).not.toHaveBeenCalled();
-
-        // Simulate component update with new users, still without remote users
-        const moreUsers = [...users, {
-            ...mockedUser,
-            id: 'user_id_3',
-        }];
-
-        wrapper.setProps({users: moreUsers});
-
-        // Manually trigger updateFromProps to simulate componentDidUpdate
-        wrapper.instance().updateFromProps({
-            users,
-            currentUserId: props.currentUserId,
-            searchTerm: props.searchTerm,
-            totalCount: props.totalCount,
-            isExistingChannel: props.isExistingChannel,
-            restrictDirectMessage: props.restrictDirectMessage,
-            actions: props.actions,
-            focusOriginElement: props.focusOriginElement,
-        });
-
-        // Still should not have called fetchRemoteClusterInfo
-        expect(props.actions.fetchRemoteClusterInfo).not.toHaveBeenCalled();
     });
 
     test('should handle remote connection not allowed error when trying to open DM', (done) => {

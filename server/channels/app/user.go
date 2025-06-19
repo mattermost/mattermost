@@ -2374,43 +2374,6 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 		return true, nil
 	}
 
-	scs := a.Srv().GetSharedChannelSyncService()
-	if scs != nil {
-		otherUser, otherErr := a.GetUser(otherUserId)
-		if otherErr != nil {
-			return false, nil
-		}
-
-		// Check if the other user is from a remote cluster
-		if otherUser.IsRemote() {
-			// Check connection to the other user's remote cluster first
-			if !scs.IsRemoteClusterDirectlyConnected(*otherUser.RemoteId) {
-				return false, model.NewAppError(
-					"UserCanSeeOtherUser",
-					"api.user.remote_connection_not_allowed.app_error",
-					nil,
-					fmt.Sprintf("No direct connection to remote cluster with ID %s", *otherUser.RemoteId),
-					http.StatusForbidden)
-			}
-
-			// Only fetch the first user if remote connectivity check passes
-			user, userErr := a.GetUser(userID)
-			if userErr != nil {
-				return false, nil
-			}
-
-			// If both users are from remote clusters but different ones, they can't see each other
-			if user.IsRemote() && *user.RemoteId != *otherUser.RemoteId {
-				return false, model.NewAppError(
-					"UserCanSeeOtherUser",
-					"api.user.remote_connection_not_allowed.app_error",
-					nil,
-					fmt.Sprintf("Users from different remote clusters (%s and %s) cannot see each other", *user.RemoteId, *otherUser.RemoteId),
-					http.StatusForbidden)
-			}
-		}
-	}
-
 	restrictions, err := a.GetViewUsersRestrictions(c, userID)
 	if err != nil {
 		return false, err

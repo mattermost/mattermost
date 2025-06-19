@@ -8,7 +8,6 @@ import type {Dispatch} from 'redux';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {searchGroupChannels} from 'mattermost-redux/actions/channels';
-import {fetchRemoteClusterInfo} from 'mattermost-redux/actions/shared_channels';
 import {
     getProfiles,
     getProfilesInTeam,
@@ -74,9 +73,6 @@ export const makeMapStateToProps = () => {
             users = getProfilesInCurrentTeam(state, filters);
         }
 
-        // Note: DM permission validation is now handled when users try to start conversations,
-        // not by filtering the user list. All users are shown but DM attempts will be validated server-side.
-
         const team = getCurrentTeam(state);
         const stats = getTotalUsersStatsSelector(state) || {total_users_count: 0};
 
@@ -107,7 +103,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             searchProfiles,
             searchGroupChannels,
             setModalSearchTerm,
-            fetchRemoteClusterInfo,
         }, dispatch),
     };
 }

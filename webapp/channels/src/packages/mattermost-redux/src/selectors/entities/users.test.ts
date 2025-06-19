@@ -899,9 +899,6 @@ describe('Selectors.Users', () => {
         });
     });
 
-    // Note: userCanSeeOtherUser selector was removed.
-    // DM permissions are now validated server-side using the canUserDirectMessage action.
-
     describe('filterProfiles', () => {
         it('no filter, return all users', () => {
             expect(Object.keys(Selectors.filterProfiles(profiles)).length).toEqual(7);
