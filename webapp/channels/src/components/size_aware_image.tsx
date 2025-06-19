@@ -243,10 +243,34 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         const fileType = getFileType(fileInfo?.extension ?? '');
 
+        // Calculate scaling while maintaining aspect ratio
+        const imageHeight = dimensions?.height ?? 0;
+        const imageWidth = dimensions?.width ?? 0;
+        let scaledWidth = imageWidth;
+        let scaledHeight = imageHeight;
+
+        if (imageWidth > 0 && imageHeight > 0) {
+            // First check if we need to scale based on width
+            const maxWidth = 1024; // Maximum width we want to allow
+            let widthRatio = 1;
+            if (imageWidth > maxWidth) {
+                widthRatio = maxWidth / imageWidth;
+                scaledWidth = maxWidth;
+                scaledHeight = imageHeight * widthRatio;
+            }
+
+            // Then check if we still need to scale based on height
+            if (scaledHeight > MAX_IMAGE_HEIGHT) {
+                const heightRatio = MAX_IMAGE_HEIGHT / scaledHeight;
+                scaledHeight = MAX_IMAGE_HEIGHT;
+                scaledWidth = scaledWidth * heightRatio;
+            }
+        }
+
         let conditionalSVGStyleAttribute;
         if (fileType === FileTypes.SVG) {
             conditionalSVGStyleAttribute = {
-                width: dimensions?.width || MIN_IMAGE_SIZE,
+                width: scaledWidth || MIN_IMAGE_SIZE,
                 height: 'auto',
             };
         }
@@ -262,19 +286,35 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 src={src}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
-                style={conditionalSVGStyleAttribute}
+                style={{
+                    ...conditionalSVGStyleAttribute,
+                    width: handleSmallImageContainer && this.state.isSmallImage ? scaledWidth : scaledWidth || undefined,
+                    height: handleSmallImageContainer && this.state.isSmallImage ? scaledHeight : scaledHeight || undefined,
+                    maxWidth: '100%',
+                    // Do NOT set minWidth/minHeight on the image itself
+                }}
             />
         );
 
         if (handleSmallImageContainer && this.state.isSmallImage) {
             const minSize = this.getContainerSize();
+            // For small images, container is at least minSize, but image is native/scaled size
+            const containerStyle = {
+                minWidth: minSize,
+                minHeight: minSize,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                maxWidth: '100%',
+                maxHeight: MAX_IMAGE_HEIGHT,
+            };
 
             return (
                 <div
                     className='small-image__container'
-                    style={{minWidth: minSize, minHeight: minSize}}
+                    style={containerStyle}
                 >
-                    <figure className={classNames('image-loaded-container')}>
+                    <figure className={classNames('image-loaded-container')} style={{margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%'}}>
                         {image}
                     </figure>
                 </div>

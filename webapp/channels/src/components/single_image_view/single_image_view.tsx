@@ -91,10 +91,39 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         this.mounted = false;
     }
 
-    imageLoaded = () => {
-        if (this.mounted) {
-            this.setState({loaded: true});
+    handleImageLoaded = () => {
+        this.setState({loaded: true});
+    };
+
+    computeDimensions = () => {
+        const {fileInfo} = this.props;
+        const viewPortWidth = window.innerWidth;
+        const imageHeight = fileInfo?.height ?? 0;
+        const imageWidth = fileInfo?.width ?? 0;
+        let dimensions = {
+            width: imageWidth,
+            height: imageHeight,
+        };
+
+        if (imageWidth > 0 && imageHeight > 0) {
+            // First check if we need to scale based on width
+            const maxWidth = Math.min(1024, viewPortWidth - 50); // Maximum width we want to allow, accounting for viewport
+            let widthRatio = 1;
+            if (imageWidth > maxWidth) {
+                widthRatio = maxWidth / imageWidth;
+                dimensions.width = maxWidth;
+                dimensions.height = imageHeight * widthRatio;
+            }
+
+            // Then check if we still need to scale based on height
+            if (dimensions.height > MAX_HEIGHT) {
+                const heightRatio = MAX_HEIGHT / dimensions.height;
+                dimensions.height = MAX_HEIGHT;
+                dimensions.width = dimensions.width * heightRatio;
+            }
         }
+
+        return dimensions;
     };
 
     handleImageClick = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLDivElement | HTMLImageElement>)) => {
@@ -233,7 +262,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 };
             } else {
                 imageContainerStyle = {
-                    height: 350,
+                    height: this.state.dimensions.height > this.state.dimensions.width ? MAX_HEIGHT : undefined,
                     maxWidth: '100%',
                 };
             }
@@ -253,6 +282,8 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         if (isInPermalink) {
             permalinkClass = 'image-permalink';
         }
+
+        const dimensions = this.computeDimensions();
 
         return (
             <div
@@ -277,7 +308,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                         onClick={this.handleImageClick}
                                         className={`${minPreviewClass} single-image-view__image`}
                                         src={previewURL}
-                                        dimensions={this.state.dimensions}
+                                        dimensions={dimensions}
                                         fileInfo={fileInfo}
                                         fileURL={fileURL}
                                         handleSmallImageContainer={true}
@@ -286,6 +317,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                         showLoader={true}
                                         enablePublicLink={this.props.enablePublicLink}
                                         getFilePublicLink={this.getFilePublicLink}
+                                        onImageLoaded={this.handleImageLoaded}
                                     />
                                 </div>
                             </div>

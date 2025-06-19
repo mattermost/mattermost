@@ -72,7 +72,6 @@
             display: block;
             overflow: hidden;
             height: 100%;
-            max-height: 350px;
             margin: 5px 0;
             opacity: 1;
             transition: all 250ms ease-in-out;
@@ -96,7 +95,6 @@
                 position: relative;
                 display: inline-flex;
                 width: fit-content;
-                max-height: 350px;
 
                 &:hover {
                     img {
@@ -114,7 +112,6 @@
                 overflow: hidden;
                 height: 100%;
                 border-radius: 4px;
-                max-height: 350px;
 
                 &.image-permalink {
                     margin: 5px 0 0;
@@ -125,9 +122,12 @@
                     height: 100%;
                     object-fit: cover;
 
-                    &.disproportionate {
+                    &.small-image--inside-container {
+                        width: auto;
+                        height: auto;
+                        max-width: 100%;
+                        max-height: 100%;
                         object-fit: contain;
-                        background: rgba(var(--center-channel-color-rgb), 0.04);
                     }
                 }
             }
