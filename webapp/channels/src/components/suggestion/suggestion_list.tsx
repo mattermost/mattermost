@@ -265,7 +265,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 >
                     {contents}
                 </SuggestionListList>
-                <SuggestionListStatus items={this.props.items}/>
+                <SuggestionListStatus groups={this.props.groups}/>
             </div>
         );
     }
@@ -286,13 +286,18 @@ const SuggestionListList = React.forwardRef<HTMLUListElement, React.HTMLAttribut
 function SuggestionListStatus({groups}: Pick<Props, 'groups'>) {
     const {formatMessage} = useIntl();
 
+    const suggestionCount = groups.reduce((totalCount, group) => {
+        const groupCount = 'items' in group ? group.items.length : 0;
+        return totalCount + groupCount;
+    }, 0);
+
     const statusText = formatMessage(
         {
             id: 'suggestionList.suggestionsAvailable',
             defaultMessage: '{count, number} {count, plural, one {suggestion} other {suggestions}} available',
         },
         {
-            count: groups.reduce((groupLength, group) => groupLength + group.items.length, 0),
+            count: suggestionCount,
         },
     );
 
