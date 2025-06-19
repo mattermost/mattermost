@@ -225,7 +225,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     <SuggestionListGroup
                         key={group.label.id}
                         labelDescriptor={group.label}
-                        renderDivider={true} // TODO
+                        renderDivider={!group.hideLabel}
                     >
                         {items}
                     </SuggestionListGroup>,

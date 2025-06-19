@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
@@ -76,8 +77,12 @@ export default class GenericUserProvider extends Provider {
 
             resultsCallback({
                 matchedPretext: normalizedPretext,
-                terms: users.map((user: UserProfile) => user.username),
-                items: users,
+                groups: [{
+                    hideLabel: true,
+                    label: defineMessage({id: 'suggestion.users', defaultMessage: 'Users'}),
+                    terms: users.map((user: UserProfile) => user.username),
+                    items: users,
+                }],
                 component: GenericUserSuggestion,
             });
         });

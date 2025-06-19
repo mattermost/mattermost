@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
@@ -68,8 +69,12 @@ export default class GenericChannelProvider extends Provider {
 
                 resultsCallback({
                     matchedPretext: normalizedPretext,
-                    terms: channels.map((channel: Channel) => channel.display_name),
-                    items: channels,
+                    groups: [{
+                        hideLabel: true,
+                        label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
+                        terms: channels.map((channel: Channel) => channel.display_name),
+                        items: channels,
+                    }],
                     component: GenericChannelSuggestion,
                 });
             },

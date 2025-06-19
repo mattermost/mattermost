@@ -6,6 +6,13 @@ import type {MessageDescriptor} from 'react-intl';
 import type {RequireOnlyOne} from '@mattermost/types/utilities';
 
 export type SuggestionGroup<Item> = {
+
+    /**
+     * Set hideLabel to true to prevent a visible label from being rendered in the UI. The group will still be given
+     * an accessible label for non-visual users.
+     */
+    hideLabel?: boolean;
+
     label: MessageDescriptor;
 } & ({
     items: Item[];
