@@ -16,8 +16,7 @@ export type SuggestionGroup<Item> = {
 
 export type ProviderResult<Item> = {
     matchedPretext: string;
-    terms: string[];
-    items: Array<Item | Loading>;
+    groups: Array<SuggestionGroup<Item>>;
 } & RequireOnlyOne<{
     component: React.ReactNode;
     components: React.ReactNode[];
