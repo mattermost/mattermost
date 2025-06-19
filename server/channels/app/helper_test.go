@@ -84,7 +84,8 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	}
 
 	for _, signaturePublicKeyFile := range memoryConfig.PluginSettings.SignaturePublicKeyFiles {
-		signaturePublicKey, err := os.ReadFile(signaturePublicKeyFile)
+		var signaturePublicKey []byte
+		signaturePublicKey, err = os.ReadFile(signaturePublicKeyFile)
 		require.NoError(tb, err, "failed to read signature public key file %s", signaturePublicKeyFile)
 		configStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
 	}
