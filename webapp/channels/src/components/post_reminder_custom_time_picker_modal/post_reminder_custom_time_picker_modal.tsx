@@ -5,8 +5,8 @@ import type {Moment} from 'moment-timezone';
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
-import {getRoundedTime} from 'components/custom_status/date_time_input';
 import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
+import {getRoundedTime} from 'components/datetime_input/datetime_input';
 
 import {toUTCUnixInSeconds} from 'utils/datetime';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
@@ -43,6 +43,7 @@ function PostReminderCustomTimePicker({userId, timezone, onExited, postId, actio
             initialTime={initialReminderTime}
             onConfirm={handleConfirm}
             confirmButtonText={confirmButtonText}
+            relativeDate={true}
         />
     );
 }

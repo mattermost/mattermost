@@ -103,6 +103,7 @@ exports[`components/AddGroupsToChannelModal should match snapshot 1`] = `
           "id": "multiselect.addGroupsPlaceholder",
         }
       }
+      required={false}
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}

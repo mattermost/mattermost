@@ -2676,8 +2676,6 @@
   "postlist.toast.scrollToLatest": "최근 메세지로 이동",
   "posts_view.loadMore": "메시지 더 보기",
   "posts_view.newMsg": "새로운 메시지",
-  "pricing_modal.briefing.unlimitedPlaybookRuns": "무제한 플레이북과 실행",
-  "pricing_modal.extra_briefing.enterprise.playBookAnalytics": "플레이북 분석 대시보드",
   "quick_switch_modal.help_mobile": "채널을 찾기 위해 입력해 주세요.",
   "quick_switch_modal.switchChannels": "채널 변경",
   "reaction.add.ariaLabel": "반응 추가",

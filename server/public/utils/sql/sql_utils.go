@@ -6,7 +6,6 @@ package sql
 import (
 	"context"
 	dbsql "database/sql"
-	"net/url"
 	"strings"
 	"time"
 
@@ -57,7 +56,7 @@ func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string
 	}
 
 	// At this point, we have passed sql.Open, so we deliberately ignore any errors.
-	sanitized, _ := SanitizeDataSource(*settings.DriverName, dataSource)
+	sanitized, _ := model.SanitizeDataSource(*settings.DriverName, dataSource)
 
 	logger = logger.With(
 		mlog.String("database", connType),
@@ -100,38 +99,4 @@ func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
 	return db, nil
-}
-
-func SanitizeDataSource(driverName, dataSource string) (string, error) {
-	switch driverName {
-	case model.DatabaseDriverPostgres:
-		u, err := url.Parse(dataSource)
-		if err != nil {
-			return "", err
-		}
-		u.User = url.UserPassword("****", "****")
-
-		// Remove username and password from query string
-		params := u.Query()
-		params.Del("user")
-		params.Del("password")
-		u.RawQuery = params.Encode()
-
-		// Unescape the URL to make it human-readable
-		out, err := url.QueryUnescape(u.String())
-		if err != nil {
-			return "", err
-		}
-		return out, nil
-	case model.DatabaseDriverMysql:
-		cfg, err := mysql.ParseDSN(dataSource)
-		if err != nil {
-			return "", err
-		}
-		cfg.User = "****"
-		cfg.Passwd = "****"
-		return cfg.FormatDSN(), nil
-	default:
-		return "", errors.New("invalid drivername. Not postgres or mysql.")
-	}
 }
