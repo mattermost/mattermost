@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactNode} from 'react';
 import React from 'react';
 import {useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
 import ReactSelect from 'react-select';
+
+import {formatAsString} from 'utils/i18n';
 
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
 
 export type Option = {
     value: string;
-    label: ReactNode;
+    label: string | MessageDescriptor;
 };
 
 export type FieldsetReactSelect = {
@@ -31,23 +33,9 @@ type Props = BaseSettingItemProps & {
     handleChange: (selected: OnChangeValue<Option, boolean>) => void;
 }
 
-// Function to extract text from FormattedMessage components
-export const getOptionLabel = (option: Option, intl: ReturnType<typeof useIntl>) => {
-    if (typeof option.label === 'string') {
-        return option.label;
-    }
-
-    // For FormattedMessage components, extract the defaultMessage and id
-    if (React.isValidElement(option.label)) {
-        const formattedMessage = option.label as React.ReactElement<{id: string; defaultMessage: string}>;
-        const props = formattedMessage.props;
-
-        return intl.formatMessage({
-            id: props.id,
-            defaultMessage: props.defaultMessage,
-        });
-    }
-    return '';
+// Function to extract text from MessageDescriptor or return string as-is
+export const getOptionLabel = (option: Option, intl: ReturnType<typeof useIntl>): string => {
+    return formatAsString(intl.formatMessage, option.label) || '';
 };
 
 function ReactSelectItemCreator({

@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChangeEvent, ReactNode} from 'react';
+import type {ChangeEvent} from 'react';
 import React, {memo, useEffect, useRef, Fragment, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
 import ReactSelect from 'react-select';
 
@@ -31,7 +32,7 @@ import type {Props as UserSettingsNotificationsProps} from '../user_settings_not
 
 export type SelectOption = {
     value: string;
-    label: ReactNode;
+    label: string | MessageDescriptor;
 };
 
 export type Props = {

@@ -3,7 +3,8 @@
 
 import React, {Fragment, useCallback, useEffect, useMemo, useRef, memo} from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, useIntl, defineMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, Options} from 'react-select';
 
@@ -17,11 +18,12 @@ import NotificationPermissionTitleTag from 'components/user_settings/notificatio
 import {getOptionLabel} from 'components/widgets/modals/components/react_select_item';
 
 import Constants, {NotificationLevels, UserSettingsNotificationSections} from 'utils/constants';
+import {formatAsComponent} from 'utils/i18n';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
 
 export type SelectOption = {
-    label: ReactNode;
+    label: string | MessageDescriptor;
     value: string;
 };
 
@@ -133,7 +135,7 @@ function DesktopAndMobileNotificationSettings({
                                 value={optionOfSendNotifications.value}
                                 onChange={handleChangeForSendDesktopNotificationsRadio}
                             />
-                            {optionOfSendNotifications.label}
+                            {formatAsComponent(optionOfSendNotifications.label)}
                         </label>
                     </div>
                 ))}
@@ -357,30 +359,24 @@ function NoIndicatorSeparatorComponent() {
 
 const optionsOfSendNotifications = [
     {
-        label: (
-            <FormattedMessage
-                id='user.settings.notifications.desktopAndMobile.allNewMessages'
-                defaultMessage='All new messages'
-            />
-        ),
+        label: defineMessage({
+            id: 'user.settings.notifications.desktopAndMobile.allNewMessages',
+            defaultMessage: 'All new messages',
+        }),
         value: NotificationLevels.ALL,
     },
     {
-        label: (
-            <FormattedMessage
-                id='user.settings.notifications.desktopAndMobile.onlyMentions'
-                defaultMessage='Mentions, direct messages, and group messages'
-            />
-        ),
+        label: defineMessage({
+            id: 'user.settings.notifications.desktopAndMobile.onlyMentions',
+            defaultMessage: 'Mentions, direct messages, and group messages',
+        }),
         value: NotificationLevels.MENTION,
     },
     {
-        label: (
-            <FormattedMessage
-                id='user.settings.notifications.desktopAndMobile.nothing'
-                defaultMessage='Nothing'
-            />
-        ),
+        label: defineMessage({
+            id: 'user.settings.notifications.desktopAndMobile.nothing',
+            defaultMessage: 'Nothing',
+        }),
         value: NotificationLevels.NONE,
     },
 ];
@@ -467,30 +463,24 @@ export function shouldShowTriggerMobileNotificationsSection(sendPushNotification
 
 const optionsOfSendMobileNotificationsWhenSelect: Options<SelectOption> = [
     {
-        label: (
-            <FormattedMessage
-                id='user.settings.notifications.desktopAndMobile.online'
-                defaultMessage='Online, away, or offline'
-            />
-        ),
+        label: defineMessage({
+            id: 'user.settings.notifications.desktopAndMobile.online',
+            defaultMessage: 'Online, away, or offline',
+        }),
         value: Constants.UserStatuses.ONLINE,
     },
     {
-        label: (
-            <FormattedMessage
-                id='user.settings.notifications.desktopAndMobile.away'
-                defaultMessage='Away or offline'
-            />
-        ),
+        label: defineMessage({
+            id: 'user.settings.notifications.desktopAndMobile.away',
+            defaultMessage: 'Away or offline',
+        }),
         value: Constants.UserStatuses.AWAY,
     },
     {
-        label: (
-            <FormattedMessage
-                id='user.settings.notifications.desktopAndMobile.offline'
-                defaultMessage='Offline'
-            />
-        ),
+        label: defineMessage({
+            id: 'user.settings.notifications.desktopAndMobile.offline',
+            defaultMessage: 'Offline',
+        }),
         value: Constants.UserStatuses.OFFLINE,
     },
 ];

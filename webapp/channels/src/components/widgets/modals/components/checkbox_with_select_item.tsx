@@ -4,6 +4,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import {useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue} from 'react-select';
 
@@ -100,5 +101,5 @@ function NoIndicatorSeparatorComponent() {
 
 export type SelectOption = {
     value: string;
-    label: ReactNode;
+    label: string | MessageDescriptor;
 };
