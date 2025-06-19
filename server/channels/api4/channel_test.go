@@ -1898,8 +1898,7 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 		}
 
 		channels, resp, err = client.GetChannelsForTeamForUser(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, false, resp.Etag)
-		// an error is expected as the server didn't return any data and the client still tries to unmarshal the response
-		require.Error(t, err)
+		require.NoError(t, err)
 		CheckEtag(t, channels, resp)
 
 		_, resp, err = client.GetChannelsForTeamForUser(context.Background(), th.BasicTeam.Id, "junk", false, "")
