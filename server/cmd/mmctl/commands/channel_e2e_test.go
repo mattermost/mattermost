@@ -580,7 +580,6 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 	s.RunForSystemAdminAndLocal("Moving channel which is already moved to particular team", func(c client.Client) {
 		printer.Clean()
 
-		s.SetupTestHelper().InitBasic(s.T())
 		initChannelName := api4.GenerateTestChannelName()
 		channel, appErr = s.th.App.CreateChannel(s.th.Context, &model.Channel{
 			TeamId:      s.th.BasicTeam.Id,
