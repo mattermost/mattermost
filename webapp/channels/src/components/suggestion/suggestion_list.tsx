@@ -8,6 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
+import {formatAsComponent, formatAsString} from 'utils/i18n';
 
 import type {SuggestionGroup} from './provider';
 
@@ -223,15 +224,16 @@ export default class SuggestionList extends React.PureComponent<Props> {
 
                 contents.push(
                     <SuggestionListGroup
-                        key={group.label.id}
-                        labelDescriptor={group.label}
+                        key={group.key}
+                        groupKey={group.key}
+                        labelMessage={group.label}
                         renderDivider={!group.hideLabel}
                     >
                         {items}
                     </SuggestionListGroup>,
                 );
             } else {
-                contents.push(<LoadingSpinner key={group.label.id}/>);
+                contents.push(<LoadingSpinner key={group.key}/>);
             }
         }
 
@@ -315,27 +317,31 @@ function SuggestionListStatus({groups}: Pick<Props, 'groups'>) {
 
 function SuggestionListGroup({
     children,
-    labelDescriptor,
+    groupKey,
+    labelMessage,
     renderDivider,
 }: {
     children: React.ReactNode;
-    labelDescriptor: MessageDescriptor;
+    groupKey: string | undefined;
+    labelMessage: MessageDescriptor | string;
     renderDivider: boolean;
 }) {
     const {formatMessage} = useIntl();
 
     if (!renderDivider) {
+        const label = formatAsString(formatMessage, labelMessage);
+
         return (
             <div
                 role='group'
-                aria-label={formatMessage(labelDescriptor)}
+                aria-label={label}
             >
                 {children}
             </div>
         );
     }
 
-    const labelId = labelDescriptor.id?.split('.').join('');
+    const labelId = `suggestionListGroup-${groupKey}`;
 
     return (
         <div
@@ -347,7 +353,7 @@ function SuggestionListGroup({
                 className='suggestion-list__divider'
                 role='presentation'
             >
-                <FormattedMessage {...labelDescriptor}/>
+                {formatAsComponent(labelMessage)}
             </li>
             {children}
         </div>

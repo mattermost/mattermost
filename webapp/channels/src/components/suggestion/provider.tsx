@@ -13,7 +13,17 @@ export type SuggestionGroup<Item> = {
      */
     hideLabel?: boolean;
 
-    label: MessageDescriptor;
+    /**
+     * A unique identifier for the group of suggestions. This identifier should be opaque, and we should not use it
+     * for anything other than React keys or for DOM element IDs.
+     */
+    key: string;
+
+    /**
+     * The label for this group of items. This should be a MessageDescriptor unless the label text comes from
+     * an integration.
+     * */
+    label: MessageDescriptor | string;
 } & ({
     items: Item[];
     terms: string[];

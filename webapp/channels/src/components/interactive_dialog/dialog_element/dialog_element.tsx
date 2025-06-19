@@ -68,7 +68,7 @@ export default class DialogElement extends React.PureComponent<Props, State> {
             } else if (props.dataSource === 'channels') {
                 this.providers = [new GenericChannelProvider(props.actions.autocompleteActiveChannels)];
             } else if (props.options) {
-                this.providers = [new MenuActionProvider(props.options)];
+                this.providers = [new MenuActionProvider(props.displayName, props.options)];
             }
 
             if (props.value && props.options) {

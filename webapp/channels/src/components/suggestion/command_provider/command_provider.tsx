@@ -285,6 +285,7 @@ export function commandsGroup(items: ExtendedAutocompleteSuggestion[]) {
     const terms = items.map((suggestion) => suggestion.Complete);
 
     return {
+        key: 'commands',
         label: defineMessage({id: 'suggestion.commands', defaultMessage: 'Commands'}),
         terms,
         items,

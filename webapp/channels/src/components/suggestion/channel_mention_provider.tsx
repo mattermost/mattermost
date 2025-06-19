@@ -247,6 +247,7 @@ export function myChannelsGroup(items: Channel[]) {
     const terms = items.map((channel) => '~' + channel?.name);
 
     return {
+        key: 'myChannels',
         label: defineMessage({id: 'suggestion.mention.channels', defaultMessage: 'My Channels'}),
         terms,
         items,
@@ -258,6 +259,7 @@ export function moreChannelsGroup(items: Channel[], loading: boolean): Suggestio
 
     if (loading) {
         return {
+            key: 'moreChannels',
             label,
             loading: true,
         };
@@ -266,6 +268,7 @@ export function moreChannelsGroup(items: Channel[], loading: boolean): Suggestio
     const terms = items.map((channel) => '~' + channel?.name);
 
     return {
+        key: 'moreChannels',
         label,
         terms,
         items,

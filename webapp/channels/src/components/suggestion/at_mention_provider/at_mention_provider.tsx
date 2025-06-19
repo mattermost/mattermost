@@ -441,6 +441,7 @@ export default class AtMentionProvider extends Provider {
 
 export function membersGroup(items: CreatedProfile[]) {
     return {
+        key: 'members',
         label: defineMessage({id: 'suggestion.mention.members', defaultMessage: 'Channel Members'}),
         items,
         terms: items.map((profile) => '@' + profile.username),
@@ -449,6 +450,7 @@ export function membersGroup(items: CreatedProfile[]) {
 
 export function groupsGroup(items: Group[]) {
     return {
+        key: 'groups',
         label: defineMessage({id: 'suggestion.search.group', defaultMessage: 'Group Mentions'}),
         items,
         terms: items.map((group) => '@' + group.name),
@@ -457,6 +459,7 @@ export function groupsGroup(items: Group[]) {
 
 export function specialMentionsGroup(items: Array<{username: string}>) {
     return {
+        key: 'specialMentions',
         label: defineMessage({id: 'suggestion.mention.special', defaultMessage: 'Special Mentions'}),
         items,
         terms: items.map((item) => '@' + item.username),
@@ -465,6 +468,7 @@ export function specialMentionsGroup(items: Array<{username: string}>) {
 
 export function nonMembersGroup(items: CreatedProfile[]) {
     return {
+        key: 'nonMembers',
         label: defineMessage({id: 'suggestion.mention.nonmembers', defaultMessage: 'Not in Channel'}),
         items,
         terms: items.map((item) => '@' + item.username),
@@ -473,6 +477,7 @@ export function nonMembersGroup(items: CreatedProfile[]) {
 
 export function otherMembersGroup() {
     return {
+        key: 'otherMembers',
         label: defineMessage({id: 'suggestion.mention.moremembers', defaultMessage: 'Other Members'}),
         loading: true as const,
     };

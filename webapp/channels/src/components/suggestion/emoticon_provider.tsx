@@ -170,6 +170,7 @@ export default class EmoticonProvider extends Provider {
         resultsCallback({
             matchedPretext: text,
             groups: [{
+                key: 'emojis',
                 label: defineMessage({id: 'suggestion.emoji', defaultMessage: 'Emoji'}),
                 terms,
                 items,

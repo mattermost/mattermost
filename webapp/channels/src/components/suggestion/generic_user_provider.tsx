@@ -79,6 +79,7 @@ export default class GenericUserProvider extends Provider {
                 matchedPretext: normalizedPretext,
                 groups: [{
                     hideLabel: true,
+                    key: 'users',
                     label: defineMessage({id: 'suggestion.users', defaultMessage: 'Users'}),
                     terms: users.map((user: UserProfile) => user.username),
                     items: users,

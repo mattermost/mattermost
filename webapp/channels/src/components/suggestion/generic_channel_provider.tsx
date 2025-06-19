@@ -71,6 +71,7 @@ export default class GenericChannelProvider extends Provider {
                     matchedPretext: normalizedPretext,
                     groups: [{
                         hideLabel: true,
+                        key: 'channels',
                         label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
                         terms: channels.map((channel: Channel) => channel.display_name),
                         items: channels,

@@ -26,6 +26,10 @@ export function isMessageDescriptor(descriptor: unknown): descriptor is MessageD
     return Boolean(descriptor && (descriptor as MessageDescriptor).id);
 }
 
+export function formatAsString(formatMessage: IntlShape['formatMessage'], messageOrDescriptor: string): string;
+export function formatAsString(formatMessage: IntlShape['formatMessage'], messageOrDescriptor: MessageDescriptor): string;
+export function formatAsString(formatMessage: IntlShape['formatMessage'], messageOrDescriptor: undefined): undefined;
+export function formatAsString(formatMessage: IntlShape['formatMessage'], messageOrDescriptor: string | MessageDescriptor | undefined): string | undefined;
 export function formatAsString(formatMessage: IntlShape['formatMessage'], messageOrDescriptor: string | MessageDescriptor | undefined): string | undefined {
     if (!messageOrDescriptor) {
         return undefined;

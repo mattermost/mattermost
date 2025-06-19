@@ -88,6 +88,7 @@ export default class AppCommandProvider extends Provider {
             resultCallback({
                 matchedPretext: pretext,
                 groups: [{
+                    key: 'appCommands',
                     label: defineMessage({
                         id: 'suggestion.commands',
                         defaultMessage: 'Commands',

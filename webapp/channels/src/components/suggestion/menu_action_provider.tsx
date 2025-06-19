@@ -28,10 +28,13 @@ const MenuActionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Men
 MenuActionSuggestion.displayName = 'MenuActionSuggestion';
 
 export default class MenuActionProvider extends Provider {
+    private displayName: string;
     private options: MenuAction[];
 
-    constructor(options: MenuAction[]) {
+    constructor(displayName: string, options: MenuAction[]) {
         super();
+
+        this.displayName = displayName;
         this.options = options;
     }
 
@@ -54,8 +57,13 @@ export default class MenuActionProvider extends Provider {
 
         resultsCallback({
             matchedPretext: '',
-            terms,
-            items: this.options,
+            groups: [{
+                hideLabel: true,
+                key: 'options',
+                label: this.displayName,
+                terms,
+                items: this.options,
+            }],
             component: MenuActionSuggestion,
         });
     }
@@ -66,8 +74,13 @@ export default class MenuActionProvider extends Provider {
 
         resultsCallback({
             matchedPretext: prefix,
-            terms,
-            items: filteredOptions,
+            groups: [{
+                hideLabel: true,
+                key: 'options',
+                label: this.displayName,
+                terms,
+                items: filteredOptions,
+            }],
             component: MenuActionSuggestion,
         });
     }
