@@ -823,6 +823,7 @@ func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 type userOut struct {
 	*model.User
 	Deactivated bool
+	AuthData    string
 }
 
 func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -843,6 +844,10 @@ func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			User:        user,
 			Deactivated: !(user.DeleteAt == 0),
 		}
+		if user.AuthData != nil {
+			uout.AuthData = *user.AuthData
+		}
+
 		tpl := `id: {{.Id}}
 deactivated: {{.Deactivated}}
 username: {{.Username}}
@@ -851,7 +856,8 @@ position: {{.Position}}
 first_name: {{.FirstName}}
 last_name: {{.LastName}}
 email: {{.Email}}
-auth_service: {{.AuthService}}`
+auth_service: {{.AuthService}}
+auth_data: {{.AuthData}}`
 		if i > 0 {
 			tpl = "------------------------------\n" + tpl
 		}

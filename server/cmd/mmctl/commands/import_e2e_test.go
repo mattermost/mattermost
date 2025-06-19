@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -428,5 +430,55 @@ func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
 			Attachments:    0,
 		}, printer.GetLines()[0].(Statistics))
 		s.Require().Equal("Validation complete\n", printer.GetLines()[2])
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestImportDeleteCmdF() {
+	s.SetupTestHelper().InitBasic()
+	s.Run("no permissions", func() {
+		printer.Clean()
+
+		err := importDeleteCmdF(s.th.Client, &cobra.Command{}, []string{"import1.zip"})
+		s.Require().EqualError(err, "failed to delete import: You do not have the appropriate permissions.")
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("delete import", func(c client.Client) {
+		importName := "import_test.zip"
+		importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
+		importPath, err := filepath.Abs(filepath.Join(*s.th.App.Config().FileSettings.Directory,
+			*s.th.App.Config().ImportSettings.Directory))
+		s.Require().Nil(err)
+
+		cmd := &cobra.Command{}
+
+		newImportName := "new_import_test.zip"
+		err = utils.CopyFile(importFilePath, filepath.Join(importPath, newImportName))
+		s.Require().Nil(err)
+
+		printer.Clean()
+		imports, appErr := s.th.App.ListImports()
+		s.Require().Nil(appErr)
+		s.Require().NotEmpty(imports)
+		s.Require().Equal(newImportName, imports[0])
+
+		err = importDeleteCmdF(c, cmd, []string{newImportName})
+		s.Require().Nil(err)
+		s.Require().Empty(printer.GetErrorLines())
+		s.Require().Len(printer.GetLines(), 1)
+		s.Equal(fmt.Sprintf(`Import file "%s" has been deleted`, newImportName), printer.GetLines()[0])
+
+		imports, appErr = s.th.App.ListImports()
+		s.Require().Nil(appErr)
+		s.Require().Empty(imports)
+
+		//idempotency check
+
+		err = importDeleteCmdF(c, cmd, []string{newImportName})
+		s.Require().Nil(err)
+		s.Require().Empty(printer.GetErrorLines())
+		s.Require().Len(printer.GetLines(), 2)
+		s.Equal(fmt.Sprintf(`Import file "%s" has been deleted`, newImportName), printer.GetLines()[0])
 	})
 }

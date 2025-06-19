@@ -27,6 +27,7 @@ function Action({
         <div className='DraftAction'>
             <WithTooltip
                 title={tooltipText}
+                id={`draft_tooltip_${id}`}
             >
                 <button
                     className={classNames(
@@ -35,7 +36,7 @@ function Action({
                     )}
                     id={`draft_${icon}_${id}`}
                     onClick={onClick}
-                    aria-label={name}
+                    aria-labelledby={`draft_tooltip_${id}`}
                 >
                     <i
                         className={classNames(
