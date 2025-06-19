@@ -262,6 +262,12 @@ func TestServePluginRequest(t *testing.T) {
 
 		th.App.ch.servePluginRequest(rr, req, mockHandler)
 		require.True(t, handlerCalled)
+
+		// Test again with lower case header prefix
+		handlerCalled = false
+		req.Header.Set(model.HeaderAuth, "bearer "+session.Token)
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		require.True(t, handlerCalled)
 	})
 
 	t.Run("token header authentication", func(t *testing.T) {
@@ -277,6 +283,12 @@ func TestServePluginRequest(t *testing.T) {
 			assert.Equal(t, session.Id, ctx.SessionId)
 		}
 
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		require.True(t, handlerCalled)
+
+		// Test again with upper case header prefix
+		handlerCalled = false
+		req.Header.Set(model.HeaderAuth, "TOKEN "+session.Token)
 		th.App.ch.servePluginRequest(rr, req, mockHandler)
 		require.True(t, handlerCalled)
 	})
