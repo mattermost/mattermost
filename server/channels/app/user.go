@@ -2378,22 +2378,13 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 	if scs != nil {
 		otherUser, otherErr := a.GetUser(otherUserId)
 		if otherErr != nil {
-			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Failed to get other user %s: %v", otherUserId, otherErr))
 			return false, nil
 		}
 
-		scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Checking visibility for user %s to see other user %s (remote_id: %v)", userID, otherUserId, otherUser.RemoteId))
-
 		// Check if the other user is from a remote cluster
 		if otherUser.IsRemote() {
-			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Other user %s is remote with remote_id %s", otherUserId, *otherUser.RemoteId))
-
 			// Check connection to the other user's remote cluster first
-			isConnected := scs.IsRemoteClusterDirectlyConnected(*otherUser.RemoteId)
-			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Remote cluster %s is directly connected: %v", *otherUser.RemoteId, isConnected))
-
-			if !isConnected {
-				scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: BLOCKED - No direct connection to remote cluster %s", *otherUser.RemoteId))
+			if !scs.IsRemoteClusterDirectlyConnected(*otherUser.RemoteId) {
 				return false, model.NewAppError(
 					"UserCanSeeOtherUser",
 					"api.user.remote_connection_not_allowed.app_error",
@@ -2405,15 +2396,11 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 			// Only fetch the first user if remote connectivity check passes
 			user, userErr := a.GetUser(userID)
 			if userErr != nil {
-				scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Failed to get requesting user %s: %v", userID, userErr))
 				return false, nil
 			}
 
-			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Requesting user %s remote_id: %v", userID, user.RemoteId))
-
 			// If both users are from remote clusters but different ones, they can't see each other
 			if user.IsRemote() && *user.RemoteId != *otherUser.RemoteId {
-				scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: BLOCKED - Users from different remote clusters (%s and %s)", *user.RemoteId, *otherUser.RemoteId))
 				return false, model.NewAppError(
 					"UserCanSeeOtherUser",
 					"api.user.remote_connection_not_allowed.app_error",
@@ -2421,10 +2408,6 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 					fmt.Sprintf("Users from different remote clusters (%s and %s) cannot see each other", *user.RemoteId, *otherUser.RemoteId),
 					http.StatusForbidden)
 			}
-
-			scs.PostDebugToTownSquare(c, "UserCanSeeOtherUser: ALLOWED - Remote user visibility check passed")
-		} else {
-			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Other user %s is local", otherUserId))
 		}
 	}
 
@@ -2458,6 +2441,57 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 	}
 
 	return false, nil
+}
+
+// UserCanDMOtherUser checks if a user can send direct messages to another user.
+// This is more restrictive than UserCanSeeOtherUser - synthetic users from
+// non-directly-connected servers cannot be DMed even if they can be seen.
+func (a *App) UserCanDMOtherUser(c request.CTX, userID, otherUserId string) (bool, *model.AppError) {
+	// First check if the user can see the other user at all
+	canSee, err := a.UserCanSeeOtherUser(c, userID, otherUserId)
+	if err != nil {
+		return false, err
+	}
+	if !canSee {
+		return false, nil
+	}
+
+	// Get shared channel sync service for remote user checks
+	scs := a.Srv().GetSharedChannelSyncService()
+	if scs != nil {
+		otherUser, otherErr := a.GetUser(otherUserId)
+		if otherErr != nil {
+			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Failed to get other user %s: %v", otherUserId, otherErr))
+			return false, nil
+		}
+
+		scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Checking DM permissions for user %s to DM other user %s (remote_id: %v)", userID, otherUserId, otherUser.RemoteId))
+
+		// Check if the other user is from a remote cluster
+		if otherUser.IsRemote() {
+			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Other user %s is remote with remote_id %s", otherUserId, *otherUser.RemoteId))
+
+			// For DMs, we require a direct connection to the remote cluster
+			isDirectlyConnected := scs.IsRemoteClusterDirectlyConnected(*otherUser.RemoteId)
+			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Remote cluster %s is directly connected: %v", *otherUser.RemoteId, isDirectlyConnected))
+
+			if !isDirectlyConnected {
+				scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: BLOCKED - No direct connection to remote cluster %s for DM", *otherUser.RemoteId))
+				return false, model.NewAppError(
+					"UserCanDMOtherUser",
+					"api.user.remote_dm_not_allowed.app_error",
+					nil,
+					fmt.Sprintf("Cannot send DM to user from remote cluster with ID %s - no direct connection", *otherUser.RemoteId),
+					http.StatusForbidden)
+			}
+
+			scs.PostDebugToTownSquare(c, "UserCanDMOtherUser: ALLOWED - Direct connection to remote cluster confirmed for DM")
+		} else {
+			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Other user %s is local - DM allowed", otherUserId))
+		}
+	}
+
+	return true, nil
 }
 
 func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, *model.AppError) {

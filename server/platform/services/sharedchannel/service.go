@@ -346,9 +346,18 @@ func (scs *Service) IsRemoteClusterDirectlyConnected(remoteId string) bool {
 	}
 
 	isConfirmed := rc.IsConfirmed()
-	scs.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("IsRemoteClusterDirectlyConnected: Remote cluster %s - Name: %s, SiteURL: %s, IsConfirmed: %v", remoteId, rc.Name, rc.SiteURL, isConfirmed))
+	hasCreator := rc.CreatorId != ""
 
-	return isConfirmed
+	scs.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("IsRemoteClusterDirectlyConnected: Remote cluster %s - Name: %s, SiteURL: %s, IsConfirmed: %v, HasCreator: %v", remoteId, rc.Name, rc.SiteURL, isConfirmed, hasCreator))
+
+	// For a direct connection, the remote cluster must be confirmed AND have a creator
+	// (someone on this server initiated or accepted the connection)
+	// Remote clusters known only through synthetic users won't have a creator
+	directConnection := isConfirmed && hasCreator
+
+	scs.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("IsRemoteClusterDirectlyConnected: Remote cluster %s - DirectConnection: %v", remoteId, directConnection))
+
+	return directConnection
 }
 
 // OnReceiveSyncMessageForTesting is a wrapper to expose onReceiveSyncMessage for testing purposes

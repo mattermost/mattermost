@@ -27,7 +27,6 @@ import {
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getDirectShowPreferences, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
-import {isConfirmed} from 'mattermost-redux/utils/remote_cluster_utils';
 import {
     displayUsername,
     filterProfilesStartingWithTerm,
@@ -862,59 +861,10 @@ export const getLastActiveTimestampUnits: (state: GlobalState, userId: string) =
     },
 );
 
-export const userCanSeeOtherUser: (state: GlobalState, userId: string) => boolean = createSelector(
-    'userCanSeeOtherUser',
-    (state: GlobalState, userId: string) => userId,
-    (state: GlobalState, userId: string) => getUser(state, userId),
-    (state: GlobalState) => state.entities.general.config,
-    (state: GlobalState) => state.entities.sharedChannels?.remotesByRemoteId || {},
-    (userId, user, config, remotesByRemoteId) => {
-        // eslint-disable-next-line no-console
-        console.log(`[DEBUG] userCanSeeOtherUser: Checking user ${userId}`, {userId, user, hasRemoteId: Boolean(user?.remote_id)});
-        if (!user) {
-            // eslint-disable-next-line no-console
-            console.log(`[DEBUG] userCanSeeOtherUser: User ${userId} not found - returning false`);
-            return false;
-        }
-
-        // Feature flag check
-        const featureFlags = config as any;
-        const isFeatureEnabled = featureFlags.FeatureFlags && featureFlags.FeatureFlags.EnableSharedChannelsDMs === 'true';
-        // eslint-disable-next-line no-console
-        console.log(`[DEBUG] userCanSeeOtherUser: EnableSharedChannelsDMs feature flag: ${isFeatureEnabled}`);
-        if (!isFeatureEnabled) {
-            // eslint-disable-next-line no-console
-            console.log(`[DEBUG] userCanSeeOtherUser: Feature disabled - returning true for user ${userId}`);
-            return true; // Always allow if feature is disabled
-        }
-
-        // Local users (without remote_id) can always be messaged
-        if (!user.remote_id) {
-            // eslint-disable-next-line no-console
-            console.log(`[DEBUG] userCanSeeOtherUser: User ${userId} is local - returning true`);
-            return true;
-        }
-
-        // eslint-disable-next-line no-console
-        console.log(`[DEBUG] userCanSeeOtherUser: User ${userId} is remote with remote_id ${user.remote_id}`);
-        // eslint-disable-next-line no-console
-        console.log('[DEBUG] userCanSeeOtherUser: Available remotes:', Object.keys(remotesByRemoteId));
-
-        // Check if the user's remote cluster is directly connected
-        const remoteClusterInfo = remotesByRemoteId[user.remote_id];
-        if (!remoteClusterInfo) {
-            // eslint-disable-next-line no-console
-            console.log(`[DEBUG] userCanSeeOtherUser: No remote cluster info found for ${user.remote_id} - returning false`);
-            return false;
-        }
-
-        // eslint-disable-next-line no-console
-        console.log(`[DEBUG] userCanSeeOtherUser: Remote cluster info for ${user.remote_id}:`, remoteClusterInfo);
-
-        // A remote is directly connected if it's confirmed
-        const isRemoteConfirmed = isConfirmed(remoteClusterInfo);
-        // eslint-disable-next-line no-console
-        console.log(`[DEBUG] userCanSeeOtherUser: Remote cluster ${user.remote_id} isConfirmed: ${isRemoteConfirmed}`);
-        return isRemoteConfirmed;
-    },
-);
+// userCanDMOtherUser should use the server action canUserDirectMessage()
+// to get real-time, authoritative DM permission data from the server.
+// This ensures synthetic users from non-directly-connected servers cannot be DMed.
+//
+// Usage:
+// const {data} = await dispatch(canUserDirectMessage(currentUserId, otherUserId));
+// const canDM = data?.can_dm || false;

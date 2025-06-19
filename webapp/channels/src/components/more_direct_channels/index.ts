@@ -25,7 +25,6 @@ import {
     makeSearchProfilesStartingWithTerm,
     searchProfilesInCurrentTeam,
     getTotalUsersStats as getTotalUsersStatsSelector,
-    userCanSeeOtherUser,
 } from 'mattermost-redux/selectors/entities/users';
 
 import {openDirectChannelToUserId, openGroupChannelToUserIds} from 'actions/channel_actions';
@@ -75,26 +74,8 @@ export const makeMapStateToProps = () => {
             users = getProfilesInCurrentTeam(state, filters);
         }
 
-        // Filter out users that can't be messaged directly because they're from indirectly connected remote clusters
-        if (enableSharedChannelsDMs) {
-            const originalUserCount = users.length;
-            const remoteUsers = users.filter((user) => user.remote_id);
-            // eslint-disable-next-line no-console
-            console.log(`[DEBUG] MoreDirectChannels: Before filtering - ${originalUserCount} users, ${remoteUsers.length} remote users`, {
-                remoteUserDetails: remoteUsers.map((u) => ({id: u.id, username: u.username, remote_id: u.remote_id})),
-            });
-            users = users.filter((user) => {
-                const canSee = userCanSeeOtherUser(state, user.id);
-                if (!canSee && user.remote_id) {
-                    // eslint-disable-next-line no-console
-                    console.log(`[DEBUG] MoreDirectChannels: Filtered out remote user ${user.username} (${user.id}) from remote ${user.remote_id}`);
-                }
-                return canSee;
-            });
-
-            // eslint-disable-next-line no-console
-            console.log(`[DEBUG] MoreDirectChannels: After filtering - ${users.length} users remaining (filtered out ${originalUserCount - users.length})`);
-        }
+        // Note: DM permission validation is now handled when users try to start conversations,
+        // not by filtering the user list. All users are shown but DM attempts will be validated server-side.
 
         const team = getCurrentTeam(state);
         const stats = getTotalUsersStatsSelector(state) || {total_users_count: 0};

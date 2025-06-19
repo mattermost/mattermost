@@ -110,7 +110,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         this.props.actions.loadProfilesMissingStatus(this.props.users);
 
         // Load remote cluster info for any remote users
-        // This is needed for the userCanSeeOtherUser selector to work properly
+        // This is needed for remote user data to be available
         const remoteUserIds = this.props.users.filter((user) => user.remote_id).
             map((user) => user.remote_id).
             filter((remoteId, index, arr) => arr.

@@ -952,6 +952,13 @@ export default class Client4 {
         );
     };
 
+    canUserDirectMessage = (userId: string, otherUserId: string) => {
+        return this.doFetch<{can_dm: boolean}>(
+            `${this.getUserRoute(userId)}/can_dm/${otherUserId}`,
+            {method: 'get'},
+        );
+    };
+
     getProfilePictureUrl = (userId: string, lastPictureUpdate: number) => {
         const params: any = {};
 
