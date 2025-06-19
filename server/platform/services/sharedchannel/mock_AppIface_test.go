@@ -560,6 +560,11 @@ func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Cha
 	return r0
 }
 
+// PostDebugToTownSquare provides a mock function with given fields: c, message
+func (_m *MockAppIface) PostDebugToTownSquare(c request.CTX, message string) {
+	_m.Called(c, message)
+}
+
 // PreparePostForClient provides a mock function with given fields: c, post, isNewPost, includeDeleted, includePriority
 func (_m *MockAppIface) PreparePostForClient(c request.CTX, post *model.Post, isNewPost bool, includeDeleted bool, includePriority bool) *model.Post {
 	ret := _m.Called(c, post, isNewPost, includeDeleted, includePriority)
