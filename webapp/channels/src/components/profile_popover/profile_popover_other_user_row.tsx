@@ -38,10 +38,23 @@ const ProfilePopoverOtherUserRow = ({
     const intl = useIntl();
 
     // Check if this user can be messaged directly
-    const canMessage = useSelector((state: GlobalState) =>
-        userCanSeeOtherUser(state, user.id),
-    );
-    const isSharedChannelsDMsEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
+    const canMessage = useSelector((state: GlobalState) => {
+        const result = userCanSeeOtherUser(state, user.id);
+        // eslint-disable-next-line no-console
+        console.log(`[DEBUG] ProfilePopoverOtherUserRow: userCanSeeOtherUser for ${user.username} (${user.id}): ${result}`, {
+            userId: user.id,
+            username: user.username,
+            remoteId: user.remote_id,
+            canMessage: result,
+        });
+        return result;
+    });
+    const isSharedChannelsDMsEnabled = useSelector((state: GlobalState) => {
+        const enabled = getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true';
+        // eslint-disable-next-line no-console
+        console.log(`[DEBUG] ProfilePopoverOtherUserRow: EnableSharedChannelsDMs feature flag: ${enabled}`);
+        return enabled;
+    });
 
     if (user.id === currentUserId || haveOverrideProp) {
         return null;
@@ -50,6 +63,15 @@ const ProfilePopoverOtherUserRow = ({
     // Hide Message button for remote users when EnableSharedChannelsDMs feature flag is off
     const isRemoteUser = Boolean(user.remote_id);
     const showMessageButton = isSharedChannelsDMsEnabled || !isRemoteUser;
+
+    // eslint-disable-next-line no-console
+    console.log(`[DEBUG] ProfilePopoverOtherUserRow: Button visibility logic for ${user.username}`, {
+        isRemoteUser,
+        isSharedChannelsDMsEnabled,
+        showMessageButton,
+        canMessage,
+        finalButtonVisible: showMessageButton && (canMessage || !canMessage), // Always show button (enabled/disabled based on canMessage)
+    });
 
     return (
         <div className='user-popover__bottom-row-container'>

@@ -2378,13 +2378,22 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 	if scs != nil {
 		otherUser, otherErr := a.GetUser(otherUserId)
 		if otherErr != nil {
+			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Failed to get other user %s: %v", otherUserId, otherErr))
 			return false, nil
 		}
 
+		scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Checking visibility for user %s to see other user %s (remote_id: %v)", userID, otherUserId, otherUser.RemoteId))
+
 		// Check if the other user is from a remote cluster
 		if otherUser.IsRemote() {
+			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Other user %s is remote with remote_id %s", otherUserId, *otherUser.RemoteId))
+
 			// Check connection to the other user's remote cluster first
-			if !scs.IsRemoteClusterDirectlyConnected(*otherUser.RemoteId) {
+			isConnected := scs.IsRemoteClusterDirectlyConnected(*otherUser.RemoteId)
+			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Remote cluster %s is directly connected: %v", *otherUser.RemoteId, isConnected))
+
+			if !isConnected {
+				scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: BLOCKED - No direct connection to remote cluster %s", *otherUser.RemoteId))
 				return false, model.NewAppError(
 					"UserCanSeeOtherUser",
 					"api.user.remote_connection_not_allowed.app_error",
@@ -2396,11 +2405,15 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 			// Only fetch the first user if remote connectivity check passes
 			user, userErr := a.GetUser(userID)
 			if userErr != nil {
+				scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Failed to get requesting user %s: %v", userID, userErr))
 				return false, nil
 			}
 
+			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Requesting user %s remote_id: %v", userID, user.RemoteId))
+
 			// If both users are from remote clusters but different ones, they can't see each other
 			if user.IsRemote() && *user.RemoteId != *otherUser.RemoteId {
+				scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: BLOCKED - Users from different remote clusters (%s and %s)", *user.RemoteId, *otherUser.RemoteId))
 				return false, model.NewAppError(
 					"UserCanSeeOtherUser",
 					"api.user.remote_connection_not_allowed.app_error",
@@ -2408,6 +2421,10 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 					fmt.Sprintf("Users from different remote clusters (%s and %s) cannot see each other", *user.RemoteId, *otherUser.RemoteId),
 					http.StatusForbidden)
 			}
+
+			scs.PostDebugToTownSquare(c, "UserCanSeeOtherUser: ALLOWED - Remote user visibility check passed")
+		} else {
+			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanSeeOtherUser: Other user %s is local", otherUserId))
 		}
 	}
 

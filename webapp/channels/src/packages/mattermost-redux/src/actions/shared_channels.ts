@@ -61,24 +61,37 @@ export function fetchChannelRemotes(channelId: string, forceRefresh = false): Ac
 
 export function fetchRemoteClusterInfo(remoteId: string, forceRefresh = false): ActionFuncAsync<RemoteClusterInfo> {
     return async (dispatch: any, getState: () => GlobalState) => {
+        // eslint-disable-next-line no-console
+        console.log(`[DEBUG] fetchRemoteClusterInfo: Fetching info for remote ${remoteId}, forceRefresh: ${forceRefresh}`);
+
         // Check if we already have the remote info cached
         const state = getState();
         const cachedRemote = state.entities?.sharedChannels?.remotesByRemoteId?.[remoteId];
 
         if (!forceRefresh && cachedRemote) {
+            // eslint-disable-next-line no-console
+            console.log(`[DEBUG] fetchRemoteClusterInfo: Using cached data for remote ${remoteId}:`, cachedRemote);
             return {data: cachedRemote};
         }
 
+        // eslint-disable-next-line no-console
+        console.log(`[DEBUG] fetchRemoteClusterInfo: Making API call for remote ${remoteId}`);
         let data;
         try {
             data = await Client4.getRemoteClusterInfo(remoteId);
+            // eslint-disable-next-line no-console
+            console.log(`[DEBUG] fetchRemoteClusterInfo: API response for remote ${remoteId}:`, data);
         } catch (error) {
+            // eslint-disable-next-line no-console
+            console.log(`[DEBUG] fetchRemoteClusterInfo: API error for remote ${remoteId}:`, error);
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }
 
         if (data) {
+            // eslint-disable-next-line no-console
+            console.log(`[DEBUG] fetchRemoteClusterInfo: Dispatching receivedRemoteClusterInfo for remote ${remoteId}`);
             dispatch(receivedRemoteClusterInfo(remoteId, data));
         }
 

@@ -869,28 +869,52 @@ export const userCanSeeOtherUser: (state: GlobalState, userId: string) => boolea
     (state: GlobalState) => state.entities.general.config,
     (state: GlobalState) => state.entities.sharedChannels?.remotesByRemoteId || {},
     (userId, user, config, remotesByRemoteId) => {
+        // eslint-disable-next-line no-console
+        console.log(`[DEBUG] userCanSeeOtherUser: Checking user ${userId}`, {userId, user, hasRemoteId: Boolean(user?.remote_id)});
         if (!user) {
+            // eslint-disable-next-line no-console
+            console.log(`[DEBUG] userCanSeeOtherUser: User ${userId} not found - returning false`);
             return false;
         }
 
         // Feature flag check
         const featureFlags = config as any;
-        if (!featureFlags.FeatureFlags || featureFlags.FeatureFlags.EnableSharedChannelsDMs !== 'true') {
+        const isFeatureEnabled = featureFlags.FeatureFlags && featureFlags.FeatureFlags.EnableSharedChannelsDMs === 'true';
+        // eslint-disable-next-line no-console
+        console.log(`[DEBUG] userCanSeeOtherUser: EnableSharedChannelsDMs feature flag: ${isFeatureEnabled}`);
+        if (!isFeatureEnabled) {
+            // eslint-disable-next-line no-console
+            console.log(`[DEBUG] userCanSeeOtherUser: Feature disabled - returning true for user ${userId}`);
             return true; // Always allow if feature is disabled
         }
 
         // Local users (without remote_id) can always be messaged
         if (!user.remote_id) {
+            // eslint-disable-next-line no-console
+            console.log(`[DEBUG] userCanSeeOtherUser: User ${userId} is local - returning true`);
             return true;
         }
+
+        // eslint-disable-next-line no-console
+        console.log(`[DEBUG] userCanSeeOtherUser: User ${userId} is remote with remote_id ${user.remote_id}`);
+        // eslint-disable-next-line no-console
+        console.log('[DEBUG] userCanSeeOtherUser: Available remotes:', Object.keys(remotesByRemoteId));
 
         // Check if the user's remote cluster is directly connected
         const remoteClusterInfo = remotesByRemoteId[user.remote_id];
         if (!remoteClusterInfo) {
+            // eslint-disable-next-line no-console
+            console.log(`[DEBUG] userCanSeeOtherUser: No remote cluster info found for ${user.remote_id} - returning false`);
             return false;
         }
 
+        // eslint-disable-next-line no-console
+        console.log(`[DEBUG] userCanSeeOtherUser: Remote cluster info for ${user.remote_id}:`, remoteClusterInfo);
+
         // A remote is directly connected if it's confirmed
-        return isConfirmed(remoteClusterInfo);
+        const isRemoteConfirmed = isConfirmed(remoteClusterInfo);
+        // eslint-disable-next-line no-console
+        console.log(`[DEBUG] userCanSeeOtherUser: Remote cluster ${user.remote_id} isConfirmed: ${isRemoteConfirmed}`);
+        return isRemoteConfirmed;
     },
 );

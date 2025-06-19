@@ -332,16 +332,23 @@ func (scs *Service) postUnshareNotification(channelID string, creatorID string, 
 // IsRemoteClusterDirectlyConnected checks if a remote cluster has a direct connection to the current server
 func (scs *Service) IsRemoteClusterDirectlyConnected(remoteId string) bool {
 	if remoteId == "" {
+		scs.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), "IsRemoteClusterDirectlyConnected: Empty remoteId - returning true (local)")
 		return true // Local server is always "directly connected"
 	}
+
+	scs.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("IsRemoteClusterDirectlyConnected: Checking remote cluster %s", remoteId))
 
 	// Check if the remote cluster exists and confirmed
 	rc, err := scs.server.GetStore().RemoteCluster().Get(remoteId, false)
 	if err != nil {
+		scs.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("IsRemoteClusterDirectlyConnected: Error getting remote cluster %s: %v - returning false", remoteId, err))
 		return false
 	}
 
-	return rc.IsConfirmed()
+	isConfirmed := rc.IsConfirmed()
+	scs.PostDebugToTownSquare(request.EmptyContext(scs.server.Log()), fmt.Sprintf("IsRemoteClusterDirectlyConnected: Remote cluster %s - Name: %s, SiteURL: %s, IsConfirmed: %v", remoteId, rc.Name, rc.SiteURL, isConfirmed))
+
+	return isConfirmed
 }
 
 // OnReceiveSyncMessageForTesting is a wrapper to expose onReceiveSyncMessage for testing purposes
@@ -394,4 +401,76 @@ func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, r
 // HandleChannelNotSharedErrorForTesting is a wrapper to expose handleChannelNotSharedError for testing purposes
 func (scs *Service) HandleChannelNotSharedErrorForTesting(msg *model.SyncMsg, rc *model.RemoteCluster) {
 	scs.handleChannelNotSharedError(msg, rc)
+}
+
+// PostDebugToTownSquare posts a debug message to the town square channel
+func (scs *Service) PostDebugToTownSquare(c request.CTX, message string) {
+	// For interface compatibility, use empty channel ID and find a user
+	scs.postDebugToTownSquareWithContext(c, "", "", message)
+}
+
+// postDebugToTownSquareWithContext is the internal method with full context
+func (scs *Service) postDebugToTownSquareWithContext(c request.CTX, channelId, userId, message string) {
+	// Include the original channel ID in the message for context if provided
+	debugMessage := message
+	if channelId != "" {
+		debugMessage = fmt.Sprintf("[SharedChannel:%s] %s", channelId, message)
+	}
+
+	// Create the post asynchronously to avoid recursive notification calls
+	go func() {
+		// Get the first available team's town-square channel
+		teams, terr := scs.server.GetStore().Team().GetAll()
+		if terr != nil || len(teams) == 0 {
+			scs.server.Log().Warn("Failed to find any team for debug message", mlog.Err(terr))
+			return
+		}
+
+		// Find town-square channel
+		var townSquare *model.Channel
+		var err error
+		for _, team := range teams {
+			townSquare, err = scs.server.GetStore().Channel().GetByName(team.Id, model.DefaultChannelName, false)
+			if err == nil {
+				break
+			}
+		}
+
+		if townSquare == nil {
+			scs.server.Log().Warn("Failed to find town square channel for debug message")
+			return
+		}
+
+		// If no user ID provided, find one
+		if userId == "" {
+			// Get any admin user to post the message
+			admins, err := scs.server.GetStore().User().GetSystemAdminProfiles()
+			if err != nil || len(admins) == 0 {
+				scs.server.Log().Warn("Failed to find admin user for debug message", mlog.Err(err))
+				return
+			}
+			// Get the first admin user ID from the map
+			for uid := range admins {
+				userId = uid
+				break
+			}
+		}
+
+		post := &model.Post{
+			ChannelId: townSquare.Id,
+			Message:   debugMessage,
+			Type:      model.PostTypeSystemGeneric,
+			UserId:    userId,
+			CreateAt:  model.GetMillis(),
+		}
+
+		// Create a new context for the async operation
+		asyncCtx := request.EmptyContext(scs.server.Log())
+		_, appErr := scs.app.CreatePost(asyncCtx, post, townSquare, model.CreatePostFlags{})
+		if appErr != nil {
+			scs.server.Log().Warn("Failed to post debug message to town square",
+				mlog.String("channel_id", townSquare.Id),
+				mlog.Err(appErr))
+		}
+	}()
 }
