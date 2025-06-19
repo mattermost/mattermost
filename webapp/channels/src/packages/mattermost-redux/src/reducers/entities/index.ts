@@ -25,6 +25,7 @@ import roles from './roles';
 import scheduledPosts from './scheduled_posts';
 import schemes from './schemes';
 import search from './search';
+import sharedChannels from './shared_channels';
 import teams from './teams';
 import threads from './threads';
 import typing from './typing';
@@ -58,5 +59,6 @@ export default combineReducers({
     hostedCustomer,
     channelBookmarks,
     scheduledPosts,
+    sharedChannels,
     remoteClusters,
 });
