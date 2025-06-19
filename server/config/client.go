@@ -409,6 +409,11 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
 		}
+
+		if model.MinimumEnterpriseAdvancedLicense(license) {
+			props["MobileEnableSecureFilePreview"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableSecureFilePreview)
+			props["MobileAllowPdfLinkNavigation"] = strconv.FormatBool(*c.NativeAppSettings.MobileAllowPdfLinkNavigation)
+		}
 	}
 
 	for key, value := range c.FeatureFlags.ToMap() {

@@ -2130,6 +2130,33 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.mobileSecurity.jailbreakTitle', defaultMessage: 'Enable Jailbreak/Root Protection:'}),
                             help_text: defineMessage({id: 'admin.mobileSecurity.jailbreakDescription', defaultMessage: 'Prevents access to the app on devices detected as jailbroken or rooted. If a device fails the security check, users will be denied access or prompted to switch to a compliant server.'}),
                         },
+                        {
+                            type: 'bool',
+                            key: 'NativeAppSettings.MobileEnableSecureFilePreview',
+                            label: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewTitle', defaultMessage: 'Enable Secure File Preview Mode:'}),
+                            help_text: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewDescription', defaultMessage: 'Prevents file downloads, previews, and sharing for most file types, even if {mobileAllowDownloads} is enabled. Allows in-app previews for PDFs, videos, and images only. Files are stored temporarily in the app’s cache and cannot be exported or shared.'}),
+                            help_text_values: {
+                                mobileAllowDownloads: (
+                                    <a href='../site_config/file_sharing_downloads'>
+                                        <b>
+                                            <FormattedMessage
+                                                id='admin.mobileSecurity.mobileAllowDownloads'
+                                                defaultMessage='Site Configuration > File Sharing and Downloads > Allow File Downloads on Mobile'
+                                            />
+                                        </b>
+                                    </a>
+                                ),
+                            },
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'NativeAppSettings.MobileAllowPdfLinkNavigation',
+                            label: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationTitle', defaultMessage: 'Allow Link Navigation in Secure PDFs:'}),
+                            help_text: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationDescription', defaultMessage: 'Enables tapping links inside PDFs when Secure File Preview Mode is active. Links will open in the device browser or supported app. Has no effect when Secure File Preview Mode is disabled.'}),
+                            isDisabled: it.stateIsFalse('NativeAppSettings.MobileEnableSecureFilePreview'),
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                        },
                     ],
                 },
             },
