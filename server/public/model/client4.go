@@ -2562,11 +2562,7 @@ func (c *Client4) InviteUsersToTeamGracefully(ctx context.Context, teamId string
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var list []*EmailInviteWithError
-	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
-		return nil, nil, NewAppError("InviteUsersToTeamGracefully", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return list, BuildResponse(r), nil
+	return DecodeJSONFromResponse[[]*EmailInviteWithError](r)
 }
 
 // InviteUsersToTeam invite users by email to the team.
@@ -2585,11 +2581,7 @@ func (c *Client4) InviteUsersToTeamAndChannelsGracefully(ctx context.Context, te
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var list []*EmailInviteWithError
-	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
-		return nil, nil, NewAppError("InviteUsersToTeamGracefully", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return list, BuildResponse(r), nil
+	return DecodeJSONFromResponse[[]*EmailInviteWithError](r)
 }
 
 // InviteGuestsToTeam invite guest by email to some channels in a team.
@@ -2608,11 +2600,7 @@ func (c *Client4) InviteGuestsToTeamGracefully(ctx context.Context, teamId strin
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var list []*EmailInviteWithError
-	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
-		return nil, nil, NewAppError("InviteGuestsToTeamGracefully", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return list, BuildResponse(r), nil
+	return DecodeJSONFromResponse[[]*EmailInviteWithError](r)
 }
 
 // InvalidateEmailInvites will invalidate active email invitations that have not been accepted by the user.
@@ -2825,12 +2813,7 @@ func (c *Client4) CreateDirectChannel(ctx context.Context, userId1, userId2 stri
 	}
 	defer closeBody(r)
 
-	var ch *Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("CreateDirectChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[*Channel](r)
 }
 
 // CreateGroupChannel creates a group message channel based on userIds provided.
@@ -2841,12 +2824,7 @@ func (c *Client4) CreateGroupChannel(ctx context.Context, userIds []string) (*Ch
 	}
 	defer closeBody(r)
 
-	var ch *Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("CreateGroupChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[*Channel](r)
 }
 
 // GetChannel returns a channel based on the provided channel id string.
@@ -2857,12 +2835,7 @@ func (c *Client4) GetChannel(ctx context.Context, channelId, etag string) (*Chan
 	}
 	defer closeBody(r)
 
-	var ch *Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[*Channel](r)
 }
 
 // GetChannelStats returns statistics for a channel.
@@ -2873,11 +2846,7 @@ func (c *Client4) GetChannelStats(ctx context.Context, channelId string, etag st
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var stats ChannelStats
-	if err := json.NewDecoder(r.Body).Decode(&stats); err != nil {
-		return nil, nil, NewAppError("GetChannelStats", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &stats, BuildResponse(r), nil
+	return DecodeJSONFromResponse[*ChannelStats](r)
 }
 
 // GetChannelsMemberCount get channel member count for a given array of channel ids
@@ -2888,11 +2857,7 @@ func (c *Client4) GetChannelsMemberCount(ctx context.Context, channelIDs []strin
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var counts map[string]int64
-	if err := json.NewDecoder(r.Body).Decode(&counts); err != nil {
-		return nil, nil, NewAppError("GetChannelsMemberCount", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return counts, BuildResponse(r), nil
+	return DecodeJSONFromResponse[map[string]int64](r)
 }
 
 // GetChannelMembersTimezones gets a list of timezones for a channel.
@@ -2913,15 +2878,7 @@ func (c *Client4) GetPinnedPosts(ctx context.Context, channelId string, etag str
 	}
 	defer closeBody(r)
 
-	var list PostList
-	if r.StatusCode == http.StatusNotModified {
-		return &list, BuildResponse(r), nil
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
-		return nil, nil, NewAppError("GetPinnedPosts", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &list, BuildResponse(r), nil
+	return DecodeJSONFromResponse[*PostList](r)
 }
 
 // GetPrivateChannelsForTeam returns a list of private channels based on the provided team id string.
@@ -2933,12 +2890,7 @@ func (c *Client4) GetPrivateChannelsForTeam(ctx context.Context, teamId string, 
 	}
 	defer closeBody(r)
 
-	var ch []*Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetPrivateChannelsForTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
 // GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
@@ -2950,12 +2902,7 @@ func (c *Client4) GetPublicChannelsForTeam(ctx context.Context, teamId string, p
 	}
 	defer closeBody(r)
 
-	var ch []*Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetPublicChannelsForTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
 // GetDeletedChannelsForTeam returns a list of public channels based on the provided team id string.
@@ -2967,12 +2914,7 @@ func (c *Client4) GetDeletedChannelsForTeam(ctx context.Context, teamId string, 
 	}
 	defer closeBody(r)
 
-	var ch []*Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetDeletedChannelsForTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
 // GetPublicChannelsByIdsForTeam returns a list of public channels based on provided team id string.
@@ -2983,12 +2925,7 @@ func (c *Client4) GetPublicChannelsByIdsForTeam(ctx context.Context, teamId stri
 	}
 	defer closeBody(r)
 
-	var ch []*Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetPublicChannelsByIdsForTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
 // GetChannelsForTeamForUser returns a list channels of on a team for a user.
@@ -2999,12 +2936,7 @@ func (c *Client4) GetChannelsForTeamForUser(ctx context.Context, teamId, userId 
 	}
 	defer closeBody(r)
 
-	var ch []*Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetChannelsForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
 // GetChannelsForTeamAndUserWithLastDeleteAt returns a list channels of a team for a user, additionally filtered with lastDeleteAt. This does not have any effect if includeDeleted is set to false.
@@ -3017,12 +2949,7 @@ func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(ctx context.Context,
 	}
 	defer closeBody(r)
 
-	var ch []*Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetChannelsForTeamAndUserWithLastDeleteAt", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
 // GetChannelsForUserWithLastDeleteAt returns a list channels for a user, additionally filtered with lastDeleteAt.
@@ -3035,12 +2962,7 @@ func (c *Client4) GetChannelsForUserWithLastDeleteAt(ctx context.Context, userID
 	}
 	defer closeBody(r)
 
-	var ch []*Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetChannelsForUserWithLastDeleteAt", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
 // SearchChannels returns the channels on a team matching the provided search term.
@@ -3055,12 +2977,7 @@ func (c *Client4) SearchChannels(ctx context.Context, teamId string, search *Cha
 	}
 	defer closeBody(r)
 
-	var ch []*Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("SearchChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
 // SearchArchivedChannels returns the archived channels on a team matching the provided search term.
@@ -3075,12 +2992,7 @@ func (c *Client4) SearchArchivedChannels(ctx context.Context, teamId string, sea
 	}
 	defer closeBody(r)
 
-	var ch []*Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("SearchArchivedChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
 // SearchAllChannels search in all the channels. Must be a system administrator.
@@ -3095,12 +3007,7 @@ func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) 
 	}
 	defer closeBody(r)
 
-	var ch ChannelListWithTeamData
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("SearchAllChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
+	return DecodeJSONFromResponse[ChannelListWithTeamData](r)
 }
 
 // SearchAllChannelsForUser search in all the channels for a regular user.
