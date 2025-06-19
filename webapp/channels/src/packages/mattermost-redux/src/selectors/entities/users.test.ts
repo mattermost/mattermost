@@ -956,21 +956,23 @@ describe('Selectors.Users', () => {
                 ...baseState,
                 entities: {
                     ...baseState.entities,
-                    remoteClusters: {
-                        remote1: {
-                            remote_id: 'remote1',
-                            remote_team_id: 'team1',
-                            name: 'remote1',
-                            display_name: 'Remote 1',
-                            site_url: 'https://remote1.example.com',
-                            create_at: 1234567890,
-                            last_ping_at: Date.now() - 60000, // 1 minute ago (within connected threshold of 5 minutes)
-                            delete_at: 0,
-                            topics: '',
-                            creator_id: 'user1',
-                            plugin_id: 'plugin1',
-                            options: 0,
-                            default_team_id: 'team1',
+                    sharedChannels: {
+                        remotesByRemoteId: {
+                            remote1: {
+                                remote_id: 'remote1',
+                                remote_team_id: 'team1',
+                                name: 'remote1',
+                                display_name: 'Remote 1',
+                                site_url: 'https://remote1.example.com',
+                                create_at: 1234567890,
+                                last_ping_at: Date.now() - 60000, // 1 minute ago (within connected threshold of 5 minutes)
+                                delete_at: 0,
+                                topics: '',
+                                creator_id: 'user1',
+                                plugin_id: 'plugin1',
+                                options: 0,
+                                default_team_id: 'team1',
+                            },
                         },
                     },
                 },
@@ -983,21 +985,23 @@ describe('Selectors.Users', () => {
                 ...baseState,
                 entities: {
                     ...baseState.entities,
-                    remoteClusters: {
-                        remote1: {
-                            remote_id: 'remote1',
-                            remote_team_id: 'team1',
-                            name: 'remote1',
-                            display_name: 'Remote 1',
-                            site_url: 'pending_https://remote1.example.com',
-                            create_at: 1234567890,
-                            last_ping_at: Date.now() - 60000, // 1 minute ago (within connected threshold of 5 minutes)
-                            delete_at: 0,
-                            topics: '',
-                            creator_id: 'user1',
-                            plugin_id: 'plugin1',
-                            options: 0,
-                            default_team_id: 'team1',
+                    sharedChannels: {
+                        remotesByRemoteId: {
+                            remote1: {
+                                remote_id: 'remote1',
+                                remote_team_id: 'team1',
+                                name: 'remote1',
+                                display_name: 'Remote 1',
+                                site_url: 'pending_https://remote1.example.com',
+                                create_at: 1234567890,
+                                last_ping_at: Date.now() - 60000, // 1 minute ago (within connected threshold of 5 minutes)
+                                delete_at: 0,
+                                topics: '',
+                                creator_id: 'user1',
+                                plugin_id: 'plugin1',
+                                options: 0,
+                                default_team_id: 'team1',
+                            },
                         },
                     },
                 },
@@ -1010,21 +1014,23 @@ describe('Selectors.Users', () => {
                 ...baseState,
                 entities: {
                     ...baseState.entities,
-                    remoteClusters: {
-                        remote1: {
-                            remote_id: 'remote1',
-                            remote_team_id: 'team1',
-                            name: 'remote1',
-                            display_name: 'Remote 1',
-                            site_url: 'https://remote1.example.com',
-                            create_at: 1234567890,
-                            last_ping_at: 0,
-                            delete_at: 0,
-                            topics: '',
-                            creator_id: 'user1',
-                            plugin_id: 'plugin1',
-                            options: 0,
-                            default_team_id: 'team1',
+                    sharedChannels: {
+                        remotesByRemoteId: {
+                            remote1: {
+                                remote_id: 'remote1',
+                                remote_team_id: 'team1',
+                                name: 'remote1',
+                                display_name: 'Remote 1',
+                                site_url: 'https://remote1.example.com',
+                                create_at: 1234567890,
+                                last_ping_at: 0,
+                                delete_at: 0,
+                                topics: '',
+                                creator_id: 'user1',
+                                plugin_id: 'plugin1',
+                                options: 0,
+                                default_team_id: 'team1',
+                            },
                         },
                     },
                 },
