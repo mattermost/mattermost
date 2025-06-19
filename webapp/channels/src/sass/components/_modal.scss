@@ -63,10 +63,16 @@
             font-weight: 400;
         }
 
+        .input-wrapper > div {
+            display: flex;
+            flex-direction: column;
+        }
+
         .custom-textarea {
-            height: auto;
-            min-height: 8em;
+            height: auto !important;
+            min-height: 46px;
             max-height: 60vh;
+            flex-basis: 8em;
             -webkit-overflow-scrolling: touch;
             -ms-overflow-style: auto;
             overflow-y: auto;

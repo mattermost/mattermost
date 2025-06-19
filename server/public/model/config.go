@@ -2906,14 +2906,16 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppCustomURLSchemes        []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
-	AppDownloadLink            *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	AndroidAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	IosAppDownloadLink         *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	MobileExternalBrowser      *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
-	MobileEnableBiometrics     *bool    `access:"site_customization,write_restrictable"`
-	MobilePreventScreenCapture *bool    `access:"site_customization,write_restrictable"`
-	MobileJailbreakProtection  *bool    `access:"site_customization,write_restrictable"`
+	AppCustomURLSchemes           []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
+	AppDownloadLink               *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	AndroidAppDownloadLink        *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	IosAppDownloadLink            *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileExternalBrowser         *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileEnableBiometrics        *bool    `access:"site_customization,write_restrictable"`
+	MobilePreventScreenCapture    *bool    `access:"site_customization,write_restrictable"`
+	MobileJailbreakProtection     *bool    `access:"site_customization,write_restrictable"`
+	MobileEnableSecureFilePreview *bool    `access:"site_customization,write_restrictable"`
+	MobileAllowPdfLinkNavigation  *bool    `access:"site_customization,write_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2947,6 +2949,14 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.MobileJailbreakProtection == nil {
 		s.MobileJailbreakProtection = NewPointer(false)
+	}
+
+	if s.MobileEnableSecureFilePreview == nil {
+		s.MobileEnableSecureFilePreview = NewPointer(false)
+	}
+
+	if s.MobileAllowPdfLinkNavigation == nil {
+		s.MobileAllowPdfLinkNavigation = NewPointer(false)
 	}
 }
 
