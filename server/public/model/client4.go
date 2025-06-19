@@ -153,6 +153,19 @@ func BuildResponse(r *http.Response) *Response {
 	}
 }
 
+// DecodeJSONFromResponse decodes JSON from an HTTP response and returns the result.
+// Handles 304 Not Modified responses and calls BuildResponse automatically.
+func DecodeJSONFromResponse[T any](r *http.Response) (*T, *Response, error) {
+	if r.StatusCode == http.StatusNotModified {
+		return nil, BuildResponse(r), nil
+	}
+	var result T
+	if err := json.NewDecoder(r.Body).Decode(&result); err != nil {
+		return nil, BuildResponse(r), err
+	}
+	return &result, BuildResponse(r), nil
+}
+
 func (c *Client4) SetToken(token string) {
 	c.AuthToken = token
 	c.AuthType = HeaderBearer
@@ -644,14 +657,8 @@ func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var serverLimits ServerLimits
-	if r.StatusCode == http.StatusNotModified {
-		return &serverLimits, BuildResponse(r), nil
-	}
-	if err := json.NewDecoder(r.Body).Decode(&serverLimits); err != nil {
-		return nil, nil, NewAppError("GetServerLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &serverLimits, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[ServerLimits](r)
 }
 
 func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
@@ -665,11 +672,8 @@ func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *Schedu
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var createdScheduledPost ScheduledPost
-	if err := json.NewDecoder(r.Body).Decode(&createdScheduledPost); err != nil {
-		return nil, nil, NewAppError("CreateScheduledPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &createdScheduledPost, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[ScheduledPost](r)
 }
 
 func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, includeDirectChannels bool) (map[string][]*ScheduledPost, *Response, error) {
@@ -681,11 +685,12 @@ func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, incl
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var scheduledPostsByTeam map[string][]*ScheduledPost
-	if err := json.NewDecoder(r.Body).Decode(&scheduledPostsByTeam); err != nil {
-		return nil, nil, NewAppError("GetUserScheduledPosts", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+
+	result, resp, err := DecodeJSONFromResponse[map[string][]*ScheduledPost](r)
+	if err != nil {
+		return nil, resp, NewAppError("GetUserScheduledPosts", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return scheduledPostsByTeam, BuildResponse(r), nil
+	return *result, resp, nil
 }
 
 func (c *Client4) UpdateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
@@ -698,13 +703,9 @@ func (c *Client4) UpdateScheduledPost(ctx context.Context, scheduledPost *Schedu
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
-
 	defer closeBody(r)
-	var updatedScheduledPost ScheduledPost
-	if err := json.NewDecoder(r.Body).Decode(&updatedScheduledPost); err != nil {
-		return nil, nil, NewAppError("UpdateScheduledPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &updatedScheduledPost, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[ScheduledPost](r)
 }
 
 func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId string) (*ScheduledPost, *Response, error) {
@@ -714,11 +715,8 @@ func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId strin
 	}
 
 	defer closeBody(r)
-	var deletedScheduledPost ScheduledPost
-	if err := json.NewDecoder(r.Body).Decode(&deletedScheduledPost); err != nil {
-		return nil, nil, NewAppError("DeleteScheduledPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &deletedScheduledPost, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[ScheduledPost](r)
 }
 
 func (c *Client4) bookmarksRoute(channelId string) string {
@@ -958,11 +956,7 @@ func (c *Client4) login(ctx context.Context, m map[string]string) (*User, *Respo
 	c.AuthToken = r.Header.Get(HeaderToken)
 	c.AuthType = HeaderBearer
 
-	var user User
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		return nil, nil, NewAppError("login", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &user, BuildResponse(r), nil
+	return DecodeJSONFromResponse[User](r)
 }
 
 func (c *Client4) LoginWithDesktopToken(ctx context.Context, token, deviceId string) (*User, *Response, error) {
@@ -977,11 +971,7 @@ func (c *Client4) LoginWithDesktopToken(ctx context.Context, token, deviceId str
 	c.AuthToken = r.Header.Get(HeaderToken)
 	c.AuthType = HeaderBearer
 
-	var user User
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		return nil, nil, NewAppError("loginWithDesktopToken", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &user, BuildResponse(r), nil
+	return DecodeJSONFromResponse[User](r)
 }
 
 // Logout terminates the current user's session.
@@ -1024,11 +1014,8 @@ func (c *Client4) CreateUser(ctx context.Context, user *User) (*User, *Response,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var u User
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		return nil, nil, NewAppError("CreateUser", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &u, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[User](r)
 }
 
 // CreateUserWithToken creates a user in the system based on the provided tokenId.
@@ -1048,11 +1035,7 @@ func (c *Client4) CreateUserWithToken(ctx context.Context, user *User, tokenId s
 	}
 	defer closeBody(r)
 
-	var u User
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		return nil, nil, NewAppError("CreateUserWithToken", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &u, BuildResponse(r), nil
+	return DecodeJSONFromResponse[User](r)
 }
 
 // CreateUserWithInviteId creates a user in the system based on the provided invited id.
@@ -1072,11 +1055,7 @@ func (c *Client4) CreateUserWithInviteId(ctx context.Context, user *User, invite
 	}
 	defer closeBody(r)
 
-	var u User
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		return nil, nil, NewAppError("CreateUserWithInviteId", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &u, BuildResponse(r), nil
+	return DecodeJSONFromResponse[User](r)
 }
 
 // GetMe returns the logged in user.
@@ -1086,14 +1065,8 @@ func (c *Client4) GetMe(ctx context.Context, etag string) (*User, *Response, err
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var u User
-	if r.StatusCode == http.StatusNotModified {
-		return &u, BuildResponse(r), nil
-	}
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		return nil, nil, NewAppError("GetMe", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &u, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[User](r)
 }
 
 // GetUser returns a user based on the provided user id string.
@@ -1103,14 +1076,8 @@ func (c *Client4) GetUser(ctx context.Context, userId, etag string) (*User, *Res
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var u User
-	if r.StatusCode == http.StatusNotModified {
-		return &u, BuildResponse(r), nil
-	}
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		return nil, nil, NewAppError("GetUser", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &u, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[User](r)
 }
 
 // GetUserByUsername returns a user based on the provided user name string.
@@ -1120,14 +1087,8 @@ func (c *Client4) GetUserByUsername(ctx context.Context, userName, etag string) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var u User
-	if r.StatusCode == http.StatusNotModified {
-		return &u, BuildResponse(r), nil
-	}
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		return nil, nil, NewAppError("GetUserByUsername", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &u, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[User](r)
 }
 
 // GetUserByEmail returns a user based on the provided user email string.
@@ -1137,14 +1098,8 @@ func (c *Client4) GetUserByEmail(ctx context.Context, email, etag string) (*User
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var u User
-	if r.StatusCode == http.StatusNotModified {
-		return &u, BuildResponse(r), nil
-	}
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		return nil, nil, NewAppError("GetUserByEmail", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &u, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[User](r)
 }
 
 // AutocompleteUsersInTeam returns the users on a team based on search term.
@@ -1155,14 +1110,8 @@ func (c *Client4) AutocompleteUsersInTeam(ctx context.Context, teamId string, us
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var u UserAutocomplete
-	if r.StatusCode == http.StatusNotModified {
-		return &u, BuildResponse(r), nil
-	}
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		return nil, nil, NewAppError("AutocompleteUsersInTeam", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &u, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[UserAutocomplete](r)
 }
 
 // AutocompleteUsersInChannel returns the users in a channel based on search term.
@@ -1173,14 +1122,8 @@ func (c *Client4) AutocompleteUsersInChannel(ctx context.Context, teamId string,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var u UserAutocomplete
-	if r.StatusCode == http.StatusNotModified {
-		return &u, BuildResponse(r), nil
-	}
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		return nil, nil, NewAppError("AutocompleteUsersInChannel", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &u, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[UserAutocomplete](r)
 }
 
 // AutocompleteUsers returns the users in the system based on search term.
@@ -1191,14 +1134,8 @@ func (c *Client4) AutocompleteUsers(ctx context.Context, username string, limit 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var u UserAutocomplete
-	if r.StatusCode == http.StatusNotModified {
-		return &u, BuildResponse(r), nil
-	}
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		return nil, nil, NewAppError("AutocompleteUsers", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &u, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[UserAutocomplete](r)
 }
 
 // GetDefaultProfileImage gets the default user's profile image. Must be logged in.
@@ -1258,14 +1195,12 @@ func (c *Client4) GetUsersWithCustomQueryParameters(ctx context.Context, page in
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var list []*User
-	if r.StatusCode == http.StatusNotModified {
-		return list, BuildResponse(r), nil
+
+	result, resp, err := DecodeJSONFromResponse[[]*User](r)
+	if err != nil {
+		return nil, resp, NewAppError("GetUsersWithCustomQueryParameters", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
-		return nil, nil, NewAppError("GetUsersWithCustomQueryParameters", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return list, BuildResponse(r), nil
+	return *result, resp, nil
 }
 
 // GetUsersInTeam returns a page of users on a team. Page counting starts at 0.
