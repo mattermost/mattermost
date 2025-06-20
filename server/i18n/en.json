@@ -4251,8 +4251,8 @@
     "translation": "Unable to convert the guest to regular user because is not a guest."
   },
   {
-    "id": "api.user.remote_connection_not_allowed.app_error",
-    "translation": "Remote connections are not allowed for this user."
+    "id": "api.user.remote_dm_not_allowed.app_error",
+    "translation": "DMs are not allowed for these remote users"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
