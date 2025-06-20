@@ -402,6 +402,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/hooks/outgoing/${hookId}`;
     }
 
+    getSharedChannelsRoute() {
+        return `${this.getBaseRoute()}/sharedchannels`;
+    }
+
     getOAuthRoute() {
         return `${this.url}/oauth`;
     }
@@ -954,7 +958,7 @@ export default class Client4 {
 
     canUserDirectMessage = (userId: string, otherUserId: string) => {
         return this.doFetch<{can_dm: boolean}>(
-            `${this.getUserRoute(userId)}/can_dm/${otherUserId}`,
+            `${this.getSharedChannelsRoute()}/users/${userId}/can_dm/${otherUserId}`,
             {method: 'get'},
         );
     };

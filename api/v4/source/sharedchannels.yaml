@@ -226,3 +226,88 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+
+  "/api/v4/sharedchannels/{channel_id}/remotes":
+    get:
+      tags:
+        - shared channels
+      summary: Get remote clusters for a shared channel
+      description: |
+        Gets the remote clusters information for a shared channel.
+        
+        __Minimum server version__: 10.10
+        
+        ##### Permissions
+        Must be authenticated and have the `read_channel` permission for the channel.
+      operationId: GetSharedChannelRemotes
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Remote clusters retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RemoteClusterInfo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  "/api/v4/sharedchannels/users/{user_id}/can_dm/{other_user_id}":
+    get:
+      tags:
+        - shared channels
+      summary: Check if user can DM another user in shared channels context
+      description: |
+        Checks if a user can send direct messages to another user, considering shared channel restrictions.
+        This is specifically for shared channels where DMs require direct connections between clusters.
+        
+        __Minimum server version__: 10.10
+        
+        ##### Permissions
+        Must be authenticated and have permission to view the user.
+      operationId: UserCanDMOtherUser
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+        - name: other_user_id
+          in: path
+          description: Other user GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: DM permission check successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  can_dm:
+                    type: boolean
+                    description: Whether the user can send DMs to the other user
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

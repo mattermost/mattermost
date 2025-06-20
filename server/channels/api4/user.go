@@ -95,7 +95,6 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/channel_members", api.APISessionRequired(getChannelMembersForUser)).Methods(http.MethodGet)
-	api.BaseRoutes.User.Handle("/can_dm/{other_user_id:[A-Za-z0-9]+}", api.APISessionRequired(userCanDMOtherUser)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Users.Handle("/invalid_emails", api.APISessionRequired(getUsersWithInvalidEmails)).Methods(http.MethodGet)
 
@@ -3151,29 +3150,6 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		}
 
 		fromChannelID = members[len(members)-1].ChannelId
-	}
-}
-
-func userCanDMOtherUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId().RequireOtherUserId()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PermissionEditOtherUsers)
-		return
-	}
-
-	canDM, err := c.App.UserCanDMOtherUser(c.AppContext, c.Params.UserId, c.Params.OtherUserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	result := map[string]bool{"can_dm": canDM}
-	if err := json.NewEncoder(w).Encode(result); err != nil {
-		c.Logger.Warn("Error encoding JSON response", mlog.Err(err))
 	}
 }
 
