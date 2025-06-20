@@ -28,7 +28,7 @@ describe('Notifications', () => {
         });
     });
 
-    it.skip('MM-T562 New message bar - Message posted while scrolled up in same channel', () => {
+    it('MM-T562 New message bar - Message posted while scrolled up in same channel', () => {
         // # Post 30 random messages from the 'otherUser' account in off-topic
         Cypress._.times(numberOfPosts, (num) => {
             cy.postMessageAs({sender: otherUser, message: `${num} ${getRandomId()}`, channelId: offTopicChannelId});
