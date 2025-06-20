@@ -87,6 +87,13 @@ var (
 	LvlNotificationInfo  = Level{ID: 302, Name: "NotificationInfo"}
 	LvlNotificationDebug = Level{ID: 303, Name: "NotificationDebug"}
 	LvlNotificationTrace = Level{ID: 304, Name: "NotificationTrace"}
+	MlvlNotificationAll  = []Level{
+		LvlNotificationError,
+		LvlNotificationWarn,
+		LvlNotificationInfo,
+		LvlNotificationDebug,
+		LvlNotificationTrace,
+	}
 )
 
 // Combinations for LogM (log multi).
@@ -104,11 +111,12 @@ var (
 )
 
 var (
-	// MlvlAll contains all log levels expect the audit ones
+	// MlvlAll contains all log levels except the audit ones
 	MlvlAll = slices.Concat(
 		StdAll,
 		MLvlRemoteClusterServiceAll,
 		MLvlLDAPAll,
 		MlvlSharedChannelServiceDAll,
+		MlvlNotificationAll,
 	)
 )

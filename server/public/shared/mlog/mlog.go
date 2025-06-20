@@ -82,7 +82,7 @@ func (lc LoggerConfiguration) IsValid(validLevels []Level) error {
 		return errors.Wrap(err, "logger configuration is invalid")
 	}
 
-	validLevelIDs := make([]logr.LevelID, len(validLevels))
+	validLevelIDs := make([]logr.LevelID, 0, len(validLevels))
 	for _, l := range validLevels {
 		validLevelIDs = append(validLevelIDs, l.ID)
 	}

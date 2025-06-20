@@ -1568,9 +1568,6 @@ func TestLogSettingsIsValid(t *testing.T) {
 				assert.NotNil(t, appErr)
 			} else {
 				assert.Nil(t, appErr)
-				if appErr != nil {
-					t.Log(appErr.Error())
-				}
 			}
 		})
 	}
