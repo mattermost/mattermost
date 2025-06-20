@@ -44,6 +44,11 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
+        style={
+          Object {
+            "objectFit": "cover",
+          }
+        }
         tabIndex={0}
       />
     </figure>
@@ -121,9 +126,7 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
           src="https://example.com/image.png"
           style={
             Object {
-              "height": 200,
-              "maxWidth": "100%",
-              "width": 300,
+              "objectFit": "cover",
             }
           }
           tabIndex={0}
@@ -194,9 +197,7 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
         src="https://example.com/image.png"
         style={
           Object {
-            "height": 200,
-            "maxWidth": "100%",
-            "width": 300,
+            "objectFit": "cover",
           }
         }
         tabIndex={0}

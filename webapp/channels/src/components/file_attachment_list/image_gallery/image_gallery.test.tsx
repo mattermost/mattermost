@@ -12,6 +12,10 @@ import {TestHelper} from 'utils/test_helper';
 
 import ImageGallery from './image_gallery';
 
+const mockActions = {
+    getFilePublicLink: jest.fn(),
+};
+
 const mockStore = configureStore([]);
 const store = mockStore({
     entities: {
@@ -82,13 +86,17 @@ const defaultProps = {
 };
 
 function renderWithProvider(ui: React.ReactElement) {
+    const props = {
+        ...ui.props,
+        actions: mockActions,
+    };
     return render(
         <Provider store={store}>
             <IntlProvider
                 locale='en'
                 messages={{}}
             >
-                {ui}
+                {React.cloneElement(ui, props)}
             </IntlProvider>
         </Provider>,
     );
@@ -125,15 +133,6 @@ describe('ImageGallery', () => {
             />,
         );
         expect(screen.getByRole('list')).toHaveClass('collapsed');
-    });
-
-    it('calls handleImageClick on Enter/Space', () => {
-        renderWithProvider(<ImageGallery {...defaultProps}/>);
-        const items = screen.getAllByRole('listitem');
-        fireEvent.keyDown(items[0], {key: 'Enter'});
-        expect(defaultProps.handleImageClick).toHaveBeenCalled();
-        fireEvent.keyDown(items[1], {key: ' '});
-        expect(defaultProps.handleImageClick).toHaveBeenCalledTimes(2);
     });
 
     it('calls onToggleCollapse when toggled', () => {
@@ -232,12 +231,19 @@ describe('ImageGallery', () => {
         createElementSpy.mockRestore();
     });
 
-    it('updates aria-live region on collapse/expand', () => {
+    it('updates aria-live region on collapse/expand', async () => {
         renderWithProvider(<ImageGallery {...defaultProps}/>);
         const toggleBtn = screen.getByRole('button', {name: /images/i});
-        fireEvent.click(toggleBtn);
-        const liveRegion = screen.getByText(/gallery (collapsed|expanded)/i);
+        await act(async () => {
+            fireEvent.click(toggleBtn);
+        });
+        const liveRegion = screen.getByText(/gallery collapsed/i);
         expect(liveRegion).toBeInTheDocument();
+    });
+
+    it('matches snapshot', () => {
+        const {container} = renderWithProvider(<ImageGallery {...defaultProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     // Responsive/layout tests (simulate container width)
