@@ -102,7 +102,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                                 id: 'cloud_preview_modal.next',
                                 defaultMessage: 'Next',
                             })}
-                            <ChevronRightIcon size={18}/>
+                            <ArrowRightIcon size={18}/>
                         </>
                     )}
                 </button>
