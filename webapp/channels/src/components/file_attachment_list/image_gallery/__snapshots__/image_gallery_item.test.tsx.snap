@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ImageGalleryItem renders correctly and matches snapshot 1`] = `
+<div
+  aria-label="Image 1 of 1"
+  class="image-gallery__item"
+  role="listitem"
+  tabindex="0"
+>
+  <div
+    data-testid="singleImageView"
+  >
+    image1.png
+  </div>
+</div>
+`;

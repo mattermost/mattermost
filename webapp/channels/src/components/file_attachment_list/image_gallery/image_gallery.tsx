@@ -1,0 +1,292 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import classNames from 'classnames';
+import React, {useState, useRef, useEffect} from 'react';
+import {useIntl} from 'react-intl';
+
+import {DownloadOutlineIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
+import type {FileInfo} from '@mattermost/types/files';
+
+import ImageGalleryItem from './image_gallery_item';
+
+import type {PropsFromRedux} from './index';
+
+import './image_gallery.scss';
+
+// Gallery configuration constants
+export const GALLERY_CONFIG = {
+    SMALL_IMAGE_THRESHOLD: 216,
+    BREAKPOINTS: {
+        MOBILE: 400,
+        TABLET: 640,
+    },
+    ASPECT_RATIOS: {
+        HORIZONTAL_THRESHOLD: 1.05,
+        SQUARE_TOLERANCE: 0.2,
+    },
+    GRID_SPANS: {
+        SMALL: 2,
+        VERTICAL: 3,
+        SQUARE: 5,
+        HORIZONTAL: 7,
+    },
+} as const;
+
+// Utility functions for size calculations
+const isSmallImage = (fileInfo: FileInfo): boolean => {
+    const width = fileInfo.width || 0;
+    const height = fileInfo.height || 0;
+    return width < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD || height < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD;
+};
+
+/**
+ * Determines the number of grid columns an image should span based on its dimensions and container width.
+ *
+ * @param fileInfo - Image metadata containing width and height
+ * @param isSmall - Whether the image is considered small (< threshold)
+ * @param containerWidth - Current width of the gallery container
+ * @returns Number of grid columns to span (2-7)
+ */
+const getColumnSpan = (fileInfo: FileInfo, isSmall: boolean, containerWidth: number): number => {
+    const {width = 1, height = 1} = fileInfo;
+    const aspectRatio = width / height;
+
+    // If width is less than the small image threshold, span 2 columns
+    if (width < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD) {
+        return GALLERY_CONFIG.GRID_SPANS.SMALL;
+    }
+
+    // Only for small vertical or small square images on large screens
+    if (containerWidth > GALLERY_CONFIG.BREAKPOINTS.TABLET && isSmall) {
+        const isVertical = aspectRatio < 1 / GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD;
+        const isSquare = Math.abs(aspectRatio - 1) < GALLERY_CONFIG.ASPECT_RATIOS.SQUARE_TOLERANCE;
+
+        if (isVertical || isSquare) {
+            return GALLERY_CONFIG.GRID_SPANS.SMALL;
+        }
+    }
+
+    // Determine span based on aspect ratio
+    // For vertical images: ratio < 1/threshold
+    if (aspectRatio < 1 / GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD) {
+        return GALLERY_CONFIG.GRID_SPANS.VERTICAL;
+    }
+
+    // For horizontal images: ratio > threshold
+    if (aspectRatio > GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD) {
+        return GALLERY_CONFIG.GRID_SPANS.HORIZONTAL;
+    }
+
+    // For square-ish images
+    return GALLERY_CONFIG.GRID_SPANS.SQUARE;
+};
+
+// Utility function to sanitize file names
+function sanitizeFileName(name: string): string {
+    // Replace any character that is not a-z, A-Z, 0-9, dot, underscore, or hyphen with an underscore
+    return name.replace(/[^a-zA-Z0-9._-]/g, '_');
+}
+
+function isValidUrl(url: string): boolean {
+    try {
+        // eslint-disable-next-line no-new
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+type Props = PropsFromRedux & {
+    fileInfos: FileInfo[];
+    canDownloadFiles?: boolean;
+    onToggleCollapse?: (collapsed: boolean) => void;
+    isEmbedVisible?: boolean;
+    postId: string;
+};
+
+const ImageGallery = (props: Props) => {
+    const {
+        fileInfos,
+        canDownloadFiles = true,
+        handleImageClick,
+        onToggleCollapse,
+        isEmbedVisible = true,
+        postId,
+    } = props;
+
+    // Use the allFilesForPost from props (either passed explicitly or from Redux)
+    const allFilesForPost = props.allFilesForPost;
+
+    const [isCollapsed, setIsCollapsed] = useState(!isEmbedVisible);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const {formatMessage} = useIntl();
+
+    const galleryRef = useRef<HTMLDivElement>(null);
+    const [containerWidth, setContainerWidth] = useState(0);
+    const [ariaLiveMessage, setAriaLiveMessage] = useState('');
+    const imageCountId = 'image-gallery-count';
+
+    // Track component mount status to prevent state updates after unmount
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (galleryRef.current && isMountedRef.current) {
+                setContainerWidth(galleryRef.current.offsetWidth);
+            }
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    const toggleGallery = () => {
+        const newCollapsed = !isCollapsed;
+        if (isMountedRef.current) {
+            setIsCollapsed(newCollapsed);
+            setAriaLiveMessage(newCollapsed ? 'Gallery collapsed' : 'Gallery expanded');
+        }
+        onToggleCollapse?.(newCollapsed);
+    };
+
+    const handleDownloadAll = async () => {
+        if (isDownloading || !canDownloadFiles) {
+            return;
+        }
+        setIsDownloading(true);
+        try {
+            const downloadPromises = fileInfos.map((fileInfo) => {
+                return new Promise<void>((resolve) => {
+                    let url = '';
+
+                    // If fileInfo.link is a Blob, use createObjectURL
+                    if ((fileInfo.link as any) instanceof Blob) {
+                        url = URL.createObjectURL(fileInfo.link as unknown as Blob);
+                    } else if (typeof fileInfo.link === 'string' && isValidUrl(fileInfo.link)) {
+                        url = fileInfo.link;
+                    } else {
+                        // Invalid link, skip this file
+                        resolve();
+                        return;
+                    }
+
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = sanitizeFileName(fileInfo.name);
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    // Clean up object URL if used
+                    if ((fileInfo.link as any) instanceof Blob) {
+                        setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    }
+
+                    setTimeout(resolve, 50);
+                });
+            });
+            await Promise.all(downloadPromises);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        } finally {
+            // Only update state if component is still mounted
+            if (isMountedRef.current) {
+                setIsDownloading(false);
+            }
+        }
+    };
+
+    return (
+        <div
+            className='image-gallery'
+            data-testid='fileAttachmentList'
+            ref={galleryRef}
+        >
+            <div className='image-gallery__header'>
+                <button
+                    className='image-gallery__toggle'
+                    onClick={toggleGallery}
+                    aria-expanded={!isCollapsed}
+                    aria-describedby={imageCountId}
+                >
+                    {isCollapsed ? (
+                        <>
+                            <MenuRightIcon size={16}/>
+                            <span id={imageCountId}>
+                                {formatMessage(
+                                    {id: 'image_gallery.show_images', defaultMessage: 'Show {count} images'},
+                                    {count: fileInfos.length},
+                                )}
+                            </span>
+                        </>
+                    ) : (
+                        <>
+                            <MenuDownIcon size={16}/>
+                            <span id={imageCountId}>
+                                {formatMessage(
+                                    {id: 'image_gallery.hide_images', defaultMessage: '{count} images'},
+                                    {count: fileInfos.length},
+                                )}
+                            </span>
+                        </>
+                    )}
+                </button>
+                <span className='image-gallery__separator'/>
+                <button
+                    className='image-gallery__download-all'
+                    onClick={handleDownloadAll}
+                    disabled={isDownloading || !canDownloadFiles}
+                >
+                    <DownloadOutlineIcon size={12}/>
+                    {formatMessage({
+                        id: 'image_gallery.download_all',
+                        defaultMessage: 'Download All',
+                    })}
+                </button>
+            </div>
+            <div
+                className={classNames('image-gallery__body', {
+                    collapsed: isCollapsed,
+                })}
+                role='list'
+            >
+                {!isCollapsed && fileInfos.map((fileInfo, idx) => {
+                    const isSmall = isSmallImage(fileInfo);
+
+                    // For mobile, let CSS handle the span. For others, use getColumnSpan.
+                    const itemStyle = containerWidth < GALLERY_CONFIG.BREAKPOINTS.MOBILE ? undefined : {gridColumn: `span ${getColumnSpan(fileInfo, isSmall, containerWidth)}`};
+
+                    return (
+                        <ImageGalleryItem
+                            key={fileInfo.id}
+                            fileInfo={fileInfo}
+                            allFilesForPost={allFilesForPost}
+                            postId={postId}
+                            handleImageClick={handleImageClick}
+                            isSmall={isSmall}
+                            itemStyle={itemStyle}
+                            index={idx}
+                            totalImages={fileInfos.length}
+                        />
+                    );
+                })}
+            </div>
+            <div
+                aria-live='polite'
+                style={{position: 'absolute', left: '-9999px', height: '1px', width: '1px', overflow: 'hidden'}}
+            >
+                {ariaLiveMessage}
+            </div>
+        </div>
+    );
+};
+
+export default ImageGallery;

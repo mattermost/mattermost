@@ -1,0 +1,123 @@
+@use 'sass:math';
+@use 'sass/utils/variables';
+@use 'sass/utils/functions';
+@use 'sass/utils/mixins';
+
+// Add keyframes for the modal transition
+@keyframes expandImageToModal {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: scale(1.5) translateY(-10%);
+    }
+}
+
+@keyframes collapseImageFromModal {
+    from {
+        opacity: 0;
+        transform: scale(1.5) translateY(-10%);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.image-gallery {
+    --gallery-item-max-height: 216px;
+    --gallery-item-min-width: 50px;
+    --gallery-item-max-width: 500px;
+    margin: 5px 0;
+    container-type: inline-size;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        gap: 8px;
+    }
+
+    &__toggle,
+    &__download-all {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        cursor: pointer;
+        font-size: 12px;
+        gap: 4px;
+
+        &:hover:not(:disabled) {
+            color: var(--center-channel-color);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    }
+
+    &__separator {
+        width: 1px;
+        height: 16px;
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+
+    &__body {
+        // Define default custom properties for ImageGalleryItem
+        --item-position: relative;
+        --item-height: 100%;
+        --item-max-height: var(--gallery-item-max-height);
+        --item-padding-top: 0;
+        --item-grid-column: auto;
+        --item-child-view-position: relative;
+        --item-child-view-top: auto;
+        --item-child-view-left: auto;
+        --item-child-img-object-fit: cover;
+        --item-child-small-img-object-fit: contain;
+
+        display: grid;
+        overflow: hidden;
+        max-height: 2240px;
+        grid-column-gap: 8px;
+        grid-row-gap: 8px;
+        grid-template-columns: repeat(auto-fit, 40px);
+        opacity: 1;
+        transition: all 250ms ease-in-out;
+
+        &.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+    }
+
+    /* Container Query: large container breakpoint (380px <= width < 640px) */
+    @container (max-width: 639px) {
+        &__body {
+            grid-template-columns: repeat(auto-fit, 24px);
+        }
+    }
+
+    /* Container Query: small container breakpoint (width < 400px) */
+    @container (max-width: 400px) {
+        &__body {
+            grid-auto-rows: unset;
+            grid-template-columns: repeat(2, 1fr);
+
+            // Override custom properties for mobile view
+            --item-height: 0;
+            --item-max-height: none;
+            --item-padding-top: 100%;
+            --item-grid-column: span 1;
+            --item-child-view-position: absolute;
+            --item-child-view-top: 0;
+            --item-child-view-left: 0;
+            --item-child-small-img-object-fit: cover;
+        }
+    }
+}

@@ -1,0 +1,166 @@
+@use 'sass:math';
+@use 'sass/utils/variables';
+@use 'sass/utils/functions';
+@use 'sass/utils/mixins';
+
+.image-gallery__item {
+    position: var(--item-position, relative);
+    display: flex;
+    width: 100%;
+    height: var(--item-height, 100%);
+    max-height: var(--item-max-height, 216px);
+    padding-top: var(--item-padding-top, 0);
+    border-radius: 4px;
+    margin: 0;
+    grid-column: var(--item-grid-column);
+    object-fit: cover;
+
+    // Special handling for small images - center them within the gallery height
+    &--small {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    // Override SingleImageView styles to fit our grid
+    .file-view--single {
+        position: var(--item-child-view-position, relative);
+        top: var(--item-child-view-top, auto);
+        left: var(--item-child-view-left, auto);
+        width: 100%;
+        height: 100%;
+        margin: 0;
+
+        .file__image {
+            width: 100%;
+            height: 100%;
+
+            .image-header {
+                display: none;
+            }
+
+            .image-container {
+                position: relative;
+                display: flex;
+                overflow: hidden;
+                width: 100%;
+                min-width: 50px;
+                max-width: 500px;
+                height: 100%;
+                max-height: 216px;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
+                border-radius: 4px;
+                margin: 0;
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+
+                .file-preview__button {
+                    width: auto;
+                }
+
+                .image-loaded-container {
+                    display: flex;
+                    width: 100%;
+                    height: 100%;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                // Loading state styling
+                .image-loading__container {
+                    display: flex;
+                    width: 100%;
+                    height: 100%;
+                    align-items: center;
+                    justify-content: center;
+
+                    img[src] {
+                        width: 100%;
+                        height: 100%;
+                        filter: blur(8px);
+                        object-fit: cover;
+                        transform: scale(1.1);
+                        transition: filter 0.3s ease, transform 0.3s ease;
+                    }
+
+                    svg {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    }
+                }
+
+                .image-loaded {
+                    width: 100%;
+                    height: 100%;
+
+                    img {
+                        width: 100%;
+                        height: 100%;
+                        filter: none;
+                        object-fit: var(--item-child-img-object-fit, cover);
+                        transition: filter 0.3s ease, transform 0.15s ease-in-out;
+
+                        &.small-image--inside-container {
+                            width: auto;
+                            max-width: 100%;
+                            height: auto;
+                            max-height: 100%;
+                            object-fit: var(--item-child-small-img-object-fit, contain);
+                        }
+                    }
+
+                    .small-image__container {
+                        display: flex;
+                        width: 100%;
+                        max-width: 100%;
+                        height: 100%;
+                        max-height: 100%;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 8px;
+                        border-radius: 4px;
+                        margin: 0;
+                        background: transparent;
+                    }
+                }
+            }
+        }
+    }
+
+    // Style utility buttons for small images in gallery
+    .image-preview-utility-buttons-container {
+        top: 4px;
+        right: 4px;
+
+        button.size-aware-image__copy_link,
+        a.size-aware-image__download {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            padding: 2px;
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            text-align: center;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                text-decoration: none;
+            }
+
+            svg {
+                padding-top: 2px;
+                fill: rgba(var(--center-channel-color-rgb), 0.75);
+            }
+        }
+    }
+
+    // Show utility buttons on hover or focus, unless controls are hidden
+    &:hover:not(:has(.hide-controls)) .image-preview-utility-buttons-container,
+    &:focus-within:not(:has(.hide-controls)) .image-preview-utility-buttons-container,
+    &:focus:not(:has(.hide-controls)) .image-preview-utility-buttons-container {
+        display: inline-flex;
+    }
+}
