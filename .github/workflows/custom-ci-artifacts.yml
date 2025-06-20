@@ -1,0 +1,69 @@
+name: Custom Ci Artifacts
+
+on:
+  pull_request:
+  workflow_dispatch: {}
+
+jobs:
+  build-artifacts:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: ci/setup-node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "webapp/package-lock.json"
+      - name: Run setup-go-work
+        run: make setup-go-work
+      - name: Build
+        run: |
+          make config-reset
+          make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          ls dist
+      - name: Upload Mattermost Package
+        uses: actions/upload-artifact@v4 # v4.0.0
+        with:
+          name: server-build-artifact
+          path: server/dist/mattermost-team-linux-amd64.tar.gz
+
+  build-docker-image:
+    runs-on: ubuntu-22.04
+    needs: build-artifacts
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Docker Login
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+      - name: Download Mattermost Package
+        uses: actions/download-artifact@v4
+        with:
+          name: server-build-artifact
+          path: server/build
+      - name: Build and Push Docker Image
+        env:
+          TAG: ${{ github.sha }}
+        run: |
+          cd server/build
+          ls -l
+          docker buildx build --no-cache --platform linux/amd64 --push --build-arg MM_PACKAGE=mattermost-team-linux-amd64.tar.gz -t kondo97/mattermost:${TAG} .
