@@ -13,6 +13,15 @@
 
             .section-body {
                 padding: 32px 48px 48px;
+
+                // Custom components are sometimes nested, but don't do their horizontal spacing again
+                .section-header {
+                    padding: 48px 0 0;
+                }
+            }
+
+            .custom-section-body {
+                padding: 32px 0 0;
             }
 
             &:first-child {
