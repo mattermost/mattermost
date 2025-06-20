@@ -88,7 +88,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                 )}
 
                 <button
-                    className='preview-modal-controller__nav-button preview-modal-controller__nav-button--primary'
+                    className='btn btn-primary'
                     onClick={isLastSlide ? onClose : handleNext}
                 >
                     {isLastSlide ? (
