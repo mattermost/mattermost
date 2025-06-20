@@ -326,8 +326,8 @@ func (_m *SessionStore) Save(c request.CTX, session *model.Session) (*model.Sess
 }
 
 // UpdateDeviceId provides a mock function with given fields: id, deviceID, expiresAt
-func (_m *SessionStore) UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error) {
-	ret := _m.Called(id, deviceID, expiresAt)
+func (_m *SessionStore) UpdateDeviceId(id string, deviceID string, voipDeviceID string, expiresAt int64) (string, error) {
+	ret := _m.Called(id, deviceID, voipDeviceID, expiresAt)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateDeviceId")
