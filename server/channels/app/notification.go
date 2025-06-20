@@ -1182,19 +1182,22 @@ func (a *App) sendNoUsersNotifiedByGroupInChannel(c request.CTX, sender *model.U
 // sendOutOfChannelMentions sends an ephemeral post to the sender of a post if any of the given potential mentions
 // are outside of the post's channel. Returns whether or not an ephemeral post was sent.
 func (a *App) sendOutOfChannelMentions(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
-	outOfTeamUsers, outOfChannelUsers, outOfGroupsUsers, err := a.filterOutOfChannelMentions(c, sender, post, channel, potentialMentions)
+
+	outOfTeamUsers, outOfChannelUsers, outOfGroupsUsers, nonInvitableUsers, err := a.filterOutOfChannelMentions(c, sender, post, channel, potentialMentions)
 	if err != nil {
+
 		return false, err
 	}
 
-	if len(outOfTeamUsers) == 0 && len(outOfChannelUsers) == 0 && len(outOfGroupsUsers) == 0 {
+	if len(outOfTeamUsers) == 0 && len(outOfChannelUsers) == 0 && len(outOfGroupsUsers) == 0 && len(nonInvitableUsers) == 0 {
 		return false, nil
 	}
 
-	if len(outOfChannelUsers) != 0 || len(outOfGroupsUsers) != 0 {
-		a.SendEphemeralPost(c, post.UserId, makeOutOfChannelMentionPost(sender, post, outOfChannelUsers, outOfGroupsUsers))
-	}
-	if len(outOfTeamUsers) != 0 {
+	// Send a single consolidated ephemeral message
+	if len(outOfChannelUsers) != 0 || len(outOfGroupsUsers) != 0 || len(nonInvitableUsers) != 0 {
+		a.SendEphemeralPost(c, post.UserId, makeOutOfChannelMentionPost(sender, post, outOfChannelUsers, outOfGroupsUsers, nonInvitableUsers))
+	} else if len(outOfTeamUsers) != 0 {
+		// Only send out-of-team message if there are no out-of-channel users
 		a.SendEphemeralPost(c, post.UserId, makeOutOfTeamMentionPost(sender, post, outOfTeamUsers))
 	}
 	return true, nil
@@ -1214,22 +1217,22 @@ func (a *App) FilterUsersByVisible(c request.CTX, viewer *model.User, otherUsers
 	return result, nil
 }
 
-func (a *App) filterOutOfChannelMentions(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, []*model.User, error) {
+func (a *App) filterOutOfChannelMentions(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, []*model.User, []*model.User, error) {
 	if post.IsSystemMessage() {
-		return nil, nil, nil, nil
+		return nil, nil, nil, nil, nil
 	}
 
 	if channel.TeamId == "" || channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-		return nil, nil, nil, nil
+		return nil, nil, nil, nil, nil
 	}
 
 	if len(potentialMentions) == 0 {
-		return nil, nil, nil, nil
+		return nil, nil, nil, nil, nil
 	}
 
 	mentionedUsersInTheTeam, err := a.Srv().Store().User().GetProfilesByUsernames(potentialMentions, &model.ViewUsersRestrictions{Teams: []string{channel.TeamId}})
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	// Filter out inactive users and bots
@@ -1237,12 +1240,12 @@ func (a *App) filterOutOfChannelMentions(c request.CTX, sender *model.User, post
 	teamUsers = teamUsers.FilterWithoutBots()
 	teamUsers, appErr := a.FilterUsersByVisible(c, sender, teamUsers)
 	if appErr != nil {
-		return nil, nil, nil, appErr
+		return nil, nil, nil, nil, appErr
 	}
 
 	allMentionedUsers, err := a.Srv().Store().User().GetProfilesByUsernames(potentialMentions, nil)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	outOfTeamUsers := model.UserSlice(allMentionedUsers).FilterWithoutID(teamUsers.IDs())
@@ -1250,32 +1253,72 @@ func (a *App) filterOutOfChannelMentions(c request.CTX, sender *model.User, post
 	outOfTeamUsers = outOfTeamUsers.FilterWithoutBots()
 	outOfTeamUsers, appErr = a.FilterUsersByVisible(c, sender, outOfTeamUsers)
 	if appErr != nil {
-		return nil, nil, nil, appErr
+		return nil, nil, nil, nil, appErr
 	}
 
 	if len(teamUsers) == 0 {
-		return outOfTeamUsers, nil, nil, nil
+		return outOfTeamUsers, nil, nil, nil, nil
 	}
 
 	// Differentiate between mentionedUsersInTheTeam who can and can't be added to the channel
 	var outOfChannelUsers model.UserSlice
 	var outOfGroupsUsers model.UserSlice
-	if channel.IsGroupConstrained() {
-		nonMemberIDs, err := a.FilterNonGroupChannelMembers(teamUsers.IDs(), channel)
-		if err != nil {
-			return nil, nil, nil, err
-		}
+	var nonInvitableUsers model.UserSlice
 
-		outOfChannelUsers = teamUsers.FilterWithoutID(nonMemberIDs)
-		outOfGroupsUsers = teamUsers.FilterByID(nonMemberIDs)
+	// Check if channel is ABAC controlled and filter users accordingly
+	if ok, err := a.ChannelAccessControlled(c, channel.Id); err != nil {
+		return nil, nil, nil, nil, err
+	} else if ok {
+		// Channel is ABAC controlled - filter users based on attributes
+		acs := a.Srv().ch.AccessControl
+		if acs != nil {
+			// Get all users that can potentially access this channel
+			filteredUsers, _, appErr := acs.QueryUsersForResource(c, channel.Id, "*", model.SubjectSearchOptions{
+				Term:   "",
+				TeamID: channel.TeamId,
+				Limit:  1000, // Set a reasonable limit
+			})
+			if appErr != nil {
+				return nil, nil, nil, nil, appErr
+			}
+
+			// Create a map for quick lookup of users who match ABAC attributes
+			allowedUserIDs := make(map[string]bool)
+			for _, user := range filteredUsers {
+				allowedUserIDs[user.Id] = true
+			}
+
+			// Separate users into those who can and cannot be invited
+			for _, user := range teamUsers {
+				if allowedUserIDs[user.Id] {
+					outOfChannelUsers = append(outOfChannelUsers, user)
+				} else {
+					nonInvitableUsers = append(nonInvitableUsers, user)
+				}
+			}
+		} else {
+			// ABAC service not available, treat all as invitable
+			outOfChannelUsers = teamUsers
+		}
 	} else {
-		outOfChannelUsers = teamUsers
+		// Channel is not ABAC controlled - use existing logic
+		if channel.IsGroupConstrained() {
+			nonMemberIDs, err := a.FilterNonGroupChannelMembers(teamUsers.IDs(), channel)
+			if err != nil {
+				return nil, nil, nil, nil, err
+			}
+
+			outOfChannelUsers = teamUsers.FilterWithoutID(nonMemberIDs)
+			outOfGroupsUsers = teamUsers.FilterByID(nonMemberIDs)
+		} else {
+			outOfChannelUsers = teamUsers
+		}
 	}
 
-	return outOfTeamUsers, outOfChannelUsers, outOfGroupsUsers, nil
+	return outOfTeamUsers, outOfChannelUsers, outOfGroupsUsers, nonInvitableUsers, nil
 }
 
-func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChannelUsers, outOfGroupsUsers []*model.User) *model.Post {
+func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChannelUsers, outOfGroupsUsers, nonInvitableUsers []*model.User) *model.Post {
 	allUsers := model.UserSlice(append(outOfChannelUsers, outOfGroupsUsers...))
 
 	ocUsers := model.UserSlice(outOfChannelUsers)
@@ -1285,10 +1328,15 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 	ogUsers := model.UserSlice(outOfGroupsUsers)
 	ogUsernames := ogUsers.Usernames()
 
+	niUsers := model.UserSlice(nonInvitableUsers)
+	niUsernames := niUsers.Usernames()
+
 	T := i18n.GetUserTranslations(sender.Locale)
 
 	ephemeralPostId := model.NewId()
 	var message string
+
+	// Generate message for users who can be invited
 	if len(outOfChannelUsers) == 1 {
 		message = T("api.post.check_for_out_of_channel_mentions.message.one", map[string]any{
 			"Username": ocUsernames[0],
@@ -1323,6 +1371,26 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 		})
 	}
 
+	// Add message for users who cannot be invited due to ABAC policy
+	if len(nonInvitableUsers) > 0 {
+		// Add proper spacing before ABAC violation message
+		if message != "" {
+			message += " "
+		}
+
+		if len(nonInvitableUsers) == 1 {
+			message += T("api.post.check_for_out_of_channel_mentions.abac_policy_violation.one", map[string]any{
+				"Username": niUsernames[0],
+			})
+		} else {
+			preliminary, final := splitAtFinal(niUsernames)
+			message += T("api.post.check_for_out_of_channel_mentions.abac_policy_violation.multiple", map[string]any{
+				"Usernames":    strings.Join(preliminary, ", @"),
+				"LastUsername": final,
+			})
+		}
+	}
+
 	props := model.StringInterface{
 		model.PropsAddChannelMember: model.StringInterface{
 			"post_id": ephemeralPostId,
@@ -1335,6 +1403,8 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 
 			"not_in_groups_usernames": ogUsernames,
 			"not_in_groups_user_ids":  ogUsers.IDs(),
+
+			"non_invitable_usernames": niUsernames,
 		},
 	}
 
