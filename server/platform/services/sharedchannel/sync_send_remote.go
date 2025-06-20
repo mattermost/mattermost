@@ -444,9 +444,6 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 	}
 
 	for _, post := range sd.posts {
-		// add author
-		userIDs[post.UserId] = p2mm{}
-
 		// get mentions and users for each mention
 		mentionMap := scs.app.MentionsToTeamMembers(request.EmptyContext(scs.server.Log()), post.Message, sc.TeamId)
 
@@ -458,10 +455,19 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			}
 
 			// Skip remote users unless mention contains a colon (@username:remote)
-			if user.RemoteId != nil && !strings.Contains(mention, ":") {
+			if user.IsRemote() && !strings.Contains(mention, ":") {
 				continue
 			}
+		}
 
+		// add author with post and mentionMap so transformations can be applied
+		userIDs[post.UserId] = p2mm{
+			post:       post,
+			mentionMap: mentionMap,
+		}
+
+		// Add all mentioned users
+		for _, userID := range mentionMap {
 			userIDs[userID] = p2mm{
 				post:       post,
 				mentionMap: mentionMap,
@@ -470,8 +476,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 	}
 
 	merr := merror.New()
-
-	for userID, v := range userIDs {
+	for userID := range userIDs {
 		user, err := scs.server.GetStore().User().Get(context.Background(), userID)
 		if err != nil {
 			merr.Append(fmt.Errorf("could not get user %s: %w", userID, err))
@@ -480,7 +485,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 		sync, syncImage, err2 := scs.shouldUserSync(user, sd.task.channelID, sd.rc)
 		if err2 != nil {
-			merr.Append(fmt.Errorf("could not check should sync user %s: %w", userID, err))
+			merr.Append(fmt.Errorf("could not check should sync user %s: %w", userID, err2))
 			continue
 		}
 
@@ -490,11 +495,6 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 		if syncImage {
 			sd.profileImages[user.Id] = user
-		}
-
-		// Transform @username:remote to @username when sending to a user's home cluster
-		if v.post != nil && user.RemoteId != nil && *user.RemoteId == sd.rc.RemoteId {
-			fixMention(v.post, v.mentionMap, user)
 		}
 	}
 	return merr.ErrorOrNil()

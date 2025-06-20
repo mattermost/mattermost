@@ -419,6 +419,38 @@ func (_m *MockAppIface) GetProfileImage(user *model.User) ([]byte, bool, *model.
 	return r0, r1, r2
 }
 
+// GetTeamMember provides a mock function with given fields: c, teamID, userID
+func (_m *MockAppIface) GetTeamMember(c request.CTX, teamID string, userID string) (*model.TeamMember, *model.AppError) {
+	ret := _m.Called(c, teamID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamMember")
+	}
+
+	var r0 *model.TeamMember
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.TeamMember, *model.AppError)); ok {
+		return rf(c, teamID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.TeamMember); ok {
+		r0 = rf(c, teamID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TeamMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
+		r1 = rf(c, teamID, userID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // MentionsToTeamMembers provides a mock function with given fields: c, message, teamID
 func (_m *MockAppIface) MentionsToTeamMembers(c request.CTX, message string, teamID string) model.UserMentionMap {
 	ret := _m.Called(c, message, teamID)
@@ -558,6 +590,11 @@ func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Cha
 	}
 
 	return r0
+}
+
+// PostDebugToTownSquare provides a mock function with given fields: c, message
+func (_m *MockAppIface) PostDebugToTownSquare(c request.CTX, message string) {
+	_m.Called(c, message)
 }
 
 // PreparePostForClient provides a mock function with given fields: c, post, isNewPost, includeDeleted, includePriority
