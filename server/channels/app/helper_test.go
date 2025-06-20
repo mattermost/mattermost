@@ -82,6 +82,13 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
+
+	for _, signaturePublicKeyFile := range memoryConfig.PluginSettings.SignaturePublicKeyFiles {
+		var signaturePublicKey []byte
+		signaturePublicKey, err = os.ReadFile(signaturePublicKeyFile)
+		require.NoError(tb, err, "failed to read signature public key file %s", signaturePublicKeyFile)
+		configStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
+	}
 	configStore.Set(memoryConfig)
 
 	buffer := &mlog.Buffer{}

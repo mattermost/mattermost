@@ -478,7 +478,13 @@ func TestGetPluginStatuses(t *testing.T) {
 
 func TestPluginSync(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
+	path, _ := fileutils.FindDir("tests")
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.PluginSettings.SignaturePublicKeyFiles = []string{
+			filepath.Join(path, "development-private-key.asc"),
+		}
+	})
 	defer th.TearDown()
 
 	testCases := []struct {
@@ -526,8 +532,6 @@ func TestPluginSync(t *testing.T) {
 
 			env := th.App.GetPluginsEnvironment()
 			require.NotNil(t, env)
-
-			path, _ := fileutils.FindDir("tests")
 
 			t.Run("new bundle in the file store", func(t *testing.T) {
 				th.App.UpdateConfig(func(cfg *model.Config) {
@@ -610,15 +614,10 @@ func TestPluginSync(t *testing.T) {
 					*cfg.PluginSettings.RequirePluginSignature = true
 				})
 
-				key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
-				require.NoError(t, err)
-				appErr := th.App.AddPublicKey("pub_key", key)
-				checkNoError(t, appErr)
-
 				signatureFileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz.sig"))
 				require.NoError(t, err)
 				defer signatureFileReader.Close()
-				_, appErr = th.App.WriteFile(signatureFileReader, getSignatureStorePath("testplugin"))
+				_, appErr := th.App.WriteFile(signatureFileReader, getSignatureStorePath("testplugin"))
 				checkNoError(t, appErr)
 
 				appErr = th.App.SyncPlugins()
@@ -832,13 +831,17 @@ func (a pluginStatusById) Less(i, j int) bool { return a[i].PluginId < a[j].Plug
 
 func TestProcessPrepackagedPlugins(t *testing.T) {
 	mainHelper.Parallel(t)
-	// Find the tests folder before we change directories to the temporary workspace.
-	testsPath, _ := fileutils.FindDir("tests")
+	testsPath, found := fileutils.FindDir("tests")
+	require.True(t, found, "failed to find tests directory")
 
 	setup := func(t *testing.T) *TestHelper {
 		t.Helper()
 
-		th := Setup(t)
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.PluginSettings.SignaturePublicKeyFiles = []string{
+				filepath.Join(testsPath, "development-private-key.asc"),
+			}
+		})
 		t.Cleanup(th.TearDown)
 
 		// Make a prepackaged_plugins directory for use with the tests.
@@ -892,7 +895,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		t.Helper()
 
 		require.Equal(t, pluginID, actual.Manifest.Id)
-		require.NotEmpty(t, actual.Signature, "testplugin has no signature")
+		require.NotEmpty(t, actual.SignaturePath, "testplugin has no signature")
 		require.Equal(t, version, actual.Manifest.Version)
 	}
 
