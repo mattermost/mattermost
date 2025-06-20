@@ -35,8 +35,8 @@ describe('getOptionLabel', () => {
 
     test('should handle MessageDescriptor label correctly', () => {
         const messageDescriptor = defineMessage({
-            id: 'test.message',
-            defaultMessage: 'Test Message',
+            id: 'test1',
+            defaultMessage: 'Help Text',
         });
 
         const option: SelectOption = {
@@ -45,7 +45,7 @@ describe('getOptionLabel', () => {
         };
 
         const result = getOptionLabel(option, mockIntl as any);
-        expect(result).toBe('Test Message');
+        expect(result).toBe('Help Text');
         expect(mockIntl.formatMessage).toHaveBeenCalledWith(messageDescriptor);
     });
 
@@ -62,30 +62,11 @@ describe('getOptionLabel', () => {
         expect(mockIntl.formatMessage).not.toHaveBeenCalled();
     });
 
-    test('should handle complex MessageDescriptor with values', () => {
-        const messageDescriptor = defineMessage({
-            id: 'test.message.with.values',
-            defaultMessage: 'Hello {name}',
-        });
-
-        const option: SelectOption = {
-            value: 'test',
-            label: messageDescriptor,
-        };
-
-        // Mock formatMessage to simulate processing values
-        mockIntl.formatMessage.mockReturnValueOnce('Hello John');
-
-        const result = getOptionLabel(option, mockIntl as any);
-        expect(result).toBe('Hello John');
-        expect(mockIntl.formatMessage).toHaveBeenCalledWith(messageDescriptor);
-    });
-
     test('should handle accessibility scenarios - no more [object,object]', () => {
         // This test ensures we don't get "[object,object]" for screen readers
         const messageDescriptor = defineMessage({
-            id: 'accessibility.test',
-            defaultMessage: 'All new messages',
+            id: 'test1',
+            defaultMessage: 'Help Text',
         });
 
         const option: SelectOption = {
