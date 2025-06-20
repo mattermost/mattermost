@@ -228,7 +228,7 @@ function getDefaultStateFromProps(props: Props): State {
     };
 }
 
-const Input = (props: InputProps<MultiInputValue, true>) => {
+export const CreatableReactSelectInput = (props: InputProps<MultiInputValue, true>) => {
     const ariaProps = {
         'aria-labelledby': 'settingTitle',
     };
@@ -609,7 +609,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             DropdownIndicator: () => null,
                             Menu: () => null,
                             MenuList: () => null,
-                            Input,
+                            Input: CreatableReactSelectInput,
                         }}
                         onChange={this.handleChangeForCustomKeysWithNotificationInput}
                         value={this.state.customKeysWithNotification}
