@@ -20,7 +20,7 @@ const (
 	sessionsCleanupDelay = 100 * time.Millisecond
 )
 
-type     SqlSessionStore struct {
+type SqlSessionStore struct {
 	*SqlStore
 }
 
