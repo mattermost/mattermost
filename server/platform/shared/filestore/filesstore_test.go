@@ -742,7 +742,7 @@ func benchmarkWriteFile(b *testing.B, backend FileBackend, tcName string, size i
 		b.ResetTimer()
 		b.ReportAllocs()
 
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			rd, wr := io.Pipe()
 			go func() {
 				defer wr.Close()
@@ -774,7 +774,7 @@ func benchmarkReadFile(b *testing.B, backend FileBackend, tcName string, size in
 		b.ResetTimer()
 		b.ReportAllocs()
 
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			b.StartTimer()
 			rd, err := backend.Reader("tests/" + tcName)
 			require.NoError(b, err)
@@ -872,7 +872,7 @@ func BenchmarkS3WriteFile(b *testing.B) {
 			backend := backendMap[partSize]
 			b.Run(fmt.Sprintf("FileSize-%dMB_PartSize-%dMB", int(math.Round(float64(size)/1024/1024)), int(math.Round(float64(partSize)/1024/1024))), func(b *testing.B) {
 				b.ReportAllocs()
-				for i := 0; i < b.N; i++ {
+				for b.Loop() {
 					rd, wr := io.Pipe()
 					go func() {
 						defer wr.Close()

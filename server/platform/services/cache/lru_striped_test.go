@@ -17,7 +17,7 @@ import (
 
 func makeLRUPredictableTestData(num int) [][2]string {
 	kv := make([][2]string, num)
-	for i := 0; i < len(kv); i++ {
+	for i := range kv {
 		kv[i] = [2]string{
 			fmt.Sprintf("%d-key-%d", i, i),
 			fmt.Sprintf("%d-val-%d", i, i),
@@ -57,7 +57,7 @@ func TestLRUStripedKeyDistribution(t *testing.T) {
 
 	require.Len(t, cache.buckets, 4)
 	acc := 0
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		clen, err := cache.buckets[i].Len()
 		acc += clen
 		assert.NoError(t, err)
@@ -121,7 +121,7 @@ func BenchmarkSum64(b *testing.B) {
 		b.Run(fmt.Sprintf("maphash_string_len_%d", len(case_)), func(b *testing.B) {
 			seed := maphash.MakeSeed()
 			b.ResetTimer()
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				var h maphash.Hash
 				h.SetSeed(seed)
 				h.WriteString(case_) // documentation and code says it never fails
@@ -129,7 +129,7 @@ func BenchmarkSum64(b *testing.B) {
 			}
 		})
 		b.Run(fmt.Sprintf("xxhash_string_len_%d", len(case_)), func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				hashSink = xxhash.Sum64String(case_)
 			}
 		})

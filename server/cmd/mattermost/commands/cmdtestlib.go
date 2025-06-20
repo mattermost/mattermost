@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -158,13 +159,7 @@ func (h *testHelper) execArgs(t *testing.T, args []string) []string {
 
 	// Unless the test passes a `--config` of its own, create a temporary one from the default
 	// configuration with the current test database applied.
-	hasConfig := h.disableAutoConfig
-	for _, arg := range args {
-		if arg == "--config" {
-			hasConfig = true
-			break
-		}
-	}
+	hasConfig := slices.Contains(args, "--config")
 
 	if !hasConfig {
 		ret = append(ret, "--config", h.configFilePath)

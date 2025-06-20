@@ -1,17 +1,12 @@
 package pluginapi
 
 import (
+	"slices"
 	"time"
 )
 
 func stringInSlice(a string, slice []string) bool {
-	for _, b := range slice {
-		if b == a {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(slice, a)
 }
 
 var backoffTimeouts = []time.Duration{
@@ -27,7 +22,7 @@ var backoffTimeouts = []time.Duration{
 func progressiveRetry(operation func() error) error {
 	var err error
 
-	for attempts := 0; attempts < len(backoffTimeouts); attempts++ {
+	for attempts := range backoffTimeouts {
 		err = operation()
 		if err == nil {
 			return nil

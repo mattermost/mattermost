@@ -3,6 +3,7 @@ package flow
 import (
 	"bytes"
 	"errors"
+	"maps"
 	"text/template"
 )
 
@@ -13,12 +14,8 @@ type State map[string]any
 
 func (s State) MergeWith(update State) State {
 	n := State{}
-	for k, v := range s {
-		n[k] = v
-	}
-	for k, v := range update {
-		n[k] = v
-	}
+	maps.Copy(n, s)
+	maps.Copy(n, update)
 	return n
 }
 

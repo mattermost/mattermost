@@ -35,7 +35,7 @@ func TestFetchAndComplete(t *testing.T) {
 
 	listNames := func(n int) []string {
 		ret := []string{}
-		for i := 0; i < n; i++ {
+		for i := range n {
 			ret = append(ret, fmt.Sprintf("name_%d", i))
 		}
 		return ret

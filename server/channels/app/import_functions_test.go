@@ -1924,7 +1924,7 @@ func TestImportUserTeams(t *testing.T) {
 			user := th.CreateUser()
 
 			// Two times import must end with the same results
-			for x := 0; x < 2; x++ {
+			for range 2 {
 				appErr := th.App.importUserTeams(th.Context, user, tc.data)
 				if tc.expectedError {
 					require.NotNil(t, appErr)
@@ -2079,7 +2079,7 @@ func TestImportUserChannels(t *testing.T) {
 			require.NoError(t, err)
 
 			// Two times import must end with the same results
-			for x := 0; x < 2; x++ {
+			for range 2 {
 				appErr := th.App.importUserChannels(th.Context, user, th.BasicTeam, tc.data)
 				if tc.expectedError {
 					require.NotNil(t, appErr)
@@ -5859,7 +5859,7 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 			b.ResetTimer()
 			b.StopTimer()
 
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				_, err := fileA.Seek(0, io.SeekStart)
 				require.NoError(b, err)
 				_, err = fileB.Seek(0, io.SeekStart)
@@ -5934,7 +5934,7 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 					b.Run("bufSize-fileSize"+fileSizeLabel+"-bufSize"+bufSizeLabel, func(b *testing.B) {
 						b.ReportAllocs()
 						b.StopTimer()
-						for i := 0; i < b.N; i++ {
+						for b.Loop() {
 							_, err := rdA.Seek(0, io.SeekStart)
 							require.NoError(b, err)
 							_, err = rdB.Seek(0, io.SeekStart)
@@ -6004,7 +6004,7 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 				b.Run("bufSize-"+label, func(b *testing.B) {
 					b.ReportAllocs()
 					b.StopTimer()
-					for i := 0; i < b.N; i++ {
+					for b.Loop() {
 						_, err := zipFile.Seek(0, io.SeekStart)
 						require.NoError(b, err)
 						zipRd, err := zip.NewReader(zipFile, zipFileSize)
@@ -6068,7 +6068,7 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 					b.Run("bufSize-fileSize"+fileSizeLabel+"-bufSize"+bufSizeLabel, func(b *testing.B) {
 						b.ReportAllocs()
 						b.StopTimer()
-						for i := 0; i < b.N; i++ {
+						for b.Loop() {
 							_, err := zipFileRd.Seek(0, io.SeekStart)
 							require.NoError(b, err)
 							zipRd, err := zip.NewReader(zipFileRd.(io.ReaderAt), zipFileSize)

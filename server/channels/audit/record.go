@@ -10,7 +10,7 @@ type Record struct {
 	EventData EventData      `json:"event"`
 	Actor     EventActor     `json:"actor"`
 	Meta      map[string]any `json:"meta"`
-	Error     EventError     `json:"error,omitempty"`
+	Error     EventError     `json:"error"`
 }
 
 // EventData contains all event specific data about the modified entity

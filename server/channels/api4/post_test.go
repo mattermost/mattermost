@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -1369,7 +1370,7 @@ func TestUpdatePost(t *testing.T) {
 	fileIds := make([]string, 3)
 	data, err2 := testutils.ReadTestFile("test.png")
 	require.NoError(t, err2)
-	for i := 0; i < len(fileIds); i++ {
+	for i := range fileIds {
 		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
 		require.NoError(t, err)
 		fileIds[i] = fileResp.FileInfos[0].Id
@@ -1748,7 +1749,7 @@ func TestPatchPost(t *testing.T) {
 	fileIDs := make([]string, 3)
 	data, err2 := testutils.ReadTestFile("test.png")
 	require.NoError(t, err2)
-	for i := 0; i < len(fileIDs); i++ {
+	for i := range fileIDs {
 		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
 		require.NoError(t, err)
 		fileIDs[i] = fileResp.FileInfos[0].Id
@@ -4152,7 +4153,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 	fileIds := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		fileResp, _, _ := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
 		fileIds[i] = fileResp.FileInfos[0].Id
 	}
@@ -4765,9 +4766,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 
 			patch := &model.UserPatch{}
 			patch.NotifyProps = model.CopyStringMap(th.BasicUser.NotifyProps)
-			for k, v := range tc.notifyProps {
-				patch.NotifyProps[k] = v
-			}
+			maps.Copy(patch.NotifyProps, tc.notifyProps)
 
 			// update user's notify props
 			_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, patch)

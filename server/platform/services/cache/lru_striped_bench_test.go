@@ -36,7 +36,7 @@ func BenchmarkLRUStriped(b *testing.B) {
 	// bucketKeys is to demonstrate that splitted locks is working correctly
 	// by assigning one sequence of key for each bucket.
 	bucketKeys := make([][]string, opts.StripedBuckets)
-	for i := 0; i < m; i++ {
+	for i := range m {
 		key := fmt.Sprintf("%d-key-%d", i, i)
 		keys = append(keys, key)
 		bucketKey := xxhash.Sum64String(key) % uint64(opts.StripedBuckets)
@@ -53,7 +53,7 @@ func BenchmarkLRUStriped(b *testing.B) {
 	stopSet := make(chan bool, 1)
 	set := func() {
 		defer wgSet.Done()
-		for i := 0; i < m; i++ {
+		for i := range m {
 			select {
 			case <-stopSet:
 				return
@@ -66,14 +66,12 @@ func BenchmarkLRUStriped(b *testing.B) {
 	get := func(bucket int) {
 		defer wgGet.Done()
 		var out string
-		for i := 0; i < m; i++ {
+		for i := range m {
 			_ = cache.Get(bucketKeys[bucket][i%opts.Size], &out)
 		}
 	}
 
-	b.StopTimer()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		wgSet.Add(1)
 		go set()
 		for j := 0; j < opts.StripedBuckets; j++ {

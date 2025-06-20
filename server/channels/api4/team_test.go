@@ -1897,7 +1897,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 	commonRandom := model.NewId()
 	teams := [3]*model.Team{}
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		uid := model.NewId()
 		newTeam, err := th.App.CreateTeam(th.Context, &model.Team{
 			DisplayName: fmt.Sprintf("%s %d %s", commonRandom, i, uid),
@@ -2945,7 +2945,7 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// Test with many users.
-	for i := 0; i < 260; i++ {
+	for range 260 {
 		testUserList = append(testUserList, GenerateTestID())
 	}
 	_, resp, err = client.AddTeamMembers(context.Background(), team.Id, testUserList)
@@ -3852,7 +3852,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 		require.Nilf(t, appErr, "%v, Should update the team", appErr)
 
 		emailList := make([]string, 22)
-		for i := 0; i < 22; i++ {
+		for i := range 22 {
 			emailList[i] = "test-" + strconv.Itoa(i) + "@common.com"
 		}
 		resp, err := client.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, emailList)
@@ -3993,7 +3993,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 		require.Nilf(t, err, "%v, Should update the team", err)
 
 		emailList := make([]string, 22)
-		for i := 0; i < 22; i++ {
+		for i := range 22 {
 			emailList[i] = "test-" + strconv.Itoa(i) + "@guest.com"
 		}
 		invite := &model.GuestsInvite{

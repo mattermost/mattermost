@@ -31,7 +31,7 @@ func BenchmarkDecoderDecode(b *testing.B) {
 			b.ResetTimer()
 
 			var wg sync.WaitGroup
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				b.StopTimer()
 				wg.Add(1)
 				imgFile, err := os.Open(imgDir + "/fill_test_opaque.png")
@@ -67,7 +67,7 @@ func BenchmarkDecoderDecodeMemBounded(b *testing.B) {
 			b.ResetTimer()
 
 			var wg sync.WaitGroup
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				b.StopTimer()
 				wg.Add(1)
 				imgFile, err := os.Open(imgDir + "/fill_test_opaque.png")

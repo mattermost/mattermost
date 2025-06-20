@@ -44,7 +44,7 @@ func TestPreparePostListForClient(t *testing.T) {
 	defer th.TearDown()
 
 	postList := model.NewPostList()
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		postList.AddPost(&model.Post{})
 	}
 

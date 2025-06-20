@@ -1873,7 +1873,7 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	groupIDs := []string{}
-	for _, gid := range strings.Split(c.Params.GroupIDs, ",") {
+	for gid := range strings.SplitSeq(c.Params.GroupIDs, ",") {
 		if !model.IsValidId(gid) {
 			c.SetInvalidParam("group_ids")
 			return
