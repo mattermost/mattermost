@@ -2364,5 +2364,3 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 		assert.Equal(t, model.ChannelTypeDirect, channel.Type)
 	})
 }
-
-
