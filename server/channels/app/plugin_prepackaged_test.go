@@ -58,7 +58,7 @@ func TestBuildPrepackagedPlugin(t *testing.T) {
 		// Verify plugin fields
 		assert.NotNil(t, plugin.Manifest)
 		assert.Equal(t, pluginPath.bundlePath, plugin.Path)
-		assert.NotEmpty(t, plugin.Signature)
+		assert.Equal(t, pluginPath.signaturePath, plugin.SignaturePath)
 		assert.Equal(t, "testplugin", plugin.Manifest.Id)
 
 		// Verify plugin has icon data loaded
@@ -112,7 +112,7 @@ func TestBuildPrepackagedPlugin(t *testing.T) {
 		require.Nil(t, plugin)
 		require.Empty(t, pluginDir)
 
-		assert.Contains(t, err.Error(), "Failed to read prepackaged plugin signature")
+		assert.Contains(t, err.Error(), "Failed to open prepackaged plugin signature")
 	})
 
 	t.Run("empty signature file", func(t *testing.T) {

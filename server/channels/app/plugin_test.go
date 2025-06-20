@@ -895,7 +895,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		t.Helper()
 
 		require.Equal(t, pluginID, actual.Manifest.Id)
-		require.NotEmpty(t, actual.Signature, "testplugin has no signature")
+		require.NotEmpty(t, actual.SignaturePath, "testplugin has no signature")
 		require.Equal(t, version, actual.Manifest.Version)
 	}
 

@@ -294,9 +294,15 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		}
 		defer fileReader.Close()
 
+		signatureReader, err := os.Open(prepackagedPlugin.SignaturePath)
+		if err != nil {
+			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, fmt.Sprintf("failed to open prepackaged plugin signature %s", prepackagedPlugin.SignaturePath), http.StatusInternalServerError).Wrap(err)
+		}
+		defer signatureReader.Close()
+
 		pluginFile = fileReader
-		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
-		logger.Debug("Found matching pre-packaged plugin", mlog.String("bundle_path", prepackagedPlugin.Path))
+		signatureFile = signatureReader
+		logger.Debug("Found matching pre-packaged plugin", mlog.String("bundle_path", prepackagedPlugin.Path), mlog.String("signature_path", prepackagedPlugin.SignaturePath))
 	}
 
 	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace {

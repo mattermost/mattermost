@@ -1832,10 +1832,7 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 		defer th.TearDown()
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			pluginSignatureFile, err := os.Open(filepath.Join(path, "testplugin.tar.gz.asc"))
-			require.NoError(t, err)
-			pluginSignatureData, err := io.ReadAll(pluginSignatureFile)
-			require.NoError(t, err)
+			expectedSignaturePath := filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig")
 
 			testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 				serverVersion := req.URL.Query().Get("server_version")
@@ -1881,7 +1878,7 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 				plugins := env.PrepackagedPlugins()
 				require.Len(t, plugins, 1)
 				require.Equal(t, "testplugin", plugins[0].Manifest.Id)
-				require.Equal(t, pluginSignatureData, plugins[0].Signature)
+				require.Equal(t, expectedSignaturePath, plugins[0].SignaturePath)
 
 				pluginsResp, _, err = client.GetPlugins(context.Background())
 				require.NoError(t, err)
