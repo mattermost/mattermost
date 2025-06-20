@@ -79,7 +79,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                         className='btn btn-tertiary'
                         onClick={handlePrevious}
                     >
-                        <ChevronLeftIcon size={18}/>
+                        <ArrowLeftIcon size={18}/>
                         {intl.formatMessage({
                             id: 'cloud_preview_modal.previous',
                             defaultMessage: 'Previous',
