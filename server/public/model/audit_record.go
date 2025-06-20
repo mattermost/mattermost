@@ -3,8 +3,6 @@
 
 package model
 
-import "encoding/json"
-
 const (
 	AuditKeyActor     = "actor"
 	AuditKeyAPIPath   = "api_path"
@@ -69,20 +67,6 @@ type AuditEventError struct {
 // audit logs, but not the user password in cleartext or hashed form
 type Auditable interface {
 	Auditable() map[string]any
-}
-
-// GobSafeAuditable is a wrapper type that ensures the underlying data is safe to send over RPC.
-// Consider using this if logging Auditable objects via the plugin API.
-type GobSafeAuditable struct {
-	a Auditable
-}
-
-func (a GobSafeAuditable) Auditable() map[string]any {
-	return makeGobSafe(a.a)
-}
-
-func MakeGobSafeAuditable(a Auditable) Auditable {
-	return GobSafeAuditable{a}
 }
 
 // Success marks the audit record status as successful.
@@ -162,19 +146,4 @@ func (rec *AuditRecord) AddErrorDesc(description string) {
 func (rec *AuditRecord) AddAppError(err *AppError) {
 	rec.AddErrorCode(err.StatusCode)
 	rec.AddErrorDesc(err.Error())
-}
-
-// makeGobSafe converts Auditable data to a gob-safe representation via JSON round-trip.
-// This eliminates problematic types like nil pointers in interfaces that cause gob
-// encoding to fail when sending audit data over RPC via the plugin API.
-func makeGobSafe(auditable Auditable) map[string]any {
-	jsonBytes, err := json.Marshal(auditable.Auditable())
-	if err != nil {
-		return map[string]any{"error": "failed to serialize audit data"}
-	}
-	var gobSafe map[string]any
-	if err := json.Unmarshal(jsonBytes, &gobSafe); err != nil {
-		return map[string]any{"error": "failed to deserialize audit data"}
-	}
-	return gobSafe
 }

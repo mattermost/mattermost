@@ -894,20 +894,8 @@ type Z_LogAuditRecReturns struct {
 
 // Custom audit logging methods with gob safety checks
 func (g *apiRPCClient) LogAuditRec(rec *model.AuditRecord) {
-	// Ensure the audit record can be safely encoded with gob for RPC transmission
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	if err := enc.Encode(rec); err != nil {
-		r := &model.AuditRecord{
-			EventName: rec.EventName,
-			Status:    rec.Status,
-		}
-		errMsg := fmt.Sprintf("audit record contains data that cannot be encoded with gob: %s", err.Error())
-		r.AddErrorDesc(errMsg)
-		log.Println(errMsg)
-		rec = r
-	}
-	_args := &Z_LogAuditRecArgs{rec}
+	gobSafeRec := makeAuditRecordGobSafe(*rec)
+	_args := &Z_LogAuditRecArgs{&gobSafeRec}
 	_returns := &Z_LogAuditRecReturns{}
 	if err := g.client.Call("Plugin.LogAuditRec", _args, _returns); err != nil {
 		log.Printf("RPC call to LogAuditRec API failed: %s", err.Error())
@@ -934,20 +922,8 @@ type Z_LogAuditRecWithLevelReturns struct {
 }
 
 func (g *apiRPCClient) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level) {
-	// Ensure the audit record can be safely encoded with gob for RPC transmission
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	if err := enc.Encode(rec); err != nil {
-		r := &model.AuditRecord{
-			EventName: rec.EventName,
-			Status:    rec.Status,
-		}
-		errMsg := fmt.Sprintf("audit record contains data that cannot be encoded with gob: %s", err.Error())
-		r.AddErrorDesc(errMsg)
-		log.Println(errMsg)
-		rec = r
-	}
-	_args := &Z_LogAuditRecWithLevelArgs{rec, level}
+	gobSafeRec := makeAuditRecordGobSafe(*rec)
+	_args := &Z_LogAuditRecWithLevelArgs{&gobSafeRec, level}
 	_returns := &Z_LogAuditRecWithLevelReturns{}
 	if err := g.client.Call("Plugin.LogAuditRecWithLevel", _args, _returns); err != nil {
 		log.Printf("RPC call to LogAuditRecWithLevel API failed: %s", err.Error())
