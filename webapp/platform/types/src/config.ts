@@ -788,6 +788,8 @@ export type NativeAppSettings = {
     MobileEnableBiometrics: boolean;
     MobilePreventScreenCapture: boolean;
     MobileJailbreakProtection: boolean;
+    MobileEnableSecureFilePreview: boolean;
+    MobileAllowPdfLinkNavigation: boolean;
 };
 
 export type ClusterSettings = {
