@@ -631,7 +631,7 @@ func (c *Client4) accessControlPoliciesRoute() string {
 }
 
 func (c *Client4) celRoute() string {
-	return fmt.Sprintf(c.accessControlPoliciesRoute() + "/cel")
+	return c.accessControlPoliciesRoute() + "/cel"
 }
 
 func (c *Client4) accessControlPolicyRoute(policyID string) string {
@@ -2938,7 +2938,6 @@ func (c *Client4) InviteGuestsToTeam(ctx context.Context, teamId string, userEma
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeamGracefully(ctx context.Context, teamId string, userEmails []string) ([]*EmailInviteWithError, *Response, error) {
 	r, err := c.DoAPIPost(ctx, c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), ArrayToJSON(userEmails))
-
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -9354,7 +9353,6 @@ func (c *Client4) AddUserToGroupSyncables(ctx context.Context, userID string) (*
 
 func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Response, error) {
 	r, err := c.DoAPIGet(ctx, c.cloudRoute()+"/healthz", "")
-
 	if err != nil {
 		return BuildResponse(r), err
 	}

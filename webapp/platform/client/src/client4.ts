@@ -52,6 +52,7 @@ import type {
     AllowedIPRanges,
     AllowedIPRange,
     FetchIPResponse,
+    LdapSettings,
 } from '@mattermost/types/config';
 import type {
     DataRetentionCustomPolicies,
@@ -119,7 +120,7 @@ import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Session} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
-import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
+import type {RemoteClusterInfo, SharedChannelRemote} from '@mattermost/types/shared_channels';
 import type {
     GetTeamMembersOpts,
     Team,
@@ -149,6 +150,12 @@ import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/typ
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
 import type {TelemetryHandler} from './telemetry';
+
+export enum LdapDiagnosticTestType {
+    FILTERS = 'filters',
+    ATTRIBUTES = 'attributes',
+    GROUP_ATTRIBUTES = 'group_attributes',
+}
 
 const HEADER_AUTH = 'Authorization';
 const HEADER_BEARER = 'BEARER';
@@ -2086,6 +2093,20 @@ export default class Client4 {
         );
     };
 
+    getSharedChannelRemoteInfos = (channelId: string) => {
+        return this.doFetch<RemoteClusterInfo[]>(
+            `${this.getBaseRoute()}/sharedchannels/${channelId}/remotes`,
+            {method: 'GET'},
+        );
+    };
+
+    getRemoteClusterInfo = (remoteId: string) => {
+        return this.doFetch<RemoteClusterInfo>(
+            `${this.getBaseRoute()}/sharedchannels/remote_info/${remoteId}`,
+            {method: 'GET'},
+        );
+    };
+
     sharedChannelRemoteInvite = (remoteId: string, channelId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/invite`,
@@ -3313,6 +3334,32 @@ export default class Client4 {
             `${this.getBaseRoute()}/ldap/test`,
             {method: 'post'},
         );
+    };
+
+    testLdapConnection = (settings: LdapSettings) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/ldap/test_connection`,
+            {method: 'post', body: JSON.stringify(settings)},
+        );
+    };
+
+    testLdapDiagnostics = (settings: LdapSettings, testType: LdapDiagnosticTestType) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/ldap/test_diagnostics?test=${testType}`,
+            {method: 'post', body: JSON.stringify(settings)},
+        );
+    };
+
+    testLdapFilters = (settings: LdapSettings) => {
+        return this.testLdapDiagnostics(settings, LdapDiagnosticTestType.FILTERS);
+    };
+
+    testLdapAttributes = (settings: LdapSettings) => {
+        return this.testLdapDiagnostics(settings, LdapDiagnosticTestType.ATTRIBUTES);
+    };
+
+    testLdapGroupAttributes = (settings: LdapSettings) => {
+        return this.testLdapDiagnostics(settings, LdapDiagnosticTestType.GROUP_ATTRIBUTES);
     };
 
     syncLdap = () => {
