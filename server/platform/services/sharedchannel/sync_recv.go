@@ -713,6 +713,10 @@ func (scs *Service) handleMentionTransformation(rctx request.CTX, post *model.Po
 		mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("handleMentionTransformation: MentionMap extracted - %d mentions found: %v", len(mentionMap), mentionMap))
 
+		// Correct mention map for shared channel context - prioritize users from sending remote cluster
+		mentionMap = scs.correctMentionMapForRemoteCluster(rctx, mentionMap, sc.TeamId, rc)
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("handleMentionTransformation: MentionMap corrected for remote cluster - %d mentions found: %v", len(mentionMap), mentionMap))
+
 		// Debug: For each mention in the map, get the user details
 		for mention, userID := range mentionMap {
 			if user, userErr := scs.server.GetStore().User().Get(context.Background(), userID); userErr == nil && user != nil {
@@ -936,6 +940,66 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 	})
 
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: COMPLETED - OriginalMessage=%s, FinalMessage=%s", originalMessage, post.Message))
+}
+
+// correctMentionMapForRemoteCluster corrects the mention map to prioritize users from the sending remote cluster.
+// When a post comes from a remote cluster, any mention of "@user" should refer to the remote user, not a local user with the same name.
+func (scs *Service) correctMentionMapForRemoteCluster(rctx request.CTX, mentionMap model.UserMentionMap, teamID string, rc *model.RemoteCluster) model.UserMentionMap {
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("correctMentionMapForRemoteCluster: ENTRY - processing %d mentions from remote cluster '%s'", len(mentionMap), rc.Name))
+
+	correctedMap := make(model.UserMentionMap)
+
+	for mention, userID := range mentionMap {
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("correctMentionMapForRemoteCluster: Processing mention='%s' -> userID='%s'", mention, userID))
+
+		// Get the current user to check if it's local
+		currentUser, err := scs.server.GetStore().User().Get(context.Background(), userID)
+		if err != nil {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("correctMentionMapForRemoteCluster: Could not get current user ID='%s': %v", userID, err))
+			// Keep the original mapping if we can't verify
+			correctedMap[mention] = userID
+			continue
+		}
+
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("correctMentionMapForRemoteCluster: Current user - Username=%s, RemoteId='%s'", currentUser.Username, currentUser.GetRemoteID()))
+
+		// If the current user is already from the sending remote cluster, keep it
+		if currentUser.GetRemoteID() == rc.RemoteId {
+			scs.app.PostDebugToTownSquare(rctx, "correctMentionMapForRemoteCluster: User is already from sending cluster, keeping mapping")
+			correctedMap[mention] = userID
+			continue
+		}
+
+		// Current user is local or from a different remote, check if there's a user from the sending cluster
+		remoteUsername := mention + ":" + rc.Name
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("correctMentionMapForRemoteCluster: Looking for remote user='%s'", remoteUsername))
+
+		remoteUser, remoteErr := scs.server.GetStore().User().GetByUsername(remoteUsername)
+		if remoteErr != nil {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("correctMentionMapForRemoteCluster: Remote user not found: %v", remoteErr))
+			// Keep the original mapping if no remote user exists
+			correctedMap[mention] = userID
+			continue
+		}
+
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("correctMentionMapForRemoteCluster: Found remote user - Username=%s, ID=%s, RemoteId='%s'", remoteUser.Username, remoteUser.Id, remoteUser.GetRemoteID()))
+
+		// Verify the remote user is a team member
+		_, teamErr := scs.app.GetTeamMember(rctx, teamID, remoteUser.Id)
+		if teamErr != nil {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("correctMentionMapForRemoteCluster: Remote user is not a team member: %v", teamErr))
+			// Keep the original mapping if remote user is not on the team
+			correctedMap[mention] = userID
+			continue
+		}
+
+		// Replace with the remote user
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("correctMentionMapForRemoteCluster: Replacing mention='%s': '%s' -> '%s'", mention, userID, remoteUser.Id))
+		correctedMap[mention] = remoteUser.Id
+	}
+
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("correctMentionMapForRemoteCluster: COMPLETED - corrected %d mentions", len(correctedMap)))
+	return correctedMap
 }
 
 func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowledgement, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.PostAcknowledgement, error) {
