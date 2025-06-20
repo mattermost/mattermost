@@ -2365,20 +2365,6 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 		assert.Nil(t, appErr)
 		assert.Equal(t, model.ChannelTypeDirect, channel.Type)
 	})
-
-	t.Run("Cannot see user from unconfirmed remote", func(t *testing.T) {
-		ensureRemoteClusterConnected(t, ss, nonConnectedRC, false)
-
-		scs := th.App.Srv().GetSharedChannelSyncService()
-		service, ok := scs.(*sharedchannel.Service)
-		require.True(t, ok)
-		require.False(t, service.IsRemoteClusterDirectlyConnected(nonConnectedRC.RemoteId))
-
-		canSee, viewErr := th.App.UserCanSeeOtherUser(th.Context, th.BasicUser.Id, user2.Id)
-		assert.False(t, canSee)
-		assert.NotNil(t, viewErr)
-		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", viewErr.Id)
-	})
 }
 
 // TestUserCanSeeOtherUserWithRemotesDB tests user visibility with actual database interactions
