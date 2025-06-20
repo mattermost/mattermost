@@ -127,10 +127,13 @@ const ImageGallery = (props: Props) => {
     const [containerWidth, setContainerWidth] = useState(0);
     const [ariaLiveMessage, setAriaLiveMessage] = useState('');
     const imageCountId = 'image-gallery-count';
+    
+    // Track component mount status to prevent state updates after unmount
+    const isMountedRef = useRef(true);
 
     useEffect(() => {
         const handleResize = () => {
-            if (galleryRef.current) {
+            if (galleryRef.current && isMountedRef.current) {
                 setContainerWidth(galleryRef.current.offsetWidth);
             }
         };
@@ -139,11 +142,19 @@ const ImageGallery = (props: Props) => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
     const toggleGallery = () => {
         const newCollapsed = !isCollapsed;
-        setIsCollapsed(newCollapsed);
+        if (isMountedRef.current) {
+            setIsCollapsed(newCollapsed);
+            setAriaLiveMessage(newCollapsed ? 'Gallery collapsed' : 'Gallery expanded');
+        }
         onToggleCollapse?.(newCollapsed);
-        setAriaLiveMessage(newCollapsed ? 'Gallery collapsed' : 'Gallery expanded');
     };
 
     const handleDownloadAll = async () => {
@@ -186,7 +197,10 @@ const ImageGallery = (props: Props) => {
             await Promise.all(downloadPromises);
             await new Promise((resolve) => setTimeout(resolve, 100));
         } finally {
-            setIsDownloading(false);
+            // Only update state if component is still mounted
+            if (isMountedRef.current) {
+                setIsDownloading(false);
+            }
         }
     };
 

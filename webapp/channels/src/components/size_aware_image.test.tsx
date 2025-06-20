@@ -149,11 +149,21 @@ describe('components/SizeAwareImage', () => {
 
         const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
 
+        // Set state to have small image with default threshold
         wrapper.instance().setState({isSmallImage: true});
 
         expect(wrapper.find('div.small-image__container').exists()).toEqual(true);
-        expect(wrapper.find('div.small-image__container').prop('className')).
-            toEqual('small-image__container');
+        expect(wrapper.find('div.small-image__container').prop('style')).toEqual(
+            expect.objectContaining({
+                minWidth: 50,
+                minHeight: 50,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                maxWidth: '100%',
+                maxHeight: 350,
+            })
+        );
     });
 
     test('should properly set img style when it is small', () => {
@@ -167,6 +177,11 @@ describe('components/SizeAwareImage', () => {
         wrapper.instance().setState({isSmallImage: true, imageWidth: 24});
 
         expect(wrapper.find('img').prop('className')).toBe(`${props.className} small-image--inside-container`);
+        expect(wrapper.find('img').prop('style')).toEqual(
+            expect.objectContaining({
+                objectFit: 'cover',
+            })
+        );
     });
 
     test('should load download and copy link buttons when an image is mounted', () => {
@@ -190,7 +205,7 @@ describe('components/SizeAwareImage', () => {
         // Set state to loaded so utility buttons are rendered
         wrapper.setState({loaded: true});
 
-        // The utility buttons are now rendered inside file-preview__button but outside the figure
+        // The utility buttons are now rendered as a sibling to the image container
         const filePreviewButton = wrapper.find('.file-preview__button');
         const utilityButtons = filePreviewButton.find('.image-preview-utility-buttons-container');
 
@@ -211,7 +226,7 @@ describe('components/SizeAwareImage', () => {
         // Set state to loaded so utility buttons are rendered
         wrapper.setState({loaded: true});
 
-        // The utility buttons are now rendered inside file-preview__button but outside the figure
+        // The utility buttons are now rendered as a sibling to the image container
         const filePreviewButton = wrapper.find('.file-preview__button');
         const utilityButtons = filePreviewButton.find('.image-preview-utility-buttons-container');
 
@@ -231,23 +246,132 @@ describe('components/SizeAwareImage', () => {
         // Set state to loaded so utility buttons are rendered
         wrapper.setState({loaded: true});
 
-        // The utility buttons are now rendered as sibling elements outside the main wrapper
-        const fragmentChildren = wrapper.children();
-        let utilityButtons = null;
+        // The utility buttons are now rendered as a sibling to the image container
+        const filePreviewButton = wrapper.find('.file-preview__button');
+        const utilityButtons = filePreviewButton.find('.image-preview-utility-buttons-container');
 
-        for (let i = 0; i < fragmentChildren.length; i++) {
-            const child = fragmentChildren.at(i);
-            if (child.hasClass && child.hasClass('image-preview-utility-buttons-container')) {
-                utilityButtons = child;
-                break;
-            }
-        }
+        expect(utilityButtons).toHaveLength(1);
+        expect(utilityButtons.find('button.size-aware-image__copy_link').exists()).toEqual(false);
+    });
 
-        if (utilityButtons) {
-            expect(utilityButtons.find('button.size-aware-image__copy_link').exists()).toEqual(false);
-        } else {
-            // If no utility buttons container is found, that's also acceptable for this test
-            expect(true).toBe(true);
-        }
+    test('should respect custom smallImageThreshold prop', () => {
+        const props = {
+            ...baseProps,
+            smallImageThreshold: 100,
+            handleSmallImageContainer: true,
+        };
+
+        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
+        const instance = wrapper.instance() as SizeAwareImageComponent;
+
+        // Test the isSmallImage method with custom threshold
+        expect(instance.isSmallImage(80, 200)).toBe(true);  // Width < 100
+        expect(instance.isSmallImage(200, 80)).toBe(true);  // Height < 100
+        expect(instance.isSmallImage(120, 120)).toBe(false); // Both > 100
+    });
+
+    test('should respect custom minContainerSize prop', () => {
+        const props = {
+            ...baseProps,
+            minContainerSize: 80,
+            handleSmallImageContainer: true,
+        };
+
+        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
+        const instance = wrapper.instance() as SizeAwareImageComponent;
+
+        expect(instance.getContainerSize()).toBe(80);
+
+        // Set state to have small image
+        wrapper.instance().setState({isSmallImage: true});
+
+        expect(wrapper.find('div.small-image__container').prop('style')).toEqual(
+            expect.objectContaining({
+                minWidth: 80,
+                minHeight: 80,
+            })
+        );
+    });
+
+    test('should not render utility buttons for external small images', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: undefined, // External image
+            enablePublicLink: true,
+        };
+
+        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
+
+        // Set state to loaded and small image
+        wrapper.setState({loaded: true, isSmallImage: true});
+
+        // Utility buttons should not be rendered for external small images
+        const filePreviewButton = wrapper.find('.file-preview__button');
+        const utilityButtons = filePreviewButton.find('.image-preview-utility-buttons-container');
+
+        expect(utilityButtons).toHaveLength(0);
+    });
+
+    test('should apply correct CSS classes for small images with small width', () => {
+        const props = {
+            ...baseProps,
+            handleSmallImageContainer: true,
+        };
+
+        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
+
+        // Set state for small image with width < MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS
+        wrapper.setState({loaded: true, isSmallImage: true, imageWidth: 80});
+
+        const filePreviewButton = wrapper.find('.file-preview__button');
+        const utilityButtons = filePreviewButton.find('.image-preview-utility-buttons-container');
+
+        expect(utilityButtons.hasClass('image-preview-utility-buttons-container--small-image')).toBe(true);
+    });
+
+    test('should render figure element with correct styles for small images', () => {
+        const props = {
+            ...baseProps,
+            handleSmallImageContainer: true,
+        };
+
+        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
+
+        // Set state to have small image
+        wrapper.setState({isSmallImage: true});
+
+        const figure = wrapper.find('figure.image-loaded-container');
+        expect(figure.exists()).toBe(true);
+        expect(figure.prop('style')).toEqual(
+            expect.objectContaining({
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                height: '100%',
+            })
+        );
+    });
+
+    test('should set correct image style for SVG files', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: TestHelper.getFileInfoMock({
+                name: 'test.svg',
+                extension: 'svg',
+            }),
+        };
+
+        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
+
+        const img = wrapper.find('img');
+        expect(img.prop('style')).toEqual(
+            expect.objectContaining({
+                width: '100%',
+                height: 'auto',
+                objectFit: 'cover',
+            })
+        );
     });
 });
