@@ -168,14 +168,16 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(0), serverLimits.MaxUsersHardLimit)
 	})
 
-	t.Run("licensed server with seat count enforcement shows license limits with grace period", func(t *testing.T) {
+	t.Run("licensed server with seat count enforcement shows license limits with configurable extra users", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		userLimit := 100
+		extraUsers := 10
 		license := model.NewTestLicense("")
 		license.IsSeatCountEnforced = true
 		license.Features.Users = &userLimit
+		license.ExtraUsers = &extraUsers
 		th.App.Srv().SetLicense(license)
 
 		serverLimits, appErr := th.App.GetServerLimits()
@@ -184,7 +186,48 @@ func TestGetServerLimits(t *testing.T) {
 		// InitBasic creates 3 users by default
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 		require.Equal(t, int64(100), serverLimits.MaxUsersLimit)
-		require.Equal(t, int64(105), serverLimits.MaxUsersHardLimit) // 100 + 5% = 105
+		require.Equal(t, int64(110), serverLimits.MaxUsersHardLimit) // 100 + 10 extra users = 110
+	})
+
+	t.Run("licensed server with seat count enforcement and no ExtraUsers configured defaults to zero", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		userLimit := 100
+		license := model.NewTestLicense("")
+		license.IsSeatCountEnforced = true
+		license.Features.Users = &userLimit
+		license.ExtraUsers = nil // Not configured
+		th.App.Srv().SetLicense(license)
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		// InitBasic creates 3 users by default
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
+		require.Equal(t, int64(100), serverLimits.MaxUsersLimit)
+		require.Equal(t, int64(100), serverLimits.MaxUsersHardLimit) // 100 + 0 extra users = 100 (hard cap)
+	})
+
+	t.Run("licensed server with seat count enforcement and zero ExtraUsers creates hard cap", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		userLimit := 100
+		extraUsers := 0
+		license := model.NewTestLicense("")
+		license.IsSeatCountEnforced = true
+		license.Features.Users = &userLimit
+		license.ExtraUsers = &extraUsers
+		th.App.Srv().SetLicense(license)
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		// InitBasic creates 3 users by default
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
+		require.Equal(t, int64(100), serverLimits.MaxUsersLimit)
+		require.Equal(t, int64(100), serverLimits.MaxUsersHardLimit) // 100 + 0 extra users = 100 (hard cap)
 	})
 
 	t.Run("licensed server with seat count enforcement but no Users feature shows no limits", func(t *testing.T) {
@@ -219,7 +262,7 @@ func TestGetServerLimits(t *testing.T) {
 
 		require.Greater(t, serverLimits.ActiveUserCount, int64(0))
 		require.Equal(t, int64(0), serverLimits.MaxUsersLimit)
-		require.Equal(t, int64(0), serverLimits.MaxUsersHardLimit) // No grace for 0 users
+		require.Equal(t, int64(0), serverLimits.MaxUsersHardLimit) // 0 + 0 (default) extra users = 0
 	})
 }
 
@@ -293,37 +336,41 @@ func TestIsAtUserLimit(t *testing.T) {
 			require.False(t, atLimit)
 		})
 
-		t.Run("at base limit but below grace limit", func(t *testing.T) {
+		t.Run("at base limit but below hard limit with extra users", func(t *testing.T) {
 			th := Setup(t).InitBasic()
 			defer th.TearDown()
 
 			userLimit := 5
+			extraUsers := 2
 			license := model.NewTestLicense("")
 			license.IsSeatCountEnforced = true
 			license.Features.Users = &userLimit
+			license.ExtraUsers = &extraUsers
 			th.App.Srv().SetLicense(license)
 
-			// Create 2 additional users to have 5 total (at base limit of 5, but below grace limit of 6)
+			// Create 2 additional users to have 5 total (at base limit of 5, but below hard limit of 7)
 			th.CreateUser()
 			th.CreateUser()
 
 			atLimit, appErr := th.App.isAtUserLimit()
 			require.Nil(t, appErr)
-			require.False(t, atLimit) // Should be false due to grace period
+			require.False(t, atLimit) // Should be false due to extra users
 		})
 
-		t.Run("at grace limit", func(t *testing.T) {
+		t.Run("at hard limit with extra users", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
 			defer th.TearDown()
 
 			userLimit := 5
+			extraUsers := 1
 			license := model.NewTestLicense("")
 			license.IsSeatCountEnforced = true
 			license.Features.Users = &userLimit
+			license.ExtraUsers = &extraUsers
 			th.App.Srv().SetLicense(license)
 
 			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(6), nil) // At grace limit of 6 (5 + 1)
+			mockUserStore.On("Count", mock.Anything).Return(int64(6), nil) // At hard limit of 6 (5 + 1)
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -332,18 +379,20 @@ func TestIsAtUserLimit(t *testing.T) {
 			require.True(t, atLimit)
 		})
 
-		t.Run("above grace limit", func(t *testing.T) {
+		t.Run("above hard limit with extra users", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
 			defer th.TearDown()
 
 			userLimit := 5
+			extraUsers := 1
 			license := model.NewTestLicense("")
 			license.IsSeatCountEnforced = true
 			license.Features.Users = &userLimit
+			license.ExtraUsers = &extraUsers
 			th.App.Srv().SetLicense(license)
 
 			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(7), nil) // Above grace limit of 6
+			mockUserStore.On("Count", mock.Anything).Return(int64(7), nil) // Above hard limit of 6
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -418,39 +467,51 @@ func TestIsAtUserLimit(t *testing.T) {
 	})
 }
 
-func TestGracePeriodBehavior(t *testing.T) {
+func TestExtraUsersBehavior(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	t.Run("grace period examples", func(t *testing.T) {
+	t.Run("extra users examples", func(t *testing.T) {
 		tests := []struct {
-			name               string
-			licenseUserLimit   int
-			expectedBaseLimit  int64
-			expectedGraceLimit int64
+			name              string
+			licenseUserLimit  int
+			extraUsers        *int
+			expectedBaseLimit int64
+			expectedHardLimit int64
 		}{
 			{
-				name:               "zero license users gets zero grace",
-				licenseUserLimit:   0,
-				expectedBaseLimit:  0,
-				expectedGraceLimit: 0, // Special case: 0 users = 0 grace limit
+				name:              "zero license users with extra users",
+				licenseUserLimit:  0,
+				extraUsers:        model.NewPointer(5),
+				expectedBaseLimit: 0,
+				expectedHardLimit: 5, // 0 + 5 extra users = 5
 			},
 			{
-				name:               "small license uses floor (10 users)",
-				licenseUserLimit:   10,
-				expectedBaseLimit:  10,
-				expectedGraceLimit: 11, // 10 + max(5%, 1) = 10 + 1
+				name:              "license with configured extra users",
+				licenseUserLimit:  10,
+				extraUsers:        model.NewPointer(2),
+				expectedBaseLimit: 10,
+				expectedHardLimit: 12, // 10 + 2 extra users = 12
 			},
 			{
-				name:               "medium license uses percentage (100 users)",
-				licenseUserLimit:   100,
-				expectedBaseLimit:  100,
-				expectedGraceLimit: 105, // 100 + max(5%, 1) = 100 + 5
+				name:              "license with zero extra users (hard cap)",
+				licenseUserLimit:  100,
+				extraUsers:        model.NewPointer(0),
+				expectedBaseLimit: 100,
+				expectedHardLimit: 100, // 100 + 0 extra users = 100 (hard cap)
 			},
 			{
-				name:               "large license uses percentage (1000 users)",
-				licenseUserLimit:   1000,
-				expectedBaseLimit:  1000,
-				expectedGraceLimit: 1050, // 1000 + max(5%, 1) = 1000 + 50
+				name:              "license with no extra users configured defaults to zero",
+				licenseUserLimit:  100,
+				extraUsers:        nil,
+				expectedBaseLimit: 100,
+				expectedHardLimit: 100, // 100 + 0 (default) extra users = 100 (hard cap)
+			},
+			{
+				name:              "license with large number of extra users",
+				licenseUserLimit:  1000,
+				extraUsers:        model.NewPointer(200),
+				expectedBaseLimit: 1000,
+				expectedHardLimit: 1200, // 1000 + 200 extra users = 1200
 			},
 		}
 
@@ -462,18 +523,19 @@ func TestGracePeriodBehavior(t *testing.T) {
 				license := model.NewTestLicense("")
 				license.IsSeatCountEnforced = true
 				license.Features.Users = &tt.licenseUserLimit
+				license.ExtraUsers = tt.extraUsers
 				th.App.Srv().SetLicense(license)
 
 				serverLimits, appErr := th.App.GetServerLimits()
 				require.Nil(t, appErr)
 
 				require.Equal(t, tt.expectedBaseLimit, serverLimits.MaxUsersLimit)
-				require.Equal(t, tt.expectedGraceLimit, serverLimits.MaxUsersHardLimit)
+				require.Equal(t, tt.expectedHardLimit, serverLimits.MaxUsersHardLimit)
 			})
 		}
 	})
 
-	t.Run("unlicensed server has no grace period", func(t *testing.T) {
+	t.Run("unlicensed server has no extra users", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -482,61 +544,8 @@ func TestGracePeriodBehavior(t *testing.T) {
 		serverLimits, appErr := th.App.GetServerLimits()
 		require.Nil(t, appErr)
 
-		// Unlicensed servers should not get grace period
+		// Unlicensed servers use hard-coded limits without extra users
 		require.Equal(t, int64(2500), serverLimits.MaxUsersLimit)
-		require.Equal(t, int64(5000), serverLimits.MaxUsersHardLimit) // No grace, stays at 5000
+		require.Equal(t, int64(5000), serverLimits.MaxUsersHardLimit)
 	})
-}
-
-func TestCalculateGraceLimit(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	tests := []struct {
-		name      string
-		baseLimit int64
-		expected  int64
-	}{
-		{
-			name:      "zero base limit",
-			baseLimit: 0,
-			expected:  0, // Special case: 0 users = 0 grace limit
-		},
-		{
-			name:      "one user base limit",
-			baseLimit: 1,
-			expected:  2, // max(1 * 1.05, 1 + 1) = max(1.05 -> 1, 2) = 2
-		},
-		{
-			name:      "small base limit where floor applies",
-			baseLimit: 10,
-			expected:  11, // max(10 * 1.05, 10 + 1) = max(10.5 -> 10, 11) = 11
-		},
-		{
-			name:      "small base limit where percentage applies",
-			baseLimit: 20,
-			expected:  21, // max(20 * 1.05, 20 + 1) = max(21, 21) = 21
-		},
-		{
-			name:      "medium base limit where percentage applies",
-			baseLimit: 100,
-			expected:  105, // max(100 * 1.05, 100 + 1) = max(105, 101) = 105
-		},
-		{
-			name:      "large base limit where percentage applies",
-			baseLimit: 1000,
-			expected:  1050, // max(1000 * 1.05, 1000 + 1) = max(1050, 1001) = 1050
-		},
-		{
-			name:      "very large base limit",
-			baseLimit: 5000,
-			expected:  5250, // max(5000 * 1.05, 5000 + 1) = max(5250, 5001) = 5250
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := calculateGraceLimit(tt.baseLimit)
-			require.Equal(t, tt.expected, result, "calculateGraceLimit(%d) = %d, expected %d", tt.baseLimit, result, tt.expected)
-		})
-	}
 }
