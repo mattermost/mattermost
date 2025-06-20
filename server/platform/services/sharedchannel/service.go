@@ -384,6 +384,6 @@ func (scs *Service) HandleChannelNotSharedErrorForTesting(msg *model.SyncMsg, rc
 }
 
 // HandleMentionTransformationForTesting allows testing the full mention transformation flow
-func (scs *Service) HandleMentionTransformationForTesting(ctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) {
-	scs.handleMentionTransformation(ctx, post, targetChannel, rc)
+func (scs *Service) HandleMentionTransformationForTesting(ctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, syncMsgUsers map[string]*model.User) {
+	scs.handleMentionTransformation(ctx, post, targetChannel, rc, syncMsgUsers)
 }

@@ -200,7 +200,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		}
 
 		// add/update post
-		rpost, err := scs.upsertSyncPost(post, targetChannel, rc)
+		rpost, err := scs.upsertSyncPost(post, targetChannel, rc, syncMsg.Users)
 		if err != nil {
 			syncResp.PostErrors = append(syncResp.PostErrors, post.Id)
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync post",
@@ -457,7 +457,7 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 	return nil, fmt.Errorf("error updating sync user %s: %w", user.Id, err)
 }
 
-func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
+func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, syncMsgUsers map[string]*model.User) (*model.Post, error) {
 	var appErr *model.AppError
 
 	post.RemoteId = model.NewPointer(rc.RemoteId)
@@ -487,7 +487,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		}
 
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("upsertSyncPost: CREATING POST - About to handle mention transformation - PostId=%s, UserId=%s, ChannelId=%s, RemoteCluster=%s", post.Id, post.UserId, post.ChannelId, rc.Name))
-		scs.handleMentionTransformation(rctx, post, targetChannel, rc)
+		scs.handleMentionTransformation(rctx, post, targetChannel, rc, syncMsgUsers)
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("upsertSyncPost: CREATING POST - Mention transformation completed - PostId=%s, FinalMessage=%s", post.Id, post.Message))
 
 		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
@@ -508,7 +508,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.UpdateAt > rpost.UpdateAt || post.Metadata != nil {
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("upsertSyncPost: UPDATING POST - About to handle mention transformation - PostId=%s, ChannelId=%s, RemoteCluster=%s, OriginalMessage=%s", post.Id, post.ChannelId, rc.Name, post.Message))
-		scs.handleMentionTransformation(rctx, post, targetChannel, rc)
+		scs.handleMentionTransformation(rctx, post, targetChannel, rc, syncMsgUsers)
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("upsertSyncPost: UPDATING POST - Mention transformation completed - PostId=%s, FinalMessage=%s", post.Id, post.Message))
 		var priority *model.PostPriority
 		var acknowledgements []*model.PostAcknowledgement
@@ -703,7 +703,7 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 }
 
 // handleMentionTransformation handles mention transformation with shared channel lookup
-func (scs *Service) handleMentionTransformation(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) {
+func (scs *Service) handleMentionTransformation(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, syncMsgUsers map[string]*model.User) {
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("handleMentionTransformation: ENTRY - PostId=%s, ChannelId=%s, RemoteCluster=%s, OriginalMessage=%s", post.Id, targetChannel.Id, rc.Name, post.Message))
 
 	sc, err := scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
@@ -726,7 +726,7 @@ func (scs *Service) handleMentionTransformation(rctx request.CTX, post *model.Po
 			}
 		}
 
-		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap)
+		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionMap, syncMsgUsers)
 
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("handleMentionTransformation: COMPLETED - FinalMessage=%s", post.Message))
 	} else {
@@ -760,51 +760,48 @@ func (scs *Service) isLocalUser(rctx request.CTX, username string) (*model.User,
 	return nil, false
 }
 
-// transformColonMention handles @user:cluster format mentions
-func (scs *Service) transformColonMention(rctx request.CTX, mention, ourClusterName string, user *model.User) string {
-	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: ENTRY - mention='%s', ourClusterName='%s', user=%s", mention, ourClusterName, func() string {
+// transformColonMention handles @user:cluster format mentions using SyncMsg.Users for ID-based matching
+func (scs *Service) transformColonMention(rctx request.CTX, mention string, user *model.User, syncMsgUsers map[string]*model.User) string {
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: ENTRY - mention='%s', user=%s", mention, func() string {
 		if user != nil {
-			return fmt.Sprintf("Id=%s,Username=%s", user.Id, user.Username)
+			return fmt.Sprintf("Id=%s,Username=%s,RemoteId=%s", user.Id, user.Username, user.GetRemoteID())
 		}
 		return "nil"
 	}()))
 
 	username, suffix, valid := parseMentionWithColon(mention)
-	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Parsed - username='%s', suffix='%s', valid=%t", username, suffix, valid))
-
 	if !valid {
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Invalid format, returning original mention='%s'", mention))
-		return mention
+		scs.app.PostDebugToTownSquare(rctx, "transformColonMention: Invalid colon format, returning as-is")
+		return "@" + mention
 	}
 
-	if suffix == ourClusterName {
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Suffix matches our cluster, checking for local user='%s'", username))
-		// This is a mention of someone from our cluster
-		// Check if we have a local user with this name
-		if localUser, exists := scs.isLocalUser(rctx, username); exists {
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Local user found - LocalUserId=%s, ProvidedUserId=%s", localUser.Id, func() string {
-				if user != nil {
-					return user.Id
-				}
-				return "nil"
-			}()))
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Parsed - username='%s', suffix='%s'", username, suffix))
 
-			if user != nil && localUser.Id == user.Id {
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Same ID match, stripping suffix - returning '@%s'", username))
-				// Same ID - this is our local user, strip the cluster suffix
-				return "@" + username
+	// Check if this mention exists in SyncMsg.Users (meaning it was sent by the remote)
+	if syncedUser, existsInSync := syncMsgUsers[mention]; existsInSync {
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Found '%s' in SyncMsg.Users - ID=%s, Username=%s", mention, syncedUser.Id, syncedUser.Username))
+
+		// Check if there's a local user with the base username
+		if localUser, existsLocal := scs.isLocalUser(rctx, username); existsLocal {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Found local user '%s' - ID=%s", username, localUser.Id))
+
+			// If the IDs match, this colon mention refers to our local user - strip the suffix
+			if localUser.Id == syncedUser.Id {
+				result := "@" + username
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: ID match! Stripping suffix - returning='%s'", result))
+				return result
 			}
-			scs.app.PostDebugToTownSquare(rctx, "transformColonMention: Different IDs, keeping original mention")
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Different IDs - local:%s vs synced:%s", localUser.Id, syncedUser.Id))
 		} else {
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: No local user found for username='%s'", username))
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: No local user named '%s'", username))
 		}
 	} else {
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Different cluster - suffix='%s' != ourCluster='%s'", suffix, ourClusterName))
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Mention '%s' not found in SyncMsg.Users", mention))
 	}
 
+	// Keep original mention if no match conditions met
 	result := "@" + mention
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: COMPLETED - returning='%s'", result))
-	// Different cluster or no matching local user - keep as-is
 	return result
 }
 
@@ -856,7 +853,7 @@ func (scs *Service) transformSimpleMention(rctx request.CTX, mention string, use
 
 // transformMentionsOnReceive transforms mentions in received posts to ensure proper display
 // on the receiving cluster using user ID-based resolution.
-func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionMap model.UserMentionMap) {
+func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionMap model.UserMentionMap, syncMsgUsers map[string]*model.User) {
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: ENTRY - PostId=%s, Message=%s, MentionMapSize=%d", post.Id, post.Message, len(mentionMap)))
 
 	if post.Message == "" || !strings.Contains(post.Message, "@") {
@@ -864,12 +861,7 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		return
 	}
 
-	// Get our cluster name for comparison
-	ourClusterName := scs.server.Config().ClusterSettings.ClusterName
-	if ourClusterName == nil {
-		ourClusterName = &rc.Name // fallback if not set
-	}
-	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: OurClusterName=%s, RemoteClusterName=%s", *ourClusterName, rc.Name))
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Processing with %d SyncMsg.Users entries", len(syncMsgUsers)))
 
 	originalMessage := post.Message
 
@@ -885,7 +877,8 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 
 			if strings.Contains(mention, ":") {
 				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Processing colon mention='%s'", mention))
-				replacement = scs.transformColonMention(rctx, mention, *ourClusterName, user)
+				// Use the new SyncMsg.Users-based logic for colon mentions
+				replacement = scs.transformColonMention(rctx, mention, user, syncMsgUsers)
 			} else {
 				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Processing simple mention='%s'", mention))
 				replacement = scs.transformSimpleMention(rctx, mention, user, userID, rc)
@@ -915,14 +908,29 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 			username, suffix, valid := parseMentionWithColon(mention)
 			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Colon mention - username='%s', suffix='%s', valid=%t", username, suffix, valid))
 
-			if valid && suffix == *ourClusterName {
-				if _, exists := scs.isLocalUser(rctx, username); exists {
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Local user exists for username='%s', removing suffix", username))
-					// Local user exists - display without suffix
-					return "@" + username
+			if valid {
+				// New approach: Use SyncMsg.Users to determine if this mention refers to a local user
+				if syncedUser, existsInSync := syncMsgUsers[mention]; existsInSync {
+					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Found '%s' in SyncMsg.Users - ID=%s, Username=%s, RemoteId='%s'", mention, syncedUser.Id, syncedUser.Username, syncedUser.GetRemoteID()))
+
+					// Check if there's a local user with the base username
+					if localUser, existsLocal := scs.isLocalUser(rctx, username); existsLocal {
+						scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Found local user '%s' - ID=%s, RemoteId='%s'", username, localUser.Id, localUser.GetRemoteID()))
+
+						// If the IDs match, this colon mention refers to our local user - strip the suffix
+						if localUser.Id == syncedUser.Id {
+							scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: ID match! Stripping suffix from '%s' -> '@%s'", mention, username))
+							return "@" + username
+						}
+						scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Different IDs - local:%s vs synced:%s, keeping original mention", localUser.Id, syncedUser.Id))
+					} else {
+						scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: No local user named '%s', keeping original mention", username))
+					}
+				} else {
+					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Mention '%s' not found in SyncMsg.Users, keeping original", mention))
 				}
 			}
-			// No local user or different cluster - keep original mention
+			// Keep original mention (either invalid format or no match conditions met)
 			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Keeping original colon mention='%s'", mention))
 			return match
 		}
