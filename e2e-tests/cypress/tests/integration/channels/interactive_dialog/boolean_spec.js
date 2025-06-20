@@ -21,6 +21,13 @@ let simpleDialog;
 
 describe('Interactive Dialog', () => {
     before(() => {
+        // # Disable InteractiveDialogAppsForm feature flag to use legacy dialog
+        cy.apiUpdateConfig({
+            FeatureFlags: {
+                InteractiveDialogAppsForm: false,
+            },
+        });
+
         // # Ensure that teammate name display setting is set to default 'username'
         cy.apiSaveTeammateNameDisplayPreference('username');
 

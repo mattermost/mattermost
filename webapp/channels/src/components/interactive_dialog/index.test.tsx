@@ -39,32 +39,6 @@ describe('components/interactive_dialog/InteractiveDialogContainer', () => {
                     },
                 },
             },
-            general: {
-                config: {},
-                license: {},
-            },
-            channels: {
-                channels: {},
-                roles: {},
-            },
-            teams: {
-                teams: {},
-            },
-            posts: {
-                posts: {},
-            },
-            users: {
-                profiles: {},
-            },
-            groups: {
-                myGroups: [],
-            },
-            emojis: {
-                customEmoji: {},
-            },
-            preferences: {
-                myPreferences: {},
-            },
         },
     };
 

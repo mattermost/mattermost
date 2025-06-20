@@ -67,37 +67,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         elements: [] as DialogElement[],
     };
 
-    const mockState = {
-        entities: {
-            general: {
-                config: {},
-                license: {},
-            },
-            channels: {
-                channels: {},
-                roles: {},
-            },
-            teams: {
-                teams: {},
-            },
-            posts: {
-                posts: {},
-            },
-            users: {
-                profiles: {},
-            },
-            groups: {
-                myGroups: [],
-            },
-            emojis: {
-                customEmoji: {},
-            },
-            preferences: {
-                myPreferences: {},
-            },
-        },
-    };
-
     beforeEach(() => {
         // Mock console methods before each test
         global.console.debug = mockConsole.debug;
@@ -116,7 +85,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         test('should render AppsFormContainer with correct basic props', async () => {
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...baseProps}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -151,7 +119,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -190,7 +157,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -226,7 +192,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -246,7 +211,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -263,7 +227,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -294,7 +257,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -319,7 +281,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -355,7 +316,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             expect(() => {
                 renderWithContext(
                     <InteractiveDialogAdapter {...props}/>,
-                    mockState,
                 );
             }).not.toThrow();
 
@@ -389,7 +349,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -430,7 +389,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             expect(() => {
                 renderWithContext(
                     <InteractiveDialogAdapter {...props}/>,
-                    mockState,
                 );
             }).toThrow('Dialog validation failed:');
         });
@@ -461,7 +419,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -525,7 +482,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -576,7 +532,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -608,7 +563,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             expect(mockConsole.debug).not.toHaveBeenCalled();
@@ -625,7 +579,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             // Debug logging should be enabled but we need to trigger some debug calls
@@ -659,7 +612,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -714,7 +666,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
                 const {getByTestId} = renderWithContext(
                     <InteractiveDialogAdapter {...props}/>,
-                    mockState,
                 );
 
                 await waitFor(() => {
@@ -748,7 +699,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -779,7 +729,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -811,7 +760,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -849,7 +797,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -877,7 +824,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             expect(() => {
                 renderWithContext(
                     <InteractiveDialogAdapter {...minimalProps}/>,
-                    mockState,
                 );
             }).not.toThrow();
         });
@@ -890,7 +836,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -906,7 +851,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -946,7 +890,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -983,7 +926,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1020,7 +962,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1051,7 +992,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1088,7 +1028,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1124,7 +1063,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1154,7 +1092,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1252,7 +1189,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1314,7 +1250,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1389,7 +1324,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1423,7 +1357,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         test('should handle lookup calls with no-op implementation', async () => {
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...baseProps}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1445,7 +1378,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         test('should handle refresh calls with no-op implementation', async () => {
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...baseProps}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1473,7 +1405,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1510,7 +1441,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         test('should handle postEphemeralCallResponseForContext as no-op', async () => {
             const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...baseProps}/>,
-                mockState,
             );
 
             await waitFor(() => {
@@ -1538,7 +1468,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const {container} = renderWithContext(
                 <InteractiveDialogAdapter {...baseProps}/>,
-                mockState,
             );
 
             // Should render nothing during loading

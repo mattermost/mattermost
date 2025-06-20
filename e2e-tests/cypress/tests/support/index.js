@@ -219,7 +219,7 @@ function sysadminSetup(user) {
     });
 
     // # Disable plugins not included in prepackaged
-    cy.apiDisableNonPrepackagedPlugins();
+    // cy.apiDisableNonPrepackagedPlugins();
 
     // # Deactivate test bots if any
     cy.apiDeactivateTestBots();

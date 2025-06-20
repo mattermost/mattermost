@@ -59,37 +59,6 @@ describe('components/dialog_router/DialogRouter', () => {
         },
     };
 
-    const mockState = {
-        entities: {
-            general: {
-                config: {},
-                license: {},
-            },
-            channels: {
-                channels: {},
-                roles: {},
-            },
-            teams: {
-                teams: {},
-            },
-            posts: {
-                posts: {},
-            },
-            users: {
-                profiles: {},
-            },
-            groups: {
-                myGroups: [],
-            },
-            emojis: {
-                customEmoji: {},
-            },
-            preferences: {
-                myPreferences: {},
-            },
-        },
-    };
-
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -100,7 +69,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {getByTestId} = renderWithContext(
                 <DialogRouter {...baseProps}/>,
-                mockState,
             );
 
             expect(getByTestId('interactive-dialog-adapter')).toBeInTheDocument();
@@ -114,7 +82,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {getByTestId} = renderWithContext(
                 <DialogRouter {...baseProps}/>,
-                mockState,
             );
 
             expect(getByTestId('interactive-dialog')).toBeInTheDocument();
@@ -133,7 +100,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {getByTestId} = renderWithContext(
                 <DialogRouter {...propsWithoutUrl}/>,
-                mockState,
             );
 
             expect(getByTestId('interactive-dialog')).toBeInTheDocument();
@@ -151,7 +117,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {getByTestId} = renderWithContext(
                 <DialogRouter {...propsWithUndefinedUrl}/>,
-                mockState,
             );
 
             expect(getByTestId('interactive-dialog')).toBeInTheDocument();
@@ -167,7 +132,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {getByTestId} = renderWithContext(
                 <DialogRouter {...propsWithoutUrl}/>,
-                mockState,
             );
 
             expect(getByTestId('interactive-dialog')).toBeInTheDocument();
@@ -186,7 +150,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {getByTestId} = renderWithContext(
                 <DialogRouter {...propsWithCallback}/>,
-                mockState,
             );
 
             expect(getByTestId('interactive-dialog-adapter')).toBeInTheDocument();
@@ -222,7 +185,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {getByTestId} = renderWithContext(
                 <DialogRouter {...extendedProps}/>,
-                mockState,
             );
 
             expect(getByTestId('interactive-dialog-adapter')).toBeInTheDocument();
@@ -253,7 +215,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {getByTestId} = renderWithContext(
                 <DialogRouter {...extendedProps}/>,
-                mockState,
             );
 
             expect(getByTestId('interactive-dialog')).toBeInTheDocument();
@@ -267,7 +228,6 @@ describe('components/dialog_router/DialogRouter', () => {
             // First render
             const {rerender, getByTestId} = renderWithContext(
                 <DialogRouter {...baseProps}/>,
-                mockState,
             );
 
             expect(getByTestId('interactive-dialog-adapter')).toBeInTheDocument();
@@ -287,7 +247,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {rerender, getByTestId} = renderWithContext(
                 <DialogRouter {...baseProps}/>,
-                mockState,
             );
 
             expect(getByTestId('interactive-dialog-adapter')).toBeInTheDocument();
@@ -305,7 +264,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {rerender, getByTestId} = renderWithContext(
                 <DialogRouter {...baseProps}/>,
-                mockState,
             );
 
             expect(getByTestId('interactive-dialog-adapter')).toBeInTheDocument();
@@ -329,7 +287,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {getByTestId} = renderWithContext(
                 <DialogRouter {...baseProps}/>,
-                mockState,
             );
 
             // Should default to legacy dialog when feature flag state is missing
@@ -346,7 +303,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {getByTestId} = renderWithContext(
                 <DialogRouter {...propsWithWhitespaceUrl}/>,
-                mockState,
             );
 
             // Whitespace URL should still be truthy, so adapter should be used
@@ -363,7 +319,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {getByTestId} = renderWithContext(
                 <DialogRouter {...propsWithNullUrl}/>,
-                mockState,
             );
 
             expect(getByTestId('interactive-dialog')).toBeInTheDocument();
@@ -374,7 +329,6 @@ describe('components/dialog_router/DialogRouter', () => {
 
             renderWithContext(
                 <DialogRouter {...baseProps}/>,
-                mockState,
             );
 
             expect(mockInteractiveDialogAppsFormEnabled).toHaveBeenCalled();

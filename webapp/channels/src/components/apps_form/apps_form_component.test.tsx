@@ -80,7 +80,6 @@ describe('AppsFormComponent', () => {
             <AppsForm
                 {...baseProps}
             />,
-            {},
         );
 
         // Verify key form elements are rendered
@@ -97,7 +96,6 @@ describe('AppsFormComponent', () => {
             <AppsForm
                 {...baseProps}
             />,
-            {},
         );
 
         // Verify form renders with initial values visible
@@ -120,7 +118,6 @@ describe('AppsFormComponent', () => {
             <AppsForm
                 {...props}
             />,
-            {},
         );
 
         const submitButton = screen.getByRole('button', {name: /submit/i});
@@ -150,7 +147,7 @@ describe('AppsFormComponent', () => {
                     }),
                 },
             };
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -161,7 +158,7 @@ describe('AppsFormComponent', () => {
         });
 
         test('should not appear when submit does not return an error', async () => {
-            renderWithContext(<AppsForm {...baseProps}/>, {});
+            renderWithContext(<AppsForm {...baseProps}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -201,36 +198,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            const state = {
-                entities: {
-                    general: {
-                        config: {},
-                        license: {},
-                    },
-                    channels: {
-                        channels: {},
-                        roles: {},
-                    },
-                    teams: {
-                        teams: {},
-                    },
-                    posts: {
-                        posts: {},
-                    },
-                    users: {
-                        profiles: {},
-                    },
-                    groups: {
-                        myGroups: [],
-                    },
-                    emojis: {},
-                    preferences: {
-                        myPreferences: {},
-                    },
-                },
-            };
-
-            renderWithContext(<AppsForm {...props}/>, state);
+            renderWithContext(<AppsForm {...props}/>);
 
             // Verify the selected option is displayed
             expect(screen.getByText('Option3')).toBeInTheDocument();
@@ -258,7 +226,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             // Find and click submit button
             const submitButton = screen.getByRole('button', {name: /submit/i});
@@ -292,7 +260,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             // Find and click submit button
             const submitButton = screen.getByRole('button', {name: /submit/i});
@@ -319,7 +287,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             // Submit the form successfully
             const submitButton = screen.getByRole('button', {name: /submit/i});
@@ -354,7 +322,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             // Verify form renders with lookup functionality
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
@@ -376,7 +344,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             // Verify form renders with error handling configured
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
@@ -384,7 +352,7 @@ describe('AppsFormComponent', () => {
         });
 
         test('should render form without lookup fields', () => {
-            renderWithContext(<AppsForm {...baseProps}/>, {});
+            renderWithContext(<AppsForm {...baseProps}/>);
 
             // Verify form renders without errors
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
@@ -405,7 +373,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             // Verify form renders with proper error handling
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
@@ -443,7 +411,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             // Verify refresh functionality is configured
             expect(mockRefresh).toBeDefined();
@@ -479,7 +447,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             // Verify error handling is configured
             expect(mockRefresh).toBeDefined();
@@ -510,7 +478,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             // Verify unexpected response handling is configured
             expect(mockRefresh).toBeDefined();
@@ -519,7 +487,7 @@ describe('AppsFormComponent', () => {
 
     describe('Modal vs Embedded Rendering', () => {
         test('should render as modal by default', () => {
-            renderWithContext(<AppsForm {...baseProps}/>, {});
+            renderWithContext(<AppsForm {...baseProps}/>);
 
             // Modal should be rendered (look for modal-specific elements)
             expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -531,7 +499,7 @@ describe('AppsFormComponent', () => {
                 isEmbedded: true,
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             // Embedded form should not have modal wrapper
             expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -561,7 +529,7 @@ describe('AppsFormComponent', () => {
                 form: formWithCustomButtons,
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             // Verify form renders with custom submit buttons (Save and multiple Cancel buttons)
             expect(screen.getByRole('button', {name: /save/i})).toBeInTheDocument();
@@ -582,7 +550,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -611,7 +579,7 @@ describe('AppsFormComponent', () => {
                 form: newForm,
             };
 
-            const {rerender} = renderWithContext(<AppsForm {...baseProps}/>, {});
+            const {rerender} = renderWithContext(<AppsForm {...baseProps}/>);
 
             // Re-render with new form
             rerender(<AppsForm {...newProps}/>);
@@ -622,7 +590,7 @@ describe('AppsFormComponent', () => {
         });
 
         test('should not update state if form has not changed', () => {
-            const {rerender} = renderWithContext(<AppsForm {...baseProps}/>, {});
+            const {rerender} = renderWithContext(<AppsForm {...baseProps}/>);
 
             // Initial form content should be present
             expect(screen.getByDisplayValue('initial text')).toBeInTheDocument();
@@ -655,7 +623,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -680,7 +648,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -705,7 +673,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -726,14 +694,14 @@ describe('AppsFormComponent', () => {
                 form: formWithSubmitOnCancel,
             };
 
-            renderWithContext(<AppsForm {...props}/>, {});
+            renderWithContext(<AppsForm {...props}/>);
 
             // Verify form renders with submit_on_cancel option
             expect(screen.getByRole('button', {name: /cancel/i})).toBeInTheDocument();
         });
 
         test('should handle missing field during onChange', () => {
-            renderWithContext(<AppsForm {...baseProps}/>, {});
+            renderWithContext(<AppsForm {...baseProps}/>);
 
             // Form should render without errors even with missing field handling
             expect(screen.getByDisplayValue('initial text')).toBeInTheDocument();
