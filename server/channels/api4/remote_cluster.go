@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -407,11 +406,6 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		DefaultTeamId: rcWithTeamAndPassword.DefaultTeamId,
 		Token:         token,
 		CreatorId:     c.AppContext.Session().UserId,
-	}
-
-	// Debug: Track when CreatorId is set during remote cluster creation
-	if scs := c.App.Srv().GetSharedChannelSyncService(); scs != nil && scs.Active() {
-		scs.PostDebugToTownSquare(c.AppContext, fmt.Sprintf("DEBUG createRemoteCluster: Setting CreatorId for remote '%s' (id: %s) to user %s", rc.Name, rc.RemoteId, rc.CreatorId))
 	}
 
 	audit.AddEventParameterAuditable(auditRec, "remotecluster", rc)

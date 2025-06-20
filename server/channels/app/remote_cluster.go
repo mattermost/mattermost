@@ -6,7 +6,6 @@ package app
 import (
 	"database/sql"
 	"encoding/base64"
-	"fmt"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -65,11 +64,6 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 		Options:     opts.GetOptionFlags(),
 	}
 
-	// Debug: Track when CreatorId is set during plugin registration
-	if scs := a.Srv().GetSharedChannelSyncService(); scs != nil && scs.Active() {
-		scs.PostDebugToTownSquare(rctx, fmt.Sprintf("DEBUG RegisterPluginForSharedChannels: Setting CreatorId for plugin remote '%s' (id: %s) to user %s", rc.Name, rc.RemoteId, rc.CreatorId))
-	}
-
 	rcSaved, err := a.Srv().Store().RemoteCluster().Save(rc)
 	if err != nil {
 		return "", err
@@ -111,11 +105,6 @@ func (a *App) UnregisterPluginForSharedChannels(pluginID string) error {
 }
 
 func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {
-	// Debug: Track when CreatorId is set during AddRemoteCluster
-	if scs := a.Srv().GetSharedChannelSyncService(); scs != nil && scs.Active() {
-		scs.PostDebugToTownSquare(request.EmptyContext(a.Log()), fmt.Sprintf("DEBUG AddRemoteCluster: Adding remote cluster '%s' (id: %s) with CreatorId %s", rc.Name, rc.RemoteId, rc.CreatorId))
-	}
-
 	rc, err := a.Srv().Store().RemoteCluster().Save(rc)
 	if err != nil {
 		if sqlstore.IsUniqueConstraintError(errors.Cause(err), []string{sqlstore.RemoteClusterSiteURLUniqueIndex}) {

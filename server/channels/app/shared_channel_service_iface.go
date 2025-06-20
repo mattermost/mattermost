@@ -6,7 +6,6 @@ package app
 // TODO: platform: remove this and use from platform package
 import (
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
@@ -29,7 +28,6 @@ type SharedChannelServiceIFace interface {
 	CheckCanInviteToSharedChannel(channelId string) error
 	HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string)
 	IsRemoteClusterDirectlyConnected(remoteId string) bool
-	PostDebugToTownSquare(c request.CTX, message string)
 }
 
 func NewMockSharedChannelService(service SharedChannelServiceIFace) *mockSharedChannelService {
@@ -108,10 +106,4 @@ func (mrcs *mockSharedChannelService) IsRemoteClusterDirectlyConnected(remoteId 
 	}
 	// Default behavior for mock: Local server is always connected
 	return remoteId == ""
-}
-
-func (mrcs *mockSharedChannelService) PostDebugToTownSquare(c request.CTX, message string) {
-	if mrcs.SharedChannelServiceIFace != nil {
-		mrcs.SharedChannelServiceIFace.PostDebugToTownSquare(c, message)
-	}
 }

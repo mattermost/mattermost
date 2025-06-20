@@ -2424,23 +2424,17 @@ func (a *App) UserCanDMOtherUser(c request.CTX, userID, otherUserId string) (boo
 	if scs != nil {
 		otherUser, otherErr := a.GetUser(otherUserId)
 		if otherErr != nil {
-			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Failed to get other user %s: %v", otherUserId, otherErr))
 			return false, nil
 		}
 
 		originalRemoteId := otherUser.GetOriginalRemoteID()
-		scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Checking DM permissions for user %s to DM other user %s (remote_id: %s, original_remote_id: %s)", userID, otherUserId, otherUser.GetRemoteID(), originalRemoteId))
 
 		// Check if the other user is from a remote cluster
 		if otherUser.IsRemote() {
-			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Other user %s is remote with remote_id %s, original_remote_id %s", otherUserId, otherUser.GetRemoteID(), originalRemoteId))
-
 			// For DMs, we require a direct connection to the ORIGINAL remote cluster
 			isDirectlyConnected := scs.IsRemoteClusterDirectlyConnected(originalRemoteId)
-			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Remote cluster %s is directly connected: %v", originalRemoteId, isDirectlyConnected))
 
 			if !isDirectlyConnected {
-				scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: BLOCKED - No direct connection to remote cluster %s for DM", originalRemoteId))
 				return false, model.NewAppError(
 					"UserCanDMOtherUser",
 					"api.user.remote_dm_not_allowed.app_error",
@@ -2448,10 +2442,6 @@ func (a *App) UserCanDMOtherUser(c request.CTX, userID, otherUserId string) (boo
 					fmt.Sprintf("Cannot send DM to user from remote cluster with ID %s - no direct connection", *otherUser.RemoteId),
 					http.StatusForbidden)
 			}
-
-			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: ALLOWED - Direct connection to remote cluster %s confirmed for DM", originalRemoteId))
-		} else {
-			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Other user %s is local - DM allowed", otherUserId))
 		}
 	}
 
