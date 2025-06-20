@@ -469,7 +469,7 @@ type AppIface interface {
 	AppendFile(fr io.Reader, path string) (int64, *model.AppError)
 	AsymmetricSigningKey() *ecdsa.PrivateKey
 	AttachCloudSessionCookie(c request.CTX, w http.ResponseWriter, r *http.Request)
-	AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError
+	AttachDeviceId(sessionID string, deviceID string, voipDeviceID string, expiresAt int64) *model.AppError
 	AttachSessionCookies(c request.CTX, w http.ResponseWriter, r *http.Request)
 	AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError)
 	AuthorizeOAuthUser(c request.CTX, w http.ResponseWriter, r *http.Request, service, code, state, redirectURI string) (io.ReadCloser, string, map[string]string, *model.User, *model.AppError)
