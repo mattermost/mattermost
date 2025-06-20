@@ -751,7 +751,7 @@ func (a *OpenTracingAppLayer) AttachCloudSessionCookie(c request.CTX, w http.Res
 	a.app.AttachCloudSessionCookie(c, w, r)
 }
 
-func (a *OpenTracingAppLayer) AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError {
+func (a *OpenTracingAppLayer) AttachDeviceId(sessionID string, deviceID string, voipDeviceID string, expiresAt int64) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AttachDeviceId")
 
@@ -763,7 +763,7 @@ func (a *OpenTracingAppLayer) AttachDeviceId(sessionID string, deviceID string, 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.AttachDeviceId(sessionID, deviceID, expiresAt)
+	resultVar0 := a.app.AttachDeviceId(sessionID, deviceID, voipDeviceID, expiresAt)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -4182,7 +4182,7 @@ func (a *OpenTracingAppLayer) DoLocalRequest(c request.CTX, rawURL string, body 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile bool, isOAuthUser bool, isSaml bool) (*model.Session, *model.AppError) {
+func (a *OpenTracingAppLayer) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, voipDeviceID string, isMobile bool, isOAuthUser bool, isSaml bool) (*model.Session, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoLogin")
 
@@ -4194,7 +4194,7 @@ func (a *OpenTracingAppLayer) DoLogin(c request.CTX, w http.ResponseWriter, r *h
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.DoLogin(c, w, r, user, deviceID, isMobile, isOAuthUser, isSaml)
+	resultVar0, resultVar1 := a.app.DoLogin(c, w, r, user, deviceID, voipDeviceID, isMobile, isOAuthUser, isSaml)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
