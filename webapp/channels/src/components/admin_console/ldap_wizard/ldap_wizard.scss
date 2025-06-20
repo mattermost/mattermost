@@ -12,15 +12,18 @@
             margin-top: 32px;
 
             .section-body {
+                // reminder: top | left and right | bottom
                 padding: 32px 48px 48px;
 
                 // Custom components are sometimes nested, but don't do their horizontal spacing again
                 .section-header {
+                    // reminder: top | left and right | bottom
                     padding: 48px 0 0;
                 }
             }
 
             .custom-section-body {
+                // reminder: top | left and right | bottom
                 padding: 32px 0 0;
             }
 
