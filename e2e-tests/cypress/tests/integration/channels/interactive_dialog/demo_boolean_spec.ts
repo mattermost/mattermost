@@ -171,10 +171,13 @@ describe('Interactive Dialogs', () => {
         cy.shouldNotRunOnCloudEdition();
         cy.shouldHavePluginUploadEnabled();
 
-        // # Set plugin settings
+        // # Set plugin settings and disable InteractiveDialogAppsForm feature flag
         const newSettings = {
             PluginSettings: {
                 Enable: true,
+            },
+            FeatureFlags: {
+                InteractiveDialogAppsForm: false,
             },
         };
         cy.apiUpdateConfig(newSettings);
