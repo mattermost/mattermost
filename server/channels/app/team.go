@@ -1499,7 +1499,13 @@ func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.G
 		if channel.TeamId != teamID {
 			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
 		}
+
+		// Check if the channel has access control policy enforcement
+		if channel.PolicyEnforced {
+			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.policy_enforced_channel.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
+
 	return user, team, channels, nil
 }
 
