@@ -165,6 +165,11 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		// We made a copy to avoid decoding and parsing all the time
 		tmpMessage := msg.DeepCopy()
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
+		if tmpMessage.SubType == model.PushSubTypeCalls && session.VoipDeviceId != "" {
+			tmpMessage.SetDeviceIdAndPlatform(session.VoipDeviceId)
+		} else {
+      tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
+		}
 		tmpMessage.AckId = model.NewId()
 		signature, err := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
 			AckId:    tmpMessage.AckId,
