@@ -2406,10 +2406,10 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 	return false, nil
 }
 
-// UserCanDMOtherUser checks if a user can send direct messages to another user.
+// CanUserDirectMessage checks if a user can send direct messages to another user.
 // This is more restrictive than UserCanSeeOtherUser - synthetic users from
 // non-directly-connected servers cannot be DMed even if they can be seen.
-func (a *App) UserCanDMOtherUser(c request.CTX, userID, otherUserId string) (bool, *model.AppError) {
+func (a *App) CanUserDirectMessage(c request.CTX, userID, otherUserId string) (bool, *model.AppError) {
 	// First check if the user can see the other user at all
 	canSee, err := a.UserCanSeeOtherUser(c, userID, otherUserId)
 	if err != nil {
@@ -2436,7 +2436,7 @@ func (a *App) UserCanDMOtherUser(c request.CTX, userID, otherUserId string) (boo
 
 			if !isDirectlyConnected {
 				return false, model.NewAppError(
-					"UserCanDMOtherUser",
+					"CanUserDirectMessage",
 					"api.user.remote_dm_not_allowed.app_error",
 					nil,
 					fmt.Sprintf("Cannot send DM to user from remote cluster with ID %s - no direct connection", *otherUser.RemoteId),

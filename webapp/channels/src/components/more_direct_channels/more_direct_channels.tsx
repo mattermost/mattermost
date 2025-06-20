@@ -69,7 +69,7 @@ type State = {
     search: boolean;
     saving: boolean;
     loadingUsers: boolean;
-    dmCapabilityCache: Record<string, boolean>;
+    directMessagePermissionsCache: Record<string, boolean>;
 }
 
 export default class MoreDirectChannels extends React.PureComponent<Props, State> {
@@ -102,7 +102,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             search: false,
             saving: false,
             loadingUsers: true,
-            dmCapabilityCache: {},
+            directMessagePermissionsCache: {},
         };
     }
 
@@ -115,11 +115,11 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
 
     checkDMCapabilities = async (users: UserProfile[]) => {
         const {currentUserId} = this.props;
-        const {dmCapabilityCache} = this.state;
+        const {directMessagePermissionsCache} = this.state;
         const usersToCheck = users.filter((user) =>
             user.id !== currentUserId &&
             user.remote_id &&
-            !(user.id in dmCapabilityCache),
+            !(user.id in directMessagePermissionsCache),
         );
 
         if (usersToCheck.length === 0) {
@@ -136,12 +136,12 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         });
 
         const results = await Promise.all(promises);
-        const newCache = {...dmCapabilityCache};
+        const newCache = {...directMessagePermissionsCache};
         results.forEach(({userId, canDM}) => {
             newCache[userId] = canDM;
         });
 
-        this.setState({dmCapabilityCache: newCache});
+        this.setState({directMessagePermissionsCache: newCache});
     };
 
     updateFromProps(prevProps: Props) {
@@ -295,7 +295,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
 
     getFilteredUsers = (): UserProfile[] => {
         const {users, currentUserId} = this.props;
-        const {dmCapabilityCache} = this.state;
+        const {directMessagePermissionsCache} = this.state;
 
         return users.filter((user) => {
             if (user.id === currentUserId) {
@@ -305,12 +305,12 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             // For remote users, check if they can be DMed
             if (user.remote_id) {
                 // If we haven't checked this user yet, hide them until we have the result
-                if (!(user.id in dmCapabilityCache)) {
+                if (!(user.id in directMessagePermissionsCache)) {
                     return false;
                 }
 
                 // Only show if they can be DMed
-                return dmCapabilityCache[user.id];
+                return directMessagePermissionsCache[user.id];
             }
 
             // Show local users

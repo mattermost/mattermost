@@ -16,7 +16,7 @@ func (api *API) InitSharedChannels() {
 	api.BaseRoutes.SharedChannels.Handle("/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getSharedChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.SharedChannels.Handle("/remote_info/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteClusterInfo)).Methods(http.MethodGet)
 	api.BaseRoutes.SharedChannels.Handle("/{channel_id:[A-Za-z0-9]+}/remotes", api.APISessionRequired(getSharedChannelRemotes)).Methods(http.MethodGet)
-	api.BaseRoutes.SharedChannels.Handle("/users/{user_id:[A-Za-z0-9]+}/can_dm/{other_user_id:[A-Za-z0-9]+}", api.APISessionRequired(userCanDMOtherUser)).Methods(http.MethodGet)
+	api.BaseRoutes.SharedChannels.Handle("/users/{user_id:[A-Za-z0-9]+}/can_dm/{other_user_id:[A-Za-z0-9]+}", api.APISessionRequired(canUserDirectMessage)).Methods(http.MethodGet)
 
 	api.BaseRoutes.SharedChannelRemotes.Handle("", api.APISessionRequired(getSharedChannelRemotesByRemoteCluster)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelForRemote.Handle("/invite", api.APISessionRequired(inviteRemoteClusterToChannel)).Methods(http.MethodPost)
@@ -297,7 +297,7 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func userCanDMOtherUser(c *Context, w http.ResponseWriter, r *http.Request) {
+func canUserDirectMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId().RequireOtherUserId()
 	if c.Err != nil {
 		return
@@ -308,7 +308,7 @@ func userCanDMOtherUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	canDM, err := c.App.UserCanDMOtherUser(c.AppContext, c.Params.UserId, c.Params.OtherUserId)
+	canDM, err := c.App.CanUserDirectMessage(c.AppContext, c.Params.UserId, c.Params.OtherUserId)
 	if err != nil {
 		c.Err = err
 		return

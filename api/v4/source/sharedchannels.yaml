@@ -278,7 +278,7 @@
         
         ##### Permissions
         Must be authenticated and have permission to view the user.
-      operationId: UserCanDMOtherUser
+      operationId: CanUserDirectMessage
       parameters:
         - name: user_id
           in: path
