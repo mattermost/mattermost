@@ -1872,6 +1872,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
               }
             />
             <AdminSidebarSection
+              definitionKey="compliance.audit_logging"
+              key="compliance.audit_logging"
+              name="compliance/audit_logging"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Audit Logging"
+                  id="admin.sidebar.audit_logging_experimental"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="compliance.custom_terms_of_service_feature_discovery"
               key="compliance.custom_terms_of_service_feature_discovery"
               name="compliance/custom_terms_of_service"
@@ -1944,17 +1955,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Bleve"
                   id="admin.sidebar.blevesearch"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.audit_logging"
-              key="experimental.audit_logging"
-              name="experimental/audit_logging"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Audit Logging"
-                  id="admin.sidebar.audit_logging_experimental"
                 />
               }
             />
@@ -2949,6 +2949,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
               }
             />
             <AdminSidebarSection
+              definitionKey="compliance.audit_logging"
+              key="compliance.audit_logging"
+              name="compliance/audit_logging"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Audit Logging"
+                  id="admin.sidebar.audit_logging_experimental"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="compliance.custom_terms_of_service_feature_discovery"
               key="compliance.custom_terms_of_service_feature_discovery"
               name="compliance/custom_terms_of_service"
@@ -3021,17 +3032,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Bleve"
                   id="admin.sidebar.blevesearch"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.audit_logging"
-              key="experimental.audit_logging"
-              name="experimental/audit_logging"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Audit Logging"
-                  id="admin.sidebar.audit_logging_experimental"
                 />
               }
             />
