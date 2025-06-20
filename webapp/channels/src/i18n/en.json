@@ -1608,7 +1608,7 @@
   "admin.license.trial-request.embargoed.button": "Close",
   "admin.license.trial-request.startTrial": "Start trial",
   "admin.license.trial-request.title": "Experience all that Mattermost Enterprise Advanced has to offer with a free trial for the next 30 days. No obligation to buy and no credit card required. ",
-  "admin.license.trialCard.contactSales": "Contact sales",
+  "admin.license.trialCard.contactSales": "Contact Sales",
   "admin.license.trialCard.licenseExpiring": "You’re currently on a free trial of our Mattermost {licenseType}.",
   "admin.license.trialCard.purchase_license": "Purchase a license",
   "admin.license.trialLicenseCard.expiringAfterFewDays": "Your free trial will expire in <b>{daysCount} {daysCount, plural, one {day} other {days}}</b>. Contact sales to purchase a license and continue using advanced features.",
