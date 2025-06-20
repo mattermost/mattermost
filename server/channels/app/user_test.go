@@ -2347,10 +2347,8 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 	th, ss := setupRemoteClusterTest(t)
 
 	connectedRC := createTestRemoteCluster(t, th, ss, "connected-cluster", "https://example-connected.com", true)
-	nonConnectedRC := createTestRemoteCluster(t, th, ss, "non-connected-cluster", model.SiteURLPending+"https://example-nonconnected.com", false)
 
 	user1 := createRemoteUser(t, th, connectedRC)
-	user2 := createRemoteUser(t, th, nonConnectedRC)
 
 	t.Run("Can create DM with user from connected remote", func(t *testing.T) {
 		ensureRemoteClusterConnected(t, ss, connectedRC, true)
