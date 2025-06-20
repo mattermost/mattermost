@@ -2270,7 +2270,7 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		newProps[model.SessionPropMobileVersion] = mobileVersion
 	}
 
-	if deviceId != "" || voipDeviceId != "" {
+	if deviceId != "" {
 		attachDeviceId(c, w, r, deviceId, voipDeviceId)
 	}
 
