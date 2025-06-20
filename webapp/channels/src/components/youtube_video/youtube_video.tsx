@@ -33,18 +33,7 @@ type YouTubeThumbnailProps = {
     useMaxResThumbnail: boolean;
 };
 
-function YouTubePrefix() {
-    const {formatMessage} = useIntl();
 
-    return (
-        <span className='video-type'>
-            {formatMessage({
-                id: 'youtube_video.type',
-                defaultMessage: 'YouTube - ',
-            })}
-        </span>
-    );
-}
 
 function YouTubeThumbnail({play, videoTitle, onError, thumbnailUrl}: YouTubeThumbnailProps) {
     const {formatMessage} = useIntl();
@@ -159,7 +148,9 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 
         const header = (
             <h4>
-                <YouTubePrefix/>
+                <span className='video-type'>
+                    YouTube - 
+                </span>
                 <span className='video-title'>
                     <ExternalLink
                         href={this.props.link}

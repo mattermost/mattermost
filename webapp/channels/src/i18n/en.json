@@ -6387,6 +6387,5 @@
   "yourcomputer": "Your computer",
   "youtube_video.play_button.aria_label": "Play video",
   "youtube_video.play.aria_label": "Play {videoTitle} on YouTube",
-  "youtube_video.thumbnail.alt_text": "Thumbnail for {videoTitle} on YouTube",
-  "youtube_video.type": "YouTube - "
+  "youtube_video.thumbnail.alt_text": "Thumbnail for {videoTitle} on YouTube"
 }
