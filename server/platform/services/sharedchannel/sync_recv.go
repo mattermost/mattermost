@@ -298,7 +298,15 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	var userSaved *model.User
 	if euser == nil {
 		// new user.  Make sure the remoteID is correct and insert the record
+		// Preserve original remote ID before overwriting RemoteId
+		originalRemoteId := user.GetRemoteID()
 		user.RemoteId = model.NewPointer(rc.RemoteId)
+		if user.Props == nil || user.Props[model.UserPropsKeyOriginalRemoteId] == "" {
+			if originalRemoteId == "" {
+				originalRemoteId = rc.RemoteId // If no original RemoteId, use current sync sender
+			}
+			user.SetProp(model.UserPropsKeyOriginalRemoteId, originalRemoteId)
+		}
 		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
 			return nil, err
 		}

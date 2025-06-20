@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	UserPropsKeyRemoteUsername = "RemoteUsername"
-	UserPropsKeyRemoteEmail    = "RemoteEmail"
+	UserPropsKeyRemoteUsername   = "RemoteUsername"
+	UserPropsKeyRemoteEmail      = "RemoteEmail"
+	UserPropsKeyOriginalRemoteId = "OriginalRemoteId"
 )
 
 var (

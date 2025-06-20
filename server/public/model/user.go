@@ -919,6 +919,16 @@ func (u *User) GetRemoteID() string {
 	return SafeDereference(u.RemoteId)
 }
 
+func (u *User) GetOriginalRemoteID() string {
+	if u.Props == nil {
+		return u.GetRemoteID() // Fallback to current RemoteId
+	}
+	if originalId, exists := u.Props[UserPropsKeyOriginalRemoteId]; exists && originalId != "" {
+		return originalId
+	}
+	return u.GetRemoteID() // Fallback for users without OriginalRemoteId
+}
+
 func (u *User) GetAuthData() string {
 	return SafeDereference(u.AuthData)
 }
