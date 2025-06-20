@@ -77,7 +77,7 @@ describe('getOptionLabel', () => {
         const result = getOptionLabel(option, mockIntl as any);
 
         // Should return proper text, not "[object,object]"
-        expect(result).toBe('All new messages');
+        expect(result).toBe('Help Text');
         expect(result).not.toBe('[object,object]');
         expect(result).not.toBe('[object Object]');
         expect(typeof result).toBe('string');
