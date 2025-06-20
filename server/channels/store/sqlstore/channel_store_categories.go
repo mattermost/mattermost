@@ -568,7 +568,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(db sqlxExecutor, userId, teamId s
 		}
 	}
 
-	if _, err := s.completePopulatingCategoriesT(db, userId, opts.TeamID, oc.Categories); err != nil {
+	if _, err := s.completePopulatingCategoriesT(db, userId, teamId, oc.Categories); err != nil {
 		return nil, err
 	}
 
