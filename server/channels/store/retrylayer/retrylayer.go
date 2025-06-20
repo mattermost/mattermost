@@ -1193,11 +1193,11 @@ func (s *RetryLayerChannelStore) CreateDirectChannel(ctx request.CTX, userID *mo
 
 }
 
-func (s *RetryLayerChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+func (s *RetryLayerChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.CreateInitialSidebarCategories(c, userID, opts)
+		result, err := s.ChannelStore.CreateInitialSidebarCategories(c, userID, teamID)
 		if err == nil {
 			return result, nil
 		}
@@ -2354,11 +2354,11 @@ func (s *RetryLayerChannelStore) GetPublicChannelsForTeam(teamID string, offset 
 
 }
 
-func (s *RetryLayerChannelStore) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+func (s *RetryLayerChannelStore) GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetSidebarCategories(userID, opts)
+		result, err := s.ChannelStore.GetSidebarCategories(userID, teamID)
 		if err == nil {
 			return result, nil
 		}
@@ -12214,6 +12214,27 @@ func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 	tries := 0
 	for {
 		err := s.StatusStore.SaveOrUpdate(status)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) error {
+
+	tries := 0
+	for {
+		err := s.StatusStore.SaveOrUpdateMany(statuses)
 		if err == nil {
 			return nil
 		}

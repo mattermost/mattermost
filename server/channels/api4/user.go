@@ -839,7 +839,13 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, appErr = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		if ok, _ := c.App.ChannelAccessControlled(c.AppContext, notInChannelId); ok {
+			// Get cursor_id from query parameters for cursor-based pagination
+			cursorId := r.URL.Query().Get("cursor_id")
+			profiles, appErr = c.App.GetUsersNotInAbacChannel(c.AppContext, inTeamId, notInChannelId, groupConstrainedBool, cursorId, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		} else {
+			profiles, appErr = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		}
 	} else if notInTeamId != "" {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), notInTeamId, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)

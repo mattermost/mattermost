@@ -17,18 +17,74 @@ import (
 )
 
 func TestStatusStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	t.Run("", func(t *testing.T) { testStatusStore(t, rctx, ss) })
+	t.Run("Basic", func(t *testing.T) { testStatusStore(t, rctx, ss) })
 	t.Run("ActiveUserCount", func(t *testing.T) { testActiveUserCount(t, rctx, ss) })
 	t.Run("UpdateExpiredDNDStatuses", func(t *testing.T) { testUpdateExpiredDNDStatuses(t, rctx, ss) })
 	t.Run("Get", func(t *testing.T) { testStatusGet(t, rctx, ss, s) })
 	t.Run("GetByIds", func(t *testing.T) { testStatusGetByIds(t, rctx, ss, s) })
+	t.Run("SaveOrUpdateMany", func(t *testing.T) { testSaveOrUpdateMany(t, rctx, ss) })
+}
+
+func testSaveOrUpdateMany(t *testing.T, _ request.CTX, ss store.Store) {
+	// Test with empty map
+	err := ss.Status().SaveOrUpdateMany(map[string]*model.Status{})
+	require.NoError(t, err, "SaveOrUpdateMany with empty map should succeed")
+
+	// Test with single status
+	status1 := &model.Status{UserId: model.NewId(), Status: model.StatusOnline, Manual: false, LastActivityAt: 10, ActiveChannel: ""}
+	err = ss.Status().SaveOrUpdateMany(map[string]*model.Status{
+		status1.UserId: status1,
+	})
+	require.NoError(t, err, "SaveOrUpdateMany with single status should succeed")
+
+	// Verify the status was saved
+	retrieved, err := ss.Status().Get(status1.UserId)
+	require.NoError(t, err)
+	assert.Equal(t, status1.UserId, retrieved.UserId)
+	assert.Equal(t, status1.Status, retrieved.Status)
+
+	// Test with multiple statuses
+	status2 := &model.Status{UserId: model.NewId(), Status: model.StatusAway, Manual: true, LastActivityAt: 20, ActiveChannel: ""}
+	status3 := &model.Status{UserId: model.NewId(), Status: model.StatusDnd, Manual: true, LastActivityAt: 30, ActiveChannel: ""}
+	err = ss.Status().SaveOrUpdateMany(map[string]*model.Status{
+		status2.UserId: status2,
+		status3.UserId: status3,
+	})
+	require.NoError(t, err, "SaveOrUpdateMany with multiple statuses should succeed")
+
+	// Verify all statuses were saved
+	statuses, err := ss.Status().GetByIds([]string{status2.UserId, status3.UserId})
+	require.NoError(t, err)
+	require.Len(t, statuses, 2, "should have retrieved both statuses")
+
+	// Verify the retrieved statuses are actually the ones from status2 and status3
+	statusMap := make(map[string]*model.Status)
+	for _, status := range statuses {
+		statusMap[status.UserId] = status
+	}
+	assert.Equal(t, status2.Status, statusMap[status2.UserId].Status)
+	assert.Equal(t, status3.Status, statusMap[status3.UserId].Status)
+
+	// Test with duplicate userIds (last one should win)
+	status4 := &model.Status{UserId: status1.UserId, Status: model.StatusOffline, Manual: true, LastActivityAt: 40, ActiveChannel: ""}
+	status5 := &model.Status{UserId: status1.UserId, Status: model.StatusDnd, Manual: false, LastActivityAt: 50, ActiveChannel: ""}
+	err = ss.Status().SaveOrUpdateMany(map[string]*model.Status{
+		status4.UserId: status4,
+		status5.UserId: status5,
+	})
+	require.NoError(t, err, "SaveOrUpdateMany with duplicate userIds should succeed")
+
+	// Verify the last status was saved
+	retrieved, err = ss.Status().Get(status1.UserId)
+	require.NoError(t, err)
+	assert.Equal(t, status1.UserId, retrieved.UserId)
+	assert.Equal(t, status5.Status, retrieved.Status)
+	assert.Equal(t, int64(50), retrieved.LastActivityAt)
 }
 
 func testStatusStore(t *testing.T, _ request.CTX, ss store.Store) {
 	status := &model.Status{UserId: model.NewId(), Status: model.StatusOnline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	require.NoError(t, ss.Status().SaveOrUpdate(status))
-
-	status.LastActivityAt = 10
 
 	_, err := ss.Status().Get(status.UserId)
 	require.NoError(t, err)
@@ -42,13 +98,31 @@ func testStatusStore(t *testing.T, _ request.CTX, ss store.Store) {
 	statuses, err := ss.Status().GetByIds([]string{status.UserId, "junk"})
 	require.NoError(t, err)
 	require.Len(t, statuses, 1, "should only have 1 status")
+	assert.Equal(t, status, statuses[0])
+
+	// Test updating an existing status
+	updatedStatus := &model.Status{
+		UserId:         status.UserId,
+		Status:         model.StatusDnd,
+		Manual:         false,
+		LastActivityAt: 1234,
+		DNDEndTime:     5678,
+		PrevStatus:     model.StatusOnline,
+		ActiveChannel:  "", // This field won't be stored, so set it to match what we'll get back
+	}
+	require.NoError(t, ss.Status().SaveOrUpdate(updatedStatus))
+
+	// Verify status was updated
+	retrievedStatus, err := ss.Status().Get(status.UserId)
+	require.NoError(t, err)
+	assert.Equal(t, updatedStatus, retrievedStatus)
 
 	err = ss.Status().ResetAll()
 	require.NoError(t, err)
 
 	statusParameter, err := ss.Status().Get(status.UserId)
 	require.NoError(t, err)
-	require.Equal(t, statusParameter.Status, model.StatusOffline, "should be offline")
+	require.Equal(t, model.StatusOffline, statusParameter.Status, "should be offline")
 
 	err = ss.Status().UpdateLastActivityAt(status.UserId, 10)
 	require.NoError(t, err)

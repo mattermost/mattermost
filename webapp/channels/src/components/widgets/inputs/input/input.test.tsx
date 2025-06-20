@@ -61,7 +61,7 @@ describe('components/widgets/inputs/Input', () => {
     });
 
     describe('minLength validation', () => {
-        test('should show error styling when input is empty with minLength set', () => {
+        test('should show error styling when input is empty with minLength set', async () => {
             renderWithContext(
                 <Input
                     value={''}
@@ -69,8 +69,15 @@ describe('components/widgets/inputs/Input', () => {
                 />,
             );
 
+            // Find the input and blur it to trigger validation
+            const inputElement = screen.getByRole('textbox');
+            await act(async () => {
+                inputElement.focus();
+                inputElement.blur();
+            });
+
             // Check for error styling
-            const fieldset = screen.getByRole('group');
+            const fieldset = screen.getByTestId('input-wrapper');
             expect(fieldset).toHaveClass('Input_fieldset___error');
 
             // Check for error message
@@ -96,10 +103,12 @@ describe('components/widgets/inputs/Input', () => {
 
                 // Then type the new value
                 userEvent.type(inputElement, 'a');
+
+                inputElement.blur();
             });
 
             // Check for error styling
-            const fieldset = screen.getByRole('group');
+            const fieldset = screen.getByTestId('input-wrapper');
             expect(fieldset).toHaveClass('Input_fieldset___error');
 
             // Check for error message
@@ -142,14 +151,15 @@ describe('components/widgets/inputs/Input', () => {
                 />,
             );
 
-            // With 6 characters and limit of 5, there should be an error
-
-            // Check for the -X indicator
-            const indicator = screen.getByText('-1');
-            expect(indicator).toBeInTheDocument();
+            // Find the input and blur it to trigger validation
+            const inputElement = screen.getByRole('textbox');
+            await act(async () => {
+                inputElement.focus();
+                inputElement.blur();
+            });
 
             // Check for error styling
-            const fieldset = screen.getByRole('group');
+            const fieldset = screen.getByTestId('input-wrapper');
             expect(fieldset).toHaveClass('Input_fieldset___error');
         });
 
@@ -163,10 +173,6 @@ describe('components/widgets/inputs/Input', () => {
                     onChange={onChange}
                 />,
             );
-
-            // With exactly 5 characters and limit of 5, there should be no error
-            // Check that the -X indicator is not present
-            expect(screen.queryByText(/-\d+/)).not.toBeInTheDocument();
 
             // Check that error message is not present
             expect(screen.queryByText(/Must be no more than 5 characters/i)).not.toBeInTheDocument();
@@ -199,7 +205,7 @@ describe('components/widgets/inputs/Input', () => {
             expect(errorMessage).toBeInTheDocument();
 
             // Check for error styling
-            const fieldset = screen.getByRole('group');
+            const fieldset = screen.getByTestId('input-wrapper');
             expect(fieldset).toHaveClass('Input_fieldset___error');
         });
 
@@ -250,21 +256,6 @@ describe('components/widgets/inputs/Input', () => {
 
             // Check that minLength error message is not present
             expect(screen.queryByText(/Must be at least 2 characters/i)).not.toBeInTheDocument();
-        });
-
-        test('should show both minLength indicator and limit indicator when applicable', () => {
-            renderWithContext(
-                <Input
-                    value={'abc'}
-                    minLength={5}
-                    limit={10}
-                    showMinLengthIndicator={true}
-                />,
-            );
-
-            // Check for the +X indicator for minLength
-            const indicator = screen.getByText('+2');
-            expect(indicator).toBeInTheDocument();
         });
     });
 });

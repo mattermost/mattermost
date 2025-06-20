@@ -1041,10 +1041,10 @@ func (s *TimerLayerChannelStore) CreateDirectChannel(ctx request.CTX, userID *mo
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.CreateInitialSidebarCategories(c, userID, opts)
+	result, err := s.ChannelStore.CreateInitialSidebarCategories(c, userID, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1937,10 +1937,10 @@ func (s *TimerLayerChannelStore) GetPublicChannelsForTeam(teamID string, offset 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+func (s *TimerLayerChannelStore) GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetSidebarCategories(userID, opts)
+	result, err := s.ChannelStore.GetSidebarCategories(userID, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9617,6 +9617,22 @@ func (s *TimerLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.SaveOrUpdate", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) error {
+	start := time.Now()
+
+	err := s.StatusStore.SaveOrUpdateMany(statuses)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.SaveOrUpdateMany", success, elapsed)
 	}
 	return err
 }

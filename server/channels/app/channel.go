@@ -3815,10 +3815,7 @@ func (a *App) setSidebarCategoriesForConvertedGroupMessage(c request.CTX, gmConv
 	// Now that we've deleted existing entries, we can set the channel in default "Channels" category
 	// for all GM members
 	for _, user := range channelUsers {
-		categories, appErr := a.GetSidebarCategories(c, user.Id, &store.SidebarCategorySearchOpts{
-			TeamID: gmConversionRequest.TeamID,
-			Type:   model.SidebarCategoryChannels,
-		})
+		categories, appErr := a.GetSidebarCategories(c, user.Id, gmConversionRequest.TeamID)
 
 		if appErr != nil {
 			c.Logger().Error("Failed to search sidebar categories for user for adding converted GM")
@@ -3968,7 +3965,7 @@ func (a *App) ChannelAccessControlled(c request.CTX, channelID string) (bool, *m
 		return false, nil
 	}
 
-	_, err := a.Srv().Store().AccessControlPolicy().Get(c, channelID)
+	channel, err := a.Srv().Store().Channel().Get(channelID, true)
 	var nfErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &nfErr) {
 		return false, model.NewAppError("ChannelIsAccessControlled", "app.channel.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -3976,7 +3973,7 @@ func (a *App) ChannelAccessControlled(c request.CTX, channelID string) (bool, *m
 		return false, nil
 	}
 
-	return true, nil
+	return channel.PolicyEnforced, nil
 }
 
 func (a *App) handleChannelCategoryName(channel *model.Channel) {
