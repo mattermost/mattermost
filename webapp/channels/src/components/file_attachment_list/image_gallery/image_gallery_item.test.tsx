@@ -4,11 +4,8 @@
 import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 import '@testing-library/jest-dom';
-import {IntlProvider} from 'react-intl';
 
 import {TestHelper} from 'utils/test_helper';
-import SingleImageView from 'components/single_image_view';
-import {GALLERY_CONFIG} from 'components/file_attachment_list/image_gallery/image_gallery';
 
 import ImageGalleryItem from './image_gallery_item';
 
@@ -26,7 +23,6 @@ jest.mock('components/file_attachment_list/image_gallery/image_gallery', () => (
         SMALL_IMAGE_THRESHOLD: 216,
     },
 }));
-
 
 const mockFileInfos = [
     TestHelper.getFileInfoMock({
@@ -82,4 +78,4 @@ describe('ImageGalleryItem', () => {
         fireEvent.keyDown(screen.getByRole('listitem'), {key: 'A'});
         expect(defaultProps.handleImageClick).not.toHaveBeenCalled();
     });
-}); 
+});

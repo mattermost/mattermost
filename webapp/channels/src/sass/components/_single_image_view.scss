@@ -84,15 +84,15 @@
             }
 
             &.image-container--small {
+                width: fit-content;
                 border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
                 border-radius: 4px;
                 background: rgba(var(--center-channel-color-rgb), 0.08);
-                width: fit-content;
 
                 .small-image__container {
+                    width: fit-content;
                     box-sizing: border-box;
                     padding: 8px;
-                    width: fit-content;
                 }
             }
 

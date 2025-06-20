@@ -127,7 +127,7 @@ const ImageGallery = (props: Props) => {
     const [containerWidth, setContainerWidth] = useState(0);
     const [ariaLiveMessage, setAriaLiveMessage] = useState('');
     const imageCountId = 'image-gallery-count';
-    
+
     // Track component mount status to prevent state updates after unmount
     const isMountedRef = useRef(true);
 

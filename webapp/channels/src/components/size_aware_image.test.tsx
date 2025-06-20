@@ -162,7 +162,7 @@ describe('components/SizeAwareImage', () => {
                 justifyContent: 'center',
                 maxWidth: '100%',
                 maxHeight: 350,
-            })
+            }),
         );
     });
 
@@ -180,7 +180,7 @@ describe('components/SizeAwareImage', () => {
         expect(wrapper.find('img').prop('style')).toEqual(
             expect.objectContaining({
                 objectFit: 'cover',
-            })
+            }),
         );
     });
 
@@ -265,8 +265,8 @@ describe('components/SizeAwareImage', () => {
         const instance = wrapper.instance() as SizeAwareImageComponent;
 
         // Test the isSmallImage method with custom threshold
-        expect(instance.isSmallImage(80, 200)).toBe(true);  // Width < 100
-        expect(instance.isSmallImage(200, 80)).toBe(true);  // Height < 100
+        expect(instance.isSmallImage(80, 200)).toBe(true); // Width < 100
+        expect(instance.isSmallImage(200, 80)).toBe(true); // Height < 100
         expect(instance.isSmallImage(120, 120)).toBe(false); // Both > 100
     });
 
@@ -289,7 +289,7 @@ describe('components/SizeAwareImage', () => {
             expect.objectContaining({
                 minWidth: 80,
                 minHeight: 80,
-            })
+            }),
         );
     });
 
@@ -350,7 +350,7 @@ describe('components/SizeAwareImage', () => {
                 justifyContent: 'center',
                 width: '100%',
                 height: '100%',
-            })
+            }),
         );
     });
 
@@ -371,7 +371,7 @@ describe('components/SizeAwareImage', () => {
                 width: '100%',
                 height: 'auto',
                 objectFit: 'cover',
-            })
+            }),
         );
     });
 });
