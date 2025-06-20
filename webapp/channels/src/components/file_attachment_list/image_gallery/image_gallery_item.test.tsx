@@ -12,7 +12,7 @@ import {GALLERY_CONFIG} from 'components/file_attachment_list/image_gallery/imag
 
 import ImageGalleryItem from './image_gallery_item';
 
-jest.mock('components/single_image_view', () => (props) => (
+jest.mock('components/single_image_view', () => (props: any) => (
     <div
         data-testid='singleImageView'
         onClick={props.handleImageClick}
