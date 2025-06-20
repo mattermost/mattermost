@@ -1,0 +1,90 @@
+.preview-modal-controller {
+    &.modal-dialog {
+        width: 640px;
+        height: 614px;
+    }
+    &__close-button {
+        position: absolute;
+        z-index: 10;
+        top: 18px;
+        right: 18px;
+        display: flex;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: 8px;
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.8);
+        }
+
+        &:active {
+            background: rgba(var(--button-bg-rgb), 0.08);
+            color: var(--button-bg);
+        }
+    }
+
+    &__footer {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    &__pagination {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__pagination-dots {
+        display: flex;
+        gap: 8px;
+    }
+
+    &__dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+        transition: background 0.2s ease;
+
+        &--active {
+            background: var(--button-bg);
+        }
+    }
+
+    &__page-counter {
+        color: rgb(var(--center-channel-color-rgb));
+        font-size: 12px;
+        font-weight: 400;
+    }
+
+    &__navigation-buttons {
+        display: flex;
+    }
+
+
+    .modal-content {
+        .modal-header {
+            min-height: 0;
+        }
+    }
+
+    .modal-body {
+        .GenericModal__body {
+            &.padding {
+                padding: 8px 48px !important;
+
+            }
+        }
+    }
+}
