@@ -70,6 +70,28 @@ func (c *SearchChannelStore) indexChannelWithTeamMembers(rctx request.CTX, chann
 	}
 }
 
+func (c *SearchChannelStore) bulkIndexChannels(rctx request.CTX, channels []*model.Channel, teamMemberIDs []string) {
+	// Util function to get userIDs, only for private channels
+	getUserIDsForChannel := func(channel *model.Channel) ([]string, error) {
+		if channel.Type != model.ChannelTypePrivate {
+			return []string{}, nil
+		}
+		return c.GetAllChannelMemberIdsByChannelId(channel.Id)
+	}
+
+	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
+		if !engine.IsIndexingEnabled() {
+			continue
+		}
+
+		runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
+			engineCopy.SyncBulkIndexChannels(rctx, channels, getUserIDsForChannel, teamMemberIDs)
+		})
+
+	}
+
+}
+
 func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannels int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	newChannel, err := c.ChannelStore.Save(rctx, channel, maxChannels, channelOptions...)
 	if err == nil {
