@@ -3815,10 +3815,7 @@ func (a *App) setSidebarCategoriesForConvertedGroupMessage(c request.CTX, gmConv
 	// Now that we've deleted existing entries, we can set the channel in default "Channels" category
 	// for all GM members
 	for _, user := range channelUsers {
-		categories, appErr := a.GetSidebarCategories(c, user.Id, &store.SidebarCategorySearchOpts{
-			TeamID: gmConversionRequest.TeamID,
-			Type:   model.SidebarCategoryChannels,
-		})
+		categories, appErr := a.GetSidebarCategories(c, user.Id, gmConversionRequest.TeamID)
 
 		if appErr != nil {
 			c.Logger().Error("Failed to search sidebar categories for user for adding converted GM")
