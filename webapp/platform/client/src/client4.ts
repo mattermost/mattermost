@@ -898,8 +898,16 @@ export default class Client4 {
         );
     };
 
-    getProfilesNotInChannel = (teamId: string, channelId: string, groupConstrained: boolean, page = 0, perPage = PER_PAGE_DEFAULT) => {
-        const queryStringObj: any = {in_team: teamId, not_in_channel: channelId, page, per_page: perPage};
+    getProfilesNotInChannel = (teamId: string, channelId: string, groupConstrained: boolean, page = 0, perPage = PER_PAGE_DEFAULT, cursorId = '') => {
+        const queryStringObj: any = {in_team: teamId, not_in_channel: channelId, per_page: perPage};
+
+        // If cursorId is provided, use cursor-based pagination
+        if (cursorId) {
+            queryStringObj.cursor_id = cursorId;
+        } else {
+            // Otherwise use traditional page-based pagination
+            queryStringObj.page = page;
+        }
         if (groupConstrained) {
             queryStringObj.group_constrained = true;
         }

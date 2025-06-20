@@ -4119,6 +4119,10 @@
     "translation": "Error fetching roles during validation."
   },
   {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
+  },
+  {
     "id": "api.user.invalidate_password_recovery_tokens.error",
     "translation": "Unable to get tokens by type when invalidating password recovery tokens"
   },
