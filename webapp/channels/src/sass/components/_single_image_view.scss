@@ -83,6 +83,23 @@
                 pointer-events: none;
             }
 
+            &.image-container--small {
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
+                border-radius: 4px;
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                width: fit-content;
+
+                .small-image__container {
+                    box-sizing: border-box;
+                    padding: 8px;
+                    width: fit-content;
+                }
+            }
+
+            &.hide-controls .file-preview__button:hover .image-preview-utility-buttons-container {
+                display: none;
+            }
+
             .image-loaded {
                 height: 100%;
 
@@ -120,14 +137,14 @@
 
                 img {
                     width: auto;
-                    height: auto;
                     max-width: 100%;
+                    height: auto;
                     object-fit: contain;
 
                     &.small-image--inside-container {
                         width: auto;
-                        height: auto;
                         max-width: 100%;
+                        height: auto;
                         max-height: 100%;
                         object-fit: contain;
                     }

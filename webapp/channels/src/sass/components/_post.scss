@@ -1575,18 +1575,6 @@
             }
         }
 
-        &--small-image {
-            top: 4px;
-            right: -24px;
-            width: fit-content;
-        }
-
-        // Gallery-specific overrides for small images
-        .image-gallery &--small-image,
-        .image-gallery &--small-image-no-copy-button {
-            z-index: 10;
-        }
-
         &:hover button.size-aware-image__copy_link,
         &:hover a.size-aware-image__download {
             color: rgba(var(--center-channel-color-rgb), 0.75);

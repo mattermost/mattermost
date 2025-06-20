@@ -100,7 +100,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         const viewPortWidth = window.innerWidth;
         const imageHeight = fileInfo?.height ?? 0;
         const imageWidth = fileInfo?.width ?? 0;
-        let dimensions = {
+        const dimensions = {
             width: imageWidth,
             height: imageHeight,
         };
@@ -251,7 +251,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
 
         const fileType = getFileType(fileInfo.extension);
         let styleIfSvgWithDimensions = {};
-        let imageContainerStyle = {};
+        let imageContainerStyle: React.CSSProperties = {};
         let svgClass = '';
         if (fileType === FileTypes.SVG) {
             svgClass = 'svg';
@@ -284,6 +284,15 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
 
         const dimensions = this.computeDimensions();
 
+        // For non-gallery images that are very tall, constrain the container width
+        // to prevent it from taking up the image's intrinsic width.
+        if (!isGallery && fileType !== FileTypes.SVG && fileInfo.height / fileInfo.width > 3) {
+            imageContainerStyle.width = dimensions.width;
+        }
+
+        const isSmallNonGallery = !isGallery && (fileInfo.width < SMALL_IMAGE_THRESHOLD || fileInfo.height < SMALL_IMAGE_THRESHOLD);
+        const shouldHideControls = fileInfo.width < PREVIEW_IMAGE_MIN_DIMENSION;
+
         return (
             <div
                 className={classNames('file-view--single', permalinkClass)}
@@ -293,32 +302,30 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 >
                     {fileHeader}
                     <div
-                        className={classNames('image-container', permalinkClass)}
+                        className={classNames('image-container', permalinkClass, {'image-container--small': isSmallNonGallery, 'hide-controls': shouldHideControls})}
                         style={imageContainerStyle}
                         data-expanded={this.props.isEmbedVisible}
                     >
                         {this.props.isEmbedVisible && (
                             <div
-                                className={classNames('image-loaded', fadeInClass, svgClass)}
+                                className={classNames('image-loaded', permalinkClass, fadeInClass, svgClass)}
                                 style={styleIfSvgWithDimensions}
                             >
-                                <div className={classNames(permalinkClass)}>
-                                    <SizeAwareImage
-                                        onClick={this.handleImageClick}
-                                        className={`${minPreviewClass} single-image-view__image`}
-                                        src={previewURL}
-                                        dimensions={dimensions}
-                                        fileInfo={fileInfo}
-                                        fileURL={fileURL}
-                                        handleSmallImageContainer={true}
-                                        smallImageThreshold={SMALL_IMAGE_THRESHOLD}
-                                        minContainerSize={PREVIEW_IMAGE_MIN_DIMENSION}
-                                        showLoader={true}
-                                        enablePublicLink={this.props.enablePublicLink}
-                                        getFilePublicLink={this.getFilePublicLink}
-                                        onImageLoaded={this.handleImageLoaded}
-                                    />
-                                </div>
+                                <SizeAwareImage
+                                    onClick={this.handleImageClick}
+                                    className={`${minPreviewClass} single-image-view__image`}
+                                    src={previewURL}
+                                    dimensions={dimensions}
+                                    fileInfo={fileInfo}
+                                    fileURL={fileURL}
+                                    handleSmallImageContainer={true}
+                                    smallImageThreshold={SMALL_IMAGE_THRESHOLD}
+                                    minContainerSize={PREVIEW_IMAGE_MIN_DIMENSION}
+                                    showLoader={true}
+                                    enablePublicLink={this.props.enablePublicLink}
+                                    getFilePublicLink={this.getFilePublicLink}
+                                    onImageLoaded={this.handleImageLoaded}
+                                />
                             </div>
                         )}
                     </div>

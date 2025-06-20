@@ -30,7 +30,6 @@
     --gallery-item-max-height: 216px;
     --gallery-item-min-width: 50px;
     --gallery-item-max-width: 500px;
-    
     margin: 5px 0;
     container-type: inline-size;
 
@@ -70,10 +69,20 @@
     }
 
     &__body {
+        // Define default custom properties for ImageGalleryItem
+        --item-position: relative;
+        --item-height: 100%;
+        --item-max-height: var(--gallery-item-max-height);
+        --item-padding-top: 0;
+        --item-grid-column: auto;
+        --item-child-view-position: relative;
+        --item-child-view-top: auto;
+        --item-child-view-left: auto;
+        --item-child-img-object-fit: cover;
+        --item-child-small-img-object-fit: contain;
+
         display: grid;
         overflow: hidden;
-        // Max height calculation: dynamic gallery height + 8px (gap) per row
-        // Allow for up to 10 rows of images with dynamic height
         max-height: 2240px;
         grid-column-gap: 8px;
         grid-row-gap: 8px;
@@ -85,204 +94,9 @@
             max-height: 0;
             opacity: 0;
         }
-
-        .image-container {
-            position: relative;
-            display: flex;
-            overflow: hidden;
-            width: 100%;
-            min-width: var(--gallery-item-min-width);
-            max-width: var(--gallery-item-max-width);
-            height: 100%;
-            max-height: var(--gallery-item-max-height);
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
-            border-radius: 4px;
-            margin: 0;
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-
-            img {
-                width: auto;
-                height: auto;
-                max-width: 100%;
-                max-height: 100%;
-                object-fit: contain;
-            }
-
-            .file-preview__button {
-                width: auto;
-            }
-
-            .image-loaded-container {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                width: 100%;
-                height: 100%;
-            }
-        }
     }
 
-    &__item {
-        position: relative;
-        display: flex;
-        width: 100%;
-        height: 100%;
-        max-height: var(--gallery-item-max-height);
-        border-radius: 4px;
-        margin: 0;
-        object-fit: cover;
-
-        // Special handling for small images - center them within the gallery height
-        &--small {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        // Override SingleImageView styles to fit our grid
-        .file-view--single {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-
-            .file__image {
-                width: 100%;
-                height: 100%;
-
-                .image-header {
-                    display: none;
-                }
-
-                .image-container {
-                    position: relative;
-                    display: flex;
-                    overflow: hidden;
-                    width: 100%;
-                    min-width: var(--gallery-item-min-width);
-                    max-width: var(--gallery-item-max-width);
-                    height: 100%;
-                    max-height: var(--gallery-item-max-height);
-                    align-items: center;
-                    justify-content: center;
-                    border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
-                    border-radius: 4px;
-                    margin: 0;
-                    background: rgba(var(--center-channel-color-rgb), 0.04);
-
-                    .file-preview__button {
-                        width: auto;
-                    }
-
-                    .image-loaded-container {
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        width: 100%;
-                        height: 100%;
-                    }
-
-                    // Loading state styling
-                    .image-loading__container {
-                        display: flex;
-                        width: 100%;
-                        height: 100%;
-                        align-items: center;
-                        justify-content: center;
-                        
-                        img[src] {
-                            width: 100%;
-                            height: 100%;
-                            filter: blur(8px);
-                            object-fit: cover;
-                            transform: scale(1.1);
-                            transition: filter 0.3s ease, transform 0.3s ease;
-                        }
-                        
-                        svg {
-                            width: 100%;
-                            height: 100%;
-                            object-fit: cover;
-                        }
-                    }
-
-                    .image-loaded {
-                        width: 100%;
-                        height: 100%;
-
-                        img {
-                            height: 100%;
-                            width: 100%;
-                            filter: none;
-                            object-fit: cover;
-                            transition: filter 0.3s ease, transform 0.15s ease-in-out;
-
-                            &.small-image--inside-container {
-                                object-fit: contain;
-                                width: auto;
-                                height: auto;
-                                max-width: 100%;
-                                max-height: 100%;
-                            }
-                        }
-                        
-                        .small-image__container {
-                            width: 100%;
-                            max-width: 100%;
-                            height: 100%;
-                            max-height: 100%;
-                            padding: 8px;
-                            border-radius: 4px;
-                            margin: 0;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            background: transparent;
-                        }
-                    }
-                }          
-            }
-        }
-
-        // Style utility buttons for small images in gallery
-        .image-preview-utility-buttons-container {
-            top: 4px;
-            right: 4px;
-
-
-            button.size-aware-image__copy_link,
-            a.size-aware-image__download {
-                display: inline-block;
-                width: 28px;
-                height: 28px;
-                padding: 2px;
-                border-radius: 4px;
-                color: rgba(var(--center-channel-color-rgb), 0.75);
-                text-align: center;
-
-                &:hover {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                    text-decoration: none;
-                }
-
-                svg {
-                    padding-top: 2px;
-                    fill: rgba(var(--center-channel-color-rgb), 0.75);
-                }
-            }
-        }
-
-        // Show utility buttons on hover or focus
-        &:hover .image-preview-utility-buttons-container,
-        &:focus-within .image-preview-utility-buttons-container,
-        &:focus .image-preview-utility-buttons-container {
-            display: inline-flex;
-        }
-    }
-
-    /* Container Query: large container breakpoint (400px <= width < 640px) */
+    /* Container Query: large container breakpoint (380px <= width < 640px) */
     @container (max-width: 639px) {
         &__body {
             grid-template-columns: repeat(auto-fit, 24px);
@@ -290,53 +104,20 @@
     }
 
     /* Container Query: small container breakpoint (width < 400px) */
-    @container (max-width: 380px) {
+    @container (max-width: 400px) {
         &__body {
             grid-auto-rows: unset;
             grid-template-columns: repeat(2, 1fr);
-        }
-        
-        &__item {
-            display: block;
-            min-width: 0;
-            max-width: none;
-            height: 0;
-            min-height: 0;     
-            max-height: none;
-            padding-top: 100%;
-            grid-column: span 1 !important;           
-        }
 
-        // Ensure all wrappers fill the grid square
-        &__item,
-        &__item > .file-view--single,
-        &__item .file__image,
-        &__item .image-container,
-        &__item .image-loaded-container,
-        &__item .image-loaded,
-        &__item .small-image__container {
-            width: 100%;
-            height: 100%;
-        }
-
-        &__item .file-view--single {
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-
-        // The image itself
-        &__item .file-view--single img {
-            width: 100%;
-            height: 100%;
-        }
-        // Force object-fit: cover for small images in mobile grid
-        &__item .file-view--single .file__image .image-container .image-loaded img.small-image--inside-container {
-            object-fit: cover;
-            width: auto;
-            max-width: 100%;
-            height: auto;
-            max-height: 100%;
+            // Override custom properties for mobile view
+            --item-height: 0;
+            --item-max-height: none;
+            --item-padding-top: 100%;
+            --item-grid-column: span 1;
+            --item-child-view-position: absolute;
+            --item-child-view-top: 0;
+            --item-child-view-left: 0;
+            --item-child-small-img-object-fit: cover;
         }
     }
 }

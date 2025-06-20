@@ -232,6 +232,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             onImageLoadFail,
             showLoader,
             onClick,
+            minContainerSize,
             ...restProps
         } = allOtherProps;
         /* eslint-enable @typescript-eslint/no-unused-vars */

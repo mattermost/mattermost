@@ -8,14 +8,14 @@ import {useIntl} from 'react-intl';
 import {DownloadOutlineIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 
-import SingleImageView from '../../../components/single_image_view';
+import ImageGalleryItem from './image_gallery_item';
 
 import type {PropsFromRedux} from './index';
 
 import './image_gallery.scss';
 
 // Gallery configuration constants
-const GALLERY_CONFIG = {
+export const GALLERY_CONFIG = {
     SMALL_IMAGE_THRESHOLD: 216,
     BREAKPOINTS: {
         MOBILE: 400,
@@ -72,10 +72,12 @@ const getColumnSpan = (fileInfo: FileInfo, isSmall: boolean, containerWidth: num
     if (aspectRatio < 1 / GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD) {
         return GALLERY_CONFIG.GRID_SPANS.VERTICAL;
     }
+
     // For horizontal images: ratio > threshold
     if (aspectRatio > GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD) {
         return GALLERY_CONFIG.GRID_SPANS.HORIZONTAL;
     }
+
     // For square-ish images
     return GALLERY_CONFIG.GRID_SPANS.SQUARE;
 };
@@ -249,43 +251,17 @@ const ImageGallery = (props: Props) => {
                     const itemStyle = containerWidth < GALLERY_CONFIG.BREAKPOINTS.MOBILE ? undefined : {gridColumn: `span ${getColumnSpan(fileInfo, isSmall, containerWidth)}`};
 
                     return (
-                        <div
+                        <ImageGalleryItem
                             key={fileInfo.id}
-                            className={classNames('image-gallery__item', {
-                                'image-gallery__item--small': isSmall,
-                            })}
-                            style={itemStyle}
-                            role='listitem'
-                            tabIndex={0}
-                            aria-label={`Image ${idx + 1} of ${fileInfos.length}`}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    const startIndex = allFilesForPost?.findIndex((f) => f.id === fileInfo.id) ?? -1;
-                                    if (startIndex >= 0 && allFilesForPost) {
-                                        handleImageClick?.(startIndex, allFilesForPost);
-                                    }
-                                }
-                            }}
-                        >
-                            <SingleImageView
-                                fileInfo={fileInfo}
-                                fileInfos={allFilesForPost}
-                                postId={postId}
-                                isEmbedVisible={true}
-                                compactDisplay={false}
-                                isInPermalink={false}
-                                disableActions={false}
-                                smallImageThreshold={GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD}
-                                isGallery={true}
-                                handleImageClick={() => {
-                                    const startIndex = allFilesForPost?.findIndex((f) => f.id === fileInfo.id) ?? -1;
-                                    if (startIndex >= 0 && allFilesForPost) {
-                                        handleImageClick?.(startIndex, allFilesForPost);
-                                    }
-                                }}
-                            />
-                        </div>
+                            fileInfo={fileInfo}
+                            allFilesForPost={allFilesForPost}
+                            postId={postId}
+                            handleImageClick={handleImageClick}
+                            isSmall={isSmall}
+                            itemStyle={itemStyle}
+                            index={idx}
+                            totalImages={fileInfos.length}
+                        />
                     );
                 })}
             </div>
