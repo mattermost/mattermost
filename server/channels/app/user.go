@@ -2428,18 +2428,18 @@ func (a *App) UserCanDMOtherUser(c request.CTX, userID, otherUserId string) (boo
 			return false, nil
 		}
 
-		scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Checking DM permissions for user %s to DM other user %s (remote_id: %v)", userID, otherUserId, otherUser.RemoteId))
+		scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Checking DM permissions for user %s to DM other user %s (remote_id: %s)", userID, otherUserId, otherUser.GetRemoteID()))
 
 		// Check if the other user is from a remote cluster
 		if otherUser.IsRemote() {
-			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Other user %s is remote with remote_id %s", otherUserId, *otherUser.RemoteId))
+			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Other user %s is remote with remote_id %s", otherUserId, otherUser.GetRemoteID()))
 
 			// For DMs, we require a direct connection to the remote cluster
 			isDirectlyConnected := scs.IsRemoteClusterDirectlyConnected(*otherUser.RemoteId)
-			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Remote cluster %s is directly connected: %v", *otherUser.RemoteId, isDirectlyConnected))
+			scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: Remote cluster %s is directly connected: %v", otherUser.GetRemoteID(), isDirectlyConnected))
 
 			if !isDirectlyConnected {
-				scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: BLOCKED - No direct connection to remote cluster %s for DM", *otherUser.RemoteId))
+				scs.PostDebugToTownSquare(c, fmt.Sprintf("UserCanDMOtherUser: BLOCKED - No direct connection to remote cluster %s for DM", otherUser.GetRemoteID()))
 				return false, model.NewAppError(
 					"UserCanDMOtherUser",
 					"api.user.remote_dm_not_allowed.app_error",
