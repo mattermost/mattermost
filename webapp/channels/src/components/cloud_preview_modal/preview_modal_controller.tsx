@@ -64,7 +64,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
             <div className='preview-modal-controller__navigation-buttons'>
                 {isFirstSlide && (
                     <button
-                        className='preview-modal-controller__skip-button'
+                        className='btn btn-quaternary'
                         onClick={handleSkip}
                     >
                         {intl.formatMessage({
