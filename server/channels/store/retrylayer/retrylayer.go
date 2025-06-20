@@ -10824,11 +10824,11 @@ func (s *RetryLayerSessionStore) Save(c request.CTX, session *model.Session) (*m
 
 }
 
-func (s *RetryLayerSessionStore) UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error) {
+func (s *RetryLayerSessionStore) UpdateDeviceId(id string, deviceID string, voipDeviceID string, expiresAt int64) (string, error) {
 
 	tries := 0
 	for {
-		result, err := s.SessionStore.UpdateDeviceId(id, deviceID, expiresAt)
+		result, err := s.SessionStore.UpdateDeviceId(id, deviceID, voipDeviceID, expiresAt)
 		if err == nil {
 			return result, nil
 		}
