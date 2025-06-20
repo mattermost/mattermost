@@ -76,7 +76,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
 
                 {!isFirstSlide && (
                     <button
-                        className='preview-modal-controller__nav-button preview-modal-controller__nav-button--tertiary'
+                        className='btn btn-tertiary'
                         onClick={handlePrevious}
                     >
                         <ChevronLeftIcon size={18}/>
