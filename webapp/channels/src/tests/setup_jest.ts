@@ -68,9 +68,7 @@ function isDependencyWarning(params: string[]) {
         paramsHasComponent('Overlay') ||
         paramsHasComponent('Position') ||
         paramsHasComponent('Dropdown') ||
-
-        // React-Select
-        paramsHasComponent('Select')
+        paramsHasComponent('Tabs')
     );
 }
 
