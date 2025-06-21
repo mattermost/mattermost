@@ -33,7 +33,7 @@ func TestGetPostsUsage(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		for i := 0; i < 14; i++ {
+		for range 14 {
 			th.CreatePost()
 		}
 

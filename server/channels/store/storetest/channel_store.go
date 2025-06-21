@@ -4821,7 +4821,7 @@ func testChannelStoreGetMembersForUserWithCursorPagination(t *testing.T, rctx re
 	userID := NewTestID()
 
 	var channelIDs []string
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		ch := &model.Channel{
 			TeamId:      t1.Id,
 			DisplayName: "Channel1",
@@ -6465,7 +6465,7 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	}
 
 	t.Run("Limit", func(t *testing.T) {
-		for i := 0; i < model.ChannelSearchDefaultLimit+10; i++ {
+		for i := range model.ChannelSearchDefaultLimit + 10 {
 			_, err = ss.Channel().Save(rctx, &model.Channel{
 				TeamId:      teamID,
 				DisplayName: "Channel " + strconv.Itoa(i),

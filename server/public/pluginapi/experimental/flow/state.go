@@ -11,17 +11,6 @@ var errStateNotFound = errors.New("flow state not found")
 // State is the "app"'s state
 type State map[string]any
 
-func (s State) MergeWith(update State) State {
-	n := State{}
-	for k, v := range s {
-		n[k] = v
-	}
-	for k, v := range update {
-		n[k] = v
-	}
-	return n
-}
-
 // GetString return the value to a given key as a string.
 // If the key is not found or isn't a string, an empty string is returned.
 func (s State) GetString(key string) string {

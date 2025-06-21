@@ -6,6 +6,7 @@ package flow
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -141,7 +142,7 @@ func (f *Flow) handle(
 	if err != nil || len(fieldErrors) > 0 {
 		return nil, fieldErrors, err
 	}
-	state.AppState = state.AppState.MergeWith(updated)
+	maps.Copy(state.AppState, updated)
 	state.Done = true
 	err = f.storeState(state)
 	if err != nil {

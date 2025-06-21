@@ -169,7 +169,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	// There's no guarantee this will happen. But that's our best bet to trigger this race.
 	wc1.InvalidateCache()
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		// If broadcast buffer has not emptied,
 		// we sleep for a second and check again
 		if len(hub.broadcast) > 0 {
@@ -688,9 +688,8 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	require.NoError(b, connIndex.Add(wc2))
 	require.NoError(b, connIndex.Add(wc3))
 
-	b.ResetTimer()
 	b.Run("2 users", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			globalIter = connIndex.ForUser(wc2.UserId)
 		}
 	})
@@ -704,9 +703,8 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc4.SetSession(&model.Session{})
 
 	require.NoError(b, connIndex.Add(wc4))
-	b.ResetTimer()
 	b.Run("3 users", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			globalIter = connIndex.ForUser(wc2.UserId)
 		}
 	})
@@ -720,9 +718,8 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc5.SetSession(&model.Session{})
 
 	require.NoError(b, connIndex.Add(wc5))
-	b.ResetTimer()
 	b.Run("4 users", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			globalIter = connIndex.ForUser(wc2.UserId)
 		}
 	})
@@ -784,8 +781,7 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 	require.NoError(b, connIndex.Add(wc2))
 	require.NoError(b, connIndex.Add(wc3))
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		globalIter = connIndex.ForChannel(th.BasicChannel.Id)
 	}
 }
@@ -810,14 +806,14 @@ func BenchmarkHubConnIndex(b *testing.B) {
 		Suite:    th.Suite,
 		UserId:   model.NewId(),
 	}
-	b.ResetTimer()
 	b.Run("Add", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			err := connIndex.Add(wc1)
 			require.NoError(b, err)
 			err = connIndex.Add(wc2)
 			require.NoError(b, err)
 
+			// Cleanup
 			b.StopTimer()
 			connIndex.Remove(wc1)
 			connIndex.Remove(wc2)
@@ -826,15 +822,15 @@ func BenchmarkHubConnIndex(b *testing.B) {
 	})
 
 	b.Run("Remove", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
+			// Setup
 			b.StopTimer()
 			err := connIndex.Add(wc1)
 			require.NoError(b, err)
 			err = connIndex.Add(wc2)
 			require.NoError(b, err)
-			b.Error(err)
-			b.StartTimer()
 
+			b.StartTimer()
 			connIndex.Remove(wc1)
 			connIndex.Remove(wc2)
 		}
@@ -888,8 +884,7 @@ func BenchmarkGetHubForUserId(b *testing.B) {
 	err := th.Service.Start(nil)
 	require.NoError(b, err)
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		hubSink = th.Service.GetHubForUserId(th.BasicUser.Id)
 	}
 }

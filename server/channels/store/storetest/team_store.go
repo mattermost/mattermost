@@ -2886,7 +2886,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 
 	userIds := make([]string, maxUsersPerTeam)
 
-	for i := 0; i < maxUsersPerTeam; i++ {
+	for i := range maxUsersPerTeam {
 		user, err := ss.User().Save(rctx, &model.User{
 			Username: "a" + NewTestID(),
 			Email:    MakeEmail(),

@@ -5,6 +5,7 @@ package remotecluster
 
 import (
 	"context"
+	"slices"
 	"sync"
 	"testing"
 
@@ -84,11 +85,9 @@ func (ma *mockApp) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
 	ma.mux.Lock()
 	defer ma.mux.Unlock()
 
-	for _, id := range ma.offlinePluginIDs {
-		if rc.PluginID == id {
-			ma.totalPingErrors++
-			return false
-		}
+	if slices.Contains(ma.offlinePluginIDs, rc.PluginID) {
+		ma.totalPingErrors++
+		return false
 	}
 
 	ma.totalPingCount++

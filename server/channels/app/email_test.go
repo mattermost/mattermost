@@ -29,7 +29,7 @@ func TestSendInviteEmailRateLimits(t *testing.T) {
 
 	memberInvite := &model.MemberInvite{}
 	memberInvite.Emails = make([]string, 22)
-	for i := 0; i < 22; i++ {
+	for i := range 22 {
 		memberInvite.Emails[i] = "test-" + strconv.Itoa(i) + "@common.com"
 	}
 	err = th.App.InviteNewUsersToTeam(th.Context, memberInvite.Emails, th.BasicTeam.Id, th.BasicUser.Id)

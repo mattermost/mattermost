@@ -377,7 +377,7 @@ func TestGetEmojisByNames(t *testing.T) {
 
 	t.Run("should return an error when too many emojis are requested", func(t *testing.T) {
 		names := make([]string, GetEmojisByNamesMax+1)
-		for i := 0; i < len(names); i++ {
+		for i := range names {
 			names[i] = model.NewId()
 		}
 

@@ -18,7 +18,7 @@ func getKeyHash(key string) string {
 // for getting items from cache.
 func allocateCacheTargets[T any](l int) []any {
 	toPass := make([]any, 0, l)
-	for i := 0; i < l; i++ {
+	for range l {
 		toPass = append(toPass, new(T))
 	}
 	return toPass

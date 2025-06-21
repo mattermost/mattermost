@@ -676,7 +676,7 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 				queryTerms = terms + excludeClause
 			} else {
 				splitTerms := []string{}
-				for _, t := range strings.Fields(terms) {
+				for t := range strings.FieldsSeq(terms) {
 					splitTerms = append(splitTerms, "+"+t)
 				}
 				queryTerms = strings.Join(splitTerms, " ") + excludeClause

@@ -1382,7 +1382,7 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("remove manually added tokens", func(t *testing.T) {
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			token := model.NewToken(
 				TokenTypePasswordRecovery,
 				model.MapToJSON(map[string]string{"UserId": th.BasicUser.Id, "email": th.BasicUser.Email}),

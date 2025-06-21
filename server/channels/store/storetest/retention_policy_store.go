@@ -333,7 +333,7 @@ func testRetentionPolicyStoreGet(t *testing.T, rctx request.CTX, ss store.Store,
 
 	// create multiple policies
 	policiesWithCounts := make([]*model.RetentionPolicyWithTeamAndChannelCounts, 0)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		teamIDs, channelIDs := createTeamsAndChannelsForRetentionPolicy(t, rctx, ss)
 		defer deleteTeamsAndChannels(rctx, ss, teamIDs, channelIDs)
 		policyWithIds := createRetentionPolicyWithTeamAndChannelIds(
@@ -361,7 +361,7 @@ func testRetentionPolicyStoreGet(t *testing.T, rctx request.CTX, ss store.Store,
 		}
 	})
 	t.Run("get all with same display name", func(t *testing.T) {
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			teamIDs, channelIDs := createTeamsAndChannelsForRetentionPolicy(t, rctx, ss)
 			defer deleteTeamsAndChannels(rctx, ss, teamIDs, channelIDs)
 			proposal := createRetentionPolicyWithTeamAndChannelIds(
@@ -390,7 +390,7 @@ func testRetentionPolicyStoreGetCount(t *testing.T, rctx request.CTX, ss store.S
 		require.Equal(t, int64(0), count)
 	})
 	t.Run("some policies", func(t *testing.T) {
-		for i := 0; i < 2; i++ {
+		for i := range 2 {
 			saveRetentionPolicyWithTeamAndChannelIds(t, ss, "Policy "+strconv.Itoa(i), nil, nil)
 		}
 		count, err := ss.RetentionPolicy().GetCount()

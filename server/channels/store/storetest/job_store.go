@@ -62,7 +62,7 @@ func testJobSaveOnce(t *testing.T, rctx request.CTX, ss store.Store) {
 	var wg sync.WaitGroup
 
 	ids := make([]string, 2)
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
@@ -645,7 +645,7 @@ func testJobDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 func testJobCleanup(t *testing.T, rctx request.CTX, ss store.Store) {
 	now := model.GetMillis()
 	ids := make([]string, 0, 10)
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		job, err := ss.Job().Save(&model.Job{
 			Id:       model.NewId(),
 			CreateAt: now - int64(i),

@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -231,7 +232,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Include different user types to test filtering
 		numRegularUsers := (batchSize * 2) + 5 // Back to original
 		regularUserIDs := make([]string, numRegularUsers)
-		for i := 0; i < numRegularUsers; i++ {
+		for i := range numRegularUsers {
 			user := th.CreateUser()
 			regularUserIDs[i] = user.Id
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
@@ -640,12 +641,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for successful sync with more robust checking
 		require.Eventually(t, func() bool {
-			for _, syncedUserId := range successfulSyncs {
-				if syncedUserId == testUser.Id {
-					return true
-				}
-			}
-			return false
+			return slices.Contains(successfulSyncs, testUser.Id)
 		}, 15*time.Second, 100*time.Millisecond, "Should have successful sync after recovery")
 
 		// Verify recovery
@@ -753,7 +749,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Phase 1: Add initial batch of users
 		initialUsers := make([]*model.User, 10)
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			initialUsers[i] = th.CreateUser()
 			_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, initialUsers[i].Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
@@ -791,14 +787,14 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Phase 2: Mixed operations - remove some, add new ones
 		// Remove first 3 users
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			appErr := th.App.RemoveUserFromChannel(th.Context, initialUsers[i].Id, th.SystemAdminUser.Id, channel)
 			require.Nil(t, appErr)
 		}
 
 		// Add 5 new users
 		newUsers := make([]*model.User, 5)
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			newUsers[i] = th.CreateUser()
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, newUsers[i].Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
@@ -858,7 +854,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		syncHandlers := make([]*SelfReferentialSyncHandler, 3)
 
 		// Create 3 remote clusters and their servers
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			clusterName := fmt.Sprintf("cluster-%d", i+1)
 			var count int32
 			syncMessagesPerCluster[clusterName] = &count
@@ -930,7 +926,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.NoError(t, shareErr)
 
 		// Create remote clusters
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			clusters[i] = &model.RemoteCluster{
 				RemoteId:    model.NewId(),
 				Name:        fmt.Sprintf("cluster-%d", i+1),
@@ -960,7 +956,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Add users to channel - they should sync to all remote clusters
 		users := make([]*model.User, 5)
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			users[i] = th.CreateUser()
 			_, _, addErr := th.App.AddUserToTeam(th.Context, team.Id, users[i].Id, th.BasicUser.Id)
 			require.Nil(t, addErr)
@@ -1156,7 +1152,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		})
 
 		// Add users to the channel after disabling the feature flag
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			user := th.CreateUser()
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
@@ -1258,7 +1254,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 
 		// Add some users to sync
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			user := th.CreateUser()
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
@@ -1377,7 +1373,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Add users to sync - use more than batch size to test batch sync
 		// Default batch size is 20, so use 25 users to ensure batch processing
-		for i := 0; i < 25; i++ {
+		for range 25 {
 			user := th.CreateUser()
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
@@ -1409,7 +1405,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}, 10*time.Second, 200*time.Millisecond, "Cursor should be set after first sync")
 
 		// Add more users to ensure we still have > 20 total for batch sync
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			user := th.CreateUser()
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 			require.Nil(t, appErr)

@@ -301,7 +301,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 			// Set up the workers and channel for this type.
 			lastLineType = line.Type
 			linesChan = make(chan imports.LineImportWorkerData, workers)
-			for i := 0; i < workers; i++ {
+			for range workers {
 				wg.Add(1)
 				go a.bulkImportWorker(c, dryRun, extractContent, &wg, linesChan, errorsChan)
 			}
@@ -401,7 +401,7 @@ func (a *App) ListImports() ([]string, *model.AppError) {
 	}
 
 	results := make([]string, 0, len(imports))
-	for i := 0; i < len(imports); i++ {
+	for i := range imports {
 		filename := filepath.Base(imports[i])
 		if !strings.HasSuffix(filename, model.IncompleteUploadSuffix) {
 			results = append(results, filename)

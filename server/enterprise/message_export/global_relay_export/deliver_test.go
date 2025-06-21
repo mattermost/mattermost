@@ -115,7 +115,7 @@ func TestDeliver(t *testing.T) {
 		emptyZipFile, err := os.CreateTemp("", "export")
 		require.NoError(t, err)
 		zipFile := zip.NewWriter(emptyZipFile)
-		for x := 0; x < 50; x++ {
+		for x := range 50 {
 			var file io.Writer
 			file, err = zipFile.Create(fmt.Sprintf("test-%d", x))
 			require.NoError(t, err)

@@ -1479,7 +1479,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// require license feature to assign "new system roles"
-	for _, roleName := range strings.Fields(newRoles) {
+	for roleName := range strings.FieldsSeq(newRoles) {
 		for _, id := range model.NewSystemRoleIDs {
 			if roleName == id {
 				if license := c.App.Channels().License(); license == nil || !*license.Features.CustomPermissionsSchemes {

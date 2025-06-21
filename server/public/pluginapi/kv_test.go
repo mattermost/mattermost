@@ -630,7 +630,7 @@ func TestListKeys(t *testing.T) {
 
 func getKeys(count int) []string {
 	ret := make([]string, count)
-	for i := 0; i < count; i++ {
+	for i := range count {
 		ret[i] = "key" + strconv.Itoa(i)
 	}
 	return ret

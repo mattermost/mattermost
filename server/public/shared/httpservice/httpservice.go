@@ -6,6 +6,7 @@ package httpservice
 import (
 	"net"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -80,12 +81,7 @@ func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) *MattermostTransport {
 		if h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
 			return false
 		}
-		for _, allowed := range strings.FieldsFunc(*h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections, splitFields) {
-			if host == allowed {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(strings.FieldsFunc(*h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections, splitFields), host)
 	}
 
 	allowIP := func(ip net.IP) bool {
