@@ -9,6 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     getMyGroupMentionKeysForChannel,
@@ -58,6 +59,7 @@ export function makeGetMentionKeysForPost(): (
 
 function makeMapStateToProps() {
     const getMentionKeysForPost = makeGetMentionKeysForPost();
+    const getFilesForPost = makeGetFilesForPost();
 
     return (state: GlobalState, ownProps: OwnProps) => {
         const channel = getChannel(state, ownProps.channelId);
@@ -83,6 +85,7 @@ function makeMapStateToProps() {
             isEnterpriseOrCloudOrSKUStarterFree: isEnterpriseOrCloudOrSKUStarterFree(license, subscriptionProduct, isEnterpriseReady),
             isEnterpriseReady,
             renderEmoticonsAsEmoji: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.RENDER_EMOTICONS_AS_EMOJI, Preferences.RENDER_EMOTICONS_AS_EMOJI_DEFAULT === 'true'),
+            fileInfos: ownProps.post?.id ? getFilesForPost(state, ownProps.post.id) : undefined,
         };
     };
 }

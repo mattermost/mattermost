@@ -234,6 +234,9 @@ export const getFileType = (extin: string): typeof FileTypes[keyof typeof FileTy
 
         if (lastPathPart && lastPathPart.includes('.')) {
             const urlExtension = lastPathPart.split('.').pop()?.toLowerCase();
+            if (urlExtension === 'gif') {
+                return FileTypes.GIF;
+            }
             if (urlExtension && Constants.IMAGE_TYPES.indexOf(urlExtension) > -1) {
                 return FileTypes.IMAGE;
             }
@@ -242,6 +245,9 @@ export const getFileType = (extin: string): typeof FileTypes[keyof typeof FileTy
         // Not a valid URL, just check if the string itself has an extension
         if (extin.includes('.')) {
             const extension = extin.split('.').pop()?.toLowerCase();
+            if (extension === 'gif') {
+                return FileTypes.GIF;
+            }
             if (extension && Constants.IMAGE_TYPES.indexOf(extension) > -1) {
                 return FileTypes.IMAGE;
             }
@@ -253,6 +259,10 @@ export const getFileType = (extin: string): typeof FileTypes[keyof typeof FileTy
 
     if (Constants.TEXT_TYPES.indexOf(ext) > -1) {
         return FileTypes.TEXT;
+    }
+
+    if (ext === 'gif') {
+        return FileTypes.GIF;
     }
 
     if (Constants.IMAGE_TYPES.indexOf(ext) > -1) {
