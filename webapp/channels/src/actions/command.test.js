@@ -32,7 +32,6 @@ const initialState = {
         },
         general: {
             config: {
-                ExperimentalViewArchivedChannels: 'false',
             },
         },
         posts: {

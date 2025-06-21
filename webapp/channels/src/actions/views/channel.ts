@@ -535,15 +535,11 @@ export function deleteChannel(channelId: string): ActionFuncAsync<boolean> {
             return {data: false};
         }
 
-        const canViewArchivedChannels = getConfig(state).ExperimentalViewArchivedChannels === 'true';
         const currentTeamDetails = getCurrentTeam(state);
         const penultimateViewedChannelName = getPenultimateViewedChannelName(state) ||
             getRedirectChannelNameForTeam(state, getCurrentTeamId(state));
 
-        // Handle redirection before deletion if needed
-        if (!canViewArchivedChannels && penultimateViewedChannelName && currentTeamDetails) {
-            getHistory().push('/' + currentTeamDetails.name + '/channels/' + penultimateViewedChannelName);
-        }
+        // No redirection needed as users can always view archived channels
 
         // Call the delete channel action
         const res = await dispatch(deleteChannelRedux(channelId));
