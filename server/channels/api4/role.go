@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 const GetRolesByNamesMax = 100
@@ -140,8 +139,8 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchRole", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "role_patch", &patch)
+	auditRec := c.MakeAuditRecord("patchRole", model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "role_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
 	oldRole, appErr := c.App.GetRole(c.Params.RoleId)

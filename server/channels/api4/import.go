@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitImport() {
@@ -36,7 +35,7 @@ func listImports(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func deleteImport(c *Context, w http.ResponseWriter, r *http.Request) {
 	importName := c.Params.ImportName
-	auditRec := c.MakeAuditRecord("deleteImport", audit.Fail)
+	auditRec := c.MakeAuditRecord("deleteImport", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("import_name", importName)
 

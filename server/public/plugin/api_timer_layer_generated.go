@@ -12,6 +12,7 @@ import (
 	timePkg "time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type apiTimerLayer struct {
@@ -1643,4 +1644,16 @@ func (api *apiTimerLayer) DeletePropertyValuesForField(groupID, fieldID string) 
 	_returnsA := api.apiImpl.DeletePropertyValuesForField(groupID, fieldID)
 	api.recordTime(startTime, "DeletePropertyValuesForField", _returnsA == nil)
 	return _returnsA
+}
+
+func (api *apiTimerLayer) LogAuditRec(rec *model.AuditRecord) {
+	startTime := timePkg.Now()
+	api.apiImpl.LogAuditRec(rec)
+	api.recordTime(startTime, "LogAuditRec", true)
+}
+
+func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level) {
+	startTime := timePkg.Now()
+	api.apiImpl.LogAuditRecWithLevel(rec, level)
+	api.recordTime(startTime, "LogAuditRecWithLevel", true)
 }

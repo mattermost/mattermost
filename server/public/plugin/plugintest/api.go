@@ -8,6 +8,8 @@ import (
 	io "io"
 	http "net/http"
 
+	logr "github.com/mattermost/logr/v2"
+
 	mock "github.com/stretchr/testify/mock"
 
 	model "github.com/mattermost/mattermost/server/public/model"
@@ -4310,6 +4312,16 @@ func (_m *API) LoadPluginConfiguration(dest interface{}) error {
 	}
 
 	return r0
+}
+
+// LogAuditRec provides a mock function with given fields: rec
+func (_m *API) LogAuditRec(rec *model.AuditRecord) {
+	_m.Called(rec)
+}
+
+// LogAuditRecWithLevel provides a mock function with given fields: rec, level
+func (_m *API) LogAuditRecWithLevel(rec *model.AuditRecord, level logr.Level) {
+	_m.Called(rec, level)
 }
 
 // LogDebug provides a mock function with given fields: msg, keyValuePairs

@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
@@ -56,7 +55,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("getConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord("getConfig", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	cfg, err := config.Merge(&model.Config{}, c.App.GetSanitizedConfig(), &utils.MergeConfig{
@@ -99,7 +98,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("configReload", audit.Fail)
+	auditRec := c.MakeAuditRecord("configReload", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionReloadConfig) {
@@ -126,9 +125,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateConfig", audit.Fail)
-
-	// audit.AddEventParameter(auditRec, "config", cfg)  // TODO We can do this but do we want to?
+	auditRec := c.MakeAuditRecord("updateConfig", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	cfg.SetDefaults()
@@ -296,7 +293,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord("patchConfig", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {
