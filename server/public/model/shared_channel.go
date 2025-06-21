@@ -15,6 +15,7 @@ const (
 	UserPropsKeyRemoteUsername   = "RemoteUsername"
 	UserPropsKeyRemoteEmail      = "RemoteEmail"
 	UserPropsKeyOriginalRemoteId = "OriginalRemoteId"
+	UserOriginalRemoteIdUnknown  = "UNKNOWN"
 )
 
 var (

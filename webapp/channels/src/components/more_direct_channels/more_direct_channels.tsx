@@ -69,7 +69,7 @@ type State = {
     search: boolean;
     saving: boolean;
     loadingUsers: boolean;
-    directMessagePermissionsCache: Record<string, boolean>;
+    directMessageCapabilityCache: Record<string, boolean>;
 }
 
 export default class MoreDirectChannels extends React.PureComponent<Props, State> {
@@ -102,7 +102,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             search: false,
             saving: false,
             loadingUsers: true,
-            directMessagePermissionsCache: {},
+            directMessageCapabilityCache: {},
         };
     }
 
@@ -115,11 +115,11 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
 
     checkDMCapabilities = async (users: UserProfile[]) => {
         const {currentUserId} = this.props;
-        const {directMessagePermissionsCache} = this.state;
+        const {directMessageCapabilityCache} = this.state;
         const usersToCheck = users.filter((user) =>
             user.id !== currentUserId &&
             user.remote_id &&
-            !(user.id in directMessagePermissionsCache),
+            !(user.id in directMessageCapabilityCache),
         );
 
         if (usersToCheck.length === 0) {
@@ -136,12 +136,12 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         });
 
         const results = await Promise.all(promises);
-        const newCache = {...directMessagePermissionsCache};
+        const newCache = {...directMessageCapabilityCache};
         results.forEach(({userId, canDM}) => {
             newCache[userId] = canDM;
         });
 
-        this.setState({directMessagePermissionsCache: newCache});
+        this.setState({directMessageCapabilityCache: newCache});
     };
 
     updateFromProps(prevProps: Props) {
@@ -293,9 +293,9 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         this.setState({values});
     };
 
-    getFilteredUsers = (): UserProfile[] => {
+    getDirectMessageableUsers = (): UserProfile[] => {
         const {users, currentUserId} = this.props;
-        const {directMessagePermissionsCache} = this.state;
+        const {directMessageCapabilityCache} = this.state;
 
         return users.filter((user) => {
             if (user.id === currentUserId) {
@@ -305,12 +305,12 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             // For remote users, check if they can be DMed
             if (user.remote_id) {
                 // If we haven't checked this user yet, hide them until we have the result
-                if (!(user.id in directMessagePermissionsCache)) {
+                if (!(user.id in directMessageCapabilityCache)) {
                     return false;
                 }
 
                 // Only show if they can be DMed
-                return directMessagePermissionsCache[user.id];
+                return directMessageCapabilityCache[user.id];
             }
 
             // Show local users
@@ -319,7 +319,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
     };
 
     render() {
-        const filteredUsers = this.getFilteredUsers();
+        const filteredUsers = this.getDirectMessageableUsers();
         const body = (
             <List
                 addValue={this.addValue}

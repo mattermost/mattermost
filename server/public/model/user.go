@@ -921,12 +921,18 @@ func (u *User) GetRemoteID() string {
 
 func (u *User) GetOriginalRemoteID() string {
 	if u.Props == nil {
-		return u.GetRemoteID() // Fallback to current RemoteId
+		if u.IsRemote() {
+			return UserOriginalRemoteIdUnknown
+		}
+		return "" // Local user
 	}
 	if originalId, exists := u.Props[UserPropsKeyOriginalRemoteId]; exists && originalId != "" {
 		return originalId
 	}
-	return u.GetRemoteID() // Fallback for users without OriginalRemoteId
+	if u.IsRemote() {
+		return UserOriginalRemoteIdUnknown
+	}
+	return "" // Local user
 }
 
 func (u *User) GetAuthData() string {

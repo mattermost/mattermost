@@ -2431,6 +2431,11 @@ func (a *App) CanUserDirectMessage(c request.CTX, userID, otherUserId string) (b
 
 		// Check if the other user is from a remote cluster
 		if otherUser.IsRemote() {
+			// If original remote ID is unknown, fall back to current RemoteId as best guess
+			if originalRemoteId == model.UserOriginalRemoteIdUnknown {
+				originalRemoteId = otherUser.GetRemoteID()
+			}
+
 			// For DMs, we require a direct connection to the ORIGINAL remote cluster
 			isDirectlyConnected := scs.IsRemoteClusterDirectlyConnected(originalRemoteId)
 
