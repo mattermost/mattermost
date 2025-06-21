@@ -5,7 +5,7 @@ package post_persistent_notifications
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
@@ -20,7 +20,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	isEnabled := func(_ *model.Config) bool {
 		return app.IsPersistentNotificationsEnabled()
 	}
-	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+	execute := func(rctx request.CTX, job *model.Job) error {
+		logger := rctx.Logger()
 		defer jobServer.HandleJobPanic(logger, job)
 		return app.SendPersistentNotifications()
 	}

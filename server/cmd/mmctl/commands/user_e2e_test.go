@@ -7,11 +7,14 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -757,13 +760,21 @@ func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
-	s.SetupTestHelper().InitBasic()
+	original := jobs.DefaultWatcherPollingInterval
+	jobs.DefaultWatcherPollingInterval = 1000
+	defer func() {
+		jobs.DefaultWatcherPollingInterval = original
+	}()
+
+	s.SetupTestHelperWithOptions([]app.Option{app.RunEssentialJobs}).InitBasic()
 
 	s.RunForSystemAdminAndLocal("Delete user", func(c client.Client) {
 		printer.Clean()
 
 		previousVal := s.th.App.Config().ServiceSettings.EnableAPIUserDeletion
-		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableAPIUserDeletion = true
+		})
 		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = *previousVal })
 
 		cmd := &cobra.Command{}
@@ -776,13 +787,21 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
 
-		deletedUser := printer.GetLines()[0].(*model.User)
-		s.Require().Equal(newUser.Username, deletedUser.Username)
+		// The output is now a job creation confirmation with job ID and username
+		jobResult := printer.GetLines()[0].(struct {
+			Id       string
+			Username string
+		})
+		s.Require().Equal(newUser.Username, jobResult.Username)
+		s.Require().NotEmpty(jobResult.Id) // Job ID should be present
 
-		// expect user deleted
-		_, err = s.th.App.GetUser(newUser.Id)
-		s.Require().NotNil(err)
-		s.Require().Equal("GetUser: Unable to find the user., resource \"User\" not found, id: "+newUser.Id, err.Error())
+		s.Require().Eventually(func() bool {
+			_, appErr := s.th.App.GetUser(newUser.Id)
+			if appErr == nil {
+				return false
+			}
+			return appErr.Id == app.MissingAccountError
+		}, 30*time.Second, 2*time.Second)
 	})
 
 	s.RunForSystemAdminAndLocal("Delete nonexistent user", func(c client.Client) {
@@ -856,6 +875,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		user, err := s.th.App.GetUser(newUser.Id)
 		s.Require().Nil(err)
 		s.Require().Equal(newUser.Username, user.Username)
+		s.Require().Equal(user.DeleteAt, int64(0))
 	})
 
 	s.Run("Delete user with disabled config as local client", func() {
@@ -869,21 +889,25 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 
 		cmd := &cobra.Command{}
 		confirm := true
+		local := true
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+		// We are forcing local mode by passing the flag
+		// because the check is made within mmctl itself.
+		cmd.Flags().BoolVar(&local, "local", true, "local")
 
 		newUser := s.th.CreateUser()
 		err := deleteUsersCmdF(s.th.LocalClient, cmd, []string{newUser.Email})
 		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 1)
-		s.Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
 
-		deletedUser := printer.GetLines()[0].(*model.User)
-		s.Require().Equal(newUser.Username, deletedUser.Username)
-
-		// expect user deleted
-		_, err = s.th.App.GetUser(newUser.Id)
-		s.Require().NotNil(err)
-		s.Require().EqualError(err, "GetUser: Unable to find the user., resource \"User\" not found, id: "+newUser.Id)
+		// The output is now a job creation confirmation with job ID and username
+		jobResult := printer.GetLines()[0].(struct {
+			Id       string
+			Username string
+		})
+		s.Require().Equal(newUser.Username, jobResult.Username)
+		s.Require().NotEmpty(jobResult.Id) // Job ID should be present
 	})
 }
 

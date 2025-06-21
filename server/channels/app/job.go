@@ -97,6 +97,7 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeExportProcess,
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
+		model.JobTypePermanentDeleteUser,
 		model.JobTypeExtractContent:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
 	case model.JobTypeAccessControlSync:
@@ -133,6 +134,7 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 		model.JobTypeExportProcess,
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
+		model.JobTypePermanentDeleteUser,
 		model.JobTypeExtractContent:
 		permission = model.PermissionManageJobs
 	case model.JobTypeAccessControlSync:
@@ -171,7 +173,8 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
 		model.JobTypeMobileSessionMetadata,
-		model.JobTypeExtractContent:
+		model.JobTypeExtractContent,
+		model.JobTypePermanentDeleteUser:
 		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
 	case model.JobTypeAccessControlSync:
 		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
