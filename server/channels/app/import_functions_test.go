@@ -6058,7 +6058,6 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 				for _, bufSizeLabel := range bufSizeLabels {
 					bufSize := bufSizesMap[bufSizeLabel]
 					b.Run("bufSize-fileSize"+fileSizeLabel+"-bufSize"+bufSizeLabel, func(b *testing.B) {
-
 						for b.Loop() {
 							b.StopTimer()
 							_, err := zipFileRd.Seek(0, io.SeekStart)

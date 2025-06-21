@@ -19,10 +19,8 @@ func (v V) LessThan(other V) bool {
 	leftParts, leftCount := split(v)
 	rightParts, rightCount := split(other)
 
-	var length int
-	length = max(leftCount, rightCount)
-
-	for i := 0; i < length; i++ {
+	length := max(leftCount, rightCount)
+	for i := range length {
 		var left, right string
 
 		if i < leftCount {
