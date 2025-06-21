@@ -98,6 +98,8 @@
 
     &.GenericModal__compassDesign {
         .modal-content {
+            max-height: 90vh;
+            overflow: auto;
             .modal-body {
                 .GenericModal__body {
                     padding: 0;
