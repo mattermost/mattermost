@@ -12,6 +12,7 @@
   "about.hash": "Mã bản biên dịch:",
   "about.hashee": "EE Build Hash:",
   "about.licensed": "Được cấp phép cho:",
+  "about.loadmetric": "Tải các thông số đo lường:",
   "about.notice": "Mattermost được tạo nên từ phần mềm mã nguồn mở được sử dụng trong các ứng dụng <linkServer>máy chủ</linkServer>, <linkDesktop>máy tính để bàn</linkDesktop> và <linkMobile>thiết bị di động</linkMobile> của chúng tôi.",
   "about.privacy": "Chính sách Bảo mật",
   "about.serverDisconnected": "đã ngắt kết nối",
