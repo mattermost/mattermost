@@ -1235,7 +1235,11 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userHasEmailDomain := slices.Contains(c.App.Config().WranglerSettings.AllowedEmailDomain, user.EmailDomain())
+	userHasEmailDomain := true
+	// Only check the user's email domain if a list of allowed domains is configured
+	if len(c.App.Config().WranglerSettings.AllowedEmailDomain) > 0 {
+		userHasEmailDomain = slices.Contains(c.App.Config().WranglerSettings.AllowedEmailDomain, user.EmailDomain())
+	}
 
 	if !userHasEmailDomain && !user.IsSystemAdmin() {
 		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, fmt.Sprintf("User: %+v", user), http.StatusForbidden)
