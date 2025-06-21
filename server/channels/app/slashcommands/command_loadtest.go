@@ -208,8 +208,8 @@ func (*LoadTestProvider) HelpCommand(args *model.CommandArgs, message string) *m
 
 func (*LoadTestProvider) SetupCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	tokens := strings.Fields(strings.TrimPrefix(message, "setup"))
-	doTeams := contains(tokens, "teams")
-	doFuzz := contains(tokens, "fuzz")
+	doTeams := slices.Contains(tokens, "teams")
+	doFuzz := slices.Contains(tokens, "fuzz")
 
 	numArgs := 0
 	if doTeams {
@@ -752,8 +752,4 @@ func parseRange(rng string) (utils.Range, error) {
 		return utils.Range{Begin: 0, End: 0}, errors.New("Invalid range parameter")
 	}
 	return utils.Range{Begin: begin, End: end}, nil
-}
-
-func contains(items []string, token string) bool {
-	return slices.Contains(items, token)
 }

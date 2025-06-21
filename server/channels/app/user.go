@@ -2976,7 +2976,6 @@ func (a *App) UserIsFirstAdmin(rctx request.CTX, user *model.User) bool {
 	}
 
 	for _, systemAdminUser := range systemAdminUsers {
-
 		if systemAdminUser.CreateAt < user.CreateAt {
 			return false
 		}

@@ -867,7 +867,6 @@ func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences model.Pr
 	defer finalizeTransactionX(transaction, &err)
 
 	for _, preference := range preferences {
-
 		if preference.Category != model.PreferenceCategoryFavoriteChannel {
 			continue
 		}
@@ -1014,7 +1013,6 @@ func (s SqlChannelStore) DeleteSidebarChannelsByPreferences(preferences model.Pr
 	defer finalizeTransactionX(transaction, &err)
 
 	for _, preference := range preferences {
-
 		if preference.Category != model.PreferenceCategoryFavoriteChannel {
 			continue
 		}

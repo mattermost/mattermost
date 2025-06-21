@@ -3,7 +3,6 @@ package flow
 import (
 	"bytes"
 	"errors"
-	"maps"
 	"text/template"
 )
 
@@ -11,13 +10,6 @@ var errStateNotFound = errors.New("flow state not found")
 
 // State is the "app"'s state
 type State map[string]any
-
-func (s State) MergeWith(update State) State {
-	n := State{}
-	maps.Copy(n, s)
-	maps.Copy(n, update)
-	return n
-}
 
 // GetString return the value to a given key as a string.
 // If the key is not found or isn't a string, an empty string is returned.

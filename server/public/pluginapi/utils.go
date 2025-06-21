@@ -1,13 +1,8 @@
 package pluginapi
 
 import (
-	"slices"
 	"time"
 )
-
-func stringInSlice(a string, slice []string) bool {
-	return slices.Contains(slice, a)
-}
 
 var backoffTimeouts = []time.Duration{
 	50 * time.Millisecond,
