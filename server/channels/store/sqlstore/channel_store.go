@@ -895,8 +895,19 @@ func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, error) {
 	pl := model.NewPostList()
 
+	query := s.getQueryBuilder().
+		Select(postSliceColumns()...).
+		Column("(SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
+		From("Posts p").
+		Where(sq.Eq{
+			"IsPinned":  true,
+			"ChannelId": channelId,
+			"DeleteAt":  0,
+		}).
+		OrderBy("CreateAt ASC")
+
 	posts := []*model.Post{}
-	if err := s.GetReplica().Select(&posts, "SELECT *, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount  FROM Posts p WHERE IsPinned = true AND ChannelId = ? AND DeleteAt = 0 ORDER BY CreateAt ASC", channelId); err != nil {
+	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 	for _, post := range posts {
@@ -3888,7 +3899,7 @@ func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgre
 		}).
 		GroupBy("c.Id")
 
-	return s.getQueryBuilder().Select("cc.*").
+	return s.getQueryBuilder().Select(channelSliceColumns(true, "cc")...).
 		FromSelect(cc, "cc").
 		Join("ChannelMembers cm on cc.Id = cm.ChannelId").
 		Join("Users u on u.Id = cm.UserId").
@@ -4338,22 +4349,21 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 }
 
 func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime int64, startChannelID string, limit int) ([]*model.Channel, error) {
-	query :=
-		`SELECT
-			 *
-		 FROM
-			 Channels
-		 WHERE
-			 CreateAt > ?
-		OR
-			(CreateAt = ? AND Id > ?)
-		 ORDER BY
-			 CreateAt ASC, Id ASC
-		 LIMIT
-			 ?`
+	query := s.getQueryBuilder().
+		Select(channelSliceColumns(false)...).
+		From("Channels").
+		Where(sq.Or{
+			sq.Gt{"CreateAt": startTime},
+			sq.And{
+				sq.Eq{"CreateAt": startTime},
+				sq.Gt{"Id": startChannelID},
+			},
+		}).
+		OrderBy("CreateAt ASC", "Id ASC").
+		Limit(uint64(limit))
 
 	channels := []*model.Channel{}
-	err := s.GetSearchReplicaX().Select(&channels, query, startTime, startTime, startChannelID, limit)
+	err := s.GetSearchReplicaX().SelectBuilder(&channels, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels")
 	}
@@ -4398,7 +4408,7 @@ func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) 
 	// A SELECT and a UPDATE query are needed.
 	// Once we only support PostgreSQL, this can be done in a single query using RETURNING.
 	query, args, err := s.getQueryBuilder().
-		Select("*").
+		Select(channelMemberSliceColumns()...).
 		From("ChannelMembers").
 		Where(sq.Eq{"ChannelID": channelID}).
 		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).
@@ -4507,7 +4517,7 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 		return nil, errors.Wrap(err, "get_team_for_channel_nested_tosql")
 	}
 	query, args, err := s.getQueryBuilder().
-		Select("*").
+		Select(teamSliceColumns()...).
 		From("Teams").Where(sq.Expr("Id = ("+nestedQ+")", nestedArgs...)).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "get_team_for_channel_tosql")

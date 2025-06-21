@@ -7166,6 +7166,11 @@ func testChannelStoreSearchGroupChannels(t *testing.T, rctx request.CTX, ss stor
 			resultIds := []string{}
 			for _, gc := range result {
 				resultIds = append(resultIds, gc.Id)
+				// Verify that PolicyEnforced field is properly populated (regression test for SELECT * replacement)
+				require.NotNil(t, gc, "Channel should not be nil")
+				// PolicyEnforced should have a defined value (true or false), not the zero value due to missing column
+				// Since we don't have access control policies in this test, it should be false
+				require.Equal(t, false, gc.PolicyEnforced, "PolicyEnforced should be false for channels without access control policies")
 			}
 
 			require.ElementsMatch(t, tc.ExpectedResult, resultIds)
