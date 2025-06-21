@@ -8,6 +8,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -460,6 +461,189 @@ func TestPostActionOptions_IsValid(t *testing.T) {
 	}
 }
 
+func TestDialogElement_IsValid(t *testing.T) {
+	testCases := []struct {
+		Name        string
+		Element     DialogElement
+		ExpectError bool
+		ErrorMsg    string
+	}{
+		{
+			Name: "Valid text element",
+			Element: DialogElement{
+				DisplayName: "Display Name",
+				Name:        "text_field",
+				Type:        "text",
+				Default:     "default value",
+				MaxLength:   100,
+				MinLength:   0,
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "Valid select element with options",
+			Element: DialogElement{
+				DisplayName: "Display Name",
+				Name:        "select_field",
+				Type:        "select",
+				Default:     "opt1",
+				Options: []*PostActionOptions{
+					{Text: "Option 1", Value: "opt1"},
+					{Text: "Option 2", Value: "opt2"},
+				},
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "Valid select element with data source",
+			Element: DialogElement{
+				DisplayName: "Display Name",
+				Name:        "select_field",
+				Type:        "select",
+				DataSource:  "users",
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "Valid dynamic select element",
+			Element: DialogElement{
+				DisplayName:   "Dynamic Select",
+				Name:          "dynamic_select",
+				Type:          "select",
+				DataSource:    "dynamic",
+				DataSourceURL: "https://example.com/options",
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "Valid dynamic select element with plugin URL",
+			Element: DialogElement{
+				DisplayName:   "Dynamic Select Plugin",
+				Name:          "dynamic_select_plugin",
+				Type:          "select",
+				DataSource:    "dynamic",
+				DataSourceURL: "/plugins/myplugin/options",
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "Invalid dynamic select - bad URL",
+			Element: DialogElement{
+				DisplayName:   "Invalid URL",
+				Name:          "invalid_url",
+				Type:          "select",
+				DataSource:    "dynamic",
+				DataSourceURL: "invalid-url",
+			},
+			ExpectError: true,
+			ErrorMsg:    "invalid data source URL",
+		},
+		{
+			Name: "Invalid select - default not in options",
+			Element: DialogElement{
+				DisplayName: "Invalid Default",
+				Name:        "invalid_default",
+				Type:        "select",
+				Default:     "not_an_option",
+				Options: []*PostActionOptions{
+					{Text: "Option 1", Value: "opt1"},
+					{Text: "Option 2", Value: "opt2"},
+				},
+			},
+			ExpectError: true,
+			ErrorMsg:    "default value",
+		},
+		{
+			Name: "Invalid - min length > max length",
+			Element: DialogElement{
+				DisplayName: "Invalid Length",
+				Name:        "invalid_length",
+				Type:        "text",
+				MinLength:   100,
+				MaxLength:   50,
+			},
+			ExpectError: true,
+			ErrorMsg:    "min length should be less then max length",
+		},
+		{
+			Name: "Invalid data source",
+			Element: DialogElement{
+				DisplayName: "Invalid Data Source",
+				Name:        "invalid_source",
+				Type:        "select",
+				DataSource:  "invalid_source",
+			},
+			ExpectError: true,
+			ErrorMsg:    "invalid data source",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err := tc.Element.IsValid()
+
+			if tc.ExpectError {
+				require.Error(t, err)
+				if tc.ErrorMsg != "" {
+					assert.Contains(t, err.Error(), tc.ErrorMsg)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestLookupDialogResponse(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Response LookupDialogResponse
+		ItemsLen int
+	}{
+		{
+			Name: "Response with items",
+			Response: LookupDialogResponse{
+				Items: []DialogSelectOption{
+					{Text: "Option 1", Value: "opt1"},
+					{Text: "Option 2", Value: "opt2"},
+				},
+			},
+			ItemsLen: 2,
+		},
+		{
+			Name: "Empty response",
+			Response: LookupDialogResponse{
+				Items: []DialogSelectOption{},
+			},
+			ItemsLen: 0,
+		},
+		{
+			Name: "Nil items",
+			Response: LookupDialogResponse{
+				Items: nil,
+			},
+			ItemsLen: 0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.ItemsLen, len(tc.Response.Items))
+
+			// Test marshaling
+			data, err := json.Marshal(tc.Response)
+			require.NoError(t, err)
+
+			// Test unmarshaling
+			var unmarshaled LookupDialogResponse
+			err = json.Unmarshal(data, &unmarshaled)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.ItemsLen, len(unmarshaled.Items))
+		})
+	}
+}
+
 func TestOpenDialogRequestIsValid(t *testing.T) {
 	getBaseOpenDialogRequest := func() OpenDialogRequest {
 		return OpenDialogRequest{
@@ -675,4 +859,75 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "Placeholder cannot be longer than 150 characters")
 	})
+}
+
+func TestIsValidLookupURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		url      string
+		expected bool
+	}{
+		{
+			name:     "empty URL",
+			url:      "",
+			expected: false,
+		},
+		{
+			name:     "valid HTTPS URL",
+			url:      "https://example.com/api/lookup",
+			expected: true,
+		},
+		{
+			name:     "invalid HTTP URL (not allowed)",
+			url:      "http://example.com/api/lookup",
+			expected: false,
+		},
+		{
+			name:     "valid plugin path",
+			url:      "/plugins/myplugin/api/lookup",
+			expected: true,
+		},
+		{
+			name:     "invalid plugin path with traversal",
+			url:      "/plugins/../etc/passwd",
+			expected: false,
+		},
+		{
+			name:     "invalid plugin path with double slash",
+			url:      "/plugins//myplugin",
+			expected: false,
+		},
+		{
+			name:     "invalid relative path",
+			url:      "api/lookup",
+			expected: false,
+		},
+		{
+			name:     "invalid protocol",
+			url:      "ftp://example.com/lookup",
+			expected: false,
+		},
+		{
+			name:     "malformed HTTPS URL",
+			url:      "https://",
+			expected: false,
+		},
+		{
+			name:     "valid HTTPS URL with query params",
+			url:      "https://api.example.com/lookup?type=user",
+			expected: true,
+		},
+		{
+			name:     "valid plugin path with nested structure",
+			url:      "/plugins/myplugin/api/v1/lookup",
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := IsValidLookupURL(tt.url)
+			assert.Equal(t, tt.expected, result, "URL: %s", tt.url)
+		})
+	}
 }
