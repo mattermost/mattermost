@@ -72,6 +72,7 @@ func BenchmarkLRUStriped(b *testing.B) {
 	}
 
 	for b.Loop() {
+		b.StopTimer()
 		wgSet.Add(1)
 		go set()
 		for j := 0; j < opts.StripedBuckets; j++ {
@@ -81,9 +82,11 @@ func BenchmarkLRUStriped(b *testing.B) {
 
 		b.StartTimer()
 		wgGet.Wait()
-		b.StopTimer()
 
+		// Cleanup
+		b.StopTimer()
 		stopSet <- true
 		wgSet.Wait()
+		b.StartTimer()
 	}
 }

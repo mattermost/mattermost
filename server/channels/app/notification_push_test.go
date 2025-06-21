@@ -1782,6 +1782,5 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 		wg.Wait()
 	}
 	b.Logf("throughput: %f reqs/s", float64(len(testData)*cnt)/time.Since(then).Seconds())
-	b.StopTimer()
 	time.Sleep(2 * time.Second)
 }

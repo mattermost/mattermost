@@ -21,7 +21,6 @@ func BenchmarkDiff(b *testing.B) {
 	b.Run("equal empty", func(b *testing.B) {
 		baseCfg := &model.Config{}
 		actualCfg := &model.Config{}
-		b.ResetTimer()
 		for b.Loop() {
 			_, _ = Diff(baseCfg, actualCfg)
 		}
@@ -30,7 +29,6 @@ func BenchmarkDiff(b *testing.B) {
 	b.Run("equal with defaults", func(b *testing.B) {
 		baseCfg := defaultConfigGen()
 		actualCfg := defaultConfigGen()
-		b.ResetTimer()
 		for b.Loop() {
 			_, _ = Diff(baseCfg, actualCfg)
 		}
@@ -39,7 +37,6 @@ func BenchmarkDiff(b *testing.B) {
 	b.Run("actual empty", func(b *testing.B) {
 		baseCfg := defaultConfigGen()
 		actualCfg := &model.Config{}
-		b.ResetTimer()
 		for b.Loop() {
 			_, _ = Diff(baseCfg, actualCfg)
 		}
@@ -48,7 +45,6 @@ func BenchmarkDiff(b *testing.B) {
 	b.Run("base empty", func(b *testing.B) {
 		baseCfg := &model.Config{}
 		actualCfg := defaultConfigGen()
-		b.ResetTimer()
 		for b.Loop() {
 			_, _ = Diff(baseCfg, actualCfg)
 		}
@@ -68,7 +64,6 @@ func BenchmarkDiff(b *testing.B) {
 			"ds1",
 			"ds2",
 		}
-		b.ResetTimer()
 		for b.Loop() {
 			_, _ = Diff(baseCfg, actualCfg)
 		}

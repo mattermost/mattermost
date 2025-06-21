@@ -83,6 +83,7 @@ func BenchmarkFillImageTransparency(b *testing.B) {
 				b.StopTimer()
 				img := tc.imgGen()
 				b.StartTimer()
+
 				FillImageTransparency(img, image.White)
 			}
 		})
@@ -96,6 +97,7 @@ func BenchmarkFillImageTransparencyOld(b *testing.B) {
 				b.StopTimer()
 				img := tc.imgGen()
 				b.StartTimer()
+
 				fillImageTransparencyOld(img, image.White)
 			}
 		})

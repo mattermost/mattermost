@@ -120,7 +120,6 @@ func BenchmarkSum64(b *testing.B) {
 	for _, case_ := range cases {
 		b.Run(fmt.Sprintf("maphash_string_len_%d", len(case_)), func(b *testing.B) {
 			seed := maphash.MakeSeed()
-			b.ResetTimer()
 			for b.Loop() {
 				var h maphash.Hash
 				h.SetSeed(seed)

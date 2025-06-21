@@ -633,7 +633,6 @@ func BenchmarkBulkImport(b *testing.B) {
 		err, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, runtime.NumCPU(), dir)
 		require.Nil(b, err)
 	}
-	b.StopTimer()
 }
 
 func TestImportBulkImportWithAttachments(t *testing.T) {
