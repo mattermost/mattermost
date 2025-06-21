@@ -17,8 +17,8 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 
 	t.Run("unlicensed server", func(t *testing.T) {
 		t.Run("reactivation allowed below hard limit", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
+			defer th.TearDown(t)
 
 			th.App.Srv().SetLicense(nil)
 
@@ -35,7 +35,7 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 
 		t.Run("reactivation blocked at hard limit", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 
 			th.App.Srv().SetLicense(nil)
 
@@ -61,7 +61,7 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 
 		t.Run("reactivation blocked above hard limit", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 
 			th.App.Srv().SetLicense(nil)
 
@@ -88,8 +88,8 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 
 	t.Run("licensed server with seat count enforcement", func(t *testing.T) {
 		t.Run("reactivation allowed below limit", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
+			defer th.TearDown(t)
 
 			userLimit := 100
 			license := model.NewTestLicense("")
@@ -109,7 +109,7 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 
 		t.Run("reactivation blocked at grace limit", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 
 			userLimit := 100
 			license := model.NewTestLicense("")
@@ -138,8 +138,8 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 		})
 
 		t.Run("reactivation allowed at base limit but below grace limit", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
+			defer th.TearDown(t)
 
 			userLimit := 5 // Grace limit will be 6 (5 + 1 minimum)
 			license := model.NewTestLicense("")
@@ -163,7 +163,7 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 
 		t.Run("reactivation blocked above grace limit", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown()
+			defer th.TearDown(t)
 
 			userLimit := 100
 			license := model.NewTestLicense("")
@@ -194,8 +194,8 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 
 	t.Run("licensed server without seat count enforcement", func(t *testing.T) {
 		t.Run("reactivation allowed below unenforced limit", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
+			defer th.TearDown(t)
 
 			userLimit := 5
 			license := model.NewTestLicense("")
@@ -218,8 +218,8 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 		})
 
 		t.Run("reactivation allowed at unenforced limit", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
+			defer th.TearDown(t)
 
 			userLimit := 5
 			license := model.NewTestLicense("")
@@ -245,8 +245,8 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 		})
 
 		t.Run("reactivation allowed above unenforced limit", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
+			defer th.TearDown(t)
 
 			userLimit := 5
 			license := model.NewTestLicense("")
@@ -278,8 +278,8 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("seat count enforced - allows user creation when under limit", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		userLimit := 5
 		license := model.NewTestLicense("")
@@ -302,8 +302,8 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 	})
 
 	t.Run("seat count enforced - blocks user creation when at limit", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		userLimit := 5
 		extraUsers := 1
@@ -336,7 +336,7 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 	t.Run("seat count enforced - blocks user creation when over limit", func(t *testing.T) {
 		// Use mocks for this test since we can't actually create users beyond the safety limit
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		userLimit := 5
 		extraUsers := 0
@@ -373,8 +373,8 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 	})
 
 	t.Run("seat count not enforced - allows user creation even when over limit", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		userLimit := 5
 		license := model.NewTestLicense("")
@@ -402,8 +402,8 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 	})
 
 	t.Run("no license - uses existing hard limit logic", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.App.Srv().SetLicense(nil)
 
@@ -422,8 +422,8 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 	})
 
 	t.Run("license without Users feature - no seat count enforcement", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		license := model.NewTestLicense("")
 		license.IsSeatCountEnforced = true
@@ -445,8 +445,8 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 	})
 
 	t.Run("guest creation with seat count enforcement - blocks when at limit", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		userLimit := 5
 		extraUsers := 1
@@ -477,8 +477,8 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 	})
 
 	t.Run("guest creation with seat count enforcement - allows when under limit", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		userLimit := 5
 		extraUsers := 0

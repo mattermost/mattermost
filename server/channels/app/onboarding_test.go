@@ -14,7 +14,7 @@ import (
 func TestOnboardingSavesOrganizationName(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	appErr := th.App.CompleteOnboarding(th.Context, &mm_model.CompleteOnboardingRequest{
 		Organization: "Mattermost In Tests",

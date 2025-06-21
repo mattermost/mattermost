@@ -206,8 +206,7 @@ func testUploadFilesMultipart(
 
 func TestUploadFiles(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
@@ -783,8 +782,7 @@ func TestUploadFiles(t *testing.T) {
 
 func TestGetFile(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -825,8 +823,7 @@ func TestGetFile(t *testing.T) {
 
 func TestGetFileAsSystemAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
@@ -872,7 +869,7 @@ func TestGetFileAsSystemAdmin(t *testing.T) {
 	})
 
 	t.Run("direct message without membership", func(t *testing.T) {
-		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 		dmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, dmChannel.Id, "test.png")
 		require.NoError(t, err)
 		_, _, err = th.SystemAdminClient.GetFile(context.Background(), dmFileResp.FileInfos[0].Id)
@@ -911,8 +908,7 @@ func TestGetFileAsSystemAdmin(t *testing.T) {
 
 func TestGetFileHeaders(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -980,8 +976,7 @@ func TestGetFileHeaders(t *testing.T) {
 
 func TestGetFileThumbnail(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -1031,8 +1026,7 @@ func TestGetFileThumbnail(t *testing.T) {
 
 func TestGetFileThumbnailAsSystemAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
@@ -1080,7 +1074,7 @@ func TestGetFileThumbnailAsSystemAdmin(t *testing.T) {
 	})
 
 	t.Run("direct message without membership", func(t *testing.T) {
-		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 		dmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, dmChannel.Id, "test.png")
 		require.NoError(t, err)
 		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), dmFileResp.FileInfos[0].Id)
@@ -1119,8 +1113,7 @@ func TestGetFileThumbnailAsSystemAdmin(t *testing.T) {
 
 func TestGetFileLink(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -1191,8 +1184,7 @@ func TestGetFileLink(t *testing.T) {
 
 func TestGetFilePreview(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -1241,8 +1233,7 @@ func TestGetFilePreview(t *testing.T) {
 
 func TestGetFileInfo(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user := th.BasicUser
 	channel := th.BasicChannel
@@ -1299,8 +1290,7 @@ func TestGetFileInfo(t *testing.T) {
 
 func TestGetPublicFile(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -1363,8 +1353,7 @@ func TestGetPublicFile(t *testing.T) {
 
 func TestSearchFilesInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1514,8 +1503,7 @@ func TestSearchFilesInTeam(t *testing.T) {
 
 func TestSearchFilesAcrossTeams(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) {

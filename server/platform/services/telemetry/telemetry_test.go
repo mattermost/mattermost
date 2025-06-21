@@ -98,15 +98,17 @@ func makeTelemetryServiceAndReceiver(t *testing.T, cloudLicense bool) (*Telemetr
 	cfg.SetDefaults()
 	serverIfaceMock, storeMock, deferredAssertions, cleanUp := initializeMocks(cfg, cloudLicense)
 
-	testLogger, _ := mlog.NewLogger()
-	logCfg, _ := config.MloggerConfigFromLoggerConfig(&cfg.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
-		panic("failed to configure test logger: " + errCfg.Error())
-	}
+	testLogger, err := mlog.NewLogger()
+	require.NoError(t, err)
+	logCfg, err := config.MloggerConfigFromLoggerConfig(&cfg.LogSettings, nil, config.GetLogFileLocation)
+	require.NoError(t, err)
+	err = testLogger.ConfigureTargets(logCfg, nil)
+	require.NoError(t, err)
 
 	pchan := make(chan testTelemetryPayload, 100)
 	receiver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
+		var body []byte
+		body, err = io.ReadAll(r.Body)
 		require.NoError(t, err)
 
 		var p testTelemetryPayload

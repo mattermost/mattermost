@@ -286,7 +286,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 		Type: model.JobTypeExportProcess,
@@ -330,7 +330,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("MM-T3887 - no permissions", func() {
 		printer.Clean()
@@ -399,7 +399,7 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("Cancel an export job without permissions", func() {
 		printer.Clean()

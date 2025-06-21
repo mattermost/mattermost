@@ -27,8 +27,7 @@ import (
 
 func TestCreateChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
 
@@ -206,8 +205,7 @@ func TestCreateChannel(t *testing.T) {
 
 func TestUpdateChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
 
@@ -397,8 +395,7 @@ func TestUpdateChannel(t *testing.T) {
 
 func TestPatchChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
 
@@ -1066,8 +1063,7 @@ func TestPatchChannel(t *testing.T) {
 }
 
 func TestCanEditChannelBanner(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
 		t.Skip("Channel banner tests are not supported on MySQL")
@@ -1212,8 +1208,7 @@ func TestCanEditChannelBanner(t *testing.T) {
 
 func TestChannelUnicodeNames(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
 
@@ -1273,8 +1268,7 @@ func TestChannelUnicodeNames(t *testing.T) {
 
 func TestCreateDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
@@ -1337,8 +1331,7 @@ func TestCreateDirectChannel(t *testing.T) {
 
 func TestCreateDirectChannelAsGuest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user1 := th.BasicUser
 
@@ -1387,8 +1380,7 @@ func TestCreateDirectChannelAsGuest(t *testing.T) {
 
 func TestDeleteDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user := th.BasicUser
 	user2 := th.BasicUser2
@@ -1404,8 +1396,7 @@ func TestDeleteDirectChannel(t *testing.T) {
 
 func TestCreateGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user := th.BasicUser
 	user2 := th.BasicUser2
@@ -1470,8 +1461,7 @@ func TestCreateGroupChannel(t *testing.T) {
 
 func TestCreateGroupChannelAsGuest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
@@ -1539,8 +1529,7 @@ func TestCreateGroupChannelAsGuest(t *testing.T) {
 
 func TestDeleteGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	user := th.BasicUser
 	user2 := th.BasicUser2
 	user3 := th.CreateUser()
@@ -1559,8 +1548,7 @@ func TestDeleteGroupChannel(t *testing.T) {
 
 func TestGetChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id, "")
@@ -1614,8 +1602,7 @@ func TestGetChannel(t *testing.T) {
 
 func TestGetDeletedChannelsForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	team := th.BasicTeam
@@ -1695,8 +1682,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 func TestGetPrivateChannelsForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	team := th.BasicTeam
 
 	// normal user
@@ -1734,8 +1720,7 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 
 func TestGetPublicChannelsForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
 	publicChannel1 := th.BasicChannel
@@ -1813,8 +1798,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 
 func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	teamId := th.BasicTeam.Id
 	input := []string{th.BasicChannel.Id}
@@ -1872,8 +1856,7 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 
 func TestGetChannelsForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	t.Run("get channels for the team for user", func(t *testing.T) {
@@ -1962,8 +1945,7 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 
 func TestGetChannelsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 
@@ -2018,9 +2000,9 @@ func TestGetChannelsForUser(t *testing.T) {
 
 func TestGetAllChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
+
 	th.LoginSystemManager()
-	defer th.TearDown()
 	client := th.Client
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -2180,8 +2162,7 @@ func TestGetAllChannels(t *testing.T) {
 
 func TestGetAllChannelsWithCount(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	channels, total, _, err := th.SystemAdminClient.GetAllChannelsWithCount(context.Background(), 0, 20, "")
@@ -2213,8 +2194,7 @@ func TestGetAllChannelsWithCount(t *testing.T) {
 
 func TestSearchChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	t.Run("Search using null value", func(t *testing.T) {
@@ -2348,8 +2328,7 @@ func TestSearchChannels(t *testing.T) {
 
 func TestSearchArchivedChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
@@ -2442,9 +2421,9 @@ func TestSearchArchivedChannels(t *testing.T) {
 
 func TestSearchAllChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
+
 	th.LoginSystemManager()
-	defer th.TearDown()
 	client := th.Client
 
 	openChannel, _, err := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
@@ -2733,8 +2712,7 @@ func TestSearchAllChannels(t *testing.T) {
 
 func TestSearchAllChannelsPaged(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
@@ -2753,8 +2731,7 @@ func TestSearchAllChannelsPaged(t *testing.T) {
 
 func TestSearchGroupChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	u1 := th.CreateUserWithClient(th.SystemAdminClient)
@@ -2823,8 +2800,7 @@ func TestSearchGroupChannels(t *testing.T) {
 
 func TestDeleteChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	c := th.Client
 	team := th.BasicTeam
 	user := th.BasicUser
@@ -2925,8 +2901,7 @@ func TestDeleteChannel(t *testing.T) {
 
 func TestDeleteChannel2(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user := th.BasicUser
 
@@ -3011,8 +2986,7 @@ func TestDeleteChannel2(t *testing.T) {
 
 func TestPermanentDeleteChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	enableAPIChannelDeletion := *th.App.Config().ServiceSettings.EnableAPIChannelDeletion
 	defer func() {
@@ -3050,8 +3024,7 @@ func TestPermanentDeleteChannel(t *testing.T) {
 
 func TestUpdateChannelPrivacy(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	defaultChannel, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, th.BasicTeam.Id, false)
 	require.Nil(t, appErr)
@@ -3146,8 +3119,7 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 
 func TestRestoreChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	publicChannel1 := th.CreatePublicChannel()
 	_, err := th.Client.DeleteChannel(context.Background(), publicChannel1.Id)
@@ -3215,8 +3187,7 @@ func TestRestoreChannel(t *testing.T) {
 
 func TestGetChannelByName(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	channel, _, err := client.GetChannelByName(context.Background(), th.BasicChannel.Name, th.BasicTeam.Id, "")
@@ -3286,8 +3257,7 @@ func TestGetChannelByName(t *testing.T) {
 
 func TestGetChannelByNameForTeamName(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	channel, _, err := th.SystemAdminClient.GetChannelByNameForTeamName(context.Background(), th.BasicChannel.Name, th.BasicTeam.Name, "")
@@ -3353,8 +3323,7 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 
 func TestGetChannelMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		members, _, err := client.GetChannelMembers(context.Background(), th.BasicChannel.Id, 0, 60, "")
 		require.NoError(t, err)
@@ -3404,8 +3373,7 @@ func TestGetChannelMembers(t *testing.T) {
 
 func TestGetChannelMembersByIds(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	cm, _, err := client.GetChannelMembersByIds(context.Background(), th.BasicChannel.Id, []string{th.BasicUser.Id})
@@ -3448,8 +3416,7 @@ func TestGetChannelMembersByIds(t *testing.T) {
 
 func TestGetChannelMember(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	c := th.Client
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		member, _, err := client.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
@@ -3500,8 +3467,7 @@ func TestGetChannelMember(t *testing.T) {
 
 func TestGetChannelMembersForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	members, _, err := client.GetChannelMembersForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")
@@ -3551,8 +3517,7 @@ func TestGetChannelMembersForUser(t *testing.T) {
 
 func TestViewChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	view := &model.ChannelView{
@@ -3632,8 +3597,7 @@ func TestViewChannel(t *testing.T) {
 
 func TestReadMultipleChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user := th.BasicUser
 
@@ -3712,8 +3676,7 @@ func TestReadMultipleChannels(t *testing.T) {
 
 func TestGetChannelUnread(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user := th.BasicUser
 	channel := th.BasicChannel
@@ -3763,8 +3726,7 @@ func TestGetChannelUnread(t *testing.T) {
 
 func TestGetChannelStats(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.CreatePrivateChannel()
 
@@ -3823,8 +3785,7 @@ func TestGetChannelStats(t *testing.T) {
 
 func TestGetPinnedPosts(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -3862,8 +3823,7 @@ func TestGetPinnedPosts(t *testing.T) {
 
 func TestUpdateChannelRoles(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	const ChannelAdmin = "channel_user channel_admin"
@@ -3943,8 +3903,7 @@ func TestUpdateChannelRoles(t *testing.T) {
 
 func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
@@ -4100,8 +4059,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 
 func TestUpdateChannelNotifyProps(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	props := map[string]string{}
@@ -4147,8 +4105,7 @@ func TestUpdateChannelNotifyProps(t *testing.T) {
 
 func TestAddChannelMember(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user := th.BasicUser
 	user2 := th.BasicUser2
@@ -4383,8 +4340,7 @@ func TestAddChannelMember(t *testing.T) {
 
 func TestAddChannelMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user := th.BasicUser
 	user2 := th.BasicUser2
@@ -4415,8 +4371,7 @@ func TestAddChannelMembers(t *testing.T) {
 func TestAddChannelMemberFromThread(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Skip("MM-41285")
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	team := th.BasicTeam
 	user := th.BasicUser
 	user2 := th.BasicUser2
@@ -4498,8 +4453,7 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 }
 
 func TestAddChannelMemberGuestAccessControl(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Enable guest accounts and add license
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -4536,8 +4490,7 @@ func TestAddChannelMemberGuestAccessControl(t *testing.T) {
 
 func TestAddChannelMemberAddMyself(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user := th.CreateUser()
 	th.LinkUserToTeam(user, th.BasicTeam)
@@ -4613,11 +4566,11 @@ func TestAddChannelMemberAddMyself(t *testing.T) {
 
 func TestRemoveChannelMember(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
+
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
 	team := th.BasicTeam
-	defer th.TearDown()
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -4843,8 +4796,7 @@ func TestRemoveChannelMember(t *testing.T) {
 
 func TestAutocompleteChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// A private channel to make sure private channels are used.
 	ptown, _, err := th.Client.CreateChannel(context.Background(), &model.Channel{
@@ -4916,8 +4868,7 @@ func TestAutocompleteChannels(t *testing.T) {
 
 func TestAutocompleteChannelsForSearch(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.LoginSystemAdminWithClient(th.SystemAdminClient)
 	th.LoginBasicWithClient(th.Client)
@@ -5033,8 +4984,7 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 
 func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	u1 := th.CreateUserWithClient(th.SystemAdminClient)
 	defer func() {
@@ -5158,7 +5108,6 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 func TestUpdateChannelScheme(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
@@ -5243,8 +5192,7 @@ func TestUpdateChannelScheme(t *testing.T) {
 
 func TestGetChannelMembersTimezones(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	user := th.BasicUser
@@ -5287,8 +5235,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 
 func TestChannelMembersMinusGroupMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
@@ -5382,8 +5329,7 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 
 func TestGetChannelModerations(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channel := th.BasicChannel
 	team := th.BasicTeam
@@ -5600,8 +5546,7 @@ func TestGetChannelModerations(t *testing.T) {
 
 func TestPatchChannelModerations(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channel := th.BasicChannel
 
@@ -5793,8 +5738,7 @@ func TestPatchChannelModerations(t *testing.T) {
 
 func TestGetChannelMemberCountsByGroup(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channel := th.BasicChannel
 	t.Run("Errors without a license", func(t *testing.T) {
@@ -5891,8 +5835,7 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 func TestGetChannelsMemberCount(t *testing.T) {
 	mainHelper.Parallel(t)
 	// Setup
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 
@@ -5976,8 +5919,7 @@ func TestGetChannelsMemberCount(t *testing.T) {
 
 func TestMoveChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	team1 := th.BasicTeam
@@ -6022,7 +5964,7 @@ func TestMoveChannel(t *testing.T) {
 
 	t.Run("Should fail when trying to move a DM channel", func(t *testing.T) {
 		user := th.CreateUser()
-		dmChannel := th.CreateDmChannel(user)
+		dmChannel := th.CreateDmChannel(t, user)
 		_, _, err := client.MoveChannel(context.Background(), dmChannel.Id, team1.Id, false)
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.channel.move_channel.type.invalid")
@@ -6108,8 +6050,7 @@ func TestMoveChannel(t *testing.T) {
 
 func TestRootMentionsCount(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	user := th.BasicUser
@@ -6150,8 +6091,7 @@ func TestRootMentionsCount(t *testing.T) {
 
 func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true

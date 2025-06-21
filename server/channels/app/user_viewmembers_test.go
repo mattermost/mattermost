@@ -15,8 +15,8 @@ import (
 
 func TestRestrictedViewMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).DeleteBots()
-	defer th.TearDown()
+	th := Setup(t).DeleteBots(t)
+	defer th.TearDown(t)
 
 	user1 := th.CreateUser()
 	user1.Nickname = "test user1"

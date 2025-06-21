@@ -35,8 +35,7 @@ func setupForSharedChannels(tb testing.TB) *TestHelper {
 
 func TestGetAllSharedChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	const pages = 3
 	const pageSize = 7
@@ -107,8 +106,7 @@ func randomBool() bool {
 
 func TestGetRemoteClusterById(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	// for this test we need a user that belongs to a channel that
 	// is shared with the requested remote id.
@@ -163,8 +161,8 @@ func TestGetRemoteClusterById(t *testing.T) {
 func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should not create a local DM channel that is shared", func(t *testing.T) {
-		th := setupForSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupForSharedChannels(t).InitBasic(t)
+
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
@@ -185,8 +183,8 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	t.Run("creates a local DM channel that is shared", func(t *testing.T) {
 		t.Skip("Remote DMs are currently disabled")
 
-		th := setupForSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupForSharedChannels(t).InitBasic(t)
+
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
@@ -210,8 +208,8 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	t.Run("sends a shared channel invitation to the remote", func(t *testing.T) {
 		t.Skip("Remote DMs are currently disabled")
 
-		th := setupForSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupForSharedChannels(t).InitBasic(t)
+
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
@@ -244,8 +242,8 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	t.Run("does not send a shared channel invitation to the remote when creator is remote", func(t *testing.T) {
 		t.Skip("Remote DMs are currently disabled")
 
-		th := setupForSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupForSharedChannels(t).InitBasic(t)
+
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
@@ -280,15 +278,13 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		resp, err := th.SystemAdminClient.DeleteRemoteCluster(context.Background(), model.NewId())
 		CheckNotImplementedStatus(t, resp)
 		require.Error(t, err)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	newRC1 := &model.RemoteCluster{Name: "rc1", SiteURL: "http://example1.com", CreatorId: th.SystemAdminUser.Id}
 	newRC2 := &model.RemoteCluster{Name: "rc2", SiteURL: "http://example2.com", CreatorId: th.SystemAdminUser.Id}
@@ -539,15 +535,13 @@ func TestInviteRemoteClusterToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		resp, err := th.SystemAdminClient.InviteRemoteClusterToChannel(context.Background(), model.NewId(), model.NewId())
 		CheckNotImplementedStatus(t, resp)
 		require.Error(t, err)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	newRC := &model.RemoteCluster{Name: "rc", SiteURL: "http://example.com", CreatorId: th.SystemAdminUser.Id}
 
@@ -585,15 +579,13 @@ func TestUninviteRemoteClusterToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		resp, err := th.SystemAdminClient.UninviteRemoteClusterToChannel(context.Background(), model.NewId(), model.NewId())
 		CheckNotImplementedStatus(t, resp)
 		require.Error(t, err)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	newRC := &model.RemoteCluster{Name: "rc", SiteURL: "http://example.com", CreatorId: th.SystemAdminUser.Id}
 

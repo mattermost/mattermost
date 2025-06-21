@@ -11,8 +11,8 @@ import (
 
 func TestProcessSlackText(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	if th.App.ProcessSlackText("<!channel> foo <!channel>") != "@channel foo @channel" {
 		t.Fail()
@@ -35,8 +35,8 @@ func TestProcessSlackText(t *testing.T) {
 
 func TestProcessSlackAnnouncement(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	userID := th.BasicUser.Id
 	username := th.BasicUser.Username

@@ -31,7 +31,6 @@ func configureMetrics(th *api4.TestHelper) {
 
 func TestMetrics(t *testing.T) {
 	th := api4.SetupEnterpriseWithStoreMock(t, app.StartMetrics)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Platform().Store.(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -92,7 +91,6 @@ func TestMetrics(t *testing.T) {
 
 func TestPluginMetrics(t *testing.T) {
 	th := api4.SetupEnterprise(t, app.StartMetrics)
-	defer th.TearDown()
 
 	configureMetrics(th)
 	mi := th.App.Metrics()
@@ -178,7 +176,6 @@ func TestPluginMetrics(t *testing.T) {
 
 func TestMobileMetrics(t *testing.T) {
 	th := api4.SetupEnterprise(t, app.StartMetrics)
-	defer th.TearDown()
 
 	configureMetrics(th)
 	mi := th.App.Metrics()

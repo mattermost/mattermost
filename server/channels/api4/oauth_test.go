@@ -17,7 +17,6 @@ import (
 func TestCreateOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
@@ -83,8 +82,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
@@ -208,7 +206,6 @@ func TestUpdateOAuthApp(t *testing.T) {
 func TestGetOAuthApps(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
@@ -279,7 +276,6 @@ func TestGetOAuthApps(t *testing.T) {
 func TestGetOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
@@ -351,7 +347,6 @@ func TestGetOAuthApp(t *testing.T) {
 func TestGetOAuthAppInfo(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
@@ -421,7 +416,6 @@ func TestGetOAuthAppInfo(t *testing.T) {
 func TestDeleteOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
@@ -495,7 +489,6 @@ func TestDeleteOAuthApp(t *testing.T) {
 func TestRegenerateOAuthAppSecret(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
@@ -570,8 +563,7 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 
 func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
@@ -629,8 +621,7 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 
 func TestNilAuthorizeOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	_, _, err := client.AuthorizeOAuthApp(context.Background(), nil)
