@@ -405,6 +405,9 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		printer.Clean()
 		arg := "userdoesnotexist@example.com"
 
+		var expectedErr *multierror.Error
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("user %s not found", arg))
+
 		s.client.
 			EXPECT().
 			GetUserByEmail(context.TODO(), arg, "").
@@ -426,9 +429,8 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 		err := deleteUsersCmdF(s.client, cmd, []string{arg})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", arg), printer.GetErrorLines()[0])
+		s.Require().Error(err)
+		s.Require().EqualError(err, expectedErr.Error())
 	})
 
 	s.Run("Delete users should delete users", func() {
@@ -470,6 +472,9 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		mockError := errors.New("an error occurred on deleting a user")
 
+		var expectedErr *multierror.Error
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", mockUser1.Username, mockError))
+
 		s.client.
 			EXPECT().
 			GetUserByEmail(context.TODO(), email1, "").
@@ -486,16 +491,17 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().Bool("confirm", true, "")
 
 		err := deleteUsersCmdF(s.client, cmd, []string{email1})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Unable to delete user 'User1' error: an error occurred on deleting a user",
-			printer.GetErrorLines()[0])
+		s.Require().EqualError(err, expectedErr.Error())
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
 	s.Run("Delete two users, first fails with error other passes", func() {
 		printer.Clean()
 
 		mockError := errors.New("an error occurred on deleting a user")
+
+		var expectedErr *multierror.Error
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", mockUser1.Username, mockError))
 
 		s.client.
 			EXPECT().
@@ -523,16 +529,17 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().Bool("confirm", true, "")
 
 		err := deleteUsersCmdF(s.client, cmd, []string{email1, email2})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expectedErr.Error())
 		s.Require().Equal(&mockUser2, printer.GetLines()[0])
-		s.Require().Equal("Unable to delete user 'User1' error: an error occurred on deleting a user",
-			printer.GetErrorLines()[0])
 	})
 
 	s.Run("partial delete of user, i.e failing to delete profile image gives a warning on the console.", func() {
 		printer.Clean()
+
+		var expectedErr *multierror.Error
+		expectedErr = multierror.Append(expectedErr,
+			fmt.Errorf("unable to delete the profile image of the user, please delete it manually, id:%s", mockUser1.Username))
 
 		s.client.
 			EXPECT().
@@ -549,10 +556,8 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().Bool("confirm", true, "")
 
 		err := deleteUsersCmdF(s.client, cmd, []string{email1})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("There were issues with deleting profile image of the user. Please delete it manually. Id: %s", mockUser1.Id), printer.GetErrorLines()[0])
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expectedErr.Error())
 	})
 }
 
