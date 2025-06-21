@@ -307,6 +307,15 @@ else
 	$(GOBIN)/golangci-lint run ./... ./public/...
 endif
 
+modernize: ## Run modernize linter on code base
+## https://pkg.go.dev/golang.org/x/tools/gopls/internal/analysis/modernize is not support in golangci-lint.
+## We need to invoke it directly.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@v0.19.1 -test ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
+else
+	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@v0.19.1 -test ./... ./public/...
+endif
+
 i18n-extract: ## Extract strings for translation from the source code
 	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
@@ -406,7 +415,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 endif
 
-check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
+check-style: plugin-checker vet modernize golangci-lint ## Runs style/lint checks
 
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.11.0
