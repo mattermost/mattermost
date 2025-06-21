@@ -539,7 +539,7 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		var expectedErr *multierror.Error
 		expectedErr = multierror.Append(expectedErr,
-			fmt.Errorf("unable to delete the profile image of the user, please delete it manually, id:%s", mockUser1.Email))
+			fmt.Errorf("unable to delete the profile image of the user, please delete it manually, id:%s", mockUser1.Username))
 
 		s.client.
 			EXPECT().

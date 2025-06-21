@@ -754,7 +754,7 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			// res.StatusCode is checked for 202 to identify issues with file deletion.
 			if res.StatusCode == http.StatusAccepted {
 				errs = multierror.Append(errs,
-					fmt.Errorf("unable to delete the profile image of the user, please delete it manually, id:%s", user.Email))
+					fmt.Errorf("unable to delete the profile image of the user, please delete it manually, id:%s", user.Username))
 				continue
 			}
 			printer.PrintT("Deleted user '{{.Username}}'", user)
