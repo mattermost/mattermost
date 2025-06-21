@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
+import Scrollbars from 'react-custom-scrollbars';
 import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
@@ -29,6 +30,20 @@ const Divider = styled.div`
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
     margin: 0 auto;
 `;
+
+const renderView = (props: Record<string, unknown>): JSX.Element => (
+    <div
+        {...props}
+        className='scrollbar--view'
+    />
+);
+
+const renderThumbVertical = (props: Record<string, unknown>): JSX.Element => (
+    <div
+        {...props}
+        className='scrollbar--vertical'
+    />
+);
 
 export interface DMUser {
     user: UserProfile;
@@ -151,38 +166,46 @@ const ChannelInfoRhs = ({
                 isMobile={isMobile}
                 onClose={actions.closeRightHandSide}
             />
-            <TopButtons
-                channelType={channel.type}
-                channelURL={channelURL}
-                isFavorite={isFavorite}
-                isMuted={isMuted}
-                isInvitingPeople={isInvitingPeople}
-                canAddPeople={canManageMembers}
-                actions={{toggleFavorite, toggleMute, addPeople}}
-            />
-            <AboutArea
-                channel={channel}
-                dmUser={dmUser}
-                gmUsers={gmUsers}
-                canEditChannelProperties={canEditChannelProperties}
-                actions={{
-                    editChannelHeader,
-                    editChannelPurpose,
-                }}
-            />
-            <Divider/>
-            <Menu
-                channel={channel}
-                channelStats={channelStats}
-                isArchived={isArchived}
-                actions={{
-                    openNotificationSettings,
-                    showChannelFiles: actions.showChannelFiles,
-                    showPinnedPosts: actions.showPinnedPosts,
-                    showChannelMembers: actions.showChannelMembers,
-                    getChannelStats: actions.getChannelStats,
-                }}
-            />
+            <Scrollbars
+                autoHide={true}
+                autoHideTimeout={500}
+                autoHideDuration={500}
+                renderThumbVertical={renderThumbVertical}
+                renderView={renderView}
+            >
+                <TopButtons
+                    channelType={channel.type}
+                    channelURL={channelURL}
+                    isFavorite={isFavorite}
+                    isMuted={isMuted}
+                    isInvitingPeople={isInvitingPeople}
+                    canAddPeople={canManageMembers}
+                    actions={{toggleFavorite, toggleMute, addPeople}}
+                />
+                <AboutArea
+                    channel={channel}
+                    dmUser={dmUser}
+                    gmUsers={gmUsers}
+                    canEditChannelProperties={canEditChannelProperties}
+                    actions={{
+                        editChannelHeader,
+                        editChannelPurpose,
+                    }}
+                />
+                <Divider/>
+                <Menu
+                    channel={channel}
+                    channelStats={channelStats}
+                    isArchived={isArchived}
+                    actions={{
+                        openNotificationSettings,
+                        showChannelFiles: actions.showChannelFiles,
+                        showPinnedPosts: actions.showPinnedPosts,
+                        showChannelMembers: actions.showChannelMembers,
+                        getChannelStats: actions.getChannelStats,
+                    }}
+                />
+            </Scrollbars>
         </div>
     );
 };
