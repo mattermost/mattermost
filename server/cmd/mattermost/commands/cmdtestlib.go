@@ -159,7 +159,10 @@ func (h *testHelper) execArgs(t *testing.T, args []string) []string {
 
 	// Unless the test passes a `--config` of its own, create a temporary one from the default
 	// configuration with the current test database applied.
-	hasConfig := slices.Contains(args, "--config")
+	hasConfig := h.disableAutoConfig
+	if slices.Contains(args, "--config") {
+		hasConfig = true
+	}
 
 	if !hasConfig {
 		ret = append(ret, "--config", h.configFilePath)
