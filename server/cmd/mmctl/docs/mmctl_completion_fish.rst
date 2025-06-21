@@ -1,46 +1,37 @@
-.. _mmctl_completion_bash:
+.. _mmctl_completion_fish:
 
-mmctl completion bash
+mmctl completion fish
 ---------------------
 
-Generate the autocompletion script for bash
+Generate the autocompletion script for fish
 
 Synopsis
 ~~~~~~~~
 
 
-Generate the autocompletion script for the bash shell.
-
-This script depends on the 'bash-completion' package.
-If it is not installed already, you can install it via your OS's package manager.
+Generate the autocompletion script for the fish shell.
 
 To load completions in your current shell session:
 
-	source <(mmctl completion bash)
+	mmctl completion fish | source
 
 To load completions for every new session, execute once:
 
-#### Linux:
-
-	mmctl completion bash > /etc/bash_completion.d/mmctl
-
-#### macOS:
-
-	mmctl completion bash > $(brew --prefix)/etc/bash_completion.d/mmctl
+	mmctl completion fish > ~/.config/fish/completions/mmctl.fish
 
 You will need to start a new shell for this setup to take effect.
 
 
 ::
 
-  mmctl completion bash
+  mmctl completion fish [flags]
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help              help for bash
+  -h, --help              help for fish
       --no-descriptions   disable completion descriptions
 
 Options inherited from parent commands
