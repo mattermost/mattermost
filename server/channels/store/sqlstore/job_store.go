@@ -382,7 +382,7 @@ func (jss SqlJobStore) GetAllByTypesAndStatusesPage(c request.CTX, jobType []str
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType, "Status": status}).
 		OrderBy("CreateAt DESC").
-		Limit(uint64(perPage)).
+		Limit(uint64(limit)).
 		Offset(uint64(offset)).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
