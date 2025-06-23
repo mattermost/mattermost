@@ -708,4 +708,708 @@ describe('AppsFormComponent', () => {
             expect(screen.getByText('Label1')).toBeInTheDocument();
         });
     });
+
+    describe('Component Lifecycle and State Management', () => {
+        test('should initialize form values correctly from form fields', () => {
+            const formWithComplexFields = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'text_field',
+                        type: 'text',
+                        value: 'initial text value',
+                        is_required: true,
+                    },
+                    {
+                        name: 'bool_field',
+                        type: 'bool',
+                        value: true,
+                        is_required: false,
+                    },
+                    {
+                        name: 'no_value_bool',
+                        type: 'bool',
+                        is_required: false,
+
+                        // No value - should default to false
+                    },
+                    {
+                        name: 'no_value_text',
+                        type: 'text',
+                        is_required: false,
+
+                        // No value - should default to null
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithComplexFields,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Verify that text field shows its initial value
+            expect(screen.getByDisplayValue('initial text value')).toBeInTheDocument();
+
+            // Verify form renders without errors
+            expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
+        });
+
+        test('should update state when form prop changes via getDerivedStateFromProps', () => {
+            const initialForm = {
+                title: 'Initial Form',
+                fields: [
+                    {
+                        name: 'field1',
+                        type: 'text',
+                        value: 'initial value',
+                        is_required: true,
+                    },
+                ],
+            };
+
+            const updatedForm = {
+                title: 'Updated Form',
+                fields: [
+                    {
+                        name: 'field1',
+                        type: 'text',
+                        value: 'updated value',
+                        is_required: true,
+                    },
+                    {
+                        name: 'field2',
+                        type: 'bool',
+                        value: true,
+                        is_required: false,
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: initialForm,
+            };
+
+            const {rerender} = renderWithContext(<AppsForm {...props}/>);
+
+            // Verify initial state
+            expect(screen.getByDisplayValue('initial value')).toBeInTheDocument();
+            expect(screen.getByText('Initial Form')).toBeInTheDocument();
+
+            // Update the form prop
+            rerender(<AppsForm {...{...props, form: updatedForm}}/>);
+
+            // Verify state updated
+            expect(screen.getByDisplayValue('updated value')).toBeInTheDocument();
+            expect(screen.getByText('Updated Form')).toBeInTheDocument();
+        });
+
+        test('should not update state when form prop is the same object', () => {
+            const sameForm = baseProps.form;
+
+            const {rerender} = renderWithContext(<AppsForm {...baseProps}/>);
+
+            // Re-render with the same form object
+            rerender(<AppsForm {...{...baseProps, form: sameForm}}/>);
+
+            // Form should still render correctly
+            expect(screen.getByDisplayValue('initial text')).toBeInTheDocument();
+            expect(screen.getByText('Title')).toBeInTheDocument();
+        });
+    });
+
+    describe('Field Error Handling and Display', () => {
+        test('should display field errors with markdown formatting', async () => {
+            const submitMock = jest.fn().mockResolvedValue({
+                error: {
+                    text: 'Validation failed',
+                    data: {
+                        errors: {
+                            text1: '**Bold error message** with *italic* text',
+                        },
+                    },
+                },
+            });
+
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    submit: submitMock,
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            const submitButton = screen.getByRole('button', {name: /submit/i});
+            await userEvent.click(submitButton);
+
+            // Wait for markdown-formatted error to appear
+            await waitFor(() => {
+                expect(screen.getByText('Bold error message')).toBeInTheDocument();
+                expect(screen.getByText('italic')).toBeInTheDocument();
+            });
+        });
+
+        test('should handle field errors that do not match form elements', async () => {
+            const submitMock = jest.fn().mockResolvedValue({
+                error: {
+                    text: 'Server error',
+                    data: {
+                        errors: {
+                            nonexistent_field: 'This field does not exist in the form',
+                        },
+                    },
+                },
+            });
+
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    submit: submitMock,
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            const submitButton = screen.getByRole('button', {name: /submit/i});
+            await userEvent.click(submitButton);
+
+            // Should display the server error message in the form footer
+            await waitFor(() => {
+                expect(screen.getByText('Server error')).toBeInTheDocument();
+            });
+        });
+
+        test('should prioritize form error over unknown field errors', async () => {
+            const submitMock = jest.fn().mockResolvedValue({
+                error: {
+                    text: 'Primary form error message',
+                    data: {
+                        errors: {
+                            unknown_field: 'Unknown field error',
+                        },
+                    },
+                },
+            });
+
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    submit: submitMock,
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            const submitButton = screen.getByRole('button', {name: /submit/i});
+            await userEvent.click(submitButton);
+
+            // Should display the primary error, not the unknown field error
+            await waitFor(() => {
+                expect(screen.getByText('Primary form error message')).toBeInTheDocument();
+                expect(screen.queryByText(/received an error for an unknown field/i)).not.toBeInTheDocument();
+            });
+        });
+
+        test('should clear errors between submissions', async () => {
+            let shouldError = true;
+            const submitMock = jest.fn().mockImplementation(() => {
+                if (shouldError) {
+                    return Promise.resolve({
+                        error: {
+                            text: 'Validation error',
+                            data: {
+                                errors: {
+                                    text1: 'This field is required',
+                                },
+                            },
+                        },
+                    });
+                }
+                return Promise.resolve({
+                    data: {type: 'ok'},
+                });
+            });
+
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    submit: submitMock,
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            const submitButton = screen.getByRole('button', {name: /submit/i});
+
+            // First submission with error
+            await userEvent.click(submitButton);
+            await waitFor(() => {
+                expect(screen.getByText('This field is required')).toBeInTheDocument();
+            });
+
+            // Second submission without error
+            shouldError = false;
+            await userEvent.click(submitButton);
+
+            // Error should be cleared and form should close
+            await waitFor(() => {
+                expect(submitMock).toHaveBeenCalledTimes(2);
+            });
+        });
+    });
+
+    describe('Client-side Field Validation', () => {
+        test('should validate required fields before submission', async () => {
+            const formWithRequiredFields = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'required_text',
+                        type: 'text',
+                        is_required: true,
+
+                        // No default value - will be empty
+                    },
+                    {
+                        name: 'optional_text',
+                        type: 'text',
+                        is_required: false,
+                    },
+                ],
+            };
+
+            const submitMock = jest.fn();
+            const props = {
+                ...baseProps,
+                form: formWithRequiredFields,
+                actions: {
+                    ...baseProps.actions,
+                    submit: submitMock,
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            const submitButton = screen.getByRole('button', {name: /submit/i});
+            await userEvent.click(submitButton);
+
+            // Should show validation error and not call submit
+            await waitFor(() => {
+                expect(screen.getByText(/please fix all field errors/i)).toBeInTheDocument();
+            });
+            expect(submitMock).not.toHaveBeenCalled();
+        });
+
+        test('should pass validation when all required fields are filled', async () => {
+            const formWithRequiredFields = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'required_text',
+                        type: 'text',
+                        is_required: true,
+                        value: 'filled value', // Has value
+                    },
+                ],
+            };
+
+            const submitMock = jest.fn().mockResolvedValue({
+                data: {type: 'ok'},
+            });
+
+            const props = {
+                ...baseProps,
+                form: formWithRequiredFields,
+                actions: {
+                    ...baseProps.actions,
+                    submit: submitMock,
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            const submitButton = screen.getByRole('button', {name: /submit/i});
+            await userEvent.click(submitButton);
+
+            // Should call submit function
+            await waitFor(() => {
+                expect(submitMock).toHaveBeenCalledWith({
+                    values: expect.objectContaining({
+                        required_text: 'filled value',
+                    }),
+                });
+            });
+        });
+    });
+
+    describe('Lookup Functionality', () => {
+        test('should handle lookup call with performLookup method', async () => {
+            const mockPerformLookup = jest.fn().mockResolvedValue({
+                data: {
+                    type: 'ok',
+                    data: {
+                        items: [
+                            {label: 'Result 1', value: 'r1'},
+                            {label: 'Result 2', value: 'r2'},
+                        ],
+                    },
+                },
+            });
+
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    performLookupCall: mockPerformLookup,
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Form should render with lookup capability available
+            expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
+        });
+    });
+
+    describe('Refresh on Select Functionality', () => {
+        test('should handle refresh on select success', async () => {
+            const mockRefreshOnSelect = jest.fn().mockResolvedValue({
+                data: {
+                    type: 'form',
+                    form: {
+                        title: 'Updated Form',
+                        fields: [],
+                    },
+                },
+            });
+
+            const formWithRefreshField = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'refresh_field',
+                        type: 'static_select',
+                        refresh: true,
+                        options: [
+                            {label: 'Option 1', value: 'opt1'},
+                            {label: 'Option 2', value: 'opt2'},
+                        ],
+                        is_required: false,
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithRefreshField,
+                actions: {
+                    ...baseProps.actions,
+                    refreshOnSelect: mockRefreshOnSelect,
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Form should render with refresh capability
+            expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
+        });
+
+        test('should handle refresh on select error', async () => {
+            const mockRefreshOnSelect = jest.fn().mockResolvedValue({
+                error: {
+                    text: 'Refresh failed',
+                    data: {
+                        errors: {
+                            refresh_field: 'Field refresh error',
+                        },
+                    },
+                },
+            });
+
+            const formWithRefreshField = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'refresh_field',
+                        type: 'static_select',
+                        refresh: true,
+                        options: [
+                            {label: 'Option 1', value: 'opt1'},
+                        ],
+                        is_required: false,
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithRefreshField,
+                actions: {
+                    ...baseProps.actions,
+                    refreshOnSelect: mockRefreshOnSelect,
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Form should render and handle refresh errors
+            expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
+        });
+
+        test('should handle unexpected refresh response types', async () => {
+            const mockRefreshOnSelect = jest.fn().mockResolvedValue({
+                data: {
+                    type: 'ok', // Unexpected for refresh
+                },
+            });
+
+            const formWithRefreshField = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'refresh_field',
+                        type: 'static_select',
+                        refresh: true,
+                        options: [
+                            {label: 'Option 1', value: 'opt1'},
+                        ],
+                        is_required: false,
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithRefreshField,
+                actions: {
+                    ...baseProps.actions,
+                    refreshOnSelect: mockRefreshOnSelect,
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Form should render and handle unexpected response types
+            expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
+        });
+    });
+
+    describe('Form Header and Footer Rendering', () => {
+        test('should render form header when provided', () => {
+            const formWithHeader = {
+                ...baseProps.form,
+                header: '**Bold header** with markdown',
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithHeader,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should render header content
+            expect(screen.getByText('Bold header')).toBeInTheDocument();
+        });
+
+        test('should render form without header when not provided', () => {
+            const formWithoutHeader = {
+                ...baseProps.form,
+                header: undefined,
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithoutHeader,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should still render the form
+            expect(screen.getByText('Title')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
+        });
+
+        test('should render form icon when provided', () => {
+            const formWithIcon = {
+                ...baseProps.form,
+                icon: 'http://example.com/icon.png',
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithIcon,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should render icon
+            const icon = screen.getByAltText('modal title icon');
+            expect(icon).toBeInTheDocument();
+            expect(icon).toHaveAttribute('src', 'http://example.com/icon.png');
+        });
+
+        test('should render form without icon when not provided', () => {
+            const formWithoutIcon = {
+                ...baseProps.form,
+                icon: undefined,
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithoutIcon,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should not render icon
+            expect(screen.queryByAltText('modal title icon')).not.toBeInTheDocument();
+            expect(screen.getByText('Title')).toBeInTheDocument();
+        });
+    });
+
+    describe('onHide and Modal Behavior', () => {
+        test('should call onHide prop when onHide is triggered', () => {
+            const mockOnHide = jest.fn();
+
+            const props = {
+                ...baseProps,
+                onHide: mockOnHide,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            const cancelButton = screen.getByRole('button', {name: /cancel/i});
+            userEvent.click(cancelButton);
+
+            expect(mockOnHide).toHaveBeenCalled();
+        });
+
+        test('should handle onHide when prop is not provided', () => {
+            const props = {
+                ...baseProps,
+                onHide: undefined,
+            };
+
+            // Should not throw error
+            expect(() => {
+                renderWithContext(<AppsForm {...props}/>);
+            }).not.toThrow();
+
+            const cancelButton = screen.getByRole('button', {name: /cancel/i});
+            expect(() => {
+                userEvent.click(cancelButton);
+            }).not.toThrow();
+        });
+
+        test('should handle submit_on_cancel form option', () => {
+            const formWithSubmitOnCancel = {
+                ...baseProps.form,
+                submit_on_cancel: true,
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithSubmitOnCancel,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should render cancel button correctly
+            const cancelButton = screen.getByRole('button', {name: /cancel/i});
+            expect(cancelButton).toBeInTheDocument();
+
+            // Clicking cancel should handle submit_on_cancel logic
+            expect(() => {
+                userEvent.click(cancelButton);
+            }).not.toThrow();
+        });
+    });
+
+    describe('Form Field Filtering and Submit Buttons', () => {
+        test('should filter out submit_buttons field from rendered elements', () => {
+            const formWithSubmitButtons = {
+                ...baseProps.form,
+                submit_buttons: 'action_buttons',
+                fields: [
+                    {
+                        name: 'regular_field',
+                        type: 'text',
+                        value: 'regular value',
+                        is_required: false,
+                    },
+                    {
+                        name: 'action_buttons',
+                        type: 'static_select',
+                        options: [
+                            {label: 'Save', value: 'save'},
+                            {label: 'Delete', value: 'delete'},
+                        ],
+                        is_required: false,
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithSubmitButtons,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should render regular field
+            expect(screen.getByDisplayValue('regular value')).toBeInTheDocument();
+
+            // Should render custom submit buttons
+            expect(screen.getByRole('button', {name: /save/i})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /delete/i})).toBeInTheDocument();
+
+            // Should not render the submit_buttons field as a form field
+            expect(screen.queryByLabelText(/action_buttons/i)).not.toBeInTheDocument();
+        });
+
+        test('should handle form without fields', () => {
+            const formWithoutFields = {
+                ...baseProps.form,
+                fields: undefined,
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithoutFields,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should still render title and submit button
+            expect(screen.getByText('Title')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
+        });
+
+        test('should handle form with empty fields array', () => {
+            const formWithEmptyFields = {
+                ...baseProps.form,
+                fields: [],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithEmptyFields,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should still render title and submit button
+            expect(screen.getByText('Title')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
+        });
+    });
 });

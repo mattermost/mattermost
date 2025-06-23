@@ -1477,4 +1477,410 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             mockUseState.mockRestore();
         });
     });
+
+    describe('Advanced Validation Scenarios', () => {
+        test('should validate element max_length constraints for different field types', async () => {
+            const elementsWithInvalidLengths: DialogElement[] = [
+                {
+                    name: 'text_field',
+                    type: 'text',
+                    display_name: 'Text Field',
+                    max_length: 200, // Exceeds 150 limit for text
+                    subtype: '',
+                    default: '',
+                    placeholder: '',
+                    help_text: '',
+                    optional: false,
+                    min_length: 0,
+                    data_source: '',
+                    options: [],
+                },
+                {
+                    name: 'textarea_field',
+                    type: 'textarea',
+                    display_name: 'Textarea Field',
+                    max_length: 4000, // Exceeds 3000 limit for textarea
+                    subtype: '',
+                    default: '',
+                    placeholder: '',
+                    help_text: '',
+                    optional: false,
+                    min_length: 0,
+                    data_source: '',
+                    options: [],
+                },
+                {
+                    name: 'select_field',
+                    type: 'select',
+                    display_name: 'Select Field',
+                    max_length: 4000, // Exceeds 3000 limit for select
+                    subtype: '',
+                    default: '',
+                    placeholder: '',
+                    help_text: '',
+                    optional: false,
+                    min_length: 0,
+                    data_source: '',
+                    options: [{text: 'Option1', value: 'opt1'}],
+                },
+                {
+                    name: 'bool_field',
+                    type: 'bool',
+                    display_name: 'Bool Field',
+                    max_length: 200, // Exceeds 150 limit for bool
+                    subtype: '',
+                    default: '',
+                    placeholder: '',
+                    help_text: '',
+                    optional: false,
+                    min_length: 0,
+                    data_source: '',
+                    options: [],
+                },
+            ];
+
+            const props = {
+                ...baseProps,
+                elements: elementsWithInvalidLengths,
+                conversionOptions: {
+                    validateInputs: true,
+                    strictMode: false,
+                },
+            };
+
+            renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            // Should warn about all max_length violations but continue rendering
+            await waitFor(() => {
+                expect(mockConsole.warn).toHaveBeenCalledTimes(4); // One call per invalid element
+                expect(mockConsole.warn).toHaveBeenCalledWith(
+                    '[InteractiveDialogAdapter]',
+                    'Element validation errors for text_field',
+                    expect.objectContaining({
+                        errors: expect.arrayContaining([
+                            expect.objectContaining({
+                                code: 'TOO_LONG',
+                                message: expect.stringContaining('max_length too large'),
+                            }),
+                        ]),
+                    }),
+                );
+            });
+        });
+
+        test('should validate min/max length relationships', async () => {
+            const elementWithInvalidRange: DialogElement = {
+                name: 'invalid_range',
+                type: 'text',
+                display_name: 'Invalid Range',
+                min_length: 100,
+                max_length: 50, // min > max
+                subtype: '',
+                default: '',
+                placeholder: '',
+                help_text: '',
+                optional: false,
+                data_source: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [elementWithInvalidRange],
+                conversionOptions: {
+                    validateInputs: true,
+                },
+            };
+
+            renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(mockConsole.warn).toHaveBeenCalledWith(
+                    '[InteractiveDialogAdapter]',
+                    'Element validation errors for invalid_range',
+                    expect.objectContaining({
+                        errors: expect.arrayContaining([
+                            expect.objectContaining({
+                                code: 'INVALID_FORMAT',
+                                message: 'min_length cannot be greater than max_length',
+                            }),
+                        ]),
+                    }),
+                );
+            });
+        });
+
+        test('should validate conflicting select configurations', async () => {
+            const conflictingSelectElement: DialogElement = {
+                name: 'conflicting_select',
+                type: 'select',
+                display_name: 'Conflicting Select',
+                options: [{text: 'Option1', value: 'opt1'}],
+                data_source: 'users', // Conflict: both options and data_source
+                subtype: '',
+                default: '',
+                placeholder: '',
+                help_text: '',
+                optional: false,
+                min_length: 0,
+                max_length: 0,
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [conflictingSelectElement],
+                conversionOptions: {
+                    validateInputs: true,
+                },
+            };
+
+            renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(mockConsole.warn).toHaveBeenCalledWith(
+                    '[InteractiveDialogAdapter]',
+                    'Element validation errors for conflicting_select',
+                    expect.objectContaining({
+                        errors: expect.arrayContaining([
+                            expect.objectContaining({
+                                code: 'INVALID_FORMAT',
+                                message: 'Select element cannot have both options and data_source',
+                            }),
+                        ]),
+                    }),
+                );
+            });
+        });
+    });
+
+    describe('Enhanced Type Conversion', () => {
+        test('should handle data_source selectors correctly', async () => {
+            const userSelectorElement: DialogElement = {
+                name: 'user_selector',
+                type: 'select',
+                display_name: 'User Selector',
+                data_source: 'users',
+                subtype: '',
+                default: '',
+                placeholder: '',
+                help_text: '',
+                optional: false,
+                min_length: 0,
+                max_length: 0,
+                options: [],
+            };
+
+            const channelSelectorElement: DialogElement = {
+                name: 'channel_selector',
+                type: 'select',
+                display_name: 'Channel Selector',
+                data_source: 'channels',
+                subtype: '',
+                default: '',
+                placeholder: '',
+                help_text: '',
+                optional: false,
+                min_length: 0,
+                max_length: 0,
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [userSelectorElement, channelSelectorElement],
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('field-type-user_selector')).toHaveTextContent('user');
+                expect(getByTestId('field-type-channel_selector')).toHaveTextContent('channel');
+            });
+        });
+
+        test('should handle textarea subtype correctly', async () => {
+            const textareaElement: DialogElement = {
+                name: 'description',
+                type: 'textarea',
+                display_name: 'Description',
+                default: 'Default description text',
+                subtype: '',
+                placeholder: '',
+                help_text: '',
+                optional: false,
+                min_length: 0,
+                max_length: 0,
+                data_source: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [textareaElement],
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('field-type-description')).toHaveTextContent('text'); // Maps to TEXT type
+                expect(getByTestId('field-value-description')).toHaveTextContent('"Default description text"');
+            });
+        });
+
+        test('should handle text subtypes (email, password, number)', async () => {
+            const textElements: DialogElement[] = [
+                {
+                    name: 'email_field',
+                    type: 'text',
+                    subtype: 'email',
+                    display_name: 'Email Field',
+                    default: 'test@example.com',
+                    placeholder: '',
+                    help_text: '',
+                    optional: false,
+                    min_length: 0,
+                    max_length: 0,
+                    data_source: '',
+                    options: [],
+                },
+                {
+                    name: 'password_field',
+                    type: 'text',
+                    subtype: 'password',
+                    display_name: 'Password Field',
+                    default: '',
+                    placeholder: '',
+                    help_text: '',
+                    optional: false,
+                    min_length: 0,
+                    max_length: 0,
+                    data_source: '',
+                    options: [],
+                },
+                {
+                    name: 'number_field',
+                    type: 'text',
+                    subtype: 'number',
+                    display_name: 'Number Field',
+                    default: '42',
+                    placeholder: '',
+                    help_text: '',
+                    optional: false,
+                    min_length: 0,
+                    max_length: 0,
+                    data_source: '',
+                    options: [],
+                },
+            ];
+
+            const props = {
+                ...baseProps,
+                elements: textElements,
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('field-value-email_field')).toHaveTextContent('"test@example.com"');
+                expect(getByTestId('field-value-password_field')).toHaveTextContent('""'); // Empty string, not null
+                expect(getByTestId('field-value-number_field')).toHaveTextContent('"42"');
+            });
+        });
+    });
+
+    describe('Error Handling and Recovery', () => {
+        test('should handle element conversion errors gracefully in non-strict mode', async () => {
+            const problematicElement = {
+                name: 'problematic',
+                type: 'invalid_type', // This will cause conversion error
+                display_name: 'Problematic Element',
+            } as DialogElement;
+
+            const props = {
+                ...baseProps,
+                elements: [problematicElement],
+                conversionOptions: {
+                    validateInputs: true,
+                    strictMode: false, // Should continue processing
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('form-fields-count')).toHaveTextContent('1'); // Should still create placeholder field
+                expect(mockConsole.warn).toHaveBeenCalledWith(
+                    '[InteractiveDialogAdapter]',
+                    'Unknown dialog element type encountered',
+                    expect.objectContaining({
+                        elementType: 'invalid_type',
+                        fallbackType: 'TEXT',
+                    }),
+                );
+            });
+        });
+
+        test('should throw error in strict mode for validation failures', async () => {
+            const invalidElement: DialogElement = {
+                name: '', // Invalid: empty name
+                type: 'text',
+                display_name: '',
+                subtype: '',
+                default: '',
+                placeholder: '',
+                help_text: '',
+                optional: false,
+                min_length: 0,
+                max_length: 0,
+                data_source: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [invalidElement],
+                conversionOptions: {
+                    validateInputs: true,
+                    strictMode: true,
+                },
+            };
+
+            expect(() => {
+                renderWithContext(
+                    <InteractiveDialogAdapter {...props}/>,
+                );
+            }).toThrow('Element validation failed:');
+        });
+
+        test('should handle missing title in strict mode', async () => {
+            const props = {
+                ...baseProps,
+                title: '', // Invalid: empty title
+                conversionOptions: {
+                    validateInputs: true,
+                    strictMode: true,
+                },
+            };
+
+            expect(() => {
+                renderWithContext(
+                    <InteractiveDialogAdapter {...props}/>,
+                );
+            }).toThrow('Dialog validation failed:');
+        });
+    });
 });
