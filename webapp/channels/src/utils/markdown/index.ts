@@ -3,7 +3,7 @@
 
 import marked from 'marked';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getAutolinkedUrlSchemes, getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import store from 'stores/redux_store';
 
@@ -16,7 +16,10 @@ import Renderer from './renderer';
 const removeMarkdown = new RemoveMarkdown();
 
 export function format(text: string, options = {}, emojiMap?: EmojiMap) {
-    return formatWithRenderer(text, new Renderer({}, options, emojiMap));
+    return formatWithRenderer(text, new Renderer({}, {
+        ...options,
+        autolinkedUrlSchemes: getAutolinkedUrlSchemes(store.getState()),
+    } as any, emojiMap));
 }
 
 export function formatWithRenderer(text: string, renderer: marked.Renderer) {

@@ -176,13 +176,6 @@ export interface TextFormattingOptionsBase {
     proxyImages: boolean;
 
     /**
-     * An array of url schemes that will be allowed for autolinking.
-     *
-     * Defaults to autolinking with any url scheme.
-     */
-    autolinkedUrlSchemes: string[];
-
-    /**
      * An array of paths on the server that are managed by another server. Any path provided will be treated as an
      * external link that will not by handled by react-router.
      *
