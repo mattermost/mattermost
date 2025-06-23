@@ -18,6 +18,10 @@ func TestFilterOutOfChannelMentions_ABAC(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+		t.Skip("Access control tests are not supported on MySQL")
+	}
+
 	// Enable ABAC in config
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
@@ -280,6 +284,10 @@ func TestSendOutOfChannelMentions_ABAC(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+		t.Skip("Access control tests are not supported on MySQL")
+	}
 
 	// Enable ABAC in config
 	th.App.UpdateConfig(func(cfg *model.Config) {
