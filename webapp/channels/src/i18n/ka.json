@@ -435,7 +435,6 @@
   "admin.jobTable.downloadLink": "ჩამოტვირთვა",
   "admin.ldap.syncIntervalTitle": "სინქრონიზაციის ინტერვალი (წუთები):",
   "admin.ldap.syncNowHelpText": "მყესეულად აინიცირებს AD/LDAP სინქრონიზაციას. ნახეთ ქვევით მოყვანილი ცხრილი ყოველი სინქრონიზაციის სტატუსისთვის. ნახეთ \"სისტემის კონსოლი> ლოგები\" და [დოკუმენტაცია](!https://mattermost.com/default-ldap-docs) შეცდომების გასწორებისთვის.",
-  "admin.ldap.testFailure": "AD/LDAP ტესტის შეცდომა: {error}",
   "admin.manage_roles.cancel": "გაუქმება",
   "admin.manage_roles.save": "შენახვა",
   "admin.member_list_group.name": "სახელი",
