@@ -138,9 +138,7 @@ func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
 		return
 	}
 
-	for _, channel := range channels {
-		s.channel.indexChannelWithTeamMembers(rctx, channel, teamMemberIDs)
-	}
+	s.channel.bulkIndexChannels(rctx, channels, teamMemberIDs)
 }
 
 // Runs an indexing function synchronously or asynchronously depending on the engine
