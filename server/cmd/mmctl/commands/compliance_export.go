@@ -50,7 +50,7 @@ var ComplianceExportCancelCmd = &cobra.Command{
 
 var ComplianceExportDownloadCmd = &cobra.Command{
 	Use:     "download [complianceExportJobID] [output filepath (optional)]",
-	Example: "compliance_export download o98rj3ur83dp5dppfyk5yk6osy",
+	Example: "compliance-export download o98rj3ur83dp5dppfyk5yk6osy",
 	Short:   "Download compliance export file",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(complianceExportDownloadCmdF),
@@ -58,7 +58,7 @@ var ComplianceExportDownloadCmd = &cobra.Command{
 
 var ComplianceExportCreateCmd = &cobra.Command{
 	Use:     "create [complianceExportType] --date \"2025-03-27 -0400\"",
-	Example: "compliance_export create csv --date \"2025-03-27 -0400\"",
+	Example: "compliance-export create csv --date \"2025-03-27 -0400\"",
 	Long: "Create a compliance export job, of type 'csv' or 'actiance' or 'globalrelay'. If --date is set, the job will run for one day, from 12am to 12am (minus one millisecond) inclusively, in the format with timezone offset: `\"YYYY-MM-DD -0000\"`. E.g., \"2024-10-21 -0400\" for Oct 21, 2024 EDT timezone. \"2023-11-01 +0000\" for Nov 01, 2024 UTC. If set, the 'start' and 'end' flags will be ignored.\n\n" +
 		"Important: Running a compliance export job from mmctl will NOT affect the next scheduled job's batch_start_time. This means that if you run a compliance export job from mmctl, the next scheduled job will run from the batch_end_time of the previous scheduled job, as usual.",
 	Short: "Create a compliance export job, of type 'csv' or 'actiance' or 'globalrelay'",
