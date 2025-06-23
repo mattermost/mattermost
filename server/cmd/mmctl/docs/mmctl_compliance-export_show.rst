@@ -1,29 +1,33 @@
-.. _mmctl_compliance_export_list:
+.. _mmctl_compliance-export_show:
 
-mmctl compliance_export list
+mmctl compliance-export show
 ----------------------------
 
-List compliance export jobs, sorted by creation date descending (newest first)
+Show compliance export job
 
 Synopsis
 ~~~~~~~~
 
 
-List compliance export jobs, sorted by creation date descending (newest first)
+Show compliance export job
 
 ::
 
-  mmctl compliance_export list [flags]
+  mmctl compliance-export show [complianceExportJobID] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+  compliance-export show o98rj3ur83dp5dppfyk5yk6osy
 
 Options
 ~~~~~~~
 
 ::
 
-      --all            Fetch all compliance export jobs. --page flag will be ignored if provided
-  -h, --help           help for list
-      --page int       Page number to fetch for the list of compliance export jobs
-      --per-page int   Number of compliance export jobs to be fetched (default 200)
+  -h, --help   help for show
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -43,5 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl compliance_export <mmctl_compliance_export.rst>`_ 	 - Management of compliance exports
+* `mmctl compliance-export <mmctl_compliance-export.rst>`_ 	 - Management of compliance exports
 

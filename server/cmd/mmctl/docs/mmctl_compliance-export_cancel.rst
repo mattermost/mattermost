@@ -1,33 +1,33 @@
-.. _mmctl_compliance_export_show:
+.. _mmctl_compliance-export_cancel:
 
-mmctl compliance_export show
-----------------------------
+mmctl compliance-export cancel
+------------------------------
 
-Show compliance export job
+Cancel compliance export job
 
 Synopsis
 ~~~~~~~~
 
 
-Show compliance export job
+Cancel compliance export job
 
 ::
 
-  mmctl compliance_export show [complianceExportJobID] [flags]
+  mmctl compliance-export cancel [complianceExportJobID] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-  compliance_export show o98rj3ur83dp5dppfyk5yk6osy
+  compliance-export cancel o98rj3ur83dp5dppfyk5yk6osy
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for show
+  -h, --help   help for cancel
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,5 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl compliance_export <mmctl_compliance_export.rst>`_ 	 - Management of compliance exports
+* `mmctl compliance-export <mmctl_compliance-export.rst>`_ 	 - Management of compliance exports
 

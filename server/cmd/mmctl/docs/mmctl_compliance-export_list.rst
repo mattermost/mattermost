@@ -1,33 +1,29 @@
-.. _mmctl_compliance_export_cancel:
+.. _mmctl_compliance-export_list:
 
-mmctl compliance_export cancel
-------------------------------
+mmctl compliance-export list
+----------------------------
 
-Cancel compliance export job
+List compliance export jobs, sorted by creation date descending (newest first)
 
 Synopsis
 ~~~~~~~~
 
 
-Cancel compliance export job
+List compliance export jobs, sorted by creation date descending (newest first)
 
 ::
 
-  mmctl compliance_export cancel [complianceExportJobID] [flags]
-
-Examples
-~~~~~~~~
-
-::
-
-  compliance_export cancel o98rj3ur83dp5dppfyk5yk6osy
+  mmctl compliance-export list [flags]
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for cancel
+      --all            Fetch all compliance export jobs. --page flag will be ignored if provided
+  -h, --help           help for list
+      --page int       Page number to fetch for the list of compliance export jobs
+      --per-page int   Number of compliance export jobs to be fetched (default 200)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,5 +43,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl compliance_export <mmctl_compliance_export.rst>`_ 	 - Management of compliance exports
+* `mmctl compliance-export <mmctl_compliance-export.rst>`_ 	 - Management of compliance exports
 
