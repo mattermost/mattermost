@@ -147,13 +147,6 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, rctx, ss, s) })
 	t.Run("GetChannelsBatchForIndexing", func(t *testing.T) { testChannelStoreGetChannelsBatchForIndexing(t, rctx, ss) })
 	t.Run("GroupSyncedChannelCount", func(t *testing.T) { testGroupSyncedChannelCount(t, rctx, ss) })
-	t.Run("CreateInitialSidebarCategories", func(t *testing.T) { testCreateInitialSidebarCategories(t, rctx, ss) })
-	t.Run("CreateSidebarCategory", func(t *testing.T) { testCreateSidebarCategory(t, rctx, ss) })
-	t.Run("GetSidebarCategory", func(t *testing.T) { testGetSidebarCategory(t, rctx, ss, s) })
-	t.Run("GetSidebarCategories", func(t *testing.T) { testGetSidebarCategories(t, rctx, ss) })
-	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, rctx, ss) })
-	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, rctx, ss, s) })
-	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, rctx, ss) })
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, rctx, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, rctx, ss) })
 	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, rctx, ss) })
@@ -3882,6 +3875,7 @@ func testChannelStoreGetChannels(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	userID := model.NewId()
 	team := &model.Team{
 		DisplayName: "Team1",
 		Name:        NewTestID(),
@@ -3922,9 +3916,12 @@ func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.
 	_, nErr = ss.Channel().Save(rctx, &o3, -1)
 	require.NoError(t, nErr)
 
+	o4, nErr := ss.Channel().CreateDirectChannel(rctx, &model.User{Id: userID}, &model.User{Id: model.NewId()})
+	require.NoError(t, nErr)
+
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
-	m1.UserId = model.NewId()
+	m1.UserId = userID
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	_, err = ss.Channel().SaveMember(rctx, &m1)
 	require.NoError(t, err)
@@ -3938,22 +3935,25 @@ func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.
 
 	m3 := model.ChannelMember{}
 	m3.ChannelId = o2.Id
-	m3.UserId = m1.UserId
+	m3.UserId = userID
 	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 	_, err = ss.Channel().SaveMember(rctx, &m3)
 	require.NoError(t, err)
 
 	m4 := model.ChannelMember{}
 	m4.ChannelId = o3.Id
-	m4.UserId = m1.UserId
+	m4.UserId = userID
 	m4.NotifyProps = model.GetDefaultChannelNotifyProps()
 	_, err = ss.Channel().SaveMember(rctx, &m4)
 	require.NoError(t, err)
 
-	list, nErr := ss.Channel().GetChannelsByUser(m1.UserId, false, 0, -1, "")
+	// No need to save member for direct channel
+	// since create direct channel already saves the members
+
+	list, nErr := ss.Channel().GetChannelsByUser(userID, false, 0, -1, "")
 	require.NoError(t, nErr)
-	require.Len(t, list, 3)
-	require.ElementsMatch(t, []string{o1.Id, o2.Id, o3.Id}, []string{list[0].Id, list[1].Id, list[2].Id}, "channels did not match")
+	require.Len(t, list, 4)
+	require.ElementsMatch(t, []string{o1.Id, o2.Id, o3.Id, o4.Id}, []string{list[0].Id, list[1].Id, list[2].Id, list[3].Id}, "channels did not match")
 
 	nErr = ss.Channel().Delete(o2.Id, 10)
 	require.NoError(t, nErr)
@@ -3962,36 +3962,39 @@ func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.
 	require.NoError(t, nErr)
 
 	// should return 1
-	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, false, 0, -1, "")
-	require.NoError(t, nErr)
-	require.Len(t, list, 1)
-	require.Equal(t, o1.Id, list[0].Id, "missing channel")
-
-	// Should return all
-	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, true, 0, -1, "")
-	require.NoError(t, nErr)
-	require.Len(t, list, 3)
-	require.ElementsMatch(t, []string{o1.Id, o2.Id, o3.Id}, []string{list[0].Id, list[1].Id, list[2].Id}, "channels did not match")
-
-	// Should still return all
-	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, true, 10, -1, "")
-	require.NoError(t, nErr)
-	require.Len(t, list, 3)
-	require.ElementsMatch(t, []string{o1.Id, o2.Id, o3.Id}, []string{list[0].Id, list[1].Id, list[2].Id}, "channels did not match")
-
-	// Should return 2
-	list, nErr = ss.Channel().GetChannelsByUser(m1.UserId, true, 20, -1, "")
+	list, nErr = ss.Channel().GetChannelsByUser(userID, false, 0, -1, "")
 	require.NoError(t, nErr)
 	require.Len(t, list, 2)
-	require.ElementsMatch(t, []string{o1.Id, o3.Id}, []string{list[0].Id, list[1].Id}, "channels did not match")
+	require.ElementsMatch(t, []string{o1.Id, o4.Id}, []string{list[0].Id, list[1].Id}, "channels did not match")
 
-	// Archive team and verify channels don't show up
+	// Should return all
+	list, nErr = ss.Channel().GetChannelsByUser(userID, true, 0, -1, "")
+	require.NoError(t, nErr)
+	require.Len(t, list, 4)
+	require.ElementsMatch(t, []string{o1.Id, o2.Id, o3.Id, o4.Id}, []string{list[0].Id, list[1].Id, list[2].Id, list[3].Id}, "channels did not match")
+
+	// Should still return all
+	list, nErr = ss.Channel().GetChannelsByUser(userID, true, 10, -1, "")
+	require.NoError(t, nErr)
+	require.Len(t, list, 4)
+	require.ElementsMatch(t, []string{o1.Id, o2.Id, o3.Id, o4.Id}, []string{list[0].Id, list[1].Id, list[2].Id, list[3].Id}, "channels did not match")
+
+	// Should return 2
+	list, nErr = ss.Channel().GetChannelsByUser(userID, true, 20, -1, "")
+	require.NoError(t, nErr)
+	require.Len(t, list, 3)
+	require.ElementsMatch(t, []string{o1.Id, o3.Id, o4.Id}, []string{list[0].Id, list[1].Id, list[2].Id}, "channels did not match")
+
+	// Archive team and delete DM and verify channels don't show up
 	team.DeleteAt = model.GetMillis()
 	_, nErr = ss.Team().Update(team)
 	require.NoError(t, nErr)
 
+	nErr = ss.Channel().Delete(o4.Id, 30)
+	require.NoError(t, nErr)
+
 	// Should return an error since team is archived and there are no results
-	_, nErr = ss.Channel().GetChannelsByUser(m1.UserId, false, 0, -1, "")
+	_, nErr = ss.Channel().GetChannelsByUser(userID, false, 0, -1, "")
 	require.Error(t, nErr)
 }
 

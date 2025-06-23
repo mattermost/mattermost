@@ -14,7 +14,7 @@ export default class ChannelsPage {
 
     readonly globalHeader;
     readonly userAccountMenuButton;
-    readonly searchPopover;
+    readonly searchBox;
     readonly centerView;
     readonly scheduledDraftModal;
     readonly sidebarLeft;
@@ -40,7 +40,7 @@ export default class ChannelsPage {
 
         // The main areas of the app
         this.globalHeader = new components.GlobalHeader(this, page.locator('#global-header'));
-        this.searchPopover = new components.SearchPopover(page.locator('#searchPopover'));
+        this.searchBox = new components.SearchBox(page.locator('#searchBox'));
         this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'), page);
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));

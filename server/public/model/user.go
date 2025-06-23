@@ -243,6 +243,19 @@ type ViewUsersRestrictions struct {
 	Channels []string
 }
 
+//msgp:ignore GetUsersNotInChannelOptions
+type GetUsersNotInChannelOptions struct {
+	TeamID string `json:"team_id"`
+	// Page-based pagination (used for non-ABAC channels)
+	// This will be discarded if the channel has an ABAC policy and CursorID will be used.
+	Page  int `json:"page"`
+	Limit int `json:"limit"`
+	// Cursor-based pagination (used for ABAC channels)
+	// If CursorID is empty for ABAC channels, it will start from the beginning
+	CursorID string `json:"cursor_id"`
+	Etag     string `json:"etag"`
+}
+
 func (r *ViewUsersRestrictions) Hash() string {
 	if r == nil {
 		return ""
@@ -659,24 +672,28 @@ func (u *User) Etag(showFullName, showEmail bool) string {
 // Remove any private data from the user object
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
-	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
 	u.MfaUsedTimestamps = nil
 	u.LastLogin = 0
 
-	if len(options) != 0 && !options["email"] {
-		u.Email = ""
-		delete(u.Props, UserPropsKeyRemoteEmail)
-	}
-	if len(options) != 0 && !options["fullname"] {
-		u.FirstName = ""
-		u.LastName = ""
-	}
-	if len(options) != 0 && !options["passwordupdate"] {
-		u.LastPasswordUpdate = 0
-	}
-	if len(options) != 0 && !options["authservice"] {
-		u.AuthService = ""
+	if len(options) != 0 {
+		if !options["email"] {
+			u.Email = ""
+			delete(u.Props, UserPropsKeyRemoteEmail)
+		}
+		if !options["fullname"] {
+			u.FirstName = ""
+			u.LastName = ""
+		}
+		if !options["passwordupdate"] {
+			u.LastPasswordUpdate = 0
+		}
+		if !options["authservice"] {
+			u.AuthService = ""
+		}
+		if !options["authdata"] {
+			u.AuthData = NewPointer("")
+		}
 	}
 }
 
@@ -703,7 +720,6 @@ func (u *User) SanitizeInput(isAdmin bool) {
 
 func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.Password = ""
-	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
 	u.MfaUsedTimestamps = nil
 	u.EmailVerified = false
@@ -711,6 +727,7 @@ func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.LastPasswordUpdate = 0
 
 	if !asAdmin {
+		u.AuthData = NewPointer("")
 		u.NotifyProps = StringMap{}
 		u.FailedAttempts = 0
 	}

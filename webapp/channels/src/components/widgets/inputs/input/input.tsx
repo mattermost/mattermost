@@ -42,6 +42,7 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
     clearable?: boolean;
     clearableTooltipText?: string;
     onClear?: () => void;
+    rows?: number;
     validate?: (value: React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>['value']) => CustomMessageInputType | undefined;
 }
 
@@ -74,6 +75,7 @@ const Input = React.forwardRef((
         onBlur,
         onChange,
         onClear,
+        rows,
         validate,
         ...otherProps
     }: InputProps,
@@ -223,7 +225,7 @@ const Input = React.forwardRef((
                     aria-label={ariaLabel}
                     aria-describedby={customInputLabel ? errorId : undefined}
                     aria-invalid={error || hasError}
-                    rows={3}
+                    rows={rows || 3}
                     name={name}
                     disabled={disabled}
                     {...otherProps}
@@ -256,16 +258,17 @@ const Input = React.forwardRef((
 
     return (
         <div className={classNames('Input_container', containerClassName, {disabled})}>
-            <fieldset
+            <div
                 className={classNames('Input_fieldset', className, {
                     Input_fieldset___error: hasError || customInputLabel?.type === 'error',
                     Input_fieldset___legend: showLegend,
                 })}
+                data-testid='input-wrapper'
             >
                 {useLegend && (
-                    <legend className={classNames('Input_legend', {Input_legend___focus: showLegend})}>
+                    <label className={classNames('Input_legend', {Input_legend___focus: showLegend})}>
                         {showLegend ? formatAsString(formatMessage, label || placeholder) : null}
-                    </legend>
+                    </label>
                 )}
                 <div className={classNames('Input_wrapper', wrapperClassName)}>
                     {inputPrefix}
@@ -275,7 +278,7 @@ const Input = React.forwardRef((
                     {clearButton}
                 </div>
                 {addon}
-            </fieldset>
+            </div>
             {/* Display custom or derived error messages */}
             {customInputLabel && (
                 <div
@@ -290,8 +293,9 @@ const Input = React.forwardRef((
                             'icon-information-outline': (customInputLabel?.type || 'error') === ItemStatus.INFO,
                             'icon-check': (customInputLabel?.type || 'error') === ItemStatus.SUCCESS,
                         })}
-                        aria-hidden={Boolean(customInputLabel.value)}
+                        role='img'
                         aria-label={customInputLabel.value ? '' : customInputLabel.type || 'error'}
+                        aria-hidden={Boolean(customInputLabel.value)}
                     />
                     <span>{customInputLabel?.value}</span>
                 </div>

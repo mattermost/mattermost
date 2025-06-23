@@ -89,7 +89,7 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.uiGetSearchBox().type('from:').wait(TIMEOUTS.ONE_SEC);
 
         // # Trigger the user autocomplete again
-        cy.uiGetSearchBox().first().clear().type('from:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().clear().type('from:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2);
@@ -103,10 +103,10 @@ describe('Verify Accessibility Support in different input fields', () => {
         verifySearchAutocomplete(3);
 
         // # Type the in: filter and ensure channel list is cached once
-        cy.uiGetSearchBox().first().clear().type('in:').wait(TIMEOUTS.ONE_SEC);
+        cy.uiGetSearchBox().clear().type('in:').wait(TIMEOUTS.ONE_SEC);
 
         // # Trigger the channel autocomplete again
-        cy.uiGetSearchBox().first().clear().type('in:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().clear().type('in:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2, 'channel');

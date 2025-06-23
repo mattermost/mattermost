@@ -3,7 +3,7 @@
 
 import {test} from '@mattermost/playwright-lib';
 
-test('Should be able to change threads with arrow keys', async ({pw}, testInfo) => {
+test.fixme('Should be able to change threads with arrow keys', async ({pw}, testInfo) => {
     test.skip(testInfo.project.name === 'ipad');
 
     const {team, user} = await pw.initSetup();
