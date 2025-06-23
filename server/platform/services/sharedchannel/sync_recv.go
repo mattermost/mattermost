@@ -556,6 +556,104 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 	return rpost, rerr
 }
 
+func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowledgement, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.PostAcknowledgement, error) {
+	savedAcknowledgement := acknowledgement
+	var appErr *model.AppError
+
+	// check that the acknowledgement's post is in the target channel. This ensures the acknowledgement can only be associated with a post
+	// that is in a channel shared with the remote.
+	rctx := request.EmptyContext(scs.server.Log())
+	post, err := scs.server.GetStore().Post().GetSingle(rctx, acknowledgement.PostId, true)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching post for acknowledgement sync: %w", err)
+	}
+	if post.ChannelId != targetChannel.Id {
+		return nil, fmt.Errorf("acknowledgement sync failed: %w", ErrChannelIDMismatch)
+	}
+
+	existingAcknowledgement, err := scs.server.GetStore().PostAcknowledgement().GetSingle(acknowledgement.UserId, acknowledgement.PostId, rc.RemoteId)
+	if err != nil && !isNotFoundError(err) {
+		return nil, fmt.Errorf("error fetching acknowledgement for sync: %w", err)
+	}
+
+	if existingAcknowledgement == nil {
+		// acknowledgement does not exist; check that user belongs to remote and create acknowledgement
+		// this is not done for delete since deletion can be done by admins on the remote
+		user, err := scs.server.GetStore().User().Get(context.TODO(), acknowledgement.UserId)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching user for acknowledgement sync: %w", err)
+		}
+		if user.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("acknowledgement sync failed: %w", ErrRemoteIDMismatch)
+		}
+		acknowledgement.RemoteId = model.NewPointer(rc.RemoteId)
+		acknowledgement.ChannelId = targetChannel.Id
+		savedAcknowledgement, appErr = scs.app.SaveAcknowledgementForPostWithModel(request.EmptyContext(scs.server.Log()), acknowledgement)
+	} else {
+		// make sure the acknowledgement being deleted is owned by the remote
+		if existingAcknowledgement.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("acknowledgement sync failed: %w", ErrRemoteIDMismatch)
+		}
+		if acknowledgement.AcknowledgedAt == 0 {
+			// Delete the acknowledgement
+			appErr = scs.app.DeleteAcknowledgementForPostWithModel(request.EmptyContext(scs.server.Log()), acknowledgement)
+		}
+	}
+
+	var retErr error
+	if appErr != nil {
+		retErr = errors.New(appErr.Error())
+	}
+	return savedAcknowledgement, retErr
+}
+
+func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Reaction, error) {
+	savedReaction := reaction
+	var appErr *model.AppError
+
+	// check that the reaction's post is in the target channel. This ensures the reaction can only be associated with a post
+	// that is in a channel shared with the remote.
+	rctx := request.EmptyContext(scs.server.Log())
+	post, err := scs.server.GetStore().Post().GetSingle(rctx, reaction.PostId, true)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching post for reaction sync: %w", err)
+	}
+	if post.ChannelId != targetChannel.Id {
+		return nil, fmt.Errorf("reaction sync failed: %w", ErrChannelIDMismatch)
+	}
+
+	existingReaction, err := scs.server.GetStore().Reaction().GetSingle(reaction.UserId, reaction.PostId, rc.RemoteId, reaction.EmojiName)
+	if err != nil && !isNotFoundError(err) {
+		return nil, fmt.Errorf("error fetching reaction for sync: %w", err)
+	}
+
+	if existingReaction == nil {
+		// reaction does not exist; check that user belongs to remote and create reaction
+		// this is not done for delete since deletion can be done by admins on the remote
+		user, err := scs.server.GetStore().User().Get(context.TODO(), reaction.UserId)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching user for reaction sync: %w", err)
+		}
+		if user.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
+		}
+		reaction.RemoteId = model.NewPointer(rc.RemoteId)
+		savedReaction, appErr = scs.app.SaveReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
+	} else {
+		// make sure the reaction being deleted is owned by the remote
+		if existingReaction.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
+		}
+		appErr = scs.app.DeleteReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
+	}
+
+	var retErr error
+	if appErr != nil {
+		retErr = errors.New(appErr.Error())
+	}
+	return savedReaction, retErr
+}
+
 // syncRemotePriorityMetadata handles syncing priority metadata from a remote post.
 // It completely replaces existing priority settings with the ones from the remote post,
 // regardless of update type.
@@ -655,53 +753,6 @@ func (scs *Service) syncRemoteAcknowledgementsMetadata(rctx request.CTX, post *m
 	return rpost
 }
 
-func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Reaction, error) {
-	savedReaction := reaction
-	var appErr *model.AppError
-
-	// check that the reaction's post is in the target channel. This ensures the reaction can only be associated with a post
-	// that is in a channel shared with the remote.
-	rctx := request.EmptyContext(scs.server.Log())
-	post, err := scs.server.GetStore().Post().GetSingle(rctx, reaction.PostId, true)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching post for reaction sync: %w", err)
-	}
-	if post.ChannelId != targetChannel.Id {
-		return nil, fmt.Errorf("reaction sync failed: %w", ErrChannelIDMismatch)
-	}
-
-	existingReaction, err := scs.server.GetStore().Reaction().GetSingle(reaction.UserId, reaction.PostId, rc.RemoteId, reaction.EmojiName)
-	if err != nil && !isNotFoundError(err) {
-		return nil, fmt.Errorf("error fetching reaction for sync: %w", err)
-	}
-
-	if existingReaction == nil {
-		// reaction does not exist; check that user belongs to remote and create reaction
-		// this is not done for delete since deletion can be done by admins on the remote
-		user, err := scs.server.GetStore().User().Get(context.TODO(), reaction.UserId)
-		if err != nil {
-			return nil, fmt.Errorf("error fetching user for reaction sync: %w", err)
-		}
-		if user.GetRemoteID() != rc.RemoteId {
-			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
-		}
-		reaction.RemoteId = model.NewPointer(rc.RemoteId)
-		savedReaction, appErr = scs.app.SaveReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
-	} else {
-		// make sure the reaction being deleted is owned by the remote
-		if existingReaction.GetRemoteID() != rc.RemoteId {
-			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
-		}
-		appErr = scs.app.DeleteReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
-	}
-
-	var retErr error
-	if appErr != nil {
-		retErr = errors.New(appErr.Error())
-	}
-	return savedReaction, retErr
-}
-
 // handleMentionTransformation handles mention transformation with shared channel lookup
 func (scs *Service) handleMentionTransformation(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, syncMsgUsers map[string]*model.User) {
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("handleMentionTransformation: ENTRY - PostId=%s, ChannelId=%s, RemoteCluster=%s, OriginalMessage=%s", post.Id, targetChannel.Id, rc.Name, post.Message))
@@ -713,7 +764,7 @@ func (scs *Service) handleMentionTransformation(rctx request.CTX, post *model.Po
 		mentionMap := scs.app.MentionsToTeamMembers(rctx, post.Message, sc.TeamId)
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("handleMentionTransformation: MentionMap extracted - %d mentions found: %v", len(mentionMap), mentionMap))
 
-		// Correct mention map for shared channel context - prioritize users from sending remote cluster
+		// Correct mention map for shared channel context
 		mentionMap = scs.correctMentionMapForRemoteCluster(rctx, mentionMap, sc.TeamId, rc)
 		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("handleMentionTransformation: MentionMap corrected for remote cluster - %d mentions found: %v", len(mentionMap), mentionMap))
 
@@ -761,7 +812,8 @@ func (scs *Service) isLocalUser(rctx request.CTX, username string) (*model.User,
 }
 
 // transformColonMention handles @user:cluster format mentions using SyncMsg.Users for ID-based matching
-func (scs *Service) transformColonMention(rctx request.CTX, mention string, user *model.User, syncMsgUsers map[string]*model.User) string {
+func (scs *Service) transformColonMention(rctx request.CTX, mention string, user *model.User, syncMsgUsers map[string]*model.User, rc *model.RemoteCluster) string {
+	fmt.Printf("TRANSFORM_LOG: transformColonMention called - mention='%s'\n", mention)
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: ENTRY - mention='%s', user=%s", mention, func() string {
 		if user != nil {
 			return fmt.Sprintf("Id=%s,Username=%s,RemoteId=%s", user.Id, user.Username, user.GetRemoteID())
@@ -777,26 +829,51 @@ func (scs *Service) transformColonMention(rctx request.CTX, mention string, user
 
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Parsed - username='%s', suffix='%s'", username, suffix))
 
-	// Check if this mention exists in SyncMsg.Users (meaning it was sent by the remote)
-	if syncedUser, existsInSync := syncMsgUsers[mention]; existsInSync {
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Found '%s' in SyncMsg.Users - ID=%s, Username=%s", mention, syncedUser.Id, syncedUser.Username))
+	// Get current cluster name for suffix comparison
+	currentClusterName := ""
+	if scs.server.Config().ClusterSettings.ClusterName != nil {
+		currentClusterName = *scs.server.Config().ClusterSettings.ClusterName
+	}
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Current cluster name='%s'", currentClusterName))
 
-		// Check if there's a local user with the base username
-		if localUser, existsLocal := scs.isLocalUser(rctx, username); existsLocal {
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Found local user '%s' - ID=%s", username, localUser.Id))
+	// Check if there's a local user with the base username
+	if localUser, existsLocal := scs.isLocalUser(rctx, username); existsLocal {
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Found local user '%s' - ID=%s", username, localUser.Id))
 
-			// If the IDs match, this colon mention refers to our local user - strip the suffix
-			if localUser.Id == syncedUser.Id {
-				result := "@" + username
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: ID match! Stripping suffix - returning='%s'", result))
-				return result
-			}
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Different IDs - local:%s vs synced:%s", localUser.Id, syncedUser.Id))
-		} else {
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: No local user named '%s'", username))
+		// Check multiple conditions for when to transform the mention:
+		// 1. User ID matches (when same user synced from remote)
+		// 2. Cluster suffix matches current cluster (when mention targets this cluster)
+		var shouldTransform bool
+		var reason string
+
+		if user != nil && user.Id == localUser.Id {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Resolved user has same ID as local user - Username=%s", user.Username))
+			shouldTransform = true
+			reason = "ID match"
+		} else if syncedUser, existsInSync := syncMsgUsers[localUser.Id]; existsInSync {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Found matching synced user by ID - Username=%s", syncedUser.Username))
+			shouldTransform = true
+			reason = "synced user match"
+		} else if currentClusterName != "" && suffix == currentClusterName {
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Mention suffix '%s' matches current cluster '%s'", suffix, currentClusterName))
+			shouldTransform = true
+			reason = "cluster suffix match"
 		}
+
+		if shouldTransform {
+			// Transform the mention by stripping the cluster suffix
+			result := "@" + username
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: %s! Stripping suffix - returning='%s'", reason, result))
+			return result
+		}
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: No transform conditions met - resolved user ID=%s, local user ID=%s, suffix=%s, currentCluster=%s", func() string {
+			if user != nil {
+				return user.Id
+			}
+			return "nil"
+		}(), localUser.Id, suffix, currentClusterName))
 	} else {
-		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: Mention '%s' not found in SyncMsg.Users", mention))
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformColonMention: No local user named '%s'", username))
 	}
 
 	// Keep original mention if no match conditions met
@@ -878,7 +955,7 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 			if strings.Contains(mention, ":") {
 				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Processing colon mention='%s'", mention))
 				// Use the new SyncMsg.Users-based logic for colon mentions
-				replacement = scs.transformColonMention(rctx, mention, user, syncMsgUsers)
+				replacement = scs.transformColonMention(rctx, mention, user, syncMsgUsers, rc)
 			} else {
 				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Processing simple mention='%s'", mention))
 				replacement = scs.transformSimpleMention(rctx, mention, user, userID, rc)
@@ -909,25 +986,19 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Colon mention - username='%s', suffix='%s', valid=%t", username, suffix, valid))
 
 			if valid {
-				// New approach: Use SyncMsg.Users to determine if this mention refers to a local user
-				if syncedUser, existsInSync := syncMsgUsers[mention]; existsInSync {
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Found '%s' in SyncMsg.Users - ID=%s, Username=%s, RemoteId='%s'", mention, syncedUser.Id, syncedUser.Username, syncedUser.GetRemoteID()))
+				// Check if there's a local user with the base username, then look for matching ID in syncMsgUsers
+				if localUser, existsLocal := scs.isLocalUser(rctx, username); existsLocal {
+					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Found local user '%s' - ID=%s", username, localUser.Id))
 
-					// Check if there's a local user with the base username
-					if localUser, existsLocal := scs.isLocalUser(rctx, username); existsLocal {
-						scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Found local user '%s' - ID=%s, RemoteId='%s'", username, localUser.Id, localUser.GetRemoteID()))
-
-						// If the IDs match, this colon mention refers to our local user - strip the suffix
-						if localUser.Id == syncedUser.Id {
-							scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: ID match! Stripping suffix from '%s' -> '@%s'", mention, username))
-							return "@" + username
-						}
-						scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Different IDs - local:%s vs synced:%s, keeping original mention", localUser.Id, syncedUser.Id))
-					} else {
-						scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: No local user named '%s', keeping original mention", username))
+					// Look for a synced user with the same ID (representing the same logical user)
+					if syncedUser, existsInSync := syncMsgUsers[localUser.Id]; existsInSync {
+						scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Found matching synced user by ID - Username=%s", syncedUser.Username))
+						scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: ID match! Stripping suffix from '%s' -> '@%s'", mention, username))
+						return "@" + username
 					}
+					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: No synced user found with ID=%s", localUser.Id))
 				} else {
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Mention '%s' not found in SyncMsg.Users, keeping original", mention))
+					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: No local user named '%s'", username))
 				}
 			}
 			// Keep original mention (either invalid format or no match conditions met)
@@ -1008,55 +1079,4 @@ func (scs *Service) correctMentionMapForRemoteCluster(rctx request.CTX, mentionM
 
 	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("correctMentionMapForRemoteCluster: COMPLETED - corrected %d mentions", len(correctedMap)))
 	return correctedMap
-}
-
-func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowledgement, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.PostAcknowledgement, error) {
-	savedAcknowledgement := acknowledgement
-	var appErr *model.AppError
-
-	// check that the acknowledgement's post is in the target channel. This ensures the acknowledgement can only be associated with a post
-	// that is in a channel shared with the remote.
-	rctx := request.EmptyContext(scs.server.Log())
-	post, err := scs.server.GetStore().Post().GetSingle(rctx, acknowledgement.PostId, true)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching post for acknowledgement sync: %w", err)
-	}
-	if post.ChannelId != targetChannel.Id {
-		return nil, fmt.Errorf("acknowledgement sync failed: %w", ErrChannelIDMismatch)
-	}
-
-	existingAcknowledgement, err := scs.server.GetStore().PostAcknowledgement().GetSingle(acknowledgement.UserId, acknowledgement.PostId, rc.RemoteId)
-	if err != nil && !isNotFoundError(err) {
-		return nil, fmt.Errorf("error fetching acknowledgement for sync: %w", err)
-	}
-
-	if existingAcknowledgement == nil {
-		// acknowledgement does not exist; check that user belongs to remote and create acknowledgement
-		// this is not done for delete since deletion can be done by admins on the remote
-		user, err := scs.server.GetStore().User().Get(context.TODO(), acknowledgement.UserId)
-		if err != nil {
-			return nil, fmt.Errorf("error fetching user for acknowledgement sync: %w", err)
-		}
-		if user.GetRemoteID() != rc.RemoteId {
-			return nil, fmt.Errorf("acknowledgement sync failed: %w", ErrRemoteIDMismatch)
-		}
-		acknowledgement.RemoteId = model.NewPointer(rc.RemoteId)
-		acknowledgement.ChannelId = targetChannel.Id
-		savedAcknowledgement, appErr = scs.app.SaveAcknowledgementForPostWithModel(request.EmptyContext(scs.server.Log()), acknowledgement)
-	} else {
-		// make sure the acknowledgement being deleted is owned by the remote
-		if existingAcknowledgement.GetRemoteID() != rc.RemoteId {
-			return nil, fmt.Errorf("acknowledgement sync failed: %w", ErrRemoteIDMismatch)
-		}
-		if acknowledgement.AcknowledgedAt == 0 {
-			// Delete the acknowledgement
-			appErr = scs.app.DeleteAcknowledgementForPostWithModel(request.EmptyContext(scs.server.Log()), acknowledgement)
-		}
-	}
-
-	var retErr error
-	if appErr != nil {
-		retErr = errors.New(appErr.Error())
-	}
-	return savedAcknowledgement, retErr
 }
