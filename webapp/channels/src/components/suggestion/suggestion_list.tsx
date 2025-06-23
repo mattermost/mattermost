@@ -27,7 +27,6 @@ export interface Props {
     groups: Array<SuggestionGroup<any>>;
     selection: string;
     components: Array<React.ComponentType<any>>;
-    wrapperHeight?: number;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
     // as the user is typing.
