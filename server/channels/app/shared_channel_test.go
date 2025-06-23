@@ -587,6 +587,15 @@ func (h *PostTrackingSyncHandler) HandleRequest(w http.ResponseWriter, r *http.R
 			if json.Unmarshal(frame.Msg.Payload, &syncMsg) == nil {
 				// Track received posts for validation
 				h.receivedPosts = append(h.receivedPosts, syncMsg.Posts...)
+
+				// Debug mention transforms received
+				h.t.Logf("PostTrackingSyncHandler: Received SyncMsg with %d posts and %d mention transforms", len(syncMsg.Posts), len(syncMsg.MentionTransforms))
+				for mention, userID := range syncMsg.MentionTransforms {
+					h.t.Logf("PostTrackingSyncHandler: MentionTransform - '%s' -> '%s'", mention, userID)
+				}
+				for i, post := range syncMsg.Posts {
+					h.t.Logf("PostTrackingSyncHandler: Post[%d] - ID=%s, Message='%s'", i, post.Id, post.Message)
+				}
 			}
 		}
 
