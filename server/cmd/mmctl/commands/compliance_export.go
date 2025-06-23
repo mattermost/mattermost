@@ -12,7 +12,7 @@ import (
 )
 
 var ComplianceExportCmd = &cobra.Command{
-	Use:   "compliance_export",
+	Use:   "compliance-export",
 	Short: "Management of compliance exports",
 }
 
@@ -26,7 +26,7 @@ var ComplianceExportListCmd = &cobra.Command{
 
 var ComplianceExportShowCmd = &cobra.Command{
 	Use:     "show [complianceExportJobID]",
-	Example: "compliance_export show o98rj3ur83dp5dppfyk5yk6osy",
+	Example: "compliance-export show o98rj3ur83dp5dppfyk5yk6osy",
 	Short:   "Show compliance export job",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(complianceExportShowCmdF),
@@ -34,7 +34,7 @@ var ComplianceExportShowCmd = &cobra.Command{
 
 var ComplianceExportCancelCmd = &cobra.Command{
 	Use:     "cancel [complianceExportJobID]",
-	Example: "compliance_export cancel o98rj3ur83dp5dppfyk5yk6osy",
+	Example: "compliance-export cancel o98rj3ur83dp5dppfyk5yk6osy",
 	Short:   "Cancel compliance export job",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(complianceExportCancelCmdF),
