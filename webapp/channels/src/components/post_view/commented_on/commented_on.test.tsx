@@ -170,4 +170,54 @@ describe('components/post_view/CommentedOn', () => {
         const wrapper = shallow(<CommentedOn {...baseProps}/>);
         wrapper.setProps({enablePostUsernameOverride: true});
     });
+
+    test("should render the root post's overwritten username", () => {
+        const newPost = {
+            id: 'post_id',
+            message: '',
+            props: {
+                from_webhook: 'true',
+                override_username: 'override_username',
+                attachments: [{
+                    pretext: 'This is a pretext',
+                }],
+            },
+        };
+        const newProps = {
+            ...baseProps,
+            post: {
+                ...baseProps.post,
+                ...newPost,
+            },
+            enablePostUsernameOverride: true,
+        };
+
+        const wrapper = shallow(<CommentedOn {...newProps}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test("should not render the root post's overwritten username if post is not from webhook", () => {
+        const newPost = {
+            id: 'post_id',
+            message: '',
+            props: {
+                from_webhook: 'false',
+                override_username: 'override_username',
+                attachments: [{
+                    pretext: 'This is a pretext',
+                }],
+            },
+        };
+        const newProps = {
+            ...baseProps,
+            post: {
+                ...baseProps.post,
+                ...newPost,
+            },
+            enablePostUsernameOverride: true,
+        };
+
+        const wrapper = shallow(<CommentedOn {...newProps}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
 });
