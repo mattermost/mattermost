@@ -637,7 +637,7 @@ export default class SuggestionBox extends React.PureComponent {
         const newPretext = [];
 
         if (this.props.onSuggestionsReceived) {
-            this.props.onSuggestionsReceived(suggestions); // TODO
+            this.props.onSuggestionsReceived(suggestions);
         }
 
         const items = suggestions.groups.flatMap((group) => group.items);

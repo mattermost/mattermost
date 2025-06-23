@@ -202,7 +202,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 const items = [];
 
                 for (let i = 0; i < group.items.length; i++) {
-                    const Component = this.props.components[0]; // TODO
+                    const Component = this.props.components[i];
 
                     const item = group.items[i];
                     const term = group.terms[i];
