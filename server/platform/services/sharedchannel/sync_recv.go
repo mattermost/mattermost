@@ -774,27 +774,19 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 
 			var newMention string
 			if strings.Contains(mention, ":") {
-				// Colon mention (e.g., "@admin:remote1")
-				if user.GetRemoteID() == "" {
-					// This refers to a local user, strip the cluster suffix
-					newMention = "@" + user.Username
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Strip suffix for local user - '%s' -> '%s'", oldMention, newMention))
-				} else {
-					// This refers to a remote user, use their synced username
-					newMention = "@" + user.Username
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Use synced username for remote user - '%s' -> '%s'", oldMention, newMention))
-				}
+				// Colon mention (e.g., "@admin:remote1") - always use the user's actual username
+				newMention = "@" + user.Username
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Colon mention transformed - '%s' -> '%s'", oldMention, newMention))
 			} else {
 				// Simple mention (e.g., "@admin")
 				if user.GetRemoteID() == "" {
 					// This is a local user, keep as-is
 					newMention = "@" + mention
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Keep local user as-is - '%s'", oldMention))
 				} else {
 					// This is a remote user that was synced, use their synced username
 					newMention = "@" + user.Username
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Use synced username for remote user - '%s' -> '%s'", oldMention, newMention))
 				}
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Simple mention transformed - '%s' -> '%s'", oldMention, newMention))
 			}
 			post.Message = strings.ReplaceAll(post.Message, oldMention, newMention)
 		} else {
