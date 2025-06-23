@@ -731,7 +731,7 @@ func TestTransformMentionsOnReceive(t *testing.T) {
 		localUser := createUser("admin", nil)
 
 		// Scenario: remote2 mentions "@admin:remote1" → sent to remote1
-		// mentionTransforms["admin:remote1"] = remote1AdminUserId  
+		// mentionTransforms["admin:remote1"] = remote1AdminUserId
 		mentionTransforms := map[string]string{
 			"admin:remote1": localUser.Id,
 		}
@@ -761,7 +761,7 @@ func TestTransformMentionsOnReceive(t *testing.T) {
 	})
 
 	t.Run("Scenario A1: Name clash - remote user mention, local user exists", func(t *testing.T) {
-		// Create local user with same name  
+		// Create local user with same name
 		_ = createUser("alice", nil) // Create name clash scenario
 		// Create remote user that was synced
 		remoteUser := createUser("alice:remote1", &savedRemoteCluster.RemoteId)
@@ -863,8 +863,8 @@ func TestTransformMentionsOnReceive(t *testing.T) {
 
 		// Multiple transforms in one message
 		mentionTransforms := map[string]string{
-			"frank:remote1": localUser.Id,   // Colon mention → strip suffix
-			"george":        remoteUser.Id,  // Simple mention → use synced username
+			"frank:remote1": localUser.Id,  // Colon mention → strip suffix
+			"george":        remoteUser.Id, // Simple mention → use synced username
 		}
 
 		testTransformation(
@@ -912,4 +912,3 @@ func TestTransformMentionsOnReceive(t *testing.T) {
 		)
 	})
 }
-
