@@ -11,6 +11,7 @@ describe('isAddMemberProps', () => {
             not_in_channel_user_ids: [],
             not_in_channel_usernames: [],
             not_in_groups_usernames: [],
+            non_invitable_usernames: [],
         };
 
         expect(isAddMemberProps(prop)).toBe(true);
@@ -22,6 +23,7 @@ describe('isAddMemberProps', () => {
             not_in_channel_user_ids: ['hello', 'world'],
             not_in_channel_usernames: ['hello', 'world'],
             not_in_groups_usernames: ['hello', 'world'],
+            non_invitable_usernames: ['hello', 'world'],
         };
 
         expect(isAddMemberProps(prop)).toBe(true);
@@ -33,6 +35,7 @@ describe('isAddMemberProps', () => {
             not_in_channel_user_ids: [],
             not_in_channel_usernames: [],
             not_in_groups_usernames: [],
+            non_invitable_usernames: [],
         };
 
         expect(isAddMemberProps(baseProp)).toBe(true);
