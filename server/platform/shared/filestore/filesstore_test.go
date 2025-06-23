@@ -281,6 +281,13 @@ func (s *FileBackendTestSuite) TestCopyFile() {
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path1)
 
+	// For local backend, test permission copying by setting specific permissions on source file
+	if localBackend, ok := s.backend.(*LocalFileBackend); ok {
+		srcFilePath := filepath.Join(localBackend.directory, path1)
+		err = os.Chmod(srcFilePath, 0644)
+		s.Require().NoError(err)
+	}
+
 	err = s.backend.CopyFile(path1, path2)
 	s.Require().NoError(err)
 	defer s.backend.RemoveFile(path2)
@@ -293,6 +300,20 @@ func (s *FileBackendTestSuite) TestCopyFile() {
 
 	s.Equal(b, data1)
 	s.Equal(b, data2)
+
+	// For local backend, verify permissions are copied from source to destination
+	if localBackend, ok := s.backend.(*LocalFileBackend); ok {
+		srcFilePath := filepath.Join(localBackend.directory, path1)
+		dstFilePath := filepath.Join(localBackend.directory, path2)
+
+		srcInfo, err := os.Stat(srcFilePath)
+		s.Require().NoError(err)
+
+		dstInfo, err := os.Stat(dstFilePath)
+		s.Require().NoError(err)
+
+		s.Equal(srcInfo.Mode(), dstInfo.Mode(), "destination file should have same permissions as source file")
+	}
 }
 
 func (s *FileBackendTestSuite) TestCopyFileToDirectoryThatDoesntExist() {

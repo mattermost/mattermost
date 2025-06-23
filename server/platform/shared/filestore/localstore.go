@@ -31,18 +31,24 @@ type LocalFileBackend struct {
 // copyFile will copy a file from src path to dst path.
 // Overwrites any existing files at dst.
 // Permissions are copied from file at src to the new file at dst.
-func copyFile(src, dst string) (err error) {
-	in, err := os.Open(src)
+func copyFile(base, src, dst string) (err error) {
+	root, err := os.OpenRoot(base)
+	if err != nil {
+		return errors.Wrapf(err, "unable to open root directory %q", base)
+	}
+	defer root.Close()
+
+	in, err := root.Open(src)
 	if err != nil {
 		return
 	}
 	defer in.Close()
 
-	if err = os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
+	if err = mkdirAll(root, filepath.Dir(dst), os.ModePerm); err != nil {
 		return
 	}
 
-	out, err := os.Create(dst)
+	out, err := root.Create(dst)
 	if err != nil {
 		return
 	}
@@ -62,11 +68,11 @@ func copyFile(src, dst string) (err error) {
 		return
 	}
 
-	stat, err := os.Stat(src)
+	stat, err := root.Stat(src)
 	if err != nil {
 		return
 	}
-	err = os.Chmod(dst, stat.Mode())
+	err = out.Chmod(stat.Mode())
 	if err != nil {
 		return
 	}
@@ -174,7 +180,7 @@ func (b *LocalFileBackend) FileModTime(path string) (time.Time, error) {
 }
 
 func (b *LocalFileBackend) CopyFile(oldPath, newPath string) error {
-	if err := copyFile(utils.SafeJoin(b.directory, oldPath), utils.SafeJoin(b.directory, newPath)); err != nil {
+	if err := copyFile(b.directory, oldPath, newPath); err != nil {
 		return errors.Wrapf(err, "unable to copy file from %s to %s", oldPath, newPath)
 	}
 	return nil
