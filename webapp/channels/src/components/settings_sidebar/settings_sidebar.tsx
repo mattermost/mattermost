@@ -47,13 +47,13 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         (e.target as Element).closest('.settings-modal')?.classList.add('display--content');
     };
 
-    public handleKeyUp = (tab: Tab, e: React.KeyboardEvent) => {
+    public handleKeyDown = (tab: Tab, e: React.KeyboardEvent) => {
         // Only handle UP and DOWN arrow keys
         if (!isKeyPressed(e, Constants.KeyCodes.UP) && !isKeyPressed(e, Constants.KeyCodes.DOWN)) {
             return;
         }
 
-        // Prevent default behavior
+        // Prevent scrolling
         e.preventDefault();
 
         // Get all visible tabs
@@ -134,7 +134,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
                     id={`${tab.name}Button`}
                     className={classNames('cursor--pointer style--none nav-pills__tab', {active: isActive})}
                     onClick={this.handleClick.bind(null, tab)}
-                    onKeyUp={this.handleKeyUp.bind(null, tab)}
+                    onKeyDown={this.handleKeyDown.bind(null, tab)}
                     aria-label={tab.uiName.toLowerCase()}
                     role='tab'
                     aria-selected={isActive}
