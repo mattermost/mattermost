@@ -2879,6 +2879,10 @@
     "translation": "Remote Cluster not found"
   },
   {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Remote cluster import is not allowed"
+  },
+  {
     "id": "api.remote_cluster.invalid_id.app_error",
     "translation": "Invalid id."
   },
@@ -4113,6 +4117,10 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Error fetching roles during validation."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -9291,6 +9299,30 @@
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
     "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Max File Age of audit logs config must not be negative."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Maximum File Backups of audit logs config must not be negative."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Maximum File Queue of audit logs config must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Maximum File Size of audit logs config must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "When audit file logging is enabled, a file name must be specified."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "The file name must not be a directory."
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",

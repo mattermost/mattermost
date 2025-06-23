@@ -15,6 +15,7 @@ import (
 func (api *API) InitSharedChannels() {
 	api.BaseRoutes.SharedChannels.Handle("/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getSharedChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.SharedChannels.Handle("/remote_info/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteClusterInfo)).Methods(http.MethodGet)
+	api.BaseRoutes.SharedChannels.Handle("/{channel_id:[A-Za-z0-9]+}/remotes", api.APISessionRequired(getSharedChannelRemotes)).Methods(http.MethodGet)
 
 	api.BaseRoutes.SharedChannelRemotes.Handle("", api.APISessionRequired(getSharedChannelRemotesByRemoteCluster)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelForRemote.Handle("/invite", api.APISessionRequired(inviteRemoteClusterToChannel)).Methods(http.MethodPost)
@@ -245,4 +246,52 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+// getSharedChannelRemotes returns info about remote clusters for a shared channel
+func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	// make sure remote cluster service is enabled.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	// Get the remotes status
+	remoteStatuses, err := c.App.GetSharedChannelRemotesStatus(c.Params.ChannelId)
+	if err != nil {
+		c.Err = model.NewAppError("getSharedChannelRemotes", "api.command_share.fetch_remote_status.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	// For each remote status, get the RemoteClusterInfo
+	remoteInfos := make([]*model.RemoteClusterInfo, 0, len(remoteStatuses))
+	for _, status := range remoteStatuses {
+		// Use GetRemoteCluster to get the full remote cluster
+		remoteCluster, appErr := c.App.GetRemoteCluster(status.ChannelId, false)
+		if appErr == nil && remoteCluster != nil {
+			info := remoteCluster.ToRemoteClusterInfo()
+			remoteInfos = append(remoteInfos, &info)
+		} else {
+			// If we can't find the detailed info, create a basic RemoteClusterInfo from the status
+			remoteInfos = append(remoteInfos, &model.RemoteClusterInfo{
+				Name:        status.ChannelId,
+				DisplayName: status.DisplayName,
+				LastPingAt:  status.LastPingAt,
+			})
+		}
+	}
+
+	if err := json.NewEncoder(w).Encode(remoteInfos); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
