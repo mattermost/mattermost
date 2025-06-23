@@ -113,6 +113,7 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
+              overwriteName="override_username"
               userId=""
             />
           </a>,
@@ -144,6 +145,7 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
+              overwriteName="override_username"
               userId=""
             />
           </a>,
@@ -175,6 +177,7 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
+              overwriteName="override_username"
               userId=""
             />
           </a>,
@@ -206,6 +209,7 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
+              overwriteName="override_username"
               userId=""
             />
           </a>,
