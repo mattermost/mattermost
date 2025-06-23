@@ -54,5 +54,9 @@
   {
     "id": "April",
     "translation": "Abril"
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Não foi possível guardar o ficheiro do certificado."
   }
 ]

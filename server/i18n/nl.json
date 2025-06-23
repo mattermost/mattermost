@@ -9795,7 +9795,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Kan gebruiker niet activeren. Server overschrijdt veilige gebruikerslimiet. Neem contact op met je beheerder met: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Kan gebruiker niet activeren. Server overschrijdt veilige gebruikerslimiet. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "model.user.is_valid.pwd_max_length.app_error",
@@ -10834,5 +10834,29 @@
   {
     "id": "ent.access_control.job_data_conversion.app_error",
     "translation": "Het is niet gelukt om gegevens uit de vorige opdracht te halen."
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Kan bevestiging voor ontbrekende post niet verwijderen"
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "De batch met bevesting-objecten is niet bewaard"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Kan bevestiging voor ontbrekende post niet opslaan"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Ongeldig kanaalid."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Kan geen gebruiker aanmaken. Server overschrijdt maximum aantal gelicentieerde gebruikers. Neem contact op met je beheerder met: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Kan gebruiker niet activeren. Server overschrijdt maximum aantal gelicentieerde gebruikers. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
   }
 ]
