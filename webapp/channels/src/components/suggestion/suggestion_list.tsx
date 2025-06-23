@@ -211,6 +211,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     items.push(
                         <Component
                             key={term}
+                            ref={(ref: any) => this.itemRefs.set(term, ref)}
                             id={`suggestionList_item_${term}`}
                             item={item}
                             term={term}
