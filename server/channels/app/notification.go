@@ -1184,7 +1184,6 @@ func (a *App) sendNoUsersNotifiedByGroupInChannel(c request.CTX, sender *model.U
 func (a *App) sendOutOfChannelMentions(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
 	outOfTeamUsers, outOfChannelUsers, outOfGroupsUsers, nonInvitableUsers, err := a.filterOutOfChannelMentions(c, sender, post, channel, potentialMentions)
 	if err != nil {
-
 		return false, err
 	}
 
