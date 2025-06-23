@@ -1412,4 +1412,71 @@ describe('AppsFormComponent', () => {
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
         });
     });
+
+    describe('Custom Submit Label', () => {
+        test('should use custom submit_label when provided', () => {
+            const formWithCustomSubmitLabel = {
+                ...baseProps.form,
+                submit_label: 'Custom Submit Text',
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithCustomSubmitLabel,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should render custom submit button text
+            expect(screen.getByRole('button', {name: /custom submit text/i})).toBeInTheDocument();
+        });
+
+        test('should use default Submit when submit_label is not provided', () => {
+            const formWithoutSubmitLabel = {
+                ...baseProps.form,
+                submit_label: undefined,
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithoutSubmitLabel,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should render default submit button text
+            expect(screen.getByRole('button', {name: /^submit$/i})).toBeInTheDocument();
+        });
+
+        test('should prioritize submit_buttons over submit_label when both are provided', () => {
+            const formWithBothSubmitOptions = {
+                ...baseProps.form,
+                submit_label: 'Should Not Show',
+                submit_buttons: 'custom_buttons',
+                fields: [
+                    {
+                        name: 'custom_buttons',
+                        type: 'static_select',
+                        options: [
+                            {label: 'Custom Action', value: 'action1'},
+                            {label: 'Another Action', value: 'action2'},
+                        ],
+                        is_required: false,
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithBothSubmitOptions,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should render custom submit buttons, not the submit_label
+            expect(screen.getByRole('button', {name: /custom action/i})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /another action/i})).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /should not show/i})).not.toBeInTheDocument();
+        });
+    });
 });

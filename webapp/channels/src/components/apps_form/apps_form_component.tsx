@@ -504,9 +504,9 @@ export class AppsForm extends React.PureComponent<Props, State> {
     }
 
     renderFooter() {
-        const {fields} = this.props.form;
+        const {fields, submit_label: submitLabel} = this.props.form;
 
-        const submitText: React.ReactNode = (
+        const submitText: React.ReactNode = submitLabel || (
             <FormattedMessage
                 id='interactive_dialog.submit'
                 defaultMessage='Submit'

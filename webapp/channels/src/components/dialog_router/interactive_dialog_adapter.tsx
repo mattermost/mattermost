@@ -282,7 +282,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     };
 
     private convertToAppForm = (): AppForm => {
-        const {elements, title, introductionText, iconUrl} = this.props;
+        const {elements, title, introductionText, iconUrl, submitLabel} = this.props;
 
         // Convert elements with validation done per element
         const convertedFields: AppField[] = [];
@@ -347,6 +347,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             title: this.sanitizeString(title || ''),
             icon: iconUrl,
             header: introductionText ? this.sanitizeString(introductionText) : undefined,
+            submit_label: submitLabel ? this.sanitizeString(submitLabel) : undefined,
             submit: {
                 path: '/submit',
                 expand: {},
