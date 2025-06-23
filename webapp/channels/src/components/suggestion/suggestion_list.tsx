@@ -222,16 +222,18 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     );
                 }
 
-                contents.push(
-                    <SuggestionListGroup
-                        key={group.key}
-                        groupKey={group.key}
-                        labelMessage={group.label}
-                        renderDivider={!group.hideLabel}
-                    >
-                        {items}
-                    </SuggestionListGroup>,
-                );
+                if (items.length > 0) {
+                    contents.push(
+                        <SuggestionListGroup
+                            key={group.key}
+                            groupKey={group.key}
+                            labelMessage={group.label}
+                            renderDivider={!group.hideLabel}
+                        >
+                            {items}
+                        </SuggestionListGroup>,
+                    );
+                }
             } else {
                 contents.push(<LoadingSpinner key={group.key}/>);
             }
