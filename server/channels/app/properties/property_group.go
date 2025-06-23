@@ -14,3 +14,7 @@ func (ps *PropertyService) RegisterPropertyGroup(name string) (*model.PropertyGr
 func (ps *PropertyService) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
 	return ps.groupStore.Get(name)
 }
+
+func (ps *PropertyService) GetPropertyGroupById(id string) (*model.PropertyGroup, error) {
+	return ps.groupStore.GetById(id)
+}

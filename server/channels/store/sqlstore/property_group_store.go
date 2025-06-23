@@ -76,3 +76,21 @@ func (s *SqlPropertyGroupStore) Get(name string) (*model.PropertyGroup, error) {
 
 	return &propertyGroup, nil
 }
+
+func (s *SqlPropertyGroupStore) GetById(id string) (*model.PropertyGroup, error) {
+	queryString, args, err := s.getQueryBuilder().
+		Select(propertyGroupColumns...).
+		From("PropertyGroups").
+		Where(sq.Eq{"Id": id}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_group_get_tosql")
+	}
+
+	var propertyGroup model.PropertyGroup
+	if err := s.GetReplica().Get(&propertyGroup, queryString, args...); err != nil {
+		return nil, store.NewErrNotFound("PropertyGroup", id)
+	}
+
+	return &propertyGroup, nil
+}

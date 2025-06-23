@@ -54,7 +54,7 @@ func toPostPropertiesPatch(c *Context, postId string, rawPatch map[string]json.R
 		fieldMap[field.ID] = field
 	}
 
-	patch := make(model.PatchPostProperties)
+	patchByGroupId := make(model.PatchPostProperties)
 
 	for fieldID, value := range rawPatch {
 		field, ok := fieldMap[fieldID]
@@ -62,12 +62,22 @@ func toPostPropertiesPatch(c *Context, postId string, rawPatch map[string]json.R
 			return nil, model.NewAppError("toPostPropertiesPatch", "api.post_properties.to_post_properties_patch.app_error", map[string]any{"FieldID": fieldID}, "", http.StatusNotFound)
 		}
 
-		if _, ok := patch[field.GroupID]; !ok {
-			patch[field.GroupID] = make(map[string]json.RawMessage)
+		if _, ok := patchByGroupId[field.GroupID]; !ok {
+			patchByGroupId[field.GroupID] = make(map[string]json.RawMessage)
 		}
 
-		patch[field.GroupID][field.ID] = value
+		patchByGroupId[field.GroupID][field.ID] = value
 	}
 
-	return patch, nil
+	patchByGroupName := make(model.PatchPostProperties)
+
+	for groupID := range patchByGroupId {
+		group, err := c.App.PropertyService().GetPropertyGroupById(groupID)
+		if err != nil {
+			return nil, model.NewAppError("toPostPropertiesPatch", "api.post_properties.to_post_properties_patch.app_error", map[string]any{"GroupId": groupID}, "", http.StatusInternalServerError)
+		}
+		patchByGroupName[group.Name] = patchByGroupId[groupID]
+	}
+
+	return patchByGroupName, nil
 }
