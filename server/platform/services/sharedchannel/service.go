@@ -61,7 +61,6 @@ type AppIface interface {
 	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
 	AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError
-	GetTeamMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError)
 	RemoveUserFromChannel(c request.CTX, userID string, removerUserId string, channel *model.Channel) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
 	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError)
@@ -383,7 +382,7 @@ func (scs *Service) HandleChannelNotSharedErrorForTesting(msg *model.SyncMsg, rc
 	scs.handleChannelNotSharedError(msg, rc)
 }
 
-// HandleMentionTransformationForTesting allows testing the full mention transformation flow
-func (scs *Service) HandleMentionTransformationForTesting(ctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, syncMsgUsers map[string]*model.User, mentionTransforms map[string]string) {
+// TransformMentionsOnReceiveForTesting allows testing the full mention transformation flow
+func (scs *Service) TransformMentionsOnReceiveForTesting(ctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, syncMsgUsers map[string]*model.User, mentionTransforms map[string]string) {
 	scs.transformMentionsOnReceive(ctx, post, targetChannel, rc, syncMsgUsers, mentionTransforms)
 }
