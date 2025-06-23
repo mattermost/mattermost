@@ -46,6 +46,18 @@
             text-align: left;
         }
     }
+
+    @media screen and (max-width: 640px) {
+        .modal-content .GenericModal__wrapper {
+            display: flex;
+            height: 100vh;
+            flex-direction: column;
+
+            > .modal-body {
+                flex: 1
+            }
+        }
+    }
 }
 
 #new-channel-with-board-tooltip {
@@ -61,5 +73,15 @@
 
     .description {
         font-weight: 500;
+    }
+}
+
+@media screen and (max-width: 640px) {
+    .app__body {
+        &.announcement-bar--fixed {
+            .new-channel-modal .modal-content .GenericModal__wrapper {
+                height: calc(100vh - 40px);
+            }
+        }
     }
 }
