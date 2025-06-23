@@ -3968,7 +3968,7 @@ func (a *App) ChannelAccessControlled(c request.CTX, channelID string) (bool, *m
 		return false, nil
 	}
 
-	_, err := a.Srv().Store().AccessControlPolicy().Get(c, channelID)
+	channel, err := a.Srv().Store().Channel().Get(channelID, true)
 	var nfErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &nfErr) {
 		return false, model.NewAppError("ChannelIsAccessControlled", "app.channel.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -3976,7 +3976,7 @@ func (a *App) ChannelAccessControlled(c request.CTX, channelID string) (bool, *m
 		return false, nil
 	}
 
-	return true, nil
+	return channel.PolicyEnforced, nil
 }
 
 func (a *App) handleChannelCategoryName(channel *model.Channel) {
