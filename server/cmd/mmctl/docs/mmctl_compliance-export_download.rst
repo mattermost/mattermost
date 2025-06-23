@@ -1,6 +1,6 @@
-.. _mmctl_compliance_export_download:
+.. _mmctl_compliance-export_download:
 
-mmctl compliance_export download
+mmctl compliance-export download
 --------------------------------
 
 Download compliance export file
@@ -13,7 +13,7 @@ Download compliance export file
 
 ::
 
-  mmctl compliance_export download [complianceExportJobID] [output filepath (optional)] [flags]
+  mmctl compliance-export download [complianceExportJobID] [output filepath (optional)] [flags]
 
 Examples
 ~~~~~~~~
@@ -48,5 +48,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl compliance_export <mmctl_compliance_export.rst>`_ 	 - Management of compliance exports
+* `mmctl compliance-export <mmctl_compliance-export.rst>`_ 	 - Management of compliance exports
 
