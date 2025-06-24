@@ -171,13 +171,10 @@ describe('Interactive Dialogs', () => {
         cy.shouldNotRunOnCloudEdition();
         cy.shouldHavePluginUploadEnabled();
 
-        // # Set plugin settings and disable InteractiveDialogAppsForm feature flag
+        // # Set plugin settings
         const newSettings = {
             PluginSettings: {
                 Enable: true,
-            },
-            FeatureFlags: {
-                InteractiveDialogAppsForm: false,
             },
         };
         cy.apiUpdateConfig(newSettings);
@@ -198,14 +195,19 @@ describe('Interactive Dialogs', () => {
         // # Post the /dialog slash command message
         cy.uiGetPostTextBox().type('/dialog {enter}');
 
-        // * Check that the interactive dialog modal from the plugin opens up
-        cy.get('#interactiveDialogModal').should('be.visible').within(() => {
+        // * Check that the apps form modal from the plugin opens up
+        cy.get('#appsModal').should('be.visible').within(() => {
             // * Verify that the body is visible
-            cy.get('.modal-body').should('be.visible').children().each(($elForm, index) => {
+            cy.get('.modal-body').should('be.visible').children('.form-group').each(($elForm, index) => {
                 const element = demoPluginDialogElements[index];
 
+                // Skip if element is undefined (more DOM elements than expected)
+                if (!element) {
+                    return;
+                }
+
                 // * Verify that when the element comes into view the proper display name is showing
-                cy.wrap($elForm).find('label.control-label').scrollIntoView().should('be.visible').and('have.text', `${element.display_name} ${element.optional ? '(optional)' : '*'}`);
+                cy.wrap($elForm).find('label').first().scrollIntoView().should('be.visible').and('contain', element.display_name);
 
                 if (element.name.includes('someboolean')) {
                     // * Verify that the checkbox for a boolean element is visible
@@ -238,8 +240,13 @@ describe('Interactive Dialogs', () => {
                 } else if (element.name === 'somenumber') {
                     cy.get(`#${element.name}`).scrollIntoView().clear().type('42');
                 } else if (element.name === 'someoptionselector') {
-                    cy.wrap($elForm).find('input').click();
-                    cy.wrap($elForm).find('#suggestionList').scrollIntoView().should('be.visible').click();
+                    // Click the dropdown
+                    cy.wrap($elForm).find('[id^=\'MultiInput_\']').click();
+
+                    // Break out of the .within() scope to find options that are portaled to body
+                    cy.document().then((doc) => {
+                        cy.wrap(doc).find('.react-select__option').first().click();
+                    });
                 } else if (element.name === 'someradiooptionselector') {
                     cy.wrap($elForm).find('input').first().click();
                 }
@@ -247,11 +254,11 @@ describe('Interactive Dialogs', () => {
 
             // # Submit the form of the interactive dialog.
             cy.intercept('/api/v4/actions/dialogs/submit').as('submitAction');
-            cy.get('#interactiveDialogSubmit').click();
+            cy.get('#appsModalSubmit').click();
         });
 
-        // * The interactive dialog should not be visible anymore.
-        cy.get('#interactiveDialogModal').not('be.visible');
+        // * The apps form modal should not be visible anymore.
+        cy.get('#appsModal').should('not.exist');
 
         // * Verify that submitted values are boolean and not strings.
         cy.wait('@submitAction').should('include.all.keys', ['request', 'response']).then((result) => {

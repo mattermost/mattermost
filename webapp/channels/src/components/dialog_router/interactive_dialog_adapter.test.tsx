@@ -1897,6 +1897,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             await waitFor(() => {
                 expect(getByTestId('apps-form-container')).toBeInTheDocument();
+
                 // The MockAppsFormContainer doesn't render submit_label, but we can verify
                 // it was passed to the form by checking that the component rendered successfully
                 // with the expected props structure
@@ -1933,6 +1934,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             await waitFor(() => {
                 expect(getByTestId('apps-form-container')).toBeInTheDocument();
+
                 // Verify component renders successfully with sanitized input
             });
         });
