@@ -3231,6 +3231,10 @@
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Cannot invite guests users to this channel because it has access restrictions based on user attributes."
+  },
+  {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Guest accounts are disabled"
   },
@@ -4117,6 +4121,10 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Error fetching roles during validation."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -9299,6 +9307,30 @@
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
     "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Max File Age of audit logs config must not be negative."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Maximum File Backups of audit logs config must not be negative."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Maximum File Queue of audit logs config must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Maximum File Size of audit logs config must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "When audit file logging is enabled, a file name must be specified."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "The file name must not be a directory."
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",
