@@ -95,6 +95,7 @@ export const modalContent: PreviewModalContentData[] = [
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/modal-assets/playbook-properties.jpg',
         useCase: 'missionops',
     },
+
     // {
     //     skuLabel: defineMessage({
     //         id: 'cloud_preview_modal.missionops.flagging.sku_label',
@@ -208,6 +209,7 @@ export const modalContent: PreviewModalContentData[] = [
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/modal-assets/playbook-properties.jpg',
         useCase: 'devsecops',
     },
+
     // {
     //     skuLabel: defineMessage({
     //         id: 'cloud_preview_modal.devsecops.flagging.sku_label',
@@ -321,6 +323,7 @@ export const modalContent: PreviewModalContentData[] = [
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/playbook-properties.jpg',
         useCase: 'cyberdefense',
     },
+
     // {
     //     skuLabel: defineMessage({
     //         id: 'cloud_preview_modal.cyberdefense.flagging.sku_label',
