@@ -195,13 +195,14 @@ export default class SuggestionList extends React.PureComponent<Props> {
         }
 
         const contents = [];
+        let componentIndex = 0;
 
         for (const group of this.props.groups) {
             if ('items' in group) {
                 const items = [];
 
                 for (let i = 0; i < group.items.length; i++) {
-                    const Component = this.props.components[i];
+                    const Component = this.props.components[componentIndex];
 
                     const item = group.items[i];
                     const term = group.terms[i];
@@ -220,6 +221,8 @@ export default class SuggestionList extends React.PureComponent<Props> {
                             onMouseMove={this.props.onItemHover}
                         />,
                     );
+
+                    componentIndex += 1;
                 }
 
                 if (items.length > 0) {
