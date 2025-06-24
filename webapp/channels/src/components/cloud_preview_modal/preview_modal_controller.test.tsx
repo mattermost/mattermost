@@ -37,8 +37,8 @@ jest.mock('@mattermost/components', () => ({
 
 // Mock the icons
 jest.mock('@mattermost/compass-icons/components', () => ({
-    ChevronLeftIcon: ({size}: {size: number}) => <span data-testid='chevron-left-icon'>{size}</span>,
-    ChevronRightIcon: ({size}: {size: number}) => <span data-testid='chevron-right-icon'>{size}</span>,
+    ArrowLeftIcon: ({size}: {size: number}) => <span data-testid='arrow-left-icon'>{size}</span>,
+    ArrowRightIcon: ({size}: {size: number}) => <span data-testid='arrow-right-icon'>{size}</span>,
     CloseIcon: ({size}: {size: number}) => <span data-testid='close-icon'>{size}</span>,
 }));
 

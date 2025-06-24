@@ -1,5 +1,8 @@
 .preview-modal-controller {
     &.modal-dialog {
+        &.GenericModal {
+            margin-top: calc(50vh - 307px);
+        }
         width: 640px;
         height: 614px;
     }
