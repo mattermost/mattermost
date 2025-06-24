@@ -5,10 +5,15 @@ package api4
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/mattermost/mattermost/server/public/model"
 	"net/http"
 )
+
+type PatchPostPropertyGroupPermissionHandler func(postID, userID, groupName string, propertiesByGroup map[string]json.RawMessage) (map[string]json.RawMessage, *model.AppError)
+
+var patchPermissionHandlerMap = map[string]PatchPostPropertyGroupPermissionHandler{
+	model.ContentFlaggingGroupName: contentReviewGroupPermissionCheckHandler,
+}
 
 func (api *API) InitPostProperties() {
 	api.BaseRoutes.PostProperties.Handle("/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(patchPostProperties)).Methods(http.MethodPatch)
@@ -34,8 +39,12 @@ func patchPostProperties(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, _ := json.Marshal(patch)
-	fmt.Printf("%s\n", string(s))
+	patch, appErr = patchPostPropertiesPermissionCheck(postId, c.AppContext.Session().UserId, patch)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 }
 
 func toPostPropertiesPatch(c *Context, postId string, rawPatch map[string]json.RawMessage) (model.PatchPostProperties, *model.AppError) {
@@ -80,4 +89,27 @@ func toPostPropertiesPatch(c *Context, postId string, rawPatch map[string]json.R
 	}
 
 	return patchByGroupName, nil
+}
+
+func patchPostPropertiesPermissionCheck(postID, userID string, patch model.PatchPostProperties) (model.PatchPostProperties, *model.AppError) {
+	for groupName, properties := range patch {
+		groupPermissionFunc, ok := patchPermissionHandlerMap[groupName]
+		if !ok {
+			return nil, model.NewAppError("patchPostPropertiesPermissionCheck", "api.post_properties.permission_check.unknown_group_specified", nil, "", http.StatusBadRequest)
+		}
+
+		updatedProperties, appErr := groupPermissionFunc(postID, userID, groupName, properties)
+		if appErr != nil {
+			return nil, model.NewAppError("patchPostPropertiesPermissionCheck", "api.post_properties.permission_check.permission_error", nil, "", appErr.StatusCode).Wrap(appErr)
+		}
+
+		patch[groupName] = updatedProperties
+	}
+
+	return patch, nil
+}
+
+func contentReviewGroupPermissionCheckHandler(postID, userID, groupID string, propertiesByGroup map[string]json.RawMessage) (map[string]json.RawMessage, *model.AppError) {
+	// temporary no-op implementation. Actual implementation to be added later
+	return propertiesByGroup, nil
 }
