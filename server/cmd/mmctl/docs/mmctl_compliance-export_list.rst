@@ -1,6 +1,6 @@
-.. _mmctl_compliance_export_list:
+.. _mmctl_compliance-export_list:
 
-mmctl compliance_export list
+mmctl compliance-export list
 ----------------------------
 
 List compliance export jobs, sorted by creation date descending (newest first)
@@ -13,7 +13,7 @@ List compliance export jobs, sorted by creation date descending (newest first)
 
 ::
 
-  mmctl compliance_export list [flags]
+  mmctl compliance-export list [flags]
 
 Options
 ~~~~~~~
@@ -43,5 +43,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl compliance_export <mmctl_compliance_export.rst>`_ 	 - Management of compliance exports
+* `mmctl compliance-export <mmctl_compliance-export.rst>`_ 	 - Management of compliance exports
 
