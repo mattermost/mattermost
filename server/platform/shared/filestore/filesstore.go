@@ -6,6 +6,7 @@ package filestore
 import (
 	"context"
 	"io"
+	"os"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -156,8 +157,22 @@ func newFileBackend(settings FileBackendSettings, canBeCloud bool) (FileBackend,
 		}
 		return backend, nil
 	case driverLocal:
+		directory := settings.Directory
+		if directory == "" {
+			wd, err := os.Getwd()
+			if err != nil {
+				return nil, errors.Wrap(err, "configured directory empty and failed to get current working directory")
+			}
+			directory = wd
+		}
+
+		err := os.MkdirAll(directory, 0o700)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to mkdir local file backend directory: %q", directory)
+		}
+
 		return &LocalFileBackend{
-			directory: settings.Directory,
+			directory: directory,
 		}, nil
 	}
 	return nil, errors.New("no valid filestorage driver found")
