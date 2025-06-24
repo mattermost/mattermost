@@ -407,6 +407,7 @@ const PostComponent = (props: Props): JSX.Element => {
                 post={props.parentPost}
                 parentPostUser={props.parentPostUser}
                 onCommentClick={handleCommentClick}
+                enablePostUsernameOverride={props.enablePostUsernameOverride}
             />
         );
     }

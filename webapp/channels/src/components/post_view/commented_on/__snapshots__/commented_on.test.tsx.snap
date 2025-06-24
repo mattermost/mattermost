@@ -15,6 +15,7 @@ exports[`components/post_view/CommentedOn should match snapshot 1`] = `
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
+              overwriteName=""
               userId=""
             />
           </a>,
@@ -46,6 +47,7 @@ exports[`components/post_view/CommentedOn should match snapshot 2`] = `
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
+              overwriteName="override_username"
               userId=""
             />
           </a>,
@@ -77,6 +79,7 @@ exports[`components/post_view/CommentedOn should match snapshot 3`] = `
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
+              overwriteName=""
               userId=""
             />
           </a>,
@@ -110,6 +113,7 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
+              overwriteName="override_username"
               userId=""
             />
           </a>,
@@ -141,6 +145,7 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
+              overwriteName="override_username"
               userId=""
             />
           </a>,
@@ -172,6 +177,7 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
+              overwriteName="override_username"
               userId=""
             />
           </a>,
@@ -203,6 +209,7 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
+              overwriteName="override_username"
               userId=""
             />
           </a>,
@@ -214,6 +221,70 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
       onClick={[MockFunction]}
     >
       This is a title
+    </a>
+  </span>
+</div>
+`;
+
+exports[`components/post_view/CommentedOn should not render the root post's overwritten username if post is not from webhook 1`] = `
+<div
+  className="post__link"
+  data-testid="post-link"
+>
+  <span>
+    <MemoizedFormattedMessage
+      defaultMessage="Commented on {name}'s message: "
+      id="post_body.commentedOn"
+      values={
+        Object {
+          "name": <a
+            className="theme user_name"
+          >
+            <Memo(Connect(UserProfile))
+              overwriteName=""
+              userId=""
+            />
+          </a>,
+        }
+      }
+    />
+    <a
+      className="theme"
+      onClick={[MockFunction]}
+    >
+      This is a pretext
+    </a>
+  </span>
+</div>
+`;
+
+exports[`components/post_view/CommentedOn should render the root post's overwritten username 1`] = `
+<div
+  className="post__link"
+  data-testid="post-link"
+>
+  <span>
+    <MemoizedFormattedMessage
+      defaultMessage="Commented on {name}'s message: "
+      id="post_body.commentedOn"
+      values={
+        Object {
+          "name": <a
+            className="theme user_name"
+          >
+            <Memo(Connect(UserProfile))
+              overwriteName="override_username"
+              userId=""
+            />
+          </a>,
+        }
+      }
+    />
+    <a
+      className="theme"
+      onClick={[MockFunction]}
+    >
+      This is a pretext
     </a>
   </span>
 </div>
