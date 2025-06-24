@@ -1,18 +1,18 @@
 .cloud-preview-modal-fab {
     position: fixed;
+    z-index: 999;
     bottom: 16px;
     left: 16px;
-    z-index: 999;
 
     &__button {
         display: flex;
-        align-items: center;
-        justify-content: center;
         width: 48px;
         height: 48px;
-        background-color: var(--center-channel-bg);
+        align-items: center;
+        justify-content: center;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
         border-radius: 50%;
+        background-color: var(--center-channel-bg);
         box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.16);
         cursor: pointer;
 
@@ -21,13 +21,13 @@
         }
 
         &:focus {
-            outline: none;
             box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.16), 0 0 0 2px var(--button-bg);
+            outline: none;
         }
 
         .icon {
-            font-size: 28px;
             color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 28px;
         }
     }
-} 
+}
