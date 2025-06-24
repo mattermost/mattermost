@@ -145,39 +145,41 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                     />
                 }
             >
-                {attributes.map((attr) => (
-                    <TextSetting
-                        key={attr.id}
-                        id={`custom_profile_attribute-${attr.name}`}
-                        label={attr.name}
-                        value={attr.attrs?.[attributeKey] as string || ''}
-                        onChange={(id, newValue) => {
-                            setAttributes((prevAttrs) => prevAttrs.map((a) => {
-                                if (a.id === attr.id) {
-                                    return {
-                                        ...a,
-                                        attrs: {
-                                            ...a.attrs,
-                                            [attributeKey]: newValue,
-                                        },
-                                    };
-                                }
-                                return a;
-                            }));
-                            props.setSaveNeeded();
-                        }}
-                        setByEnv={false}
-                        disabled={props.isDisabled}
-                        placeholder={{id: 'admin.customProfileAttr.placeholder', defaultMessage: 'E.g.: "fieldName"'}}
-                        helpText={
-                            <AttributeHelpText
-                                attributeKey={attributeKey}
-                                attributeName={attr.name}
-                                attributeType={attr.type}
-                            />
-                        }
-                    />
-                ))}
+                <div className={'custom-section-body'}>
+                    {attributes.map((attr) => (
+                        <TextSetting
+                            key={attr.id}
+                            id={`custom_profile_attribute-${attr.name}`}
+                            label={attr.name}
+                            value={attr.attrs?.[attributeKey] as string || ''}
+                            onChange={(id, newValue) => {
+                                setAttributes((prevAttrs) => prevAttrs.map((a) => {
+                                    if (a.id === attr.id) {
+                                        return {
+                                            ...a,
+                                            attrs: {
+                                                ...a.attrs,
+                                                [attributeKey]: newValue,
+                                            },
+                                        };
+                                    }
+                                    return a;
+                                }));
+                                props.setSaveNeeded();
+                            }}
+                            setByEnv={false}
+                            disabled={props.isDisabled}
+                            placeholder={{id: 'admin.customProfileAttr.placeholder', defaultMessage: 'E.g.: "fieldName"'}}
+                            helpText={
+                                <AttributeHelpText
+                                    attributeKey={attributeKey}
+                                    attributeName={attr.name}
+                                    attributeType={attr.type}
+                                />
+                            }
+                        />
+                    ))}
+                </div>
             </SettingsGroup>
         </div>
     );
