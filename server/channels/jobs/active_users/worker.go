@@ -5,7 +5,7 @@ package active_users
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -17,7 +17,8 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, getMetrics func() 
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.MetricsSettings.Enable
 	}
-	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+	execute := func(rctx request.CTX, job *model.Job) error {
+		logger := rctx.Logger()
 		defer jobServer.HandleJobPanic(logger, job)
 
 		count, err := store.User().Count(model.UserCountOptions{IncludeDeleted: false})

@@ -164,6 +164,11 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if job.Type == model.JobTypePermanentDeleteUser && !*c.App.Config().ServiceSettings.EnableAPIUserDeletion {
+		c.Err = model.NewAppError("createJob", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+		return
+	}
+
 	rjob, err := c.App.CreateJob(c.AppContext, &job)
 	if err != nil {
 		c.Err = err

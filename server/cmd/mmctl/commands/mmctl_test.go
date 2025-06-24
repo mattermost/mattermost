@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 var EnableEnterpriseTests string
@@ -56,6 +57,11 @@ func (s *MmctlE2ETestSuite) TearDownTest() {
 
 func (s *MmctlE2ETestSuite) SetupTestHelper() *api4.TestHelper {
 	s.th = api4.Setup(s.T())
+	return s.th
+}
+
+func (s *MmctlE2ETestSuite) SetupTestHelperWithOptions(opts []app.Option) *api4.TestHelper {
+	s.th = api4.SetupWithServerOptions(s.T(), opts)
 	return s.th
 }
 
