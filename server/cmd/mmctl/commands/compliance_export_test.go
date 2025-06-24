@@ -5,7 +5,10 @@ package commands
 
 import (
 	"context"
+	"fmt"
+	"os"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/spf13/cobra"
@@ -219,6 +222,77 @@ func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
 		err := complianceExportCancelCmdF(s.client, cmd, []string{id})
 		s.Require().NotNil(err)
 		s.EqualError(err, "failed to cancel compliance export job: failed to cancel job")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
+	mockJob := &model.Job{
+		Id:       model.NewId(),
+		CreateAt: model.GetMillis(),
+		Type:     model.JobTypeMessageExport,
+	}
+
+	s.Run("download job file successfully", func() {
+		printer.Clean()
+		defer func() {
+			_ = os.Remove("suggested-filename.zip")
+		}()
+
+		s.client.
+			EXPECT().
+			DownloadComplianceExport(gomock.Any(), mockJob.Id, gomock.Any()).
+			Return("suggested-filename.zip", nil).
+			Times(1)
+
+		cmd := makeCmd()
+		cmd.Flags().Int("num-retries", 5, "")
+		err := complianceExportDownloadCmdF(s.client, cmd, []string{mockJob.Id})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Equal(fmt.Sprintf("Compliance export file downloaded to %q", "suggested-filename.zip"), printer.GetLines()[0])
+	})
+
+	s.Run("download job file with explicit path", func() {
+		printer.Clean()
+		defer func() {
+			_ = os.Remove("custom-path.zip")
+		}()
+
+		s.client.
+			EXPECT().
+			DownloadComplianceExport(context.TODO(), mockJob.Id, gomock.Any()).
+			Return("", nil).
+			Times(1)
+
+		cmd := makeCmd()
+		cmd.Flags().Int("num-retries", 5, "")
+		err := complianceExportDownloadCmdF(s.client, cmd, []string{mockJob.Id, "custom-path.zip"})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Equal(fmt.Sprintf("Compliance export file downloaded to %q", "custom-path.zip"), printer.GetLines()[0])
+	})
+
+	s.Run("download job with error", func() {
+		printer.Clean()
+		mockError := &model.AppError{
+			Message: "failed to download file",
+		}
+
+		s.client.
+			EXPECT().
+			DownloadComplianceExport(context.TODO(), mockJob.Id, gomock.Any()).
+			Return("", mockError).
+			Times(6) // Initial attempt + 5 retries
+
+		cmd := makeCmd()
+		cmd.Flags().Int("num-retries", 5, "")
+		err := complianceExportDownloadCmdF(s.client, cmd, []string{mockJob.Id})
+		s.Require().NotNil(err)
+		s.EqualError(err, "failed to download compliance export after 5 retries: failed to download file")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
