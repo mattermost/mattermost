@@ -197,7 +197,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		}
 
 		// add/update post
-		rpost, err := scs.upsertSyncPost(post, targetChannel, rc, syncMsg.Users, syncMsg.MentionTransforms)
+		rpost, err := scs.upsertSyncPost(post, targetChannel, rc, syncMsg.MentionTransforms)
 		if err != nil {
 			syncResp.PostErrors = append(syncResp.PostErrors, post.Id)
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync post",
@@ -454,7 +454,7 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 	return nil, fmt.Errorf("error updating sync user %s: %w", user.Id, err)
 }
 
-func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, syncMsgUsers map[string]*model.User, mentionTransforms map[string]string) (*model.Post, error) {
+func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string) (*model.Post, error) {
 	var appErr *model.AppError
 
 	post.RemoteId = model.NewPointer(rc.RemoteId)
