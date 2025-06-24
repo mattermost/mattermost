@@ -2,19 +2,28 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect} from 'react';
+import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import WithTooltip from 'components/with_tooltip';
+
+import type {GlobalState} from 'types/store';
 
 import {modalContent} from './preview_modal_content_data';
 import PreviewModalController from './preview_modal_controller';
 
+import './cloud_preview_modal.scss';
+
 const CLOUD_PREVIEW_MODAL_SHOWN_PREF = 'cloud_preview_modal_shown';
 
 const CloudPreviewModal: React.FC = () => {
+    const intl = useIntl();
     const dispatch = useDispatch();
     const subscription = useSelector(getCloudSubscription);
     const license = useSelector(getLicense);
@@ -24,7 +33,9 @@ const CloudPreviewModal: React.FC = () => {
     const isCloudPreview = subscription?.is_cloud_preview === true;
 
     // Check if modal has been shown before
-    const hasModalBeenShown = false;
+    const hasModalBeenShown = useSelector((state: GlobalState) =>
+        getPreference(state, CLOUD_PREVIEW_MODAL_SHOWN_PREF, CLOUD_PREVIEW_MODAL_SHOWN_PREF, 'false') === 'true',
+    );
 
     const [showModal, setShowModal] = useState(false);
 
@@ -55,17 +66,58 @@ const CloudPreviewModal: React.FC = () => {
         }
     };
 
+    const handleOpenModal = () => {
+        // Reset preference to show modal again
+        if (currentUserId) {
+            const preference = {
+                user_id: currentUserId,
+                category: CLOUD_PREVIEW_MODAL_SHOWN_PREF,
+                name: CLOUD_PREVIEW_MODAL_SHOWN_PREF,
+                value: 'false',
+            };
+            dispatch(savePreferences(currentUserId, [preference]));
+        }
+    };
+
     if (!isCloud || !isCloudPreview) {
         return null;
     }
 
-    // TODO: Remove hard coded filter on missionops in favour of dynamic based on selected use case
+    // Show FAB only if modal has been shown before and modal is not currently open
+    const shouldShowFAB = hasModalBeenShown && !showModal;
+
     return (
-        <PreviewModalController
-            show={showModal}
-            onClose={handleClose}
-            contentData={modalContent.filter((content) => content.useCase === 'missionops')}
-        />
+        <>
+            <PreviewModalController
+                show={showModal}
+                onClose={handleClose}
+                contentData={modalContent.filter((content) => content.useCase === 'missionops')}
+            />
+            {shouldShowFAB && (
+                <div
+                    className='cloud-preview-modal-fab'
+                    data-testid='cloud-preview-fab'
+                >
+                    <WithTooltip
+                        title={intl.formatMessage({
+                            id: 'cloud_preview_modal.fab.tooltip',
+                            defaultMessage: 'Open overview',
+                        })}
+                    >
+                        <button
+                            className='cloud-preview-modal-fab__button'
+                            onClick={handleOpenModal}
+                            aria-label={intl.formatMessage({
+                                id: 'cloud_preview_modal.fab.aria_label',
+                                defaultMessage: 'Open cloud preview overview',
+                            })}
+                        >
+                            <i className='icon icon-play-box-multiple-outline'/>
+                        </button>
+                    </WithTooltip>
+                </div>
+            )}
+        </>
     );
 };
 

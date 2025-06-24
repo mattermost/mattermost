@@ -21,6 +21,19 @@ jest.mock('./preview_modal_controller', () => ({
     ) : null),
 }));
 
+// Mock WithTooltip to avoid complex tooltip testing
+jest.mock('components/with_tooltip', () => ({
+    __esModule: true,
+    default: ({children, title}: {children: React.ReactNode; title: string}) => (
+        <div
+            data-testid='with-tooltip'
+            title={title}
+        >
+            {children}
+        </div>
+    ),
+}));
+
 describe('CloudPreviewModal', () => {
     const useDispatchMock = jest.spyOn(reactRedux, 'useDispatch');
 
@@ -65,6 +78,22 @@ describe('CloudPreviewModal', () => {
         },
     };
 
+    const stateWithModalShown = {
+        ...initialState,
+        entities: {
+            ...initialState.entities,
+            preferences: {
+                myPreferences: {
+                    'cloud_preview_modal_shown--cloud_preview_modal_shown': {
+                        category: 'cloud_preview_modal_shown',
+                        name: 'cloud_preview_modal_shown',
+                        value: 'true',
+                    },
+                },
+            },
+        },
+    };
+
     it('should show modal when in cloud preview and modal has not been shown before', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
@@ -75,6 +104,7 @@ describe('CloudPreviewModal', () => {
         );
 
         expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
+        expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
     });
 
     it('should not show modal when not in cloud preview', () => {
@@ -110,27 +140,43 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 
-    // Skip for now.
-    // it('should not show modal when modal has been shown before', () => {
-    //     const state = JSON.parse(JSON.stringify(initialState));
-    //     state.entities.preferences.myPreferences = {
-    //         'cloud_preview_modal_shown--cloud_preview_modal_shown': {
-    //             category: 'cloud_preview_modal_shown',
-    //             name: 'cloud_preview_modal_shown',
-    //             value: 'true',
-    //         },
-    //     };
+    it('should not show modal when modal has been shown before', () => {
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
 
-    //     const dummyDispatch = jest.fn();
-    //     useDispatchMock.mockReturnValue(dummyDispatch);
+        renderWithContext(
+            <CloudPreviewModal/>,
+            stateWithModalShown,
+        );
 
-    //     renderWithContext(
-    //         <CloudPreviewModal/>,
-    //         state,
-    //     );
+        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+    });
 
-    //     expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
-    // });
+    it('should show FAB when modal has been shown before and modal is not open', () => {
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            stateWithModalShown,
+        );
+
+        expect(screen.getByTestId('cloud-preview-fab')).toBeInTheDocument();
+        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+    });
+
+    it('should not show FAB when modal has not been shown before', () => {
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            initialState,
+        );
+
+        expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
+        expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
+    });
 
     it('should save preference when modal is closed', () => {
         const dummyDispatch = jest.fn();
@@ -149,6 +195,28 @@ describe('CloudPreviewModal', () => {
         expect(dummyDispatch).toHaveBeenCalled();
     });
 
+    it('should reset preference and reopen modal when FAB is clicked', () => {
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            stateWithModalShown,
+        );
+
+        // FAB should be visible
+        const fabButton = screen.getByTestId('cloud-preview-fab');
+        expect(fabButton).toBeInTheDocument();
+
+        // Click the FAB button
+        const button = fabButton.querySelector('button');
+        expect(button).toBeInTheDocument();
+        fireEvent.click(button!);
+
+        // Check that dispatch was called to reset the preference
+        expect(dummyDispatch).toHaveBeenCalled();
+    });
+
     it('should not render anything when subscription is undefined', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = undefined;
@@ -162,5 +230,33 @@ describe('CloudPreviewModal', () => {
         );
 
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
+    });
+
+    it('should have proper tooltip on FAB button', () => {
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            stateWithModalShown,
+        );
+
+        const tooltip = screen.getByTestId('with-tooltip');
+        expect(tooltip).toHaveAttribute('title', 'Open overview');
+    });
+
+    it('should have proper accessibility attributes on FAB button', () => {
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            stateWithModalShown,
+        );
+
+        const fabButton = screen.getByTestId('cloud-preview-fab').querySelector('button');
+        expect(fabButton).toHaveAttribute('aria-label', 'Open cloud preview overview');
+        expect(fabButton).toHaveClass('cloud-preview-modal-fab__button');
     });
 });
