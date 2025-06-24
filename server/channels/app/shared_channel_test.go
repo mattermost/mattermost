@@ -4,9 +4,6 @@
 package app
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -559,62 +556,6 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 		}
 	}
 	require.NotNil(t, systemPost, "System message should be posted when channel becomes unshared")
-}
-
-// PostTrackingSyncHandler extends the utilities handler to track received posts for testing
-type PostTrackingSyncHandler struct {
-	*SelfReferentialSyncHandler
-	receivedPosts []*model.Post // Track received posts for validation
-}
-
-// NewPostTrackingSyncHandler creates a new handler that tracks received posts
-func NewPostTrackingSyncHandler(t *testing.T, service *sharedchannel.Service, selfCluster *model.RemoteCluster) *PostTrackingSyncHandler {
-	baseHandler := NewSelfReferentialSyncHandler(t, service, selfCluster)
-	return &PostTrackingSyncHandler{
-		SelfReferentialSyncHandler: baseHandler,
-		receivedPosts:              make([]*model.Post, 0),
-	}
-}
-
-// HandleRequest extends the base handler to also track posts
-func (h *PostTrackingSyncHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/api/v4/remotecluster/msg" {
-		// Read and capture posts before delegating to base handler
-		body, _ := io.ReadAll(r.Body)
-		var frame model.RemoteClusterFrame
-		if json.Unmarshal(body, &frame) == nil {
-			var syncMsg model.SyncMsg
-			if json.Unmarshal(frame.Msg.Payload, &syncMsg) == nil {
-				// Track received posts for validation
-				h.receivedPosts = append(h.receivedPosts, syncMsg.Posts...)
-
-				// Debug mention transforms received
-				h.t.Logf("PostTrackingSyncHandler: Received SyncMsg with %d posts and %d mention transforms", len(syncMsg.Posts), len(syncMsg.MentionTransforms))
-				for mention, userID := range syncMsg.MentionTransforms {
-					h.t.Logf("PostTrackingSyncHandler: MentionTransform - '%s' -> '%s'", mention, userID)
-				}
-				for i, post := range syncMsg.Posts {
-					h.t.Logf("PostTrackingSyncHandler: Post[%d] - ID=%s, Message='%s'", i, post.Id, post.Message)
-				}
-			}
-		}
-
-		// Create a new request with the body content for the base handler
-		r.Body = io.NopCloser(bytes.NewReader(body))
-	}
-
-	// Delegate to base handler
-	h.SelfReferentialSyncHandler.HandleRequest(w, r)
-}
-
-// GetReceivedPosts returns the posts received by this handler
-func (h *PostTrackingSyncHandler) GetReceivedPosts() []*model.Post {
-	return h.receivedPosts
-}
-
-// ResetReceivedPosts clears the received posts list for testing
-func (h *PostTrackingSyncHandler) ResetReceivedPosts() {
-	h.receivedPosts = make([]*model.Post, 0)
 }
 
 // TestTransformMentionsOnReceive provides comprehensive unit testing for the mention transformation logic
