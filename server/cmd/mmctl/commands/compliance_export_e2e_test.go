@@ -198,3 +198,106 @@ func (s *MmctlE2ETestSuite) TestComplianceExportShowCmdE2E() {
 		s.Require().Equal(job.Id, printer.GetLines()[0].(*model.Job).Id)
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
+	s.SetupMessageExportTestHelper()
+
+	s.Run("no permissions", func() {
+		printer.Clean()
+
+		now := model.GetMillis()
+		// Create a job
+		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+			Id:             st.NewTestID(),
+			CreateAt:       now - 1000,
+			Status:         model.JobStatusInProgress,
+			Type:           model.JobTypeMessageExport,
+			StartAt:        now - 1000,
+			LastActivityAt: now - 1000,
+		})
+		s.Require().NoError(err)
+		defer func() {
+			// Ensure job is deleted from the database
+			var result string
+			result, err = s.th.App.Srv().Store().Job().Delete(job.Id)
+			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
+		}()
+
+		cmd := makeCmd()
+		err = complianceExportCancelCmdF(s.th.Client, cmd, []string{job.Id})
+		s.Require().EqualError(err, "failed to get compliance export job: You do not have the appropriate permissions.")
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Cancel non-existent job", func(c client.Client) {
+		printer.Clean()
+
+		cmd := makeCmd()
+		err := complianceExportCancelCmdF(c, cmd, []string{"non-existent-job-id"})
+		s.Require().EqualError(err, "failed to get compliance export job: Sorry, we could not find the page., There doesn't appear to be an api call for the url='/api/v4/jobs/non-existent-job-id'.  Typo? are you missing a team_id or user_id as part of the url?")
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Cancel existing job", func(c client.Client) {
+		now := model.GetMillis()
+		// Create a job
+		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+			Id:             st.NewTestID(),
+			CreateAt:       now - 1000,
+			Status:         model.JobStatusInProgress,
+			Type:           model.JobTypeMessageExport,
+			StartAt:        now - 1000,
+			LastActivityAt: now - 1000,
+		})
+		s.Require().NoError(err)
+		defer func() {
+			// Ensure job is deleted from the database
+			var result string
+			result, err = s.th.App.Srv().Store().Job().Delete(job.Id)
+			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
+		}()
+
+		printer.Clean()
+		cmd := makeCmd()
+		err = complianceExportCancelCmdF(c, cmd, []string{job.Id})
+		s.Require().NoError(err)
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+
+		// Verify job was cancelled
+		job, _, err = s.th.SystemAdminClient.GetJob(context.Background(), job.Id)
+		s.Require().NoError(err)
+		s.Require().Equal(model.JobStatusCanceled, job.Status)
+	})
+
+	s.RunForSystemAdminAndLocal("Error cancelling job in non-cancellable state", func(c client.Client) {
+		now := model.GetMillis()
+		// Create a job
+		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+			Id:             st.NewTestID(),
+			CreateAt:       now - 1000,
+			Status:         model.JobStatusInProgress,
+			Type:           model.JobTypeMessageExport,
+			StartAt:        now - 1000,
+			LastActivityAt: now - 1000,
+		})
+		s.Require().NoError(err)
+		_, err = s.th.SystemAdminClient.UpdateJobStatus(context.Background(), job.Id, model.JobStatusCanceled, true)
+		s.Require().NoError(err)
+		defer func() {
+			// Ensure job is deleted from the database
+			var result string
+			result, err = s.th.App.Srv().Store().Job().Delete(job.Id)
+			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
+		}()
+
+		printer.Clean()
+		cmd := makeCmd()
+		err = complianceExportCancelCmdF(c, cmd, []string{job.Id})
+		s.Require().EqualError(err, "failed to cancel compliance export job: Could not request cancellation for job that is not in a cancelable state.")
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+}

@@ -13,6 +13,7 @@ import (
 
 func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 	s.Run("list default pagination", func() {
+		s.SetupTest() // Reset mocks before test
 		printer.Clean()
 		var mockJobs []*model.Job
 
@@ -115,6 +116,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 
 func (s *MmctlUnitTestSuite) TestComplianceExportShowCmdF() {
 	s.Run("show job successfully", func() {
+		s.SetupTest() // Reset mocks before test
 		printer.Clean()
 		mockJob := &model.Job{
 			Id:       model.NewId(),
@@ -137,6 +139,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportShowCmdF() {
 	})
 
 	s.Run("show job with error", func() {
+		s.SetupTest() // Reset mocks before test
 		printer.Clean()
 		mockError := &model.AppError{
 			Message: "failed to get job",
@@ -152,6 +155,70 @@ func (s *MmctlUnitTestSuite) TestComplianceExportShowCmdF() {
 		err := complianceExportShowCmdF(s.client, cmd, []string{"invalid-job-id"})
 		s.Require().NotNil(err)
 		s.EqualError(err, "failed to get compliance export job: failed to get job")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
+	s.Run("cancel job successfully", func() {
+		s.SetupTest() // Reset mocks before test
+		printer.Clean()
+		id := model.NewId()
+
+		s.client.
+			EXPECT().
+			CancelJob(context.TODO(), id).
+			Return(&model.Response{}, nil).
+			Times(1)
+
+		cmd := makeCmd()
+		err := complianceExportCancelCmdF(s.client, cmd, []string{id})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("cancel job with get error", func() {
+		s.SetupTest() // Reset mocks before test
+		printer.Clean()
+		mockError := &model.AppError{
+			Message: "failed to get job",
+		}
+
+		s.client.
+			EXPECT().
+			CancelJob(context.TODO(), "invalid-job-id").
+			Return(&model.Response{}, mockError).
+			Times(1)
+
+		cmd := makeCmd()
+		err := complianceExportCancelCmdF(s.client, cmd, []string{"invalid-job-id"})
+		s.Require().NotNil(err)
+		s.EqualError(err, "failed to cancel compliance export job: failed to get job")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("cancel job with cancel error", func() {
+		s.SetupTest() // Reset mocks before test
+		printer.Clean()
+		id := model.NewId()
+
+		mockError := &model.AppError{
+			Message: "failed to cancel job",
+		}
+
+		s.client.
+			EXPECT().
+			CancelJob(context.TODO(), id).
+			Return(&model.Response{}, mockError).
+			Times(1)
+
+		cmd := makeCmd()
+		err := complianceExportCancelCmdF(s.client, cmd, []string{id})
+		s.Require().NotNil(err)
+		s.EqualError(err, "failed to cancel compliance export job: failed to cancel job")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
