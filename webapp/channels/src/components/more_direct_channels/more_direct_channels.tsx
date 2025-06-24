@@ -294,14 +294,10 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
     };
 
     getDirectMessageableUsers = (): UserProfile[] => {
-        const {users, currentUserId} = this.props;
+        const {users} = this.props;
         const {directMessageCapabilityCache} = this.state;
 
         return users.filter((user) => {
-            if (user.id === currentUserId) {
-                return false;
-            }
-
             // For remote users, check if they can be DMed
             if (user.remote_id) {
                 // If we haven't checked this user yet, hide them until we have the result
@@ -313,7 +309,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 return directMessageCapabilityCache[user.id];
             }
 
-            // Show local users
+            // Show local users (including self)
             return true;
         });
     };
