@@ -6,7 +6,6 @@ package app
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -240,7 +239,6 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 	}
 
 	possibleMentions := possibleAtMentions(message)
-	a.PostDebugToTownSquare(c, fmt.Sprintf("MentionsToTeamMembers: ENTRY - message='%s', teamID='%s', possibleMentions=%v", message, teamID, possibleMentions))
 	mentionChan := make(chan *mentionMapItem, len(possibleMentions))
 
 	var wg sync.WaitGroup
@@ -248,20 +246,11 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 		wg.Add(1)
 		go func(mention string) {
 			defer wg.Done()
-			a.PostDebugToTownSquare(c, fmt.Sprintf("MentionsToTeamMembers: Processing mention='%s'", mention))
 			user, nErr := a.Srv().Store().User().GetByUsername(mention)
-
-			// Debug: Also check if there are any users with this mention as part of a remote username
-			if remoteUsers, err := a.Srv().Store().User().GetProfilesByUsernames([]string{mention + ":org1", mention + ":org2", mention + ":remote1", mention + ":remote2"}, nil); err == nil {
-				for _, remoteUser := range remoteUsers {
-					a.PostDebugToTownSquare(c, fmt.Sprintf("MentionsToTeamMembers: Found potential remote user - Username=%s, ID=%s, RemoteId='%s'", remoteUser.Username, remoteUser.Id, remoteUser.GetRemoteID()))
-				}
-			}
 
 			var nfErr *store.ErrNotFound
 			if nErr != nil && !errors.As(nErr, &nfErr) {
 				c.Logger().Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
-				a.PostDebugToTownSquare(c, fmt.Sprintf("MentionsToTeamMembers: Failed to get user '%s': %v", mention, nErr))
 				return
 			}
 
@@ -292,16 +281,12 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 				return
 			}
 
-			a.PostDebugToTownSquare(c, fmt.Sprintf("MentionsToTeamMembers: Found user for mention='%s' - ID=%s, Username=%s, RemoteId='%s', Email=%s", mention, user.Id, user.Username, user.GetRemoteID(), user.Email))
-
 			_, err := a.GetTeamMember(c, teamID, user.Id)
 			if err != nil {
 				// The user is not in the team, so we should ignore it
-				a.PostDebugToTownSquare(c, fmt.Sprintf("MentionsToTeamMembers: User '%s' (ID=%s) is not a team member: %v", mention, user.Id, err))
 				return
 			}
 
-			a.PostDebugToTownSquare(c, fmt.Sprintf("MentionsToTeamMembers: Adding mention='%s' -> userID='%s' to map", mention, user.Id))
 			mentionChan <- &mentionMapItem{mention, user.Id}
 		}(mention)
 	}

@@ -501,14 +501,10 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 		// Collect mention transforms for all mentioned users
 		if v.mentionMap != nil {
-			rctx := request.EmptyContext(scs.server.Log())
-			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("fetchPostUsersForSync: Processing mention map - Remote=%s, UserID=%s, Username=%s, UserRemoteId=%s, MentionCount=%d", sd.rc.Name, userID, user.Username, user.GetRemoteID(), len(v.mentionMap)))
 			for mention, mentionUserID := range v.mentionMap {
-				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("fetchPostUsersForSync: Processing mention='%s' -> mentionUserID='%s', currentUserID='%s'", mention, mentionUserID, userID))
 				if mentionUserID == userID {
 					// Always add the mention transform - let receiver decide how to display
 					// The sender should NOT modify the message, only provide the mapping
-					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("fetchPostUsersForSync: Adding mention transform - Remote=%s, Mention='%s', UserID=%s", sd.rc.Name, mention, userID))
 					sd.mentionTransforms[mention] = userID
 				}
 			}
@@ -708,10 +704,6 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Posts = sd.posts
 	msg.MentionTransforms = sd.mentionTransforms
-
-	// Debug mention transforms being sent
-	rctx := request.EmptyContext(scs.server.Log())
-	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("sendPostSyncData: Sending mention transforms - Remote=%s, ChannelID=%s, TransformCount=%d, Transforms=%v", sd.rc.Name, sd.task.channelID, len(sd.mentionTransforms), sd.mentionTransforms))
 
 	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
 		if len(syncResp.PostErrors) != 0 {
