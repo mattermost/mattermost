@@ -205,6 +205,7 @@ export default class SuggestionBox extends React.PureComponent {
 
         // pretext: the text before the cursor
         // matchedPretext: a list of the text before the cursor that will be replaced if the corresponding autocomplete term is selected
+        // groups: a list of grouped items and terms which are rendered in the list
         // terms: a list of strings which the previously typed text may be replaced by
         // items: a list of objects backing the terms which may be used in rendering
         // components: a list of react components that can be used to render their corresponding item
@@ -561,6 +562,7 @@ export default class SuggestionBox extends React.PureComponent {
             this.setState({
                 cleared: true,
                 matchedPretext: [],
+                groups: [],
                 terms: [],
                 items: [],
                 components: [],
