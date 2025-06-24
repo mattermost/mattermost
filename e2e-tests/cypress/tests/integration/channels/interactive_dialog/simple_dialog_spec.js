@@ -26,13 +26,6 @@ describe('Interactive Dialog - Apps Form without element', () => {
         cy.shouldNotRunOnCloudEdition();
         cy.requireWebhookServer();
 
-        // # Enable InteractiveDialogAppsForm feature flag to use AppsForm
-        cy.apiUpdateConfig({
-            FeatureFlags: {
-                InteractiveDialogAppsForm: true,
-            },
-        });
-
         // # Ensure that teammate name display setting is set to default 'username'
         cy.apiSaveTeammateNameDisplayPreference('username');
 
