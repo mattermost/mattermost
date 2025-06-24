@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"testing"
 
 	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -296,6 +297,121 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
+}
+
+func TestGetStartAndEnd(t *testing.T) {
+	type args struct {
+		dateStr string
+		start   int
+		end     int
+	}
+	tests := []struct {
+		name          string
+		args          args
+		expectedStart int64
+		expectedEnd   int64
+		wantErr       bool
+	}{
+		// check with: https://www.epochconverter.com/
+		{
+			name: "parse a date in EDT (-0400)",
+			args: args{
+				dateStr: "2024-10-21 -0400",
+			},
+			expectedStart: 1729483200000,
+			expectedEnd:   1729569599999,
+		},
+		{
+			name: "parse a date in UTC (+0)",
+			args: args{
+				dateStr: "2024-10-21 +0000",
+			},
+			expectedStart: 1729468800000,
+			expectedEnd:   1729555199999,
+		},
+		{
+			name: "parse a date in CDT (-0500)",
+			args: args{
+				dateStr: "2024-10-21 -0500",
+			},
+			expectedStart: 1729486800000,
+			expectedEnd:   1729573199999,
+		},
+		{
+			name: "bad format",
+			args: args{
+				dateStr: "2024-10-21 CT",
+			},
+			wantErr: true,
+		},
+		{
+			name: "bad format",
+			args: args{
+				dateStr: "2024-1-2 CDT",
+			},
+			wantErr: true,
+		},
+		{
+			name:    "it's ok to not have date, start, or end",
+			args:    args{},
+			wantErr: false,
+		},
+		{
+			name: "needs both start and end pt1",
+			args: args{
+				start: 12345,
+			},
+			wantErr: true,
+		},
+		{
+			name: "needs both start and end pt2",
+			args: args{
+				end: 12345,
+			},
+			wantErr: true,
+		},
+		{
+			name: "start and end",
+			args: args{
+				start: 12345,
+				end:   678912,
+			},
+			expectedStart: 12345,
+			expectedEnd:   678912,
+			wantErr:       false,
+		},
+		{
+			name: "date and start",
+			args: args{
+				dateStr: "2024-10-21 -0400",
+				start:   12345,
+			},
+			wantErr: true,
+		},
+		{
+			name: "date and end",
+			args: args{
+				dateStr: "2024-10-21 -0400",
+				end:     678912,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotStart, gotEnd, err := getStartAndEnd(tt.args.dateStr, tt.args.start, tt.args.end)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getStartAndEnd() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotStart != tt.expectedStart {
+				t.Errorf("getStartAndEnd() got = %v, want %v", gotStart, tt.expectedStart)
+			}
+			if gotEnd != tt.expectedEnd {
+				t.Errorf("getStartAndEnd() got1 = %v, want %v", gotEnd, tt.expectedEnd)
+			}
+		})
+	}
 }
 
 func makeCmd() *cobra.Command {

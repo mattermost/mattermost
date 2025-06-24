@@ -38,6 +38,7 @@ SEE ALSO
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
 * `mmctl compliance-export cancel <mmctl_compliance-export_cancel.rst>`_ 	 - Cancel compliance export job
+* `mmctl compliance-export create <mmctl_compliance-export_create.rst>`_ 	 - Create a compliance export job, of type 'csv' or 'actiance' or 'globalrelay'
 * `mmctl compliance-export download <mmctl_compliance-export_download.rst>`_ 	 - Download compliance export file
 * `mmctl compliance-export list <mmctl_compliance-export_list.rst>`_ 	 - List compliance export jobs, sorted by creation date descending (newest first)
 * `mmctl compliance-export show <mmctl_compliance-export_show.rst>`_ 	 - Show compliance export job
