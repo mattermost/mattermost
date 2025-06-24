@@ -84,6 +84,7 @@ type AppIface interface {
 	SaveAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError)
 	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
 	PreparePostForClient(c request.CTX, post *model.Post, isNewPost, includeDeleted, includePriority bool) *model.Post
+	PostDebugToTownSquare(c request.CTX, message string)
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -379,4 +380,9 @@ func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, r
 // HandleChannelNotSharedErrorForTesting is a wrapper to expose handleChannelNotSharedError for testing purposes
 func (scs *Service) HandleChannelNotSharedErrorForTesting(msg *model.SyncMsg, rc *model.RemoteCluster) {
 	scs.handleChannelNotSharedError(msg, rc)
+}
+
+// TransformMentionsOnReceiveForTesting allows testing the full mention transformation flow
+func (scs *Service) TransformMentionsOnReceiveForTesting(ctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, syncMsgUsers map[string]*model.User, mentionTransforms map[string]string) {
+	scs.transformMentionsOnReceive(ctx, post, targetChannel, rc, syncMsgUsers, mentionTransforms)
 }

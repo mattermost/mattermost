@@ -32,13 +32,14 @@ type syncData struct {
 	rc   *model.RemoteCluster
 	scr  *model.SharedChannelRemote
 
-	users            map[string]*model.User
-	profileImages    map[string]*model.User
-	posts            []*model.Post
-	reactions        []*model.Reaction
-	acknowledgements []*model.PostAcknowledgement
-	statuses         []*model.Status
-	attachments      []attachment
+	users             map[string]*model.User
+	profileImages     map[string]*model.User
+	posts             []*model.Post
+	reactions         []*model.Reaction
+	acknowledgements  []*model.PostAcknowledgement
+	statuses          []*model.Status
+	attachments       []attachment
+	mentionTransforms map[string]string
 
 	resultRepeat                bool
 	resultNextCursor            model.GetPostsSinceForSyncCursor
@@ -47,11 +48,12 @@ type syncData struct {
 
 func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChannelRemote) *syncData {
 	return &syncData{
-		task:          task,
-		rc:            rc,
-		scr:           scr,
-		users:         make(map[string]*model.User),
-		profileImages: make(map[string]*model.User),
+		task:              task,
+		rc:                rc,
+		scr:               scr,
+		users:             make(map[string]*model.User),
+		profileImages:     make(map[string]*model.User),
+		mentionTransforms: make(map[string]string),
 		resultNextCursor: model.GetPostsSinceForSyncCursor{
 			LastPostUpdateAt: scr.LastPostUpdateAt, LastPostUpdateID: scr.LastPostUpdateID,
 			LastPostCreateAt: scr.LastPostCreateAt, LastPostCreateID: scr.LastPostCreateID,
@@ -444,9 +446,6 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 	}
 
 	for _, post := range sd.posts {
-		// add author
-		userIDs[post.UserId] = p2mm{}
-
 		// get mentions and users for each mention
 		mentionMap := scs.app.MentionsToTeamMembers(request.EmptyContext(scs.server.Log()), post.Message, sc.TeamId)
 
@@ -458,10 +457,19 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			}
 
 			// Skip remote users unless mention contains a colon (@username:remote)
-			if user.RemoteId != nil && !strings.Contains(mention, ":") {
+			if user.IsRemote() && !strings.Contains(mention, ":") {
 				continue
 			}
+		}
 
+		// add author with post and mentionMap so transformations can be applied
+		userIDs[post.UserId] = p2mm{
+			post:       post,
+			mentionMap: mentionMap,
+		}
+
+		// Add all mentioned users
+		for _, userID := range mentionMap {
 			userIDs[userID] = p2mm{
 				post:       post,
 				mentionMap: mentionMap,
@@ -470,7 +478,6 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 	}
 
 	merr := merror.New()
-
 	for userID, v := range userIDs {
 		user, err := scs.server.GetStore().User().Get(context.Background(), userID)
 		if err != nil {
@@ -480,7 +487,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 		sync, syncImage, err2 := scs.shouldUserSync(user, sd.task.channelID, sd.rc)
 		if err2 != nil {
-			merr.Append(fmt.Errorf("could not check should sync user %s: %w", userID, err))
+			merr.Append(fmt.Errorf("could not check should sync user %s: %w", userID, err2))
 			continue
 		}
 
@@ -492,9 +499,19 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			sd.profileImages[user.Id] = user
 		}
 
-		// Transform @username:remote to @username when sending to a user's home cluster
-		if v.post != nil && user.RemoteId != nil && *user.RemoteId == sd.rc.RemoteId {
-			fixMention(v.post, v.mentionMap, user)
+		// Collect mention transforms for all mentioned users
+		if v.mentionMap != nil {
+			rctx := request.EmptyContext(scs.server.Log())
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("fetchPostUsersForSync: Processing mention map - Remote=%s, UserID=%s, Username=%s, UserRemoteId=%s, MentionCount=%d", sd.rc.Name, userID, user.Username, user.GetRemoteID(), len(v.mentionMap)))
+			for mention, mentionUserID := range v.mentionMap {
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("fetchPostUsersForSync: Processing mention='%s' -> mentionUserID='%s', currentUserID='%s'", mention, mentionUserID, userID))
+				if mentionUserID == userID {
+					// Always add the mention transform - let receiver decide how to display
+					// The sender should NOT modify the message, only provide the mapping
+					scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("fetchPostUsersForSync: Adding mention transform - Remote=%s, Mention='%s', UserID=%s", sd.rc.Name, mention, userID))
+					sd.mentionTransforms[mention] = userID
+				}
+			}
 		}
 	}
 	return merr.ErrorOrNil()
@@ -690,6 +707,11 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Posts = sd.posts
+	msg.MentionTransforms = sd.mentionTransforms
+
+	// Debug mention transforms being sent
+	rctx := request.EmptyContext(scs.server.Log())
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("sendPostSyncData: Sending mention transforms - Remote=%s, ChannelID=%s, TransformCount=%d, Transforms=%v", sd.rc.Name, sd.task.channelID, len(sd.mentionTransforms), sd.mentionTransforms))
 
 	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
 		if len(syncResp.PostErrors) != 0 {

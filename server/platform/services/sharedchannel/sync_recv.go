@@ -197,7 +197,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		}
 
 		// add/update post
-		rpost, err := scs.upsertSyncPost(post, targetChannel, rc)
+		rpost, err := scs.upsertSyncPost(post, targetChannel, rc, syncMsg.Users, syncMsg.MentionTransforms)
 		if err != nil {
 			syncResp.PostErrors = append(syncResp.PostErrors, post.Id)
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync post",
@@ -454,7 +454,7 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 	return nil, fmt.Errorf("error updating sync user %s: %w", user.Id, err)
 }
 
-func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
+func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, syncMsgUsers map[string]*model.User, mentionTransforms map[string]string) (*model.Post, error) {
 	var appErr *model.AppError
 
 	post.RemoteId = model.NewPointer(rc.RemoteId)
@@ -483,11 +483,16 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
 		}
 
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("upsertSyncPost: CREATING POST - About to handle mention transformation - PostId=%s, UserId=%s, ChannelId=%s, RemoteCluster=%s", post.Id, post.UserId, post.ChannelId, rc.Name))
+		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, syncMsgUsers, mentionTransforms)
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("upsertSyncPost: CREATING POST - Mention transformation completed - PostId=%s, FinalMessage=%s", post.Id, post.Message))
+
 		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId))
+				mlog.String("channel_id", post.ChannelId),
+			)
 		}
 	} else if post.DeleteAt > 0 {
 		// delete post
@@ -499,6 +504,9 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			)
 		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.UpdateAt > rpost.UpdateAt || post.Metadata != nil {
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("upsertSyncPost: UPDATING POST - About to handle mention transformation - PostId=%s, ChannelId=%s, RemoteCluster=%s, OriginalMessage=%s", post.Id, post.ChannelId, rc.Name, post.Message))
+		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, syncMsgUsers, mentionTransforms)
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("upsertSyncPost: UPDATING POST - Mention transformation completed - PostId=%s, FinalMessage=%s", post.Id, post.Message))
 		var priority *model.PostPriority
 		var acknowledgements []*model.PostAcknowledgement
 
@@ -740,4 +748,64 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 		retErr = errors.New(appErr.Error())
 	}
 	return savedAcknowledgement, retErr
+}
+
+// transformMentionsOnReceive transforms mentions in received posts using explicit mentionTransforms.
+func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, syncMsgUsers map[string]*model.User, mentionTransforms map[string]string) {
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: ENTRY - PostId=%s, Message=%s, MentionTransforms=%v", post.Id, post.Message, mentionTransforms))
+
+	if post.Message == "" || len(mentionTransforms) == 0 {
+		scs.app.PostDebugToTownSquare(rctx, "transformMentionsOnReceive: SKIP - Empty message or no mention transforms")
+		return
+	}
+
+	originalMessage := post.Message
+
+	// Process mentions directly using mentionTransforms - no need to re-parse with regex
+	scs.app.PostDebugToTownSquare(rctx, "transformMentionsOnReceive: Processing mentions using pre-parsed transforms")
+	for mention, userID := range mentionTransforms {
+		oldMention := "@" + mention
+		scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Processing mention='%s' -> userID='%s'", mention, userID))
+
+		// Get the user to determine transformation type
+		if user, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && user != nil {
+			// User exists in receiver's database
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: User exists - ID='%s', Username='%s', RemoteId='%s'", user.Id, user.Username, user.GetRemoteID()))
+
+			var newMention string
+			if strings.Contains(mention, ":") {
+				// Colon mention (e.g., "@admin:remote1") - always use the user's actual username
+				newMention = "@" + user.Username
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Colon mention transformed - '%s' -> '%s'", oldMention, newMention))
+			} else {
+				// Simple mention (e.g., "@admin")
+				if user.GetRemoteID() == "" {
+					// This is a local user, keep as-is
+					newMention = "@" + mention
+				} else {
+					// This is a remote user that was synced, use their synced username
+					newMention = "@" + user.Username
+				}
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Simple mention transformed - '%s' -> '%s'", oldMention, newMention))
+			}
+			post.Message = strings.ReplaceAll(post.Message, oldMention, newMention)
+		} else {
+			// User doesn't exist in receiver's database
+			scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: User not found in database - ID='%s'", userID))
+
+			var newMention string
+			if strings.Contains(mention, ":") {
+				// Colon mention for unknown user - keep as-is
+				newMention = oldMention
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Unknown colon mention, keep as-is - '%s'", oldMention))
+			} else {
+				// Simple mention for unknown user - add cluster suffix to indicate it's from remote
+				newMention = "@" + mention + ":" + rc.Name
+				scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: Unknown simple mention, add cluster suffix - '%s' -> '%s'", oldMention, newMention))
+			}
+			post.Message = strings.ReplaceAll(post.Message, oldMention, newMention)
+		}
+	}
+
+	scs.app.PostDebugToTownSquare(rctx, fmt.Sprintf("transformMentionsOnReceive: COMPLETED - OriginalMessage=%s, FinalMessage=%s", originalMessage, post.Message))
 }
