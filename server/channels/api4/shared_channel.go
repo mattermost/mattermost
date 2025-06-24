@@ -303,8 +303,13 @@ func canUserDirectMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PermissionEditOtherUsers)
+	canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if !canSee {
+		c.SetPermissionError(model.PermissionViewMembers)
 		return
 	}
 
