@@ -1,26 +1,21 @@
 .preview-modal-content {
-    display: flex;
-    height: 100%;
-    flex-direction: column;
-    padding-top: 48px;
 
     &__sku-label {
         display: flex;
         width: fit-content;
         align-items: center;
-        padding: 2px var(--spacing-xxxs, 4px);
+        padding: 2px 6px;
         border-radius: 4px;
         margin-bottom: 12px;
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgb(var(--center-channel-color-rgb));
         font-size: 12px;
         font-weight: 600;
-        gap: 8px;
+        gap: 4px;
         letter-spacing: 0.02em;
         text-transform: uppercase;
 
         &-logo {
-            width: 16px;
+            width: 12px;
             height: 16px;
 
             svg {
@@ -32,9 +27,7 @@
     }
 
     &__title {
-        min-height: 28px;
-        margin: 0 0 16px 0;
-        color: var(--center-channel-color);
+        margin: 0 0 8px 0;
         font-size: 22px;
         font-weight: 600;
         line-height: 28px;
@@ -44,18 +37,10 @@
         min-height: 60px;
         max-height: 80px;
         margin-bottom: 24px;
-        color: rgb(var(--center-channel-color-rgb));
-        font-size: 14px;
-        line-height: 20px;
         overflow-y: auto;
 
-        strong {
-            color: var(--center-channel-color);
-            font-weight: 600;
-        }
 
         a {
-            color: var(--link-color);
             text-decoration: none;
             
             &:hover {
@@ -64,15 +49,16 @@
         }
     }
 
-    &__video-container {
+    &__media-container {
         display: flex;
         overflow: hidden;
         height: 306px;
         flex: 0 0 306px;
         align-items: center;
         justify-content: center;
+        border: solid;
         border-radius: 4px;
-        background: rgba(var(--center-channel-color-rgb), 0.04);
+        border: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
 
         video {
             width: 100%;

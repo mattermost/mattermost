@@ -95,22 +95,23 @@ export const modalContent: PreviewModalContentData[] = [
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/modal-assets/playbook-properties.jpg',
         useCase: 'mission-ops',
     },
-    {
-        skuLabel: defineMessage({
-            id: 'cloud_preview_modal.missionops.flagging.sku_label',
-            defaultMessage: 'ENTERPRISE ADVANCED',
-        }),
-        title: defineMessage({
-            id: 'cloud_preview_modal.missionops.flagging.title',
-            defaultMessage: 'Flag sensitive content before it spreads',
-        }),
-        subtitle: defineMessage({
-            id: 'cloud_preview_modal.missionops.flagging.subtitle',
-            defaultMessage: 'Prevent accidental exposure by giving anyone the power to flag risky messages. Flagged content is instantly hidden and routed to security teams for review—helping you contain data leaks in real time.',
-        }),
-        videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/modal-assets/flag-messages.jpg',
-        useCase: 'mission-ops',
-    },
+
+    // {
+    //     skuLabel: defineMessage({
+    //         id: 'cloud_preview_modal.missionops.flagging.sku_label',
+    //         defaultMessage: 'ENTERPRISE ADVANCED',
+    //     }),
+    //     title: defineMessage({
+    //         id: 'cloud_preview_modal.missionops.flagging.title',
+    //         defaultMessage: 'Flag sensitive content before it spreads',
+    //     }),
+    //     subtitle: defineMessage({
+    //         id: 'cloud_preview_modal.missionops.flagging.subtitle',
+    //         defaultMessage: 'Prevent accidental exposure by giving anyone the power to flag risky messages. Flagged content is instantly hidden and routed to security teams for review—helping you contain data leaks in real time.',
+    //     }),
+    //     videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/modal-assets/flag-messages.jpg',
+    //     useCase: 'missionops',
+    // },
     {
         skuLabel: defineMessage({
             id: 'cloud_preview_modal.missionops.zero_trust.sku_label',
@@ -208,22 +209,23 @@ export const modalContent: PreviewModalContentData[] = [
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/modal-assets/playbook-properties.jpg',
         useCase: 'dev-sec-ops',
     },
-    {
-        skuLabel: defineMessage({
-            id: 'cloud_preview_modal.devsecops.flagging.sku_label',
-            defaultMessage: 'ENTERPRISE ADVANCED',
-        }),
-        title: defineMessage({
-            id: 'cloud_preview_modal.devsecops.flagging.title',
-            defaultMessage: 'Flag sensitive content before it spreads',
-        }),
-        subtitle: defineMessage({
-            id: 'cloud_preview_modal.devsecops.flagging.subtitle',
-            defaultMessage: 'Prevent accidental exposure by giving anyone the power to flag risky messages. Flagged content is instantly hidden and routed to security teams for review—helping you contain data leaks in real time.',
-        }),
-        videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/modal-assets/flag-messages.jpg',
-        useCase: 'dev-sec-ops',
-    },
+
+    // {
+    //     skuLabel: defineMessage({
+    //         id: 'cloud_preview_modal.devsecops.flagging.sku_label',
+    //         defaultMessage: 'ENTERPRISE ADVANCED',
+    //     }),
+    //     title: defineMessage({
+    //         id: 'cloud_preview_modal.devsecops.flagging.title',
+    //         defaultMessage: 'Flag sensitive content before it spreads',
+    //     }),
+    //     subtitle: defineMessage({
+    //         id: 'cloud_preview_modal.devsecops.flagging.subtitle',
+    //         defaultMessage: 'Prevent accidental exposure by giving anyone the power to flag risky messages. Flagged content is instantly hidden and routed to security teams for review—helping you contain data leaks in real time.',
+    //     }),
+    //     videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/modal-assets/flag-messages.jpg',
+    //     useCase: 'devsecops',
+    // },
     {
         skuLabel: defineMessage({
             id: 'cloud_preview_modal.devsecops.zero_trust.sku_label',
@@ -321,22 +323,23 @@ export const modalContent: PreviewModalContentData[] = [
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/playbook-properties.jpg',
         useCase: 'cyber-defense',
     },
-    {
-        skuLabel: defineMessage({
-            id: 'cloud_preview_modal.cyberdefense.flagging.sku_label',
-            defaultMessage: 'ENTERPRISE ADVANCED',
-        }),
-        title: defineMessage({
-            id: 'cloud_preview_modal.cyberdefense.flagging.title',
-            defaultMessage: 'Flag sensitive content before it spreads',
-        }),
-        subtitle: defineMessage({
-            id: 'cloud_preview_modal.cyberdefense.flagging.subtitle',
-            defaultMessage: 'Prevent accidental exposure by giving anyone the power to flag risky messages. Flagged content is instantly hidden and routed to security teams for review—helping you contain data leaks in real time.',
-        }),
-        videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/flag-messages.jpg',
-        useCase: 'cyber-defense',
-    },
+
+    // {
+    //     skuLabel: defineMessage({
+    //         id: 'cloud_preview_modal.cyberdefense.flagging.sku_label',
+    //         defaultMessage: 'ENTERPRISE ADVANCED',
+    //     }),
+    //     title: defineMessage({
+    //         id: 'cloud_preview_modal.cyberdefense.flagging.title',
+    //         defaultMessage: 'Flag sensitive content before it spreads',
+    //     }),
+    //     subtitle: defineMessage({
+    //         id: 'cloud_preview_modal.cyberdefense.flagging.subtitle',
+    //         defaultMessage: 'Prevent accidental exposure by giving anyone the power to flag risky messages. Flagged content is instantly hidden and routed to security teams for review—helping you contain data leaks in real time.',
+    //     }),
+    //     videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/flag-messages.jpg',
+    //     useCase: 'cyberdefense',
+    // },
     {
         skuLabel: defineMessage({
             id: 'cloud_preview_modal.cyberdefense.zero_trust.sku_label',

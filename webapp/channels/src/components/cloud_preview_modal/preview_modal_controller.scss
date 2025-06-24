@@ -1,5 +1,8 @@
 .preview-modal-controller {
     &.modal-dialog {
+        &.GenericModal {
+            margin-top: calc(50vh - 307px);
+        }
         width: 640px;
         height: 614px;
     }
@@ -70,72 +73,13 @@
 
     &__navigation-buttons {
         display: flex;
-        gap: 8px;
     }
 
-    &__skip-button {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        background: none;
-        color: var(--button-bg, #1C58D9);;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        transition: all 0.15s ease;
-
-        &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: var(--center-channel-color);
-        }
-    }
-
-    &__nav-button {
-        display: flex;
-        align-items: center;
-        padding: 8px 16px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 4px;
-        background: none;
-        color: var(--center-channel-color);
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        gap: 4px;
-        transition: all 0.15s ease;
-
-        &:hover:not(:disabled) {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-        }
-
-        &:disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-
-        &--tertiary {
-            border: none;
-            background: rgba(var(--button-bg-rgb), 0.08);
-            color: var(--button-bg);
-
-            &:hover:not(:disabled) {
-                background: rgba(var(--button-bg-rgb), 0.16);
-            }
-        }
-
-        &--primary {
-            border: none;
-            background: var(--button-bg);
-            color: var(--button-color);
-
-            &:hover:not(:disabled) {
-                background: linear-gradient(0deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.08) 100%), var(--button-bg, #1C58D9);;
-            }
-        }
-    }
 
     .modal-content {
-        border-radius: 8px !important;
+        .modal-header {
+            min-height: 0;
+        }
     }
 
     .modal-body {
