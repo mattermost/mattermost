@@ -1,22 +1,34 @@
-.. _mmctl_compliance-export:
+.. _mmctl_compliance-export_download:
 
-mmctl compliance-export
------------------------
+mmctl compliance-export download
+--------------------------------
 
-Management of compliance exports
+Download compliance export file
 
 Synopsis
 ~~~~~~~~
 
 
-Management of compliance exports
+Download compliance export file
+
+::
+
+  mmctl compliance-export download [complianceExportJobID] [output filepath (optional)] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    compliance_export download o98rj3ur83dp5dppfyk5yk6osy
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for compliance-export
+  -h, --help              help for download
+      --num-retries int   Number of retries if the download fails (default 5)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,9 +48,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl compliance-export cancel <mmctl_compliance-export_cancel.rst>`_ 	 - Cancel compliance export job
-* `mmctl compliance-export download <mmctl_compliance-export_download.rst>`_ 	 - Download compliance export file
-* `mmctl compliance-export list <mmctl_compliance-export_list.rst>`_ 	 - List compliance export jobs, sorted by creation date descending (newest first)
-* `mmctl compliance-export show <mmctl_compliance-export_show.rst>`_ 	 - Show compliance export job
+* `mmctl compliance-export <mmctl_compliance-export.rst>`_ 	 - Management of compliance exports
 
