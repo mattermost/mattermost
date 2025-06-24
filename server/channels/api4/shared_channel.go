@@ -303,20 +303,46 @@ func canUserDirectMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, c.Params.UserId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-	if !canSee {
-		c.SetPermissionError(model.PermissionViewMembers)
-		return
-	}
-
-	canDM, err := c.App.CanUserDirectMessage(c.AppContext, c.Params.UserId, c.Params.OtherUserId)
+	// Check if the user can see the other user at all
+	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.Params.UserId, c.Params.OtherUserId)
 	if err != nil {
 		c.Err = err
 		return
+	}
+	if !canSee {
+		result := map[string]bool{"can_dm": false}
+		if err := json.NewEncoder(w).Encode(result); err != nil {
+			c.Logger.Warn("Error encoding JSON response", mlog.Err(err))
+		}
+		return
+	}
+
+	canDM := true
+
+	// Get shared channel sync service for remote user checks
+	scs := c.App.Srv().GetSharedChannelSyncService()
+	if scs != nil {
+		otherUser, otherErr := c.App.GetUser(c.Params.OtherUserId)
+		if otherErr != nil {
+			canDM = false
+		} else {
+			originalRemoteId := otherUser.GetOriginalRemoteID()
+
+			// Check if the other user is from a remote cluster
+			if otherUser.IsRemote() {
+				// If original remote ID is unknown, fall back to current RemoteId as best guess
+				if originalRemoteId == model.UserOriginalRemoteIdUnknown {
+					originalRemoteId = otherUser.GetRemoteID()
+				}
+
+				// For DMs, we require a direct connection to the ORIGINAL remote cluster
+				isDirectlyConnected := scs.IsRemoteClusterDirectlyConnected(originalRemoteId)
+
+				if !isDirectlyConnected {
+					canDM = false
+				}
+			}
+		}
 	}
 
 	result := map[string]bool{"can_dm": canDM}

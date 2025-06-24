@@ -2428,53 +2428,6 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 	return false, nil
 }
 
-// CanUserDirectMessage checks if a user can send direct messages to another user.
-// This is more restrictive than UserCanSeeOtherUser - synthetic users from
-// non-directly-connected servers cannot be DMed even if they can be seen.
-func (a *App) CanUserDirectMessage(c request.CTX, userID, otherUserId string) (bool, *model.AppError) {
-	// First check if the user can see the other user at all
-	canSee, err := a.UserCanSeeOtherUser(c, userID, otherUserId)
-	if err != nil {
-		return false, err
-	}
-	if !canSee {
-		return false, nil
-	}
-
-	// Get shared channel sync service for remote user checks
-	scs := a.Srv().GetSharedChannelSyncService()
-	if scs != nil {
-		otherUser, otherErr := a.GetUser(otherUserId)
-		if otherErr != nil {
-			return false, nil
-		}
-
-		originalRemoteId := otherUser.GetOriginalRemoteID()
-
-		// Check if the other user is from a remote cluster
-		if otherUser.IsRemote() {
-			// If original remote ID is unknown, fall back to current RemoteId as best guess
-			if originalRemoteId == model.UserOriginalRemoteIdUnknown {
-				originalRemoteId = otherUser.GetRemoteID()
-			}
-
-			// For DMs, we require a direct connection to the ORIGINAL remote cluster
-			isDirectlyConnected := scs.IsRemoteClusterDirectlyConnected(originalRemoteId)
-
-			if !isDirectlyConnected {
-				return false, model.NewAppError(
-					"CanUserDirectMessage",
-					"api.user.remote_dm_not_allowed.app_error",
-					nil,
-					fmt.Sprintf("Cannot send DM to user from remote cluster with ID %s - no direct connection", *otherUser.RemoteId),
-					http.StatusForbidden)
-			}
-		}
-	}
-
-	return true, nil
-}
-
 func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, *model.AppError) {
 	belongs, err := a.Srv().Store().Channel().UserBelongsToChannels(userID, channelIDs)
 	if err != nil {
