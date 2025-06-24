@@ -7541,6 +7541,22 @@ func (s *TimerLayerPropertyGroupStore) Get(name string) (*model.PropertyGroup, e
 	return result, err
 }
 
+func (s *TimerLayerPropertyGroupStore) GetById(id string) (*model.PropertyGroup, error) {
+	start := time.Now()
+
+	result, err := s.PropertyGroupStore.GetById(id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyGroupStore.GetById", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyGroupStore) Register(name string) (*model.PropertyGroup, error) {
 	start := time.Now()
 
