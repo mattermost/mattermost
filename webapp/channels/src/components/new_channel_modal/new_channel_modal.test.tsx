@@ -145,9 +145,9 @@ describe('components/new_channel_modal', () => {
         expect(privateChannelHeading).toBeInTheDocument();
         expect(privateChannelHeading.nextSibling).toHaveTextContent('Only invited members');
 
-        const purposeTextArea = screen.getByPlaceholderText('Enter a purpose for this channel (optional)');
+        const purposeTextArea = screen.getByLabelText('Channel Purpose');
         expect(purposeTextArea).toBeInTheDocument();
-        expect(purposeTextArea).toHaveClass('new-channel-modal-purpose-textarea');
+        expect(purposeTextArea).toHaveClass('Input form-control medium');
 
         const purposeDesc = screen.getByText('This will be displayed when browsing for channels.');
         expect(purposeDesc).toBeInTheDocument();
@@ -263,7 +263,7 @@ describe('components/new_channel_modal', () => {
         );
 
         // Change purpose
-        const ChannelPurposeTextArea = screen.getByPlaceholderText('Enter a purpose for this channel (optional)');
+        const ChannelPurposeTextArea = screen.getByLabelText('Channel Purpose');
         expect(ChannelPurposeTextArea).toBeInTheDocument();
 
         userEvent.click(ChannelPurposeTextArea);
