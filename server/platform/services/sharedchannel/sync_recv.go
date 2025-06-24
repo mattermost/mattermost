@@ -483,7 +483,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
 		}
 
-		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, syncMsgUsers, mentionTransforms)
+		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
 
 		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
 		if appErr == nil {
@@ -502,7 +502,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			)
 		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.UpdateAt > rpost.UpdateAt || post.Metadata != nil {
-		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, syncMsgUsers, mentionTransforms)
+		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
 		var priority *model.PostPriority
 		var acknowledgements []*model.PostAcknowledgement
 
@@ -747,7 +747,7 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 }
 
 // transformMentionsOnReceive transforms mentions in received posts using explicit mentionTransforms.
-func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, syncMsgUsers map[string]*model.User, mentionTransforms map[string]string) {
+func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string) {
 	if post.Message == "" || len(mentionTransforms) == 0 {
 		return
 	}

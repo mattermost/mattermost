@@ -625,7 +625,7 @@ func TestTransformMentionsOnReceive(t *testing.T) {
 		t.Logf("  Transforms: %v", mentionTransforms)
 
 		// Call the transformation function directly
-		concreteScs.TransformMentionsOnReceiveForTesting(th.Context, post, sharedChannel, savedRemoteCluster, make(map[string]*model.User), mentionTransforms)
+		concreteScs.TransformMentionsOnReceiveForTesting(th.Context, post, sharedChannel, savedRemoteCluster, mentionTransforms)
 
 		t.Logf("  Result: %s", post.Message)
 		t.Logf("  Expected: %s", expectedMessage)
