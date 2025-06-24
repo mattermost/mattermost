@@ -1,6 +1,6 @@
-.. _mmctl_compliance_export_create:
+.. _mmctl_compliance-export_create:
 
-mmctl compliance_export create
+mmctl compliance-export create
 ------------------------------
 
 Create a compliance export job, of type 'csv' or 'actiance' or 'globalrelay'
@@ -15,14 +15,14 @@ Important: Running a compliance export job from mmctl will NOT affect the next s
 
 ::
 
-  mmctl compliance_export create [complianceExportType] --date "2025-03-27 -0400" [flags]
+  mmctl compliance-export create [complianceExportType] --date "2025-03-27 -0400" [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-  compliance_export create csv --date "2025-03-27 -0400"
+  compliance-export create csv --date "2025-03-27 -0400"
 
 Options
 ~~~~~~~
@@ -52,5 +52,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl compliance_export <mmctl_compliance_export.rst>`_ 	 - Management of compliance exports
+* `mmctl compliance-export <mmctl_compliance-export.rst>`_ 	 - Management of compliance exports
 
