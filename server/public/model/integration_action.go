@@ -505,6 +505,10 @@ func (e *DialogElement) IsValid() error {
 	multiErr = multierror.Append(multiErr, checkMaxLength("Name", e.Name, DialogElementNameMaxLength))
 	multiErr = multierror.Append(multiErr, checkMaxLength("HelpText", e.HelpText, DialogElementHelpTextMaxLength))
 
+	if e.MultiSelect && e.Type != "select" {
+		multiErr = multierror.Append(multiErr, errors.Errorf("multiselect can only be used with select elements, got type %q", e.Type))
+	}
+
 	switch e.Type {
 	case "text":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
@@ -527,8 +531,14 @@ func (e *DialogElement) IsValid() error {
 		if e.DataSource != "" && e.DataSource != "users" && e.DataSource != "channels" {
 			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users' or 'channels'", e.DataSource))
 		}
-		if e.DataSource == "" && !isDefaultInOptions(e.Default, e.Options) {
-			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
+		if e.DataSource == "" {
+			if e.MultiSelect {
+				if !isMultiSelectDefaultInOptions(e.Default, e.Options) {
+					multiErr = multierror.Append(multiErr, errors.Errorf("multiselect default value %q contains values not in options", e.Default))
+				}
+			} else if !isDefaultInOptions(e.Default, e.Options) {
+				multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
+			}
 		}
 
 	case "bool":
@@ -561,6 +571,31 @@ func isDefaultInOptions(defaultValue string, options []*PostActionOptions) bool 
 	}
 
 	return false
+}
+
+func isMultiSelectDefaultInOptions(defaultValue string, options []*PostActionOptions) bool {
+	if defaultValue == "" {
+		return true
+	}
+
+	values := strings.Split(strings.ReplaceAll(defaultValue, " ", ""), ",")
+	for _, value := range values {
+		if value == "" {
+			continue
+		}
+		found := false
+		for _, option := range options {
+			if option != nil && value == option.Value {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+
+	return true
 }
 
 func checkMaxLength(fieldName string, field string, maxLength int) error {
