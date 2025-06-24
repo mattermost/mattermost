@@ -89,7 +89,6 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mlog.Debug("Opening interactive dialog", mlog.String("dialog", dialog.Dialog.Title))
 	if appErr := c.App.OpenInteractiveDialog(c.AppContext, dialog); appErr != nil {
 		c.Err = appErr
 		return

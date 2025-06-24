@@ -1432,7 +1432,6 @@ function handleOpenDialogEvent(msg) {
     const data = (msg.data && msg.data.dialog) || {};
     const dialog = JSON.parse(data);
 
-    console.log('WebSocket Event: Open Dialog', dialog); //eslint-disable-line no-console
     store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
 
     const currentTriggerId = getState().entities.integrations.dialogTriggerId;

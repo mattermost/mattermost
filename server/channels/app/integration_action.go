@@ -464,8 +464,6 @@ func (a *App) DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.R
 }
 
 func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError {
-	mlog.Debug("OpenInteractiveDialog called", mlog.String("request", fmt.Sprintf("%+v", request)))
-
 	timeout := time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
 	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey(), timeout)
 	if appErr != nil {
@@ -484,7 +482,6 @@ func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogReque
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventOpenDialog, "", "", userID, nil, "")
-	mlog.Debug("Sending WebSocket event to open interactive dialog", mlog.String("user_id", userID), mlog.String("dialog", string(jsonRequest)))
 	message.Add("dialog", string(jsonRequest))
 	a.Publish(message)
 
