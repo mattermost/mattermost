@@ -211,7 +211,8 @@ func (b *LocalFileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 	}
 	defer root.Close()
 
-	if err := mkdirAll(root, filepath.Dir(path), 0750); err != nil {
+	err = mkdirAll(root, filepath.Dir(path), 0750)
+	if err != nil {
 		directory, _ := filepath.Abs(filepath.Dir(path))
 		return 0, errors.Wrapf(err, "unable to create the directory %s for the file %s", directory, path)
 	}
@@ -235,7 +236,8 @@ func (b *LocalFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 	}
 	defer root.Close()
 
-	if _, err := root.Stat(path); err != nil {
+	_, err = root.Stat(path)
+	if err != nil {
 		return 0, errors.Wrapf(err, "unable to find the file %s to append the data", path)
 	}
 
