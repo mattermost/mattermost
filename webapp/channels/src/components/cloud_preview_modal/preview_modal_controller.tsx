@@ -4,7 +4,7 @@
 import React, {useState, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
-import {ChevronLeftIcon, ChevronRightIcon, CloseIcon} from '@mattermost/compass-icons/components';
+import {ArrowLeftIcon, ArrowRightIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 
 import PreviewModalContent from './preview_modal_content';
@@ -64,7 +64,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
             <div className='preview-modal-controller__navigation-buttons'>
                 {isFirstSlide && (
                     <button
-                        className='preview-modal-controller__skip-button'
+                        className='btn btn-quaternary'
                         onClick={handleSkip}
                     >
                         {intl.formatMessage({
@@ -76,10 +76,10 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
 
                 {!isFirstSlide && (
                     <button
-                        className='preview-modal-controller__nav-button preview-modal-controller__nav-button--tertiary'
+                        className='btn btn-tertiary'
                         onClick={handlePrevious}
                     >
-                        <ChevronLeftIcon size={18}/>
+                        <ArrowLeftIcon size={18}/>
                         {intl.formatMessage({
                             id: 'cloud_preview_modal.previous',
                             defaultMessage: 'Previous',
@@ -88,7 +88,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                 )}
 
                 <button
-                    className='preview-modal-controller__nav-button preview-modal-controller__nav-button--primary'
+                    className='btn btn-primary'
                     onClick={isLastSlide ? onClose : handleNext}
                 >
                     {isLastSlide ? (
@@ -102,7 +102,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                                 id: 'cloud_preview_modal.next',
                                 defaultMessage: 'Next',
                             })}
-                            <ChevronRightIcon size={18}/>
+                            <ArrowRightIcon size={18}/>
                         </>
                     )}
                 </button>
@@ -120,22 +120,12 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                 id: 'cloud_preview_modal.aria_label',
                 defaultMessage: 'Cloud Preview Introduction',
             })}
-            showHeader={false}
-            showCloseButton={false}
+            showHeader={true}
+            showCloseButton={true}
             bodyPadding={true}
             footerContent={footerContent}
             className='preview-modal-controller'
         >
-            <button
-                className='preview-modal-controller__close-button'
-                onClick={onClose}
-                aria-label={intl.formatMessage({
-                    id: 'cloud_preview_modal.close',
-                    defaultMessage: 'Close modal',
-                })}
-            >
-                <CloseIcon size={24}/>
-            </button>
             <PreviewModalContent content={contentData[currentIndex]}/>
         </GenericModal>
     );

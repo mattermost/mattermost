@@ -155,7 +155,7 @@ const PreviewModalContent: React.FC<Props> = ({content}) => {
                 {intl.formatMessage(content.subtitle)}
             </div>
             {content.videoUrl && (
-                <div className='preview-modal-content__video-container'>
+                <div className='preview-modal-content__media-container'>
                     {renderVideoContent()}
                 </div>
             )}
