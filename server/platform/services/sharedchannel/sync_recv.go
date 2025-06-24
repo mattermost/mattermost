@@ -755,11 +755,11 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 	// Process mentions directly using mentionTransforms - no need to re-parse with regex
 	for mention, userID := range mentionTransforms {
 		oldMention := "@" + mention
+		var newMention string
 
 		// Get the user to determine transformation type
 		if user, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && user != nil {
 			// User exists in receiver's database
-			var newMention string
 			if strings.Contains(mention, ":") {
 				// Colon mention (e.g., "@admin:remote1") - always use the user's actual username
 				newMention = "@" + user.Username
@@ -773,10 +773,8 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 					newMention = "@" + user.Username
 				}
 			}
-			post.Message = strings.ReplaceAll(post.Message, oldMention, newMention)
 		} else {
 			// User doesn't exist in receiver's database
-			var newMention string
 			if strings.Contains(mention, ":") {
 				// Colon mention for unknown user - keep as-is
 				newMention = oldMention
@@ -784,7 +782,7 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 				// Simple mention for unknown user - add cluster suffix to indicate it's from remote
 				newMention = "@" + mention + ":" + rc.Name
 			}
-			post.Message = strings.ReplaceAll(post.Message, oldMention, newMention)
 		}
+		post.Message = strings.ReplaceAll(post.Message, oldMention, newMention)
 	}
 }
