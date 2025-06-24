@@ -78,7 +78,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByTestId('aboutModalBuildNumber')).toHaveTextContent('Build Number: 123456');
         expect(screen.getByText('Mattermost Enterprise Edition')).toBeInTheDocument();
         expect(screen.getByText('Modern communication from behind your firewall.')).toBeInTheDocument();
-        expect(screen.getByRole('link', {name: 'mattermost.com'})).toHaveAttribute('href', 'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=');
+        expect(screen.getByRole('link', {name: 'mattermost.com'})).toHaveAttribute('href', 'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=&edition=enterprise&server_version=3.6.0');
         expect(screen.getByText('EE Build Hash: 0123456789abcdef', {exact: false})).toBeInTheDocument();
         expect(screen.queryByText('Hostname: mock.localhost', {exact: false})).toBeInTheDocument();
 
@@ -100,7 +100,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByTestId('aboutModalBuildNumber')).toHaveTextContent('Build Number: 123456');
         expect(screen.getByText('Mattermost Team Edition')).toBeInTheDocument();
         expect(screen.getByText('All your team communication in one place, instantly searchable and accessible anywhere.')).toBeInTheDocument();
-        expect(screen.getByRole('link', {name: 'mattermost.com/community/'})).toHaveAttribute('href', 'https://mattermost.com/community/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=');
+        expect(screen.getByRole('link', {name: 'mattermost.com/community/'})).toHaveAttribute('href', 'https://mattermost.com/community/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=&edition=team&server_version=3.6.0');
         expect(screen.queryByText('EE Build Hash: 0123456789abcdef')).not.toBeInTheDocument();
         expect(screen.queryByText('Hostname: disconnected', {exact: false})).toBeInTheDocument();
 
@@ -150,7 +150,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByTestId('aboutModalBuildNumber')).toHaveTextContent('Build Number: n/a');
         expect(screen.getByText('Mattermost Team Edition')).toBeInTheDocument();
         expect(screen.getByText('All your team communication in one place, instantly searchable and accessible anywhere.')).toBeInTheDocument();
-        expect(screen.getByRole('link', {name: 'mattermost.com/community/'})).toHaveAttribute('href', 'https://mattermost.com/community/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=');
+        expect(screen.getByRole('link', {name: 'mattermost.com/community/'})).toHaveAttribute('href', 'https://mattermost.com/community/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=&edition=team&server_version=dev');
         expect(screen.queryByText('EE Build Hash: 0123456789abcdef')).not.toBeInTheDocument();
         expect(screen.queryByText('Hostname: server did not provide hostname', {exact: false})).toBeInTheDocument();
 
@@ -193,7 +193,7 @@ describe('components/AboutBuildModal', () => {
         const state = {
             entities: {
                 general: {
-                    config: {},
+                    config,
                     license: {
                         Cloud: 'false',
                     },
@@ -213,9 +213,9 @@ describe('components/AboutBuildModal', () => {
             state,
         );
 
-        expect(screen.getByRole('link', {name: 'Terms of Use'})).toHaveAttribute('href', `${AboutLinks.TERMS_OF_SERVICE}?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=currentUserId&sid=`);
+        expect(screen.getByRole('link', {name: 'Terms of Use'})).toHaveAttribute('href', `${AboutLinks.TERMS_OF_SERVICE}?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=currentUserId&sid=&edition=enterprise&server_version=3.6.0`);
 
-        expect(screen.getByRole('link', {name: 'Privacy Policy'})).toHaveAttribute('href', `${AboutLinks.PRIVACY_POLICY}?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=currentUserId&sid=`);
+        expect(screen.getByRole('link', {name: 'Privacy Policy'})).toHaveAttribute('href', `${AboutLinks.PRIVACY_POLICY}?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=currentUserId&sid=&edition=enterprise&server_version=3.6.0`);
 
         expect(screen.getByRole('link', {name: 'Terms of Use'})).not.toHaveAttribute('href', config?.TermsOfServiceLink);
         expect(screen.getByRole('link', {name: 'Privacy Policy'})).not.toHaveAttribute('href', config?.PrivacyPolicyLink);
@@ -282,6 +282,19 @@ describe('components/AboutBuildModal', () => {
             ...props,
         };
 
-        return renderWithContext(<AboutBuildModal {...allProps}/>);
+        // Create state with the config and license for useExternalLink hook to access
+        const state = {
+            entities: {
+                general: {
+                    config: allProps.config,
+                    license: allProps.license,
+                },
+                users: {
+                    currentUserId: '',
+                },
+            },
+        };
+
+        return renderWithContext(<AboutBuildModal {...allProps}/>, state);
     }
 });
