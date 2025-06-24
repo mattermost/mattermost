@@ -277,7 +277,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
     }
 }
 
-const SuggestionListList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>((props, ref) => {
+export const SuggestionListList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>((props, ref) => {
     const {formatMessage} = useIntl();
 
     return (
@@ -320,7 +320,7 @@ function SuggestionListStatus({groups}: Pick<Props, 'groups'>) {
     );
 }
 
-function SuggestionListGroup({
+export function SuggestionListGroup({
     children,
     groupKey,
     labelMessage,

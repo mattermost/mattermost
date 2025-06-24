@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {UserProfile} from '@mattermost/types/users';
@@ -103,8 +104,16 @@ export default class SearchUserProvider extends Provider {
 
         resultsCallback({
             matchedPretext: usernamePrefix,
-            terms: mentions,
-            items: users,
+            groups: [{
+                hideLabel: true,
+                key: 'users',
+                label: defineMessage({
+                    id: 'suggestion.users',
+                    defaultMessage: 'Users',
+                }),
+                terms: mentions,
+                items: users,
+            }],
             component: SearchUserSuggestion,
         });
     }
