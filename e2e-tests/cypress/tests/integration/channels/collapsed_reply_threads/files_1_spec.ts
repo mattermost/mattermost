@@ -54,7 +54,7 @@ describe('Collapsed Reply Threads', () => {
         cy.shouldHavePluginUploadEnabled();
 
         // # Upload and enable "matterpoll" plugin
-        // cy.apiUploadAndEnablePlugin(matterpollPlugin);
+        cy.apiUploadAndEnablePlugin(matterpollPlugin);
 
         // # In center post the following: /poll "Do you like https://mattermost.com?"
         cy.postMessage('/poll "Do you like https://mattermost.com?"');
