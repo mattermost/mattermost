@@ -4,14 +4,16 @@
 package commands
 
 import (
+	"github.com/golang/mock/gomock"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/api4"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/mocks"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-
-	"github.com/golang/mock/gomock"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-
-	"github.com/mattermost/mattermost/server/v8/channels/api4"
 )
 
 var EnableEnterpriseTests string
@@ -64,6 +66,29 @@ func (s *MmctlE2ETestSuite) SetupEnterpriseTestHelper() *api4.TestHelper {
 		s.T().SkipNow()
 	}
 	s.th = api4.SetupEnterprise(s.T())
+	return s.th
+}
+
+func (s *MmctlE2ETestSuite) SetupMessageExportTestHelper() *api4.TestHelper {
+	if EnableEnterpriseTests != "true" {
+		s.T().SkipNow()
+	}
+
+	jobs.DefaultWatcherPollingInterval = 100
+	s.th = api4.SetupEnterprise(s.T()).InitBasic()
+	s.th.App.Srv().SetLicense(model.NewTestLicense("message_export"))
+	messageExportImpl := message_export.MessageExportJobInterfaceImpl{Server: s.th.App.Srv()}
+	s.th.App.Srv().Jobs.RegisterJobType(model.JobTypeMessageExport, messageExportImpl.MakeWorker(), messageExportImpl.MakeScheduler())
+	s.th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.DownloadExportResults = true
+	})
+
+	err := s.th.App.Srv().Jobs.StartWorkers()
+	require.NoError(s.T(), err)
+
+	err = s.th.App.Srv().Jobs.StartSchedulers()
+	require.NoError(s.T(), err)
+
 	return s.th
 }
 

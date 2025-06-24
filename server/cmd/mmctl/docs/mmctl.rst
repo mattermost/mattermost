@@ -35,6 +35,7 @@ SEE ALSO
 * `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
 * `mmctl command <mmctl_command.rst>`_ 	 - Management of slash commands
 * `mmctl completion <mmctl_completion.rst>`_ 	 - Generates autocompletion scripts for bash and zsh
+* `mmctl compliance-export <mmctl_compliance-export.rst>`_ 	 - Management of compliance exports
 * `mmctl config <mmctl_config.rst>`_ 	 - Configuration
 * `mmctl docs <mmctl_docs.rst>`_ 	 - Generates mmctl documentation
 * `mmctl export <mmctl_export.rst>`_ 	 - Management of exports
