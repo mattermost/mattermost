@@ -13,7 +13,7 @@ import {formatAsComponent, formatAsString} from 'utils/i18n';
 import type {SuggestionGroup} from './provider';
 
 export interface Props {
-    inputRef?: React.RefObject<HTMLDivElement>;
+    inputRef?: React.RefObject<Element>;
     open: boolean;
     position?: 'top' | 'bottom';
     renderDividers?: string[];
@@ -42,7 +42,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
         renderDividers: [],
         renderNoResults: false,
     };
-    contentRef: React.RefObject<HTMLUListElement>;
+    contentRef: React.RefObject<HTMLDivElement>;
     wrapperRef: React.RefObject<HTMLDivElement>;
     itemRefs: Map<string, HTMLElement>;
     maxHeight: number;
@@ -170,7 +170,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
 
     renderNoResults() {
         return (
-            <ul
+            <div
                 key='list-no-results'
                 className='suggestion-list__no-results'
                 ref={this.contentRef}
@@ -183,7 +183,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
-            </ul>
+            </div>
         );
     }
 
@@ -258,7 +258,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 <SuggestionListList
                     id='suggestionList'
                     data-testid='suggestionList'
-                    role='listbox'
                     ref={this.contentRef}
                     style={{
                         maxHeight: this.maxHeight,
@@ -275,13 +274,14 @@ export default class SuggestionList extends React.PureComponent<Props> {
     }
 }
 
-const SuggestionListList = React.forwardRef<HTMLUListElement, React.HTMLAttributes<HTMLUListElement>>((props, ref) => {
+const SuggestionListList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>((props, ref) => {
     const {formatMessage} = useIntl();
 
     return (
-        <ul
+        <div
             ref={ref}
             aria-label={formatMessage({id: 'suggestionList.label', defaultMessage: 'Suggestions'})}
+            role='listbox'
             {...props}
         />
     );
@@ -334,19 +334,19 @@ function SuggestionListGroup({
         const label = formatAsString(formatMessage, labelMessage);
 
         return (
-            <div
+            <ul
                 role='group'
                 aria-label={label}
             >
                 {children}
-            </div>
+            </ul>
         );
     }
 
     const labelId = `suggestionListGroup-${groupKey}`;
 
     return (
-        <div
+        <ul
             role='group'
             aria-labelledby={labelId}
         >
@@ -358,6 +358,6 @@ function SuggestionListGroup({
                 {formatAsComponent(labelMessage)}
             </li>
             {children}
-        </div>
+        </ul>
     );
 }
