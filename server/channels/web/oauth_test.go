@@ -237,12 +237,12 @@ func TestOAuthAccessToken(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.TeamUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	oauthApp := &model.OAuthApp{
 		Name:         "TestApp5" + model.NewId(),
@@ -512,12 +512,12 @@ func TestOAuthComplete(t *testing.T) {
 	// We are going to use mattermost as the provider emulating gitlab
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.TeamUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	oauthApp := &model.OAuthApp{
 		Name:        "TestApp5" + model.NewId(),
@@ -766,7 +766,7 @@ func (th *TestHelper) Logout(client *model.Client4) {
 	client.AuthToken = ""
 }
 
-func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
+func (th *TestHelper) SaveDefaultRolePermissions(tb testing.TB) map[string][]string {
 	results := make(map[string][]string)
 
 	for _, roleName := range []string{
@@ -777,22 +777,18 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 		"channel_user",
 		"channel_admin",
 	} {
-		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
-		if err1 != nil {
-			panic(err1)
-		}
+		role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+		require.Nil(tb, appErr)
 
 		results[roleName] = role.Permissions
 	}
 	return results
 }
 
-func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
+func (th *TestHelper) RestoreDefaultRolePermissions(tb testing.TB, data map[string][]string) {
 	for roleName, permissions := range data {
-		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
-		if err1 != nil {
-			panic(err1)
-		}
+		role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+		require.Nil(tb, appErr)
 
 		if strings.Join(role.Permissions, " ") == strings.Join(permissions, " ") {
 			continue
@@ -800,10 +796,8 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 
 		role.Permissions = permissions
 
-		_, err2 := th.App.UpdateRole(role)
-		if err2 != nil {
-			panic(err2)
-		}
+		_, appErr = th.App.UpdateRole(role)
+		require.Nil(tb, appErr)
 	}
 }
 
@@ -839,11 +833,9 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 // 	utils.EnableDebugLogForTest()
 // }
 
-func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
-	if err1 != nil {
-		panic(err1)
-	}
+func (th *TestHelper) AddPermissionToRole(tb testing.TB, permission string, roleName string) {
+	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+	require.Nil(tb, appErr)
 
 	for _, existingPermission := range role.Permissions {
 		if existingPermission == permission {
@@ -853,10 +845,8 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 
 	role.Permissions = append(role.Permissions, permission)
 
-	_, err2 := th.App.UpdateRole(role)
-	if err2 != nil {
-		panic(err2)
-	}
+	_, appErr = th.App.UpdateRole(role)
+	require.Nil(tb, appErr)
 }
 
 func TestFullyQualifiedRedirectURL(t *testing.T) {

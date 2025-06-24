@@ -40,7 +40,7 @@ func getHashedKey(key string) string {
 func TestPluginKeyValueStore(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	pluginID := "testpluginid"
 
@@ -141,7 +141,7 @@ func TestPluginKeyValueStore(t *testing.T) {
 func TestPluginKeyValueStoreCompareAndSet(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	pluginID := "testpluginid"
 
@@ -202,7 +202,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("storing a value without providing options works", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		result, err := th.App.SetPluginKeyWithOptions(pluginID, "key", []byte("value-1"), model.PluginKVSetOptions{})
 		assert.True(t, result)
@@ -216,7 +216,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("test that setting it atomic when it doesn't match doesn't change anything", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		err := th.App.SetPluginKey(pluginID, "key", []byte("value-1"))
 		require.Nil(t, err)
@@ -236,7 +236,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("test the atomic change with the proper old value", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		err := th.App.SetPluginKey(pluginID, "key", []byte("value-2"))
 		require.Nil(t, err)
@@ -256,7 +256,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("when new value is nil and old value matches with the current, it should delete the currently set value", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		// first set a value.
 		result, err := th.App.SetPluginKeyWithOptions(pluginID, "nil-test-key-2", []byte("value-1"), model.PluginKVSetOptions{})
@@ -278,7 +278,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("when new value is nil and there is a value set for the key already, it should delete the currently set value", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		// first set a value.
 		result, err := th.App.SetPluginKeyWithOptions(pluginID, "nil-test-key-3", []byte("value-1"), model.PluginKVSetOptions{})
@@ -303,7 +303,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("when old value is nil and there is no value set for the key before, it should set the new value", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		result, err := th.App.SetPluginKeyWithOptions(pluginID, "nil-test-key-4", []byte("value-1"), model.PluginKVSetOptions{
 			Atomic:   true,
@@ -319,7 +319,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("test that value is set and unset with ExpireInSeconds", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		result, err := th.App.SetPluginKeyWithOptions(pluginID, "key", []byte("value-1"), model.PluginKVSetOptions{
 			ExpireInSeconds: 1,
@@ -344,7 +344,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 func TestServePluginRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 
@@ -357,7 +357,7 @@ func TestServePluginRequest(t *testing.T) {
 func TestPrivateServePluginRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	testCases := []struct {
 		Description string
@@ -402,8 +402,8 @@ func TestPrivateServePluginRequest(t *testing.T) {
 
 func TestHandlePluginRequest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = false
@@ -451,7 +451,7 @@ func TestHandlePluginRequest(t *testing.T) {
 func TestGetPluginStatusesDisabled(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = false
@@ -465,7 +465,7 @@ func TestGetPluginStatusesDisabled(t *testing.T) {
 func TestGetPluginStatuses(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
@@ -479,7 +479,7 @@ func TestGetPluginStatuses(t *testing.T) {
 func TestPluginSync(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	testCases := []struct {
 		Description string
@@ -643,7 +643,7 @@ func TestPluginSync(t *testing.T) {
 func TestChannelsPluginsInit(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	runNoPanicTest := func(t *testing.T) {
 		path, _ := fileutils.FindDir("tests")
@@ -673,7 +673,7 @@ func TestChannelsPluginsInit(t *testing.T) {
 func TestSyncPluginsActiveState(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
@@ -733,8 +733,8 @@ func TestSyncPluginsActiveState(t *testing.T) {
 func TestPluginPanicLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should panic", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -782,8 +782,8 @@ func TestPluginPanicLogs(t *testing.T) {
 func TestPluginStatusActivateError(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return error from OnActivate in plugin statuses", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		pluginSource := `
 		package main
@@ -839,7 +839,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		t.Helper()
 
 		th := Setup(t)
-		t.Cleanup(th.TearDown)
+		t.Cleanup(func() { th.TearDown(t) })
 
 		// Make a prepackaged_plugins directory for use with the tests.
 		err := os.Mkdir(filepath.Join(th.tempWorkspace, prepackagedPluginsDir), os.ModePerm)
@@ -1376,7 +1376,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 func TestGetPluginStateOverride(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	t.Run("no override", func(t *testing.T) {
 		overrides, value := th.App.ch.getPluginStateOverride("focalboard")
@@ -1396,7 +1396,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 			th2 := SetupConfig(t, func(cfg *model.Config) {
 				cfg.FeatureFlags.AppsEnabled = true
 			})
-			defer th2.TearDown()
+			defer th2.TearDown(t)
 
 			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
 			require.False(t, overrides)
@@ -1408,7 +1408,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 			th2 := SetupConfig(t, func(cfg *model.Config) {
 				cfg.FeatureFlags.AppsEnabled = false
 			})
-			defer th2.TearDown()
+			defer th2.TearDown(t)
 
 			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
 			require.True(t, overrides)

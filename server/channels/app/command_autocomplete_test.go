@@ -206,7 +206,7 @@ func TestParseNamedArguments(t *testing.T) {
 func TestSuggestions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	jira := createJiraAutocompleteData()
 	emptyCmdArgs := &model.CommandArgs{}
@@ -333,7 +333,7 @@ func TestSuggestions(t *testing.T) {
 func TestCommandWithOptionalArgs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	command := createCommandWithOptionalArgs()
 	emptyCmdArgs := &model.CommandArgs{}
@@ -621,7 +621,7 @@ func createJiraAutocompleteData() *model.AutocompleteData {
 func TestDynamicListArgsForBuiltin(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	provider := &testCommandProvider{}
 	RegisterCommandProvider(provider)

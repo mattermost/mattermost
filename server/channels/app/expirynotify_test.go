@@ -15,8 +15,8 @@ import (
 
 func TestNotifySessionsExpired(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	handler := &testPushNotificationHandler{t: t}
 	pushServer := httptest.NewServer(

@@ -17,7 +17,7 @@ func TestPluginShutdownTest(t *testing.T) {
 	}
 
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{

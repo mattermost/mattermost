@@ -228,8 +228,8 @@ func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
 
 func TestPermalinkBroadcastHook(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	session, err := th.Server.Platform().CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,

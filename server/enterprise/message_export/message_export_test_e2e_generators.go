@@ -146,7 +146,7 @@ func runJobForTest(t *testing.T, th *api4.TestHelper, jobData map[string]string)
 
 func setup(t *testing.T) *api4.TestHelper {
 	jobs.DefaultWatcherPollingInterval = 100
-	th := api4.SetupEnterprise(t).InitBasic()
+	th := api4.SetupEnterprise(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("message_export"))
 	messageExportImpl := MessageExportJobInterfaceImpl{th.App.Srv()}
 	th.App.Srv().Jobs.RegisterJobType(model.JobTypeMessageExport, messageExportImpl.MakeWorker(), messageExportImpl.MakeScheduler())
