@@ -227,6 +227,13 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 type: 'button',
                 action: ldapTestConnection,
                 key: 'LdapSettings.TestConnection',
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                    it.all(
+                        it.stateIsFalse('LdapSettings.Enable'),
+                        it.stateIsFalse('LdapSettings.EnableSync'),
+                    ),
+                ),
                 label: defineMessage({id: 'admin.ldap.testConnectionTitle', defaultMessage: 'Test Connection'}),
                 help_text: defineMessage({id: 'admin.ldap.testHelpText', defaultMessage: 'Tests if the Mattermost server can connect to the AD/LDAP server specified. Please review "System Console > Logs" and <link>documentation</link> to troubleshoot errors.'}),
                 help_text_values: {
@@ -242,13 +249,6 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 help_text_markdown: false,
                 error_message: defineMessage({id: 'admin.ldap.testConnectionFailure', defaultMessage: 'Test Connection Failure: {error}'}),
                 success_message: defineMessage({id: 'admin.ldap.testConnectionSuccess', defaultMessage: 'Test Connection Successful'}),
-                isDisabled: it.any(
-                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                    it.all(
-                        it.stateIsFalse('LdapSettings.Enable'),
-                        it.stateIsFalse('LdapSettings.EnableSync'),
-                    ),
-                ),
             },
         ],
     },
@@ -358,10 +358,6 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 type: 'button',
                 action: ldapTestFilters,
                 key: 'LdapSettings.TestFilters',
-                label: defineMessage({id: 'admin.ldap.testFiltersTitle', defaultMessage: 'Test Filters'}),
-                help_text_markdown: false,
-                error_message: defineMessage({id: 'admin.ldap.testFiltersFailure', defaultMessage: 'We failed to apply some filters: {error}'}),
-                success_message: defineMessage({id: 'admin.ldap.testFiltersSuccess', defaultMessage: 'Test Successful'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
@@ -369,6 +365,10 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                         it.stateIsFalse('LdapSettings.EnableSync'),
                     ),
                 ),
+                label: defineMessage({id: 'admin.ldap.testFiltersTitle', defaultMessage: 'Test Filters'}),
+                help_text_markdown: false,
+                error_message: defineMessage({id: 'admin.ldap.testFiltersFailure', defaultMessage: 'We failed to apply some filters: {error}'}),
+                success_message: defineMessage({id: 'admin.ldap.testFiltersSuccess', defaultMessage: 'Test Successful'}),
             },
         ],
     },
@@ -526,10 +526,7 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 type: 'button',
                 action: ldapTestAttributes,
                 key: 'LdapSettings.TestAttributes',
-                label: defineMessage({id: 'admin.ldap.testAttributesTitle', defaultMessage: 'Test Attributes'}),
                 help_text_markdown: false,
-                error_message: defineMessage({id: 'admin.ldap.testAttributesFailure', defaultMessage: 'We failed to find some attributes: {error}'}),
-                success_message: defineMessage({id: 'admin.ldap.testAttributesSuccess', defaultMessage: 'Test Successful'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
@@ -537,6 +534,9 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                         it.stateIsFalse('LdapSettings.EnableSync'),
                     ),
                 ),
+                label: defineMessage({id: 'admin.ldap.testAttributesTitle', defaultMessage: 'Test Attributes'}),
+                error_message: defineMessage({id: 'admin.ldap.testAttributesFailure', defaultMessage: 'We failed to find some attributes: {error}'}),
+                success_message: defineMessage({id: 'admin.ldap.testAttributesSuccess', defaultMessage: 'Test Successful'}),
             },
             {
                 type: 'custom',
@@ -583,10 +583,7 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 type: 'button',
                 action: ldapTestGroupAttributes,
                 key: 'LdapSettings.TestGroupAttributes',
-                label: defineMessage({id: 'admin.ldap.testGroupAttributesTitle', defaultMessage: 'Test Group Attributes'}),
                 help_text_markdown: false,
-                error_message: defineMessage({id: 'admin.ldap.testGroupAttributesFailure', defaultMessage: 'We failed to find some attributes: {error}'}),
-                success_message: defineMessage({id: 'admin.ldap.testGroupAttributesSuccess', defaultMessage: 'Test Successful'}),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.all(
@@ -594,6 +591,9 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                         it.stateIsFalse('LdapSettings.EnableSync'),
                     ),
                 ),
+                label: defineMessage({id: 'admin.ldap.testGroupAttributesTitle', defaultMessage: 'Test Group Attributes'}),
+                error_message: defineMessage({id: 'admin.ldap.testGroupAttributesFailure', defaultMessage: 'We failed to find some attributes: {error}'}),
+                success_message: defineMessage({id: 'admin.ldap.testGroupAttributesSuccess', defaultMessage: 'Test Successful'}),
             },
         ],
     },
