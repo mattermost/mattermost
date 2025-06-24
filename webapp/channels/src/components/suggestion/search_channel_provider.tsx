@@ -1,8 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessage} from 'react-intl';
+
 import type {ServerError} from '@mattermost/types/errors';
 
+import {General} from 'mattermost-redux/constants';
 import {getChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 import {isDirectChannel, isGroupChannel, sortChannelsByTypeListAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
@@ -19,6 +22,8 @@ import SearchChannelSuggestion from './search_channel_suggestion';
 
 const getState = store.getState;
 const dispatch = store.dispatch;
+
+console.log('hhh SCP', getState, dispatch);
 
 type SearchChannelAutocomplete = (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
 
@@ -40,14 +45,17 @@ export default class SearchChannelProvider extends Provider {
         const isAtSearch = captured[1].startsWith('@');
 
         this.startNewRequest(prefix);
+                console.log('SCP aaa');
 
         this.autocompleteChannelsForSearch(
             prefix,
             teamId,
             async (data: Channel[]) => {
+                console.log('SCP bbb');
                 if (this.shouldCancelDispatch(prefix)) {
                     return;
                 }
+                console.log('SCP ccc');
 
                 let channels = data;
                 if (isAtSearch) {
@@ -55,12 +63,14 @@ export default class SearchChannelProvider extends Provider {
                         isDirectChannel(ch) || isGroupChannel(ch),
                     );
                 }
+                console.log('SCP ddd');
 
                 // Load profiles for group channels if needed
                 const groupChannels = channels.filter(isGroupChannel);
                 if (groupChannels.length > 0) {
                     await dispatch(loadProfilesForGroupChannels(groupChannels));
                 }
+                console.log('SCP eee');
 
                 // Sort channels
                 const locale = getCurrentLocale(getState());
@@ -70,22 +80,71 @@ export default class SearchChannelProvider extends Provider {
                     Constants.DM_CHANNEL,
                     Constants.GM_CHANNEL,
                 ]));
-
-                // Get channel names using the selector
-                const channelNames = channels.map((channel) => {
-                    const name = getChannelNameForSearchShortcut(getState(), channel.id) || channel.name;
-                    return isAtSearch && !name.startsWith('@') ? `@${name}` : name;
-                });
+                console.log('SCP fff');
 
                 resultsCallback({
                     matchedPretext: prefix,
-                    terms: channelNames,
-                    items: channels,
+                    groups: groupChannelSuggestions(channels, isAtSearch),
                     component: SearchChannelSuggestion,
                 });
+                console.log('SCP ggg');
             },
         );
+                console.log('SCP aaa1');
 
         return true;
     }
+}
+
+function groupChannelSuggestions(channels: Channel[], isAtSearch: boolean) {
+    const publicChannels = [];
+    const privateChannels = [];
+    const directChannels = [];
+
+    for (const channel of channels) {
+        if (channel.type === General.OPEN_CHANNEL) {
+            publicChannels.push(channel);
+        } else if (channel.type === General.PRIVATE_CHANNEL) {
+            privateChannels.push(channel);
+        } else {
+            directChannels.push(channel);
+        }
+    }
+
+    return [
+        {
+            key: 'publicChannels',
+            label: defineMessage({
+                id: 'suggestion.search.public',
+                defaultMessage: 'Public Channels',
+            }),
+            items: publicChannels,
+            terms: getChannelTerms(publicChannels, isAtSearch),
+        },
+        {
+            key: 'privateChannels',
+            label: defineMessage({
+                id: 'suggestion.search.private',
+                defaultMessage: 'Private Channels',
+            }),
+            items: privateChannels,
+            terms: getChannelTerms(privateChannels, isAtSearch),
+        },
+        {
+            key: 'directChannels',
+            label: defineMessage({
+                id: 'suggestion.search.direct',
+                defaultMessage: 'Direct Messages',
+            }),
+            items: directChannels,
+            terms: getChannelTerms(directChannels, isAtSearch),
+        },
+    ];
+}
+
+function getChannelTerms(channels: Channel[], isAtSearch: boolean) {
+    return channels.map((channel) => {
+        const name = getChannelNameForSearchShortcut(getState(), channel.id) || channel.name;
+        return isAtSearch && !name.startsWith('@') ? `@${name}` : name;
+    });
 }
