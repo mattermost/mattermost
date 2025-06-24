@@ -331,6 +331,7 @@ type DialogElement struct {
 	MaxLength   int                  `json:"max_length"`
 	DataSource  string               `json:"data_source"`
 	Options     []*PostActionOptions `json:"options"`
+	MultiSelect bool                 `json:"multiselect"`
 }
 
 type OpenDialogRequest struct {
