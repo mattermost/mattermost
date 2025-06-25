@@ -1,46 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
+import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
-import {IntlProvider} from 'react-intl';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {PreviewModalContentData} from './preview_modal_content_data';
 import PreviewModalController from './preview_modal_controller';
-
-// Mock the GenericModal component
-jest.mock('@mattermost/components', () => ({
-    GenericModal: ({children, show, onHide, showCloseButton, footerContent}: {
-        children: React.ReactNode;
-        show: boolean;
-        onHide?: () => void;
-        showCloseButton?: boolean;
-        footerContent?: React.ReactNode;
-    }) => (
-        show ? (
-            <div data-testid='modal'>
-                {showCloseButton && (
-                    <button
-                        aria-label='Close'
-                        onClick={onHide}
-                        data-testid='close-button'
-                    >
-                        <span data-testid='close-icon'>{'24'}</span>
-                    </button>
-                )}
-                <div>{children}</div>
-                {footerContent && <div data-testid='modal-footer'>{footerContent}</div>}
-            </div>
-        ) : null
-    ),
-}));
-
-// Mock the icons
-jest.mock('@mattermost/compass-icons/components', () => ({
-    ArrowLeftIcon: ({size}: {size: number}) => <span data-testid='arrow-left-icon'>{size}</span>,
-    ArrowRightIcon: ({size}: {size: number}) => <span data-testid='arrow-right-icon'>{size}</span>,
-    CloseIcon: ({size}: {size: number}) => <span data-testid='close-icon'>{size}</span>,
-}));
 
 describe('PreviewModalController', () => {
     const mockOnClose = jest.fn();
@@ -59,7 +26,7 @@ describe('PreviewModalController', () => {
                 id: 'test.slide1.sku_label',
                 defaultMessage: 'First sku label',
             },
-            videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA',
+            videoUrl: 'https://example.com/test-video-1.mp4',
             useCase: 'missionops',
         },
         {
@@ -75,7 +42,7 @@ describe('PreviewModalController', () => {
                 id: 'test.slide2.sku_label',
                 defaultMessage: 'Second sku label',
             },
-            videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA',
+            videoUrl: 'https://example.com/test-video-2.mp4',
             useCase: 'missionops',
         },
         {
@@ -91,7 +58,7 @@ describe('PreviewModalController', () => {
                 id: 'test.slide3.sku_label',
                 defaultMessage: 'Third sku label',
             },
-            videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA',
+            videoUrl: 'https://example.com/test-video-3.mp4',
             useCase: 'missionops',
         },
     ];
@@ -101,26 +68,38 @@ describe('PreviewModalController', () => {
     });
 
     const renderComponent = (props = {}) => {
-        return render(
-            <IntlProvider locale='en'>
-                <PreviewModalController
-                    show={true}
-                    onClose={mockOnClose}
-                    contentData={contentData}
-                    {...props}
-                />
-            </IntlProvider>,
+        return renderWithContext(
+            <PreviewModalController
+                show={true}
+                onClose={mockOnClose}
+                contentData={contentData}
+                {...props}
+            />,
         );
     };
 
     it('should render when show is true', () => {
         renderComponent();
-        expect(screen.getByTestId('modal')).toBeInTheDocument();
+
+        // Look for the modal content instead of a mocked test id
+        expect(screen.getByText('First Slide')).toBeInTheDocument();
     });
 
     it('should not render when show is false', () => {
         renderComponent({show: false});
-        expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+        expect(screen.queryByText('First Slide')).not.toBeInTheDocument();
+    });
+
+    it('should use default content when contentData is not provided', () => {
+        renderWithContext(
+            <PreviewModalController
+                show={true}
+                onClose={mockOnClose}
+            />,
+        );
+
+        // Should still render the modal with default content (first item from modalContent)
+        expect(screen.getByText('Welcome to your Mattermost preview')).toBeInTheDocument();
     });
 
     it('should render first slide initially', () => {
@@ -235,6 +214,7 @@ describe('PreviewModalController', () => {
     it('should call onClose when close button is clicked', () => {
         renderComponent();
 
+        // Look for the actual close button from GenericModal
         const closeButton = screen.getByLabelText('Close');
         fireEvent.click(closeButton);
 
@@ -243,6 +223,6 @@ describe('PreviewModalController', () => {
 
     it('should not render if contentData is empty', () => {
         renderComponent({contentData: []});
-        expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+        expect(screen.queryByText('First Slide')).not.toBeInTheDocument();
     });
 });

@@ -8,11 +8,11 @@ import {Route} from 'react-router-dom';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {makeAsyncComponent} from 'components/async_load';
+import CloudPreviewModal from 'components/cloud_preview_modal';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import LoggedIn from 'components/logged_in';
 
 const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', lazy(() => import('components/onboarding_tasklist')));
-const CloudPreviewModal = makeAsyncComponent('CloudPreviewModal', lazy(() => import('components/cloud_preview_modal')));
 
 type Props = {
     component: React.ComponentType<RouteComponentProps<any>>;

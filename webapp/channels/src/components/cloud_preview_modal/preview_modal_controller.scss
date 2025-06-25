@@ -6,34 +6,6 @@
         width: 640px;
         height: 614px;
     }
-    &__close-button {
-        position: absolute;
-        z-index: 10;
-        top: 18px;
-        right: 18px;
-        display: flex;
-        width: 40px;
-        height: 40px;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: none;
-        border-radius: 8px;
-        background: none;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-        cursor: pointer;
-        transition: all 0.15s ease;
-
-        &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.8);
-        }
-
-        &:active {
-            background: rgba(var(--button-bg-rgb), 0.08);
-            color: var(--button-bg);
-        }
-    }
 
     &__footer {
         display: flex;
