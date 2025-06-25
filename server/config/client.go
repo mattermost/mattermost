@@ -52,6 +52,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableInlineLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableInlineLatex)
 	props["ExtendSessionLengthWithActivity"] = strconv.FormatBool(*c.ServiceSettings.ExtendSessionLengthWithActivity)
 	props["ManagedResourcePaths"] = *c.ServiceSettings.ManagedResourcePaths
+	props["DeleteAccountLink"] = *c.ServiceSettings.DeleteAccountLink
 
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
@@ -407,6 +408,11 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
+		}
+
+		if model.MinimumEnterpriseAdvancedLicense(license) {
+			props["MobileEnableSecureFilePreview"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableSecureFilePreview)
+			props["MobileAllowPdfLinkNavigation"] = strconv.FormatBool(*c.NativeAppSettings.MobileAllowPdfLinkNavigation)
 		}
 	}
 
