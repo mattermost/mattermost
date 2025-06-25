@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, lazy} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -9,10 +9,15 @@ import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {modalContent} from './preview_modal_content_data';
-import PreviewModalController from './preview_modal_controller';
+import {makeAsyncComponent} from 'components/async_load';
 
 const CLOUD_PREVIEW_MODAL_SHOWN_PREF = 'cloud_preview_modal_shown';
+
+// Lazy load the controller component and content data together
+const PreviewModalController = makeAsyncComponent(
+    'PreviewModalController',
+    lazy(() => import('./preview_modal_controller')),
+);
 
 const CloudPreviewModal: React.FC = () => {
     const dispatch = useDispatch();
@@ -55,16 +60,16 @@ const CloudPreviewModal: React.FC = () => {
         }
     };
 
+    // Early return if not cloud or not cloud preview - don't load anything else
     if (!isCloud || !isCloudPreview) {
         return null;
     }
 
-    // TODO: Remove hard coded filter on missionops in favour of dynamic based on selected use case
+    // Only render the controller if we pass the license checks
     return (
         <PreviewModalController
             show={showModal}
             onClose={handleClose}
-            contentData={modalContent.filter((content) => content.useCase === 'missionops')}
         />
     );
 };

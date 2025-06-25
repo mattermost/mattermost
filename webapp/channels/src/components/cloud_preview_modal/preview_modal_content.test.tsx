@@ -1,23 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
+import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
-import {IntlProvider} from 'react-intl';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import PreviewModalContent from './preview_modal_content';
 import type {PreviewModalContentData} from './preview_modal_content_data';
-
-// Mock the MattermostLogo component
-jest.mock('components/widgets/icons/mattermost_logo', () => ({
-    __esModule: true,
-    default: ({className}: {className: string}) => (
-        <span
-            className={className}
-            data-testid='mattermost-logo'
-        />
-    ),
-}));
 
 describe('PreviewModalContent', () => {
     const baseContent: PreviewModalContentData = {
@@ -33,15 +23,13 @@ describe('PreviewModalContent', () => {
             id: 'test.sku_label',
             defaultMessage: 'Test sku label',
         },
-        videoUrl: 'https://www.youtube.com/watch?v=E3EGLxgNxNA',
+        videoUrl: 'https://example.com/test-video.mp4',
         useCase: 'missionops',
     };
 
     const renderComponent = (content: PreviewModalContentData) => {
-        return render(
-            <IntlProvider locale='en'>
-                <PreviewModalContent content={content}/>
-            </IntlProvider>,
+        return renderWithContext(
+            <PreviewModalContent content={content}/>,
         );
     };
 
@@ -64,7 +52,9 @@ describe('PreviewModalContent', () => {
         renderComponent(content);
 
         expect(screen.getByText('ENTERPRISE')).toBeInTheDocument();
-        expect(screen.getByTestId('mattermost-logo')).toBeInTheDocument();
+        const skuLabelContainer = screen.getByText('ENTERPRISE').closest('.preview-modal-content__sku-label');
+        expect(skuLabelContainer).toBeInTheDocument();
+        expect(screen.getByLabelText('Mattermost Logo')).toBeInTheDocument();
     });
 
     it('should not render SKU label when not provided', () => {
@@ -79,7 +69,8 @@ describe('PreviewModalContent', () => {
         renderComponent(contentWithoutSku);
 
         expect(screen.queryByText('ENTERPRISE')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('mattermost-logo')).not.toBeInTheDocument();
+        const skuContainer = document.querySelector('.preview-modal-content__sku-label');
+        expect(skuContainer).not.toBeInTheDocument();
     });
 
     it('should render video when videoUrl is provided with .mp4 extension', () => {
@@ -177,61 +168,24 @@ describe('PreviewModalContent', () => {
 
         renderComponent(content);
 
-        const image = screen.getByRole('img') as HTMLImageElement;
-        expect(image).toBeInTheDocument();
-        expect(image.src).toBe('https://example.com/image.png');
-        expect(image.alt).toBe('Test Title');
+        const images = screen.getAllByRole('img');
+        const contentImage = images.find((img) => (img as HTMLImageElement).src === 'https://example.com/image.png');
+        expect(contentImage).toBeDefined();
+        expect((contentImage as HTMLImageElement).alt).toBe('Test Title');
     });
 
     it('should not render video container when videoUrl is not provided', () => {
         renderComponent(baseContent);
 
         expect(screen.queryByRole('video')).not.toBeInTheDocument();
-        expect(screen.queryByRole('img')).not.toBeInTheDocument();
-    });
 
-    it('should render YouTube iframe when YouTube URL is provided', () => {
-        const content = {
-            ...baseContent,
-            videoUrl: 'https://www.youtube.com/watch?v=Zpyy2FqGotM',
-        };
-
-        renderComponent(content);
-
-        const iframe = screen.getByTestId('youtube-embed');
-        expect(iframe).toBeInTheDocument();
-        expect(iframe).toHaveAttribute('src', expect.stringContaining('https://www.youtube-nocookie.com/embed/Zpyy2FqGotM'));
-        expect(iframe).toHaveAttribute('src', expect.stringContaining('modestbranding=1'));
-        expect(iframe).toHaveAttribute('src', expect.stringContaining('rel=0'));
-        expect(iframe).toHaveAttribute('title', 'Test Title');
-    });
-
-    it('should render YouTube iframe when youtu.be URL is provided', () => {
-        const content = {
-            ...baseContent,
-            videoUrl: 'https://youtu.be/Zpyy2FqGotM',
-        };
-
-        renderComponent(content);
-
-        const iframe = screen.getByTestId('youtube-embed');
-        expect(iframe).toBeInTheDocument();
-        expect(iframe).toHaveAttribute('src', expect.stringContaining('https://www.youtube-nocookie.com/embed/Zpyy2FqGotM'));
-        expect(iframe).toHaveAttribute('src', expect.stringContaining('modestbranding=1'));
-    });
-
-    it('should render YouTube iframe when embed URL is provided', () => {
-        const content = {
-            ...baseContent,
-            videoUrl: 'https://www.youtube.com/embed/Zpyy2FqGotM',
-        };
-
-        renderComponent(content);
-
-        const iframe = screen.getByTestId('youtube-embed');
-        expect(iframe).toBeInTheDocument();
-        expect(iframe).toHaveAttribute('src', expect.stringContaining('https://www.youtube-nocookie.com/embed/Zpyy2FqGotM'));
-        expect(iframe).toHaveAttribute('src', expect.stringContaining('playsinline=1'));
+        // Check that there's no content image (the logo will still be there)
+        const images = screen.getAllByRole('img');
+        const contentImages = images.filter((img) => {
+            const ariaLabel = img.getAttribute('aria-label');
+            return !ariaLabel || !ariaLabel.includes('Mattermost Logo');
+        });
+        expect(contentImages).toHaveLength(0);
     });
 
     it('should render video when videoUrl is provided with .mov extension', () => {

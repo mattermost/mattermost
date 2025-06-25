@@ -6,8 +6,6 @@ import {useIntl} from 'react-intl';
 
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
-import {getVideoId} from 'utils/youtube';
-
 import type {PreviewModalContentData} from './preview_modal_content_data';
 
 import './preview_modal_content.scss';
@@ -40,34 +38,6 @@ const PreviewModalContent: React.FC<Props> = ({content}) => {
     const renderVideoContent = () => {
         if (!content.videoUrl) {
             return null;
-        }
-
-        const youtubeVideoId = getVideoId(content.videoUrl);
-
-        if (youtubeVideoId) {
-            // Create a more integrated YouTube embed with minimal branding
-            const embedUrl = new URL(`https://www.youtube-nocookie.com/embed/${youtubeVideoId}`);
-            embedUrl.searchParams.set('modestbranding', '1'); // Reduce YouTube branding
-            embedUrl.searchParams.set('rel', '0'); // Don't show related videos from other channels
-            embedUrl.searchParams.set('iv_load_policy', '3'); // Hide annotations
-            embedUrl.searchParams.set('cc_load_policy', '0'); // Don't show captions by default
-            embedUrl.searchParams.set('playsinline', '1'); // Play inline on mobile
-            embedUrl.searchParams.set('widget_referrer', typeof window === 'undefined' ? 'https://mattermost.com' : window.location.origin); // Set referrer for analytics
-            embedUrl.searchParams.set('controls', '0');
-
-            // Render YouTube embed
-            return (
-                <iframe
-                    src={embedUrl.toString()}
-                    title={intl.formatMessage(content.title)}
-                    width='100%'
-                    height='100%'
-                    frameBorder='0'
-                    allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
-                    allowFullScreen={true}
-                    data-testid='youtube-embed'
-                />
-            );
         }
 
         // Handle direct video files
