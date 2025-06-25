@@ -31,20 +31,14 @@ describe('components/delete_channel_modal', () => {
         group_constrained: false,
     };
 
-    const currentTeamDetails = {
-        name: 'mattermostDev',
-    };
-
     const baseProps: Props = {
         channel,
-        currentTeamDetails,
         actions: {
             deleteChannel: jest.fn(() => {
                 return {data: true};
             }),
         },
         onExited: jest.fn(),
-        penultimateViewedChannelName: 'my-prev-channel',
     };
 
     test('should match snapshot for delete_channel_modal', () => {

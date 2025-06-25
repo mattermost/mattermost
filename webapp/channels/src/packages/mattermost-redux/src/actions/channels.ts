@@ -644,9 +644,6 @@ export function joinChannel(userId: string, teamId: string, channelId: string, c
 
 export function deleteChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
-        let state = getState();
-        const viewArchivedChannels = state.entities.general.config.ExperimentalViewArchivedChannels === 'true';
-
         try {
             await Client4.deleteChannel(channelId);
         } catch (error) {
@@ -655,18 +652,7 @@ export function deleteChannel(channelId: string): ActionFuncAsync {
             return {error};
         }
 
-        state = getState();
-        const {currentChannelId} = state.entities.channels;
-        if (channelId === currentChannelId && !viewArchivedChannels) {
-            const teamId = getCurrentTeamId(state);
-            const channelsInTeam = getChannelsNameMapInTeam(state, teamId);
-            const channel = getChannelByName(channelsInTeam, getRedirectChannelNameForTeam(state, teamId));
-            if (channel && channel.id) {
-                dispatch({type: ChannelTypes.SELECT_CHANNEL, data: channel.id});
-            }
-        }
-
-        dispatch({type: ChannelTypes.DELETE_CHANNEL_SUCCESS, data: {id: channelId, viewArchivedChannels}});
+        dispatch({type: ChannelTypes.DELETE_CHANNEL_SUCCESS, data: {id: channelId}});
 
         return {data: true};
     };
