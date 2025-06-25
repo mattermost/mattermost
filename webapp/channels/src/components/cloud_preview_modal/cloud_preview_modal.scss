@@ -6,8 +6,8 @@
 
     &__button {
         display: flex;
-        width: 48px;
-        height: 48px;
+        width: 36px;
+        height: 36px;
         align-items: center;
         justify-content: center;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
@@ -27,7 +27,7 @@
 
         .icon {
             color: rgba(var(--center-channel-color-rgb), 0.72);
-            font-size: 28px;
+            font-size: 24px;
         }
     }
 }
