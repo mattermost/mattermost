@@ -151,7 +151,7 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	}
 
 	rctx := request.EmptyContext(webConn.Platform.Log())
-	if !webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, previewChannel) {
+	if ok, _ := webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, previewChannel); !ok {
 		// Do nothing.
 		// In this case, the sanitized post is already attached to the ws event.
 		return nil
