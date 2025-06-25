@@ -63,6 +63,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         onExited: jest.fn(),
         actions: {
             submitInteractiveDialog: jest.fn(),
+            lookupInteractiveDialog: jest.fn(),
         },
         elements: [] as DialogElement[],
     };
@@ -818,6 +819,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const minimalProps = {
                 actions: {
                     submitInteractiveDialog: jest.fn(),
+                    lookupInteractiveDialog: jest.fn(),
                 },
             };
 
@@ -1245,6 +1247,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
                 actions: {
                     submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                    lookupInteractiveDialog: jest.fn(),
                 },
             };
 
@@ -1319,6 +1322,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
                 actions: {
                     submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                    lookupInteractiveDialog: jest.fn(),
                 },
             };
 
