@@ -174,7 +174,7 @@ describe('TeamReviewersSection', () => {
             expect(teamNameCells[1]).toHaveTextContent('Team Two');
         });
 
-        const nextButton = screen.getByRole('button', {name: /nextPage/i});
+        const nextButton = screen.getByRole('button', {name: /Next page/i});
         fireEvent.click(nextButton);
 
         await waitFor(() => {
@@ -182,7 +182,7 @@ describe('TeamReviewersSection', () => {
         });
 
         // Then go back to previous page
-        const prevButton = screen.getByRole('button', {name: /prevPage/i});
+        const prevButton = screen.getByRole('button', {name: /Previous page/i});
         fireEvent.click(prevButton);
 
         await waitFor(() => {

@@ -262,7 +262,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                             }}
                         />
                         <button
-                            aria-label='prevPage'
+                            aria-label='Previous page'
                             type='button'
                             className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
                             onClick={prevPageFn}
@@ -271,7 +271,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                             <PreviousIcon/>
                         </button>
                         <button
-                            aria-label='nextPage'
+                            aria-label='Next page'
                             type='button'
                             className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
                             onClick={nextPageFn}

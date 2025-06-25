@@ -79,9 +79,9 @@ export function UserMultiSelector({id, className, onChange, initialValue, hasErr
                     }));
 
                 callback(users);
+            } else {
+                callback([]);
             }
-
-            callback([]);
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error(error);
@@ -99,7 +99,7 @@ export function UserMultiSelector({id, className, onChange, initialValue, hasErr
             <AsyncSelect
                 id={id}
                 inputId={`${id}_input`}
-                classNamePrefix='user-multiselector'
+                classNamePrefix='UserMultiSelector'
                 className={classNames('Input Input__focus', className, {error: hasError})}
                 isMulti={true}
                 isClearable={false}

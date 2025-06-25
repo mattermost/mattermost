@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -31,12 +31,12 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
     const intl = useIntl();
     const dispatch = useDispatch();
 
-    const [page, setPage] = React.useState(0);
-    const [total, setTotal] = React.useState(0);
-    const [startCount, setStartCount] = React.useState(1);
-    const [endCount, setEndCount] = React.useState(100);
-    const [teamSearchTerm, setTeamSearchTerm] = React.useState<string>('');
-    const [teams, setTeams] = React.useState<Team[]>([]);
+    const [page, setPage] = useState(0);
+    const [total, setTotal] = useState(0);
+    const [startCount, setStartCount] = useState(1);
+    const [endCount, setEndCount] = useState(100);
+    const [teamSearchTerm, setTeamSearchTerm] = useState<string>('');
+    const [teams, setTeams] = useState<Team[]>([]);
 
     const setPaginationValues = useCallback((page: number, total: number) => {
         const startCount = (page * GET_TEAMS_PAGE_SIZE) + 1;
@@ -49,7 +49,6 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
     useEffect(() => {
         const fetchTeams = async (term: string) => {
             try {
-                // const teamsResponse = await dispatch(getTeams(page, GET_TEAMS_PAGE_SIZE, true, false)) as ActionResult<{teams: Team[]; total_count: number}>;
                 const teamsResponse = await dispatch(searchTeams(term || '', {page, per_page: GET_TEAMS_PAGE_SIZE} as TeamSearchOpts));
 
                 if (teamsResponse && teamsResponse.data) {

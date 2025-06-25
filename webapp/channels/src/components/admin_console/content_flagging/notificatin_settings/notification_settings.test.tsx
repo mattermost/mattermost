@@ -65,10 +65,6 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     test('should set correct default checked values for checkboxes', () => {
         renderWithIntl(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
-        // Flagged section
-        // expect(screen.getByTestId('checkbox', {name: 'flagged_reviewers'})).toBeChecked();
-        // expect(screen.getByTestId('checkbox', {name: 'flagged_authors'})).not.toBeChecked();
-
         expect(screen.getByTestId('flagged_reviewers')).toBeChecked();
         expect(screen.getByTestId('flagged_authors')).not.toBeChecked();
 
