@@ -581,8 +581,6 @@ export default class SwitchChannelProvider extends Provider {
         const channelFilter = makeChannelSearchFilter(this.store.getState(), channelPrefix);
 
         const state = this.store.getState();
-        const config = getConfig(state);
-        const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
         const allUnreadChannelIds = getAllTeamsUnreadChannelIds(state);
         const allUnreadChannelIdsSet = new Set(allUnreadChannelIds);
         const currentUserId = getCurrentUserId(state);
@@ -602,9 +600,7 @@ export default class SwitchChannelProvider extends Provider {
                     continue;
                 }
 
-                if (!viewArchivedChannels && channelIsArchived) {
-                    continue;
-                } else if (channelIsArchived && members[channel.id]) {
+                if (channelIsArchived && members[channel.id]) {
                     wrappedChannel.type = Constants.ARCHIVED_CHANNEL;
                 } else if (newChannel.type === Constants.OPEN_CHANNEL) {
                     wrappedChannel.type = Constants.MENTION_PUBLIC_CHANNELS;
