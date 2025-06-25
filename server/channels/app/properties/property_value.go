@@ -19,6 +19,10 @@ func (ps *PropertyService) GetPropertyValues(groupID string, ids []string) ([]*m
 	return ps.valueStore.GetMany(groupID, ids)
 }
 
+func (ps *PropertyService) GetForTarget(targetId, targetType string, groupIDs []string) ([]*model.PropertyValue, error) {
+	return ps.valueStore.GetForTarget(targetId, targetType, groupIDs)
+}
+
 func (ps *PropertyService) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	// groupID and targetID are part of the search method signature to
 	// incentivize the use of the database indexes in searches

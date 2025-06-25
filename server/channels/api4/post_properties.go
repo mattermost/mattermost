@@ -63,7 +63,7 @@ func toPostPropertiesPatch(c *Context, postId string, rawPatch map[string]json.R
 		fieldMap[field.ID] = field
 	}
 
-	patchByGroupId := make(model.PatchPostProperties)
+	patchByGroupId := model.PatchPostProperties{}
 
 	for fieldID, value := range rawPatch {
 		field, ok := fieldMap[fieldID]
@@ -72,28 +72,33 @@ func toPostPropertiesPatch(c *Context, postId string, rawPatch map[string]json.R
 		}
 
 		if _, ok := patchByGroupId[field.GroupID]; !ok {
-			patchByGroupId[field.GroupID] = make(map[string]json.RawMessage)
+			patchByGroupId[field.GroupID] = &model.Foo{
+				PropertyValueById: make(map[string]json.RawMessage),
+			}
 		}
 
-		patchByGroupId[field.GroupID][field.ID] = value
+		patchByGroupId[field.GroupID].PropertyValueById[field.ID] = value
 	}
-
-	patchByGroupName := make(model.PatchPostProperties)
 
 	for groupID := range patchByGroupId {
 		group, err := c.App.PropertyService().GetPropertyGroupById(groupID)
 		if err != nil {
 			return nil, model.NewAppError("toPostPropertiesPatch", "api.post_properties.to_post_properties_patch.app_error", map[string]any{"GroupId": groupID}, "", http.StatusInternalServerError)
 		}
-		patchByGroupName[group.Name] = patchByGroupId[groupID]
+
+		patchByGroupId[groupID].PropertyValueById["1"] = json.RawMessage("1")
+		patchByGroupId[groupID].Group = group
 	}
 
-	return patchByGroupName, nil
+	return patchByGroupId, nil
 }
 
 func patchPostPropertiesPermissionCheck(postID, userID string, patch model.PatchPostProperties) (model.PatchPostProperties, *model.AppError) {
-	for groupName, properties := range patch {
-		groupPermissionFunc, ok := patchPermissionHandlerMap[groupName]
+	for groupId, foo := range patch {
+		properties := foo.PropertyValueById
+		groupName := patch[groupId].Group.Name
+
+		groupPermissionFunc, ok := patchPermissionHandlerMap[patch[groupId].Group.Name]
 		if !ok {
 			return nil, model.NewAppError("patchPostPropertiesPermissionCheck", "api.post_properties.permission_check.unknown_group_specified", nil, "", http.StatusBadRequest)
 		}
@@ -103,7 +108,7 @@ func patchPostPropertiesPermissionCheck(postID, userID string, patch model.Patch
 			return nil, model.NewAppError("patchPostPropertiesPermissionCheck", "api.post_properties.permission_check.permission_error", nil, "", appErr.StatusCode).Wrap(appErr)
 		}
 
-		patch[groupName] = updatedProperties
+		patch[groupId].PropertyValueById = updatedProperties
 	}
 
 	return patch, nil

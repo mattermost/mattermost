@@ -4,3 +4,5 @@
 package model
 
 const ContentFlaggingGroupName = "content_flagging"
+
+const TargetTypePost = "post"

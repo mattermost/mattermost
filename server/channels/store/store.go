@@ -1123,6 +1123,7 @@ type PropertyValueStore interface {
 	Delete(groupID string, id string) error
 	DeleteForField(groupID, fieldID string) error
 	DeleteForTarget(groupID string, targetType string, targetID string) error
+	GetForTarget(targetId, targetType string, groupIDs []string) ([]*model.PropertyValue, error)
 	//GetByTarget(targetID string) ([]*model.PropertyValue, error)
 }
 
