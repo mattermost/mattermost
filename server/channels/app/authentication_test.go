@@ -130,7 +130,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 				var completeWG sync.WaitGroup
 				completeWG.Add(concurrentAttempts)
 
-				for i := 0; i < concurrentAttempts; i++ {
+				for i := range concurrentAttempts {
 					go func(i int) {
 						defer completeWG.Done()
 						// Simulate concurrent failed login checks by same user
@@ -141,7 +141,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 				completeWG.Wait()
 
 				expectedErrsCount := 0
-				for i := 0; i < concurrentAttempts; i++ {
+				for i := range concurrentAttempts {
 					if appErrs[i].Id == tc.expectedErrID {
 						expectedErrsCount++
 						continue
@@ -230,7 +230,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 
 			// Simulate failed login attempts if necessary
 			if tc.expectedErrID == "api.user.check_user_login_attempts.too_many_ldap.app_error" {
-				for i := 0; i < maxFailedLoginAttempts-1; i++ {
+				for range maxFailedLoginAttempts - 1 {
 					_, appErr = th.App.checkLdapUserPasswordAndAllCriteria(th.Context, ldapUser, "wrongpassword", "")
 					require.NotNil(t, appErr)
 					require.Equal(t, "ent.ldap.do_login.invalid_password.app_error", appErr.Id)
@@ -331,7 +331,7 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 				var completeWG sync.WaitGroup
 				completeWG.Add(concurrentAttempts)
 
-				for i := 0; i < concurrentAttempts; i++ {
+				for i := range concurrentAttempts {
 					go func(i int) {
 						defer completeWG.Done()
 
@@ -347,7 +347,7 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 				completeWG.Wait()
 
 				expectedErrsCount := 0
-				for i := 0; i < concurrentAttempts; i++ {
+				for i := range concurrentAttempts {
 					if appErrs[i].Id == tc.expectedErrID {
 						expectedErrsCount++
 						continue

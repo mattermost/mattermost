@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -1095,6 +1096,57 @@ func TestMoveThread(t *testing.T) {
 		require.Equal(t, 2, len(posts.Posts))
 		require.Equal(t, newPost.Message, posts.Posts[posts.Order[0]].Message)
 	})
+
+	t.Run("check permissions limited by AllowedEmailDomain", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			c.WranglerSettings.AllowedEmailDomain = []string{"foo.com", "bar.com"}
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(c *model.Config) {
+				c.WranglerSettings.AllowedEmailDomain = make([]string, 0)
+			})
+		})
+
+		// Create a public channel
+		publicChannel := createPublicChannel(th.BasicTeam.Id, "test-public-channel-allowed-email-domain", "Test Public Channel")
+
+		// Create a new post to move
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test post",
+		}
+		newPost, resp, err := client.CreatePost(ctx, post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, newPost)
+
+		// Move the post to the public channel as a user without the configured domain
+		moveThreadParams := &model.MoveThreadParams{
+			ChannelId: publicChannel.Id,
+		}
+		resp, err = client.MoveThread(ctx, newPost.Id, moveThreadParams)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Change the email domain to match the configured setting
+		th.BasicUser.Email = "basicuser@foo.com"
+		_, resp, err = client.UpdateUser(ctx, th.BasicUser)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = client.MoveThread(ctx, newPost.Id, moveThreadParams)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Check that the post was moved to the public channel
+		posts, resp, err := client.GetPostsForChannel(ctx, publicChannel.Id, 0, 100, "", true, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, posts)
+		// There should be 2 posts, the system join message for the user who moved it joining the channel, and the post we moved
+		require.Equal(t, 2, len(posts.Posts))
+		require.Equal(t, newPost.Message, posts.Posts[posts.Order[0]].Message)
+	})
 }
 
 func TestCreatePostPublic(t *testing.T) {
@@ -1369,7 +1421,7 @@ func TestUpdatePost(t *testing.T) {
 	fileIds := make([]string, 3)
 	data, err2 := testutils.ReadTestFile("test.png")
 	require.NoError(t, err2)
-	for i := 0; i < len(fileIds); i++ {
+	for i := range fileIds {
 		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
 		require.NoError(t, err)
 		fileIds[i] = fileResp.FileInfos[0].Id
@@ -1748,7 +1800,7 @@ func TestPatchPost(t *testing.T) {
 	fileIDs := make([]string, 3)
 	data, err2 := testutils.ReadTestFile("test.png")
 	require.NoError(t, err2)
-	for i := 0; i < len(fileIDs); i++ {
+	for i := range fileIDs {
 		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
 		require.NoError(t, err)
 		fileIDs[i] = fileResp.FileInfos[0].Id
@@ -4152,7 +4204,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 	fileIds := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		fileResp, _, _ := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
 		fileIds[i] = fileResp.FileInfos[0].Id
 	}
@@ -4765,9 +4817,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 
 			patch := &model.UserPatch{}
 			patch.NotifyProps = model.CopyStringMap(th.BasicUser.NotifyProps)
-			for k, v := range tc.notifyProps {
-				patch.NotifyProps[k] = v
-			}
+			maps.Copy(patch.NotifyProps, tc.notifyProps)
 
 			// update user's notify props
 			_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, patch)

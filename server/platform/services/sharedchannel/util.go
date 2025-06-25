@@ -76,10 +76,7 @@ func mungUsername(username string, remotename string, suffix string, maxLen int)
 
 	// If the remotename is less than half the maxLen, then the left over space can be given to
 	// the username.
-	extra := half - (len(remotename) + 1)
-	if extra < 0 {
-		extra = 0
-	}
+	extra := max(half-(len(remotename)+1), 0)
 
 	truncUser := (len(username) + len(suffix)) - (half + extra)
 	if truncUser > 0 {

@@ -131,7 +131,7 @@ func TestSendNotifications(t *testing.T) {
 
 	t.Run("message in GM generate mention", func(t *testing.T) {
 		users := []*model.User{}
-		for i := 0; i < 2; i++ {
+		for range 2 {
 			user := th.CreateUser()
 			users = append(users, user)
 		}
@@ -572,7 +572,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 	defer th.TearDown()
 
 	users := []*model.User{}
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		user := th.CreateUser()
 		th.LinkUserToTeam(user, th.BasicTeam)
 		_, appErr := th.App.AddUserToChannel(th.Context, user, th.BasicChannel, false)

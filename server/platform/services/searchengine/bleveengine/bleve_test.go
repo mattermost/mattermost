@@ -119,7 +119,7 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 		userID := model.NewId()
 		channelID := model.NewId()
 		channelToAvoidID := model.NewId()
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			post := createPost(userID, channelID)
 			appErr := s.SearchEngine.BleveEngine.IndexPost(post, teamID)
 			require.Nil(s.T(), appErr)
@@ -165,7 +165,7 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 		userID := model.NewId()
 		userToAvoidID := model.NewId()
 		channelID := model.NewId()
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			post := createPost(userID, channelID)
 			appErr := s.SearchEngine.BleveEngine.IndexPost(post, teamID)
 			require.Nil(s.T(), appErr)
@@ -210,7 +210,7 @@ func (s *BleveEngineTestSuite) TestDeletePosts() {
 	userID := model.NewId()
 	userToAvoidID := model.NewId()
 	channelID := model.NewId()
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		post := createPost(userID, channelID)
 		appErr := s.SearchEngine.BleveEngine.IndexPost(post, teamID)
 		require.Nil(s.T(), appErr)

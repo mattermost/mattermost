@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -55,9 +56,7 @@ func (w *httpResponseWriterRPCServer) SyncHeader(args http.Header, reply *struct
 			delete(dest, k)
 		}
 	}
-	for k, v := range args {
-		dest[k] = v
-	}
+	maps.Copy(dest, args)
 	return nil
 }
 

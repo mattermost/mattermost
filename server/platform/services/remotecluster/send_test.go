@@ -173,7 +173,7 @@ func TestBroadcastMsg(t *testing.T) {
 
 func makeRemoteClusters(num int, siteURL string, isPlugin bool) []*model.RemoteCluster {
 	var remotes []*model.RemoteCluster
-	for i := 0; i < num; i++ {
+	for i := range num {
 		rc := makeRemoteCluster(fmt.Sprintf("test cluster %d", i+1), siteURL, TestTopics)
 		if isPlugin {
 			rc.PluginID = model.NewId()

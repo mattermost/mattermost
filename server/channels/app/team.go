@@ -420,7 +420,7 @@ func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string,
 	member.SchemeUser = false
 	member.SchemeAdmin = false
 
-	for _, roleName := range strings.Fields(newRoles) {
+	for roleName := range strings.FieldsSeq(newRoles) {
 		var role *model.Role
 		role, err = a.GetRoleByName(context.Background(), roleName)
 		if err != nil {
