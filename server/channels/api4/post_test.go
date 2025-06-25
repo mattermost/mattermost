@@ -1108,7 +1108,7 @@ func TestMoveThread(t *testing.T) {
 		})
 
 		// Create a public channel
-		publicChannel := createPublicChannel(th.BasicTeam.Id, "test-public-channel", "Test Public Channel")
+		publicChannel := createPublicChannel(th.BasicTeam.Id, "test-public-channel-allowed-email-domain", "Test Public Channel")
 
 		// Create a new post to move
 		post := &model.Post{
