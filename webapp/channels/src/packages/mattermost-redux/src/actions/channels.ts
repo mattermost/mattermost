@@ -27,15 +27,11 @@ import {MarkUnread} from 'mattermost-redux/constants/channels';
 import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/channel_categories';
 import {
     getChannel as getChannelSelector,
-    getChannelsNameMapInTeam,
     getMyChannelMember as getMyChannelMemberSelector,
-    getRedirectChannelNameForTeam,
     isManuallyUnread,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import type {GetStateFunc, ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
-import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
@@ -668,10 +664,7 @@ export function unarchiveChannel(channelId: string): ActionFuncAsync {
             return {error};
         }
 
-        const state = getState();
-        const config = getConfig(state);
-        const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-        dispatch({type: ChannelTypes.UNARCHIVED_CHANNEL_SUCCESS, data: {id: channelId, viewArchivedChannels}});
+        dispatch({type: ChannelTypes.UNARCHIVED_CHANNEL_SUCCESS, data: {id: channelId}});
 
         return {data: true};
     };
