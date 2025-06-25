@@ -233,7 +233,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 	if status == "" {
 		jobs, appErr = c.App.GetJobsByTypesPage(c.AppContext, validJobTypes, c.Params.Page, c.Params.PerPage)
 	} else {
-		jobs, appErr = c.App.GetJobsByTypeAndStatus(c.AppContext, validJobTypes, status, c.Params.Page, c.Params.PerPage)
+		jobs, appErr = c.App.GetJobsByTypesAndStatuses(c.AppContext, validJobTypes, []string{status}, c.Params.Page, c.Params.PerPage)
 	}
 
 	if appErr != nil {

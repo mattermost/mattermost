@@ -244,7 +244,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	return nil
 }
 
-// downloadFile handles the common logic for downloading files in export and compliance_export commands
+// downloadFile handles the common logic for downloading files in export and compliance-export commands
 func downloadFile(path string, downloadFn func(*os.File) (string, error), retries int, fileType string) (string, error) {
 	var outFile *os.File
 	info, err := os.Stat(path)
