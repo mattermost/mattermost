@@ -72,7 +72,10 @@ Object {
                 >
                   <label
                     class="Input_legend"
-                  />
+                    for="input_name"
+                  >
+                                            
+                  </label>
                   <div
                     class="Input_wrapper"
                   >
@@ -97,7 +100,9 @@ Object {
                 >
                   <label
                     class="Input_legend Input_legend___focus"
+                    for="input_email"
                   >
+                                            
                     Business Email
                   </label>
                   <div
@@ -141,7 +146,10 @@ Object {
                 >
                   <label
                     class="Input_legend"
-                  />
+                    for="input_company_name"
+                  >
+                                            
+                  </label>
                   <div
                     class="Input_wrapper"
                   >
