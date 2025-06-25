@@ -91,11 +91,6 @@ jest.mock('actions/telemetry_actions.jsx', () => ({
 describe('rhs view actions', () => {
     const initialState = {
         entities: {
-            general: {
-                config: {
-                    ExperimentalViewArchivedChannels: 'false',
-                },
-            },
             channels: {
                 currentChannelId,
             },
