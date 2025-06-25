@@ -286,6 +286,9 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (!prevProps.isConfigLoaded && this.props.isConfigLoaded) {
             this.setRudderConfig();
+        }
+
+        if (!prevProps.currentUserId && this.props.currentUserId) {
             if (this.props.customProfileAttributesEnabled) {
                 this.props.actions.getCustomProfileAttributeFields();
             }

@@ -75,6 +75,7 @@ function mapStateToProps(state: GlobalState) {
         isCloud: isCurrentLicenseCloud(state),
         isDevModeEnabled: isDevModeEnabled(state),
         customProfileAttributesEnabled: getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true',
+        currentUserId: userId,
     };
 }
 
