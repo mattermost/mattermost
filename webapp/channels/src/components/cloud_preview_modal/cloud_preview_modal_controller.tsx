@@ -1,0 +1,124 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React, {useState, useEffect} from 'react';
+import {useIntl} from 'react-intl';
+import {useSelector, useDispatch} from 'react-redux';
+
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import WithTooltip from 'components/with_tooltip';
+
+import type {GlobalState} from 'types/store';
+
+import {modalContent} from './preview_modal_content_data';
+import PreviewModalController from './preview_modal_content_controller';
+
+import './cloud_preview_modal.scss';
+
+const CLOUD_PREVIEW_MODAL_SHOWN_PREF = 'cloud_preview_modal_shown';
+
+const CloudPreviewModal: React.FC = () => {
+    const intl = useIntl();
+    const dispatch = useDispatch();
+    const subscription = useSelector(getCloudSubscription);
+    const license = useSelector(getLicense);
+    const currentUserId = useSelector(getCurrentUserId);
+
+    const isCloud = license?.Cloud === 'true';
+    const isCloudPreview = subscription?.is_cloud_preview === true;
+
+    // Check if modal has been shown before
+    const hasModalBeenShown = useSelector((state: GlobalState) =>
+        getPreference(state, CLOUD_PREVIEW_MODAL_SHOWN_PREF, CLOUD_PREVIEW_MODAL_SHOWN_PREF, 'false') === 'true',
+    );
+
+    const [showModal, setShowModal] = useState(false);
+
+    useEffect(() => {
+        // Show modal only if:
+        // 1. It's a cloud preview environment
+        // 2. Modal hasn't been shown before
+        // 3. We have the necessary data loaded
+        if (isCloud && isCloudPreview && !hasModalBeenShown && currentUserId) {
+            setShowModal(true);
+        } else if (hasModalBeenShown) {
+            setShowModal(false);
+        }
+    }, [isCloud, isCloudPreview, hasModalBeenShown, currentUserId]);
+
+    const handleClose = () => {
+        setShowModal(false);
+
+        // Save preference to not show modal again
+        if (currentUserId) {
+            const preference = {
+                user_id: currentUserId,
+                category: CLOUD_PREVIEW_MODAL_SHOWN_PREF,
+                name: CLOUD_PREVIEW_MODAL_SHOWN_PREF,
+                value: 'true',
+            };
+            dispatch(savePreferences(currentUserId, [preference]));
+        }
+    };
+
+    const handleOpenModal = () => {
+        // Reset preference to show modal again
+        if (currentUserId) {
+            const preference = {
+                user_id: currentUserId,
+                category: CLOUD_PREVIEW_MODAL_SHOWN_PREF,
+                name: CLOUD_PREVIEW_MODAL_SHOWN_PREF,
+                value: 'false',
+            };
+            dispatch(savePreferences(currentUserId, [preference]));
+        }
+    };
+
+    if (!isCloud || !isCloudPreview) {
+        return null;
+    }
+
+    // Show FAB only if modal has been shown before and modal is not currently open
+    const shouldShowFAB = hasModalBeenShown && !showModal;
+
+    return (
+        <>
+            <PreviewModalController
+                show={showModal}
+                onClose={handleClose}
+                contentData={modalContent.filter((content) => content.useCase === 'missionops')}
+            />
+            {shouldShowFAB && (
+                <div
+                    className='cloud-preview-modal-fab'
+                    data-testid='cloud-preview-fab'
+                >
+                    <WithTooltip
+                        title={intl.formatMessage({
+                            id: 'cloud_preview_modal.fab.tooltip',
+                            defaultMessage: 'Open overview',
+                        })}
+                    >
+                        <button
+                            className='cloud-preview-modal-fab__button'
+                            onClick={handleOpenModal}
+                            aria-label={intl.formatMessage({
+                                id: 'cloud_preview_modal.fab.aria_label',
+                                defaultMessage: 'Open cloud preview overview',
+                            })}
+                        >
+                            <i className='icon icon-play-box-multiple-outline'/>
+                        </button>
+                    </WithTooltip>
+                </div>
+            )}
+        </>
+    );
+};
+
+export default CloudPreviewModal;
