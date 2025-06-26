@@ -9333,6 +9333,10 @@
     "translation": "The file name must not be a directory."
   },
   {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Hiding archived channels is no longer supported. Make these channels private and remove members instead."
+  },
+  {
     "id": "model.config.is_valid.export.directory.app_error",
     "translation": "Value for Directory should not be empty."
   },
