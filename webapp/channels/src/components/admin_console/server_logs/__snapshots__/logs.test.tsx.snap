@@ -480,7 +480,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
               >
                 1 - 3 of 3
                 <button
-                  aria-label="prevPage"
+                  aria-label="Previous page"
                   class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
                   disabled=""
                   type="button"
@@ -491,7 +491,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                   />
                 </button>
                 <button
-                  aria-label="nextPage"
+                  aria-label="Next page"
                   class="btn btn-quaternary btn-icon btn-sm next disabled"
                   disabled=""
                   type="button"
