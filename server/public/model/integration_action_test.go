@@ -675,4 +675,210 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "Placeholder cannot be longer than 150 characters")
 	})
+
+	t.Run("should pass with dynamic select element", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Dynamic select",
+			Name:        "dynamic_select_field",
+			Type:        "dynamic_select",
+			Placeholder: "Type to search",
+		})
+		err := request.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should fail dynamic select with static options", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Dynamic select",
+			Name:        "dynamic_select_field",
+			Type:        "dynamic_select",
+			Options: []*PostActionOptions{
+				{Text: "Option 1", Value: "opt1"},
+			},
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "dynamic_select element should not have static options")
+	})
+
+	t.Run("should fail dynamic select with data_source", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Dynamic select",
+			Name:        "dynamic_select_field",
+			Type:        "dynamic_select",
+			DataSource:  "users",
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "dynamic_select element should not have a data_source")
+	})
+
+	t.Run("should pass with select element with dynamic data_source", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName:   "Dynamic select via data_source",
+			Name:          "dynamic_field",
+			Type:          "select",
+			DataSource:    "dynamic",
+			DataSourceURL: "https://example.com/api/options",
+		})
+		err := request.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should fail dynamic data_source without data_source_url", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Dynamic select via data_source",
+			Name:        "dynamic_field",
+			Type:        "select",
+			DataSource:  "dynamic",
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "dynamic data_source requires data_source_url")
+	})
+
+	t.Run("should fail dynamic data_source with invalid URL", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName:   "Dynamic select via data_source",
+			Name:          "dynamic_field",
+			Type:          "select",
+			DataSource:    "dynamic",
+			DataSourceURL: "http://insecure.com/api/options",
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "invalid data_source_url for dynamic select")
+	})
+
+	t.Run("should pass dynamic data_source with plugin URL", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName:   "Dynamic select via data_source",
+			Name:          "dynamic_field",
+			Type:          "select",
+			DataSource:    "dynamic",
+			DataSourceURL: "/plugins/myplugin/api/options",
+		})
+		err := request.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should fail dynamic data_source with static options", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName:   "Dynamic select via data_source",
+			Name:          "dynamic_field",
+			Type:          "select",
+			DataSource:    "dynamic",
+			DataSourceURL: "https://example.com/api/options",
+			Options: []*PostActionOptions{
+				{Text: "Option 1", Value: "opt1"},
+			},
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "dynamic select element should not have static options")
+	})
+}
+
+func TestIsValidLookupURL(t *testing.T) {
+	tests := map[string]struct {
+		url      string
+		expected bool
+	}{
+		"valid HTTPS URL": {
+			url:      "https://example.com/api/lookup",
+			expected: true,
+		},
+		"valid plugin path": {
+			url:      "/plugins/myplugin/lookup",
+			expected: true,
+		},
+		"invalid HTTP URL": {
+			url:      "http://example.com/api/lookup",
+			expected: false,
+		},
+		"empty URL": {
+			url:      "",
+			expected: false,
+		},
+		"path traversal attack": {
+			url:      "/plugins/../../../etc/passwd",
+			expected: false,
+		},
+		"double slash in plugin path": {
+			url:      "/plugins//myplugin/lookup",
+			expected: false,
+		},
+		"invalid scheme": {
+			url:      "ftp://example.com/lookup",
+			expected: false,
+		},
+		"relative path": {
+			url:      "relative/path",
+			expected: false,
+		},
+		"localhost HTTPS": {
+			url:      "https://localhost:8080/api/lookup",
+			expected: true,
+		},
+		"localhost HTTP": {
+			url:      "http://localhost:8080/api/lookup",
+			expected: false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			result := IsValidLookupURL(tc.url)
+			assert.Equal(t, tc.expected, result, "IsValidLookupURL(%q) = %v, want %v", tc.url, result, tc.expected)
+		})
+	}
+}
+
+func TestDialogSelectOption(t *testing.T) {
+	t.Run("should create valid option", func(t *testing.T) {
+		option := DialogSelectOption{
+			Text:  "Test Option",
+			Value: "test_value",
+		}
+		assert.Equal(t, "Test Option", option.Text)
+		assert.Equal(t, "test_value", option.Value)
+	})
+
+	t.Run("should handle empty values", func(t *testing.T) {
+		option := DialogSelectOption{
+			Text:  "",
+			Value: "",
+		}
+		assert.Equal(t, "", option.Text)
+		assert.Equal(t, "", option.Value)
+	})
+}
+
+func TestLookupDialogResponse(t *testing.T) {
+	t.Run("should create valid response", func(t *testing.T) {
+		response := LookupDialogResponse{
+			Items: []DialogSelectOption{
+				{Text: "Option 1", Value: "value1"},
+				{Text: "Option 2", Value: "value2"},
+			},
+		}
+		assert.Len(t, response.Items, 2)
+		assert.Equal(t, "Option 1", response.Items[0].Text)
+		assert.Equal(t, "value1", response.Items[0].Value)
+	})
+
+	t.Run("should handle empty response", func(t *testing.T) {
+		response := LookupDialogResponse{
+			Items: []DialogSelectOption{},
+		}
+		assert.Empty(t, response.Items)
+	})
+
+	t.Run("should handle nil items", func(t *testing.T) {
+		response := LookupDialogResponse{}
+		assert.Nil(t, response.Items)
+	})
 }

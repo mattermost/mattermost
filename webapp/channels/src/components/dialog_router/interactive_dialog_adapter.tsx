@@ -436,6 +436,13 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
 
             case 'select':
             case 'radio': {
+                // Handle dynamic selects that use data_source instead of static options
+                if (element.type === 'select' && element.data_source === 'dynamic' && element.default) {
+                    return {
+                        label: this.sanitizeString(element.default),
+                        value: this.sanitizeString(element.default),
+                    };
+                }
                 if (element.options && element.default) {
                     const defaultOption = element.options.find((option) => option.value === element.default);
                     if (defaultOption) {
@@ -710,26 +717,24 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                     } else {
                         submission[element.name] = this.sanitizeString(value);
                     }
-                } else {
+                } else if (typeof value === 'object' && value !== null && 'value' in value) {
                     // Handle static selects
-                    if (typeof value === 'object' && value !== null && 'value' in value) {
-                        const selectOption = value as AppSelectOption;
+                    const selectOption = value as AppSelectOption;
 
-                        // Validate that the selected option exists in the original options
-                        if (this.conversionContext.validateInputs && element.options) {
-                            const validOption = element.options.find((opt) => opt.value === selectOption.value);
-                            if (!validOption) {
-                                this.logWarn('Selected value not found in options', {
-                                    fieldName: element.name,
-                                    selectedValue: selectOption.value,
-                                    availableOptions: element.options.map((opt) => opt.value),
-                                });
-                            }
+                    // Validate that the selected option exists in the original options
+                    if (this.conversionContext.validateInputs && element.options) {
+                        const validOption = element.options.find((opt) => opt.value === selectOption.value);
+                        if (!validOption) {
+                            this.logWarn('Selected value not found in options', {
+                                fieldName: element.name,
+                                selectedValue: selectOption.value,
+                                availableOptions: element.options.map((opt) => opt.value),
+                            });
                         }
-                        submission[element.name] = this.sanitizeString(selectOption.value);
-                    } else {
-                        submission[element.name] = this.sanitizeString(value);
                     }
+                    submission[element.name] = this.sanitizeString(selectOption.value);
+                } else {
+                    submission[element.name] = this.sanitizeString(value);
                 }
                 break;
 
@@ -812,7 +817,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
 
         // If still no path, fall back to the dialog URL
         if (!lookupPath) {
-            lookupPath = url;
+            lookupPath = url || '';
         }
 
         // Validate URL for security
