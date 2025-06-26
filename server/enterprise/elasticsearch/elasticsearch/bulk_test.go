@@ -20,7 +20,8 @@ func TestBulkProcessor(t *testing.T) {
 	client := createTestClient(t, th.Context, th.App.Config(), th.App.FileBackend())
 	bulk := NewBulk(th.App.Config().ElasticsearchSettings,
 		th.Server.Platform().Log(),
-		client)
+		client,
+		false)
 
 	post, err := common.ESPostFromPost(&model.Post{
 		Id:      model.NewId(),
