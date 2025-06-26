@@ -6,8 +6,8 @@ import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
+import PreviewModalController from './preview_modal_content_controller';
 import type {PreviewModalContentData} from './preview_modal_content_data';
-import PreviewModalController from './preview_modal_controller';
 
 describe('PreviewModalController', () => {
     const mockOnClose = jest.fn();

@@ -10,7 +10,7 @@ import type {TeamType} from '@mattermost/types/teams';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
-import CloudPreviewModal from './cloud_preview_modal';
+import CloudPreviewModal from './cloud_preview_modal_controller';
 
 // Mock the async_load module to return components synchronously
 jest.mock('components/async_load', () => ({

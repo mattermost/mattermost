@@ -23,7 +23,7 @@ const CLOUD_PREVIEW_MODAL_SHOWN_PREF = 'cloud_preview_modal_shown';
 // Lazy load the controller component and content data together
 const PreviewModalController = makeAsyncComponent(
     'PreviewModalController',
-    lazy(() => import('./preview_modal_controller')),
+    lazy(() => import('./preview_modal_content_controller')),
 );
 
 const CloudPreviewModal: React.FC = () => {
