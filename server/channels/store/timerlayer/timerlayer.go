@@ -7653,6 +7653,22 @@ func (s *TimerLayerPropertyValueStore) Get(groupID string, id string) (*model.Pr
 	return result, err
 }
 
+func (s *TimerLayerPropertyValueStore) GetForTarget(targetId string, targetType string, groupIDs []string) ([]*model.PropertyValue, error) {
+	start := time.Now()
+
+	result, err := s.PropertyValueStore.GetForTarget(targetId, targetType, groupIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.GetForTarget", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.PropertyValue, error) {
 	start := time.Now()
 

@@ -9662,6 +9662,27 @@ func (s *RetryLayerPropertyValueStore) Get(groupID string, id string) (*model.Pr
 
 }
 
+func (s *RetryLayerPropertyValueStore) GetForTarget(targetId string, targetType string, groupIDs []string) ([]*model.PropertyValue, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyValueStore.GetForTarget(targetId, targetType, groupIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.PropertyValue, error) {
 
 	tries := 0

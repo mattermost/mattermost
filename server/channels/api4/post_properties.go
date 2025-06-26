@@ -45,6 +45,8 @@ func patchPostProperties(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.PatchPostProperties(c.AppContext.Session().UserId, postId, patch)
+
 }
 
 func toPostPropertiesPatch(c *Context, postId string, rawPatch map[string]json.RawMessage) (model.PatchPostProperties, *model.AppError) {
@@ -86,7 +88,6 @@ func toPostPropertiesPatch(c *Context, postId string, rawPatch map[string]json.R
 			return nil, model.NewAppError("toPostPropertiesPatch", "api.post_properties.to_post_properties_patch.app_error", map[string]any{"GroupId": groupID}, "", http.StatusInternalServerError)
 		}
 
-		patchByGroupId[groupID].PropertyValueById["1"] = json.RawMessage("1")
 		patchByGroupId[groupID].Group = group
 	}
 

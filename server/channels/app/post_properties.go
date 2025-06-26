@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/mattermost/mattermost/server/public/model"
 	"net/http"
 )
@@ -16,10 +17,33 @@ var postPropertyChangeListenerMap = map[string]PostPropertyChangeListener{
 }
 
 func (a *App) PatchPostProperties(userId, postId string, patch model.PatchPostProperties) *model.AppError {
-	oldProperties, err := a.getPostPropertiesGrouped(postId, patch)
-	if ErrPluginUnavailable != nil {
-		return err
+	oldProperties, appErr := a.getPostPropertiesGrouped(postId, patch)
+	if appErr != nil {
+		return appErr
 	}
+
+	// now upsert the changes in DB, then run change listeners
+	var propertyValues []*model.PropertyValue
+	for groupId, groupValues := range patch {
+		for fieldId, propertyValue := range groupValues.PropertyValueById {
+			value := &model.PropertyValue{
+				TargetID:   postId,
+				TargetType: model.TargetTypePost,
+				GroupID:    groupId,
+				FieldID:    fieldId,
+				Value:      propertyValue,
+			}
+			propertyValues = append(propertyValues, value)
+		}
+	}
+
+	updatedPropertyValues, err := a.PropertyService().UpsertPropertyValues(propertyValues)
+	if err != nil {
+		return model.NewAppError("App.PatchPostProperties", "", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	j, _ := json.Marshal(updatedPropertyValues)
+	fmt.Println(string(j))
 
 	// run each change listener
 	for groupId := range patch {
@@ -36,17 +60,17 @@ func (a *App) PatchPostProperties(userId, postId string, patch model.PatchPostPr
 		}
 	}
 
-	// now upsert the changes in DB
+	return nil
 }
 
-func contentFlaggingPostPropertyChangeListener(postId, userID, groupID string, oldProperties, newProperties map[string]json.RawMessage) error {
+func contentFlaggingPostPropertyChangeListener(postId, userID, groupID string, oldProperties map[string]model.PropertyValue, newProperties map[string]json.RawMessage) *model.AppError {
 	// no-op
 	return nil
 }
 
-func (a *App) getPostPropertiesGrouped(postId string, patch *model.PatchPostProperties) (model.GroupedPropertyValues, *model.AppError) {
+func (a *App) getPostPropertiesGrouped(postId string, patch model.PatchPostProperties) (model.GroupedPropertyValues, *model.AppError) {
 	var groupIDs []string
-	for groupId := range *patch {
+	for groupId := range patch {
 		groupIDs = append(groupIDs, groupId)
 	}
 
