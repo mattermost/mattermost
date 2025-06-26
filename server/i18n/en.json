@@ -4459,18 +4459,6 @@
     "translation": "Failed to parse token data from email verification"
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Cannot retrieve posts for an archived channel"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Cannot retrieve users for an archived channel"
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Cannot retrieve bookmarks for an archived channel"
-  },
-  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
