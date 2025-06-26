@@ -279,10 +279,6 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         };
     }
 
-    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
-    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
-        return state;
-
     case ChannelTypes.LEAVE_CHANNEL: {
         const channelId = action.data.id;
 
@@ -836,10 +832,6 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
         };
     }
 
-    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
-    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
-        return state;
-
     case ChannelTypes.LEAVE_CHANNEL: {
         const channelId = action.data.id;
 
@@ -1109,10 +1101,6 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
 
         return nextState;
     }
-
-    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
-    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
-        return state;
 
     case ChannelTypes.LEAVE_CHANNEL: {
         const channelId = action.data.id;
@@ -1525,10 +1513,6 @@ export function limitedViews(
         }
         return state;
     }
-    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
-    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
-        return state;
-
     case ChannelTypes.LEAVE_CHANNEL: {
         const channelId = action.data.id;
         if (!state.channels[channelId]) {
