@@ -2638,7 +2638,7 @@
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here notifications are disabled in channels with more than {{.Users}} users to maintain server performance. Contact your system administrator for more information."
+    "translation": "@here notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
