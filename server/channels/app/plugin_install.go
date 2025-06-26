@@ -123,6 +123,11 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 		return
 	}
 
+	logger = logger.With(
+		mlog.String("bundle_path", plugin.bundlePath),
+		mlog.String("signature_path", plugin.signaturePath),
+	)
+
 	bundle, appErr := ch.srv.fileReader(plugin.bundlePath)
 	if appErr != nil {
 		logger.Error("Failed to open plugin bundle from file store.", mlog.Err(appErr))
@@ -139,7 +144,7 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 		}
 		defer signature.Close()
 
-		if err := ch.verifyPlugin(bundle, signature); err != nil {
+		if err := ch.verifyPlugin(logger, bundle, signature); err != nil {
 			logger.Error("Failed to validate plugin signature.", mlog.Err(appErr))
 			return
 		}
@@ -270,7 +275,11 @@ func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, s
 // plugin bundle from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace
 // is true.
 func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
-	logger := ch.srv.Log().With(mlog.String("plugin_id", request.Id))
+	logger := ch.srv.Log().With(
+		mlog.String("plugin_id", request.Id),
+		mlog.String("requested_version", request.Version),
+	)
+	logger.Info("Installing plugin from marketplace")
 
 	var pluginFile, signatureFile io.ReadSeeker
 
@@ -285,8 +294,15 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		}
 		defer fileReader.Close()
 
+		signatureReader, err := os.Open(prepackagedPlugin.SignaturePath)
+		if err != nil {
+			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, fmt.Sprintf("failed to open prepackaged plugin signature %s", prepackagedPlugin.SignaturePath), http.StatusInternalServerError).Wrap(err)
+		}
+		defer signatureReader.Close()
+
 		pluginFile = fileReader
-		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
+		signatureFile = signatureReader
+		logger.Debug("Found matching pre-packaged plugin", mlog.String("bundle_path", prepackagedPlugin.Path), mlog.String("signature_path", prepackagedPlugin.SignaturePath))
 	}
 
 	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace {
@@ -313,6 +329,8 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 			}
 
 			if prepackagedVersion.LT(marketplaceVersion) { // Always true if no prepackaged plugin was found
+				logger.Debug("Found upgraded plugin from remote marketplace", mlog.String("version", plugin.Manifest.Version), mlog.String("download_url", plugin.DownloadURL))
+
 				downloadedPluginBytes, err := ch.srv.downloadFromURL(plugin.DownloadURL)
 				if err != nil {
 					return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -323,6 +341,8 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 				}
 				pluginFile = bytes.NewReader(downloadedPluginBytes)
 				signatureFile = signature
+			} else {
+				logger.Debug("Preferring pre-packaged plugin over version in remote marketplace", mlog.String("version", plugin.Manifest.Version), mlog.String("download_url", plugin.DownloadURL))
 			}
 		}
 	}
@@ -334,7 +354,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	appErr = ch.verifyPlugin(pluginFile, signatureFile)
+	appErr = ch.verifyPlugin(logger, pluginFile, signatureFile)
 	if appErr != nil {
 		return nil, appErr
 	}

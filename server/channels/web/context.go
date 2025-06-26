@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -27,7 +26,7 @@ type Context struct {
 }
 
 // LogAuditRec logs an audit record using default LevelAPI.
-func (c *Context) LogAuditRec(rec *audit.Record) {
+func (c *Context) LogAuditRec(rec *model.AuditRecord) {
 	// finish populating the context data, in case the session wasn't available during MakeAuditRecord
 	// (e.g., api4/user.go login)
 	if rec.Actor.UserId == "" {
@@ -43,7 +42,7 @@ func (c *Context) LogAuditRec(rec *audit.Record) {
 // LogAuditRecWithLevel logs an audit record using specified Level.
 // If the context is flagged with a permissions error then `level`
 // is ignored and the audit record is emitted with `LevelPerms`.
-func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
+func (c *Context) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level) {
 	if rec == nil {
 		return
 	}
@@ -59,11 +58,11 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
 }
 
 // MakeAuditRecord creates an audit record pre-populated with data from this context.
-func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Record {
-	rec := &audit.Record{
+func (c *Context) MakeAuditRecord(event string, initialStatus string) *model.AuditRecord {
+	rec := &model.AuditRecord{
 		EventName: event,
 		Status:    initialStatus,
-		Actor: audit.EventActor{
+		Actor: model.AuditEventActor{
 			UserId:        c.AppContext.Session().UserId,
 			SessionId:     c.AppContext.Session().Id,
 			Client:        c.AppContext.UserAgent(),
@@ -71,10 +70,10 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 			XForwardedFor: c.AppContext.XForwardedFor(),
 		},
 		Meta: map[string]any{
-			audit.KeyAPIPath:   c.AppContext.Path(),
-			audit.KeyClusterID: c.App.GetClusterId(),
+			model.AuditKeyAPIPath:   c.AppContext.Path(),
+			model.AuditKeyClusterID: c.App.GetClusterId(),
 		},
-		EventData: audit.EventData{
+		EventData: model.AuditEventData{
 			Parameters:  map[string]any{},
 			PriorState:  map[string]any{},
 			ResultState: map[string]any{},

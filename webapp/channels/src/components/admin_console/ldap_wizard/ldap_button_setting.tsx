@@ -97,15 +97,15 @@ const LDAPButtonSetting = (props: Props) => {
 const ldapButtonMessages = defineMessages({
     testFiltersPartialFailure: {
         id: 'admin.ldap.testFiltersPartialFailure',
-        defaultMessage: '{failedCount, number} of {totalCount, number} filter test{totalCount, plural, one {} other {s}} failed. Check the highlighted fields for details.',
+        defaultMessage: '{failedCount, number} of {totalCount, number} filter {totalCount, plural, one {test} other {tests}} failed. Check the highlighted fields for details.',
     },
     testAttributesPartialFailure: {
         id: 'admin.ldap.testAttributesPartialFailure',
-        defaultMessage: '{failedCount, number} of {totalCount, number} attribute test{totalCount, plural, one {} other {s}} failed. Check the highlighted fields for details.',
+        defaultMessage: '{failedCount, number} of {totalCount, number} attribute {totalCount, plural, one {test} other {tests}} failed. Check the highlighted fields for details.',
     },
     testGroupAttributesPartialFailure: {
         id: 'admin.ldap.testGroupAttributesPartialFailure',
-        defaultMessage: '{failedCount, number} of {totalCount, number} group attribute test{totalCount, plural, one {} other {s}} failed. Check the highlighted fields for details.',
+        defaultMessage: '{failedCount, number} of {totalCount, number} group attribute {totalCount, plural, one {test} other {tests}} failed. Check the highlighted fields for details.',
     },
 });
 
