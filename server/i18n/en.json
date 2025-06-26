@@ -2630,7 +2630,7 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all notifications are disabled in channels with more than {{.Users}} users to maintain server performance. Contact your system administrator for more information."
+    "translation": "@all notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.disabled_channel",
