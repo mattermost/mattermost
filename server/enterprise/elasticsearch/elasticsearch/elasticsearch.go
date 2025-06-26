@@ -755,6 +755,45 @@ func (es *ElasticsearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *mo
 }
 
 func (es *ElasticsearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, channels []*model.Channel, getUserIDsForChannel func(channel *model.Channel) ([]string, error), teamMemberIDs []string) *model.AppError {
+	if len(channels) == 0 {
+		return nil
+	}
+
+	es.mutex.RLock()
+	defer es.mutex.RUnlock()
+
+	if atomic.LoadInt32(&es.ready) == 0 {
+		return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
+	}
+
+	indexName := *es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels
+	metrics := es.Platform.Metrics()
+
+	for _, channel := range channels {
+		userIDs, err := getUserIDsForChannel(channel)
+		if err != nil {
+			return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		searchChannel := common.ESChannelFromChannel(channel, userIDs, teamMemberIDs)
+
+		err = es.syncBulkProcessor.IndexOp(types.IndexOperation{
+			Index_: model.NewPointer(indexName),
+			Id_:    model.NewPointer(searchChannel.Id),
+		}, searchChannel)
+		if err != nil {
+			return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if metrics != nil {
+			metrics.IncrementChannelIndexCounter()
+		}
+	}
+
+	if err := es.syncBulkProcessor.flush(); err != nil {
+		return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	return nil
 }
 
