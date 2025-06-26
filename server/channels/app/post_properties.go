@@ -23,16 +23,6 @@ func (a *App) PatchPostProperties(userId, postId string, patch model.PatchPostPr
 	// now upsert the changes in DB, then run change listeners
 	var allGroupPropertyValues []*model.PropertyValue
 	for _, groupValues := range patch {
-		//for fieldId, propertyValue := range groupValues.PropertyValueById {
-		//	value := &model.PropertyValue{
-		//		TargetID:   postId,
-		//		TargetType: model.TargetTypePost,
-		//		GroupID:    groupId,
-		//		FieldID:    fieldId,
-		//		Value:      propertyValue,
-		//	}
-		//	allGroupPropertyValues = append(allGroupPropertyValues, value)
-		//}
 		allGroupPropertyValues = append(allGroupPropertyValues, groupValues...)
 	}
 
