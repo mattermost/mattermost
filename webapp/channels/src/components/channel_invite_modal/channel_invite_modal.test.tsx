@@ -690,4 +690,31 @@ describe('components/channel_invite_modal', () => {
         // Should not call getProfilesNotInChannel after clearing the search
         expect(getProfilesNotInChannelMock).not.toHaveBeenCalled();
     });
+
+    test('should hide the invite as guest link when channel has policy_enforced', () => {
+        const channelWithPolicy = {
+            ...channel,
+            policy_enforced: true,
+        };
+
+        const props = {
+            ...baseProps,
+            channel: channelWithPolicy,
+            canInviteGuests: true,
+            emailInvitationsEnabled: true,
+        };
+
+        const wrapper = shallowWithIntl(
+            <ChannelInviteModal {...props}/>,
+        );
+
+        // Check that the invite as guest link is not shown
+        const invitationLinks = wrapper.find('InviteModalLink');
+
+        // There should be no InviteModalLink with inviteAsGuest=true
+        const guestInviteLinks = invitationLinks.findWhere(
+            (node) => node.prop('inviteAsGuest') === true,
+        );
+        expect(guestInviteLinks).toHaveLength(0);
+    });
 });

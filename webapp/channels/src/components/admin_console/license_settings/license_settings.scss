@@ -51,6 +51,12 @@
     &:empty {
         margin-bottom: 0px;
     }
+
+    .AlertBanner {
+        &:not(:last-child) {
+            margin-bottom: 20px;
+        }
+    }
 }
 
 .current-plan-legend {
