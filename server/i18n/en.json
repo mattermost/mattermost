@@ -2630,15 +2630,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@all notifications are disabled in channels with more than {{.Users}} users to maintain server performance. Contact your system administrator for more information."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@channel notifications are disabled in channels with more than {{.Users}} users to maintain server performance. Contact your system administrator for more information."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@here notifications are disabled in channels with more than {{.Users}} users to maintain server performance. Contact your system administrator for more information."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
