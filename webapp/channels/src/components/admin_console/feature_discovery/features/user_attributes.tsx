@@ -23,7 +23,7 @@ const UserAttributesFeatureDiscovery: React.FC = () => {
                 id: 'admin.user_attributes_feature_discovery.desc',
                 defaultMessage: 'Define and manage organization-specific user profile attributes as that can synchronize with your AD/LDAP or SAML identity provider.',
             })}
-            learnMoreURL='https://docs.mattermost.com/deployment/'
+            learnMoreURL='https://docs.mattermost.com/manage/admin/user-attributes.html'
             featureDiscoveryImage={
                 <GroupsSVG
                     width={294}
