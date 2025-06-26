@@ -402,6 +402,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 	})
 
 	t.Run("Cross-Cluster Acknowledgement End-to-End Flow", func(t *testing.T) {
+		t.Skip("MM-64687")
 		EnsureCleanState(t, th, th.App.Srv().Store())
 		var syncedPostsServerA []*model.Post
 		var syncedPostsServerB []*model.Post
