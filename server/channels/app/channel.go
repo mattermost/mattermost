@@ -534,7 +534,11 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	users, err := a.Srv().Store().User().GetProfileByIds(context.Background(), userIDs, nil, true)
+	// we skip cache and use master when fetching profiles to avoid
+	// issues in shared channels and HA, when users are created from a
+	// shared channels GM invite right before creating the GM
+	ctx := sqlstore.RequestContextWithMaster(c).Context()
+	users, err := a.Srv().Store().User().GetProfileByIds(ctx, userIDs, nil, false)
 	if err != nil {
 		return nil, model.NewAppError("createGroupChannel", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
