@@ -119,6 +119,9 @@ const initialState = {
             },
             pluginEnabled: true,
         },
+        general: {
+            config: {},
+        },
     },
     views: {
         rhs: {
