@@ -4,66 +4,71 @@
 package app
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/mattermost/mattermost/server/public/model"
 	"net/http"
 )
 
-type PostPropertyChangeListener func(postId, userID, groupID string, oldProperties map[string]model.PropertyValue, newProperties map[string]json.RawMessage) *model.AppError
+type PostPropertyChangeListener func(postId, userID, groupID string, oldProperties map[string]model.PropertyValue, newProperties map[string]model.PropertyValue) *model.AppError
 
 var postPropertyChangeListenerMap = map[string]PostPropertyChangeListener{
 	model.ContentFlaggingGroupName: contentFlaggingPostPropertyChangeListener,
 }
 
-func (a *App) PatchPostProperties(userId, postId string, patch model.PatchPostProperties) *model.AppError {
+func (a *App) PatchPostProperties(userId, postId string, patch model.PatchPostProperties) ([]*model.PropertyValue, *model.AppError) {
 	oldProperties, appErr := a.getPostPropertiesGrouped(postId, patch)
 	if appErr != nil {
-		return appErr
+		return nil, appErr
 	}
 
 	// now upsert the changes in DB, then run change listeners
-	var propertyValues []*model.PropertyValue
-	for groupId, groupValues := range patch {
-		for fieldId, propertyValue := range groupValues.PropertyValueById {
-			value := &model.PropertyValue{
-				TargetID:   postId,
-				TargetType: model.TargetTypePost,
-				GroupID:    groupId,
-				FieldID:    fieldId,
-				Value:      propertyValue,
-			}
-			propertyValues = append(propertyValues, value)
-		}
+	var allGroupPropertyValues []*model.PropertyValue
+	for _, groupValues := range patch {
+		//for fieldId, propertyValue := range groupValues.PropertyValueById {
+		//	value := &model.PropertyValue{
+		//		TargetID:   postId,
+		//		TargetType: model.TargetTypePost,
+		//		GroupID:    groupId,
+		//		FieldID:    fieldId,
+		//		Value:      propertyValue,
+		//	}
+		//	allGroupPropertyValues = append(allGroupPropertyValues, value)
+		//}
+		allGroupPropertyValues = append(allGroupPropertyValues, groupValues...)
 	}
 
-	updatedPropertyValues, err := a.PropertyService().UpsertPropertyValues(propertyValues)
+	updatedPropertyValues, err := a.PropertyService().UpsertPropertyValues(allGroupPropertyValues)
 	if err != nil {
-		return model.NewAppError("App.PatchPostProperties", "", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("App.PatchPostProperties", "", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	j, _ := json.Marshal(updatedPropertyValues)
-	fmt.Println(string(j))
+	groupedMappedUpdatedValues := model.GroupedPropertyValues{}
+	for _, updatedPropertyValue := range updatedPropertyValues {
+		if _, exists := groupedMappedUpdatedValues[updatedPropertyValue.GroupID]; !exists {
+			groupedMappedUpdatedValues[updatedPropertyValue.GroupID] = map[string]model.PropertyValue{}
+		}
+
+		groupedMappedUpdatedValues[updatedPropertyValue.GroupID][updatedPropertyValue.ID] = *updatedPropertyValue
+	}
 
 	// run each change listener
-	for groupId := range patch {
-		groupName := patch[groupId].Group.Name
+	for groupName := range patch {
 		changeListener, ok := postPropertyChangeListenerMap[groupName]
 		if !ok {
 			// not having a change listener for group is considered error
-			return model.NewAppError("App.PatchPostProperties", "", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("App.PatchPostProperties", "", nil, "", http.StatusBadRequest)
 		}
 
-		err := changeListener(postId, userId, groupId, oldProperties[groupId], patch[groupId].PropertyValueById)
+		groupId := patch[groupName][0].GroupID
+		err := changeListener(postId, userId, groupId, oldProperties[groupId], groupedMappedUpdatedValues[groupName])
 		if err != nil {
-			return model.NewAppError("App.PatchPostProperties", "", nil, "", err.StatusCode).Wrap(err)
+			return nil, model.NewAppError("App.PatchPostProperties", "", nil, "", err.StatusCode).Wrap(err)
 		}
 	}
 
-	return nil
+	return updatedPropertyValues, nil
 }
 
-func contentFlaggingPostPropertyChangeListener(postId, userID, groupID string, oldProperties map[string]model.PropertyValue, newProperties map[string]json.RawMessage) *model.AppError {
+func contentFlaggingPostPropertyChangeListener(postId, userID, groupID string, oldProperties map[string]model.PropertyValue, newProperties map[string]model.PropertyValue) *model.AppError {
 	// no-op
 	return nil
 }

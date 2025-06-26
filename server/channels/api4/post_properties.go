@@ -6,10 +6,11 @@ package api4
 import (
 	"encoding/json"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"net/http"
 )
 
-type PatchPostPropertyGroupPermissionHandler func(postID, userID, groupName string, propertiesByGroup map[string]json.RawMessage) (map[string]json.RawMessage, *model.AppError)
+type PatchPostPropertyGroupPermissionHandler func(postID, userID, groupName string, properties []*model.PropertyValue) ([]*model.PropertyValue, *model.AppError)
 
 var patchPermissionHandlerMap = map[string]PatchPostPropertyGroupPermissionHandler{
 	model.ContentFlaggingGroupName: contentReviewGroupPermissionCheckHandler,
@@ -45,8 +46,21 @@ func patchPostProperties(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.PatchPostProperties(c.AppContext.Session().UserId, postId, patch)
+	updatedPropertyValues, appErr := c.App.PatchPostProperties(c.AppContext.Session().UserId, postId, patch)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
+	response, err := json.Marshal(updatedPropertyValues)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(response); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func toPostPropertiesPatch(c *Context, postId string, rawPatch map[string]json.RawMessage) (model.PatchPostProperties, *model.AppError) {
@@ -74,48 +88,57 @@ func toPostPropertiesPatch(c *Context, postId string, rawPatch map[string]json.R
 		}
 
 		if _, ok := patchByGroupId[field.GroupID]; !ok {
-			patchByGroupId[field.GroupID] = &model.Foo{
-				PropertyValueById: make(map[string]json.RawMessage),
-			}
+			patchByGroupId[field.GroupID] = []*model.PropertyValue{}
 		}
 
-		patchByGroupId[field.GroupID].PropertyValueById[field.ID] = value
+		//patchByGroupId[field.GroupID].PropertyValueById[field.ID] = value
+		newPropertyValue := &model.PropertyValue{
+			TargetID:   postId,
+			TargetType: model.TargetTypePost,
+			GroupID:    field.GroupID,
+			FieldID:    fieldID,
+			Value:      value,
+		}
+
+		patchByGroupId[field.GroupID] = append(patchByGroupId[field.GroupID], newPropertyValue)
 	}
 
+	patchByGroupName := model.PatchPostProperties{}
 	for groupID := range patchByGroupId {
 		group, err := c.App.PropertyService().GetPropertyGroupById(groupID)
 		if err != nil {
 			return nil, model.NewAppError("toPostPropertiesPatch", "api.post_properties.to_post_properties_patch.app_error", map[string]any{"GroupId": groupID}, "", http.StatusInternalServerError)
 		}
 
-		patchByGroupId[groupID].Group = group
+		patchByGroupName[group.Name] = patchByGroupId[groupID]
 	}
 
-	return patchByGroupId, nil
+	return patchByGroupName, nil
 }
 
 func patchPostPropertiesPermissionCheck(postID, userID string, patch model.PatchPostProperties) (model.PatchPostProperties, *model.AppError) {
-	for groupId, foo := range patch {
-		properties := foo.PropertyValueById
-		groupName := patch[groupId].Group.Name
+	for groupName, groupProperties := range patch {
+		//properties := foo.PropertyValueById
+		//groupName := patch[groupId].Group.Name
 
-		groupPermissionFunc, ok := patchPermissionHandlerMap[patch[groupId].Group.Name]
+		groupPermissionFunc, ok := patchPermissionHandlerMap[groupName]
 		if !ok {
 			return nil, model.NewAppError("patchPostPropertiesPermissionCheck", "api.post_properties.permission_check.unknown_group_specified", nil, "", http.StatusBadRequest)
 		}
 
-		updatedProperties, appErr := groupPermissionFunc(postID, userID, groupName, properties)
+		updatedProperties, appErr := groupPermissionFunc(postID, userID, groupName, groupProperties)
 		if appErr != nil {
 			return nil, model.NewAppError("patchPostPropertiesPermissionCheck", "api.post_properties.permission_check.permission_error", nil, "", appErr.StatusCode).Wrap(appErr)
 		}
 
-		patch[groupId].PropertyValueById = updatedProperties
+		//patch[groupId].PropertyValueById = updatedProperties
+		patch[groupName] = updatedProperties
 	}
 
 	return patch, nil
 }
 
-func contentReviewGroupPermissionCheckHandler(postID, userID, groupID string, propertiesByGroup map[string]json.RawMessage) (map[string]json.RawMessage, *model.AppError) {
+func contentReviewGroupPermissionCheckHandler(postID, userID, groupID string, propertiesByGroup []*model.PropertyValue) ([]*model.PropertyValue, *model.AppError) {
 	// temporary no-op implementation. Actual implementation to be added later
 	return propertiesByGroup, nil
 }
