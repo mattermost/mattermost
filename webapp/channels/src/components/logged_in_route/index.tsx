@@ -8,7 +8,7 @@ import {Route} from 'react-router-dom';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {makeAsyncComponent} from 'components/async_load';
-import CloudPreviewModal from 'components/cloud_preview_modal';
+import CloudPreviewModalController from 'components/cloud_preview_modal/cloud_preview_modal_controller';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import LoggedIn from 'components/logged_in';
 
@@ -31,7 +31,7 @@ export default function LoggedInRoute(props: Props) {
                     {theme && (
                         <CompassThemeProvider theme={theme}>
                             <OnBoardingTaskList/>
-                            <CloudPreviewModal/>
+                            <CloudPreviewModalController/>
                         </CompassThemeProvider>
                     )}
                     <Component {...(routeProps)}/>
