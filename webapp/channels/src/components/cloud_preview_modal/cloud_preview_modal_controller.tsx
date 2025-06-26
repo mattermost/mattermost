@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, lazy} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -11,16 +11,20 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {makeAsyncComponent} from 'components/async_load';
 import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
-import {modalContent} from './preview_modal_content_data';
-import PreviewModalController from './preview_modal_content_controller';
-
 import './cloud_preview_modal.scss';
 
 const CLOUD_PREVIEW_MODAL_SHOWN_PREF = 'cloud_preview_modal_shown';
+
+// Lazy load the controller component and content data together
+const PreviewModalController = makeAsyncComponent(
+    'PreviewModalController',
+    lazy(() => import('./preview_modal_content_controller')),
+);
 
 const CloudPreviewModal: React.FC = () => {
     const intl = useIntl();
@@ -67,6 +71,8 @@ const CloudPreviewModal: React.FC = () => {
     };
 
     const handleOpenModal = () => {
+        setShowModal(true);
+
         // Reset preference to show modal again
         if (currentUserId) {
             const preference = {
@@ -79,6 +85,7 @@ const CloudPreviewModal: React.FC = () => {
         }
     };
 
+    // Early return if not cloud or not cloud preview - don't load anything else
     if (!isCloud || !isCloudPreview) {
         return null;
     }
@@ -91,7 +98,6 @@ const CloudPreviewModal: React.FC = () => {
             <PreviewModalController
                 show={showModal}
                 onClose={handleClose}
-                contentData={modalContent.filter((content) => content.useCase === 'missionops')}
             />
             {shouldShowFAB && (
                 <div

@@ -8,6 +8,7 @@ import {ArrowLeftIcon, ArrowRightIcon} from '@mattermost/compass-icons/component
 import {GenericModal} from '@mattermost/components';
 
 import PreviewModalContent from './preview_modal_content';
+import {modalContent} from './preview_modal_content_data';
 import type {PreviewModalContentData} from './preview_modal_content_data';
 
 import './preview_modal_controller.scss';
@@ -15,29 +16,33 @@ import './preview_modal_controller.scss';
 interface Props {
     show: boolean;
     onClose: () => void;
-    contentData: PreviewModalContentData[];
+    contentData?: PreviewModalContentData[];
 }
 
 const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) => {
     const intl = useIntl();
     const [currentIndex, setCurrentIndex] = useState(0);
 
+    // Use provided contentData or default to filtered modalContent
+    // TODO: Remove hard coded filter on missionops in favour of dynamic based on selected use case
+    const activeContentData = contentData || modalContent.filter((content) => content.useCase === 'missionops');
+
     const handlePrevious = useCallback(() => {
         setCurrentIndex((prev) => Math.max(0, prev - 1));
     }, []);
 
     const handleNext = useCallback(() => {
-        setCurrentIndex((prev) => Math.min(contentData.length - 1, prev + 1));
-    }, [contentData.length]);
+        setCurrentIndex((prev) => Math.min(activeContentData.length - 1, prev + 1));
+    }, [activeContentData.length]);
 
     const handleSkip = useCallback(() => {
         onClose();
     }, [onClose]);
 
     const isFirstSlide = currentIndex === 0;
-    const isLastSlide = currentIndex === contentData.length - 1;
+    const isLastSlide = currentIndex === activeContentData.length - 1;
 
-    if (contentData.length === 0) {
+    if (activeContentData.length === 0) {
         return null;
     }
 
@@ -49,7 +54,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                     className='preview-modal-controller__pagination-dots'
                     data-testid='pagination-dots'
                 >
-                    {contentData.map((_, index) => (
+                    {activeContentData.map((_, index) => (
                         <div
                             key={`dot-${index}`}
                             className={`preview-modal-controller__dot ${index === currentIndex ? 'preview-modal-controller__dot--active' : ''}`}
@@ -57,7 +62,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                     ))}
                 </div>
                 <span className='preview-modal-controller__page-counter'>
-                    {currentIndex + 1}{'/'}{contentData.length}
+                    {currentIndex + 1}{'/'}{activeContentData.length}
                 </span>
             </div>
 
@@ -126,7 +131,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
             footerContent={footerContent}
             className='preview-modal-controller'
         >
-            <PreviewModalContent content={contentData[currentIndex]}/>
+            <PreviewModalContent content={activeContentData[currentIndex]}/>
         </GenericModal>
     );
 };

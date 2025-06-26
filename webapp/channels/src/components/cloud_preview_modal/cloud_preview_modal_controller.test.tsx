@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
+import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
@@ -11,14 +11,24 @@ import {renderWithContext} from 'tests/react_testing_utils';
 
 import CloudPreviewModal from './cloud_preview_modal_controller';
 
-// Mock the PreviewModalController to avoid complex modal testing
-jest.mock('./preview_modal_controller', () => ({
-    __esModule: true,
-    default: ({show, onClose}: {show: boolean; onClose: () => void}) => (show ? (
-        <div data-testid='preview-modal-controller'>
-            <button onClick={onClose}>{'Close'}</button>
-        </div>
-    ) : null),
+// Mock the async_load module to return components synchronously
+jest.mock('components/async_load', () => ({
+    makeAsyncComponent: (displayName: string) => {
+        // Return a component that renders immediately without suspense
+        const Component = (props: any) => {
+            // Mock the preview modal controller
+            if (displayName === 'PreviewModalController') {
+                return props.show ? (
+                    <div data-testid='preview-modal-controller'>
+                        <button onClick={props.onClose}>{'Close'}</button>
+                    </div>
+                ) : null;
+            }
+            return null;
+        };
+        Component.displayName = displayName;
+        return Component;
+    },
 }));
 
 // Mock WithTooltip to avoid complex tooltip testing
@@ -178,7 +188,7 @@ describe('CloudPreviewModal', () => {
         expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
     });
 
-    it('should save preference when modal is closed', () => {
+    it('should save preference when modal is closed', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
@@ -186,6 +196,11 @@ describe('CloudPreviewModal', () => {
             <CloudPreviewModal/>,
             initialState,
         );
+
+        // Wait for modal to appear
+        await waitFor(() => {
+            expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
+        });
 
         // Click close button
         const closeButton = screen.getByText('Close');
