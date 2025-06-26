@@ -37,13 +37,11 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
     >
       <div>
         <h4>
-          <YouTubePrefix>
-            <span
-              className="video-type"
-            >
-              YouTube - 
-            </span>
-          </YouTubePrefix>
+          <span
+            className="video-type"
+          >
+            YouTube - 
+          </span>
           <span
             className="video-title"
           >
@@ -123,7 +121,11 @@ exports[`YoutubeVideo should match snapshot for playing state 1`] = `
 >
   <div>
     <h4>
-      <YouTubePrefix />
+      <span
+        className="video-type"
+      >
+        YouTube - 
+      </span>
       <span
         className="video-title"
       >
@@ -163,7 +165,11 @@ exports[`YoutubeVideo should match snapshot for playing state and \`youtubeRefer
 >
   <div>
     <h4>
-      <YouTubePrefix />
+      <span
+        className="video-type"
+      >
+        YouTube - 
+      </span>
       <span
         className="video-title"
       >
