@@ -183,13 +183,24 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 	cps, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 		Type:     model.AccessControlPolicyTypeChannel,
 		ParentID: policyID,
+		Limit:    len(channelIDs),
 	})
 	if err != nil {
 		return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	for _, cp := range cps {
-		appErr := acs.DeletePolicy(rctx, cp.ID)
+	childPolicies := make(map[string]bool)
+	for _, p := range cps {
+		childPolicies[p.ID] = true
+	}
+
+	for _, channelID := range channelIDs {
+		if _, ok := childPolicies[channelID]; !ok {
+			mlog.Warn("Policy is not assigned to the parent policy", mlog.String("channel_id", channelID), mlog.String("parent_policy_id", policyID))
+			continue
+		}
+
+		appErr := acs.DeletePolicy(rctx, channelID)
 		if appErr != nil {
 			return appErr
 		}
