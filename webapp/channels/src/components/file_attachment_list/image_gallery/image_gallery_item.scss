@@ -18,16 +18,28 @@
     // Ensure smooth transitions when grid spans change
     transition: grid-column 0.15s ease-in-out;
 
-    // Keyboard focus styles for accessibility
-    &:focus {
+    // Keyboard focus styles for accessibility - only show for keyboard navigation
+    &:focus:not(:focus-visible) {
+        // Hide focus styles when focus is programmatic (e.g., returning from modal)
+        outline: none;
+    }
+
+    &:focus-visible {
+        // Show focus styles only for genuine keyboard navigation
         outline: 2px solid var(--button-bg);
         outline-offset: 2px;
         z-index: 1;
     }
 
     // Enhanced focus indicator when actively focused via keyboard navigation
+    // Hide the outline when using enhanced focus to avoid double borders
     &--focused {
+        &:focus-visible {
+            outline: none;
+        }
+
         .file__image .image-container {
+            // Only show enhanced focus when using keyboard navigation
             box-shadow: 0 0 0 2px var(--button-bg);
             border-color: var(--button-bg);
         }

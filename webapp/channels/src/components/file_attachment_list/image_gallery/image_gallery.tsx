@@ -109,6 +109,7 @@ const ImageGallery = (props: Props) => {
     const [containerWidth, setContainerWidth] = useState(0);
     const [ariaLiveMessage, setAriaLiveMessage] = useState('');
     const [focusedItemIndex, setFocusedItemIndex] = useState<number>(-1);
+    const [isKeyboardNavigation, setIsKeyboardNavigation] = useState<boolean>(false);
     const imageCountId = 'image-gallery-count';
     const galleryBodyId = `image-gallery-body-${postId}`;
     const galleryDescriptionId = `image-gallery-description-${postId}`;
@@ -235,7 +236,7 @@ const ImageGallery = (props: Props) => {
     }, []);
 
     // Keyboard navigation and focus management
-    const focusImageItem = useCallback((index: number) => {
+    const focusImageItem = useCallback((index: number, fromKeyboard = false) => {
         const galleryContent = galleryRef.current?.querySelector('.image-gallery__content');
         const items = galleryContent?.querySelectorAll('[role="listitem"]');
         const targetItem = items?.[index] as HTMLElement;
@@ -244,22 +245,30 @@ const ImageGallery = (props: Props) => {
             targetItem.focus();
             setFocusedItemIndex(index);
 
-            // Announce to screen readers
-            const fileInfo = fileInfos[index];
-            if (fileInfo) {
-                setAriaLiveMessage(
-                    formatMessage(
-                        {
-                            id: 'image_gallery.focus_image',
-                            defaultMessage: 'Focused on image {current} of {total}: {filename}',
-                        },
-                        {
-                            current: index + 1,
-                            total: fileInfos.length,
-                            filename: fileInfo.name || 'Image',
-                        },
-                    ),
-                );
+            // Only set keyboard navigation flag for actual keyboard navigation
+            if (fromKeyboard) {
+                setIsKeyboardNavigation(true);
+
+                // Announce to screen readers only during keyboard navigation
+                const fileInfo = fileInfos[index];
+                if (fileInfo) {
+                    setAriaLiveMessage(
+                        formatMessage(
+                            {
+                                id: 'image_gallery.focus_image',
+                                defaultMessage: 'Focused on image {current} of {total}: {filename}',
+                            },
+                            {
+                                current: index + 1,
+                                total: fileInfos.length,
+                                filename: fileInfo.name || 'Image',
+                            },
+                        ),
+                    );
+                }
+            } else {
+                // Programmatic focus (e.g., from modal return) - don't show enhanced focus
+                setIsKeyboardNavigation(false);
             }
         }
     }, [fileInfos, formatMessage]);
@@ -295,7 +304,7 @@ const ImageGallery = (props: Props) => {
             return;
         }
 
-        focusImageItem(newIndex);
+        focusImageItem(newIndex, true);
     }, [isCollapsed, focusedItemIndex, fileInfos.length, focusImageItem]);
 
     const toggleGallery = useCallback(() => {
@@ -324,10 +333,10 @@ const ImageGallery = (props: Props) => {
                     }
                 }, 100);
             } else {
-                // When expanding, focus first image after a short delay
+                // When expanding, focus first image after a short delay (programmatic focus)
                 setTimeout(() => {
                     if (isMountedRef.current && fileInfos.length > 0) {
-                        focusImageItem(0);
+                        focusImageItem(0, false); // false = not from keyboard
                     }
                 }, 100);
             }
@@ -448,8 +457,9 @@ const ImageGallery = (props: Props) => {
                                 itemStyle={itemStyle}
                                 index={idx}
                                 totalImages={fileInfos.length}
-                                isFocused={focusedItemIndex === idx}
+                                isFocused={focusedItemIndex === idx && isKeyboardNavigation}
                                 onFocus={() => setFocusedItemIndex(idx)}
+                                onMouseDown={() => setIsKeyboardNavigation(false)}
                             />
                         );
                     })}

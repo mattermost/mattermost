@@ -23,6 +23,7 @@ type Props = {
     totalImages: number;
     isFocused?: boolean;
     onFocus?: () => void;
+    onMouseDown?: () => void;
 };
 
 const ImageGalleryItem = ({
@@ -36,6 +37,7 @@ const ImageGalleryItem = ({
     totalImages,
     isFocused,
     onFocus,
+    onMouseDown,
 }: Props) => {
     const handleClick = () => {
         const startIndex = allFilesForPost?.findIndex((f) => f.id === fileInfo.id) ?? -1;
@@ -72,6 +74,7 @@ const ImageGalleryItem = ({
             aria-current={isFocused ? 'true' : undefined}
             onKeyDown={handleKeyDown}
             onFocus={handleFocus}
+            onMouseDown={onMouseDown}
         >
             <SingleImageView
                 fileInfo={fileInfo}
