@@ -402,8 +402,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                     return AppFieldTypes.DYNAMIC_SELECT;
                 }
                 return AppFieldTypes.STATIC_SELECT;
-            case 'dynamic_select':
-                return AppFieldTypes.DYNAMIC_SELECT;
             case 'bool':
                 return AppFieldTypes.BOOL;
             case 'radio':
@@ -547,6 +545,12 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         // Add options for select and radio fields
         if (element.type === 'select' || element.type === 'radio') {
             appField.options = getOptions();
+
+            if (element.type === 'select' && element.data_source === 'dynamic') {
+                appField.lookup = {
+                    path: element.data_source_url || '',
+                };
+            }
         }
 
         return appField;
