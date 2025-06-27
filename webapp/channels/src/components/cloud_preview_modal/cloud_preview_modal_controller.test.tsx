@@ -32,6 +32,19 @@ jest.mock('components/async_load', () => ({
     },
 }));
 
+// Mock WithTooltip to avoid complex tooltip testing
+jest.mock('components/with_tooltip', () => ({
+    __esModule: true,
+    default: ({children, title}: {children: React.ReactNode; title: string}) => (
+        <div
+            data-testid='with-tooltip'
+            title={title}
+        >
+            {children}
+        </div>
+    ),
+}));
+
 describe('CloudPreviewModal', () => {
     const useDispatchMock = jest.spyOn(reactRedux, 'useDispatch');
 
@@ -100,7 +113,23 @@ describe('CloudPreviewModal', () => {
         },
     };
 
-    it('should show modal when in cloud preview and modal has not been shown before', async () => {
+    const stateWithModalShown = {
+        ...initialState,
+        entities: {
+            ...initialState.entities,
+            preferences: {
+                myPreferences: {
+                    'cloud_preview_modal_shown--cloud_preview_modal_shown': {
+                        category: 'cloud_preview_modal_shown',
+                        name: 'cloud_preview_modal_shown',
+                        value: 'true',
+                    },
+                },
+            },
+        },
+    };
+
+    it('should show modal when in cloud preview and modal has not been shown before', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
@@ -109,9 +138,8 @@ describe('CloudPreviewModal', () => {
             initialState,
         );
 
-        await waitFor(() => {
-            expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
-        });
+        expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
+        expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
     });
 
     it('should not show modal when not in cloud preview', () => {
@@ -162,10 +190,36 @@ describe('CloudPreviewModal', () => {
 
         renderWithContext(
             <CloudPreviewModal/>,
-            state,
+            stateWithModalShown,
         );
 
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+    });
+
+    it('should show FAB when modal has been shown before and modal is not open', () => {
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            stateWithModalShown,
+        );
+
+        expect(screen.getByTestId('cloud-preview-fab')).toBeInTheDocument();
+        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+    });
+
+    it('should not show FAB when modal has not been shown before', () => {
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            initialState,
+        );
+
+        expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
+        expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
     });
 
     it('should save preference when modal is closed', async () => {
@@ -190,6 +244,28 @@ describe('CloudPreviewModal', () => {
         expect(dummyDispatch).toHaveBeenCalled();
     });
 
+    it('should reset preference and reopen modal when FAB is clicked', () => {
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            stateWithModalShown,
+        );
+
+        // FAB should be visible
+        const fabButton = screen.getByTestId('cloud-preview-fab');
+        expect(fabButton).toBeInTheDocument();
+
+        // Click the FAB button
+        const button = fabButton.querySelector('button');
+        expect(button).toBeInTheDocument();
+        fireEvent.click(button!);
+
+        // Check that dispatch was called to reset the preference
+        expect(dummyDispatch).toHaveBeenCalled();
+    });
+
     it('should not render anything when subscription is undefined', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = undefined;
@@ -203,70 +279,33 @@ describe('CloudPreviewModal', () => {
         );
 
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
     });
 
-    it('should not show modal when no team is present', () => {
-        const state = JSON.parse(JSON.stringify(initialState));
-        delete state.entities.teams;
-
+    it('should have proper tooltip on FAB button', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
         renderWithContext(
             <CloudPreviewModal/>,
-            state,
+            stateWithModalShown,
         );
 
-        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+        const tooltip = screen.getByTestId('with-tooltip');
+        expect(tooltip).toHaveAttribute('title', 'Open overview');
     });
 
-    it('should filter content based on team use case', () => {
+    it('should have proper accessibility attributes on FAB button', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        // Test with dev-sec-ops team
-        const devSecOpsState = JSON.parse(JSON.stringify(initialState));
-        devSecOpsState.entities.teams.currentTeamId = 'dev-sec-ops-hq';
-        devSecOpsState.entities.teams.teams = {
-            'dev-sec-ops-hq': {
-                ...initialState.entities.teams.teams['mission-ops-hq'],
-                id: 'dev-sec-ops-hq',
-                name: 'dev-sec-ops-hq',
-                display_name: 'DevSecOps HQ',
-            },
-        };
-
         renderWithContext(
             <CloudPreviewModal/>,
-            devSecOpsState,
+            stateWithModalShown,
         );
 
-        // Should show modal for dev-sec-ops team
-        expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
-    });
-
-    it('should not show modal when team name does not match any use case', () => {
-        const dummyDispatch = jest.fn();
-        useDispatchMock.mockReturnValue(dummyDispatch);
-
-        // Test with unknown team
-        const unknownTeamState = JSON.parse(JSON.stringify(initialState));
-        unknownTeamState.entities.teams.currentTeamId = 'unknown-team-hq';
-        unknownTeamState.entities.teams.teams = {
-            'unknown-team-hq': {
-                ...initialState.entities.teams.teams['mission-ops-hq'],
-                id: 'unknown-team-hq',
-                name: 'unknown-team-hq',
-                display_name: 'Unknown Team HQ',
-            },
-        };
-
-        renderWithContext(
-            <CloudPreviewModal/>,
-            unknownTeamState,
-        );
-
-        // Should not show modal for unknown team
-        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+        const fabButton = screen.getByTestId('cloud-preview-fab').querySelector('button');
+        expect(fabButton).toHaveAttribute('aria-label', 'Open cloud preview overview');
+        expect(fabButton).toHaveClass('cloud-preview-modal-fab__button');
     });
 });

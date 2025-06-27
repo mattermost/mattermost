@@ -3770,6 +3770,8 @@
   "cloud_preview_modal.devsecops.zero_trust.subtitle": "Define granular access to content using attribute-based policies, and display classification banners and labels to guide user behavior. Limit exposure based on role, clearance level, or operational context.",
   "cloud_preview_modal.devsecops.zero_trust.title": "Enforce Zero Trust collaboration",
   "cloud_preview_modal.done": "Finish",
+  "cloud_preview_modal.fab.aria_label": "Open cloud preview overview",
+  "cloud_preview_modal.fab.tooltip": "Open overview",
   "cloud_preview_modal.missionops.ai.sku_label": "ENTERPRISE",
   "cloud_preview_modal.missionops.ai.subtitle": "Supercharge collaboration with Agents. Instantly summarize calls, surface action items, and find answers fast—all using the model you trust.",
   "cloud_preview_modal.missionops.ai.title": "Bring your own AI model with Mattermost Agents",

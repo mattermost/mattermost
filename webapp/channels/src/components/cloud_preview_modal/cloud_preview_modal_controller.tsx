@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, lazy} from 'react';
+import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -12,11 +13,14 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {makeAsyncComponent} from 'components/async_load';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
 import type {PreviewModalContentData} from './preview_modal_content_data';
 import {modalContent} from './preview_modal_content_data';
+
+import './cloud_preview_modal.scss';
 
 const CLOUD_PREVIEW_MODAL_SHOWN_PREF = 'cloud_preview_modal_shown';
 
@@ -27,6 +31,7 @@ const PreviewModalController = makeAsyncComponent(
 );
 
 const CloudPreviewModal: React.FC = () => {
+    const intl = useIntl();
     const dispatch = useDispatch();
     const subscription = useSelector(getCloudSubscription);
     const license = useSelector(getLicense);
@@ -74,20 +79,64 @@ const CloudPreviewModal: React.FC = () => {
         }
     };
 
+    const handleOpenModal = () => {
+        setShowModal(true);
+
+        // Reset preference to show modal again
+        if (currentUserId) {
+            const preference = {
+                user_id: currentUserId,
+                category: CLOUD_PREVIEW_MODAL_SHOWN_PREF,
+                name: CLOUD_PREVIEW_MODAL_SHOWN_PREF,
+                value: 'false',
+            };
+            dispatch(savePreferences(currentUserId, [preference]));
+        }
+    };
+
     // Early return if not cloud or not cloud preview - don't load anything else
     if (!isCloud || !isCloudPreview) {
         return null;
     }
 
+    // Show FAB only if modal has been shown before and modal is not currently open
+    const shouldShowFAB = hasModalBeenShown && !showModal;
+
     // Only render the controller if we pass the license checks
     const contentData = team?.name ? filteredContentByUseCase(modalContent) : [];
 
     return (
-        <PreviewModalController
-            show={showModal}
-            onClose={handleClose}
-            contentData={contentData}
-        />
+        <>
+            <PreviewModalController
+                show={showModal}
+                onClose={handleClose}
+                contentData={contentData}
+            />
+            {shouldShowFAB && (
+                <div
+                    className='cloud-preview-modal-fab'
+                    data-testid='cloud-preview-fab'
+                >
+                    <WithTooltip
+                        title={intl.formatMessage({
+                            id: 'cloud_preview_modal.fab.tooltip',
+                            defaultMessage: 'Open overview',
+                        })}
+                    >
+                        <button
+                            className='cloud-preview-modal-fab__button'
+                            onClick={handleOpenModal}
+                            aria-label={intl.formatMessage({
+                                id: 'cloud_preview_modal.fab.aria_label',
+                                defaultMessage: 'Open cloud preview overview',
+                            })}
+                        >
+                            <i className='icon icon-play-box-multiple-outline'/>
+                        </button>
+                    </WithTooltip>
+                </div>
+            )}
+        </>
     );
 };
 
