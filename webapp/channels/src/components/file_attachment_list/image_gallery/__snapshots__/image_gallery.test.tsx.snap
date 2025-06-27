@@ -128,7 +128,6 @@ exports[`ImageGallery matches snapshot 1`] = `
                         <img
                           aria-label="file thumbnail image1.png"
                           class=" single-image-view__image small-image--inside-container"
-                          dimensions="[object Object]"
                           src="/api/v4/files/img1/preview"
                           style="object-fit: cover;"
                           tabindex="0"
@@ -229,7 +228,6 @@ exports[`ImageGallery matches snapshot 1`] = `
                         <img
                           aria-label="file thumbnail image2.jpg"
                           class=" single-image-view__image small-image--inside-container"
-                          dimensions="[object Object]"
                           src="/api/v4/files/img2/preview"
                           style="object-fit: cover;"
                           tabindex="0"

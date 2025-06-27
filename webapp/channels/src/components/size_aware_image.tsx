@@ -222,6 +222,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         // Remove props that shouldn't be passed to the img element
         /* eslint-disable @typescript-eslint/no-unused-vars */
         const {
+            dimensions,
             hideUtilities,
             getFilePublicLink,
             smallImageThreshold,
