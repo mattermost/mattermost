@@ -38,200 +38,204 @@ exports[`ImageGallery matches snapshot 1`] = `
       role="list"
     >
       <div
-        aria-label="Image 1 of 2"
-        class="image-gallery__item image-gallery__item--small"
-        role="listitem"
-        tabindex="0"
+        class="image-gallery__content"
       >
         <div
-          class="file-view--single"
+          aria-label="Image 1 of 2"
+          class="image-gallery__item image-gallery__item--small"
+          role="listitem"
+          tabindex="0"
         >
           <div
-            class="file__image"
+            class="file-view--single"
           >
             <div
-              class="image-header image-header--expanded"
-            >
-              <button
-                aria-label="Toggle Embed Visibility"
-                class="style--none single-image-view__toggle"
-                data-expanded="true"
-              >
-                <svg
-                  fill="currentColor"
-                  height="16"
-                  version="1.1"
-                  viewBox="0 0 24 24"
-                  width="16"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M7,10L12,15L17,10H7Z"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div
-              class="image-container"
-              data-expanded="true"
-              style="min-width: 50px; min-height: 50px;"
+              class="file__image"
             >
               <div
-                class="image-loaded"
+                class="image-header image-header--expanded"
+              >
+                <button
+                  aria-label="Toggle Embed Visibility"
+                  class="style--none single-image-view__toggle"
+                  data-expanded="true"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,10L12,15L17,10H7Z"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div
+                class="image-container"
+                data-expanded="true"
+                style="min-width: 50px; min-height: 50px;"
               >
                 <div
-                  class="image-loading__container  single-image-view__image"
-                  style="width: 100px; height: 100px; min-width: 50px; min-height: 50px;"
+                  class="image-loaded"
                 >
                   <div
-                    style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+                    class="image-loading__container  single-image-view__image"
+                    style="width: 100px; height: 100px; min-width: 50px; min-height: 50px;"
                   >
                     <div
-                      class="file__image-loading"
+                      style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
                     >
-                      <span
-                        class="LoadingSpinner"
-                        data-testid="loadingSpinner"
-                        id="loadingSpinner"
+                      <div
+                        class="file__image-loading"
                       >
                         <span
-                          class="fa fa-spinner fa-fw fa-pulse spinner"
-                          title="Loading Icon"
+                          class="LoadingSpinner"
+                          data-testid="loadingSpinner"
+                          id="loadingSpinner"
+                        >
+                          <span
+                            class="fa fa-spinner fa-fw fa-pulse spinner"
+                            title="Loading Icon"
+                          />
+                        </span>
+                        <span
+                          class="loader-percent"
                         />
-                      </span>
-                      <span
-                        class="loader-percent"
-                      />
+                      </div>
                     </div>
+                    <svg
+                      style="max-height: 100px; max-width: 100px; vertical-align: middle;"
+                      viewBox="0 0 100 100"
+                      xmlns="http://www.w3.org/2000/svg"
+                    />
                   </div>
-                  <svg
-                    style="max-height: 100px; max-width: 100px; vertical-align: middle;"
-                    viewBox="0 0 100 100"
-                    xmlns="http://www.w3.org/2000/svg"
-                  />
-                </div>
-                <div
-                  class="file-preview__button"
-                  style="display: none;"
-                >
                   <div
-                    class="small-image__container"
-                    style="min-width: 50px; min-height: 50px; display: flex; align-items: center; justify-content: center; max-width: 100%; max-height: 350px;"
+                    class="file-preview__button"
+                    style="display: none;"
                   >
-                    <figure
-                      class="image-loaded-container"
-                      style="margin: 0px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"
+                    <div
+                      class="small-image__container"
+                      style="min-width: 50px; min-height: 50px; display: flex; align-items: center; justify-content: center; max-width: 100%; max-height: 350px;"
                     >
-                      <img
-                        aria-label="file thumbnail image1.png"
-                        class=" single-image-view__image small-image--inside-container"
-                        dimensions="[object Object]"
-                        src="/api/v4/files/img1/preview"
-                        style="object-fit: cover;"
-                        tabindex="0"
-                      />
-                    </figure>
+                      <figure
+                        class="image-loaded-container"
+                        style="margin: 0px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"
+                      >
+                        <img
+                          aria-label="file thumbnail image1.png"
+                          class=" single-image-view__image small-image--inside-container"
+                          dimensions="[object Object]"
+                          src="/api/v4/files/img1/preview"
+                          style="object-fit: cover;"
+                          tabindex="0"
+                        />
+                      </figure>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div
-        aria-label="Image 2 of 2"
-        class="image-gallery__item image-gallery__item--small"
-        role="listitem"
-        tabindex="0"
-      >
         <div
-          class="file-view--single"
+          aria-label="Image 2 of 2"
+          class="image-gallery__item image-gallery__item--small"
+          role="listitem"
+          tabindex="0"
         >
           <div
-            class="file__image"
+            class="file-view--single"
           >
             <div
-              class="image-header image-header--expanded"
-            >
-              <button
-                aria-label="Toggle Embed Visibility"
-                class="style--none single-image-view__toggle"
-                data-expanded="true"
-              >
-                <svg
-                  fill="currentColor"
-                  height="16"
-                  version="1.1"
-                  viewBox="0 0 24 24"
-                  width="16"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M7,10L12,15L17,10H7Z"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div
-              class="image-container"
-              data-expanded="true"
-              style="min-width: 50px; min-height: 50px;"
+              class="file__image"
             >
               <div
-                class="image-loaded"
+                class="image-header image-header--expanded"
+              >
+                <button
+                  aria-label="Toggle Embed Visibility"
+                  class="style--none single-image-view__toggle"
+                  data-expanded="true"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,10L12,15L17,10H7Z"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div
+                class="image-container"
+                data-expanded="true"
+                style="min-width: 50px; min-height: 50px;"
               >
                 <div
-                  class="image-loading__container  single-image-view__image"
-                  style="width: 300px; height: 200px; min-width: 50px; min-height: 50px;"
+                  class="image-loaded"
                 >
                   <div
-                    style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+                    class="image-loading__container  single-image-view__image"
+                    style="width: 300px; height: 200px; min-width: 50px; min-height: 50px;"
                   >
                     <div
-                      class="file__image-loading"
+                      style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
                     >
-                      <span
-                        class="LoadingSpinner"
-                        data-testid="loadingSpinner"
-                        id="loadingSpinner"
+                      <div
+                        class="file__image-loading"
                       >
                         <span
-                          class="fa fa-spinner fa-fw fa-pulse spinner"
-                          title="Loading Icon"
+                          class="LoadingSpinner"
+                          data-testid="loadingSpinner"
+                          id="loadingSpinner"
+                        >
+                          <span
+                            class="fa fa-spinner fa-fw fa-pulse spinner"
+                            title="Loading Icon"
+                          />
+                        </span>
+                        <span
+                          class="loader-percent"
                         />
-                      </span>
-                      <span
-                        class="loader-percent"
-                      />
+                      </div>
                     </div>
+                    <svg
+                      style="max-height: 200px; max-width: 300px; vertical-align: middle;"
+                      viewBox="0 0 300 200"
+                      xmlns="http://www.w3.org/2000/svg"
+                    />
                   </div>
-                  <svg
-                    style="max-height: 200px; max-width: 300px; vertical-align: middle;"
-                    viewBox="0 0 300 200"
-                    xmlns="http://www.w3.org/2000/svg"
-                  />
-                </div>
-                <div
-                  class="file-preview__button"
-                  style="display: none;"
-                >
                   <div
-                    class="small-image__container"
-                    style="min-width: 50px; min-height: 50px; display: flex; align-items: center; justify-content: center; max-width: 100%; max-height: 350px;"
+                    class="file-preview__button"
+                    style="display: none;"
                   >
-                    <figure
-                      class="image-loaded-container"
-                      style="margin: 0px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"
+                    <div
+                      class="small-image__container"
+                      style="min-width: 50px; min-height: 50px; display: flex; align-items: center; justify-content: center; max-width: 100%; max-height: 350px;"
                     >
-                      <img
-                        aria-label="file thumbnail image2.jpg"
-                        class=" single-image-view__image small-image--inside-container"
-                        dimensions="[object Object]"
-                        src="/api/v4/files/img2/preview"
-                        style="object-fit: cover;"
-                        tabindex="0"
-                      />
-                    </figure>
+                      <figure
+                        class="image-loaded-container"
+                        style="margin: 0px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"
+                      >
+                        <img
+                          aria-label="file thumbnail image2.jpg"
+                          class=" single-image-view__image small-image--inside-container"
+                          dimensions="[object Object]"
+                          src="/api/v4/files/img2/preview"
+                          style="object-fit: cover;"
+                          tabindex="0"
+                        />
+                      </figure>
+                    </div>
                   </div>
                 </div>
               </div>
