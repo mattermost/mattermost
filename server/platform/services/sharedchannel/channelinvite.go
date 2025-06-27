@@ -559,7 +559,7 @@ func (scs *Service) createGroupChannel(invite channelInviteMsg, rc *model.Remote
 		return nil, false, fmt.Errorf("cannot create group channel `%s` there are no local users", invite.ChannelId)
 	}
 
-	// check if this DM already exists.
+	// check if this GM already exists.
 	channelName := model.GetGroupNameFromUserIds(invite.DirectParticipantIDs)
 	channelExists, err := scs.server.GetStore().Channel().GetByName("", channelName, true)
 	if err != nil && !isNotFoundError(err) {

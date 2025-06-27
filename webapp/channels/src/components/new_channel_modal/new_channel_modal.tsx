@@ -23,6 +23,7 @@ import {switchToChannel} from 'actions/views/channel';
 import {closeModal} from 'actions/views/modals';
 
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
+import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 import WithTooltip from 'components/with_tooltip';
 
@@ -283,16 +284,18 @@ const NewChannelModal = () => {
                     onChange={handleOnTypeChange}
                 />
                 <div className='new-channel-modal-purpose-container'>
-                    <textarea
+                    <Input
                         id='new-channel-modal-purpose'
-                        className={classNames('new-channel-modal-purpose-textarea', {'with-error': purposeError})}
-                        placeholder={formatMessage({id: 'channel_modal.purpose.placeholder', defaultMessage: 'Enter a purpose for this channel (optional)'})}
-                        rows={4}
-                        maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
-                        autoComplete='off'
+                        type='textarea'
                         value={purpose}
                         onChange={handleOnPurposeChange}
                         onKeyDown={handleOnPurposeKeyDown}
+                        label={formatMessage({id: 'channel_modal.purpose.label', defaultMessage: 'Channel Purpose'})}
+                        placeholder={formatMessage({id: 'channel_modal.purpose.placeholder', defaultMessage: 'Enter a purpose for this channel (optional)'})}
+                        maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
+                        autoComplete='off'
+                        className={classNames('new-channel-modal-purpose-textarea', {'with-error': purposeError})}
+                        rows={4}
                     />
                     {purposeError ? (
                         <div className='new-channel-modal-purpose-error'>

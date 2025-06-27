@@ -1402,6 +1402,8 @@ func TestLdapSettingsIsValid(t *testing.T) {
 }
 
 func TestLogSettingsIsValid(t *testing.T) {
+	t.Parallel()
+
 	for name, test := range map[string]struct {
 		LogSettings LogSettings
 		ExpectError bool
@@ -2161,6 +2163,115 @@ func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 		require.False(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
 		require.True(t, *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
 	})
+}
+
+func TestExperimentalAuditSettingsIsValid(t *testing.T) {
+	t.Parallel()
+
+	for name, test := range map[string]struct {
+		ExperimentalAuditSettings ExperimentalAuditSettings
+		ExpectError               bool
+	}{
+		"empty settings": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{},
+			ExpectError:               false,
+		},
+		"file enabled with empty filename": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled: NewPointer(true),
+				FileName:    NewPointer(""),
+			},
+			ExpectError: true,
+		},
+		"file enabled with valid filename": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:      NewPointer(true),
+				FileName:         NewPointer("audit.log"),
+				FileMaxSizeMB:    NewPointer(100),
+				FileMaxAgeDays:   NewPointer(5),
+				FileMaxBackups:   NewPointer(10),
+				FileMaxQueueSize: NewPointer(1000),
+			},
+			ExpectError: false,
+		},
+		"invalid file max size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:   NewPointer(true),
+				FileName:      NewPointer("audit.log"),
+				FileMaxSizeMB: NewPointer(0),
+			},
+			ExpectError: true,
+		},
+		"negative file max size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:   NewPointer(true),
+				FileName:      NewPointer("audit.log"),
+				FileMaxSizeMB: NewPointer(-10),
+			},
+			ExpectError: true,
+		},
+		"negative file max age": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:    NewPointer(true),
+				FileName:       NewPointer("audit.log"),
+				FileMaxSizeMB:  NewPointer(100),
+				FileMaxAgeDays: NewPointer(-5),
+			},
+			ExpectError: true,
+		},
+		"negative file max backups": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:    NewPointer(true),
+				FileName:       NewPointer("audit.log"),
+				FileMaxSizeMB:  NewPointer(100),
+				FileMaxAgeDays: NewPointer(5),
+				FileMaxBackups: NewPointer(-10),
+			},
+			ExpectError: true,
+		},
+		"zero file max queue size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:      NewPointer(true),
+				FileName:         NewPointer("audit.log"),
+				FileMaxSizeMB:    NewPointer(100),
+				FileMaxAgeDays:   NewPointer(5),
+				FileMaxBackups:   NewPointer(10),
+				FileMaxQueueSize: NewPointer(0),
+			},
+			ExpectError: true,
+		},
+		"negative file max queue size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:      NewPointer(true),
+				FileName:         NewPointer("audit.log"),
+				FileMaxSizeMB:    NewPointer(100),
+				FileMaxAgeDays:   NewPointer(5),
+				FileMaxBackups:   NewPointer(10),
+				FileMaxQueueSize: NewPointer(-1000),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has JSON error ": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				`),
+			},
+			ExpectError: true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.ExperimentalAuditSettings.SetDefaults()
+
+			appErr := test.ExperimentalAuditSettings.isValid()
+			if test.ExpectError {
+				require.NotNil(t, appErr)
+			} else {
+				require.Nil(t, appErr)
+			}
+		})
+	}
 }
 
 func TestFilterConfig(t *testing.T) {
