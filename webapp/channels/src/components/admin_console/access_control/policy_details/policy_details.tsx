@@ -285,33 +285,13 @@ function PolicyDetails({
 
             channels.forEach((channel) => {
                 if (isAdding) {
-                    if (newChanges.removed[channel.id]) {
-                        delete newChanges.removed[channel.id];
-                        newChanges.removedCount--;
-                    } else {
-                        newChanges.added[channel.id] = channel;
-                    }
-                } else if (newChanges.added[channel.id]) {
-                    delete newChanges.added[channel.id];
-                } else if (!newChanges.removed[channel.id]) {
+                    newChanges.added[channel.id] = channel;
+                } else {
                     newChanges.removedCount++;
                     newChanges.removed[channel.id] = channel;
                 }
             });
 
-            return newChanges;
-        });
-        setSaveNeeded(true);
-        actions.setNavigationBlocked(true);
-    };
-
-    const handleUndoRemove = (channel: ChannelWithTeamData) => {
-        setChannelChanges((prev) => {
-            const newChanges = cloneDeep(prev);
-            if (newChanges.removed[channel.id]) {
-                delete newChanges.removed[channel.id];
-                newChanges.removedCount--;
-            }
             return newChanges;
         });
         setSaveNeeded(true);
@@ -519,7 +499,6 @@ function PolicyDetails({
                         <Card.Body expanded={true}>
                             <ChannelList
                                 onRemoveCallback={(channel) => handleChannelChanges([channel], false)}
-                                onUndoRemoveCallback={handleUndoRemove}
                                 channelsToRemove={channelChanges.removed}
                                 channelsToAdd={channelChanges.added}
                                 policyId={policyId}
