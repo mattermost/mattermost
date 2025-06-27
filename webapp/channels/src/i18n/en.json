@@ -3071,6 +3071,8 @@
   "admin.teamSettings.teamDetail.teamName": "<b>Team Name</b>:",
   "admin.trial_banner.trial-request.error": "Trial license could not be retrieved. Visit <link>{trialInfoLink}</link> to request a license.",
   "admin.true": "True",
+  "admin.user_attributes_feature_discovery.desc": "Define and manage organization-specific user profile attributes as that can synchronize with your AD/LDAP or SAML identity provider.",
+  "admin.user_attributes_feature_discovery.title": "Add critical metadata to user profiles using custom user attributes with Mattermost Enterprise",
   "admin.user_grid.channel_admin": "Channel Admin",
   "admin.user_grid.guest": "Guest",
   "admin.user_grid.name": "Name",
