@@ -82,8 +82,6 @@ const getColumnSpan = (fileInfo: FileInfo, isSmall: boolean, containerWidth: num
     return GALLERY_CONFIG.GRID_SPANS.SQUARE;
 };
 
-
-
 type Props = PropsFromRedux & {
     fileInfos: FileInfo[];
     onToggleCollapse?: (collapsed: boolean) => void;
@@ -181,8 +179,6 @@ const ImageGallery = (props: Props) => {
         }
         onToggleCollapse?.(newCollapsed);
     };
-
-
 
     return (
         <div

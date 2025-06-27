@@ -141,16 +141,12 @@ describe('ImageGallery', () => {
         expect(defaultProps.onToggleCollapse).toHaveBeenCalled();
     });
 
-
-
     it('shows correct aria attributes', () => {
         renderWithProvider(<ImageGallery {...defaultProps}/>);
         const toggleBtn = screen.getByRole('button', {name: /images/i});
         expect(toggleBtn).toHaveAttribute('aria-expanded');
         expect(screen.getByRole('list')).toBeInTheDocument();
     });
-
-
 
     it('updates aria-live region on collapse/expand', async () => {
         renderWithProvider(<ImageGallery {...defaultProps}/>);
