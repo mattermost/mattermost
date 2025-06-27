@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useMemo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
 import {MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
@@ -112,73 +112,160 @@ const ImageGallery = (props: Props) => {
     // Track component mount status to prevent state updates after unmount
     const isMountedRef = useRef(true);
 
+    // Ref to store ResizeObserver instance for proper cleanup
+    const resizeObserverRef = useRef<ResizeObserver | null>(null);
+    const timeoutIdRef = useRef<NodeJS.Timeout>();
+    const rafIdRef = useRef<number>();
+    const lastProcessedWidthRef = useRef<number | null>(null);
+    const debouncedResizeRef = useRef<(() => void) | null>(null);
+
     useEffect(() => {
+        const THROTTLE_DELAY = 16; // ~60fps
+
         const handleResize = () => {
             if (galleryRef.current && isMountedRef.current) {
                 // Use requestAnimationFrame to ensure measurement happens after layout
-                requestAnimationFrame(() => {
+                rafIdRef.current = requestAnimationFrame(() => {
                     if (galleryRef.current && isMountedRef.current) {
                         const newWidth = galleryRef.current.offsetWidth;
-                        setContainerWidth(newWidth);
+                        updateWidth(newWidth);
                     }
                 });
             }
         };
 
-        // Use ResizeObserver for more accurate container size detection
-        let resizeObserver: ResizeObserver | null = null;
-        if (galleryRef.current && 'ResizeObserver' in window) {
-            resizeObserver = new ResizeObserver((entries) => {
-                for (const entry of entries) {
-                    if (isMountedRef.current) {
-                        const newWidth = entry.contentRect.width;
-                        setContainerWidth(newWidth);
+        const updateWidth = (width: number) => {
+            // Prevent infinite loops by checking if we've already processed this width
+            if (lastProcessedWidthRef.current === width) {
+                return;
+            }
+
+            // Use requestAnimationFrame to break out of ResizeObserver callback timing
+            rafIdRef.current = requestAnimationFrame(() => {
+                if (!isMountedRef.current) {
+                    return;
+                }
+
+                const significantChange = lastProcessedWidthRef.current === null || Math.abs(lastProcessedWidthRef.current - width) > 5;
+
+                if (significantChange) {
+                    // Immediate update for significant changes
+                    lastProcessedWidthRef.current = width;
+                    setContainerWidth(width);
+                } else {
+                    // Throttle minor changes
+                    if (timeoutIdRef.current) {
+                        clearTimeout(timeoutIdRef.current);
                     }
+                    timeoutIdRef.current = setTimeout(() => {
+                        if (isMountedRef.current && lastProcessedWidthRef.current !== width) {
+                            lastProcessedWidthRef.current = width;
+                            setContainerWidth(width);
+                        }
+                    }, THROTTLE_DELAY);
                 }
             });
-            resizeObserver.observe(galleryRef.current);
+        };
+
+        // Use ResizeObserver for more accurate container size detection
+        if (galleryRef.current && 'ResizeObserver' in window) {
+            resizeObserverRef.current = new ResizeObserver((entries) => {
+                // Use try-catch to handle ResizeObserver loop errors gracefully
+                try {
+                    for (const entry of entries) {
+                        if (isMountedRef.current) {
+                            const newWidth = Math.floor(entry.contentRect.width);
+                            updateWidth(newWidth);
+                        }
+                    }
+                } catch {
+                    // Silently handle ResizeObserver loop errors to prevent console spam
+                    // This includes the common "ResizeObserver loop completed with undelivered notifications" error
+                }
+            });
+            resizeObserverRef.current.observe(galleryRef.current);
         } else {
             // Fallback to window resize with debouncing
-            let timeoutId: NodeJS.Timeout;
             const debouncedResize = () => {
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(handleResize, 16); // ~60fps
+                if (timeoutIdRef.current) {
+                    clearTimeout(timeoutIdRef.current);
+                }
+                timeoutIdRef.current = setTimeout(handleResize, THROTTLE_DELAY);
             };
+
+            // Store reference for cleanup
+            debouncedResizeRef.current = debouncedResize;
             window.addEventListener('resize', debouncedResize);
-
-            // Initial measurement
-            handleResize();
-
-            return () => {
-                clearTimeout(timeoutId);
-                window.removeEventListener('resize', debouncedResize);
-            };
         }
 
         // Initial measurement
         handleResize();
+    }, []);
 
+    // Consolidated cleanup effect - ensures proper cleanup in ALL scenarios
+    useEffect(() => {
         return () => {
-            if (resizeObserver) {
-                resizeObserver.disconnect();
+            // Mark component as unmounted first
+            isMountedRef.current = false;
+
+            // Clean up all timers and animations
+            if (timeoutIdRef.current) {
+                clearTimeout(timeoutIdRef.current);
+            }
+            if (rafIdRef.current) {
+                cancelAnimationFrame(rafIdRef.current);
+            }
+
+            // Disconnect ResizeObserver to prevent memory leaks
+            if (resizeObserverRef.current) {
+                resizeObserverRef.current.disconnect();
+                resizeObserverRef.current = null;
+            }
+
+            // Clean up window event listener if it was used as fallback
+            if (debouncedResizeRef.current) {
+                window.removeEventListener('resize', debouncedResizeRef.current);
+                debouncedResizeRef.current = null;
             }
         };
     }, []);
 
-    useEffect(() => {
-        return () => {
-            isMountedRef.current = false;
-        };
-    }, []);
-
-    const toggleGallery = () => {
+    const toggleGallery = useCallback(() => {
         const newCollapsed = !isCollapsed;
         if (isMountedRef.current) {
             setIsCollapsed(newCollapsed);
             setAriaLiveMessage(newCollapsed ? 'Gallery collapsed' : 'Gallery expanded');
         }
         onToggleCollapse?.(newCollapsed);
-    };
+    }, [isCollapsed, onToggleCollapse]);
+
+    // Memoize expensive column span calculations
+    const imageStylesMap = useMemo(() => {
+        const stylesMap = new Map<string, {
+            isSmall: boolean;
+            itemStyle: React.CSSProperties | undefined;
+        }>();
+
+        fileInfos.forEach((fileInfo) => {
+            const isSmall = isSmallImage(fileInfo);
+            let itemStyle: React.CSSProperties | undefined;
+
+            if (containerWidth === 0) {
+                // Initial render - let CSS handle everything
+                itemStyle = undefined;
+            } else if (containerWidth <= GALLERY_CONFIG.BREAKPOINTS.MOBILE) {
+                // Mobile breakpoint - explicitly clear any grid column to let CSS container query take over
+                itemStyle = {gridColumn: 'unset'};
+            } else {
+                // Desktop breakpoint - apply JavaScript calculated spans
+                itemStyle = {gridColumn: `span ${getColumnSpan(fileInfo, isSmall, containerWidth)}`};
+            }
+
+            stylesMap.set(fileInfo.id, {isSmall, itemStyle});
+        });
+
+        return stylesMap;
+    }, [fileInfos, containerWidth]);
 
     return (
         <div
@@ -224,21 +311,12 @@ const ImageGallery = (props: Props) => {
             >
                 <div className='image-gallery__content'>
                     {fileInfos.map((fileInfo, idx) => {
-                        const isSmall = isSmallImage(fileInfo);
-
-                        // Determine if we should apply JavaScript grid spans or let CSS container queries handle it
-                        let itemStyle: React.CSSProperties | undefined;
-
-                        if (containerWidth === 0) {
-                            // Initial render - let CSS handle everything
-                            itemStyle = undefined;
-                        } else if (containerWidth <= GALLERY_CONFIG.BREAKPOINTS.MOBILE) {
-                            // Mobile breakpoint - explicitly clear any grid column to let CSS container query take over
-                            itemStyle = {gridColumn: 'unset'};
-                        } else {
-                            // Desktop breakpoint - apply JavaScript calculated spans
-                            itemStyle = {gridColumn: `span ${getColumnSpan(fileInfo, isSmall, containerWidth)}`};
+                        const memoizedData = imageStylesMap.get(fileInfo.id);
+                        if (!memoizedData) {
+                            return null; // Safety fallback
                         }
+
+                        const {isSmall, itemStyle} = memoizedData;
 
                         return (
                             <ImageGalleryItem
