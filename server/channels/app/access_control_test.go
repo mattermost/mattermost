@@ -482,7 +482,7 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 	th.LinkUserToTeam(channelAdmin, th.BasicTeam)
 	th.AddUserToChannel(channelAdmin, privateChannel)
 
-	// Make user channel admin using the proper API method
+	// Make user channel admin using the proper APP method
 	_, appErr := th.App.UpdateChannelMemberRoles(rctx, privateChannel.Id, channelAdmin.Id, "channel_user channel_admin")
 	require.Nil(t, appErr)
 
@@ -498,14 +498,14 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 
 		appErr := th.App.ValidateChannelAccessControlPermission(rctx, regularUser.Id, privateChannel.Id)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "api.context.permissions.app_error", appErr.Id)
+		assert.Equal(t, "app.access_control.insufficient_channel_permissions", appErr.Id)
 	})
 
 	t.Run("Non-existent channel", func(t *testing.T) {
 		nonExistentChannelId := model.NewId()
 		appErr := th.App.ValidateChannelAccessControlPermission(rctx, channelAdmin.Id, nonExistentChannelId)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "api.context.permissions.app_error", appErr.Id)
+		assert.Equal(t, "app.channel.get.existing.app_error", appErr.Id)
 	})
 
 	t.Run("Public channel should fail", func(t *testing.T) {
@@ -517,7 +517,7 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 
 		appErr2 = th.App.ValidateChannelAccessControlPermission(rctx, channelAdmin.Id, publicChannel.Id)
 		require.NotNil(t, appErr2)
-		assert.Equal(t, "api.access_control.channel_not_private", appErr2.Id)
+		assert.Equal(t, "app.access_control.channel_not_private", appErr2.Id)
 	})
 
 	t.Run("Shared channel should fail", func(t *testing.T) {
@@ -540,7 +540,7 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 
 		appErr3 = th.App.ValidateChannelAccessControlPermission(rctx, channelAdmin.Id, sharedChannel.Id)
 		require.NotNil(t, appErr3)
-		assert.Equal(t, "api.access_control.channel_shared", appErr3.Id)
+		assert.Equal(t, "app.access_control.channel_shared", appErr3.Id)
 	})
 }
 
@@ -563,7 +563,7 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 	th.LinkUserToTeam(channelAdmin, th.BasicTeam)
 	th.AddUserToChannel(channelAdmin, privateChannel)
 
-	// Make user channel admin using the proper API method
+	// Make user channel admin using the proper APP method
 	_, appErr := th.App.UpdateChannelMemberRoles(rctx, privateChannel.Id, channelAdmin.Id, "channel_user channel_admin")
 	require.Nil(t, appErr)
 
@@ -626,7 +626,7 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 	t.Run("Channel admin accessing parent policy should fail", func(t *testing.T) {
 		appErr := th.App.ValidateAccessControlPolicyPermission(rctx, channelAdmin.Id, parentPolicy.ID)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "api.access_control.insufficient_permissions", appErr.Id)
+		assert.Equal(t, "app.access_control.insufficient_permissions", appErr.Id)
 	})
 
 	t.Run("Regular user accessing any policy should fail", func(t *testing.T) {
@@ -634,11 +634,11 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 
 		appErr := th.App.ValidateAccessControlPolicyPermission(rctx, regularUser.Id, channelPolicy.ID)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "api.context.permissions.app_error", appErr.Id)
+		assert.Equal(t, "app.access_control.insufficient_channel_permissions", appErr.Id)
 
 		appErr = th.App.ValidateAccessControlPolicyPermission(rctx, regularUser.Id, parentPolicy.ID)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "api.access_control.insufficient_permissions", appErr.Id)
+		assert.Equal(t, "app.access_control.insufficient_permissions", appErr.Id)
 	})
 
 	t.Run("Non-existent policy should fail", func(t *testing.T) {
@@ -672,7 +672,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 	th.LinkUserToTeam(channelAdmin, th.BasicTeam)
 	th.AddUserToChannel(channelAdmin, privateChannel)
 
-	// Make user channel admin using the proper API method
+	// Make user channel admin using the proper APP method
 	_, appErr := th.App.UpdateChannelMemberRoles(rctx, privateChannel.Id, channelAdmin.Id, "channel_user channel_admin")
 	require.Nil(t, appErr)
 
@@ -704,7 +704,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 
 		appErr := th.App.ValidateChannelAccessControlPolicyCreation(rctx, channelAdmin.Id, policy)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "api.context.permissions.app_error", appErr.Id)
+		assert.Equal(t, "app.access_control.insufficient_channel_permissions", appErr.Id)
 	})
 
 	t.Run("Creating parent-type policy as channel admin should fail", func(t *testing.T) {
@@ -720,7 +720,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 
 		appErr := th.App.ValidateChannelAccessControlPolicyCreation(rctx, channelAdmin.Id, policy)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "api.access_control.insufficient_permissions", appErr.Id)
+		assert.Equal(t, "app.access_control.insufficient_permissions", appErr.Id)
 	})
 
 	t.Run("Creating policy for public channel should fail", func(t *testing.T) {
@@ -748,7 +748,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 
 		appErr4 = th.App.ValidateChannelAccessControlPolicyCreation(rctx, channelAdmin.Id, policy)
 		require.NotNil(t, appErr4)
-		assert.Equal(t, "api.access_control.channel_not_private", appErr4.Id)
+		assert.Equal(t, "app.access_control.channel_not_private", appErr4.Id)
 	})
 
 	t.Run("Creating policy for shared channel should fail", func(t *testing.T) {
@@ -781,6 +781,6 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 
 		appErr5 = th.App.ValidateChannelAccessControlPolicyCreation(rctx, channelAdmin.Id, policy)
 		require.NotNil(t, appErr5)
-		assert.Equal(t, "api.access_control.channel_shared", appErr5.Id)
+		assert.Equal(t, "app.access_control.channel_shared", appErr5.Id)
 	})
 }
