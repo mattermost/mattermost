@@ -77,6 +77,6 @@ describe('components/RenewalLicenseCard', () => {
         await actImmediate(wrapper);
 
         expect(wrapper.find('button').length).toEqual(1);
-        expect(wrapper.find('button').at(0).text().includes('Contact sales')).toBe(true);
+        expect(wrapper.find('button').at(0).text().includes('Contact Sales')).toBe(true);
     });
 });
