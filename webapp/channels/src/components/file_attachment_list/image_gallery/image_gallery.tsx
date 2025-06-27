@@ -226,37 +226,39 @@ const ImageGallery = (props: Props) => {
                 })}
                 role='list'
             >
-                {!isCollapsed && fileInfos.map((fileInfo, idx) => {
-                    const isSmall = isSmallImage(fileInfo);
+                <div className='image-gallery__content'>
+                    {fileInfos.map((fileInfo, idx) => {
+                        const isSmall = isSmallImage(fileInfo);
 
-                    // Determine if we should apply JavaScript grid spans or let CSS container queries handle it
-                    let itemStyle: React.CSSProperties | undefined;
+                        // Determine if we should apply JavaScript grid spans or let CSS container queries handle it
+                        let itemStyle: React.CSSProperties | undefined;
 
-                    if (containerWidth === 0) {
-                        // Initial render - let CSS handle everything
-                        itemStyle = undefined;
-                    } else if (containerWidth <= GALLERY_CONFIG.BREAKPOINTS.MOBILE) {
-                        // Mobile breakpoint - explicitly clear any grid column to let CSS container query take over
-                        itemStyle = {gridColumn: 'unset'};
-                    } else {
-                        // Desktop breakpoint - apply JavaScript calculated spans
-                        itemStyle = {gridColumn: `span ${getColumnSpan(fileInfo, isSmall, containerWidth)}`};
-                    }
+                        if (containerWidth === 0) {
+                            // Initial render - let CSS handle everything
+                            itemStyle = undefined;
+                        } else if (containerWidth <= GALLERY_CONFIG.BREAKPOINTS.MOBILE) {
+                            // Mobile breakpoint - explicitly clear any grid column to let CSS container query take over
+                            itemStyle = {gridColumn: 'unset'};
+                        } else {
+                            // Desktop breakpoint - apply JavaScript calculated spans
+                            itemStyle = {gridColumn: `span ${getColumnSpan(fileInfo, isSmall, containerWidth)}`};
+                        }
 
-                    return (
-                        <ImageGalleryItem
-                            key={`${fileInfo.id}-${containerWidth > GALLERY_CONFIG.BREAKPOINTS.MOBILE ? 'desktop' : 'mobile'}`}
-                            fileInfo={fileInfo}
-                            allFilesForPost={allFilesForPost}
-                            postId={postId}
-                            handleImageClick={handleImageClick}
-                            isSmall={isSmall}
-                            itemStyle={itemStyle}
-                            index={idx}
-                            totalImages={fileInfos.length}
-                        />
-                    );
-                })}
+                        return (
+                            <ImageGalleryItem
+                                key={`${fileInfo.id}-${containerWidth > GALLERY_CONFIG.BREAKPOINTS.MOBILE ? 'desktop' : 'mobile'}`}
+                                fileInfo={fileInfo}
+                                allFilesForPost={allFilesForPost}
+                                postId={postId}
+                                handleImageClick={handleImageClick}
+                                isSmall={isSmall}
+                                itemStyle={itemStyle}
+                                index={idx}
+                                totalImages={fileInfos.length}
+                            />
+                        );
+                    })}
+                </div>
             </div>
             <div
                 aria-live='polite'

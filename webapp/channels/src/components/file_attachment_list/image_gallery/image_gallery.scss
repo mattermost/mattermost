@@ -30,8 +30,15 @@
     --gallery-item-max-height: 216px;
     --gallery-item-min-width: 50px;
     --gallery-item-max-width: 500px;
+    --gallery-collapse-duration: 300ms;
+    --gallery-collapse-easing: cubic-bezier(0.5, 1, 0.5, 1);
+
+    
     margin: 5px 0;
     container-type: inline-size;
+    
+    // Prevent scrollbar-induced layout shifts during expansion
+    scrollbar-gutter: stable;
 
     &__header {
         display: flex;
@@ -50,6 +57,15 @@
         cursor: pointer;
         font-size: 12px;
         gap: 4px;
+        transition: color 150ms ease;
+
+        svg {
+            transition: transform 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
+
+            @media (prefers-reduced-motion: reduce) {
+                transition: transform 100ms ease;
+            }
+        }
 
         &:hover:not(:disabled) {
             color: var(--center-channel-color);
@@ -76,34 +92,39 @@
         --item-child-img-object-fit: cover;
         --item-child-small-img-object-fit: contain;
 
-        display: grid;
+        height: calc-size(auto, size);
         overflow: hidden;
-        max-height: 2240px;
+        transition: height var(--gallery-collapse-duration) var(--gallery-collapse-easing);
+
+        &.collapsed {
+            height: 0;
+        }
+    }
+
+
+
+    &__content {
+        display: grid;
         grid-column-gap: 8px;
         grid-row-gap: 8px;
         grid-template-columns: repeat(auto-fit, 40px);
-        opacity: 1;
-        transition: all 250ms ease-in-out;
-
-        &.collapsed {
-            max-height: 0;
-            opacity: 0;
-        }
     }
 
     /* Container Query: large container breakpoint (380px <= width < 640px) */
     @container (max-width: 639px) {
-        &__body {
+        &__content {
             grid-template-columns: repeat(auto-fit, 24px);
         }
     }
 
     /* Container Query: small container breakpoint (width < 400px) */
     @container (max-width: 400px) {
-        &__body {
+        &__content {
             grid-auto-rows: unset;
             grid-template-columns: repeat(2, 1fr);
+        }
 
+        &__body {
             // Override custom properties for mobile view
             --item-height: 0;
             --item-max-height: none;

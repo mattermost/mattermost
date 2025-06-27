@@ -2160,6 +2160,8 @@
 .post-list__dynamic {
     scrollbar-color: var(--center-channel-color-32) #fff0;
     scrollbar-width: thin;
+    // Prevent layout shifts when scrollbar appears/disappears during gallery expansion
+    scrollbar-gutter: stable;
 
     .emoji-picker--active & {
         pointer-events: none;
