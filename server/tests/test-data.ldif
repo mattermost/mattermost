@@ -8,11 +8,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Test1
 title: Test1 Title
 mail: success+testone@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: 
 textCustomAttribute: Custom Value for Test User 1
 dateCustomAttribute: 20240217120000Z
 selectCustomAttribute: option1
@@ -27,11 +29,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Test2
 title: Test2 Title
 mail: success+testtwo@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: TEST002
 textCustomAttribute: Custom Value for Test User 2
 dateCustomAttribute: 20240217130000Z
 selectCustomAttribute: option2
@@ -46,11 +50,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Test3
 title: Test3 Title
 mail: success+testthree@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: TEST003
 textCustomAttribute: Custom Value for Test User 3
 dateCustomAttribute: 20240217140000Z
 selectCustomAttribute: option3
@@ -65,11 +71,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Test4
 title: Test4 Title
 mail: success+testfour@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: TEST004
 textCustomAttribute: Custom Value for Test User 4
 dateCustomAttribute: 20240217150000Z
 selectCustomAttribute: option1
@@ -84,11 +92,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Test5
 # No title to allow testing that path
 mail: success+testfive@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: TEST005
 textCustomAttribute: Custom Value for Test User 5
 dateCustomAttribute: 20240217160000Z
 selectCustomAttribute: option2
@@ -104,11 +114,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Dev3
 title: DevOps Engineer
 mail: success+devopsone@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: DEV001
 textCustomAttribute: Custom Value for DevOps 1
 dateCustomAttribute: 20240217170000Z
 selectCustomAttribute: option3
@@ -123,11 +135,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Dev1
 title: Senior Software Design Engineer
 mail: success+devone@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: DEV002
 textCustomAttribute: Custom Value for Dev 1
 dateCustomAttribute: 20240217180000Z
 selectCustomAttribute: option1
@@ -142,11 +156,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Dev2
 title: Software Design Engineer ||
 mail: success+devtwo@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: DEV003
 textCustomAttribute: Custom Value for Dev 2
 dateCustomAttribute: 20240217190000Z
 selectCustomAttribute: option2
@@ -161,11 +177,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Dev3
 title: Software Design Engineer
 mail: success+devthree@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: DEV004
 textCustomAttribute: Custom Value for Dev 3
 dateCustomAttribute: 20240217200000Z
 selectCustomAttribute: option3
@@ -180,11 +198,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Dev4
 title: Staff Software Design Engineer
 mail: success+devfour@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: DEV005
 textCustomAttribute: Custom Value for Dev 4
 dateCustomAttribute: 20240217210000Z
 selectCustomAttribute: option1
@@ -200,11 +220,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Exec1
 title: CEO
 mail: success+execone@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: EXEC001
 textCustomAttribute: Custom Value for Exec 1
 dateCustomAttribute: 20240217220000Z
 selectCustomAttribute: option2
@@ -219,11 +241,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Exec2
 title: CTO
 mail: success+exectwo@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: EXEC002
 textCustomAttribute: Custom Value for Exec 2
 dateCustomAttribute: 20240217230000Z
 selectCustomAttribute: option3
@@ -239,11 +263,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Board1
 title: Director
 mail: success+boardone@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: BOARD001
 textCustomAttribute: Custom Value for Board 1
 dateCustomAttribute: 20240218000000Z
 selectCustomAttribute: option1
@@ -258,11 +284,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Board2
 title: Inside Director
 mail: success+boardtwo@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: BOARD002
 textCustomAttribute: Custom Value for Board 2
 dateCustomAttribute: 20240218010000Z
 selectCustomAttribute: option2
@@ -277,11 +305,13 @@ changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
 objectclass: customInetOrgPerson
+objectclass: blankTestObject
 sn: User
 cn: Board3
 title: Outside Director
 mail: success+boardthree@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: BOARD003
 textCustomAttribute: Custom Value for Board 3
 dateCustomAttribute: 20240218020000Z
 
@@ -289,19 +319,23 @@ dn: uid=firstloginuser.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
+objectclass: blankTestObject
 sn: User
 cn: FirstLogin1
 mail: success+firstloginuser.one@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: LOGIN001
 
 dn: uid=firstloginuser.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
 objectclass: activeDSObject
+objectclass: blankTestObject
 sn: User
 cn: FirstLogin2
 mail: success+firstloginuser.two@simulator.amazonses.com
 userPassword: Password1
+blankTestAttribute: LOGIN002
 
 dn: ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add

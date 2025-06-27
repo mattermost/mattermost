@@ -1,0 +1,4 @@
+dn: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
+changetype: modify
+replace: sn
+sn: Userd

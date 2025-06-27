@@ -1,0 +1,9 @@
+dn: cn=schema,cn=config
+changetype: modify
+add: olcAttributeTypes
+olcAttributeTypes: ( 1.3.6.1.4.1.4203.666.1.109
+    NAME 'blankTestAttribute'
+    DESC 'Test attribute that explicitly allows empty values'
+    EQUALITY octetStringMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+    SINGLE-VALUE )
