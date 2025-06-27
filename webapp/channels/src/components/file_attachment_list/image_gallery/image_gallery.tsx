@@ -164,10 +164,10 @@ const ImageGallery = (props: Props) => {
                 timeoutId = setTimeout(handleResize, 16); // ~60fps
             };
             window.addEventListener('resize', debouncedResize);
-            
+
             // Initial measurement
             handleResize();
-            
+
             return () => {
                 clearTimeout(timeoutId);
                 window.removeEventListener('resize', debouncedResize);
@@ -305,7 +305,7 @@ const ImageGallery = (props: Props) => {
 
                     // Determine if we should apply JavaScript grid spans or let CSS container queries handle it
                     let itemStyle: React.CSSProperties | undefined;
-                    
+
                     if (containerWidth === 0) {
                         // Initial render - let CSS handle everything
                         itemStyle = undefined;
