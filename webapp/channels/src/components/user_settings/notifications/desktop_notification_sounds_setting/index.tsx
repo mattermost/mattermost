@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChangeEvent, ReactNode} from 'react';
+import type {ChangeEvent} from 'react';
 import React, {memo, useEffect, useRef, Fragment, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
@@ -12,6 +12,7 @@ import type {UserNotifyProps} from '@mattermost/types/users';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
+import {getOptionLabel, type SelectOption} from 'components/widgets/modals/components/react_select_item';
 
 import {UserSettingsNotificationSections} from 'utils/constants';
 import {
@@ -27,11 +28,6 @@ import {
 } from 'utils/notification_sounds';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
-
-export type SelectOption = {
-    value: string;
-    label: ReactNode;
-};
 
 export type Props = {
     active: boolean;
@@ -151,6 +147,8 @@ function DesktopNotificationSoundsSettings({
                         value={getValueOfNotificationSoundsSelect(desktopNotificationSound)}
                         onChange={handleChangeForMessageNotificationSoundSelect}
                         aria-labelledby='messageNotificationSoundLabel'
+                        getOptionLabel={(option) => getOptionLabel(option, intl)}
+
                     />
                 </div>
             </Fragment>
@@ -190,6 +188,8 @@ function DesktopNotificationSoundsSettings({
                             })}
                             value={getValueOfIncomingCallSoundsSelect(callsNotificationSound)}
                             onChange={handleChangeForIncomingCallSoundSelect}
+                            getOptionLabel={(option) => getOptionLabel(option, intl)}
+
                         />
                     </div>
                 </Fragment>
