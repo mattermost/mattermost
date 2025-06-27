@@ -10,7 +10,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -267,23 +266,28 @@ func (b *LocalFileBackend) RemoveFile(path string) error {
 }
 
 // fixPathForRoot is a helper function to work around percularities with os.Root:
-func fixPathForRoot(path string) string {
-	// os.Root.FS().ReadDir doesn't handle trailing slashes correctly, so trim first.
-	path = strings.TrimSuffix(path, string(filepath.Separator))
+func fixPathForRoot(path string) (string, error) {
+	// // os.Root.FS().ReadDir doesn't handle trailing slashes correctly, so trim first.
+	// path = strings.TrimSuffix(path, string(filepath.Separator))
 
-	// Similarly, an empty string isn't just handled as the root.
-	if path == "" {
-		path = "."
+	// similarly, os.Root.FS().ReadDir trips over `./` despite being validly relative to root.
+	// So first anchor it to a real root, then get the relative path from there.
+	path, err := filepath.Rel("/", filepath.Join("/", path))
+	if err != nil {
+		return "", errors.Wrap(err, "failed to fix path for root")
 	}
 
-	return path
+	return path, nil
 }
 
 // basePath: path to get to the file but won't be added to the end result
 // path: basePath+path current directory we are looking at
 // maxDepth: parameter to prevent infinite recursion, once this is reached we won't look any further
 func appendRecursively(root *os.Root, path string, maxDepth int) ([]string, error) {
-	path = fixPathForRoot(path)
+	path, err := fixPathForRoot(path)
+	if err != nil {
+		return nil, err
+	}
 
 	results := []string{}
 	dirEntries, err := fs.ReadDir(root.FS(), path)
@@ -325,7 +329,10 @@ func (b *LocalFileBackend) ListDirectory(path string) ([]string, error) {
 	}
 	defer root.Close()
 
-	path = fixPathForRoot(path)
+	path, err = fixPathForRoot(path)
+	if err != nil {
+		return nil, err
+	}
 
 	dirEntries, err := fs.ReadDir(root.FS(), path)
 	if err != nil {
