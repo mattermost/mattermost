@@ -92,12 +92,17 @@
         --item-child-img-object-fit: cover;
         --item-child-small-img-object-fit: contain;
 
-        height: calc-size(auto, size);
+        display: grid;
+        grid-template-rows: 1fr;
         overflow: hidden;
-        transition: height var(--gallery-collapse-duration) var(--gallery-collapse-easing);
-
+        transition: grid-template-rows var(--gallery-collapse-duration) var(--gallery-collapse-easing) !important;
+        
+        @media (prefers-reduced-motion: reduce) {
+            transition: grid-template-rows 100ms ease !important;
+        }
+        
         &.collapsed {
-            height: 0;
+            grid-template-rows: 0fr !important;
         }
     }
 
@@ -108,6 +113,7 @@
         grid-column-gap: 8px;
         grid-row-gap: 8px;
         grid-template-columns: repeat(auto-fit, 40px);
+        min-height: 0; // Required for grid-template-rows animation
     }
 
     /* Container Query: large container breakpoint (380px <= width < 640px) */
