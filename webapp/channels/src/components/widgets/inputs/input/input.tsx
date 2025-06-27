@@ -266,8 +266,10 @@ const Input = React.forwardRef((
                 data-testid='input-wrapper'
             >
                 {useLegend && (
-                    <label className={classNames('Input_legend', {Input_legend___focus: showLegend})}>
-                        {showLegend ? formatAsString(formatMessage, label || placeholder) : null}
+                    <label
+                        htmlFor={inputId}
+                        className={classNames('Input_legend', {Input_legend___focus: showLegend})}
+                    >                        {showLegend ? formatAsString(formatMessage, label || placeholder) : null}
                     </label>
                 )}
                 <div className={classNames('Input_wrapper', wrapperClassName)}>
