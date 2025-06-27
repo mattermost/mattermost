@@ -89,6 +89,7 @@ describe('components/Root', () => {
         isCloud: false,
         enableDesktopLandingPage: true,
         customProfileAttributesEnabled: false,
+        currentUserId: '',
         actions: {
             loadConfigAndMe: jest.fn().mockImplementation(() => {
                 return Promise.resolve({
@@ -411,6 +412,86 @@ describe('components/Root', () => {
             rerender(<Root {...props2}/>);
 
             expect(Utils.applyTheme).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('custom profile attributes', () => {
+        test('should call getCustomProfileAttributeFields when user logs in and feature is enabled', () => {
+            const props = {
+                ...baseProps,
+                customProfileAttributesEnabled: true,
+                currentUserId: '',
+            };
+
+            const {rerender} = renderWithContext(<Root {...props}/>);
+
+            expect(props.actions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
+
+            const props2 = {
+                ...props,
+                currentUserId: 'user123',
+            };
+
+            rerender(<Root {...props2}/>);
+
+            expect(props.actions.getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
+        });
+
+        test('should not call getCustomProfileAttributeFields when feature is disabled', () => {
+            const props = {
+                ...baseProps,
+                customProfileAttributesEnabled: false,
+                currentUserId: '',
+            };
+
+            const {rerender} = renderWithContext(<Root {...props}/>);
+
+            const props2 = {
+                ...props,
+                currentUserId: 'user123',
+            };
+
+            rerender(<Root {...props2}/>);
+
+            expect(props.actions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
+        });
+
+        test('should not call getCustomProfileAttributeFields when currentUserId changes from one value to another', () => {
+            const props = {
+                ...baseProps,
+                customProfileAttributesEnabled: true,
+                currentUserId: 'user123',
+            };
+
+            const {rerender} = renderWithContext(<Root {...props}/>);
+
+            const props2 = {
+                ...props,
+                currentUserId: 'user456',
+            };
+
+            rerender(<Root {...props2}/>);
+
+            expect(props.actions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
+        });
+
+        test('should not call getCustomProfileAttributeFields when currentUserId becomes empty', () => {
+            const props = {
+                ...baseProps,
+                customProfileAttributesEnabled: true,
+                currentUserId: 'user123',
+            };
+
+            const {rerender} = renderWithContext(<Root {...props}/>);
+
+            const props2 = {
+                ...props,
+                currentUserId: '',
+            };
+
+            rerender(<Root {...props2}/>);
+
+            expect(props.actions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
         });
     });
 });
