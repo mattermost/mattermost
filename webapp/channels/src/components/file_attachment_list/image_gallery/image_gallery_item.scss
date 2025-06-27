@@ -18,6 +18,21 @@
     // Ensure smooth transitions when grid spans change
     transition: grid-column 0.15s ease-in-out;
 
+    // Keyboard focus styles for accessibility
+    &:focus {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+        z-index: 1;
+    }
+
+    // Enhanced focus indicator when actively focused via keyboard navigation
+    &--focused {
+        .file__image .image-container {
+            box-shadow: 0 0 0 2px var(--button-bg);
+            border-color: var(--button-bg);
+        }
+    }
+
     // Special handling for small images - center them within the gallery height
     &--small {
         display: flex;

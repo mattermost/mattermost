@@ -105,9 +105,13 @@ const ImageGallery = (props: Props) => {
     const {formatMessage} = useIntl();
 
     const galleryRef = useRef<HTMLDivElement>(null);
+    const toggleButtonRef = useRef<HTMLButtonElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     const [ariaLiveMessage, setAriaLiveMessage] = useState('');
+    const [focusedItemIndex, setFocusedItemIndex] = useState<number>(-1);
     const imageCountId = 'image-gallery-count';
+    const galleryBodyId = `image-gallery-body-${postId}`;
+    const galleryDescriptionId = `image-gallery-description-${postId}`;
 
     // Track component mount status to prevent state updates after unmount
     const isMountedRef = useRef(true);
@@ -230,14 +234,106 @@ const ImageGallery = (props: Props) => {
         };
     }, []);
 
+    // Keyboard navigation and focus management
+    const focusImageItem = useCallback((index: number) => {
+        const galleryContent = galleryRef.current?.querySelector('.image-gallery__content');
+        const items = galleryContent?.querySelectorAll('[role="listitem"]');
+        const targetItem = items?.[index] as HTMLElement;
+
+        if (targetItem) {
+            targetItem.focus();
+            setFocusedItemIndex(index);
+
+            // Announce to screen readers
+            const fileInfo = fileInfos[index];
+            if (fileInfo) {
+                setAriaLiveMessage(
+                    formatMessage(
+                        {
+                            id: 'image_gallery.focus_image',
+                            defaultMessage: 'Focused on image {current} of {total}: {filename}',
+                        },
+                        {
+                            current: index + 1,
+                            total: fileInfos.length,
+                            filename: fileInfo.name || 'Image',
+                        },
+                    ),
+                );
+            }
+        }
+    }, [fileInfos, formatMessage]);
+
+    const handleKeyNavigation = useCallback((event: React.KeyboardEvent) => {
+        if (isCollapsed) {
+            return;
+        }
+
+        const currentIndex = focusedItemIndex;
+        let newIndex = currentIndex;
+
+        switch (event.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+            event.preventDefault();
+            newIndex = currentIndex < fileInfos.length - 1 ? currentIndex + 1 : 0; // Wrap to first
+            break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+            event.preventDefault();
+            newIndex = currentIndex > 0 ? currentIndex - 1 : fileInfos.length - 1; // Wrap to last
+            break;
+        case 'Home':
+            event.preventDefault();
+            newIndex = 0;
+            break;
+        case 'End':
+            event.preventDefault();
+            newIndex = fileInfos.length - 1;
+            break;
+        default:
+            return;
+        }
+
+        focusImageItem(newIndex);
+    }, [isCollapsed, focusedItemIndex, fileInfos.length, focusImageItem]);
+
     const toggleGallery = useCallback(() => {
         const newCollapsed = !isCollapsed;
         if (isMountedRef.current) {
             setIsCollapsed(newCollapsed);
-            setAriaLiveMessage(newCollapsed ? 'Gallery collapsed' : 'Gallery expanded');
+
+            // Improved screen reader announcements
+            const announcement = newCollapsed ? formatMessage(
+                {id: 'image_gallery.collapsed', defaultMessage: 'Image gallery collapsed. {count} images hidden.'},
+                {count: fileInfos.length},
+            ) : formatMessage(
+                {id: 'image_gallery.expanded', defaultMessage: 'Image gallery expanded. {count} images visible. Use arrow keys to navigate between images.'},
+                {count: fileInfos.length},
+            );
+
+            setAriaLiveMessage(announcement);
+
+            // Focus management
+            if (newCollapsed) {
+                // When collapsing, return focus to toggle button
+                setFocusedItemIndex(-1);
+                setTimeout(() => {
+                    if (isMountedRef.current && toggleButtonRef.current) {
+                        toggleButtonRef.current.focus();
+                    }
+                }, 100);
+            } else {
+                // When expanding, focus first image after a short delay
+                setTimeout(() => {
+                    if (isMountedRef.current && fileInfos.length > 0) {
+                        focusImageItem(0);
+                    }
+                }, 100);
+            }
         }
         onToggleCollapse?.(newCollapsed);
-    }, [isCollapsed, onToggleCollapse]);
+    }, [isCollapsed, onToggleCollapse, fileInfos.length, formatMessage, focusImageItem]);
 
     // Memoize expensive column span calculations
     const imageStylesMap = useMemo(() => {
@@ -275,10 +371,12 @@ const ImageGallery = (props: Props) => {
         >
             <div className='image-gallery__header'>
                 <button
+                    ref={toggleButtonRef}
                     className='image-gallery__toggle'
                     onClick={toggleGallery}
                     aria-expanded={!isCollapsed}
-                    aria-describedby={imageCountId}
+                    aria-describedby={`${imageCountId} ${galleryDescriptionId}`}
+                    aria-controls={galleryBodyId}
                 >
                     {isCollapsed ? (
                         <>
@@ -302,14 +400,35 @@ const ImageGallery = (props: Props) => {
                         </>
                     )}
                 </button>
+                <div
+                    id={galleryDescriptionId}
+                    className='sr-only'
+                >
+                    {formatMessage(
+                        {
+                            id: 'image_gallery.instructions',
+                            defaultMessage: 'Use arrow keys to navigate between images, Enter or Space to open image viewer',
+                        },
+                    )}
+                </div>
             </div>
             <div
+                id={galleryBodyId}
                 className={classNames('image-gallery__body', {
                     collapsed: isCollapsed,
                 })}
-                role='list'
+                role='application'
+                aria-label={formatMessage(
+                    {id: 'image_gallery.list_label', defaultMessage: 'Image gallery with {count} images'},
+                    {count: fileInfos.length},
+                )}
+                onKeyDown={handleKeyNavigation}
+                tabIndex={isCollapsed ? -1 : 0}
             >
-                <div className='image-gallery__content'>
+                <div
+                    className='image-gallery__content'
+                    role='list'
+                >
                     {fileInfos.map((fileInfo, idx) => {
                         const memoizedData = imageStylesMap.get(fileInfo.id);
                         if (!memoizedData) {
@@ -329,6 +448,8 @@ const ImageGallery = (props: Props) => {
                                 itemStyle={itemStyle}
                                 index={idx}
                                 totalImages={fileInfos.length}
+                                isFocused={focusedItemIndex === idx}
+                                onFocus={() => setFocusedItemIndex(idx)}
                             />
                         );
                     })}
@@ -336,6 +457,7 @@ const ImageGallery = (props: Props) => {
             </div>
             <div
                 aria-live='polite'
+                aria-atomic='true'
                 style={{position: 'absolute', left: '-9999px', height: '1px', width: '1px', overflow: 'hidden'}}
             >
                 {ariaLiveMessage}

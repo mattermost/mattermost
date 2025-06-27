@@ -21,6 +21,8 @@ type Props = {
     itemStyle?: React.CSSProperties;
     index: number;
     totalImages: number;
+    isFocused?: boolean;
+    onFocus?: () => void;
 };
 
 const ImageGalleryItem = ({
@@ -32,6 +34,8 @@ const ImageGalleryItem = ({
     itemStyle,
     index,
     totalImages,
+    isFocused,
+    onFocus,
 }: Props) => {
     const handleClick = () => {
         const startIndex = allFilesForPost?.findIndex((f) => f.id === fileInfo.id) ?? -1;
@@ -47,17 +51,27 @@ const ImageGalleryItem = ({
         }
     };
 
+    const handleFocus = () => {
+        onFocus?.();
+    };
+
+    // Generate comprehensive aria-label for screen readers
+    const ariaLabel = `Image ${index + 1} of ${totalImages}${fileInfo.name ? `: ${fileInfo.name}` : ''}${fileInfo.extension ? ` (${fileInfo.extension.toUpperCase()})` : ''}. Press Enter or Space to open in image viewer.`;
+
     return (
         <div
             key={fileInfo.id}
             className={classNames('image-gallery__item', {
                 'image-gallery__item--small': isSmall,
+                'image-gallery__item--focused': isFocused,
             })}
             style={itemStyle}
             role='listitem'
             tabIndex={0}
-            aria-label={`Image ${index + 1} of ${totalImages}`}
+            aria-label={ariaLabel}
+            aria-current={isFocused ? 'true' : undefined}
             onKeyDown={handleKeyDown}
+            onFocus={handleFocus}
         >
             <SingleImageView
                 fileInfo={fileInfo}
