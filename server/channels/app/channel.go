@@ -3053,7 +3053,7 @@ func (a *App) sendWebSocketPostUnreadEvent(c request.CTX, channelUnread *model.C
 }
 
 func (a *App) AutocompleteChannels(c request.CTX, userID, term string) (model.ChannelListWithTeamData, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 	term = strings.TrimSpace(term)
 
 	user, appErr := a.GetUser(userID)
@@ -3070,7 +3070,7 @@ func (a *App) AutocompleteChannels(c request.CTX, userID, term string) (model.Ch
 }
 
 func (a *App) AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term string) (model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 	term = strings.TrimSpace(term)
 
 	user, appErr := a.GetUser(userID)
@@ -3087,7 +3087,7 @@ func (a *App) AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term st
 }
 
 func (a *App) AutocompleteChannelsForSearch(c request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 
 	term = strings.TrimSpace(term)
 
@@ -3137,7 +3137,7 @@ func (a *App) SearchAllChannels(c request.CTX, term string, opts model.ChannelSe
 }
 
 func (a *App) SearchChannels(c request.CTX, teamID string, term string) (model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 
 	term = strings.TrimSpace(term)
 
@@ -3161,7 +3161,7 @@ func (a *App) SearchArchivedChannels(c request.CTX, teamID string, term string, 
 }
 
 func (a *App) SearchChannelsForUser(c request.CTX, userID, teamID, term string) (model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 
 	term = strings.TrimSpace(term)
 
