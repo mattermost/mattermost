@@ -523,7 +523,7 @@ func (s SqlSharedChannelStore) GetRemotes(offset, limit int, opts model.SharedCh
 		return nil, errors.Wrapf(err, "get_shared_channel_remotes_tosql")
 	}
 
-	if err := s.GetReplica().Select(&remotes, squery, args...); err != nil {
+	if err := s.GetMaster().Select(&remotes, squery, args...); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, errors.Wrapf(err, "failed to get shared channel remotes for channel_id=%s; remote_id=%s",
 				opts.ChannelId, opts.RemoteId)

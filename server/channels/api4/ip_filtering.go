@@ -10,7 +10,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
@@ -64,7 +63,7 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("applyIPFilters", audit.Fail)
+	auditRec := c.MakeAuditRecord("applyIPFilters", model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	allowedRanges := &model.AllowedIPRanges{} // Initialize the allowedRanges variable
@@ -73,7 +72,7 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audit.AddEventParameterAuditable(auditRec, "IPFilter", allowedRanges)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "IPFilter", allowedRanges)
 
 	updatedAllowedRanges, err := ipFiltering.ApplyIPFilters(allowedRanges)
 
