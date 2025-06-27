@@ -26,6 +26,7 @@ import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+import ChannelSettingsAccessRulesTab from './channel_settings_access_rules_tab';
 import ChannelSettingsArchiveTab from './channel_settings_archive_tab';
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -44,6 +45,7 @@ type ChannelSettingsModalProps = {
 
 enum ChannelSettingsTabs {
     INFO = 'info',
+    ACCESS_RULES = 'access_rules',
     CONFIGURATION = 'configuration',
     ARCHIVE = 'archive',
 }
@@ -73,6 +75,12 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     const canArchivePublicChannels = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PUBLIC_CHANNEL),
     );
+
+    const canManageChannelAccessRules = useSelector((state: GlobalState) =>
+        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ACCESS_RULES),
+    );
+
+    const shouldShowAccessRulesTab = canManageChannelAccessRules && channel.type === Constants.PRIVATE_CHANNEL;
 
     const [show, setShow] = useState(isOpen);
 
@@ -137,6 +145,8 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         switch (activeTab) {
         case ChannelSettingsTabs.INFO:
             return renderInfoTab();
+        case ChannelSettingsTabs.ACCESS_RULES:
+            return renderAccessRulesTab();
         case ChannelSettingsTabs.CONFIGURATION:
             return renderConfigurationTab();
         case ChannelSettingsTabs.ARCHIVE:
@@ -166,6 +176,16 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         );
     };
 
+    const renderAccessRulesTab = () => {
+        return (
+            <ChannelSettingsAccessRulesTab
+                channel={channel}
+                setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                showTabSwitchError={showTabSwitchError}
+            />
+        );
+    };
+
     const renderArchiveTab = () => {
         return (
             <ChannelSettingsArchiveTab
@@ -182,6 +202,13 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             uiName: formatMessage({id: 'channel_settings.tab.info', defaultMessage: 'Info'}),
             icon: 'icon icon-information-outline',
             iconTitle: formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'}),
+        },
+        {
+            name: ChannelSettingsTabs.ACCESS_RULES,
+            uiName: formatMessage({id: 'channel_settings.tab.access_rules', defaultMessage: 'Access Rules'}),
+            icon: 'icon icon-account-multiple-outline',
+            iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Access Rules Icon'}),
+            display: shouldShowAccessRulesTab,
         },
         {
             name: ChannelSettingsTabs.CONFIGURATION,
