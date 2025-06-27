@@ -523,6 +523,21 @@ func (mr *MockClientMockRecorder) DoAPIPost(arg0, arg1, arg2 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoAPIPost", reflect.TypeOf((*MockClient)(nil).DoAPIPost), arg0, arg1, arg2)
 }
 
+// DownloadComplianceExport mocks base method.
+func (m *MockClient) DownloadComplianceExport(arg0 context.Context, arg1 string, arg2 io.Writer) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DownloadComplianceExport", arg0, arg1, arg2)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DownloadComplianceExport indicates an expected call of DownloadComplianceExport.
+func (mr *MockClientMockRecorder) DownloadComplianceExport(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadComplianceExport", reflect.TypeOf((*MockClient)(nil).DownloadComplianceExport), arg0, arg1, arg2)
+}
+
 // DownloadExport mocks base method.
 func (m *MockClient) DownloadExport(arg0 context.Context, arg1 string, arg2 io.Writer, arg3 int64) (int64, *model.Response, error) {
 	m.ctrl.T.Helper()

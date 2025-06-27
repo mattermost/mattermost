@@ -8,13 +8,17 @@ import {useSelector, useDispatch} from 'react-redux';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {makeAsyncComponent} from 'components/async_load';
 import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
+
+import type {PreviewModalContentData} from './preview_modal_content_data';
+import {modalContent} from './preview_modal_content_data';
 
 import './cloud_preview_modal.scss';
 
@@ -32,28 +36,33 @@ const CloudPreviewModal: React.FC = () => {
     const subscription = useSelector(getCloudSubscription);
     const license = useSelector(getLicense);
     const currentUserId = useSelector(getCurrentUserId);
+    const team = useSelector(getCurrentTeam);
 
     const isCloud = license?.Cloud === 'true';
     const isCloudPreview = subscription?.is_cloud_preview === true;
 
     // Check if modal has been shown before
-    const hasModalBeenShown = useSelector((state: GlobalState) =>
-        getPreference(state, CLOUD_PREVIEW_MODAL_SHOWN_PREF, CLOUD_PREVIEW_MODAL_SHOWN_PREF, 'false') === 'true',
-    );
+    const hasModalBeenShown = useSelector((state: GlobalState) => getBool(state, CLOUD_PREVIEW_MODAL_SHOWN_PREF, CLOUD_PREVIEW_MODAL_SHOWN_PREF));
 
     const [showModal, setShowModal] = useState(false);
+
+    const filteredContentByUseCase = (content: PreviewModalContentData[]) => {
+        return content.filter((content) => content.useCase === team?.name.replace('-hq', ''));
+    };
 
     useEffect(() => {
         // Show modal only if:
         // 1. It's a cloud preview environment
         // 2. Modal hasn't been shown before
         // 3. We have the necessary data loaded
-        if (isCloud && isCloudPreview && !hasModalBeenShown && currentUserId) {
+        // 4. There's content to display for the current team
+        const filteredContent = team?.name ? filteredContentByUseCase(modalContent) : [];
+        if (isCloud && isCloudPreview && !hasModalBeenShown && currentUserId && team?.name && filteredContent.length > 0) {
             setShowModal(true);
         } else if (hasModalBeenShown) {
             setShowModal(false);
         }
-    }, [isCloud, isCloudPreview, hasModalBeenShown, currentUserId]);
+    }, [isCloud, isCloudPreview, hasModalBeenShown, currentUserId, team?.name]);
 
     const handleClose = () => {
         setShowModal(false);
@@ -93,11 +102,15 @@ const CloudPreviewModal: React.FC = () => {
     // Show FAB only if modal has been shown before and modal is not currently open
     const shouldShowFAB = hasModalBeenShown && !showModal;
 
+    // Only render the controller if we pass the license checks
+    const contentData = team?.name ? filteredContentByUseCase(modalContent) : [];
+
     return (
         <>
             <PreviewModalController
                 show={showModal}
                 onClose={handleClose}
+                contentData={contentData}
             />
             {shouldShowFAB && (
                 <div

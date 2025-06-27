@@ -6,6 +6,7 @@ import React from 'react';
 import * as reactRedux from 'react-redux';
 
 import type {Subscription} from '@mattermost/types/cloud';
+import type {TeamType} from '@mattermost/types/teams';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
@@ -77,6 +78,30 @@ describe('CloudPreviewModal', () => {
                 currentUserId: 'current_user_id',
                 profiles: {
                     current_user_id: {roles: 'system_admin'},
+                },
+            },
+            teams: {
+                currentTeamId: 'mission-ops-hq',
+                teams: {
+                    'mission-ops-hq': {
+                        id: 'mission-ops-hq',
+                        name: 'mission-ops-hq',
+                        display_name: 'Mission Ops HQ',
+                        type: 'O' as TeamType,
+                        create_at: 1234567890,
+                        update_at: 1234567890,
+                        delete_at: 0,
+                        allow_open_invite: true,
+                        invite_id: 'test-invite-id',
+                        description: 'Test team',
+                        email: 'test@example.com',
+                        company_name: 'Test Company',
+                        allowed_domains: '',
+                        scheme_id: '',
+                        group_constrained: false,
+                        policy_id: null,
+                        cloud_limits_archived: false,
+                    },
                 },
             },
             cloud: {
@@ -151,6 +176,15 @@ describe('CloudPreviewModal', () => {
     });
 
     it('should not show modal when modal has been shown before', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.preferences.myPreferences = {
+            'cloud_preview_modal_shown--cloud_preview_modal_shown': {
+                category: 'cloud_preview_modal_shown',
+                name: 'cloud_preview_modal_shown',
+                value: 'true',
+            },
+        };
+
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 

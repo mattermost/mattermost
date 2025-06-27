@@ -24,8 +24,8 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
     const [currentIndex, setCurrentIndex] = useState(0);
 
     // Use provided contentData or default to filtered modalContent
-    // TODO: Remove hard coded filter on missionops in favour of dynamic based on selected use case
-    const activeContentData = contentData || modalContent.filter((content) => content.useCase === 'missionops');
+    // Use passed contentData if it's provided otherwise use the default mission ops content
+    const activeContentData = contentData || modalContent.filter((content) => content.useCase === 'mission-ops');
 
     const handlePrevious = useCallback(() => {
         setCurrentIndex((prev) => Math.max(0, prev - 1));
