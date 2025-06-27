@@ -77,7 +77,6 @@ const mockFileInfos = [
 
 const defaultProps = {
     fileInfos: mockFileInfos,
-    canDownloadFiles: true,
     handleImageClick: jest.fn(),
     onToggleCollapse: jest.fn(),
     isEmbedVisible: true,
@@ -142,25 +141,7 @@ describe('ImageGallery', () => {
         expect(defaultProps.onToggleCollapse).toHaveBeenCalled();
     });
 
-    it('disables download button when downloading', async () => {
-        renderWithProvider(<ImageGallery {...defaultProps}/>);
-        const downloadBtn = screen.getByRole('button', {name: /download all/i});
-        await act(async () => {
-            fireEvent.click(downloadBtn);
-        });
-        expect(downloadBtn).toBeDisabled();
-    });
 
-    it('disables download button when not allowed', () => {
-        renderWithProvider(
-            <ImageGallery
-                {...defaultProps}
-                canDownloadFiles={false}
-            />,
-        );
-        const downloadBtn = screen.getByRole('button', {name: /download all/i});
-        expect(downloadBtn).toBeDisabled();
-    });
 
     it('shows correct aria attributes', () => {
         renderWithProvider(<ImageGallery {...defaultProps}/>);
@@ -169,67 +150,7 @@ describe('ImageGallery', () => {
         expect(screen.getByRole('list')).toBeInTheDocument();
     });
 
-    it('triggers download for each file with correct filename and url', async () => {
-        // Suppress jsdom navigation error for this test only
-        const originalError = console.error;
-        console.error = (msg, ...args) => {
-            if (msg && msg.toString().includes('Not implemented: navigation')) {
-                return;
-            }
-            originalError(msg, ...args);
-        };
 
-        // Spy on document.createElement and check the anchor's properties
-        const aStub = document.createElement('a');
-        aStub.click = jest.fn();
-        const createElementSpy = jest.spyOn(document, 'createElement').mockImplementation((tagName) => {
-            if (tagName === 'a') {
-                return aStub;
-            }
-            return document.createElementNS('http://www.w3.org/1999/xhtml', tagName);
-        });
-        const appendChildSpy = jest.spyOn(document.body, 'appendChild');
-        const removeChildSpy = jest.spyOn(document.body, 'removeChild');
-        renderWithProvider(<ImageGallery {...defaultProps}/>);
-        const downloadBtn = screen.getByRole('button', {name: /download all/i});
-        await act(async () => {
-            fireEvent.click(downloadBtn);
-        });
-
-        // Check that the download handler logic was triggered for each file
-        expect(createElementSpy.mock.calls.filter((call) => call[0] === 'a').length).toBe(defaultProps.fileInfos.length);
-        expect(aStub.click).toHaveBeenCalledTimes(defaultProps.fileInfos.length);
-        expect(appendChildSpy).toHaveBeenCalled();
-        expect(removeChildSpy).toHaveBeenCalled();
-
-        // Optionally, check that the anchor's download attribute is set to the sanitized filename
-        expect(aStub.download).toBe('image2.jpg'); // last file in mockFileInfos
-        expect(aStub.href).toBe('http://example.com/image2.jpg'); // last file in mockFileInfos
-        console.error = originalError;
-    });
-
-    it('handles edge case: invalid fileInfo.link', async () => {
-        const badFiles = [
-            TestHelper.getFileInfoMock({id: 'bad', name: 'bad.png', extension: 'png', width: 100, height: 100, link: undefined}),
-        ];
-        const createElementSpy = jest.spyOn(document, 'createElement');
-        renderWithProvider(
-            <ImageGallery
-                {...defaultProps}
-                fileInfos={badFiles}
-                allFilesForPost={badFiles}
-            />,
-        );
-        const downloadBtn = screen.getByRole('button', {name: /download all/i});
-        await act(async () => {
-            fireEvent.click(downloadBtn);
-        });
-
-        // Should be disabled for invalid link
-        expect(downloadBtn).toBeDisabled();
-        expect(createElementSpy).not.toHaveBeenCalledWith('a');
-        createElementSpy.mockRestore();
-    });
 
     it('updates aria-live region on collapse/expand', async () => {
         renderWithProvider(<ImageGallery {...defaultProps}/>);

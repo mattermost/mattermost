@@ -40,8 +40,7 @@
         gap: 8px;
     }
 
-    &__toggle,
-    &__download-all {
+    &__toggle {
         display: flex;
         align-items: center;
         padding: 0;
@@ -62,11 +61,7 @@
         }
     }
 
-    &__separator {
-        width: 1px;
-        height: 16px;
-        background: rgba(var(--center-channel-color-rgb), 0.16);
-    }
+
 
     &__body {
         // Define default custom properties for ImageGalleryItem

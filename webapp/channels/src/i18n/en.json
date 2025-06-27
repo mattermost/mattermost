@@ -4377,7 +4377,7 @@
   "group_member_list.searchError": "There was a problem getting results. Clear your search term and try again.",
   "group_member_list.sendMessageButton": "Send message to {user}",
   "group_member_list.sendMessageTooltip": "Send message",
-  "image_gallery.download_all": "Download all",
+  
   "image_gallery.hide_images": "{count, number} images",
   "image_gallery.show_images": "Show {count, number} images",
   "incoming_webhooks.header": "Incoming Webhooks",

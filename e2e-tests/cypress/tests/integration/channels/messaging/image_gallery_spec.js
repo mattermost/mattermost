@@ -63,7 +63,7 @@ describe('Image Gallery', () => {
             cy.get(`#post_${postId}`).within(() => {
                 cy.findByTestId('fileAttachmentList').within(() => {
                     cy.get('.image-gallery__toggle').should('contain.text', '4 images');
-                    cy.get('.image-gallery__download-all').should('have.length', 1);
+
                     cy.get('.image-gallery__body').should('not.have.class', 'collapsed').within(() => {
                         cy.get('.image-gallery__item').should('have.length', 4);
                         cy.get('.image-gallery__item--small').should('have.length', 3);
@@ -102,9 +102,7 @@ describe('Image Gallery', () => {
                     cy.get('.image-gallery__item').should('exist').and('be.visible');
                 });
 
-                // Click the Download all button scoped to this post
-                cy.get('.image-gallery__download-all').first().click();
-                cy.get('.image-gallery__download-all').first().should('have.attr', 'disabled');
+                
             });
             cy.get('.image-gallery__item').first().click();
             cy.uiGetFilePreviewModal().should('exist');

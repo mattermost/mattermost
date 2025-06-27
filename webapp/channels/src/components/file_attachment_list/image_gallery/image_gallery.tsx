@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useState, useRef, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 
-import {DownloadOutlineIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
+import {MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 
 import ImageGalleryItem from './image_gallery_item';
@@ -82,25 +82,10 @@ const getColumnSpan = (fileInfo: FileInfo, isSmall: boolean, containerWidth: num
     return GALLERY_CONFIG.GRID_SPANS.SQUARE;
 };
 
-// Utility function to sanitize file names
-function sanitizeFileName(name: string): string {
-    // Replace any character that is not a-z, A-Z, 0-9, dot, underscore, or hyphen with an underscore
-    return name.replace(/[^a-zA-Z0-9._-]/g, '_');
-}
 
-function isValidUrl(url: string): boolean {
-    try {
-        // eslint-disable-next-line no-new
-        new URL(url);
-        return true;
-    } catch {
-        return false;
-    }
-}
 
 type Props = PropsFromRedux & {
     fileInfos: FileInfo[];
-    canDownloadFiles?: boolean;
     onToggleCollapse?: (collapsed: boolean) => void;
     isEmbedVisible?: boolean;
     postId: string;
@@ -109,7 +94,6 @@ type Props = PropsFromRedux & {
 const ImageGallery = (props: Props) => {
     const {
         fileInfos,
-        canDownloadFiles = true,
         handleImageClick,
         onToggleCollapse,
         isEmbedVisible = true,
@@ -120,7 +104,6 @@ const ImageGallery = (props: Props) => {
     const allFilesForPost = props.allFilesForPost;
 
     const [isCollapsed, setIsCollapsed] = useState(!isEmbedVisible);
-    const [isDownloading, setIsDownloading] = useState(false);
     const {formatMessage} = useIntl();
 
     const galleryRef = useRef<HTMLDivElement>(null);
@@ -199,52 +182,7 @@ const ImageGallery = (props: Props) => {
         onToggleCollapse?.(newCollapsed);
     };
 
-    const handleDownloadAll = async () => {
-        if (isDownloading || !canDownloadFiles) {
-            return;
-        }
-        setIsDownloading(true);
-        try {
-            const downloadPromises = fileInfos.map((fileInfo) => {
-                return new Promise<void>((resolve) => {
-                    let url = '';
 
-                    // If fileInfo.link is a Blob, use createObjectURL
-                    if ((fileInfo.link as any) instanceof Blob) {
-                        url = URL.createObjectURL(fileInfo.link as unknown as Blob);
-                    } else if (typeof fileInfo.link === 'string' && isValidUrl(fileInfo.link)) {
-                        url = fileInfo.link;
-                    } else {
-                        // Invalid link, skip this file
-                        resolve();
-                        return;
-                    }
-
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = sanitizeFileName(fileInfo.name);
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-
-                    // Clean up object URL if used
-                    if ((fileInfo.link as any) instanceof Blob) {
-                        setTimeout(() => URL.revokeObjectURL(url), 1000);
-                    }
-
-                    setTimeout(resolve, 50);
-                });
-            });
-            await Promise.all(downloadPromises);
-            await new Promise((resolve) => setTimeout(resolve, 100));
-        } finally {
-            // Only update state if component is still mounted
-            if (isMountedRef.current) {
-                setIsDownloading(false);
-            }
-        }
-    };
 
     return (
         <div
@@ -280,18 +218,6 @@ const ImageGallery = (props: Props) => {
                             </span>
                         </>
                     )}
-                </button>
-                <span className='image-gallery__separator'/>
-                <button
-                    className='image-gallery__download-all'
-                    onClick={handleDownloadAll}
-                    disabled={isDownloading || !canDownloadFiles}
-                >
-                    <DownloadOutlineIcon size={12}/>
-                    {formatMessage({
-                        id: 'image_gallery.download_all',
-                        defaultMessage: 'Download All',
-                    })}
                 </button>
             </div>
             <div
