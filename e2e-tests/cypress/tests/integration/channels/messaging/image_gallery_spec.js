@@ -72,7 +72,7 @@ describe('Image Gallery', () => {
                                 cy.get('img').and(($img) => {
                                     const renderedRatio = $img.width() / $img.height();
                                     const originalRatio = image.width / image.height;
-                                    
+
                                     // With objectFit: cover, images are cropped to fit containers
                                     // so we test for reasonable display rather than exact ratios
                                     if (originalRatio > 5) {
@@ -101,8 +101,6 @@ describe('Image Gallery', () => {
                     cy.get('.image-gallery__toggle').should('contain.text', '4 images');
                     cy.get('.image-gallery__item').should('exist').and('be.visible');
                 });
-
-                
             });
             cy.get('.image-gallery__item').first().click();
             cy.uiGetFilePreviewModal().should('exist');
