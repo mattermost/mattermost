@@ -14,6 +14,9 @@
     margin: 0;
     grid-column: var(--item-grid-column);
     object-fit: cover;
+    
+    // Ensure smooth transitions when grid spans change
+    transition: grid-column 0.15s ease-in-out;
 
     // Special handling for small images - center them within the gallery height
     &--small {

@@ -134,12 +134,54 @@ const ImageGallery = (props: Props) => {
     useEffect(() => {
         const handleResize = () => {
             if (galleryRef.current && isMountedRef.current) {
-                setContainerWidth(galleryRef.current.offsetWidth);
+                // Use requestAnimationFrame to ensure measurement happens after layout
+                requestAnimationFrame(() => {
+                    if (galleryRef.current && isMountedRef.current) {
+                        const newWidth = galleryRef.current.offsetWidth;
+                        setContainerWidth(newWidth);
+                    }
+                });
             }
         };
+
+        // Use ResizeObserver for more accurate container size detection
+        let resizeObserver: ResizeObserver | null = null;
+        if (galleryRef.current && 'ResizeObserver' in window) {
+            resizeObserver = new ResizeObserver((entries) => {
+                for (const entry of entries) {
+                    if (isMountedRef.current) {
+                        const newWidth = entry.contentRect.width;
+                        setContainerWidth(newWidth);
+                    }
+                }
+            });
+            resizeObserver.observe(galleryRef.current);
+        } else {
+            // Fallback to window resize with debouncing
+            let timeoutId: NodeJS.Timeout;
+            const debouncedResize = () => {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(handleResize, 16); // ~60fps
+            };
+            window.addEventListener('resize', debouncedResize);
+            
+            // Initial measurement
+            handleResize();
+            
+            return () => {
+                clearTimeout(timeoutId);
+                window.removeEventListener('resize', debouncedResize);
+            };
+        }
+
+        // Initial measurement
         handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+
+        return () => {
+            if (resizeObserver) {
+                resizeObserver.disconnect();
+            }
+        };
     }, []);
 
     useEffect(() => {
@@ -261,12 +303,23 @@ const ImageGallery = (props: Props) => {
                 {!isCollapsed && fileInfos.map((fileInfo, idx) => {
                     const isSmall = isSmallImage(fileInfo);
 
-                    // For mobile, let CSS handle the span. For others, use getColumnSpan.
-                    const itemStyle = containerWidth < GALLERY_CONFIG.BREAKPOINTS.MOBILE ? undefined : {gridColumn: `span ${getColumnSpan(fileInfo, isSmall, containerWidth)}`};
+                    // Determine if we should apply JavaScript grid spans or let CSS container queries handle it
+                    let itemStyle: React.CSSProperties | undefined;
+                    
+                    if (containerWidth === 0) {
+                        // Initial render - let CSS handle everything
+                        itemStyle = undefined;
+                    } else if (containerWidth <= GALLERY_CONFIG.BREAKPOINTS.MOBILE) {
+                        // Mobile breakpoint - explicitly clear any grid column to let CSS container query take over
+                        itemStyle = {gridColumn: 'unset'};
+                    } else {
+                        // Desktop breakpoint - apply JavaScript calculated spans
+                        itemStyle = {gridColumn: `span ${getColumnSpan(fileInfo, isSmall, containerWidth)}`};
+                    }
 
                     return (
                         <ImageGalleryItem
-                            key={fileInfo.id}
+                            key={`${fileInfo.id}-${containerWidth > GALLERY_CONFIG.BREAKPOINTS.MOBILE ? 'desktop' : 'mobile'}`}
                             fileInfo={fileInfo}
                             allFilesForPost={allFilesForPost}
                             postId={postId}
