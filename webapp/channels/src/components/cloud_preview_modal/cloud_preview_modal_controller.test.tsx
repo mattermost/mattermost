@@ -6,6 +6,7 @@ import React from 'react';
 import * as reactRedux from 'react-redux';
 
 import type {Subscription} from '@mattermost/types/cloud';
+import type {TeamType} from '@mattermost/types/teams';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
@@ -66,6 +67,30 @@ describe('CloudPreviewModal', () => {
                     current_user_id: {roles: 'system_admin'},
                 },
             },
+            teams: {
+                currentTeamId: 'mission-ops-hq',
+                teams: {
+                    'mission-ops-hq': {
+                        id: 'mission-ops-hq',
+                        name: 'mission-ops-hq',
+                        display_name: 'Mission Ops HQ',
+                        type: 'O' as TeamType,
+                        create_at: 1234567890,
+                        update_at: 1234567890,
+                        delete_at: 0,
+                        allow_open_invite: true,
+                        invite_id: 'test-invite-id',
+                        description: 'Test team',
+                        email: 'test@example.com',
+                        company_name: 'Test Company',
+                        allowed_domains: '',
+                        scheme_id: '',
+                        group_constrained: false,
+                        policy_id: null,
+                        cloud_limits_archived: false,
+                    },
+                },
+            },
             cloud: {
                 subscription: baseSubscription,
             },
@@ -122,27 +147,26 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 
-    // Skip for now.
-    // it('should not show modal when modal has been shown before', () => {
-    //     const state = JSON.parse(JSON.stringify(initialState));
-    //     state.entities.preferences.myPreferences = {
-    //         'cloud_preview_modal_shown--cloud_preview_modal_shown': {
-    //             category: 'cloud_preview_modal_shown',
-    //             name: 'cloud_preview_modal_shown',
-    //             value: 'true',
-    //         },
-    //     };
+    it('should not show modal when modal has been shown before', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.preferences.myPreferences = {
+            'cloud_preview_modal_shown--cloud_preview_modal_shown': {
+                category: 'cloud_preview_modal_shown',
+                name: 'cloud_preview_modal_shown',
+                value: 'true',
+            },
+        };
 
-    //     const dummyDispatch = jest.fn();
-    //     useDispatchMock.mockReturnValue(dummyDispatch);
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
 
-    //     renderWithContext(
-    //         <CloudPreviewModal/>,
-    //         state,
-    //     );
+        renderWithContext(
+            <CloudPreviewModal/>,
+            state,
+        );
 
-    //     expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
-    // });
+        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+    });
 
     it('should save preference when modal is closed', async () => {
         const dummyDispatch = jest.fn();
@@ -178,6 +202,71 @@ describe('CloudPreviewModal', () => {
             state,
         );
 
+        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+    });
+
+    it('should not show modal when no team is present', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        delete state.entities.teams;
+
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            state,
+        );
+
+        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+    });
+
+    it('should filter content based on team use case', () => {
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        // Test with dev-sec-ops team
+        const devSecOpsState = JSON.parse(JSON.stringify(initialState));
+        devSecOpsState.entities.teams.currentTeamId = 'dev-sec-ops-hq';
+        devSecOpsState.entities.teams.teams = {
+            'dev-sec-ops-hq': {
+                ...initialState.entities.teams.teams['mission-ops-hq'],
+                id: 'dev-sec-ops-hq',
+                name: 'dev-sec-ops-hq',
+                display_name: 'DevSecOps HQ',
+            },
+        };
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            devSecOpsState,
+        );
+
+        // Should show modal for dev-sec-ops team
+        expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
+    });
+
+    it('should not show modal when team name does not match any use case', () => {
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        // Test with unknown team
+        const unknownTeamState = JSON.parse(JSON.stringify(initialState));
+        unknownTeamState.entities.teams.currentTeamId = 'unknown-team-hq';
+        unknownTeamState.entities.teams.teams = {
+            'unknown-team-hq': {
+                ...initialState.entities.teams.teams['mission-ops-hq'],
+                id: 'unknown-team-hq',
+                name: 'unknown-team-hq',
+                display_name: 'Unknown Team HQ',
+            },
+        };
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            unknownTeamState,
+        );
+
+        // Should not show modal for unknown team
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 });
