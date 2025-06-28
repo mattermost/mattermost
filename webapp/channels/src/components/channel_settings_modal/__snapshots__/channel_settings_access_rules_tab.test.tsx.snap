@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should match snapshot 1`] = `
+<div
+  className="ChannelSettingsModal__accessRulesTab"
+>
+  <div
+    className="ChannelSettingsModal__accessRulesHeader"
+  >
+    <h3
+      className="ChannelSettingsModal__accessRulesTitle"
+    >
+      Access Rules
+    </h3>
+    <p
+      className="ChannelSettingsModal__accessRulesSubtitle"
+    >
+      Select user attributes and values as rules to restrict channel membership
+    </p>
+  </div>
+  <p
+    className="ChannelSettingsModal__accessRulesDescription"
+  >
+    Select attributes and values that users must match in addition to access this channel. All selected attributes are required.
+  </p>
+</div>
+`;
