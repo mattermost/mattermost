@@ -93,6 +93,12 @@ type Props = {
      */
     focusOriginElement?: string;
 
+    /**
+     * Whether this modal is stacked on top of another modal.
+     * When true, the modal will not render its own backdrop and will
+     * adjust the z-index of the parent modal's backdrop.
+     */
+    isStacked?: boolean;
 };
 
 type State = {
@@ -196,6 +202,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
                 ariaLabelledby='confirmModalLabel'
                 compassDesign={true}
                 modalHeaderText={this.props.title}
+                isStacked={this.props.isStacked}
             >
                 <div
                     data-testid={this.props.id}
