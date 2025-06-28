@@ -2,7 +2,7 @@
 
 exports[`ImageGalleryItem renders correctly and matches snapshot 1`] = `
 <div
-  aria-label="Image 1 of 1"
+  aria-label="Image 1 of 1: image1.png (PNG). Press Enter or Space to open in image viewer."
   class="image-gallery__item"
   role="listitem"
   tabindex="0"
