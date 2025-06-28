@@ -7,31 +7,14 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
   onToggle={[Function]}
   open={true}
 >
-  <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Message actions"
-        id="post_info.tooltip.actions"
-      />
-    }
-  >
-    <button
-      aria-expanded="false"
-      aria-label="actions"
-      className="post-menu__item post-menu__item--active"
-      id="center_actions_button_post_id_1"
-      key="more-actions-button"
-      type="button"
-    >
-      <i
-        className="icon icon-apps"
-      />
-    </button>
-  </WithTooltip>
+  <ActionsMenuButton
+    buttonId="center_actions_button_post_id_1"
+    isMenuOpen={true}
+    popupId="center_actions_dropdown_post_id_1"
+  />
   <Menu
     ariaLabel="Post extra options"
-    id="center_actions_dropdown_post_id_1"
-    key="center_actions_dropdown_post_id_1"
+    listId="center_actions_dropdown_post_id_1"
     openLeft={true}
     openUp={false}
   >
@@ -57,31 +40,14 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
   onToggle={[Function]}
   open={true}
 >
-  <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Message actions"
-        id="post_info.tooltip.actions"
-      />
-    }
-  >
-    <button
-      aria-expanded="false"
-      aria-label="actions"
-      className="post-menu__item post-menu__item--active"
-      id="center_actions_button_post_id_1"
-      key="more-actions-button"
-      type="button"
-    >
-      <i
-        className="icon icon-apps"
-      />
-    </button>
-  </WithTooltip>
+  <ActionsMenuButton
+    buttonId="center_actions_button_post_id_1"
+    isMenuOpen={true}
+    popupId="center_actions_dropdown_post_id_1"
+  />
   <Menu
     ariaLabel="Post extra options"
-    id="center_actions_dropdown_post_id_1"
-    key="center_actions_dropdown_post_id_1"
+    listId="center_actions_dropdown_post_id_1"
     openLeft={true}
     openUp={false}
   >
@@ -120,86 +86,18 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
 exports[`components/actions_menu/ActionsMenu no actions - end user - menu should not be visible to end user 1`] = `""`;
 
 exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should show visit marketplace 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
-  onToggle={[Function]}
-  open={true}
->
-  <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Message actions"
-        id="post_info.tooltip.actions"
-      />
-    }
-  >
-    <button
-      aria-expanded="false"
-      aria-label="actions"
-      className="post-menu__item post-menu__item--active"
-      id="center_actions_button_post_id_1"
-      key="more-actions-button"
-      type="button"
-    >
-      <i
-        className="icon icon-apps"
-      />
-    </button>
-  </WithTooltip>
-  <Menu
-    ariaLabel="Post extra options"
-    id="center_actions_dropdown_post_id_1"
-    key="center_actions_dropdown_post_id_1"
-    openLeft={true}
-    openUp={false}
-  >
-    <Memo(SystemPermissionGate)
-      key="visit-marketplace-permissions"
-      permissions={
-        Array [
-          "manage_system",
-        ]
-      }
-    >
-      <div
-        className="visit-marketplace-text"
-      >
-        <p>
-          <MemoizedFormattedMessage
-            defaultMessage="No Actions currently"
-            id="post_info.actions.noActions.first_line"
-          />
-        </p>
-        <p>
-          <MemoizedFormattedMessage
-            defaultMessage="configured for this server"
-            id="post_info.actions.noActions.second_line"
-          />
-        </p>
-      </div>
-      <div
-        className="visit-marketplace"
-      >
-        <button
-          className="btn btn-primary btn-sm visit-marketplace-button"
-          id="marketPlaceButton"
-          onClick={[Function]}
-        >
-          <ActionsMenuIcon
-            name="icon-view-grid-plus-outline"
-          />
-          <span
-            className="visit-marketplace-button-text"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Visit the Marketplace"
-              id="post_info.actions.visitMarketplace"
-            />
-          </span>
-        </button>
-      </div>
-    </Memo(SystemPermissionGate)>
-  </Menu>
-</MenuWrapper>
+<Fragment>
+  <ActionsMenuButton
+    buttonId="center_actions_button_post_id_1"
+    isMenuOpen={true}
+    onClick={[Function]}
+    popupId="center_actions_dropdown_post_id_1"
+  />
+  <ActionsMenuEmptyPopover
+    anchorElement={null}
+    isOpen={true}
+    onOpenMarketplace={[Function]}
+    onToggle={[MockFunction]}
+  />
+</Fragment>
 `;
