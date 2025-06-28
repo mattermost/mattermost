@@ -71,7 +71,7 @@ describe('System console', () => {
                 cy.findByText('High availability');
                 cy.findByText('Advanced compliance');
                 cy.findByText('And more...');
-                cy.findByRole('button', {name: 'Contact sales'});
+                cy.findByRole('button', {name: 'Contact Sales'});
             });
 
         // Validate Compare plans link is not present for Enterprise licenses

@@ -15,7 +15,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
 )
 
@@ -149,9 +148,9 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createJob", audit.Fail)
+	auditRec := c.MakeAuditRecord("createJob", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "job", &job)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "job", &job)
 
 	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), &job)
 	if permissionRequired == nil {
@@ -234,7 +233,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 	if status == "" {
 		jobs, appErr = c.App.GetJobsByTypesPage(c.AppContext, validJobTypes, c.Params.Page, c.Params.PerPage)
 	} else {
-		jobs, appErr = c.App.GetJobsByTypeAndStatus(c.AppContext, validJobTypes, status, c.Params.Page, c.Params.PerPage)
+		jobs, appErr = c.App.GetJobsByTypesAndStatuses(c.AppContext, validJobTypes, []string{status}, c.Params.Page, c.Params.PerPage)
 	}
 
 	if appErr != nil {
@@ -291,9 +290,9 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("cancelJob", audit.Fail)
+	auditRec := c.MakeAuditRecord("cancelJob", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "job_id", c.Params.JobId)
+	model.AddEventParameterToAuditRec(auditRec, "job_id", c.Params.JobId)
 
 	job, err := c.App.GetJob(c.AppContext, c.Params.JobId)
 	if err != nil {
@@ -332,9 +331,9 @@ func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateJobStatus", audit.Fail)
+	auditRec := c.MakeAuditRecord("updateJobStatus", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "job_id", c.Params.JobId)
+	model.AddEventParameterToAuditRec(auditRec, "job_id", c.Params.JobId)
 
 	props := model.StringInterfaceFromJSON(r.Body)
 	status, ok := props["status"].(string)
