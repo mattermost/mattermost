@@ -55,4 +55,62 @@ describe('components/Markdown', () => {
         const {container} = renderWithContext(<Markdown {...props}/>);
         expect(container).toMatchSnapshot();
     });
+
+    test('should pass fileInfos to messageHtmlToComponent when provided', () => {
+        const mockMessageHtmlToComponent = jest.spyOn(require('utils/message_html_to_component'), 'default');
+
+        const fileInfos = [
+            TestHelper.getFileInfoMock({
+                id: 'file1',
+                name: 'test.gif',
+                extension: 'gif',
+                mime_type: 'image/gif',
+            }),
+            TestHelper.getFileInfoMock({
+                id: 'file2',
+                name: 'image.png',
+                extension: 'png',
+                mime_type: 'image/png',
+            }),
+        ];
+
+        const props = {
+            ...baseProps,
+            message: 'This message has ![image](https://example.com/test.gif)',
+            fileInfos,
+        };
+
+        renderWithContext(<Markdown {...props}/>);
+
+        expect(mockMessageHtmlToComponent).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.objectContaining({
+                fileInfos,
+            }),
+        );
+
+        mockMessageHtmlToComponent.mockRestore();
+    });
+
+    test('should pass undefined fileInfos to messageHtmlToComponent when not provided', () => {
+        const mockMessageHtmlToComponent = jest.spyOn(require('utils/message_html_to_component'), 'default');
+
+        const props = {
+            ...baseProps,
+            message: 'This message has ![image](https://example.com/test.gif)',
+
+            // No fileInfos prop
+        };
+
+        renderWithContext(<Markdown {...props}/>);
+
+        expect(mockMessageHtmlToComponent).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.objectContaining({
+                fileInfos: undefined,
+            }),
+        );
+
+        mockMessageHtmlToComponent.mockRestore();
+    });
 });

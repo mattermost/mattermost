@@ -207,6 +207,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     </div>
     <div>
       <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -679,6 +703,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
@@ -1064,6 +1112,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
           />
         }
         updateSection={[Function]}
@@ -1473,6 +1545,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
@@ -1797,6 +1893,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
@@ -2091,6 +2211,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
           />
         }
         updateSection={[Function]}
@@ -2488,6 +2632,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
           />
         }
         updateSection={[Function]}
@@ -2915,6 +3083,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
@@ -3227,6 +3419,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={true}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
           />
         }
         updateSection={[Function]}
@@ -3563,6 +3779,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
@@ -3875,6 +4115,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
           />
         }
         updateSection={[Function]}
@@ -4223,6 +4487,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
@@ -4547,6 +4835,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
@@ -4835,6 +5147,30 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={true}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.gifAutoplayOn"
+          />
+        }
+        max={null}
+        section="gif_autoplay"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Auto-play GIFs"
+            id="user.settings.display.gifAutoplayTitle"
           />
         }
         updateSection={[Function]}

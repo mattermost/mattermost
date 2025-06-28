@@ -5,6 +5,8 @@ import {Parser, ProcessNodeDefinitions} from 'html-to-react';
 import type {AllHTMLAttributes} from 'react';
 import React from 'react';
 
+import type {FileInfo} from '@mattermost/types/files';
+
 import AtMention from 'components/at_mention';
 import AtPlanMention from 'components/at_plan_mention';
 import AtSumOfMembersMention from 'components/at_sum_members_mention';
@@ -37,6 +39,7 @@ export type Options = Partial<{
     atPlanMentions: boolean;
     channelId: string;
     channelIsShared: boolean;
+    fileInfos: FileInfo[];
 
     /**
      * Whether or not the AtMention component should attempt to fetch at-mentioned users if none can be found for
@@ -215,6 +218,17 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                     return false;
                 };
 
+                // Find matching fileInfo for this image
+                let fileInfo;
+                if (options.fileInfos && options.fileInfos.length > 0) {
+                    fileInfo = options.fileInfos.find((file) => {
+                        // Try to match by exact URL, or by name if it's an inline image
+                        return file.link === attribs.src ||
+                               file.name === attribs.alt ||
+                               (file.extension && attribs.src.includes(file.extension));
+                    });
+                }
+
                 return (
                     <MarkdownImage
                         className={className}
@@ -224,6 +238,7 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                         postId={options.postId}
                         imageIsLink={imageIsLink(node.parentNode)}
                         postType={options.postType}
+                        fileInfo={fileInfo}
                     />
                 );
             },

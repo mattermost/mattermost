@@ -87,6 +87,7 @@ export function makeMapStateToProps() {
             linkPreviewDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT, userPreference),
             oneClickReactionsOnPosts: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT, userPreference),
             renderEmoticonsAsEmoji: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.RENDER_EMOTICONS_AS_EMOJI, Preferences.RENDER_EMOTICONS_AS_EMOJI_DEFAULT, userPreference),
+            gifAutoplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.GIF_AUTOPLAY, Preferences.GIF_AUTOPLAY_DEFAULT, userPreference),
             emojiPickerEnabled,
             lastActiveDisplay,
             lastActiveTimeEnabled,

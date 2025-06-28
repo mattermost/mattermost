@@ -8,6 +8,7 @@ import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
 
 import Constants from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import MarkdownImage from './markdown_image';
 
@@ -232,6 +233,61 @@ describe('components/MarkdownImage', () => {
         expect(props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
+    test('should use provided fileInfo when opening modal', () => {
+        const mockFileInfo = TestHelper.getFileInfoMock({
+            id: 'file123',
+            name: 'test.gif',
+            extension: 'gif',
+            size: 1024,
+            has_preview_image: true,
+            link: 'https://example.com/image.png',
+        });
+        const props = {...baseProps, src: 'https://example.com/image.png', fileInfo: mockFileInfo};
+        const wrapper = shallow(
+            <MarkdownImage {...props}/>,
+        );
+        const mockEvent = {
+            preventDefault: () => {},
+        };
+        (wrapper.instance() as MarkdownImage).showModal(mockEvent as unknown as React.MouseEvent<HTMLImageElement>, 'https://example.com/image.png');
+
+        expect(props.actions.openModal).toHaveBeenCalledWith({
+            modalId: 'file_preview_modal',
+            dialogType: FilePreviewModal,
+            dialogProps: {
+                startIndex: 0,
+                postId: props.postId,
+                fileInfos: [mockFileInfo],
+            },
+        });
+    });
+
+    test('should create minimal fileInfo when none provided', () => {
+        const props = {...baseProps, src: 'https://example.com/image.png'};
+        const wrapper = shallow(
+            <MarkdownImage {...props}/>,
+        );
+        const mockEvent = {
+            preventDefault: () => {},
+        };
+        (wrapper.instance() as MarkdownImage).showModal(mockEvent as unknown as React.MouseEvent<HTMLImageElement>, 'https://example.com/image.png');
+
+        expect(props.actions.openModal).toHaveBeenCalledWith({
+            modalId: 'file_preview_modal',
+            dialogType: FilePreviewModal,
+            dialogProps: {
+                startIndex: 0,
+                postId: props.postId,
+                fileInfos: [{
+                    has_preview_image: false,
+                    link: 'https://example.com/image.png',
+                    extension: 'png',
+                    name: props.alt,
+                }],
+            },
+        });
+    });
+
     test('should properly scale down the image in case of a header change system message', () => {
         const props = {...baseProps, src: 'https://example.com/image.png', postType: 'system_header_change'};
         const wrapper = shallow(
@@ -339,5 +395,52 @@ describe('components/MarkdownImage', () => {
             <MarkdownImage {...props}/>,
         );
         expect(wrapper.text()).toBe(props.alt);
+    });
+
+    test('should pass fileInfo prop to SizeAwareImage when provided', () => {
+        const fileInfo = TestHelper.getFileInfoMock({
+            id: 'file123',
+            name: 'test.gif',
+            extension: 'gif',
+            mime_type: 'image/gif',
+        });
+        const props = {
+            ...baseProps,
+            src: 'https://example.com/test.gif',
+            fileInfo,
+        };
+
+        const wrapper = shallow(
+            <MarkdownImage {...props}/>,
+        );
+        wrapper.instance().setState({loaded: true});
+
+        const childrenNode = wrapper.props().children(props.src);
+        const childrenWrapper = shallow(<div>{childrenNode}</div>);
+
+        const sizeAwareImage = childrenWrapper.find(SizeAwareImage);
+        expect(sizeAwareImage).toHaveLength(1);
+        expect(sizeAwareImage.prop('fileInfo')).toBe(fileInfo);
+    });
+
+    test('should pass undefined fileInfo to SizeAwareImage when not provided', () => {
+        const props = {
+            ...baseProps,
+            src: 'https://example.com/test.gif',
+
+            // No fileInfo prop
+        };
+
+        const wrapper = shallow(
+            <MarkdownImage {...props}/>,
+        );
+        wrapper.instance().setState({loaded: true});
+
+        const childrenNode = wrapper.props().children(props.src);
+        const childrenWrapper = shallow(<div>{childrenNode}</div>);
+
+        const sizeAwareImage = childrenWrapper.find(SizeAwareImage);
+        expect(sizeAwareImage).toHaveLength(1);
+        expect(sizeAwareImage.prop('fileInfo')).toBeUndefined();
     });
 });
