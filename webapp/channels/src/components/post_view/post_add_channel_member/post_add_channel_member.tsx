@@ -26,6 +26,8 @@ export interface Props {
     userIds: string[];
     usernames: string[];
     noGroupsUsernames: string[];
+    nonInvitableUsernames: string[];
+    isPolicyEnforced: boolean;
     actions: Actions;
 }
 
@@ -146,7 +148,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
     }
 
     render() {
-        const {channelType, postId, usernames, noGroupsUsernames} = this.props;
+        const {channelType, postId, usernames, noGroupsUsernames, nonInvitableUsernames, isPolicyEnforced} = this.props;
         if (!postId || !channelType) {
             return null;
         }
@@ -168,44 +170,67 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
             );
         }
 
-        let outOfChannelMessagePart;
-        const outOfChannelAtMentions = this.generateAtMentions(usernames);
-        if (usernames.length === 1) {
-            outOfChannelMessagePart = (
+        // Separate users into different categories
+        const invitableUsers = usernames.filter((username) =>
+            !nonInvitableUsernames.includes(username) && !noGroupsUsernames.includes(username),
+        );
+        const nonInvitableUsers = nonInvitableUsernames;
+        const outOfGroupsUsers = noGroupsUsernames;
+
+        // For policy-enforced channels, use consolidated messaging to prevent multiple messages
+        if (isPolicyEnforced && (nonInvitableUsers.length > 0 || outOfGroupsUsers.length > 0)) {
+            // Combine all users into a single message
+            const allUsers = [...invitableUsers, ...nonInvitableUsers, ...outOfGroupsUsers];
+            const allUsersAtMentions = this.generateAtMentions(allUsers);
+
+            if (allUsers.length === 0) {
+                return null;
+            }
+
+            const messageText = allUsers.length === 1 ? (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_mentions.message.non_invitable.one'
+                    defaultMessage='did not get notified by this mention because they are not in the channel.'
+                />
+            ) : (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_mentions.message.non_invitable.multiple'
+                    defaultMessage='did not get notified by this mention because they are not in the channel.'
+                />
+            );
+
+            return (
+                <p>
+                    {allUsersAtMentions}
+                    {' '}
+                    {messageText}
+                </p>
+            );
+        }
+
+        // Regular flow for non-policy-enforced channels or when all users are invitable
+        const messages = [];
+
+        // Handle invitable users with invite functionality
+        if (invitableUsers.length > 0) {
+            const invitableAtMentions = this.generateAtMentions(invitableUsers);
+            const invitableMessagePart = invitableUsers.length === 1 ? (
                 <FormattedMessage
                     id='post_body.check_for_out_of_channel_mentions.message.one'
                     defaultMessage='did not get notified by this mention because they are not in the channel. Would you like to '
                 />
-            );
-        } else if (usernames.length > 1) {
-            outOfChannelMessagePart = (
+            ) : (
                 <FormattedMessage
                     id='post_body.check_for_out_of_channel_mentions.message.multiple'
                     defaultMessage='did not get notified by this mention because they are not in the channel. Would you like to '
                 />
             );
-        }
 
-        let outOfGroupsMessagePart;
-        const outOfGroupsAtMentions = this.generateAtMentions(noGroupsUsernames);
-        if (noGroupsUsernames.length) {
-            outOfGroupsMessagePart = (
-                <FormattedMessage
-                    id='post_body.check_for_out_of_channel_groups_mentions.message'
-                    defaultMessage='did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.'
-                />
-            );
-        }
-
-        let outOfChannelMessage = null;
-        let outOfGroupsMessage = null;
-
-        if (usernames.length) {
-            outOfChannelMessage = (
-                <p>
-                    {outOfChannelAtMentions}
+            messages.push(
+                <p key='invitable'>
+                    {invitableAtMentions}
                     {' '}
-                    {outOfChannelMessagePart}
+                    {invitableMessagePart}
                     <a
                         className='PostBody_addChannelMemberLink'
                         onClick={this.handleAddChannelMember}
@@ -213,27 +238,59 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                         {link}
                     </a>
                     <FormattedMessage
-                        id={'post_body.check_for_out_of_channel_mentions.message_last'}
-                        defaultMessage={'? They will have access to all message history.'}
+                        id='post_body.check_for_out_of_channel_mentions.message_last'
+                        defaultMessage='? They will have access to all message history.'
                     />
-                </p>
+                </p>,
             );
         }
 
-        if (noGroupsUsernames.length) {
-            outOfGroupsMessage = (
-                <p>
+        // Handle non-invitable users (ABAC policy violations) - only for non-policy-enforced channels
+        if (!isPolicyEnforced && nonInvitableUsers.length > 0) {
+            const nonInvitableAtMentions = this.generateAtMentions(nonInvitableUsers);
+            const nonInvitableMessagePart = nonInvitableUsers.length === 1 ? (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_mentions.message.non_invitable.one'
+                    defaultMessage='did not get notified by this mention because they are not in the channel.'
+                />
+            ) : (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_mentions.message.non_invitable.multiple'
+                    defaultMessage='did not get notified by this mention because they are not in the channel.'
+                />
+            );
+
+            messages.push(
+                <p key='non-invitable'>
+                    {nonInvitableAtMentions}
+                    {' '}
+                    {nonInvitableMessagePart}
+                </p>,
+            );
+        }
+
+        // Handle users not in required groups with specific messaging - only for non-policy-enforced channels
+        if (!isPolicyEnforced && outOfGroupsUsers.length > 0) {
+            const outOfGroupsAtMentions = this.generateAtMentions(outOfGroupsUsers);
+            const outOfGroupsMessagePart = (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_groups_mentions.message'
+                    defaultMessage='did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.'
+                />
+            );
+
+            messages.push(
+                <p key='out-of-groups'>
                     {outOfGroupsAtMentions}
                     {' '}
                     {outOfGroupsMessagePart}
-                </p>
+                </p>,
             );
         }
 
         return (
             <>
-                {outOfChannelMessage}
-                {outOfGroupsMessage}
+                {messages}
             </>
         );
     }

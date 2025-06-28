@@ -397,6 +397,7 @@ export type AddMemberProps = {
     not_in_channel_user_ids: string[];
     not_in_groups_usernames: string[];
     not_in_channel_usernames: string[];
+    non_invitable_usernames: string[];
 }
 
 export function isAddMemberProps(v: unknown): v is AddMemberProps {
@@ -420,6 +421,10 @@ export function isAddMemberProps(v: unknown): v is AddMemberProps {
         return false;
     }
 
+    if (!('non_invitable_usernames' in v) || !isStringArray(v.non_invitable_usernames)) {
+        return false;
+    }
+
     return true;
 }
 
@@ -440,6 +445,7 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
                     userIds={addMemberProps.not_in_channel_user_ids}
                     noGroupsUsernames={addMemberProps.not_in_groups_usernames}
                     usernames={addMemberProps.not_in_channel_usernames}
+                    nonInvitableUsernames={addMemberProps.non_invitable_usernames}
                 />
             );
         }
