@@ -6,6 +6,7 @@ package filestore
 import (
 	"context"
 	"io"
+	"os"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -156,6 +157,11 @@ func newFileBackend(settings FileBackendSettings, canBeCloud bool) (FileBackend,
 		}
 		return backend, nil
 	case driverLocal:
+		err := os.MkdirAll(settings.Directory, 0o700)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to mkdir local file backend directory: %q", settings.Directory)
+		}
+
 		return &LocalFileBackend{
 			directory: settings.Directory,
 		}, nil
