@@ -397,7 +397,7 @@
   },
   {
     "id": "api.channel.delete_channel.type.invalid",
-    "translation": "Unable to delete direct or group message channels"
+    "translation": "Unable to soft delete direct or group message channels"
   },
   {
     "id": "api.channel.get_channel_moderations.license.error",
