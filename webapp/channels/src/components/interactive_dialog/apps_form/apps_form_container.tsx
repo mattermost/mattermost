@@ -183,6 +183,16 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
             return {error: makeCallErrorResponse('unreachable: empty context')};
         }
 
+        // Validate lookup path
+        if (field.lookup.path) {
+            if (!field.lookup.path.startsWith('/') && !field.lookup.path.startsWith('http')) {
+                return {error: makeCallErrorResponse(makeErrorMsg(intl.formatMessage({
+                    id: 'apps.error.form.invalid_lookup_url',
+                    defaultMessage: 'Invalid lookup URL format: URL must start with "/" or "http"',
+                })))};
+            }
+        }
+
         const creq = createCallRequest(field.lookup, this.props.context, {}, values);
         creq.selected_field = field.name;
         creq.query = userInput;

@@ -1,33 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
 
-import EmojiMap from 'utils/emoji_map';
+import AppsFormHeader from './apps_form_header';
 
-import DialogIntroductionText from './dialog_introduction_text';
-
-describe('components/DialogIntroductionText', () => {
-    const emojiMap = new EmojiMap(new Map());
-
+describe('components/apps_form/AppsFormHeader', () => {
     test('should render message with supported values', () => {
-        const descriptor = {
+        const props = {
             id: 'testsupported',
             value: '**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)',
-            emojiMap,
         };
-        const wrapper = mount(<DialogIntroductionText {...descriptor}/>);
+        const wrapper = shallow(<AppsFormHeader {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should not fail on empty value', () => {
-        const descriptor = {
+        const props = {
             id: 'testblankvalue',
             value: '',
-            emojiMap,
         };
-        const wrapper = mount(<DialogIntroductionText {...descriptor}/>);
+        const wrapper = shallow(<AppsFormHeader {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 });
