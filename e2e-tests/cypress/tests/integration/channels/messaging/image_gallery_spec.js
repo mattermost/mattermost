@@ -95,7 +95,7 @@ describe('Image Gallery', () => {
                     cy.get('.image-gallery__toggle').click();
                     cy.get('.image-gallery__body').should('have.class', 'collapsed');
                     cy.get('.image-gallery__toggle').should('contain.text', 'Show 4 images');
-                    cy.get('.image-gallery__item').should('not.exist');
+                    cy.get('.image-gallery__item').should('not.be.visible');
                     cy.get('.image-gallery__toggle').click();
                     cy.get('.image-gallery__body').should('not.have.class', 'collapsed');
                     cy.get('.image-gallery__toggle').should('contain.text', '4 images');
