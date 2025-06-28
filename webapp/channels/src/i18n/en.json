@@ -1542,6 +1542,7 @@
   "admin.ldap.testConnectionSuccess": "Test Connection Successful",
   "admin.ldap.testConnectionTitle": "Test Connection",
   "admin.ldap.testFiltersFailure": "We failed to apply some filters: {error}",
+  "admin.ldap.testFiltersHelpText": "**Note**: This test is similar in scope to an LDAP sync and may take time depending on the size of the LDAP Server, hardware, or network conditions.",
   "admin.ldap.testFiltersPartialFailure": "{failedCount, number} of {totalCount, number} filter test{totalCount, plural, one {} other {s}} failed. Check the highlighted fields for details.",
   "admin.ldap.testFiltersSuccess": "Test Successful",
   "admin.ldap.testFiltersTitle": "Test Filters",
