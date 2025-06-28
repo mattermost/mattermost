@@ -187,10 +187,9 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                     />
                   </svg>
                 </MagnifyIcon>
-                <QuickInput
+                <Memo()
                   className="user-group-popover_search-bar"
                   clearable={true}
-                  delayInputUpdate={false}
                   onChange={[Function]}
                   onClear={[Function]}
                   placeholder="Search members"
@@ -208,7 +207,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                       type="text"
                     />
                   </div>
-                </QuickInput>
+                </Memo()>
               </div>
             </SearchBar>
             <Connect(Component)

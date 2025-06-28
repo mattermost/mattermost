@@ -14,7 +14,7 @@ describe('components/QuickInput', () => {
         ['when no onClear callback', {value: 'value', clearable: true}],
         ['when value undefined', {clearable: true, onClear: () => {}}],
         ['when value empty', {value: '', clearable: true, onClear: () => {}}],
-    ])('should not render clear button', (description, props) => {
+    ])('should not render clear button', (_description, props) => {
         renderWithContext(
             <QuickInput {...props}/>,
         );

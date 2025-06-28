@@ -3,11 +3,10 @@
 
 import classNames from 'classnames';
 import type {ReactComponentLike} from 'prop-types';
-import React from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import AutosizeTextarea from 'components/autosize_textarea';
 import WithTooltip from 'components/with_tooltip';
 
 export type Props = {
@@ -26,7 +25,7 @@ export type Props = {
     /**
      * The string value displayed in this input
      */
-    value: string;
+    value?: string;
 
     /**
      * When true, and an onClear callback is defined, show an X on the input field that clears
@@ -84,133 +83,117 @@ export type Props = {
     role?: string;
 }
 
+const defaultClearableTooltipText = (
+    <FormattedMessage
+        id={'input.clear'}
+        defaultMessage='Clear'
+    />);
+
 // A component that can be used to make controlled inputs that function properly in certain
 // environments (ie. IE11) where typing quickly would sometimes miss inputs
-export class QuickInput extends React.PureComponent<Props> {
-    private input?: HTMLInputElement | HTMLTextAreaElement;
+export const QuickInput = React.memo(({
+    delayInputUpdate = false,
+    value = '',
+    clearable = false,
+    autoFocus,
+    forwardedRef,
+    inputComponent,
+    clearClassName,
+    clearableWithoutValue,
+    clearableTooltipText,
+    onClear: onClearFromProps,
+    ...restProps
+}: Props) => {
+    const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
-    static defaultProps = {
-        delayInputUpdate: false,
-        value: '',
-        clearable: false,
-    };
-
-    componentDidMount() {
-        if (this.props.autoFocus) {
+    useEffect(() => {
+        if (autoFocus) {
             requestAnimationFrame(() => {
-                this.input?.focus();
+                inputRef.current?.focus();
             });
         }
-    }
 
-    componentDidUpdate(prevProps: Props) {
-        if (prevProps.value !== this.props.value) {
-            if (this.props.delayInputUpdate) {
-                requestAnimationFrame(this.updateInputFromProps);
+        /* eslint-disable-next-line react-hooks/exhaustive-deps --
+         * This 'useEffect' should only run once during mount.
+         **/
+    }, []);
+
+    useEffect(() => {
+        const updateInputFromProps = () => {
+            if (!inputRef.current || inputRef.current.value === value) {
+                return;
+            }
+
+            inputRef.current.value = value;
+        };
+
+        if (delayInputUpdate) {
+            requestAnimationFrame(updateInputFromProps);
+        } else {
+            updateInputFromProps();
+        }
+
+        /* eslint-disable-next-line react-hooks/exhaustive-deps --
+         * This 'useEffect' should run only when 'value' prop changes.
+         **/
+    }, [value]);
+
+    const setInputRef = useCallback((input: HTMLInputElement) => {
+        if (forwardedRef) {
+            if (typeof forwardedRef === 'function') {
+                forwardedRef(input);
             } else {
-                this.updateInputFromProps();
+                forwardedRef.current = input;
             }
         }
-    }
 
-    private updateInputFromProps = () => {
-        if (!this.input || this.input.value === this.props.value) {
-            return;
-        }
+        inputRef.current = input;
+    }, [forwardedRef]);
 
-        this.input.value = this.props.value;
-    };
-
-    private setInputRef = (input: HTMLInputElement) => {
-        if (this.props.forwardedRef) {
-            if (typeof this.props.forwardedRef === 'function') {
-                this.props.forwardedRef(input);
-            } else {
-                this.props.forwardedRef.current = input;
-            }
-        }
-
-        this.input = input;
-    };
-
-    private onClear = (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent) => {
+    const onClear = useCallback((e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
-        if (this.props.onClear) {
-            this.props.onClear();
+        if (onClearFromProps) {
+            onClearFromProps();
         }
 
-        this.input?.focus();
-    };
+        inputRef.current?.focus();
+    }, [onClearFromProps]);
 
-    render() {
-        let clearableTooltipText = this.props.clearableTooltipText || '';
-        if (!clearableTooltipText) {
-            clearableTooltipText = (
-                <FormattedMessage
-                    id={'input.clear'}
-                    defaultMessage='Clear'
-                />
-            );
-        }
+    const showClearButton = onClearFromProps && (clearableWithoutValue || (clearable && value));
 
-        const {
-            value,
-            inputComponent,
-            clearable,
-            clearClassName,
-            clearableWithoutValue,
-            ...props
-        } = this.props;
+    const inputElement = React.createElement(
+        inputComponent || 'input',
+        {
+            ...restProps,
+            ref: setInputRef,
+            defaultValue: value, // Only set the defaultValue since the real one will be updated using the 'useEffect' above
+        },
+    );
 
-        Reflect.deleteProperty(props, 'delayInputUpdate');
-        Reflect.deleteProperty(props, 'onClear');
-        Reflect.deleteProperty(props, 'clearableTooltipText');
-        Reflect.deleteProperty(props, 'channelId');
-        Reflect.deleteProperty(props, 'clearClassName');
-        Reflect.deleteProperty(props, 'tooltipPosition');
-        Reflect.deleteProperty(props, 'forwardedRef');
-
-        if (inputComponent !== AutosizeTextarea) {
-            Reflect.deleteProperty(props, 'onHeightChange');
-            Reflect.deleteProperty(props, 'onWidthChange');
-        }
-
-        const inputElement = React.createElement(
-            inputComponent || 'input',
-            {
-                ...props,
-                ref: this.setInputRef,
-                defaultValue: value, // Only set the defaultValue since the real one will be updated using componentDidUpdate
-            },
-        );
-
-        const showClearButton = this.props.onClear && (clearableWithoutValue || (clearable && value));
-
-        return (
-            <div className='input-wrapper'>
-                {inputElement}
-                {showClearButton && (
-                    <WithTooltip title={clearableTooltipText}>
-                        <button
-                            data-testid='input-clear'
-                            className={classNames(clearClassName, 'input-clear visible')}
-                            onClick={this.onClear}
+    return (
+        <div className='input-wrapper'>
+            {inputElement}
+            {showClearButton && (
+                <WithTooltip title={clearableTooltipText || defaultClearableTooltipText}>
+                    <button
+                        data-testid='input-clear'
+                        className={classNames(clearClassName, 'input-clear visible')}
+                        onClick={onClear}
+                    >
+                        <span
+                            className='input-clear-x'
+                            aria-hidden='true'
                         >
-                            <span
-                                className='input-clear-x'
-                                aria-hidden='true'
-                            >
-                                <i className='icon icon-close-circle'/>
-                            </span>
-                        </button>
-                    </WithTooltip>
-                )}
-            </div>
-        );
-    }
-}
+                            <i className='icon icon-close-circle'/>
+                        </span>
+                    </button>
+                </WithTooltip>
+            )}
+        </div>
+    );
+});
 
 type ForwardedProps = Omit<React.ComponentPropsWithoutRef<typeof QuickInput>, 'forwardedRef'>;
 
