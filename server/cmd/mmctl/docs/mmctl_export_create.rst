@@ -25,6 +25,7 @@ Options
       --include-profile-pictures    Include profile pictures in the export file.
       --no-attachments              Exclude file attachments from the export file.
       --no-roles-and-schemes        Exclude roles and custom permission schemes from the export file.
+      --only-users                  Export only user data for re-import after modification.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
