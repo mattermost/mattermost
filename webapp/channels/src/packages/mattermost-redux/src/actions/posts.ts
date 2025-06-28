@@ -1098,7 +1098,7 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
             groupsByName = getAllGroupsByName(state);
         }
 
-        const pattern = /\B@(([a-z0-9_.-]*[a-z0-9_])[.-]*)/gi;
+        const pattern = /\B@(([a-z0-9.\-_:]*[a-z0-9_])[.\-:]*)/gi;
 
         let match;
         while ((match = pattern.exec(text)) !== null) {

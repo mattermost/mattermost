@@ -104,7 +104,6 @@ function Markdown({
     userIds,
     messageMetadata,
     enableFormatting,
-    autolinkedUrlSchemes,
     siteURL,
     hasImageProxy,
     team,
@@ -124,7 +123,6 @@ function Markdown({
     }
 
     const inputOptions = Object.assign({
-        autolinkedUrlSchemes,
         siteURL,
         mentionKeys,
         highlightKeys,

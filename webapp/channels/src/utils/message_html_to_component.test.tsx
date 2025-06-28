@@ -135,6 +135,23 @@ const myFunction = () => {
         expect(shallow(component).find(AtMention).prop('disableGroupHighlight')).toBe(true);
     });
 
+    test('Remote at mention', () => {
+        const options = {mentionHighlight: true, atMentions: true, mentionKeys: [{key: '@joram'}]};
+        let html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
+
+        let component = messageHtmlToComponent(html, {mentionHighlight: true});
+        expect(component).toMatchSnapshot();
+        expect(shallow(component).find(AtMention).prop('disableHighlight')).toBe(false);
+
+        options.mentionHighlight = false;
+
+        html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
+
+        component = messageHtmlToComponent(html, {mentionHighlight: false});
+        expect(component).toMatchSnapshot();
+        expect(shallow(component).find(AtMention).prop('disableHighlight')).toBe(true);
+    });
+
     test('typescript', () => {
         const input = `Text before typescript codeblock
             \`\`\`typescript
