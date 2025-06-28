@@ -1,0 +1,69 @@
+@use "utils/functions";
+
+.color-swatches {
+    margin-bottom: 24px;
+    
+    .color-swatches-label {
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .color-swatch-container {
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
+        margin-bottom: 16px;
+        max-width: 450px;
+        
+        @media screen and (max-width: 480px) {
+            flex-wrap: wrap;
+            max-width: 100%;
+            gap: 10px;
+            justify-content: space-between;
+        }
+    }
+
+    .color-swatch {
+        width: 60px;
+        height: 36px;
+        border-radius: var(--radius-s, 4px);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        cursor: pointer;
+        padding: 0;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
+            border-color: rgba(var(--center-channel-color-rgb), 0.24);
+        }
+        
+        &:focus {
+            box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.3);
+            outline: none;
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+        
+        &.selected {
+            transform: translateY(-1px);
+            box-shadow: 0 0 0 2px var(--button-bg);
+            border-color: var(--button-bg);
+            
+            svg {
+                color: #ffffff;
+                fill: #ffffff;
+                width: 16px;
+                height: 16px;
+                filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+                position: absolute;
+                right: 8px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        }
+    }
+}
