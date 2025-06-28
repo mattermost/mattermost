@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {formatWithRenderer, stripMarkdown} from 'utils/markdown';
+import {formatWithRenderer, formatWithRendererForMentions, stripMarkdown} from 'utils/markdown';
 
 import RemoveMarkdown from './remove_markdown';
 
@@ -319,4 +319,319 @@ describe('RemoveMarkdown', () => {
 
         expect(formatWithRenderer(input, new RemoveMarkdown())).toBe(expected);
     });
+});
+
+describe('formatWithRendererForMentions', () => {
+    const testCases = [
+        {
+            description: 'emoji: same',
+            inputText: 'Hey :smile: :+1: :)',
+            outputText: 'Hey :smile: :+1: :)',
+        },
+        {
+            description: 'at-mention: local mention',
+            inputText: 'Hey @user and @test',
+            outputText: 'Hey @user and @test',
+        },
+        {
+            description: 'at-mention: remote mention preserved',
+            inputText: 'Hey @user:remote.server and @test:other.domain',
+            outputText: 'Hey @user:remote.server and @test:other.domain',
+        },
+        {
+            description: 'at-mention: mixed local and remote mentions',
+            inputText: 'Hey @user and @remote:server.com',
+            outputText: 'Hey @user and @remote:server.com',
+        },
+        {
+            description: 'channel-link: same',
+            inputText: 'join ~channelname',
+            outputText: 'join ~channelname',
+        },
+        {
+            description: 'codespan: single backtick',
+            inputText: '`single backtick`',
+            outputText: 'single backtick',
+        },
+        {
+            description: 'codespan: double backtick',
+            inputText: '``double backtick``',
+            outputText: 'double backtick',
+        },
+        {
+            description: 'codespan: triple backtick',
+            inputText: '```triple backtick```',
+            outputText: 'triple backtick',
+        },
+        {
+            description: 'codespan: inline code with remote mention',
+            inputText: 'Inline `@user:remote.server` and @local',
+            outputText: 'Inline @user:remote.server and @local',
+        },
+        {
+            description: 'code block: single line code block',
+            inputText: 'Code block\n```\nline\n```',
+            outputText: 'Code block line',
+        },
+        {
+            description: 'code block: multiline code block with mention',
+            inputText: 'Multiline\n```\n@user:remote.server\n```',
+            outputText: 'Multiline @user:remote.server',
+        },
+        {
+            description: 'blockquote: with remote mention',
+            inputText: '> Hey @user:remote.server quote',
+            outputText: 'Hey @user:remote.server quote',
+        },
+        {
+            description: 'blockquote: multiline with mentions',
+            inputText: '> Hey @user:remote.server quote.\n> Hello @local quote.',
+            outputText: 'Hey @user:remote.server quote. Hello @local quote.',
+        },
+        {
+            description: 'heading: # H1 header with remote mention',
+            inputText: '# H1 @user:remote.server',
+            outputText: 'H1 @user:remote.server',
+        },
+        {
+            description: 'heading: ## H2 header',
+            inputText: '## H2 header',
+            outputText: 'H2 header',
+        },
+        {
+            description: 'heading: ### H3 header',
+            inputText: '### H3 header',
+            outputText: 'H3 header',
+        },
+        {
+            description: 'heading: #### H4 header',
+            inputText: '#### H4 header',
+            outputText: 'H4 header',
+        },
+        {
+            description: 'heading: ##### H5 header',
+            inputText: '##### H5 header',
+            outputText: 'H5 header',
+        },
+        {
+            description: 'heading: ###### H6 header',
+            inputText: '###### H6 header',
+            outputText: 'H6 header',
+        },
+        {
+            description: 'heading: multiline with header and paragraph',
+            inputText: '###### H6 header\nThis is next line.\nAnother line.',
+            outputText: 'H6 header This is next line. Another line.',
+        },
+        {
+            description: 'heading: multiline with header and remote mentions',
+            inputText: '###### H6 header\n- @user:remote.server item 1\n- @local:domain.com item 2',
+            outputText: 'H6 header @user:remote.server item 1 @local:domain.com item 2',
+        },
+        {
+            description: 'list: 1. First ordered list item',
+            inputText: '1. First ordered list item',
+            outputText: 'First ordered list item',
+        },
+        {
+            description: 'list: with remote mention',
+            inputText: '1. @user:remote.server item',
+            outputText: '@user:remote.server item',
+        },
+        {
+            description: 'list: * Unordered sub-list.',
+            inputText: '* Unordered sub-list.',
+            outputText: 'Unordered sub-list.',
+        },
+        {
+            description: 'list: - Or minuses',
+            inputText: '- Or minuses',
+            outputText: 'Or minuses',
+        },
+        {
+            description: 'list: + Or pluses',
+            inputText: '+ Or pluses',
+            outputText: 'Or pluses',
+        },
+        {
+            description: 'list: multiline with remote mentions',
+            inputText: '1. First @user:remote.server item\n2. Another @local:domain.com item',
+            outputText: 'First @user:remote.server item Another @local:domain.com item',
+        },
+        {
+            description: 'tablerow: with remote mentions',
+            inputText: 'User | Server | Status\n' +
+            '--- | --- | ---\n' +
+            '@user:remote.server | Remote | Online\n' +
+            '@local | Local | Away\n',
+            outputText: '',
+        },
+        {
+            description: 'table: with mixed mentions',
+            inputText: '| Users         | Servers       | Status|\n' +
+                '| ------------- |:-------------:| -----:|\n' +
+                '| @user:remote.server | remote.server | Online |\n' +
+                '| @local        | local         | Away   |\n',
+            outputText: '',
+        },
+        {
+            description: 'strong: Bold with **asterisks** or __underscores__.',
+            inputText: 'Bold with **asterisks** or __underscores__.',
+            outputText: 'Bold with asterisks or underscores.',
+        },
+        {
+            description: 'strong: Bold with remote mention **@user:remote.server**',
+            inputText: 'Bold with **@user:remote.server** mention.',
+            outputText: 'Bold with @user:remote.server mention.',
+        },
+        {
+            description: 'em: Italics with *asterisks* or _underscores_.',
+            inputText: 'Italics with *asterisks* or _underscores_.',
+            outputText: 'Italics with asterisks or underscores.',
+        },
+        {
+            description: 'em: Italics with remote mention *@user:remote.server*',
+            inputText: 'Italics with *@user:remote.server* mention.',
+            outputText: 'Italics with @user:remote.server mention.',
+        },
+        {
+            description: 'del: Strikethrough ~~strike this.~~',
+            inputText: 'Strikethrough ~~strike this.~~',
+            outputText: 'Strikethrough strike this.',
+        },
+        {
+            description: 'del: Strikethrough with remote mention ~~@user:remote.server~~',
+            inputText: 'Strikethrough ~~@user:remote.server~~ mention.',
+            outputText: 'Strikethrough @user:remote.server mention.',
+        },
+        {
+            description: 'links: [inline-style link](http://localhost:8065)',
+            inputText: '[inline-style link](http://localhost:8065)',
+            outputText: 'inline-style link',
+        },
+        {
+            description: 'links: [link with mention](@user:remote.server)',
+            inputText: '[link with mention](@user:remote.server)',
+            outputText: 'link with mention',
+        },
+        {
+            description: 'image: ![image link](http://localhost:8065/image)',
+            inputText: '![image link](http://localhost:8065/image)',
+            outputText: 'image link',
+        },
+        {
+            description: 'text: plain',
+            inputText: 'This is plain text.',
+            outputText: 'This is plain text.',
+        },
+        {
+            description: 'text: with remote mention',
+            inputText: 'Hello @user:remote.server, how are you?',
+            outputText: 'Hello @user:remote.server, how are you?',
+        },
+        {
+            description: 'text: multiline',
+            inputText: 'This is multiline text.\nHere is the next line.\n',
+            outputText: 'This is multiline text. Here is the next line.',
+        },
+        {
+            description: 'text: multiline with remote mentions',
+            inputText: 'This is @user:remote.server text.\nHere is @local:domain.com line.\n',
+            outputText: 'This is @user:remote.server text. Here is @local:domain.com line.',
+        },
+        {
+            description: 'text: multiline with blockquote',
+            inputText: 'This is multiline text.\n> With quote',
+            outputText: 'This is multiline text. With quote',
+        },
+        {
+            description: 'text: multiline with list items',
+            inputText: 'This is multiline text.\n * List item ',
+            outputText: 'This is multiline text. List item',
+        },
+        {
+            description: 'text: &amp; entity',
+            inputText: 'you & me',
+            outputText: 'you &amp; me',
+        },
+        {
+            description: 'text: &lt; entity',
+            inputText: '1<2',
+            outputText: '1&lt;2',
+        },
+        {
+            description: 'text: &gt; entity',
+            inputText: '2>1',
+            outputText: '2&gt;1',
+        },
+        {
+            description: 'text: &#39; entity',
+            inputText: 'he\'s out',
+            outputText: 'he&#39;s out',
+        },
+        {
+            description: 'text: &quot; entity',
+            inputText: 'That is "unique"',
+            outputText: 'That is &quot;unique&quot;',
+        },
+        {
+            description: 'text: multiple entities',
+            inputText: '&<>\'"',
+            outputText: '&amp;&lt;&gt;&#39;&quot;',
+        },
+        {
+            description: 'text: multiple entities',
+            inputText: '"\'><&',
+            outputText: '&quot;&#39;&gt;&lt;&amp;',
+        },
+        {
+            description: 'text: multiple entities',
+            inputText: '&amp;&lt;&gt;&#39;&quot;',
+            outputText: '&amp;&lt;&gt;&#39;&quot;',
+        },
+        {
+            description: 'text: multiple entities',
+            inputText: '&quot;&#39;&gt;&lt;&amp;',
+            outputText: '&quot;&#39;&gt;&lt;&amp;',
+        },
+        {
+            description: 'text: multiple entities',
+            inputText: '&amp;lt;',
+            outputText: '&amp;lt;',
+        },
+        {
+            description: 'text: empty string',
+            inputText: '',
+            outputText: '',
+        },
+        {
+            description: 'remote mention: single colon in username',
+            inputText: '@user:domain.com',
+            outputText: '@user:domain.com',
+        },
+        {
+            description: 'remote mention: multiple colons',
+            inputText: '@user:sub.domain.com:port',
+            outputText: '@user:sub.domain.com:port',
+        },
+        {
+            description: 'remote mention: in middle of text',
+            inputText: 'Contact @user:remote.server for help',
+            outputText: 'Contact @user:remote.server for help',
+        },
+        {
+            description: 'remote mention: multiple in same text',
+            inputText: '@user1:server1.com and @user2:server2.com are online',
+            outputText: '@user1:server1.com and @user2:server2.com are online',
+        },
+        {
+            description: 'remote mention: with markdown formatting around it',
+            inputText: '**@user:remote.server** is _@admin:domain.com_ online?',
+            outputText: '@user:remote.server is _@admin:domain.com_ online?',
+        },
+    ];
+
+    testCases.forEach((testCase) => test(testCase.description, () => {
+        expect(formatWithRendererForMentions(testCase.inputText as string, new RemoveMarkdown())).toEqual(testCase.outputText);
+    }));
 });
