@@ -196,7 +196,6 @@ export default function UserAccountDndMenuItem(props: Props) {
                     </span>
                 </>
             }
-            aria-checked={props.isStatusDnd}
             trailingElements={trailingElement}
             subMenuHeader={
                 <h5
