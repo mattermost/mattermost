@@ -10,7 +10,8 @@ exports[`ImageGallery matches snapshot 1`] = `
       class="image-gallery__header"
     >
       <button
-        aria-describedby="image-gallery-count"
+        aria-controls="image-gallery-body-post1"
+        aria-describedby="image-gallery-count image-gallery-description-post1"
         aria-expanded="true"
         class="image-gallery__toggle"
       >
@@ -32,16 +33,26 @@ exports[`ImageGallery matches snapshot 1`] = `
           2 images
         </span>
       </button>
+      <div
+        class="sr-only"
+        id="image-gallery-description-post1"
+      >
+        Use arrow keys to navigate between images, Enter or Space to open image viewer
+      </div>
     </div>
     <div
+      aria-label="Image gallery with 2 images"
       class="image-gallery__body"
-      role="list"
+      id="image-gallery-body-post1"
+      role="application"
+      tabindex="0"
     >
       <div
         class="image-gallery__content"
+        role="list"
       >
         <div
-          aria-label="Image 1 of 2"
+          aria-label="Image 1 of 2: image1.png (PNG). Press Enter or Space to open in image viewer."
           class="image-gallery__item image-gallery__item--small"
           role="listitem"
           tabindex="0"
@@ -141,7 +152,7 @@ exports[`ImageGallery matches snapshot 1`] = `
           </div>
         </div>
         <div
-          aria-label="Image 2 of 2"
+          aria-label="Image 2 of 2: image2.jpg (JPG). Press Enter or Space to open in image viewer."
           class="image-gallery__item image-gallery__item--small"
           role="listitem"
           tabindex="0"
@@ -243,6 +254,7 @@ exports[`ImageGallery matches snapshot 1`] = `
       </div>
     </div>
     <div
+      aria-atomic="true"
       aria-live="polite"
       style="position: absolute; left: -9999px; height: 1px; width: 1px; overflow: hidden;"
     />

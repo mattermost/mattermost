@@ -131,7 +131,7 @@ describe('ImageGallery', () => {
                 isEmbedVisible={false}
             />,
         );
-        expect(screen.getByRole('list')).toHaveClass('collapsed');
+        expect(screen.getByRole('application')).toHaveClass('collapsed');
     });
 
     it('calls onToggleCollapse when toggled', () => {
