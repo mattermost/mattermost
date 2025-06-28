@@ -26,9 +26,9 @@
 
     &:focus-visible {
         // Show focus styles only for genuine keyboard navigation
+        z-index: 1;
         outline: 2px solid var(--button-bg);
         outline-offset: 2px;
-        z-index: 1;
     }
 
     // Enhanced focus indicator when actively focused via keyboard navigation
@@ -40,8 +40,8 @@
 
         .file__image .image-container {
             // Only show enhanced focus when using keyboard navigation
-            box-shadow: 0 0 0 2px var(--button-bg);
             border-color: var(--button-bg);
+            box-shadow: 0 0 0 2px var(--button-bg);
         }
     }
 
