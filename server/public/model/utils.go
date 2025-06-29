@@ -765,6 +765,23 @@ func IsValidHTTPURL(rawURL string) bool {
 	return true
 }
 
+// IsValidAppSchemeURL checks if the URL has a valid app scheme format
+// This supports mattermost:// and other custom app schemes
+func IsValidAppSchemeURL(rawURL string) bool {
+	// Check if URL has a scheme followed by ://
+	match := regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9.+-]*://`).MatchString(rawURL)
+	if !match {
+		return false
+	}
+
+	// Parse URL to ensure it's valid
+	if u, err := url.Parse(rawURL); err != nil || u.Scheme == "" {
+		return false
+	}
+
+	return true
+}
+
 func IsValidId(value string) bool {
 	if len(value) != 26 {
 		return false
