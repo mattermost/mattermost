@@ -20,8 +20,20 @@ describe('Messaging', () => {
     });
 
     it('MM-T187 Inline markdown images open preview window', () => {
+        const message = 'Hello ![test image](https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/image-small-height.png)';
+        
         // # Post the image link to the channel
-        cy.postMessage('Hello ![test image](https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/image-small-height.png)');
+        // Handle both post list implementations - check for the newer one first, fallback to the older one
+        cy.get('body').then(($body) => {
+            if ($body.find('#virtualizedPostListContent').length > 0) {
+                cy.get('#virtualizedPostListContent').should('be.visible');
+            } else {
+                cy.get('#postListContent').should('be.visible');
+            }
+        });
+        
+        // # Type and post the message
+        cy.get('#post_textbox').should('be.visible').clear().type(message).type('{enter}');
 
         // * Confirm the image container is visible
         cy.uiWaitUntilMessagePostedIncludes('Hello');
