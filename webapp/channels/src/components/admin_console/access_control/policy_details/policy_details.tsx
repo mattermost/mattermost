@@ -8,6 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+import type {ServiceEnvironment} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -53,6 +54,7 @@ interface PolicyActions {
 export interface PolicyDetailsProps {
     policy?: AccessControlPolicy;
     policyId?: string;
+    serviceEnvironment: ServiceEnvironment;
     actions: PolicyActions;
 }
 
@@ -65,6 +67,7 @@ interface ChannelChanges {
 function PolicyDetails({
     policy,
     policyId,
+    serviceEnvironment,
     actions,
 }: PolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
@@ -481,6 +484,7 @@ function PolicyDetails({
                                     onParseError={() => {
                                         setEditorMode('cel');
                                     }}
+                                    serviceEnvironment={serviceEnvironment}
                                     actions={{
                                         getVisualAST: actions.getVisualAST,
                                     }}
