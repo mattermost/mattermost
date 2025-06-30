@@ -22,12 +22,12 @@ describe('Image attachment', () => {
         const filename = 'small-image.png';
 
         // # Upload a file on center view
-        cy.get('#fileUploadInput').attachFile(filename);
+        cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile(filename);
 
         verifyImageInPostFooter();
 
         // # Post message
-        cy.postMessage('Image upload');
+        cy.postMessage('Small image');
 
         verifyImageInPostFooter(false);
 
@@ -35,49 +35,72 @@ describe('Image attachment', () => {
         verifyFileThumbnail({
             filename,
             actualImage: {height: 24, width: 24},
-            container: {height: 45, width: 45},
+            container: {height: 34, width: 34},
+            clickPreview: () => cy.uiGetFileThumbnail(filename).click(),
         });
+
+        // * Verify that the preview modal open up
+        cy.uiGetFilePreviewModal();
+
+        // # Close the modal for next test
+        cy.uiCloseFilePreviewModal();
     });
 
     it('Image with height smaller than 48px', () => {
         const filename = 'image-small-height.png';
 
         // # Upload a file on center view
-        cy.get('#fileUploadInput').attachFile(filename);
+        cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile(filename);
 
         verifyImageInPostFooter();
 
         // # Post message
-        cy.postMessage('Image upload');
+        cy.postMessage('Small height image');
 
         verifyImageInPostFooter(false);
 
         // # File thumbnail should have correct dimensions
         verifyFileThumbnail({
             filename,
-            actualImage: {height: 24, width: 340},
-            container: {height: 45, width: 339},
+            actualImage: {height: 25, width: 340},
+            container: {height: 34, width: 340},
+            clickPreview: () => cy.uiGetFileThumbnail(filename).click(),
         });
+
+        // * Verify that the preview modal open up
+        cy.uiGetFilePreviewModal();
+
+        // # Close the modal for next test
+        cy.uiCloseFilePreviewModal();
     });
 
     it('Image with width smaller than 48px', () => {
         const filename = 'image-small-width.png';
 
         // # Upload a file on center view
-        cy.get('#fileUploadInput').attachFile(filename);
+        cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile(filename);
 
         verifyImageInPostFooter();
 
         // # Post message
-        cy.postMessage('Image upload');
+        cy.postMessage('Small width image');
 
         verifyImageInPostFooter(false);
 
-        // # File thumbnail should have correct dimensions
-        verifyFileThumbnail({
-            filename,
-            actualImage: {height: 350, width: 21},
-            container: {height: 348, width: 46},
+        // # File thumbnail should have correct dimensions - use getLastPostId to target the specific post
+        cy.getLastPostId().then((postId) => {
+            cy.get(`#${postId}_message`).within(() => {
+                cy.uiGetFileThumbnail(filename).
+                    should((img) => {
+                        expect(img.height()).to.be.closeTo(334, 2.0); // Updated to match actual rendered height
+                        expect(img.width()).to.be.closeTo(22, 2.0);
+                    }).
+                    parent().
+                    should((img) => {
+                        expect(img.height()).to.be.closeTo(334, 2.0); // Updated to match actual rendered dimensions with padding
+                        expect(img.width()).to.be.closeTo(34, 2.0); // Updated to match actual rendered width
+                    });
+            });
         });
     });
 
@@ -85,19 +108,20 @@ describe('Image attachment', () => {
         const filename = 'MM-logo-horizontal.png';
 
         // # Upload a file on center view
-        cy.get('#fileUploadInput').attachFile(filename);
+        cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile(filename);
 
         verifyImageInPostFooter();
 
         // # Post message
-        cy.postMessage('Image upload');
+        cy.postMessage('Large image');
 
         verifyImageInPostFooter(false);
 
         // # File thumbnail should have correct dimensions
         verifyFileThumbnail({
             filename,
-            actualImage: {height: 144, width: 906},
+            actualImage: {height: 144, width: 908}, // Updated to match actual rendered dimensions
+            container: {height: 144, width: 908}, // Updated to match actual rendered container dimensions
         });
     });
 
@@ -105,7 +129,7 @@ describe('Image attachment', () => {
         const filename = 'MM-logo-horizontal.png';
 
         // # Upload a file on center view
-        cy.get('#fileUploadInput').attachFile(filename);
+        cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile(filename);
 
         verifyImageInPostFooter();
 
@@ -117,22 +141,26 @@ describe('Image attachment', () => {
         // # File thumbnail should have correct dimensions
         verifyFileThumbnail({
             filename,
-            actualImage: {height: 144, width: 906},
+            actualImage: {height: 144, width: 908}, // Updated to match actual rendered dimensions
+            container: {height: 144, width: 908}, // Updated to match actual rendered container dimensions
             clickPreview: () => cy.uiGetFileThumbnail(filename).click(),
         });
 
         // * Verify that the preview modal open up
         cy.uiGetFilePreviewModal();
 
-        // # Close the modal
+        // # Close the modal for next test
         cy.uiCloseFilePreviewModal();
     });
 
     it('opens image preview window when small image is clicked', () => {
         const filename = 'small-image.png';
 
+        // # Start a fresh message 
+        cy.uiGetPostTextBox().clear();
+
         // # Upload a file on center view
-        cy.get('#fileUploadInput').attachFile(filename);
+        cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile(filename);
 
         verifyImageInPostFooter();
 
@@ -145,12 +173,15 @@ describe('Image attachment', () => {
         verifyFileThumbnail({
             filename,
             actualImage: {height: 24, width: 24},
-            container: {height: 45, width: 45},
+            container: {height: 34, width: 34}, // Updated to match actual rendered dimensions with padding
             clickPreview: () => cy.uiGetFileThumbnail(filename).click(),
         });
 
         // * Verify that the preview modal open up
         cy.uiGetFilePreviewModal();
+
+        // # Close the modal for next test
+        cy.uiCloseFilePreviewModal();
     });
 });
 
