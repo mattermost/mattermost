@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitSharedChannels() {
@@ -172,11 +171,11 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("inviteRemoteClusterToChannel", audit.Fail)
+	auditRec := c.MakeAuditRecord("inviteRemoteClusterToChannel", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
-	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
-	audit.AddEventParameter(auditRec, "user_id", c.AppContext.Session().UserId)
+	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.AppContext.Session().UserId)
 
 	if err := c.App.InviteRemoteToChannel(c.Params.ChannelId, c.Params.RemoteId, c.AppContext.Session().UserId, true); err != nil {
 		if appErr, ok := err.(*model.AppError); ok {
@@ -223,10 +222,10 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("uninviteRemoteClusterToChannel", audit.Fail)
+	auditRec := c.MakeAuditRecord("uninviteRemoteClusterToChannel", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
-	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
+	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 
 	hasRemote, err := c.App.HasRemote(c.Params.ChannelId, c.Params.RemoteId)
 	if err != nil {
