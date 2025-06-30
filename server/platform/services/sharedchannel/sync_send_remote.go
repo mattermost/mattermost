@@ -122,6 +122,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 			LastPostCreateAt:  model.GetMillis(),
 			LastPostUpdateAt:  model.GetMillis(),
 			LastMembersSyncAt: 0,
+			SyncOutbound:      true, // Default to true for auto-invited remotes
 		}
 		if scr, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 			return fmt.Errorf("cannot auto-create shared channel remote (channel_id=%s, remote_id=%s): %w", task.channelID, rc.RemoteId, err)
@@ -135,6 +136,20 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		return nil
 	} else if err != nil {
 		return err
+	}
+
+	b, _ := json.MarshalIndent(scr, "", "  ")
+
+	fmt.Printf("!!!!!! Shared channel remote for channelID=%s and remoteID=%s\n\n%s\n\n", task.channelID, rc.RemoteId, b)
+
+	// Check if outbound sync is disabled for this remote
+	if !scr.SyncOutbound {
+		fmt.Printf("!!!!!! Not syncing for remote %q and channelID=%q as it's marked for skipping\n", rc.DisplayName, task.channelID)
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Skipping sync: outbound sync disabled for remote",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("channel_id", task.channelID),
+		)
+		return nil
 	}
 
 	sd := newSyncData(task, rc, scr)
