@@ -49,7 +49,8 @@ const (
 	PasswordMaximumLength = 72
 	PasswordMinimumLength = 5
 
-	ServiceGitlab    = "gitlab"
+	ServiceGitlab = "gitlab"
+
 	ServiceGoogle    = "google"
 	ServiceOffice365 = "office365"
 	ServiceOpenid    = "openid"
@@ -285,7 +286,8 @@ const (
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
 
-	ConnectedWorkspacesSettingsDefaultMaxPostsPerSync = 50 // a bit more than 4 typical screenfulls of posts
+	ConnectedWorkspacesSettingsDefaultMaxPostsPerSync     = 50 // a bit more than 4 typical screenfulls of posts
+	ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize = 20 // optimal batch size for syncing channel members
 
 	// These storage classes are the valid values for the x-amz-storage-class header. More documentation here https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html#AmazonS3-PutObject-request-header-StorageClass
 	StorageClassStandard           = "STANDARD"
@@ -454,6 +456,7 @@ type ServiceSettings struct {
 	ScheduledPosts                                    *bool   `access:"site_posts"`
 	EnableWebHubChannelIteration                      *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	FrameAncestors                                    *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	DeleteAccountLink                                 *string `access:"site_users_and_teams,write_restrictable,cloud_restrictable"`
 }
 
 var MattermostGiphySdkKey string
@@ -988,6 +991,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.FrameAncestors == nil {
 		s.FrameAncestors = NewPointer("")
+	}
+
+	if !isSafeLink(s.DeleteAccountLink) {
+		*s.DeleteAccountLink = ""
+	}
+
+	if s.DeleteAccountLink == nil {
+		s.DeleteAccountLink = NewPointer("")
 	}
 }
 
@@ -1555,6 +1566,47 @@ type ExperimentalAuditSettings struct {
 	FileMaxQueueSize    *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	AdvancedLoggingJSON json.RawMessage `access:"experimental_features"`
 	Certificate         *string         `access:"experimental_features"` // telemetry: none
+}
+
+func (s *ExperimentalAuditSettings) isValid() *AppError {
+	if *s.FileEnabled {
+		if *s.FileName == "" {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_name_empty", nil, "", http.StatusBadRequest)
+		}
+
+		if strings.HasSuffix(*s.FileName, `\`) {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_name_is_directory", nil, "", http.StatusBadRequest)
+		}
+
+		if *s.FileMaxSizeMB <= 0 {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_size_invalid", nil, "", http.StatusBadRequest)
+		}
+
+		if *s.FileMaxAgeDays < 0 {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_age_invalid", nil, "", http.StatusBadRequest)
+		}
+
+		if *s.FileMaxBackups < 0 {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid", nil, "", http.StatusBadRequest)
+		}
+
+		if *s.FileMaxQueueSize <= 0 {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	cfg := make(mlog.LoggerConfiguration)
+	err := json.Unmarshal(s.AdvancedLoggingJSON, &cfg)
+	if err != nil {
+		return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	err = cfg.IsValid()
+	if err != nil {
+		return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return nil
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -2895,14 +2947,16 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppCustomURLSchemes        []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
-	AppDownloadLink            *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	AndroidAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	IosAppDownloadLink         *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	MobileExternalBrowser      *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
-	MobileEnableBiometrics     *bool    `access:"site_customization,write_restrictable"`
-	MobilePreventScreenCapture *bool    `access:"site_customization,write_restrictable"`
-	MobileJailbreakProtection  *bool    `access:"site_customization,write_restrictable"`
+	AppCustomURLSchemes           []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
+	AppDownloadLink               *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	AndroidAppDownloadLink        *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	IosAppDownloadLink            *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileExternalBrowser         *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileEnableBiometrics        *bool    `access:"site_customization,write_restrictable"`
+	MobilePreventScreenCapture    *bool    `access:"site_customization,write_restrictable"`
+	MobileJailbreakProtection     *bool    `access:"site_customization,write_restrictable"`
+	MobileEnableSecureFilePreview *bool    `access:"site_customization,write_restrictable"`
+	MobileAllowPdfLinkNavigation  *bool    `access:"site_customization,write_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2936,6 +2990,14 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.MobileJailbreakProtection == nil {
 		s.MobileJailbreakProtection = NewPointer(false)
+	}
+
+	if s.MobileEnableSecureFilePreview == nil {
+		s.MobileEnableSecureFilePreview = NewPointer(false)
+	}
+
+	if s.MobileAllowPdfLinkNavigation == nil {
+		s.MobileAllowPdfLinkNavigation = NewPointer(false)
 	}
 }
 
@@ -3450,7 +3512,10 @@ type ConnectedWorkspacesSettings struct {
 	EnableSharedChannels            *bool
 	EnableRemoteClusterService      *bool
 	DisableSharedChannelsStatusSync *bool
+	SyncUsersOnConnectionOpen       *bool
+	GlobalUserSyncBatchSize         *int
 	MaxPostsPerSync                 *int
+	MemberSyncBatchSize             *int // Maximum number of members to process in a single batch during shared channel synchronization
 }
 
 func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalSettings) {
@@ -3474,8 +3539,20 @@ func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalS
 		c.DisableSharedChannelsStatusSync = NewPointer(false)
 	}
 
+	if c.SyncUsersOnConnectionOpen == nil {
+		c.SyncUsersOnConnectionOpen = NewPointer(false)
+	}
+
+	if c.GlobalUserSyncBatchSize == nil {
+		c.GlobalUserSyncBatchSize = NewPointer(25) // Default to MaxUsersPerSync
+	}
+
 	if c.MaxPostsPerSync == nil {
 		c.MaxPostsPerSync = NewPointer(ConnectedWorkspacesSettingsDefaultMaxPostsPerSync)
+	}
+
+	if c.MemberSyncBatchSize == nil {
+		c.MemberSyncBatchSize = NewPointer(ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize)
 	}
 }
 
@@ -4001,6 +4078,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.LogSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.ExperimentalAuditSettings.isValid(); appErr != nil {
 		return appErr
 	}
 

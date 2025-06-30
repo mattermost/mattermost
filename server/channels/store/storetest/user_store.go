@@ -610,6 +610,32 @@ func testUserStoreGetAllProfiles(t *testing.T, rctx request.CTX, ss store.Store)
 		}, actual)
 	})
 
+	t.Run("filter by UpdatedAfter", func(t *testing.T) {
+		// Update a user to ensure we have a recent update time
+		updateTime := model.GetMillis()
+		u2.FirstName = "Updated"
+		_, updateErr := ss.User().Update(rctx, u2, false)
+		require.NoError(t, updateErr)
+
+		// Query with the UpdatedAfter filter
+		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:         0,
+			PerPage:      10,
+			UpdatedAfter: updateTime - 1, // Subtract 1 to ensure we capture the update
+		})
+		require.NoError(t, userErr)
+		require.Contains(t, actual, sanitized(u2), "User updated after the specified time should be in the results")
+
+		// Query with a future time, should return no results
+		actual, userErr = ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:         0,
+			PerPage:      10,
+			UpdatedAfter: updateTime + 10000, // Future time
+		})
+		require.NoError(t, userErr)
+		require.NotContains(t, actual, sanitized(u2), "Users updated before the specified future time should not be in the results")
+	})
+
 	u8, err := ss.User().Save(rctx, &model.User{
 		Email:    MakeEmail(),
 		Username: "u8" + model.NewId(),
@@ -2769,13 +2795,6 @@ func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
 
-	// The users returned from the database will have AuthData as an empty string.
-	nilAuthData := new(string)
-	*nilAuthData = ""
-	u1.AuthData = nilAuthData
-	u2.AuthData = nilAuthData
-	u3.AuthData = nilAuthData
-
 	t1id := model.NewId()
 	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: t1id, UserId: u1.Id, SchemeAdmin: true, SchemeUser: true}, -1)
 	require.NoError(t, nErr)
@@ -2954,14 +2973,6 @@ func testUserStoreSearchNotInChannel(t *testing.T, rctx request.CTX, ss store.St
 	require.NoError(t, nErr)
 	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: tid, UserId: u3.Id}, -1)
 	require.NoError(t, nErr)
-
-	// The users returned from the database will have AuthData as an empty string.
-	nilAuthData := new(string)
-	*nilAuthData = ""
-
-	u1.AuthData = nilAuthData
-	u2.AuthData = nilAuthData
-	u3.AuthData = nilAuthData
 
 	ch1 := model.Channel{
 		TeamId:      tid,
@@ -3183,14 +3194,6 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 	require.NoError(t, nErr)
 	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: tid, UserId: u3.Id}, -1)
 	require.NoError(t, nErr)
-
-	// The users returned from the database will have AuthData as an empty string.
-	nilAuthData := new(string)
-	*nilAuthData = ""
-
-	u1.AuthData = nilAuthData
-	u2.AuthData = nilAuthData
-	u3.AuthData = nilAuthData
 
 	ch1 := model.Channel{
 		TeamId:      tid,
@@ -3455,17 +3458,6 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID2, UserId: u4.Id}, -1)
 	require.NoError(t, nErr)
 
-	// The users returned from the database will have AuthData as an empty string.
-	nilAuthData := new(string)
-	*nilAuthData = ""
-
-	u1.AuthData = nilAuthData
-	u2.AuthData = nilAuthData
-	u3.AuthData = nilAuthData
-	u4.AuthData = nilAuthData
-	u5.AuthData = nilAuthData
-	u6.AuthData = nilAuthData
-
 	testCases := []struct {
 		Description string
 		TeamID      string
@@ -3603,14 +3595,6 @@ func testUserStoreSearchWithoutTeam(t *testing.T, rctx request.CTX, ss store.Sto
 	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: tid, UserId: u3.Id}, -1)
 	require.NoError(t, nErr)
 
-	// The users returned from the database will have AuthData as an empty string.
-	nilAuthData := new(string)
-	*nilAuthData = ""
-
-	u1.AuthData = nilAuthData
-	u2.AuthData = nilAuthData
-	u3.AuthData = nilAuthData
-
 	testCases := []struct {
 		Description string
 		Term        string
@@ -3694,13 +3678,6 @@ func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	_, err = ss.User().Save(rctx, u3)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
-
-	// The users returned from the database will have AuthData as an empty string.
-	nilAuthData := model.NewPointer("")
-
-	u1.AuthData = nilAuthData
-	u2.AuthData = nilAuthData
-	u3.AuthData = nilAuthData
 
 	g1 := &model.Group{
 		Name:        model.NewPointer(NewTestID()),
@@ -3837,13 +3814,6 @@ func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Stor
 	_, err = ss.User().Save(rctx, u3)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
-
-	// The users returned from the database will have AuthData as an empty string.
-	nilAuthData := model.NewPointer("")
-
-	u1.AuthData = nilAuthData
-	u2.AuthData = nilAuthData
-	u3.AuthData = nilAuthData
 
 	g1 := &model.Group{
 		Name:        model.NewPointer(NewTestID()),

@@ -3,7 +3,7 @@
 
 .modal .channel-invite__content,
 .modal .user-groups-modal__content {
-    .multi-select__container {
+    .multi-select__container, .multi-select__error {
         height: auto;
         padding: 0 3.2rem;
     }

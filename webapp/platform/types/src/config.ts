@@ -222,6 +222,7 @@ export type ClientConfig = {
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: string;
     YoutubeReferrerPolicy: 'true' | 'false';
     ScheduledPosts: string;
+    DeleteAccountLink: string;
 };
 
 export type License = {
@@ -410,6 +411,7 @@ export type ServiceSettings = {
     ScheduledPosts: boolean;
     EnableWebHubChannelIteration: boolean;
     FrameAncestors: string;
+    DeleteAccountLink: string;
 };
 
 export type TeamSettings = {
@@ -785,6 +787,8 @@ export type NativeAppSettings = {
     MobileEnableBiometrics: boolean;
     MobilePreventScreenCapture: boolean;
     MobileJailbreakProtection: boolean;
+    MobileEnableSecureFilePreview: boolean;
+    MobileAllowPdfLinkNavigation: boolean;
 };
 
 export type ClusterSettings = {

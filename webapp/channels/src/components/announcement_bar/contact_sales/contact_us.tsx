@@ -31,7 +31,7 @@ const ContactUsButton: React.FC<Props> = (props: Props) => {
             {props.buttonTextElement || (
                 <FormattedMessage
                     id={'admin.license.trialCard.contactSales'}
-                    defaultMessage={'Contact sales'}
+                    defaultMessage={'Contact Sales'}
                 />
             )}
         </button>
