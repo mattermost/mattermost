@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
-	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
@@ -878,6 +877,126 @@ func TestGetUsersByStatus(t *testing.T) {
 			usersByStatus[2].Id != offlineUser1.Id && usersByStatus[3].Id != offlineUser2.Id,
 			"expected to receive offline users last",
 		)
+	})
+}
+
+func TestGetUsersNotInAbacChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Set license to EnterpriseAdvanced
+	th.App.Srv().SetLicense(model.NewTestLicense("enterprise.advanced"))
+
+	// Enable ABAC in config
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// Create an ABAC channel
+	abacChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+	// Create three test users and add them to the team
+	user1 := th.CreateUser() // Will have matching attributes for ABAC
+	user2 := th.CreateUser() // Won't have matching attributes
+	user3 := th.CreateUser() // Won't have matching attributes
+	th.LinkUserToTeam(user1, th.BasicTeam)
+	th.LinkUserToTeam(user2, th.BasicTeam)
+	th.LinkUserToTeam(user3, th.BasicTeam)
+
+	// Create a policy with the same ID as the ABAC channel
+	channelPolicy := &model.AccessControlPolicy{
+		Type:     model.AccessControlPolicyTypeChannel,
+		ID:       abacChannel.Id,
+		Name:     "Test Channel Policy",
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_1,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"view", "join_channel"},
+				Expression: "user.attributes.program == \"test-program\"",
+			},
+		},
+	}
+
+	// Save the channel policy
+	var storeErr error
+	channelPolicy, storeErr = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, channelPolicy)
+	require.NoError(t, storeErr)
+	require.NotNil(t, channelPolicy)
+	t.Cleanup(func() {
+		dErr := th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channelPolicy.ID)
+		require.NoError(t, dErr)
+	})
+
+	// Mock the AccessControl service
+	mockAccessControl := &mocks.AccessControlServiceInterface{}
+	originalAccessControl := th.App.Srv().ch.AccessControl
+	th.App.Srv().ch.AccessControl = mockAccessControl
+	defer func() {
+		th.App.Srv().ch.AccessControl = originalAccessControl
+	}()
+
+	t.Run("Returns users with matching attributes using cursor pagination", func(t *testing.T) {
+		// Set up the mock to return user1 when querying for users
+		mockAccessControl.On("QueryUsersForResource",
+			mock.Anything,
+			abacChannel.Id,
+			"*",
+			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+				return opts.TeamID == th.BasicTeam.Id &&
+					opts.Limit == 50 &&
+					opts.Cursor.TargetID == ""
+			})).Return([]*model.User{user1}, int64(1), nil).Once()
+
+		// Call the new ABAC-specific function with th.Context as first parameter
+		users, appErr := th.App.GetUsersNotInAbacChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, false, "", 50, true, nil)
+		require.Nil(t, appErr)
+
+		// Create a map of user IDs for easier lookup
+		userMap := make(map[string]bool)
+		for _, u := range users {
+			userMap[u.Id] = true
+		}
+
+		// Verify only user1 is returned
+		assert.True(t, userMap[user1.Id], "User1 should be returned for ABAC channel")
+		assert.False(t, userMap[user2.Id], "User2 should not be returned for ABAC channel")
+		assert.False(t, userMap[user3.Id], "User3 should not be returned for ABAC channel")
+		assert.Len(t, users, 1, "Should return exactly 1 user")
+	})
+
+	t.Run("Works with cursor-based pagination", func(t *testing.T) {
+		cursorID := "some-cursor-id"
+
+		// Set up the mock to return user1 when querying with cursor
+		mockAccessControl.On("QueryUsersForResource",
+			mock.Anything,
+			abacChannel.Id,
+			"*",
+			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+				return opts.TeamID == th.BasicTeam.Id &&
+					opts.Limit == 25 &&
+					opts.Cursor.TargetID == cursorID
+			})).Return([]*model.User{user1}, int64(1), nil).Once()
+
+		// Call with cursor ID and th.Context as first parameter
+		users, appErr := th.App.GetUsersNotInAbacChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, false, cursorID, 25, true, nil)
+		require.Nil(t, appErr)
+		assert.Len(t, users, 1, "Should return exactly 1 user with cursor pagination")
+	})
+
+	t.Run("Returns error when AccessControl service is unavailable", func(t *testing.T) {
+		// Temporarily set AccessControl to nil
+		th.App.Srv().ch.AccessControl = nil
+		defer func() {
+			th.App.Srv().ch.AccessControl = mockAccessControl
+		}()
+
+		// Call should return error with th.Context as first parameter
+		users, appErr := th.App.GetUsersNotInAbacChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, false, "", 50, true, nil)
+		require.NotNil(t, appErr)
+		require.Nil(t, users)
+		assert.Equal(t, "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error", appErr.Id)
 	})
 }
 
@@ -2291,162 +2410,4 @@ func TestGetUsersForReporting(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, userReports)
 	})
-}
-
-func TestCreateUserOrGuest(t *testing.T) {
-	mainHelper.Parallel(t)
-	t.Run("base case - you can create a user", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-
-	t.Run("cannot create user when user count has exceeded the permissible limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		mockUserStore := storemocks.UserStore{}
-		mockUserStore.On("Count", mock.Anything).Return(int64(12000), nil)
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockStore.On("User").Return(&mockUserStore)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.NotNil(t, appErr)
-		require.Nil(t, createdUser)
-	})
-
-	t.Run("can create user when server is exactly on limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		id := NewTestId()
-		userCreationMocks(t, th, id, 5000)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-
-	t.Run("licensed server can create user when server is OVER limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		id := NewTestId()
-		userCreationMocks(t, th, id, 20000)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-
-		th.App.Srv().SetLicense(model.NewTestLicense(""))
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-
-	t.Run("licensed server can create user when server is UNDER limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		id := NewTestId()
-		userCreationMocks(t, th, id, 10)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-
-		th.App.Srv().SetLicense(model.NewTestLicense(""))
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-}
-
-func userCreationMocks(t *testing.T, th *TestHelper, userID string, activeUserCount int64) {
-	mockUserStore := storemocks.UserStore{}
-	mockUserStore.On("Count", mock.Anything).Return(activeUserCount, nil)
-	mockUserStore.On("IsEmpty", mock.Anything).Return(false, nil)
-	mockUserStore.On("VerifyEmail", mock.Anything, "TestCreateUserOrGuest@example.com").Return("", nil)
-	mockUserStore.On("InvalidateProfilesInChannelCacheByUser", mock.Anything).Return()
-	mockUserStore.On("InvalidateProfileCacheForUser", mock.Anything).Return()
-	mockUserStore.On("Save", mock.Anything, mock.Anything).Return(&model.User{
-		Id:            userID,
-		Email:         "TestCreateUserOrGuest@example.com",
-		Username:      "username_123",
-		Nickname:      "nn_username_123",
-		Password:      "Password1",
-		EmailVerified: true,
-	}, nil)
-
-	mockUserStore.On("Get", mock.Anything, userID).Return(&model.User{
-		Id:            userID,
-		Email:         "TestCreateUserOrGuest@example.com",
-		Username:      "username_123",
-		Nickname:      "nn_username_123",
-		Password:      "Password1",
-		EmailVerified: true,
-	}, nil)
-
-	mockGroupStore := storemocks.GroupStore{}
-	mockGroupStore.On("GetByName", "username_123", mock.Anything).Return(nil, nil)
-
-	mockChannelStore := storemocks.ChannelStore{}
-	mockChannelStore.On("InvalidateAllChannelMembersForUser", mock.Anything).Return()
-
-	mockPreferencesStore := storemocks.PreferenceStore{}
-	mockPreferencesStore.On("Save", mock.Anything).Return(nil)
-
-	mockProductNoticeStore := storemocks.ProductNoticesStore{}
-	mockProductNoticeStore.On("View", userID, mock.Anything).Return(nil)
-
-	mockStore := th.App.Srv().Store().(*storemocks.Store)
-	mockStore.On("User").Return(&mockUserStore)
-	mockStore.On("Group").Return(&mockGroupStore)
-	mockStore.On("Channel").Return(&mockChannelStore)
-	mockStore.On("Preference").Return(&mockPreferencesStore)
-	mockStore.On("ProductNotices").Return(&mockProductNoticeStore)
-
-	var err error
-	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
-		UserStore:    &mockUserStore,
-		SessionStore: &storemocks.SessionStore{},
-		OAuthStore:   &storemocks.OAuthStore{},
-		ConfigFn:     th.App.ch.srv.platform.Config,
-		LicenseFn:    th.App.ch.srv.License,
-	})
-
-	require.NoError(t, err)
 }

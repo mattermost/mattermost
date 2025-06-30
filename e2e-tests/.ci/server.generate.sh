@@ -139,7 +139,7 @@ $(if mme2e_is_token_in_list "openldap" "$ENABLED_DOCKER_SERVICES"; then
   fi)
 
 $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
-      echo '
+    echo '
   elasticsearch:
     restart: "no"
     network_mode: host
@@ -163,7 +163,7 @@ $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
   fi)
 
 $(if mme2e_is_token_in_list "opensearch" "$ENABLED_DOCKER_SERVICES"; then
-      echo '
+    echo '
   opensearch:
     restart: "no"
     network_mode: host
@@ -181,7 +181,7 @@ $(if mme2e_is_token_in_list "opensearch" "$ENABLED_DOCKER_SERVICES"; then
   fi)
 
 $(if mme2e_is_token_in_list "redis" "$ENABLED_DOCKER_SERVICES"; then
-      echo '
+    echo '
   redis:
     restart: "no"
     network_mode: host
@@ -279,7 +279,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.52.0-noble
+    image: mcr.microsoft.com/playwright:v1.53.0-noble
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
     env_file:
@@ -338,11 +338,11 @@ generate_env_files() {
 
   # Generating service-specific env vars
   for SERVICE in $ENABLED_DOCKER_SERVICES; do
-  case $SERVICE in
+    case $SERVICE in
     opensearch)
       echo "MM_ELASTICSEARCHSETTINGS_BACKEND=opensearch" >>.env.server
       ;;
-  esac
+    esac
   done
 
   # Generating TEST-specific env files
@@ -376,7 +376,7 @@ generate_env_files() {
       keycloak)
         echo "CYPRESS_keycloakBaseUrl=http://localhost:8484" >>.env.cypress
         ;;
-      elasticsearch|opensearch)
+      elasticsearch | opensearch)
         echo "CYPRESS_elasticsearchConnectionURL=http://localhost:9200" >>.env.cypress
         ;;
       esac
@@ -385,8 +385,8 @@ generate_env_files() {
     case "$SERVER" in
     cloud)
       echo "CYPRESS_serverEdition=Cloud" >>.env.cypress
-      echo "CYPRESS_cwsURL=${CWS_URL}" >> .env.cypress
-      echo "CYPRESS_cwsAPIURL=${CWS_URL}" >> .env.cypress
+      echo "CYPRESS_cwsURL=${CWS_URL}" >>.env.cypress
+      echo "CYPRESS_cwsAPIURL=${CWS_URL}" >>.env.cypress
       ;;
     *)
       echo "CYPRESS_serverEdition=E20" >>.env.cypress

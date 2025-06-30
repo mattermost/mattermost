@@ -309,7 +309,7 @@ func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
 	case "P-256":
 		curve = elliptic.P256()
 	default:
-		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
+		return fmt.Errorf("unknown curve: %s", key.ECDSAKey.Curve)
 	}
 	ps.asymmetricSigningKey.Store(&ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{

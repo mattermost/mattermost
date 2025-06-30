@@ -628,6 +628,24 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
+	s.Run("Search for a user with authData", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := &model.User{Username: "ExampleUser", Email: emailArg, AuthData: model.NewPointer("1234"), AuthService: model.UserAuthServiceLdap}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.TODO(), emailArg, "").
+			Return(mockUser, &model.Response{}, nil).
+			Times(1)
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(userOut{User: mockUser, Deactivated: false, AuthData: "1234"}, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
 	s.Run("Search for a nonexistent user", func() {
 		printer.Clean()
 		arg := "example@example.com"
@@ -1753,7 +1771,7 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 		var expected error
 
 		expected = multierror.Append(
-			expected, fmt.Errorf("unable to reset user \"userId\" MFA. Error: "+mockError.Error()),
+			expected, fmt.Errorf("unable to reset user \"userId\" MFA. Error: %s", mockError.Error()),
 		)
 
 		s.Require().EqualError(err, expected.Error())
@@ -1814,7 +1832,7 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			),
 		)
 		expected = multierror.Append(
-			expected, fmt.Errorf("unable to reset user \""+users[1]+"\" MFA. Error: "+mockError.Error()),
+			expected, fmt.Errorf("unable to reset user \"%s\" MFA. Error: %s", users[1], mockError.Error()),
 		)
 
 		s.Require().EqualError(err, expected.ErrorOrNil().Error())

@@ -163,6 +163,12 @@ func (s *Store) Attributes() store.AttributesStore {
 	return &s.AttributesStore
 }
 
+func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
+	return &model.SupportPacketDatabaseSchema{
+		Tables: []model.DatabaseTable{},
+	}, nil
+}
+
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,
 		&s.TeamStore,

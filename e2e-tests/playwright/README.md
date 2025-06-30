@@ -107,18 +107,15 @@ In CI environments, visual tests run in a separate dedicated pipeline:
 When creating visual tests:
 
 1. **Follow the test documentation format** like other tests:
-
     - Include JSDoc with `@objective` tag
     - Use action-oriented test title
     - Add proper comment prefixes (`// #` for actions, `// *` for verifications)
 
 2. **Place in the correct location**:
-
     - Put visual tests in the `specs/visual/` directory, organized by feature area
     - Example: `specs/visual/channels/intro_channel.spec.ts`
 
 3. **Add required tags**:
-
     - Always include `@visual` tag
     - Add feature-specific tags as needed (e.g., `@login_page`, `@channel_page`)
 
@@ -153,7 +150,7 @@ test(
 Change to the `./` project directory, then run the docker container. (See https://playwright.dev/docs/docker for reference.)
 
 ```bash
-docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.52.0-noble /bin/bash
+docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.53.0-noble /bin/bash
 ```
 
 #### 2. Inside the docker container
