@@ -3622,7 +3622,6 @@
   "channel_settings.error_display_name_required": "Namn på kanalen är obligatoriskt",
   "channel_settings.error_purpose_length": "Angiven text överskrider max antal tillåtna tecken. Kanalens syfte är begränsat till {maxLength} tecken.",
   "channel_settings.header.label": "Kanalhuvud",
-  "channel_settings.label.name": "Kanalnamn",
   "channel_settings.modal.archiveTitle": "Arkivera kanalen?",
   "channel_settings.modal.confirmArchive": "Bekräfta",
   "channel_settings.modal.title": "Inställningar för kanalen",

@@ -3677,7 +3677,6 @@
   "channel_settings.error_display_name_required": "Kanaalnaam is vereist",
   "channel_settings.error_purpose_length": "De ingevoerde tekst overschrijdt de karakterlimiet. Het doel van het kanaal is beperkt tot {MaxLength} tekens.",
   "channel_settings.header.label": "Kanaalhoofding",
-  "channel_settings.label.name": "Kanaalnaam",
   "channel_settings.modal.archiveTitle": "Kanaal archiveren?",
   "channel_settings.modal.confirmArchive": "Bevestigen",
   "channel_settings.modal.title": "Kanaalinstellingen",
