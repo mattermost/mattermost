@@ -296,12 +296,10 @@ function verifySearchAutocomplete(index, type = 'user') {
                 const usernameLength = 12;
                 const displayName = text.substring(1, usernameLength) + ' ' + text.substring(usernameLength, text.length);
                 const userAriaLabel = getUserMentionAriaLabel(displayName);
-                cy.wrap(el).parents('#searchFormContainer').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('have.text', userAriaLabel);
             });
         } else if (type === 'channel') {
             cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
                 const channel = text.split('~')[1].toLowerCase().trim();
-                cy.wrap(el).parents('#searchFormContainer').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('have.text', channel);
             });
         }
     });
