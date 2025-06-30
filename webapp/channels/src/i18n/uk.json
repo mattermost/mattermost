@@ -3506,7 +3506,6 @@
   "channel_settings.error_display_name_required": "Назва каналу обов'язкова",
   "channel_settings.error_purpose_length": "Введений текст перевищує ліміт символів. Призначення каналу обмежено {maxLength} символами.",
   "channel_settings.header.label": "Заголовок каналу",
-  "channel_settings.label.name": "Назва каналу",
   "channel_settings.modal.archiveTitle": "Архівувати канал?",
   "channel_settings.modal.confirmArchive": "Підтвердити",
   "channel_settings.modal.title": "Налаштування каналу",

@@ -9755,7 +9755,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Benutzer kann nicht aktiviert werden. Der Server überschreitet das Limit für sichere Benutzer. Kontaktiere deinen Administrator mit: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Benutzer kann nicht aktiviert werden. Server überschreitet sichere Benutzergrenze. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "model.scheme.is_valid.app_error",
@@ -10822,5 +10822,73 @@
   {
     "id": "ent.access_control.job_data_conversion.app_error",
     "translation": "Die Daten aus dem vorherigen Auftrag konnten nicht extrahiert werden."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Benutzer kann nicht erstellt werden. Server überschreitet die maximale Anzahl lizenzierter Benutzer. Kontaktiere deinen Administrator mit: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Speichern des Stapels von Quittungsobjekten fehlgeschlagen"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Bestätigung für fehlenden Beitrag kann nicht gelöscht werden"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Bestätigung für fehlenden Beitrag kann nicht gespeichert werden"
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Ungültiger Testtyp: {{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Remote-Cluster-Import ist nicht erlaubt"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Der Zugriffskontrolldienst ist nicht verfügbar. Benutzer können für ABAC-aktivierte Kanäle nicht gefiltert werden."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Benutzer kann nicht aktiviert werden. Server überschreitet die maximale Anzahl lizenzierter Benutzer. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP Verbindungstest fehlgeschlagen. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Fehler: {{.Error}}"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Ungültige Kanal-ID."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Das maximale Dateialter der Audit-Logs darf nicht negativ sein."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Die maximale Datei-Backups der Audit-Logs-Konfiguration dürfen nicht negativ sein."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Die maximale Datei-Warteschlange der Audit-Logs config muss größer als Null sein."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Die maximale Dateigröße der Audit-Logs muss größer als Null sein."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "Wenn die Protokollierung von Audit-Dateien aktiviert ist, muss ein Dateiname angegeben werden."
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Du kannst keine Gäste in diesen Kanal einladen, weil der Zugang zu diesem Kanal aufgrund von Benutzerattributen eingeschränkt ist."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "Der Name der Datei darf kein Verzeichnis sein."
   }
 ]
