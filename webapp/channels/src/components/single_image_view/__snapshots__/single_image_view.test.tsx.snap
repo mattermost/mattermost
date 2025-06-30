@@ -17,59 +17,64 @@ exports[`components/SingleImageView permalink preview should render with permali
         key="toggle"
         onClick={[Function]}
       >
-        <span
-          className="icon icon-menu-down"
+        <MenuDownIcon
+          color="currentColor"
+          size={16}
         />
       </button>
     </div>
     <div
-      className="image-container image-permalink"
-      style={Object {}}
+      className="image-container image-permalink image-container--small"
+      data-expanded={true}
+      style={
+        Object {
+          "minHeight": 50,
+          "minWidth": 50,
+        }
+      }
     >
       <div
-        className="image-loaded"
+        className="image-loaded image-permalink"
         style={Object {}}
       >
-        <div
-          className="image-permalink"
-        >
-          <injectIntl(SizeAwareImage)
-            className="image-permalink"
-            dimensions={
-              Object {
-                "height": 200,
-                "width": 350,
-              }
+        <injectIntl(SizeAwareImage)
+          className=" single-image-view__image"
+          dimensions={
+            Object {
+              "height": 200,
+              "width": 350,
             }
-            enablePublicLink={false}
-            fileInfo={
-              Object {
-                "archived": false,
-                "channel_id": "channel_id",
-                "clientId": "client_id",
-                "create_at": 1,
-                "delete_at": 1,
-                "extension": "jpg",
-                "has_preview_image": true,
-                "height": 200,
-                "id": "file_info_id",
-                "mime_type": "mime_type",
-                "name": "name",
-                "size": 1,
-                "update_at": 1,
-                "user_id": "user_id",
-                "width": 350,
-              }
+          }
+          enablePublicLink={false}
+          fileInfo={
+            Object {
+              "archived": false,
+              "channel_id": "channel_id",
+              "clientId": "client_id",
+              "create_at": 1,
+              "delete_at": 1,
+              "extension": "jpg",
+              "has_preview_image": true,
+              "height": 200,
+              "id": "file_info_id",
+              "mime_type": "mime_type",
+              "name": "name",
+              "size": 1,
+              "update_at": 1,
+              "user_id": "user_id",
+              "width": 350,
             }
-            fileURL="/api/v4/files/file_info_id"
-            getFilePublicLink={[Function]}
-            handleSmallImageContainer={true}
-            onClick={[Function]}
-            onImageLoaded={[Function]}
-            showLoader={true}
-            src="/api/v4/files/file_info_id/preview"
-          />
-        </div>
+          }
+          fileURL="/api/v4/files/file_info_id"
+          getFilePublicLink={[Function]}
+          handleSmallImageContainer={true}
+          minContainerSize={50}
+          onClick={[Function]}
+          onImageLoaded={[Function]}
+          showLoader={true}
+          smallImageThreshold={216}
+          src="/api/v4/files/file_info_id/preview"
+        />
       </div>
     </div>
   </div>
@@ -93,59 +98,64 @@ exports[`components/SingleImageView should match snapshot 1`] = `
         key="toggle"
         onClick={[Function]}
       >
-        <span
-          className="icon icon-menu-down"
+        <MenuDownIcon
+          color="currentColor"
+          size={16}
         />
       </button>
     </div>
     <div
-      className="image-container"
-      style={Object {}}
+      className="image-container image-container--small"
+      data-expanded={true}
+      style={
+        Object {
+          "minHeight": 50,
+          "minWidth": 50,
+        }
+      }
     >
       <div
         className="image-loaded"
         style={Object {}}
       >
-        <div
-          className=""
-        >
-          <injectIntl(SizeAwareImage)
-            className=""
-            dimensions={
-              Object {
-                "height": 200,
-                "width": 350,
-              }
+        <injectIntl(SizeAwareImage)
+          className=" single-image-view__image"
+          dimensions={
+            Object {
+              "height": 200,
+              "width": 350,
             }
-            enablePublicLink={false}
-            fileInfo={
-              Object {
-                "archived": false,
-                "channel_id": "channel_id",
-                "clientId": "client_id",
-                "create_at": 1,
-                "delete_at": 1,
-                "extension": "jpg",
-                "has_preview_image": true,
-                "height": 200,
-                "id": "file_info_id",
-                "mime_type": "mime_type",
-                "name": "name",
-                "size": 1,
-                "update_at": 1,
-                "user_id": "user_id",
-                "width": 350,
-              }
+          }
+          enablePublicLink={false}
+          fileInfo={
+            Object {
+              "archived": false,
+              "channel_id": "channel_id",
+              "clientId": "client_id",
+              "create_at": 1,
+              "delete_at": 1,
+              "extension": "jpg",
+              "has_preview_image": true,
+              "height": 200,
+              "id": "file_info_id",
+              "mime_type": "mime_type",
+              "name": "name",
+              "size": 1,
+              "update_at": 1,
+              "user_id": "user_id",
+              "width": 350,
             }
-            fileURL="/api/v4/files/file_info_id"
-            getFilePublicLink={[Function]}
-            handleSmallImageContainer={true}
-            onClick={[Function]}
-            onImageLoaded={[Function]}
-            showLoader={true}
-            src="/api/v4/files/file_info_id/preview"
-          />
-        </div>
+          }
+          fileURL="/api/v4/files/file_info_id"
+          getFilePublicLink={[Function]}
+          handleSmallImageContainer={true}
+          minContainerSize={50}
+          onClick={[Function]}
+          onImageLoaded={[Function]}
+          showLoader={true}
+          smallImageThreshold={216}
+          src="/api/v4/files/file_info_id/preview"
+        />
       </div>
     </div>
   </div>
@@ -169,59 +179,64 @@ exports[`components/SingleImageView should match snapshot 2`] = `
         key="toggle"
         onClick={[Function]}
       >
-        <span
-          className="icon icon-menu-down"
+        <MenuDownIcon
+          color="currentColor"
+          size={16}
         />
       </button>
     </div>
     <div
-      className="image-container"
-      style={Object {}}
+      className="image-container image-container--small"
+      data-expanded={true}
+      style={
+        Object {
+          "minHeight": 50,
+          "minWidth": 50,
+        }
+      }
     >
       <div
         className="image-loaded image-fade-in"
         style={Object {}}
       >
-        <div
-          className=""
-        >
-          <injectIntl(SizeAwareImage)
-            className=""
-            dimensions={
-              Object {
-                "height": 200,
-                "width": 350,
-              }
+        <injectIntl(SizeAwareImage)
+          className=" single-image-view__image"
+          dimensions={
+            Object {
+              "height": 200,
+              "width": 350,
             }
-            enablePublicLink={false}
-            fileInfo={
-              Object {
-                "archived": false,
-                "channel_id": "channel_id",
-                "clientId": "client_id",
-                "create_at": 1,
-                "delete_at": 1,
-                "extension": "jpg",
-                "has_preview_image": true,
-                "height": 200,
-                "id": "file_info_id",
-                "mime_type": "mime_type",
-                "name": "name",
-                "size": 1,
-                "update_at": 1,
-                "user_id": "user_id",
-                "width": 350,
-              }
+          }
+          enablePublicLink={false}
+          fileInfo={
+            Object {
+              "archived": false,
+              "channel_id": "channel_id",
+              "clientId": "client_id",
+              "create_at": 1,
+              "delete_at": 1,
+              "extension": "jpg",
+              "has_preview_image": true,
+              "height": 200,
+              "id": "file_info_id",
+              "mime_type": "mime_type",
+              "name": "name",
+              "size": 1,
+              "update_at": 1,
+              "user_id": "user_id",
+              "width": 350,
             }
-            fileURL="/api/v4/files/file_info_id"
-            getFilePublicLink={[Function]}
-            handleSmallImageContainer={true}
-            onClick={[Function]}
-            onImageLoaded={[Function]}
-            showLoader={true}
-            src="/api/v4/files/file_info_id/preview"
-          />
-        </div>
+          }
+          fileURL="/api/v4/files/file_info_id"
+          getFilePublicLink={[Function]}
+          handleSmallImageContainer={true}
+          minContainerSize={50}
+          onClick={[Function]}
+          onImageLoaded={[Function]}
+          showLoader={true}
+          smallImageThreshold={216}
+          src="/api/v4/files/file_info_id/preview"
+        />
       </div>
     </div>
   </div>
@@ -245,14 +260,21 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
         key="toggle"
         onClick={[Function]}
       >
-        <span
-          className="icon icon-menu-down"
+        <MenuDownIcon
+          color="currentColor"
+          size={16}
         />
       </button>
     </div>
     <div
-      className="image-container"
-      style={Object {}}
+      className="image-container image-container--small"
+      data-expanded={true}
+      style={
+        Object {
+          "minHeight": 50,
+          "minWidth": 50,
+        }
+      }
     >
       <div
         className="image-loaded svg"
@@ -262,46 +284,44 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
           }
         }
       >
-        <div
-          className=""
-        >
-          <injectIntl(SizeAwareImage)
-            className=""
-            dimensions={
-              Object {
-                "height": 200,
-                "width": 350,
-              }
+        <injectIntl(SizeAwareImage)
+          className=" single-image-view__image"
+          dimensions={
+            Object {
+              "height": 200,
+              "width": 350,
             }
-            enablePublicLink={false}
-            fileInfo={
-              Object {
-                "archived": false,
-                "channel_id": "channel_id",
-                "clientId": "client_id",
-                "create_at": 1,
-                "delete_at": 1,
-                "extension": "svg",
-                "has_preview_image": true,
-                "height": 200,
-                "id": "svg_file_info_id",
-                "mime_type": "mime_type",
-                "name": "name_svg",
-                "size": 1,
-                "update_at": 1,
-                "user_id": "user_id",
-                "width": 350,
-              }
+          }
+          enablePublicLink={false}
+          fileInfo={
+            Object {
+              "archived": false,
+              "channel_id": "channel_id",
+              "clientId": "client_id",
+              "create_at": 1,
+              "delete_at": 1,
+              "extension": "svg",
+              "has_preview_image": true,
+              "height": 200,
+              "id": "svg_file_info_id",
+              "mime_type": "mime_type",
+              "name": "name_svg",
+              "size": 1,
+              "update_at": 1,
+              "user_id": "user_id",
+              "width": 350,
             }
-            fileURL="/api/v4/files/svg_file_info_id"
-            getFilePublicLink={[Function]}
-            handleSmallImageContainer={true}
-            onClick={[Function]}
-            onImageLoaded={[Function]}
-            showLoader={true}
-            src="/api/v4/files/svg_file_info_id/preview"
-          />
-        </div>
+          }
+          fileURL="/api/v4/files/svg_file_info_id"
+          getFilePublicLink={[Function]}
+          handleSmallImageContainer={true}
+          minContainerSize={50}
+          onClick={[Function]}
+          onImageLoaded={[Function]}
+          showLoader={true}
+          smallImageThreshold={216}
+          src="/api/v4/files/svg_file_info_id/preview"
+        />
       </div>
     </div>
   </div>
@@ -325,14 +345,21 @@ exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
         key="toggle"
         onClick={[Function]}
       >
-        <span
-          className="icon icon-menu-down"
+        <MenuDownIcon
+          color="currentColor"
+          size={16}
         />
       </button>
     </div>
     <div
-      className="image-container"
-      style={Object {}}
+      className="image-container image-container--small"
+      data-expanded={true}
+      style={
+        Object {
+          "minHeight": 50,
+          "minWidth": 50,
+        }
+      }
     >
       <div
         className="image-loaded image-fade-in svg"
@@ -342,46 +369,44 @@ exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
           }
         }
       >
-        <div
-          className=""
-        >
-          <injectIntl(SizeAwareImage)
-            className=""
-            dimensions={
-              Object {
-                "height": 200,
-                "width": 350,
-              }
+        <injectIntl(SizeAwareImage)
+          className=" single-image-view__image"
+          dimensions={
+            Object {
+              "height": 200,
+              "width": 350,
             }
-            enablePublicLink={false}
-            fileInfo={
-              Object {
-                "archived": false,
-                "channel_id": "channel_id",
-                "clientId": "client_id",
-                "create_at": 1,
-                "delete_at": 1,
-                "extension": "svg",
-                "has_preview_image": true,
-                "height": 200,
-                "id": "svg_file_info_id",
-                "mime_type": "mime_type",
-                "name": "name_svg",
-                "size": 1,
-                "update_at": 1,
-                "user_id": "user_id",
-                "width": 350,
-              }
+          }
+          enablePublicLink={false}
+          fileInfo={
+            Object {
+              "archived": false,
+              "channel_id": "channel_id",
+              "clientId": "client_id",
+              "create_at": 1,
+              "delete_at": 1,
+              "extension": "svg",
+              "has_preview_image": true,
+              "height": 200,
+              "id": "svg_file_info_id",
+              "mime_type": "mime_type",
+              "name": "name_svg",
+              "size": 1,
+              "update_at": 1,
+              "user_id": "user_id",
+              "width": 350,
             }
-            fileURL="/api/v4/files/svg_file_info_id"
-            getFilePublicLink={[Function]}
-            handleSmallImageContainer={true}
-            onClick={[Function]}
-            onImageLoaded={[Function]}
-            showLoader={true}
-            src="/api/v4/files/svg_file_info_id/preview"
-          />
-        </div>
+          }
+          fileURL="/api/v4/files/svg_file_info_id"
+          getFilePublicLink={[Function]}
+          handleSmallImageContainer={true}
+          minContainerSize={50}
+          onClick={[Function]}
+          onImageLoaded={[Function]}
+          showLoader={true}
+          smallImageThreshold={216}
+          src="/api/v4/files/svg_file_info_id/preview"
+        />
       </div>
     </div>
   </div>
@@ -405,59 +430,64 @@ exports[`components/SingleImageView should set loaded state on callback of onIma
         key="toggle"
         onClick={[Function]}
       >
-        <span
-          className="icon icon-menu-down"
+        <MenuDownIcon
+          color="currentColor"
+          size={16}
         />
       </button>
     </div>
     <div
-      className="image-container"
-      style={Object {}}
+      className="image-container image-container--small"
+      data-expanded={true}
+      style={
+        Object {
+          "minHeight": 50,
+          "minWidth": 50,
+        }
+      }
     >
       <div
         className="image-loaded image-fade-in"
         style={Object {}}
       >
-        <div
-          className=""
-        >
-          <injectIntl(SizeAwareImage)
-            className=""
-            dimensions={
-              Object {
-                "height": 200,
-                "width": 350,
-              }
+        <injectIntl(SizeAwareImage)
+          className=" single-image-view__image"
+          dimensions={
+            Object {
+              "height": 200,
+              "width": 350,
             }
-            enablePublicLink={false}
-            fileInfo={
-              Object {
-                "archived": false,
-                "channel_id": "channel_id",
-                "clientId": "client_id",
-                "create_at": 1,
-                "delete_at": 1,
-                "extension": "jpg",
-                "has_preview_image": true,
-                "height": 200,
-                "id": "file_info_id",
-                "mime_type": "mime_type",
-                "name": "name",
-                "size": 1,
-                "update_at": 1,
-                "user_id": "user_id",
-                "width": 350,
-              }
+          }
+          enablePublicLink={false}
+          fileInfo={
+            Object {
+              "archived": false,
+              "channel_id": "channel_id",
+              "clientId": "client_id",
+              "create_at": 1,
+              "delete_at": 1,
+              "extension": "jpg",
+              "has_preview_image": true,
+              "height": 200,
+              "id": "file_info_id",
+              "mime_type": "mime_type",
+              "name": "name",
+              "size": 1,
+              "update_at": 1,
+              "user_id": "user_id",
+              "width": 350,
             }
-            fileURL="/api/v4/files/file_info_id"
-            getFilePublicLink={[Function]}
-            handleSmallImageContainer={true}
-            onClick={[Function]}
-            onImageLoaded={[Function]}
-            showLoader={true}
-            src="/api/v4/files/file_info_id/preview"
-          />
-        </div>
+          }
+          fileURL="/api/v4/files/file_info_id"
+          getFilePublicLink={[Function]}
+          handleSmallImageContainer={true}
+          minContainerSize={50}
+          onClick={[Function]}
+          onImageLoaded={[Function]}
+          showLoader={true}
+          smallImageThreshold={216}
+          src="/api/v4/files/file_info_id/preview"
+        />
       </div>
     </div>
   </div>

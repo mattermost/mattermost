@@ -146,7 +146,7 @@ describe('Image Link Preview', () => {
                 filename: 'image-20x20.jpg',
                 originalSize: {width: 20, height: 20},
                 thumbnailSize: {width: 20, height: 20},
-                containerSize: {height: 46},
+                containerSize: {height: 50},
             },
             {
                 filename: 'image-50x50.jpg',
@@ -167,26 +167,26 @@ describe('Image Link Preview', () => {
                 filename: 'image-40x400.jpg',
                 originalSize: {width: 40, height: 400},
                 thumbnailSize: {width: 35, height: 350},
-                containerSize: {width: 46},
+                containerSize: {width: 50},
             },
             {
                 filename: 'image-400x40.jpg',
                 originalSize: {width: 400, height: 40},
                 thumbnailSize: {width: 400, height: 40},
-                containerSize: {height: 46},
+                containerSize: {height: 50},
             },
             {
                 filename: 'image-1000x40.jpg',
                 originalSize: {width: 1000, height: 40},
                 thumbnailSize: {width: 899, height: 36},
-                containerSize: {height: 46},
+                containerSize: {height: 50},
             },
             {
                 filename: 'image-1600x40.jpg',
                 originalSize: {width: 1600, height: 40},
                 thumbnailSize: {width: 899, height: 23},
                 previewSize: {width: 1204, height: 30},
-                containerSize: {height: 46},
+                containerSize: {height: 50},
             },
         ];
 
