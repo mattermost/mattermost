@@ -103,6 +103,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             onChange={[Function]}
             onParseError={[Function]}
             onValidate={[Function]}
+            serviceEnvironment="production"
             userAttributes={Array []}
             value=""
           />
@@ -307,6 +308,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             onChange={[Function]}
             onParseError={[Function]}
             onValidate={[Function]}
+            serviceEnvironment="production"
             userAttributes={Array []}
             value=""
           />

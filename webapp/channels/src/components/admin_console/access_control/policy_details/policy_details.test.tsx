@@ -6,6 +6,7 @@ import React from 'react';
 import {act} from 'react-dom/test-utils';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
+import {ServiceEnvironment} from '@mattermost/types/config';
 
 import PolicyDetails from './policy_details';
 
@@ -36,6 +37,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     const mockGetVisualAST = jest.fn();
     const defaultProps = {
         policyId: 'policy1',
+        serviceEnvironment: ServiceEnvironment.PRODUCTION,
         channels: [
             {id: 'channel1', name: 'Channel 1', display_name: 'Channel 1', team_display_name: 'Team 1', type: 'O'} as ChannelWithTeamData,
             {id: 'channel2', name: 'channel2', display_name: 'Channel 2', team_display_name: 'Team 2', type: 'P'} as ChannelWithTeamData,
