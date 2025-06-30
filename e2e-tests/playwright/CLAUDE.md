@@ -87,7 +87,6 @@ npm run show-report
 ### Key Components
 
 1. **`lib/` Directory**: Contains the shared library (`@mattermost/playwright-lib`) that provides:
-
     - Page objects for Mattermost UI pages
     - Component abstractions for UI elements
     - Test utilities and fixtures
@@ -95,14 +94,12 @@ npm run show-report
     - Visual testing support
 
 2. **`specs/` Directory**: Contains the actual test files organized by type:
-
     - `functional/` - Functional tests for various features
     - `visual/` - Visual regression tests
     - `accessibility/` - Accessibility tests
     - `client/` - Client API tests
 
 3. **Test Fixtures**: The main test fixture (`pw`) provides:
-
     - Browser context management
     - Page actions and utilities
     - Server API helpers
@@ -116,7 +113,6 @@ npm run show-report
 ### Test Flow
 
 1. Tests typically follow this pattern:
-
     - Initialize test setup with `pw.initSetup()`
     - Login to a test account with `pw.testBrowser.login()`
     - Navigate to the relevant page
@@ -161,7 +157,6 @@ Before running tests, a Mattermost server must be available. Two options:
 1. **Page Object Pattern**: Always use page/component objects from the library. No static UI selectors should be in test files.
 
 2. **Visual Testing**: For visual tests:
-
     - Place all visual tests in the `specs/visual/` directory
     - Always include the `@visual` tag in the test tags array
     - Run via Docker container for consistency to maintain screenshot integrity
@@ -173,7 +168,6 @@ Before running tests, a Mattermost server must be available. Two options:
     - Follow the visual test documentation format like other tests, with proper JSDoc and comments
 
 3. **Test Title Validation with Claude Code**: When using Claude:
-
     - Run `claude spec/path/to/file.spec.ts` to check your test file
     - Ask: "Check if test titles follow the format in CLAUDE.md"
     - Claude will analyze each test title and suggest improvements
@@ -181,7 +175,6 @@ Before running tests, a Mattermost server must be available. Two options:
     - Example: `creates scheduled message from channel and posts at scheduled time`
 
 4. **Test Structure**:
-
     - Use descriptive test titles that follow this format:
         - **Action-oriented**: Start with a verb that describes the main action
         - **Feature-specific**: Include the feature or component being tested
@@ -202,7 +195,6 @@ Before running tests, a Mattermost server must be available. Two options:
     - Use tags to categorize tests with `{tag: '@feature_name'}`
 
 5. **Test Documentation Format**:
-
     - Include JSDoc-style documentation before each test:
         ```typescript
         /**
@@ -240,7 +232,6 @@ Before running tests, a Mattermost server must be available. Two options:
         - `// * descriptive verification` - Comments that describe assertions/checks (e.g., `// * Verify message appears in channel`)
 
 6. **Browser Compatibility**:
-
     - Tests run on Chrome, Firefox, and iPad by default
     - Consider browser-specific behaviors for certain features
     - Use `test.skip()` for browser-specific limitations
