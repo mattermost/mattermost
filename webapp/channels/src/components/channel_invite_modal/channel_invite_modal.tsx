@@ -198,6 +198,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         }
 
         const groupsAndUsers = [
+
             // Only include groups if ABAC policy is NOT enforced
             ...(props.channel.policy_enforced ? [] : filterGroupsMatchingTerm(props.groups, term) as GroupValue[]),
             ...users,
@@ -343,6 +344,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 const promises = [
                     props.actions.searchProfiles(term, options),
                 ];
+
                 // Only search for groups if groups are enabled AND ABAC policy is NOT enforced
                 if (props.isGroupsEnabled && !props.channel.policy_enforced) {
                     promises.push(props.actions.searchAssociatedGroupsForReference(term, props.channel.team_id, props.channel.id, opts));
