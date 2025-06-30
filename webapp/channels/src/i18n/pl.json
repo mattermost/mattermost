@@ -3667,7 +3667,6 @@
   "channel_settings.error_display_name_required": "Nazwa kanału jest wymagana",
   "channel_settings.error_purpose_length": "Wprowadzony tekst przekracza limit znaków. Cel kanału jest ograniczony do {maxLength} znaków.",
   "channel_settings.header.label": "Nagłówek kanału",
-  "channel_settings.label.name": "Nazwa Kanału",
   "channel_settings.modal.archiveTitle": "Zarchiwizować kanał?",
   "channel_settings.modal.confirmArchive": "Potwierdź",
   "channel_settings.modal.title": "Ustawienia kanału",

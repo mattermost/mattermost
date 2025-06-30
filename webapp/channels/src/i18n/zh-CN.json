@@ -3677,7 +3677,6 @@
   "channel_settings.error_display_name_required": "频道名称为必填项",
   "channel_settings.error_purpose_length": "输入的文本超过字符限制。频道用途的限制为 {maxLength} 个字符。",
   "channel_settings.header.label": "频道标题",
-  "channel_settings.label.name": "频道名称",
   "channel_settings.modal.archiveTitle": "归档频道？",
   "channel_settings.modal.confirmArchive": "确认",
   "channel_settings.modal.title": "频道设定",

@@ -3677,7 +3677,6 @@
   "channel_settings.error_display_name_required": "Kanalname ist erforderlich",
   "channel_settings.error_purpose_length": "Der eingegebene Text ist zu lang. Der Kanalzweck ist auf {{.MaxLength}} Zeichen beschränkt.",
   "channel_settings.header.label": "Kanal-Kopfzeile",
-  "channel_settings.label.name": "Kanalname",
   "channel_settings.modal.archiveTitle": "Kanal archivieren?",
   "channel_settings.modal.confirmArchive": "Bestätigen",
   "channel_settings.modal.title": "Kanaleinstellungen",
