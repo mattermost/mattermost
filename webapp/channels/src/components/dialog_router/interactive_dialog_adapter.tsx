@@ -5,7 +5,7 @@ import React from 'react';
 import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import type {AppForm, AppField, AppCallRequest, AppFormValue, AppSelectOption, AppFormValues} from '@mattermost/types/apps';
+import type {AppForm, AppField, AppCallRequest, AppFormValue, AppSelectOption, AppFormValues, AppContext} from '@mattermost/types/apps';
 import type {DialogElement, DialogSubmission, SubmitDialogResponse} from '@mattermost/types/integrations';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
@@ -20,6 +20,43 @@ type ValidationError = {
     field: string;
     message: string;
     code: 'REQUIRED' | 'TOO_LONG' | 'TOO_SHORT' | 'INVALID_TYPE' | 'INVALID_FORMAT' | 'CONVERSION_ERROR';
+};
+
+// Server dialog response structure (snake_case format from server)
+type ServerDialogResponse = {
+    elements?: DialogElement[];
+    title?: string;
+    introduction_text?: string;
+    icon_url?: string;
+    submit_label?: string;
+    source_url?: string;
+    callback_id?: string;
+    notify_on_cancel?: boolean;
+    state?: string;
+};
+
+// Transformed dialog props structure (camelCase format for components)
+type TransformedDialogProps = {
+    elements?: DialogElement[];
+    title: string;
+    introductionText?: string;
+    iconUrl?: string;
+    submitLabel?: string;
+    sourceUrl?: string;
+    callbackId?: string;
+    notifyOnCancel?: boolean;
+    state?: string;
+};
+
+// Dialog data that can be used for conversion (common subset of Props and TransformedDialogProps)
+type DialogDataForConversion = {
+    elements?: DialogElement[];
+    title?: string;
+    introductionText?: string;
+    iconUrl?: string;
+    submitLabel?: string;
+    sourceUrl?: string;
+    state?: string;
 };
 
 type ConversionContext = {
@@ -44,6 +81,7 @@ interface Props extends WrappedComponentProps {
     notifyOnCancel?: boolean;
     emojiMap?: EmojiMap;
     onExited?: () => void;
+    sourceUrl?: string; // NEW: Optional URL for form refresh functionality
     actions: {
         submitInteractiveDialog: (submission: DialogSubmission) => Promise<ActionResult<SubmitDialogResponse>>;
     };
@@ -99,6 +137,10 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         enableDebugLogging: false,
         ...this.props.conversionOptions,
     };
+
+    // Track current dialog elements for validation
+    private currentDialogElements: DialogElement[] | undefined;
+
 
     /**
      * Logging utility following Mattermost webapp conventions
@@ -281,8 +323,31 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             replace(/on\w+\s*=/gi, ''); // Remove event handlers like onclick=
     };
 
-    private convertToAppForm = (): AppForm => {
-        const {elements, title, introductionText, iconUrl, submitLabel} = this.props;
+    /**
+     * Transform server dialog response format (snake_case) to props format (camelCase)
+     * Uses the same transformation pattern as mapStateToProps in interactive_dialog/index.tsx
+     */
+    private transformServerDialogToProps = (serverDialog: ServerDialogResponse): TransformedDialogProps => {
+        return {
+            elements: serverDialog.elements,
+            title: serverDialog.title || '',
+            introductionText: serverDialog.introduction_text,
+            iconUrl: serverDialog.icon_url,
+            submitLabel: serverDialog.submit_label,
+            sourceUrl: serverDialog.source_url,
+            callbackId: serverDialog.callback_id,
+            notifyOnCancel: serverDialog.notify_on_cancel,
+            state: serverDialog.state,
+        };
+    };
+
+    private convertToAppForm = (dialogData?: DialogDataForConversion): AppForm => {
+        // Use provided dialog data or fall back to props
+        const data: DialogDataForConversion = dialogData || this.props;
+        const {elements, title, introductionText, iconUrl, submitLabel, sourceUrl} = data;
+
+        // Store current dialog elements for validation
+        this.currentDialogElements = elements;
 
         // Convert elements with validation done per element
         const convertedFields: AppField[] = [];
@@ -300,7 +365,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         }
 
         // Convert elements with single validation pass
-        elements?.forEach((element, index) => {
+        elements?.forEach((element: DialogElement, index: number) => {
             try {
                 const convertedField = this.convertElement(element, index);
                 convertedFields.push(convertedField);
@@ -343,7 +408,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             }
         }
 
-        return {
+        const appForm: AppForm = {
             title: this.sanitizeString(title || ''),
             icon: iconUrl,
             header: introductionText ? this.sanitizeString(introductionText) : undefined,
@@ -351,9 +416,21 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             submit: {
                 path: '/submit',
                 expand: {},
+                state: data.state, // Simple state for legacy compatibility
             },
             fields: convertedFields,
         };
+
+        // Add source for form refresh functionality if sourceUrl is provided
+        if (sourceUrl) {
+            appForm.source = {
+                path: sourceUrl,
+                expand: {},
+                state: data.state, // Simple state for field refresh calls
+            };
+        }
+
+        return appForm;
     };
 
     /**
@@ -501,6 +578,11 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             value: getDefaultValue(),
         };
 
+        // Add refresh functionality for field-level form updates
+        if (element.refresh !== undefined) {
+            appField.refresh = element.refresh;
+        }
+
         // Add type-specific properties
         if (element.type === 'textarea') {
             appField.subtype = 'textarea';
@@ -532,14 +614,17 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     private submitAdapter = async (call: AppCallRequest): Promise<DoAppCallResult<unknown>> => {
         try {
             // Validate and convert AppCallRequest values back to legacy format
-            const values = call.values || {};
-            const convertedValues = this.convertAppFormValuesToDialogSubmission(values);
+            const currentValues = call.values || {};
+            const convertedCurrentValues = this.convertAppFormValuesToDialogSubmission(currentValues);
+
+            // Use simple state directly - revert to working approach
+            const stepState = call.state || this.props.state || '';
 
             const legacySubmission: DialogSubmission = {
                 url: this.props.url || '',
                 callback_id: this.props.callbackId || '',
-                state: this.props.state || '',
-                submission: convertedValues as {[x: string]: string},
+                state: stepState, // Simple state for legacy dialog compatibility
+                submission: convertedCurrentValues as {[x: string]: string},
                 user_id: '',
                 channel_id: '',
                 team_id: '',
@@ -580,6 +665,22 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 };
             }
 
+            // Check if the response contains a new form (multi-step functionality)
+            if (result?.data?.type === 'form' && result?.data?.form) {
+                // Transform server response format to props format (same as mapStateToProps)
+                const transformedDialog = this.transformServerDialogToProps(result.data.form);
+
+                // Convert the legacy dialog form to AppForm format using existing method
+                const newAppForm = this.convertToAppForm(transformedDialog);
+
+                return {
+                    data: {
+                        type: 'form' as const,
+                        form: newAppForm,
+                    },
+                };
+            }
+
             // Success response
             return {
                 data: {
@@ -611,112 +712,140 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     };
 
     /**
-     * Convert Apps Form values back to Interactive Dialog submission format with validation
+     * Convert Apps Form values back to Interactive Dialog submission format
+     * Includes ALL accumulated values, validates only those that exist in current dialog
      */
     private convertAppFormValuesToDialogSubmission = (values: AppFormValues): Record<string, unknown> => {
-        const {elements} = this.props;
+        const dialogElements = this.currentDialogElements || this.props.elements;
         const submission: Record<string, unknown> = {};
 
-        if (!elements) {
-            return submission;
+        // Create a map of current dialog elements for validation
+        const elementMap = new Map<string, DialogElement>();
+        if (dialogElements) {
+            dialogElements.forEach((element) => {
+                elementMap.set(element.name, element);
+            });
         }
 
-        elements.forEach((element) => {
-            const value = values[element.name];
+        // Process ALL values from the accumulated form state
+        Object.keys(values).forEach((fieldName) => {
+            const value = values[fieldName];
+            const element = elementMap.get(fieldName);
 
+            // Skip null/undefined values
             if (value === null || value === undefined) {
-                // Skip null/undefined values unless field is required
-                if (!element.optional && this.conversionContext.validateInputs) {
-                    this.logWarn('Required field has null/undefined value', {
-                        fieldName: element.name,
-                        fieldType: element.type,
-                        isOptional: element.optional,
-                    });
-                }
                 return;
             }
 
-            // Type-safe value conversion with validation
-            switch (element.type) {
-            case 'text':
-            case 'textarea':
-                if (element.subtype === 'number') {
-                    // Handle numeric inputs
-                    const numValue = Number(value);
-                    submission[element.name] = isNaN(numValue) ? this.sanitizeString(value) : numValue;
-                } else {
-                    const stringValue = this.sanitizeString(value);
-
-                    // Validate length constraints
-                    if (this.conversionContext.validateInputs) {
-                        if (element.min_length !== undefined && stringValue.length < element.min_length) {
-                            this.logWarn('Field value too short', {
-                                fieldName: element.name,
-                                actualLength: stringValue.length,
-                                minLength: element.min_length,
-                            });
-                        }
-                        if (element.max_length !== undefined && stringValue.length > element.max_length) {
-                            this.logWarn('Field value too long', {
-                                fieldName: element.name,
-                                actualLength: stringValue.length,
-                                maxLength: element.max_length,
-                            });
-                        }
-                    }
-                    submission[element.name] = stringValue;
-                }
-                break;
-            case 'bool':
-                submission[element.name] = Boolean(value);
-                break;
-
-            case 'radio':
-                submission[element.name] = this.sanitizeString(value);
-                break;
-
-            case 'select':
-                if (element.data_source === 'users' || element.data_source === 'channels') {
-                    // Handle user/channel selects
-                    if (typeof value === 'object' && value !== null && 'value' in value) {
-                        submission[element.name] = this.sanitizeString((value as AppSelectOption).value);
-                    } else {
-                        submission[element.name] = this.sanitizeString(value);
-                    }
-                }
-
-                // Handle static selects
-                if (typeof value === 'object' && value !== null && 'value' in value) {
-                    const selectOption = value as AppSelectOption;
-
-                    // Validate that the selected option exists in the original options
-                    if (this.conversionContext.validateInputs && element.options) {
-                        const validOption = element.options.find((opt) => opt.value === selectOption.value);
-                        if (!validOption) {
-                            this.logWarn('Selected value not found in options', {
-                                fieldName: element.name,
-                                selectedValue: selectOption.value,
-                                availableOptions: element.options.map((opt) => opt.value),
-                            });
-                        }
-                    }
-                    submission[element.name] = this.sanitizeString(selectOption.value);
-                } else {
-                    submission[element.name] = this.sanitizeString(value);
-                }
-                break;
-
-            default:
-                this.logWarn('Unknown element type in submission conversion', {
-                    fieldName: element.name,
-                    elementType: element.type,
-                    fallbackBehavior: 'treating as string',
-                });
-                submission[element.name] = this.sanitizeString(value);
+            // If this field exists in current dialog, validate and convert according to its type
+            if (element) {
+                submission[fieldName] = this.convertFieldValue(value, element);
+            } else {
+                // Field is from a previous step - include it as-is with basic sanitization
+                submission[fieldName] = this.convertUnknownFieldValue(value);
             }
         });
 
         return submission;
+    };
+
+    /**
+     * Convert a field value according to its dialog element type with validation
+     */
+    private convertFieldValue = (value: AppFormValue, element: DialogElement): unknown => {
+        switch (element.type) {
+        case 'text':
+        case 'textarea': {
+            if (element.subtype === 'number') {
+                // Handle numeric inputs
+                const numValue = Number(value);
+                return isNaN(numValue) ? this.sanitizeString(value) : numValue;
+            }
+            const stringValue = this.sanitizeString(value);
+
+            // Validate length constraints
+            if (this.conversionContext.validateInputs) {
+                if (element.min_length !== undefined && stringValue.length < element.min_length) {
+                    this.logWarn('Field value too short', {
+                        fieldName: element.name,
+                        actualLength: stringValue.length,
+                        minLength: element.min_length,
+                    });
+                }
+                if (element.max_length !== undefined && stringValue.length > element.max_length) {
+                    this.logWarn('Field value too long', {
+                        fieldName: element.name,
+                        actualLength: stringValue.length,
+                        maxLength: element.max_length,
+                    });
+                }
+            }
+            return stringValue;
+        }
+        case 'bool':
+            return Boolean(value);
+
+        case 'radio':
+            return this.sanitizeString(value);
+
+        case 'select':
+            if (element.data_source === 'users' || element.data_source === 'channels') {
+                // Handle user/channel selects
+                if (typeof value === 'object' && value !== null && 'value' in value) {
+                    return this.sanitizeString((value as AppSelectOption).value);
+                }
+                return this.sanitizeString(value);
+            }
+
+            // Handle static selects
+            if (typeof value === 'object' && value !== null && 'value' in value) {
+                const selectOption = value as AppSelectOption;
+
+                // Validate that the selected option exists in the original options
+                if (this.conversionContext.validateInputs && element.options) {
+                    const validOption = element.options.find((opt) => opt.value === selectOption.value);
+                    if (!validOption) {
+                        this.logWarn('Selected value not found in options', {
+                            fieldName: element.name,
+                            selectedValue: selectOption.value,
+                            availableOptions: element.options.map((opt) => opt.value),
+                        });
+                    }
+                }
+                return this.sanitizeString(selectOption.value);
+            }
+            return this.sanitizeString(value);
+
+        default:
+            this.logWarn('Unknown element type in submission conversion', {
+                fieldName: element.name,
+                elementType: element.type,
+                fallbackBehavior: 'treating as string',
+            });
+            return this.sanitizeString(value);
+        }
+    };
+
+    /**
+     * Convert a field value from previous steps with basic sanitization
+     */
+    private convertUnknownFieldValue = (value: AppFormValue): unknown => {
+        // Handle different value types from previous steps
+        if (typeof value === 'boolean') {
+            return value;
+        }
+
+        if (typeof value === 'number') {
+            return value;
+        }
+
+        if (typeof value === 'object' && value !== null && 'value' in value) {
+            // This was likely a select option from a previous step
+            return this.sanitizeString((value as AppSelectOption).value);
+        }
+
+        // Default: sanitize as string
+        return this.sanitizeString(value);
     };
 
     /**
@@ -771,21 +900,118 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     };
 
     /**
-     * No-op refresh adapter for unsupported legacy feature
-     * Interactive Dialogs don't support refresh on select
+     * Field refresh adapter for Interactive Dialogs
+     * Handles form refresh when fields with refresh=true are changed
      */
-    private refreshOnSelect = async (): Promise<DoAppCallResult<unknown>> => {
-        if (this.conversionContext.validateInputs) {
-            this.logWarn('Refresh on select is not supported in Interactive Dialogs', {
-                feature: 'refresh on select',
-                suggestion: 'Consider migrating to full Apps Framework',
+    private refreshOnSelect = async (call: AppCallRequest): Promise<DoAppCallResult<unknown>> => {
+        try {
+            // Check if we have a source URL for field refresh
+            if (!this.props.sourceUrl) {
+                this.logWarn('Field refresh requested but no sourceUrl provided', {
+                    fieldName: call.selected_field,
+                    suggestion: 'Add sourceUrl to dialog definition',
+                });
+                return {
+                    data: {
+                        type: 'ok' as const,
+                    },
+                };
+            }
+
+            // Prepare the refresh request with current form values
+            const currentValues = call.values || {};
+            const convertedCurrentValues = this.convertAppFormValuesToDialogSubmission(currentValues);
+
+            const refreshSubmission: DialogSubmission = {
+                url: this.props.sourceUrl,
+                callback_id: this.props.callbackId || '',
+                state: call.state || this.props.state || '',
+                submission: convertedCurrentValues as {[x: string]: string},
+                user_id: '',
+                channel_id: '',
+                team_id: '',
+                cancelled: false,
+                type: 'refresh', // Indicate this is a field refresh request
+            };
+
+            const result = await this.props.actions.submitInteractiveDialog(refreshSubmission);
+
+            // Handle server-side validation errors
+            if (result?.data?.error || result?.data?.errors) {
+                return {
+                    error: {
+                        type: 'error' as const,
+                        text: result.data.error || this.props.intl.formatMessage({
+                            id: 'interactive_dialog.refresh_failed_validation',
+                            defaultMessage: 'Field refresh failed with validation errors',
+                        }),
+                        data: {
+                            errors: result.data.errors || {},
+                        },
+                    },
+                };
+            }
+
+            // Handle network/action-level errors
+            if (result?.error) {
+                return {
+                    error: {
+                        type: 'error' as const,
+                        text: this.props.intl.formatMessage({
+                            id: 'interactive_dialog.refresh_failed',
+                            defaultMessage: 'Field refresh failed',
+                        }),
+                        data: {
+                            errors: {},
+                        },
+                    },
+                };
+            }
+
+            // Check if the response contains a refreshed form
+            if (result?.data?.type === 'form' && result?.data?.form) {
+                // Transform server response format to props format
+                const transformedDialog = this.transformServerDialogToProps(result.data.form);
+                
+                // Convert to AppForm format
+                const refreshedAppForm = this.convertToAppForm(transformedDialog);
+
+                return {
+                    data: {
+                        type: 'form' as const,
+                        form: refreshedAppForm,
+                    },
+                };
+            }
+
+            // Default success response (no form changes)
+            return {
+                data: {
+                    type: 'ok' as const,
+                },
+            };
+
+        } catch (error) {
+            this.logError('Field refresh failed', {
+                error: error instanceof Error ? error.message : String(error),
+                fieldName: call.selected_field,
+                sourceUrl: this.props.sourceUrl,
             });
+            return {
+                error: {
+                    type: 'error' as const,
+                    text: error instanceof Error ? error.message : this.props.intl.formatMessage({
+                        id: 'interactive_dialog.refresh_failed',
+                        defaultMessage: 'Field refresh failed',
+                    }),
+                    data: {
+                        errors: {
+                            field_refresh: String(error),
+                        },
+                    },
+                },
+            };
         }
-        return {
-            data: {
-                type: 'ok' as const,
-            },
-        };
     };
 
     /**
@@ -822,9 +1048,23 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     }
 }
 
+// Props type for AppsFormContainer (based on the actual component usage)
+type AppsFormContainerProps = {
+    form: AppForm;
+    context: AppContext;
+    onExited: () => void;
+    onHide: () => Promise<void>;
+    actions: {
+        doAppSubmit: (call: AppCallRequest) => Promise<DoAppCallResult<unknown>>;
+        doAppFetchForm: (call: AppCallRequest) => Promise<DoAppCallResult<unknown>>;
+        doAppLookup: (call: AppCallRequest) => Promise<DoAppCallResult<unknown>>;
+        postEphemeralCallResponseForContext: () => void;
+    };
+};
+
 // Dynamic wrapper component for AppsFormContainer to avoid circular dependency
-const DynamicAppsFormContainer: React.FC<any> = (props) => {
-    const [AppsFormContainer, setAppsFormContainer] = React.useState<React.ComponentType<any> | null>(null);
+const DynamicAppsFormContainer: React.FC<AppsFormContainerProps> = (props) => {
+    const [AppsFormContainer, setAppsFormContainer] = React.useState<React.ComponentType<AppsFormContainerProps> | null>(null);
 
     React.useEffect(() => {
         const loadComponent = async () => {
