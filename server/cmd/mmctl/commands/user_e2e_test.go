@@ -116,6 +116,275 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusion() {
+	s.SetupTestHelper().InitBasic()
+
+	// Create a test user for deactivation testing
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
+		Email:    s.th.GenerateTestEmail(),
+		Username: "autocomplete-test-user",
+		Password: model.NewId(),
+	})
+	s.Require().Nil(appErr)
+
+	// Add user to team and channel for autocomplete testing
+	s.th.LinkUserToTeam(user, s.th.BasicTeam)
+	s.th.AddUserToChannel(user, s.th.BasicChannel)
+
+	s.RunForSystemAdminAndLocal("Deactivated user should be excluded from autocomplete", func(c client.Client) {
+		printer.Clean()
+
+		// Ensure user is active first
+		_, appErr := s.th.App.UpdateActive(s.th.Context, user, true)
+		s.Require().Nil(appErr)
+
+		// Verify user appears in autocomplete before deactivation (using API directly)
+		rusers, _, err := s.th.SystemAdminClient.AutocompleteUsersInChannel(
+			context.Background(),
+			s.th.BasicTeam.Id,
+			s.th.BasicChannel.Id,
+			"autocomplete-test",
+			model.UserSearchDefaultLimit,
+			"",
+		)
+		s.Require().NoError(err)
+
+		// Check that the user is in autocomplete results
+		found := false
+		for _, u := range rusers.Users {
+			if u.Id == user.Id {
+				found = true
+				break
+			}
+		}
+		s.Require().True(found, "active user should appear in autocomplete results")
+
+		// Deactivate user via mmctl
+		err = userDeactivateCmdF(c, &cobra.Command{}, []string{user.Email})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		// Verify user is deactivated
+		ruser, err := s.th.App.GetUser(user.Id)
+		s.Require().Nil(err)
+		s.Require().NotZero(ruser.DeleteAt)
+
+		// Verify user does not appear in autocomplete after deactivation
+		rusers, _, err = s.th.SystemAdminClient.AutocompleteUsersInChannel(
+			context.Background(),
+			s.th.BasicTeam.Id,
+			s.th.BasicChannel.Id,
+			"autocomplete-test",
+			model.UserSearchDefaultLimit,
+			"",
+		)
+		s.Require().NoError(err)
+
+		// Check that the user is not in autocomplete results
+		found = false
+		for _, u := range rusers.Users {
+			if u.Id == user.Id {
+				found = true
+				break
+			}
+		}
+		s.Require().False(found, "deactivated user should not appear in autocomplete results")
+
+		// Reactivate user via mmctl
+		err = userActivateCmdF(c, &cobra.Command{}, []string{user.Email})
+		s.Require().Nil(err)
+
+		// Verify user appears in autocomplete again after reactivation
+		rusers, _, err = s.th.SystemAdminClient.AutocompleteUsersInChannel(
+			context.Background(),
+			s.th.BasicTeam.Id,
+			s.th.BasicChannel.Id,
+			"autocomplete-test",
+			model.UserSearchDefaultLimit,
+			"",
+		)
+		s.Require().NoError(err)
+
+		// Check that the user is back in autocomplete results
+		found = false
+		for _, u := range rusers.Users {
+			if u.Id == user.Id {
+				found = true
+				break
+			}
+		}
+		s.Require().True(found, "reactivated user should appear in autocomplete results again")
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleContexts() {
+	s.SetupTestHelper().InitBasic()
+
+	// Create a test user for deactivation testing
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
+		Email:    s.th.GenerateTestEmail(),
+		Username: "autocomplete-multi-test-user",
+		Password: model.NewId(),
+	})
+	s.Require().Nil(appErr)
+
+	// Add user to team for autocomplete testing
+	s.th.LinkUserToTeam(user, s.th.BasicTeam)
+	s.th.AddUserToChannel(user, s.th.BasicChannel)
+
+	s.RunForSystemAdminAndLocal("Deactivated user should be excluded from all autocomplete contexts", func(c client.Client) {
+		printer.Clean()
+
+		// Ensure user is active first
+		_, appErr := s.th.App.UpdateActive(s.th.Context, user, true)
+		s.Require().Nil(appErr)
+
+		// Test 1: Team-level autocomplete
+		teamUsers, _, err := s.th.SystemAdminClient.AutocompleteUsersInTeam(
+			context.Background(),
+			s.th.BasicTeam.Id,
+			"autocomplete-multi",
+			model.UserSearchDefaultLimit,
+			"",
+		)
+		s.Require().NoError(err)
+
+		// Check that the user is in team autocomplete results
+		found := false
+		for _, u := range teamUsers.Users {
+			if u.Id == user.Id {
+				found = true
+				break
+			}
+		}
+		s.Require().True(found, "active user should appear in team autocomplete results")
+
+		// Test 2: General user search (used for DM creation)
+		searchUsers, _, err := s.th.SystemAdminClient.SearchUsers(context.Background(), &model.UserSearch{
+			Term: "autocomplete-multi",
+		})
+		s.Require().NoError(err)
+
+		// Check that the user is in search results
+		found = false
+		for _, u := range searchUsers {
+			if u.Id == user.Id {
+				found = true
+				break
+			}
+		}
+		s.Require().True(found, "active user should appear in user search results")
+
+		// Deactivate user via mmctl
+		err = userDeactivateCmdF(c, &cobra.Command{}, []string{user.Email})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		// Verify user is deactivated
+		ruser, err := s.th.App.GetUser(user.Id)
+		s.Require().Nil(err)
+		s.Require().NotZero(ruser.DeleteAt)
+
+		// Test 1 After Deactivation: Team-level autocomplete
+		teamUsers, _, err = s.th.SystemAdminClient.AutocompleteUsersInTeam(
+			context.Background(),
+			s.th.BasicTeam.Id,
+			"autocomplete-multi",
+			model.UserSearchDefaultLimit,
+			"",
+		)
+		s.Require().NoError(err)
+
+		// Check that the user is NOT in team autocomplete results
+		found = false
+		for _, u := range teamUsers.Users {
+			if u.Id == user.Id {
+				found = true
+				break
+			}
+		}
+		s.Require().False(found, "deactivated user should not appear in team autocomplete results")
+
+		// Test 2 After Deactivation: General user search
+		searchUsers, _, err = s.th.SystemAdminClient.SearchUsers(context.Background(), &model.UserSearch{
+			Term: "autocomplete-multi",
+		})
+		s.Require().NoError(err)
+
+		// Check that the user is NOT in search results
+		found = false
+		for _, u := range searchUsers {
+			if u.Id == user.Id {
+				found = true
+				break
+			}
+		}
+		s.Require().False(found, "deactivated user should not appear in user search results")
+
+		// Test 3: Channel autocomplete (should also be excluded)
+		channelUsers, _, err := s.th.SystemAdminClient.AutocompleteUsersInChannel(
+			context.Background(),
+			s.th.BasicTeam.Id,
+			s.th.BasicChannel.Id,
+			"autocomplete-multi",
+			model.UserSearchDefaultLimit,
+			"",
+		)
+		s.Require().NoError(err)
+
+		// Check that the user is NOT in channel autocomplete results
+		found = false
+		for _, u := range channelUsers.Users {
+			if u.Id == user.Id {
+				found = true
+				break
+			}
+		}
+		s.Require().False(found, "deactivated user should not appear in channel autocomplete results")
+
+		// Reactivate user via mmctl
+		err = userActivateCmdF(c, &cobra.Command{}, []string{user.Email})
+		s.Require().Nil(err)
+
+		// Verify all autocomplete contexts work after reactivation
+		// Team autocomplete
+		teamUsers, _, err = s.th.SystemAdminClient.AutocompleteUsersInTeam(
+			context.Background(),
+			s.th.BasicTeam.Id,
+			"autocomplete-multi",
+			model.UserSearchDefaultLimit,
+			"",
+		)
+		s.Require().NoError(err)
+
+		found = false
+		for _, u := range teamUsers.Users {
+			if u.Id == user.Id {
+				found = true
+				break
+			}
+		}
+		s.Require().True(found, "reactivated user should appear in team autocomplete results again")
+
+		// User search
+		searchUsers, _, err = s.th.SystemAdminClient.SearchUsers(context.Background(), &model.UserSearch{
+			Term: "autocomplete-multi",
+		})
+		s.Require().NoError(err)
+
+		found = false
+		for _, u := range searchUsers {
+			if u.Id == user.Id {
+				found = true
+				break
+			}
+		}
+		s.Require().True(found, "reactivated user should appear in user search results again")
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	s.SetupTestHelper().InitBasic()
 
