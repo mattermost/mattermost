@@ -26,6 +26,8 @@ export default class SystemConsolePage {
 
     readonly featureDiscovery;
 
+    readonly adLdap;
+
     // modal
     readonly confirmModal;
     readonly exportModal;
@@ -44,6 +46,7 @@ export default class SystemConsolePage {
             page.getByTestId('sysconsole_section_MobileSecuritySettings'),
         );
         this.featureDiscovery = new components.SystemConsoleFeatureDiscovery(page.getByTestId('featureDiscovery'));
+        this.adLdap = new components.ADLDAP(page.getByTestId('sysconsole_section_LdapSettings'));
 
         // Menus & Popovers
         this.systemUsersFilterPopover = new components.SystemUsersFilterPopover(

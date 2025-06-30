@@ -64,6 +64,7 @@ export {
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,
+    ADLDAP,
 } from './ui/components';
 
 export {TestArgs, ScreenshotOptions} from './types';

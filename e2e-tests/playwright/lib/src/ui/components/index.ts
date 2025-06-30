@@ -44,6 +44,7 @@ import ScheduledPost from './channels/scheduled_post';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
 import DraftPost from './channels/draft_post';
+import ADLDAP from './system_console/sections/ad_ldap/ad_ldap';
 
 const components = {
     GlobalHeader,
@@ -89,6 +90,7 @@ const components = {
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,
+    ADLDAP,
 };
 
 export {
@@ -136,4 +138,5 @@ export {
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,
+    ADLDAP,
 };
