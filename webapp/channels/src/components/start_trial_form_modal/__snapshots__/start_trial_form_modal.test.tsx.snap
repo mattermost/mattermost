@@ -72,7 +72,10 @@ Object {
                 >
                   <label
                     class="Input_legend"
-                  />
+                    for="input_name"
+                  >
+                                            
+                  </label>
                   <div
                     class="Input_wrapper"
                   >
@@ -97,7 +100,9 @@ Object {
                 >
                   <label
                     class="Input_legend Input_legend___focus"
+                    for="input_email"
                   >
+                                            
                     Business Email
                   </label>
                   <div
@@ -141,7 +146,10 @@ Object {
                 >
                   <label
                     class="Input_legend"
-                  />
+                    for="input_company_name"
+                  >
+                                            
+                  </label>
                   <div
                     class="Input_wrapper"
                   >
@@ -334,7 +342,7 @@ Object {
               >
                 By selecting Start trial, I agree to the 
                 <a
-                  href="https://mattermost.com/software-evaluation-agreement/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123"
+                  href="https://mattermost.com/software-evaluation-agreement/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123&edition=team&server_version="
                   location="start_trial_form_modal"
                   rel="noopener noreferrer"
                   target="_blank"
@@ -343,7 +351,7 @@ Object {
                 </a>
                 , 
                 <a
-                  href="https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123"
+                  href="https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123&edition=team&server_version="
                   location="start_trial_form_modal"
                   rel="noopener noreferrer"
                   target="_blank"
