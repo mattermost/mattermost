@@ -3464,7 +3464,6 @@
   "channel_settings.error_display_name_required": "Kanal adının yazılması zorunludur",
   "channel_settings.error_purpose_length": "Yazılan metin karakter sayısı sınırını aşıyor. Kanal amacı en fazla {maxLength} karakter uzunluğunda olabilir.",
   "channel_settings.header.label": "Kanal başlığı",
-  "channel_settings.label.name": "Kanal adı",
   "channel_settings.modal.archiveTitle": "Kanal arşivlensin mi?",
   "channel_settings.modal.confirmArchive": "Onayla",
   "channel_settings.modal.title": "Kanal ayarları",
