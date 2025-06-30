@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -73,6 +74,7 @@ var LdapJobShowCmd = &cobra.Command{
 	Use:               "show [ldapJobID]",
 	Example:           " import ldap show f3d68qkkm7n8xgsfxwuo498rah",
 	Short:             "Show LDAP sync job",
+	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: validateArgsWithClient(ldapJobShowCompletionF),
 	RunE:              withClient(ldapJobShowCmdF),
 }
@@ -140,6 +142,10 @@ func ldapJobListCmdF(c client.Client, command *cobra.Command, args []string) err
 }
 
 func ldapJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {
+	if len(args) < 1 {
+		return errors.New("expected at least one argument (ldapJobID). See help text for details")
+	}
+
 	job, _, err := c.GetJob(context.TODO(), args[0])
 	if err != nil {
 		return fmt.Errorf("failed to get LDAP sync job: %w", err)
