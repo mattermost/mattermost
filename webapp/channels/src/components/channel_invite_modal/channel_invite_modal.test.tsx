@@ -57,6 +57,19 @@ jest.mock('utils/utils', () => {
     };
 });
 
+// Mock Client4 for ABAC tests
+jest.mock('mattermost-redux/client', () => ({
+    Client4: {
+        getProfilesNotInChannel: jest.fn(),
+        getProfilePictureUrl: jest.fn(() => 'mock-url'),
+        getUsersRoute: jest.fn(() => '/api/v4/users'),
+        getTeamsRoute: jest.fn(() => '/api/v4/teams'),
+        getChannelsRoute: jest.fn(() => '/api/v4/channels'),
+        getUrl: jest.fn(() => 'http://localhost:8065'),
+        getBaseRoute: jest.fn(() => '/api/v4'),
+    },
+}));
+
 describe('components/channel_invite_modal', () => {
     const users = [{
         id: 'user-1',
@@ -130,6 +143,27 @@ describe('components/channel_invite_modal', () => {
             // do not call cb at all
             return 0;
         };
+    });
+
+    beforeEach(() => {
+        // Reset Client4 mocks before each test
+        const {Client4} = require('mattermost-redux/client');
+        Client4.getProfilesNotInChannel.mockClear();
+        Client4.getProfilePictureUrl.mockClear();
+        Client4.getUsersRoute.mockClear();
+        Client4.getTeamsRoute.mockClear();
+        Client4.getChannelsRoute.mockClear();
+        Client4.getUrl.mockClear();
+        Client4.getBaseRoute.mockClear();
+
+        // Set default return values
+        Client4.getProfilesNotInChannel.mockResolvedValue([]);
+        Client4.getProfilePictureUrl.mockReturnValue('mock-url');
+        Client4.getUsersRoute.mockReturnValue('/api/v4/users');
+        Client4.getTeamsRoute.mockReturnValue('/api/v4/teams');
+        Client4.getChannelsRoute.mockReturnValue('/api/v4/channels');
+        Client4.getUrl.mockReturnValue('http://localhost:8065');
+        Client4.getBaseRoute.mockReturnValue('/api/v4');
     });
 
     test('should match snapshot for channel_invite_modal with profiles', () => {
@@ -605,6 +639,10 @@ describe('components/channel_invite_modal', () => {
         ) as HTMLElement;
 
     test('should not include DM users when ABAC is enabled', async () => {
+        // Mock Client4 to return user-1 for ABAC channels
+        const {Client4} = require('mattermost-redux/client');
+        Client4.getProfilesNotInChannel.mockResolvedValue([users[0]]);
+
         const channelWithPolicy = {...channel, policy_enforced: true};
         const props = {
             ...baseProps,
@@ -617,8 +655,18 @@ describe('components/channel_invite_modal', () => {
             renderWithContext(<ChannelInviteModal {...props}/>);
         });
 
+        // Wait for the API call to complete and state to update
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
         const input = screen.getByRole('combobox', {name: /search for people/i});
         await userEvent.type(input, 'user');
+
+        // Wait for the search to complete
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
 
         // now only one visible <span> should match "user-1"
         expect(getUserSpan('user-1')).toBeInTheDocument();
@@ -716,5 +764,70 @@ describe('components/channel_invite_modal', () => {
             (node) => node.prop('inviteAsGuest') === true,
         );
         expect(guestInviteLinks).toHaveLength(0);
+    });
+
+    test('should force fresh API call when ABAC is enforced', async () => {
+        // For ABAC channels, we use Client4 directly, not the Redux action
+        const {Client4} = require('mattermost-redux/client');
+        Client4.getProfilesNotInChannel.mockResolvedValue([]);
+
+        const props = {
+            ...baseProps,
+            channel: {...channel, policy_enforced: true},
+        };
+
+        await act(async () => {
+            renderWithContext(<ChannelInviteModal {...props}/>);
+        });
+
+        // Wait for the API call to complete
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // For ABAC channels, we should call Client4 directly, not the Redux action
+        expect(Client4.getProfilesNotInChannel).toHaveBeenCalledWith(
+            props.channel.team_id,
+            props.channel.id,
+            props.channel.group_constrained,
+            0,
+            50,
+            '',
+        );
+    });
+
+    test('should ignore contaminated Redux data when ABAC is enforced', async () => {
+        // Mock Client4 to return only user-1 for ABAC channels (ignoring contaminated Redux data)
+        const {Client4} = require('mattermost-redux/client');
+        Client4.getProfilesNotInChannel.mockResolvedValue([users[0]]);
+
+        const props = {
+            ...baseProps,
+            channel: {...channel, policy_enforced: true},
+            profilesNotInCurrentChannel: [users[0]], // Clean ABAC data
+            profilesFromRecentDMs: [users[1]], // Contaminated data
+            includeUsers: {[users[1].id]: users[1]}, // Contaminated data
+        };
+
+        await act(async () => {
+            renderWithContext(<ChannelInviteModal {...props}/>);
+        });
+
+        // Wait for the API call to complete and state to update
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+        await userEvent.type(input, 'user');
+
+        // Wait for the search to complete
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Should only show clean ABAC data
+        expect(getUserSpan('user-1')).toBeInTheDocument();
+        expect(screen.queryByText('user-2')).toBeNull();
     });
 });
