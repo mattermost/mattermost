@@ -60,7 +60,7 @@ type AppIface interface {
 	CreateGroupChannel(c request.CTX, userIDs []string, creatorId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
 	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
-	AddUserToChannelForSharedSync(c request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError)
+	AddUserToChannelWithOptions(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool, bypassAccessControl bool) (*model.ChannelMember, *model.AppError)
 	AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError
 	RemoveUserFromChannel(c request.CTX, userID string, removerUserId string, channel *model.Channel) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError

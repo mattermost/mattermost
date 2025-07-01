@@ -1727,6 +1727,11 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 
 // AddUserToChannel adds a user to a given channel.
 func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
+	return a.AddUserToChannelWithOptions(c, user, channel, skipTeamMemberIntegrityCheck, false)
+}
+
+// AddUserToChannelWithOptions adds a user to a given channel with additional options.
+func (a *App) AddUserToChannelWithOptions(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool, bypassAccessControl bool) (*model.ChannelMember, *model.AppError) {
 	if !skipTeamMemberIntegrityCheck {
 		teamMember, nErr := a.Srv().Store().Team().GetMember(c, channel.TeamId, user.Id)
 		if nErr != nil {
@@ -1744,7 +1749,7 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 		}
 	}
 
-	newMember, err := a.addUserToChannel(c, user, channel, false)
+	newMember, err := a.addUserToChannel(c, user, channel, bypassAccessControl)
 	if err != nil {
 		return nil, err
 	}
@@ -1764,22 +1769,6 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 	a.Publish(userMessage)
 
 	return newMember, nil
-}
-
-// AddUserToChannelForSharedSync adds a user to a channel specifically for shared channel sync operations.
-// This method bypasses access control checks that would normally prevent remote users from being added
-// to private channels during shared channel membership synchronization.
-func (a *App) AddUserToChannelForSharedSync(c request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	// Add user to team for private channels in shared channel context
-	if channel.Type == model.ChannelTypePrivate {
-		if err := a.AddUserToTeamByTeamId(c, channel.TeamId, user); err != nil {
-			return nil, model.NewAppError("AddUserToChannelForSharedSync", "api.channel.add_user.to.channel.failed.app_error", nil,
-				fmt.Sprintf("failed to add user to team for private channel: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
-		}
-	}
-
-	// Use addUserToChannel with bypassAccessControl=true for shared channel sync
-	return a.addUserToChannel(c, user, channel, true)
 }
 
 type ChannelMemberOpts struct {

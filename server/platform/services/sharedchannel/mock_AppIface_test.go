@@ -50,29 +50,29 @@ func (_m *MockAppIface) AddUserToChannel(c request.CTX, user *model.User, channe
 	return r0, r1
 }
 
-// AddUserToChannelForSharedSync provides a mock function with given fields: c, user, channel
-func (_m *MockAppIface) AddUserToChannelForSharedSync(c request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	ret := _m.Called(c, user, channel)
+// AddUserToChannelWithOptions provides a mock function with given fields: c, user, channel, skipTeamMemberIntegrityCheck, bypassAccessControl
+func (_m *MockAppIface) AddUserToChannelWithOptions(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool, bypassAccessControl bool) (*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(c, user, channel, skipTeamMemberIntegrityCheck, bypassAccessControl)
 
 	if len(ret) == 0 {
-		panic("no return value specified for AddUserToChannelForSharedSync")
+		panic("no return value specified for AddUserToChannelWithOptions")
 	}
 
 	var r0 *model.ChannelMember
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.Channel) (*model.ChannelMember, *model.AppError)); ok {
-		return rf(c, user, channel)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.Channel, bool, bool) (*model.ChannelMember, *model.AppError)); ok {
+		return rf(c, user, channel, skipTeamMemberIntegrityCheck, bypassAccessControl)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.Channel) *model.ChannelMember); ok {
-		r0 = rf(c, user, channel)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.Channel, bool, bool) *model.ChannelMember); ok {
+		r0 = rf(c, user, channel, skipTeamMemberIntegrityCheck, bypassAccessControl)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelMember)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.User, *model.Channel) *model.AppError); ok {
-		r1 = rf(c, user, channel)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.User, *model.Channel, bool, bool) *model.AppError); ok {
+		r1 = rf(c, user, channel, skipTeamMemberIntegrityCheck, bypassAccessControl)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
