@@ -128,20 +128,10 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 		return fmt.Errorf("cannot get user for channel add: %w", err)
 	}
 
-	// Check user permissions for private channels
-	if channel.Type == model.ChannelTypePrivate {
-		// Add user to team if needed for private channel
-		rctx := request.EmptyContext(scs.server.Log())
-		appErr := scs.app.AddUserToTeamByTeamId(rctx, channel.TeamId, user)
-		if appErr != nil {
-			return fmt.Errorf("cannot add user to team for private channel: %w", appErr)
-		}
-	}
-
-	// Use the app layer to add the user to the channel
-	// This ensures proper processing of all side effects
+	// Use the shared channel sync method to add the user to the channel
+	// This bypasses access control checks for private channels and handles team membership automatically
 	rctx := request.EmptyContext(scs.server.Log())
-	_, appErr := scs.app.AddUserToChannel(rctx, user, channel, false)
+	_, appErr := scs.app.AddUserToChannelForSharedSync(rctx, user, channel)
 	if appErr != nil {
 		// Skip "already added" errors
 		if appErr.Error() != "api.channel.add_user.to_channel.failed.app_error" &&

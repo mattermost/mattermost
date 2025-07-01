@@ -50,6 +50,38 @@ func (_m *MockAppIface) AddUserToChannel(c request.CTX, user *model.User, channe
 	return r0, r1
 }
 
+// AddUserToChannelForSharedSync provides a mock function with given fields: c, user, channel
+func (_m *MockAppIface) AddUserToChannelForSharedSync(c request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(c, user, channel)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddUserToChannelForSharedSync")
+	}
+
+	var r0 *model.ChannelMember
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.Channel) (*model.ChannelMember, *model.AppError)); ok {
+		return rf(c, user, channel)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.Channel) *model.ChannelMember); ok {
+		r0 = rf(c, user, channel)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.User, *model.Channel) *model.AppError); ok {
+		r1 = rf(c, user, channel)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // AddUserToTeamByTeamId provides a mock function with given fields: c, teamId, user
 func (_m *MockAppIface) AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError {
 	ret := _m.Called(c, teamId, user)

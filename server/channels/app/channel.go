@@ -1619,7 +1619,7 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 	return nil
 }
 
-func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.Channel, bypassAccessControl bool) (*model.ChannelMember, *model.AppError) {
 	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1661,7 +1661,15 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 		newMember.SchemeAdmin = userShouldBeAdmin
 	}
 
-	if channel.Type == model.ChannelTypePrivate {
+	// For shared channel sync with private channels, ensure user is on the team first
+	if channel.Type == model.ChannelTypePrivate && bypassAccessControl {
+		if err := a.AddUserToTeamByTeamId(c, channel.TeamId, user); err != nil {
+			return nil, model.NewAppError("addUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
+				fmt.Sprintf("failed to add user to team for private channel: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
+		}
+	}
+
+	if channel.Type == model.ChannelTypePrivate && !bypassAccessControl {
 		if ok, appErr := a.ChannelAccessControlled(c, channel.Id); ok {
 			if acs := a.Srv().Channels().AccessControl; acs != nil {
 				groupID, err := a.CpaGroupID()
@@ -1744,7 +1752,7 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 		}
 	}
 
-	newMember, err := a.addUserToChannel(c, user, channel)
+	newMember, err := a.addUserToChannel(c, user, channel, false)
 	if err != nil {
 		return nil, err
 	}
@@ -1764,6 +1772,14 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 	a.Publish(userMessage)
 
 	return newMember, nil
+}
+
+// AddUserToChannelForSharedSync adds a user to a channel specifically for shared channel sync operations.
+// This method bypasses access control checks that would normally prevent remote users from being added
+// to private channels during shared channel membership synchronization.
+func (a *App) AddUserToChannelForSharedSync(c request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+	// Use addUserToChannel with bypassAccessControl=true for shared channel sync
+	return a.addUserToChannel(c, user, channel, true)
 }
 
 type ChannelMemberOpts struct {
