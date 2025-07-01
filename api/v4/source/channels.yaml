@@ -2515,3 +2515,41 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+          
+  "/api/v4/sharedchannels/{channel_id}/remotes":
+    get:
+      tags:
+        - channels
+      summary: Get remote clusters for a shared channel
+      description: |
+        Gets the remote clusters information for a shared channel.
+        
+        __Minimum server version__: 10.10
+        
+        ##### Permissions
+        Must be authenticated and have the `read_channel` permission for the channel.
+      operationId: GetSharedChannelRemotes
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Remote clusters retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RemoteClusterInfo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

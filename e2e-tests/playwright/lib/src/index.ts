@@ -22,7 +22,7 @@ export {
 export {
     components,
     GlobalHeader,
-    SearchPopover,
+    SearchBox,
     ChannelsCenterView,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,

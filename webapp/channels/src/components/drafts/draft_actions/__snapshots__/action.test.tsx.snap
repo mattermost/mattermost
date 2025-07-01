@@ -5,16 +5,17 @@ exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
   className="DraftAction"
 >
   <WithTooltip
-    title=""
+    id="draft_tooltip_some-id"
+    title="some-tooltip-text"
   >
     <button
-      aria-label=""
+      aria-labelledby="draft_tooltip_some-id"
       className="DraftAction__button"
-      id="draft__"
+      id="draft_some-icon_some-id"
       onClick={[MockFunction]}
     >
       <i
-        className="icon"
+        className="icon some-icon"
       />
     </button>
   </WithTooltip>

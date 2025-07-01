@@ -73,7 +73,7 @@ export type Props = {
     isGroupsEnabled: boolean;
     actions: {
         addUsersToChannel: (channelId: string, userIds: string[]) => Promise<ActionResult>;
-        getProfilesNotInChannel: (teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage?: number) => Promise<ActionResult>;
+        getProfilesNotInChannel: (teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage?: number, cursorId?: string) => Promise<ActionResult>;
         getProfilesInChannel: (channelId: string, page: number, perPage: number, sort: string, options: {active?: boolean}) => Promise<ActionResult>;
         getTeamStats: (teamId: string) => void;
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
@@ -99,6 +99,7 @@ const ChannelInviteModalComponent = (props: Props) => {
     const [loadingUsers, setLoadingUsers] = useState(true);
     const [groupAndUserOptions, setGroupAndUserOptions] = useState<Array<UserProfileValue | GroupValue>>([]);
     const [inviteError, setInviteError] = useState<string | undefined>(undefined);
+    const [pageCursors, setPageCursors] = useState<{[page: number]: string}>({});
 
     const searchTimeoutId = useRef<number>(0);
     const selectedItemRef = useRef<HTMLDivElement>(null);
@@ -173,15 +174,29 @@ const ChannelInviteModalComponent = (props: Props) => {
     const getOptions = useCallback(() => {
         const excludedAndNotInTeamUserIds = excludedUsers;
 
-        const filteredDmUsers = filterProfilesStartingWithTerm(props.profilesFromRecentDMs, term);
-        const dmUsers = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredDmUsers, excludedAndNotInTeamUserIds).slice(0, USERS_FROM_DMS) as UserProfileValue[];
+        // Only include DM users if ABAC is not enabled
+        let dmUsers: UserProfileValue[] = [];
+        if (!props.channel.policy_enforced) {
+            const filteredDmUsers = filterProfilesStartingWithTerm(props.profilesFromRecentDMs, term);
+            dmUsers = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredDmUsers, excludedAndNotInTeamUserIds).slice(0, USERS_FROM_DMS) as UserProfileValue[];
+        }
 
         let users: UserProfileValue[];
-        const filteredUsers: UserProfile[] = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel.concat(props.profilesInCurrentChannel), term);
-        users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
-        if (props.includeUsers) {
+        if (props.channel.policy_enforced) {
+        // When ABAC is enabled, only use the ABAC-filtered profilesNotInCurrentChannel
+            const filteredUsers = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel, term);
+            users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
+        } else {
+        // When ABAC is not enabled, use the current logic
+            const filteredUsers = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel.concat(props.profilesInCurrentChannel), term);
+            users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
+        }
+
+        // Only include explicitly added users if ABAC is not enabled
+        if (props.includeUsers && !props.channel.policy_enforced) {
             users = [...users, ...Object.values(props.includeUsers)];
         }
+
         const groupsAndUsers = [
             ...filterGroupsMatchingTerm(props.groups, term) as GroupValue[],
             ...users,
@@ -200,6 +215,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.profilesInCurrentChannel,
         props.includeUsers,
         props.groups,
+        props.channel.policy_enforced,
         excludedUsers,
         filterOutDeletedAndExcludedAndNotInTeamUsers,
     ]);
@@ -231,19 +247,38 @@ const ChannelInviteModalComponent = (props: Props) => {
         setLoadingUsers(loadingState);
     }, []);
 
-    // Handle page change
+    // Handle page change with cursor-based pagination
     const handlePageChange = useCallback((page: number, prevPage: number) => {
         if (page > prevPage) {
             setUsersLoadingState(true);
+
+            // Get cursor for this page (if we're going forward)
+            const cursorId = page > 0 ? pageCursors[page - 1] : '';
+
             props.actions.getProfilesNotInChannel(
                 props.channel.team_id,
                 props.channel.id,
                 props.channel.group_constrained,
-                page + 1, USERS_PER_PAGE).then(() => setUsersLoadingState(false));
+                page + 1,
+                USERS_PER_PAGE,
+                cursorId,
+            ).then((result) => {
+                // Store the cursor for the next page (ID of the last user)
+                if (result.data && result.data.length > 0) {
+                    const lastUserId = result.data[result.data.length - 1].id;
+                    setPageCursors((prev) => ({
+                        ...prev,
+                        [page]: lastUserId,
+                    }));
+                }
+                setUsersLoadingState(false);
+            }).catch(() => {
+                setUsersLoadingState(false);
+            });
 
             props.actions.getProfilesInChannel(props.channel.id, page + 1, USERS_PER_PAGE, '', {active: true});
         }
-    }, [props.actions, props.channel, setUsersLoadingState]);
+    }, [props.actions, props.channel, setUsersLoadingState, pageCursors, setPageCursors]);
 
     // Handle form submission
     const handleSubmit = useCallback(() => {
@@ -282,7 +317,8 @@ const ChannelInviteModalComponent = (props: Props) => {
         setTerm(term);
 
         if (!term) {
-            // If the search term is empty, don't make any API calls
+            // Reset cursor state when clearing search
+            setPageCursors({});
             setUsersLoadingState(false);
             return;
         }
@@ -403,7 +439,7 @@ const ChannelInviteModalComponent = (props: Props) => {
 
     // Initial data loading - only run when channel changes or component mounts
     useEffect(() => {
-        props.actions.getProfilesNotInChannel(props.channel.team_id, props.channel.id, props.channel.group_constrained, 0).then(() => {
+        props.actions.getProfilesNotInChannel(props.channel.team_id, props.channel.id, props.channel.group_constrained, 0, USERS_PER_PAGE).then(() => {
             setUsersLoadingState(false);
         });
         props.actions.getProfilesInChannel(props.channel.id, 0, USERS_PER_PAGE, '', {active: true});
@@ -470,7 +506,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.actions.closeModal(ModalIdentifiers.CHANNEL_INVITE);
     };
 
-    const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode; id?: string}) => {
+    const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode; id?: string; abacChannelPolicyEnforced?: boolean}) => {
         return (
             <ToggleModalButton
                 className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
@@ -481,6 +517,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     initialValue: term,
                     inviteAsGuest: props.inviteAsGuest,
                     focusOriginElement: 'customNoOptionsMessageLink',
+                    canInviteGuests: Boolean(!props.abacChannelPolicyEnforced),
                 }}
                 onClick={closeMembersInviteModal}
                 id={props.id}
@@ -499,7 +536,10 @@ const ChannelInviteModalComponent = (props: Props) => {
                 defaultMessage='No matches found - <InvitationModalLink>Invite them to the team</InvitationModalLink>'
                 values={{
                     InvitationModalLink: (chunks: string) => (
-                        <InviteModalLink id='customNoOptionsMessageLink'>
+                        <InviteModalLink
+                            id='customNoOptionsMessageLink'
+                            abacChannelPolicyEnforced={props.channel.policy_enforced}
+                        >
                             {chunks}
                         </InviteModalLink>
                     ),
@@ -611,7 +651,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                         teamId={channel.team_id}
                         users={usersNotInTeam}
                     />
-                    {(props.emailInvitationsEnabled && props.canInviteGuests) && inviteGuestLink}
+                    {(props.emailInvitationsEnabled && props.canInviteGuests && !channel.policy_enforced) && inviteGuestLink}
                 </div>
             </div>
         </GenericModal>

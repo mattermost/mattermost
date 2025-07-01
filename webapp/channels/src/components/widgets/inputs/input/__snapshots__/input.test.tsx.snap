@@ -5,23 +5,26 @@ exports[`components/widgets/inputs/Input should match snapshot 1`] = `
   <div
     class="Input_container"
   >
-    <fieldset
+    <div
       class="Input_fieldset"
+      data-testid="input-wrapper"
     >
-      <legend
+      <label
         class="Input_legend"
-      />
+        for="input_"
+      >
+                                
+      </label>
       <div
         class="Input_wrapper"
       >
         <input
-          aria-invalid="false"
           class="Input form-control medium"
           id="input_"
           value=""
         />
       </div>
-    </fieldset>
+    </div>
   </div>
 </div>
 `;

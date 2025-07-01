@@ -89,29 +89,6 @@
         .buttons {
             margin-top: 32px;
             text-align: right;
-
-            .confirm-btn {
-                &:hover,
-                &:active,
-                &:focus,
-                &:active:focus {
-                    background:
-                        linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)),
-                        var(--button-bg);
-                }
-
-                height: 40px;
-                flex: none;
-                padding: 12px 20px;
-                border: none;
-                border-radius: 4px;
-                margin-left: 8px;
-                background: var(--button-bg);
-                color: var(--sys-button-color);
-                font-size: 14px;
-                font-weight: 600;
-                line-height: 14px;
-            }
         }
     }
 }
