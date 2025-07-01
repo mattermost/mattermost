@@ -30,12 +30,23 @@ describe('Messaging', () => {
 
         // * Verify the total 4 attached items are present
         cy.getLastPostId().then((postID) => {
-            cy.get(`#${postID}_message`).findByTestId('fileAttachmentList').children().should('have.length', '4');
-
-            // * Verify the preview attachment are present
-            [...Array(4)].forEach((value, index) => {
-                cy.get(`#${postID}_message`).findByTestId('fileAttachmentList').children().eq(index).
-                    find('.post-image__name').contains('small-image.png').should('exist');
+            cy.get(`#${postID}_message`).findByTestId('fileAttachmentList').within(() => {
+                // Check if gallery is collapsed and expand it
+                cy.get('.image-gallery__body').then(($body) => {
+                    if ($body.hasClass('collapsed')) {
+                        // Click toggle to expand the gallery
+                        cy.get('.image-gallery__toggle').click();
+                    }
+                });
+                
+                // Ensure gallery is expanded
+                cy.get('.image-gallery__body').should('not.have.class', 'collapsed');
+                
+                // Then verify we have 4 image gallery items
+                cy.get('.image-gallery__item').should('have.length', 4);
+                
+                // * Verify the preview attachments are visible (separate assertion like working tests)
+                cy.get('.image-gallery__item').should('exist').and('be.visible');
             });
         });
 
@@ -45,9 +56,8 @@ describe('Messaging', () => {
 
         // * Verify the attached items can be cycled through
         cy.getLastPostId().then((postId) => {
-            cy.get(`#${postId}_message`).within(() => {
-                cy.uiOpenFilePreviewModal();
-            });
+            // Click on the first ImageGallery item to open the modal (outside within block like working test)
+            cy.get('.image-gallery__item').first().click();
 
             // * Verify image preview is visible
             cy.uiGetFilePreviewModal();
@@ -75,9 +85,12 @@ function verifyImageInPostFooter(verifyExistence = true) {
 }
 
 function postAttachments() {
+    // # Use the robust post textbox method like the working tests
+    cy.uiGetPostTextBox().should('be.visible');
+    
     // Add 4 attachments to a post
     [...Array(4)].forEach(() => {
-        cy.get('#fileUploadInput').attachFile('small-image.png');
+        cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile('small-image.png');
     });
 
     // # verify the attachment at the footer

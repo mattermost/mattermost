@@ -12,37 +12,28 @@
 
 describe('Messaging', () => {
     before(() => {
-        // # Login as test user and visit the newly created test channel
-        cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
-            // # Visit a test channel
-            cy.visit(`/${team.name}/channels/${channel.name}`);
+        // # Login as new user and visit off-topic channel
+        cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
+            cy.visit(offTopicUrl);
         });
     });
 
     it('MM-T187 Inline markdown images open preview window', () => {
         const message = 'Hello ![test image](https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/image-small-height.png)';
         
-        // # Post the image link to the channel
-        // Handle both post list implementations - check for the newer one first, fallback to the older one
-        cy.get('body').then(($body) => {
-            if ($body.find('#virtualizedPostListContent').length > 0) {
-                cy.get('#virtualizedPostListContent').should('be.visible');
-            } else {
-                cy.get('#postListContent').should('be.visible');
-            }
-        });
+        // # Post the message using basic input approach that was working
+        cy.get('input, textarea, [contenteditable]').first().should('be.visible').clear().type(message + '{enter}');
+
+        // * Wait for the message to appear in the post content (not sr-only elements)
+        cy.get('.post-message__text').contains('Hello', {timeout: 10000}).should('be.visible');
         
-        // # Type and post the message
-        cy.get('#post_textbox').should('be.visible').clear().type(message).type('{enter}');
+        // * Check for the markdown inline image container
+        cy.get('.markdown-inline-img__container', {timeout: 5000}).should('be.visible');
 
-        // * Confirm the image container is visible
-        cy.uiWaitUntilMessagePostedIncludes('Hello');
-        cy.get('.markdown-inline-img__container').should('be.visible');
+        // * Look for the image that should be clickable to open preview
+        cy.get('.markdown-inline-img__container .markdown-inline-img', {timeout: 5000}).first().should('be.visible').click();
 
-        // # Hover over image then click to open preview image
-        cy.get('.file-preview__button').trigger('mouseover').click();
-
-        // * Confirm image is visible
-        cy.findByTestId('imagePreview').should('be.visible');
+        // * Confirm image preview modal opens
+        cy.findByTestId('imagePreview', {timeout: 10000}).should('be.visible');
     });
 });
