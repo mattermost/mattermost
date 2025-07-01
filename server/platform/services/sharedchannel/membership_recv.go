@@ -138,10 +138,9 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 		}
 	}
 
-	// Use AddUserToChannelWithOptions to add the user to the channel
-	// This bypasses access control checks for private channels and includes all necessary functionality
+	// Use the standard method - ACP checks now handle remote users gracefully
 	rctx := request.EmptyContext(scs.server.Log())
-	_, appErr := scs.app.AddUserToChannelWithOptions(rctx, user, channel, true, true)
+	_, appErr := scs.app.AddUserToChannel(rctx, user, channel, true)
 	if appErr != nil {
 		// Skip "already added" errors
 		if appErr.Error() != "api.channel.add_user.to_channel.failed.app_error" &&

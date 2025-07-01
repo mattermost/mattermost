@@ -1672,22 +1672,29 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 
 				s, err := a.Srv().Store().Attributes().GetSubject(c, user.Id, groupID)
 				if err != nil {
-					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
-				}
-
-				decision, evalErr := acs.AccessEvaluation(c, model.AccessRequest{
-					Subject: *s,
-					Resource: model.Resource{
-						Type: model.AccessControlPolicyTypeChannel,
-						ID:   channel.Id,
-					},
-					Action: "join_channel",
-				})
-				if evalErr != nil {
-					return nil, evalErr
-				} else if !decision.Decision {
-					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.rejected", nil, "", http.StatusForbidden)
+					// Allow remote users to skip ACP evaluation since they don't have local attribute records
+					// This is safe because shared channel access is controlled at the cluster level
+					if user.IsRemote() {
+						// Remote users bypass ACP checks - access control is handled by the originating cluster
+					} else {
+						return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
+							fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
+					}
+				} else {
+					// Local users get full ACP evaluation
+					decision, evalErr := acs.AccessEvaluation(c, model.AccessRequest{
+						Subject: *s,
+						Resource: model.Resource{
+							Type: model.AccessControlPolicyTypeChannel,
+							ID:   channel.Id,
+						},
+						Action: "join_channel",
+					})
+					if evalErr != nil {
+						return nil, evalErr
+					} else if !decision.Decision {
+						return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.rejected", nil, "", http.StatusForbidden)
+					}
 				}
 			}
 		} else if appErr != nil {
@@ -1727,11 +1734,6 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 
 // AddUserToChannel adds a user to a given channel.
 func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
-	return a.AddUserToChannelWithOptions(c, user, channel, skipTeamMemberIntegrityCheck, false)
-}
-
-// AddUserToChannelWithOptions adds a user to a given channel with additional options.
-func (a *App) AddUserToChannelWithOptions(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool, bypassAccessControl bool) (*model.ChannelMember, *model.AppError) {
 	if !skipTeamMemberIntegrityCheck {
 		teamMember, nErr := a.Srv().Store().Team().GetMember(c, channel.TeamId, user.Id)
 		if nErr != nil {
@@ -1749,7 +1751,7 @@ func (a *App) AddUserToChannelWithOptions(c request.CTX, user *model.User, chann
 		}
 	}
 
-	newMember, err := a.addUserToChannel(c, user, channel, bypassAccessControl)
+	newMember, err := a.addUserToChannel(c, user, channel, false)
 	if err != nil {
 		return nil, err
 	}
@@ -1770,6 +1772,8 @@ func (a *App) AddUserToChannelWithOptions(c request.CTX, user *model.User, chann
 
 	return newMember, nil
 }
+
+
 
 type ChannelMemberOpts struct {
 	UserRequestorID string
