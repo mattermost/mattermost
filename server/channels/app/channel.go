@@ -1619,7 +1619,7 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 	return nil
 }
 
-func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.Channel, bypassAccessControl bool) (*model.ChannelMember, *model.AppError) {
+func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
 	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1661,7 +1661,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 		newMember.SchemeAdmin = userShouldBeAdmin
 	}
 
-	if channel.Type == model.ChannelTypePrivate && !bypassAccessControl {
+	if channel.Type == model.ChannelTypePrivate {
 		if ok, appErr := a.ChannelAccessControlled(c, channel.Id); ok {
 			if acs := a.Srv().Channels().AccessControl; acs != nil {
 				groupID, err := a.CpaGroupID()
@@ -1751,7 +1751,7 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 		}
 	}
 
-	newMember, err := a.addUserToChannel(c, user, channel, false)
+	newMember, err := a.addUserToChannel(c, user, channel)
 	if err != nil {
 		return nil, err
 	}
