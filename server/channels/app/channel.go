@@ -1661,8 +1661,8 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 		newMember.SchemeAdmin = userShouldBeAdmin
 	}
 
-	// For shared channel sync with private channels, ensure user is on the team first
-	if channel.Type == model.ChannelTypePrivate && bypassAccessControl {
+	// Always add user to team for private channels (preserves existing functionality)
+	if channel.Type == model.ChannelTypePrivate {
 		if err := a.AddUserToTeamByTeamId(c, channel.TeamId, user); err != nil {
 			return nil, model.NewAppError("addUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
 				fmt.Sprintf("failed to add user to team for private channel: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
