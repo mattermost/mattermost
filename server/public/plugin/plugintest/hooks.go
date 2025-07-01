@@ -304,6 +304,24 @@ func (_m *Hooks) NotificationWillBePushed(pushNotification *model.PushNotificati
 	return r0, r1
 }
 
+// NotificationsWillBeSent provides a mock function with given fields: post
+func (_m *Hooks) NotificationsWillBeSent(post *model.Post) string {
+	ret := _m.Called(post)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NotificationsWillBeSent")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*model.Post) string); ok {
+		r0 = rf(post)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // OnActivate provides a mock function with no fields
 func (_m *Hooks) OnActivate() error {
 	ret := _m.Called()

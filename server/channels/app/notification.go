@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -372,6 +373,19 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		Channel:    channel,
 		ProfileMap: profileMap,
 		Sender:     sender,
+	}
+
+	rejectionReason := ""
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		rejectionReason = hooks.NotificationsWillBeSent(post)
+		return rejectionReason == ""
+	}, plugin.NotificationsWillBeSentID)
+	if rejectionReason != "" {
+		a.NotificationsLog().Info(
+			"Notification for post rejected by plugin",
+			mlog.String("post_id", post.Id),
+			mlog.String("reason", rejectionReason))
+		return []string{}, nil
 	}
 
 	if *a.Config().EmailSettings.SendEmailNotifications {
