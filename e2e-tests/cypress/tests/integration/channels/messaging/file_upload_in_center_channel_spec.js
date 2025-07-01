@@ -24,7 +24,7 @@ describe('Messaging', () => {
 
         // # upload an image
         const IMAGE_NAME = 'huge-image.jpg';
-        cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile(IMAGE_NAME);
+        cy.get('#fileUploadInput').attachFile(IMAGE_NAME);
         cy.uiWaitForFileUploadPreview();
 
         // # post it with a message
