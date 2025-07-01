@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -182,33 +183,57 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 // non-deleted remotes for the channel and unshares the channel if
 // there are none. Returns true if the channel was unshared.
 func (scs *Service) unshareChannelIfNoActiveRemotes(channelID string) (bool, error) {
+	fmt.Printf("!!!!!! Checking if I need to unshare channelID=%s\n", channelID)
+
 	opts := model.SharedChannelRemoteFilterOpts{ChannelId: channelID}
 	remotes, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 1, opts)
 	if err != nil {
+		fmt.Printf("!!!!!! Got error when getting channel remotes: %s\n", err)
+
 		return false, fmt.Errorf("failed to check remaining remotes: %w", err)
 	}
 
+	b, _ := json.MarshalIndent(remotes, "", "  ")
+	fmt.Printf("!!!!!! Got %d remotes: %s\n\n", len(remotes), string(b))
+
 	// If no remotes remain, unshare the channel
 	if len(remotes) == 0 {
+		fmt.Println("!!!!!! Got no remotes, unsharing")
+
 		unshared, err := scs.UnshareChannel(channelID)
 		if err != nil {
+			fmt.Printf("!!!!!! Couldn't unshare: %s\n", err)
 			return false, fmt.Errorf("failed to automatically unshare channel after removing last remote: %w", err)
 		}
+
+		fmt.Println("!!!!!! Unshared correctly!")
 		return unshared, nil
 	}
 
+	fmt.Println("!!!!!! Got more than one remote")
 	return false, nil
 }
 
 func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error {
+	fmt.Printf("!!!!!! Uninviting remoteID=%s from channelID=%s\n", remoteID, channelID)
+
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
+
+	fmt.Printf("!!!!!! Got remote, and is err=%s\n", err)
+
 	if err != nil || scr.ChannelId != channelID || scr.DeleteAt != 0 {
+		fmt.Printf("!!!!!! Failing because err=%s, channelID != of remotes channelID %v or deleteAt=%d\n", err, scr.ChannelId != channelID, scr.DeleteAt)
+
 		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.channel_remote_id_not_exists",
 			map[string]any{"RemoteId": remoteID}, "", http.StatusInternalServerError)
 	}
 
+	fmt.Println("!!!!!! Deleting remote")
+
 	deleted, err := scs.server.GetStore().SharedChannel().DeleteRemote(scr.Id)
 	if err != nil || !deleted {
+		fmt.Printf("!!!!!! Failed to delete remote, either because err=%s or not deleted\n", err)
+
 		code := http.StatusInternalServerError
 		if err == nil {
 			err = errors.New("not found")
@@ -217,6 +242,8 @@ func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error 
 		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.could_not_uninvite.error",
 			map[string]any{"RemoteId": remoteID, "Error": err.Error()}, "", code)
 	}
+
+	fmt.Printf("!!!!!! Gonna check for the unshare\n")
 
 	_, unshareErr := scs.unshareChannelIfNoActiveRemotes(channelID)
 	if unshareErr != nil {
