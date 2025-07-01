@@ -5,7 +5,7 @@ import debounce from 'lodash/debounce';
 import type {ReactNode} from 'react';
 import React, {memo, useEffect, useRef} from 'react';
 
-import {ListItemSizeObserver} from './item_row_size_observer';
+import {ListItemSizeObserver} from './list_item_size_observer';
 
 const RESIZE_DEBOUNCE_TIME = 200; // in ms
 

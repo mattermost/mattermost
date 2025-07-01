@@ -7,7 +7,7 @@
 import memoizeOne from 'memoize-one';
 import {createElement, PureComponent} from 'react';
 
-import ListItem from './item_row_shared';
+import ListItem from './list_item';
 
 const atBottomMargin = 10;
 
