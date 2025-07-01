@@ -27,6 +27,7 @@ type SharedChannelServiceIFace interface {
 	CheckChannelIsShared(channelID string) error
 	CheckCanInviteToSharedChannel(channelId string) error
 	HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string)
+	PostMembershipSyncDebugMessage(message string)
 }
 
 func NewMockSharedChannelService(service SharedChannelServiceIFace) *mockSharedChannelService {
@@ -96,5 +97,11 @@ func (mrcs *mockSharedChannelService) NumInvitations() int {
 func (mrcs *mockSharedChannelService) HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string) {
 	if mrcs.SharedChannelServiceIFace != nil {
 		mrcs.SharedChannelServiceIFace.HandleMembershipChange(channelID, userID, isAdd, remoteID)
+	}
+}
+
+func (mrcs *mockSharedChannelService) PostMembershipSyncDebugMessage(message string) {
+	if mrcs.SharedChannelServiceIFace != nil {
+		mrcs.SharedChannelServiceIFace.PostMembershipSyncDebugMessage(message)
 	}
 }
