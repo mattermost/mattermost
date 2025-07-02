@@ -30,7 +30,7 @@ func TestBuildURL(t *testing.T) {
 		"Base url without trailing slash and path without leading slash": {
 			base:     "https://api.integrations.mattermost.com",
 			path:     "api/v1/plugins",
-			expected: "https://api.integrations.mattermost.com/api/v1/plugins",
+			expected: "https://api.integrations.mattermost.com/api/v1/plugins2",
 		},
 	}
 
