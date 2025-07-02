@@ -21,7 +21,7 @@ jobs:
           github-token: ${{ github.token }}
           pattern: "*-test-logs"
           path: reports
-      
+
       - name: report/generate-report-matrix
         id: report
         run: |
@@ -31,11 +31,11 @@ jobs:
             echo "{\"artifact\": \"$folder\", \"name\": \"$test_name\"}"
           done | jq -s '{ "test": . }' | tee /tmp/report-matrix
           echo REPORT_MATRIX=$(cat /tmp/report-matrix | jq --compact-output --monochrome-output) >> ${GITHUB_OUTPUT}
-      
+
   publish-report:
     runs-on: ubuntu-22.04
     name: Publish Report ${{ matrix.test.name }}
-    needs: 
+    needs:
       - generate-report-matrix
     permissions:
       pull-requests: write
