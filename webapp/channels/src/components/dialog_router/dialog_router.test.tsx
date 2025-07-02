@@ -56,6 +56,7 @@ describe('components/dialog_router/DialogRouter', () => {
         onExited: jest.fn(),
         actions: {
             submitInteractiveDialog: jest.fn(),
+            lookupInteractiveDialog: jest.fn(),
         },
     };
 
