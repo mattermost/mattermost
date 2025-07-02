@@ -1069,7 +1069,7 @@ const DynamicAppsFormContainer: React.FC<AppsFormContainerProps> = (props) => {
     React.useEffect(() => {
         const loadComponent = async () => {
             const {default: Component} = await import('components/apps_form/apps_form_container');
-            setAppsFormContainer(() => Component);
+            setAppsFormContainer(Component as React.ComponentType<AppsFormContainerProps>);
         };
         loadComponent();
     }, []);
