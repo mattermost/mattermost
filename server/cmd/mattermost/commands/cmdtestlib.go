@@ -37,13 +37,13 @@ type testHelper struct {
 }
 
 // Setup creates an instance of testHelper.
-func Setup(t testing.TB) *testHelper {
+func Setup(tb testing.TB) *testHelper {
 	dir, err := testlib.SetupTestResources()
 	if err != nil {
 		panic("failed to create temporary directory: " + err.Error())
 	}
 
-	api4TestHelper := api4.Setup(t)
+	api4TestHelper := api4.Setup(tb)
 
 	testHelper := &testHelper{
 		TestHelper:     api4TestHelper,
@@ -59,13 +59,13 @@ func Setup(t testing.TB) *testHelper {
 }
 
 // Setup creates an instance of testHelper.
-func SetupWithStoreMock(t testing.TB) *testHelper {
+func SetupWithStoreMock(tb testing.TB) *testHelper {
 	dir, err := testlib.SetupTestResources()
 	if err != nil {
 		panic("failed to create temporary directory: " + err.Error())
 	}
 
-	api4TestHelper := api4.SetupWithStoreMock(t)
+	api4TestHelper := api4.SetupWithStoreMock(tb)
 	systemStore := mocks.SystemStore{}
 	systemStore.On("Get").Return(make(model.StringMap), nil)
 	licenseStore := mocks.LicenseStore{}

@@ -7,6 +7,7 @@ import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
+import {getAccessControlPolicy, deleteAccessControlPolicy, assignChannelsToAccessControlPolicy, searchAccessControlPolicies} from 'mattermost-redux/actions/access_control';
 import {
     addChannelMember,
     deleteChannel,
@@ -36,7 +37,7 @@ import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
-import {isMinimumEnterpriseLicense, isMinimumProfessionalLicense} from 'utils/license_utils';
+import {isMinimumEnterpriseAdvancedLicense, isMinimumEnterpriseLicense, isMinimumProfessionalLicense} from 'utils/license_utils';
 
 import ChannelDetails from './channel_details';
 
@@ -60,6 +61,8 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     // Channel Groups is only available for Enterprise and above
     const channelGroupsEnabled = isLicensed && isMinimumEnterpriseLicense(license);
 
+    const abacSupported = isLicensed && isMinimumEnterpriseAdvancedLicense(license) && config.FeatureFlagAttributeBasedAccessControl === 'true';
+
     const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
     const channelID = ownProps.match.params.channel_id;
     const channel = getChannel(state, channelID);
@@ -81,10 +84,14 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         guestAccountsEnabled,
         channelModerationEnabled,
         channelGroupsEnabled,
+        abacSupported,
     };
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
+    const assignChannelToAccessControlPolicy = (policyId: string, channelId: string) => {
+        return assignChannelsToAccessControlPolicy(policyId, [channelId]);
+    };
     return {
         actions: bindActionCreators({
             getGroups: fetchAssociatedGroups,
@@ -105,6 +112,10 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateChannelMemberSchemeRoles,
             deleteChannel,
             unarchiveChannel,
+            getAccessControlPolicy,
+            assignChannelToAccessControlPolicy,
+            deleteAccessControlPolicy,
+            searchPolicies: searchAccessControlPolicies,
         }, dispatch),
     };
 }

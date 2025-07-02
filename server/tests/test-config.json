@@ -189,6 +189,7 @@
         "AboutLink": "https://mattermost.com/default-about/",
         "HelpLink": "https://mattermost.com/pl/help/",
         "ReportAProblemLink": "https://mattermost.com/pl/report-a-bug",
+        "ReportAProblemType": "link",
         "ForgotPasswordLink": "",
         "SupportEmail": "feedback@mattermost.com"
     },

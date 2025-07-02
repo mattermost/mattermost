@@ -15,7 +15,7 @@ jobs:
       REPORT_MATRIX: ${{ steps.report.outputs.REPORT_MATRIX }}
     steps:
       - name: report/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
@@ -45,7 +45,7 @@ jobs:
       matrix: ${{ fromJson(needs.generate-report-matrix.outputs.REPORT_MATRIX) }}
     steps:
       - name: report/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
@@ -69,17 +69,6 @@ jobs:
           include_passed: true
           check_annotations: true
 
-      - name: Report retried tests via webhook (master)
-        if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && github.event.workflow_run.name == 'Server CI Master' && github.event.workflow_run.head_branch == 'master' }}
-        uses: mattermost/action-mattermost-notify@b7d118e440bf2749cd18a4a8c88e7092e696257a # v2.0.0
-        with:
-          MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_COMMUNITY_DEVELOPERS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }}
-          TEXT: |-
-            #### ⚠️ One or more flaky tests detected ⚠️
-            * Failing job: [github.com/mattermost/mattermost:${{ matrix.test.name }}](${{ github.event.workflow_run.html_url }})
-            * Ideally, this would have been caught in a pull request, but now a volunteer is required. If you're willing to help, submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.
-            * Finally, reply to this message with a link to the created JIRA ticket.
-  
       - name: Report retried tests (pull request)
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && github.event.workflow_run.name == 'Server CI PR' }}

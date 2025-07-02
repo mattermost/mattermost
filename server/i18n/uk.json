@@ -208,10 +208,6 @@
     "translation": "Неможливо покинути канал приватних повідомлень."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Ви єдиний учасник, який залишився, спробуйте видалити приватний канал замість того, щоб виходити."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v покинув канал."
   },
@@ -1509,7 +1505,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nКанали додані:\n"
+    "translation": "\nДодані канали:\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -4605,15 +4601,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версія 119+"
+    "translation": "Версія 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версія 132+"
+    "translation": "Версія 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версія 132+"
+    "translation": "Версія 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7629,7 +7625,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Не вдалося застосувати нову пробну ліцензію. Ви вже застосовували пробну ліцензію до цього екземпляра Mattermost. Якщо ви хочете продовжити пробний період, будь ласка, [зв'яжіться з нашою командою продажів] (https://mattermost.com/contact-us/)."
+    "translation": "Не вдалося застосувати нову пробну ліцензію, оскільки у вашому робочому просторі вже було застосовано пробну ліцензію. Якщо ви хочете продовжити пробний період, будь ласка, [зв'яжіться з нашим відділом продажів] (https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request_trial_license.embargoed",
@@ -10376,10 +10372,6 @@
     "translation": "Сеанс не знайдено."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "спроба змінити поле, яке не існує"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Неможливо отримати закладки для заархівованого каналу"
   },
@@ -10508,7 +10500,151 @@
     "translation": "Не вдалося перетворити поле властивості на поле атрибута кастомного профілю"
   },
   {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Не вдалося перетворити поле властивості на поле атрибута кастомного профілю"
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Недійсний ідентифікатор політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Недійсний імпорт для політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Недійсна назва політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Недійсна версія політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Правила недійсні."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Політика має імпортувати або визначати правила."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Недійсний тип політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Версія недійсна для цієї політики контролю доступу."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "недійсний патч поля атрибута спеціального профілю"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix не може бути порожнім, якщо встановлено GlobalSearchPrefix."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} має бути префіксом IndexPrefix {{.IndexPrefix}}."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Не вдалося додати сертифікат."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Не вдалося видалити сертифікат."
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Не вдалося відкрити файл зображення профілю: {{.FileName}}"
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Виникла помилка при декодуванні JSON-відповіді з інтерактивного діалогу."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Не вдалося видалити значення атрибутів спеціального профілю для користувача"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Порожнє значення атрибута LDAP"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Не вдалося перевірити значення властивості"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "Не вдалося отримати поля CPA"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "Помилки під час виправлення значення CPA"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "Не вдалося отримати поля CPA"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "Інструкція атрибута твердження SAML недійсна"
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Не вдалося проаналізувати форму для вебхука {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Не вдалося проаналізувати багатокомпонентну форму для вебхука {{.hook_id}}."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Забагато файлів під «сертифікатом» у запиті."
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Не вдалося прочитати дані зображення профілю."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Виникла помилка під час читання тіла відповіді з інтерактивного діалогового вікна."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Некорректний ідентифікатор AD/LDAP"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Некоректний ідентифікатор AD/LDAP"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "Помилки під час оновлення значень CPA"
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "На сервері AD/LDAP не зареєстровано користувача, який відповідає користувачеві SAML."
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Не вдалося підрахувати щомісячну кількість активних користувачів."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "Функція {{.Feature}} недоступна для поточної ліцензії"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Недійсне посилання для повідомлення про проблему. Має бути дійсна URL-адреса та починатися з http:// або https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Недійсний лист для повідомлення про проблему. Повинна бути дійсна адреса електронної пошти."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Посилання для повідомлення про проблему обов'язкове."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Потрібно надіслати електронного листа для повідомлення про проблему."
   }
 ]

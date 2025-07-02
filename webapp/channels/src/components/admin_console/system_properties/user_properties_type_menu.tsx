@@ -70,11 +70,11 @@ const SelectType = (props: Props) => {
             }}
         >
             {[
-                <Menu.Input
+                <Menu.InputItem
                     key='filter_types'
                     id='filter_types'
                     type='text'
-                    placeholder={formatMessage({id: 'admin.system_properties.user_properties.table.filter_type', defaultMessage: 'Property type'})}
+                    placeholder={formatMessage({id: 'admin.system_properties.user_properties.table.filter_type', defaultMessage: 'Attribute type'})}
                     className='search-teams-selector-search'
                     value={filter}
                     onChange={onFilterChange}
@@ -82,11 +82,14 @@ const SelectType = (props: Props) => {
                 />,
             ]}
             {options.map((descriptor) => {
-                const {id, icon: Icon, label, disabled} = descriptor;
+                const {id, icon: Icon, label, hidden, canSync} = descriptor;
 
-                if (disabled) {
+                if (hidden) {
                     return null;
                 }
+
+                const isSyncing = props.field.attrs.ldap || props.field.attrs.saml;
+                const disabled = Boolean(isSyncing && !canSync);
 
                 return (
                     <Menu.Item
@@ -94,6 +97,7 @@ const SelectType = (props: Props) => {
                         key={id}
                         role='menuitemradio'
                         forceCloseOnSelect={true}
+                        disabled={disabled}
                         aria-checked={id === currentTypeDescriptor.id}
                         onClick={() => handleTypeChange(descriptor)}
                         labels={<FormattedMessage {...label}/>}
@@ -115,12 +119,15 @@ export default SelectType;
 
 const getTypeDescriptor = (field: UserPropertyField): TypeDescriptor => {
     for (const descriptor of Object.values(TYPE_DESCRIPTOR)) {
-        if (descriptor.fieldType === field.type && descriptor.valueType === field.attrs?.value_type) {
+        if (
+            descriptor.fieldType === field.type &&
+            descriptor.valueType === (field.attrs?.value_type ?? '')
+        ) {
             return descriptor;
         }
     }
 
-    throw new Error('Invalid type');
+    return TYPE_DESCRIPTOR.text;
 };
 
 type TypeID = 'text' | 'email' | 'phone' | 'url' | 'select' | 'multiselect';
@@ -131,7 +138,9 @@ type TypeDescriptor = {
     valueType: FieldValueType;
     icon: ComponentType<IconProps>;
     label: MessageDescriptor;
-    disabled?: boolean;
+
+    hidden?: boolean;
+    canSync?: boolean; // ldap/saml
 };
 
 const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
@@ -144,10 +153,11 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
             id: 'admin.system_properties.user_properties.table.select_type.text',
             defaultMessage: 'Text',
         }),
+        canSync: true,
     },
     email: {
         id: 'email',
-        disabled: true,
+        hidden: true,
         fieldType: 'text',
         valueType: 'email',
         icon: EmailOutlineIcon,

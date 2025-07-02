@@ -38,7 +38,10 @@ func CreateTestEnvironmentWithTeams(a *app.App, c request.CTX, client *model.Cli
 		if err != nil {
 			return TestEnvironment{}, err
 		}
-		client.LoginById(context.Background(), randomUser.Id, UserPassword)
+		_, _, err = client.LoginById(context.Background(), randomUser.Id, UserPassword)
+		if err != nil {
+			return TestEnvironment{}, err
+		}
 		teamEnvironment, err := CreateTestEnvironmentInTeam(a, c, client, team, rangeChannels, rangeUsers, rangePosts, fuzzy)
 		if err != nil {
 			return TestEnvironment{}, err
@@ -61,7 +64,7 @@ func CreateTestEnvironmentInTeam(a *app.App, c request.CTX, client *model.Client
 	userCreator.Fuzzy = fuzzy
 	users, err := userCreator.CreateTestUsers(c, rangeUsers)
 	if err != nil {
-		return TeamEnvironment{}, nil
+		return TeamEnvironment{}, err
 	}
 	usernames := make([]string, len(users))
 	for i, user := range users {
@@ -72,7 +75,7 @@ func CreateTestEnvironmentInTeam(a *app.App, c request.CTX, client *model.Client
 	channelCreator.Fuzzy = fuzzy
 	channels, err := channelCreator.CreateTestChannels(c, rangeChannels)
 	if err != nil {
-		return TeamEnvironment{}, nil
+		return TeamEnvironment{}, err
 	}
 
 	// Have every user join every channel

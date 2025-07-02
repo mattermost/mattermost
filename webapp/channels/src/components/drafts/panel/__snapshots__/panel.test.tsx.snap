@@ -1,11 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/drafts/panel/ should match snapshot 1`] = `
-<article
+<div
   className="Panel"
   onClick={[Function]}
-  onMouseLeave={[Function]}
-  onMouseOver={[Function]}
-  role="button"
-/>
+  onKeyDown={[Function]}
+  role="link"
+  tabIndex={0}
+>
+  <Component />
+</div>
 `;

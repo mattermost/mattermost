@@ -55,6 +55,42 @@ export async function ldapTest(success, error) {
     }
 }
 
+export async function ldapTestConnection(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapConnection(settings));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function ldapTestFilters(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapFilters(settings));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function ldapTestAttributes(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapAttributes(settings));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function ldapTestGroupAttributes(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapGroupAttributes(settings));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
 export async function invalidateAllCaches(success, error) {
     const {data, error: err} = await dispatch(AdminActions.invalidateCaches());
     if (data && success) {
@@ -229,6 +265,24 @@ export async function uploadIdpSamlCertificate(file, success, error) {
     const {data, error: err} = await dispatch(AdminActions.uploadIdpSamlCertificate(file));
     if (data && success) {
         success('saml-idp.crt');
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function uploadAuditCertificate(fileData, success, error) {
+    const {data, error: err} = await dispatch(AdminActions.uploadAuditCertificate(fileData));
+    if (data && success) {
+        success('audit.crt');
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function removeAuditCertificate(success, error) {
+    const {data, error: err} = await dispatch(AdminActions.removeAuditCertificate());
+    if (data && success) {
+        success(data);
     } else if (err && error) {
         error({id: err.server_error_id, ...err});
     }

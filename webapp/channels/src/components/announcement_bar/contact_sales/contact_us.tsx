@@ -8,8 +8,6 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
-import './contact_us.scss';
-
 export interface Props {
     buttonTextElement?: JSX.Element;
     eventID?: string;
@@ -27,13 +25,13 @@ const ContactUsButton: React.FC<Props> = (props: Props) => {
 
     return (
         <button
-            className={`contact-us ${props.customClass ? props.customClass : ''}`}
+            className={`btn contact-us ${props.customClass || 'btn-tertiary'}`}
             onClick={(e) => handleContactUsLinkClick(e)}
         >
             {props.buttonTextElement || (
                 <FormattedMessage
                     id={'admin.license.trialCard.contactSales'}
-                    defaultMessage={'Contact sales'}
+                    defaultMessage={'Contact Sales'}
                 />
             )}
         </button>

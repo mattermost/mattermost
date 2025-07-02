@@ -208,10 +208,6 @@
     "translation": "Impossibile uscire dal canale di messaggi diretti."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Tu sei l'unico membro rimasto, prova a rimuovere il canale privato invece di abbandonarlo."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v ha lasciato il canale."
   },

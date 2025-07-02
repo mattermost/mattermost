@@ -22,7 +22,7 @@ export default class ResetPasswordPage {
 
         this.title = page.locator('h1:has-text("Password Reset")');
         this.subtitle = page.locator('text=To reset your password, enter the email address you used to sign up');
-        this.emailInput = page.locator(`[placeholder="Email"]`);
+        this.emailInput = page.locator('#passwordResetEmailInput');
         this.resetButton = page.locator('#passwordResetButton');
         this.formContainer = page.locator('.signup-team__container');
 

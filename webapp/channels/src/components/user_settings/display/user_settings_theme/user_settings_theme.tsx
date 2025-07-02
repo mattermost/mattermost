@@ -337,47 +337,39 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
             if (this.props.allowCustomThemes) {
                 inputs.push(
                     <div
-                        className='radio'
-                        key='premadeThemeColorLabel'
+                        key='premadeCustom'
+                        className='user-settings__radio-group-inline'
                     >
-                        <label>
-                            <input
-                                id='standardThemes'
-                                type='radio'
-                                name='theme'
-                                checked={!displayCustom}
-                                onChange={this.updateType.bind(this, 'premade')}
-                                aria-controls='premadeThemesSection'
-                            />
-                            <FormattedMessage
-                                id='user.settings.display.theme.themeColors'
-                                defaultMessage='Theme Colors'
-                            />
-                        </label>
-                    </div>,
-                );
-            }
-
-            if (this.props.allowCustomThemes) {
-                inputs.push(
-                    <div
-                        className='radio'
-                        key='customThemeColorLabel'
-                    >
-                        <label>
-                            <input
-                                id='customThemes'
-                                type='radio'
-                                name='theme'
-                                checked={displayCustom}
-                                onChange={this.updateType.bind(this, 'custom')}
-                                aria-controls='customThemesSection'
-                            />
-                            <FormattedMessage
-                                id='user.settings.display.theme.customTheme'
-                                defaultMessage='Custom Theme'
-                            />
-                        </label>
+                        <div className='radio radio-inline'>
+                            <label>
+                                <input
+                                    id='standardThemes'
+                                    type='radio'
+                                    name='theme'
+                                    checked={!displayCustom}
+                                    onChange={this.updateType.bind(this, 'premade')}
+                                />
+                                <FormattedMessage
+                                    id='user.settings.display.theme.premadeThemes'
+                                    defaultMessage='Premade Themes'
+                                />
+                            </label>
+                        </div>
+                        <div className='radio radio-inline'>
+                            <label>
+                                <input
+                                    id='customThemes'
+                                    type='radio'
+                                    name='theme'
+                                    checked={displayCustom}
+                                    onChange={this.updateType.bind(this, 'custom')}
+                                />
+                                <FormattedMessage
+                                    id='user.settings.display.theme.customTheme'
+                                    defaultMessage='Custom Theme'
+                                />
+                            </label>
+                        </div>
                     </div>,
                 );
 
@@ -400,7 +392,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                 if (this.props.allowCustomThemes) {
                     inputs.push(
                         <div
-                            className='radio'
+                            className='radio radio-inline'
                             key='premadeDarkThemeColorLabel'
                         >
                             <label>
@@ -413,11 +405,10 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                                     aria-controls='premadeDarkThemesSection'
                                 />
                                 <FormattedMessage
-                                    id='user.settings.display.theme.themeColors'
-                                    defaultMessage='Theme Colors'
+                                    id='user.settings.display.theme.premadeThemes'
+                                    defaultMessage='Premade Themes'
                                 />
                             </label>
-                            <br/>
                         </div>,
                     );
                 }
@@ -425,7 +416,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                 if (this.props.allowCustomThemes) {
                     inputs.push(
                         <div
-                            className='radio'
+                            className='radio radio-inline'
                             key='customDarkThemeColorLabel'
                         >
                             <label>
@@ -490,6 +481,12 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
             themeUI = (
                 <SettingItemMax
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.theme.title'
+                            defaultMessage='Theme'
+                        />
+                    }
                     inputs={
                         <fieldset>
                             <legend className='hidden-label'>

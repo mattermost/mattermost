@@ -16,7 +16,7 @@ export default class ChannelsPostCreate {
     readonly attachmentButton;
     readonly emojiButton;
     readonly sendMessageButton;
-    readonly scheduleDraftMessageButton;
+    readonly scheduleMessageButton;
     readonly priorityButton;
     readonly suggestionList;
     readonly filePreview;
@@ -33,7 +33,7 @@ export default class ChannelsPostCreate {
         this.attachmentButton = container.locator('#fileUploadButton');
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.getByTestId('SendMessageButton');
-        this.scheduleDraftMessageButton = container.getByLabel('Schedule message');
+        this.scheduleMessageButton = container.getByLabel('Schedule message');
         this.priorityButton = container.getByLabel('Message priority');
         this.suggestionList = container.getByTestId('suggestionList');
         this.filePreview = container.locator('.file-preview__container');
@@ -77,18 +77,6 @@ export default class ChannelsPostCreate {
         await expect(this.sendMessageButton).toBeEnabled();
 
         await this.sendMessageButton.click();
-    }
-
-    /**
-     * Click on Scheduled Draft button to open options
-     */
-    async clickOnScheduleDraftDropdownButton() {
-        await expect(this.input).toBeVisible();
-
-        await expect(this.scheduleDraftMessageButton).toBeVisible();
-        await expect(this.scheduleDraftMessageButton).toBeEnabled();
-
-        await this.scheduleDraftMessageButton.click();
     }
 
     /**

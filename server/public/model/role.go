@@ -109,7 +109,6 @@ func init() {
 			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleReadReportingTeamStatistics.Id: {
-			PermissionViewTeam,
 			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleWriteUserManagementUsers.Id: {
@@ -915,6 +914,8 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionEditBookmarkPrivateChannel.Id,
 			PermissionDeleteBookmarkPrivateChannel.Id,
 			PermissionOrderBookmarkPrivateChannel.Id,
+			PermissionManagePublicChannelBanner.Id,
+			PermissionManagePrivateChannelBanner.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -1001,6 +1002,8 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionEditBookmarkPrivateChannel.Id,
 			PermissionDeleteBookmarkPrivateChannel.Id,
 			PermissionOrderBookmarkPrivateChannel.Id,
+			PermissionManagePublicChannelBanner.Id,
+			PermissionManagePrivateChannelBanner.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

@@ -47,7 +47,7 @@ describe('Onboarding', () => {
         stubClipboard().as('clipboard');
 
         // # Open the 'Invite People' full screen modal and get the invite url
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Copy invite link to clipboard
         cy.findByTestId('InviteView__copyInviteLink').click();

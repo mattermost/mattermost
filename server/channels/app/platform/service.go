@@ -38,9 +38,10 @@ import (
 // responsible for non-entity related functionalities that are required
 // by a product such as database access, configuration access, licensing etc.
 type PlatformService struct {
-	sqlStore *sqlstore.SqlStore
-	Store    store.Store
-	newStore func() (store.Store, error)
+	sqlStore     *sqlstore.SqlStore
+	Store        store.Store
+	newStore     func() (store.Store, error)
+	storeOptions []sqlstore.Option
 
 	WebSocketRouter *WebSocketRouter
 
@@ -48,6 +49,11 @@ type PlatformService struct {
 
 	filestore       filestore.FileBackend
 	exportFilestore filestore.FileBackend
+
+	// Channel for batching status updates
+	statusUpdateChan       chan *model.Status
+	statusUpdateExitSignal chan struct{}
+	statusUpdateDoneSignal chan struct{}
 
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
@@ -135,6 +141,9 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		},
 		licenseListeners:          map[string]func(*model.License, *model.License){},
 		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
+		statusUpdateChan:          make(chan *model.Status, statusUpdateBufferSize),
+		statusUpdateExitSignal:    make(chan struct{}),
+		statusUpdateDoneSignal:    make(chan struct{}),
 	}
 
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
@@ -232,7 +241,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace)
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace, ps.storeOptions...)
 			if err != nil {
 				return nil, err
 			}
@@ -396,6 +405,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 }
 
 func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error {
+	// Start the status update processor.
+	// Must be done before hub start.
+	go ps.processStatusUpdates()
+
 	ps.hubStart(broadcastHooks)
 
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
@@ -477,8 +490,8 @@ func (ps *PlatformService) initEnterprise() {
 		ps.licenseManager = licenseInterface(ps)
 	}
 
-	if pdpInterface != nil {
-		ps.pdpService = pdpInterface(ps)
+	if accessControlServiceInterface != nil {
+		ps.pdpService = accessControlServiceInterface(ps)
 	}
 }
 
@@ -495,6 +508,12 @@ func (ps *PlatformService) TotalWebsocketConnections() int {
 
 func (ps *PlatformService) Shutdown() error {
 	ps.HubStop()
+
+	// Shutdown status processor.
+	// Must be done after hub shutdown.
+	close(ps.statusUpdateExitSignal)
+	// wait for it to be stopped.
+	<-ps.statusUpdateDoneSignal
 
 	ps.RemoveLicenseListener(ps.licenseListenerId)
 

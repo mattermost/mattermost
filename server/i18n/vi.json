@@ -3250,10 +3250,6 @@
     "translation": "Tên nhóm quá dài."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Bạn là thành viên duy nhất còn lại, hãy thử loại bỏ các Kênh Riêng tư thay vì để lại."
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nNgười dùng đã tạo:\n"
   },
@@ -9132,5 +9128,109 @@
   {
     "id": "model.draft.is_valid.create_at.app_error",
     "translation": "Thời gian tạo phải hợp lệ."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Thiếu display_name trong yêu cầu gửi lên"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Thiếu team_id trong yêu cầu gửi đi"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Cập nhật đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Cập nhật thứ tự đánh dấu cho kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Xoá đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Giấy phép bản quyền của bạn không hỗ trợ tính năng đánh dấu kênh."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Người dùng không có quyền đánh dấu kênh."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Cập nhật thứ tự đánh dấu cho kênh không thành công."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Thêm chứng chỉ không thành công."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Quá nhiều tệp gửi lên."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Xoá chứng chỉ không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Xoá đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Xoá đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Xoá đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Cập nhật đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Cập nhật đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Cập nhật đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Cập nhật thứ tự đánh dấu cho kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Cập nhật thứ tự đánh dấu cho kênh không thành công."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Không thể tạo kênh nói chuyện với người dùng từ xa"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Giới hạn số channel không hợp lệ."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Giới hạn các trường trả về không hợp lệ."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "Người dùng không có các thuộc tính cần thiết để tham gia kênh."
   }
 ]

@@ -3,19 +3,21 @@
 
 import type {FocusEventHandler, KeyboardEventHandler} from 'react';
 import React, {useMemo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedList, FormattedMessage, useIntl} from 'react-intl';
 import type {GroupBase} from 'react-select';
 import {components} from 'react-select';
 import type {CreatableProps} from 'react-select/creatable';
 import CreatableSelect from 'react-select/creatable';
 
+import {SyncIcon} from '@mattermost/compass-icons/components';
 import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
 
 import Constants from 'utils/constants';
 
 import {DangerText} from './controls';
 
-// import './user_properties_dot_menu.scss';
+import './user_properties_values.scss';
+import BlockableLink from '../blockable_link';
 
 type Props = {
     field: UserPropertyField;
@@ -73,6 +75,52 @@ const UserPropertyValues = ({
         processQuery(query);
         event.preventDefault();
     };
+
+    if (field.attrs.ldap || field.attrs.saml) {
+        const syncedProperties = [
+
+            field.attrs.ldap && (
+                <BlockableLink
+                    className='user-property-field-values__chip-link'
+                    to={`/admin_console/authentication/ldap#custom_profile_attribute-${field.name}`}
+                    key={`${field.name}-ldap`}
+                    data-testid={`user-property-field-values__ldap-${field.name}`}
+                >
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.table.values.synced_with.ldap'
+                        defaultMessage='AD/LDAP: {propertyName}'
+                        values={{propertyName: field.attrs.ldap}}
+                    />
+                </BlockableLink>
+            ),
+            field.attrs.saml && (
+                <BlockableLink
+                    className='user-property-field-values__chip-link'
+                    to={`/admin_console/authentication/saml#custom_profile_attribute-${field.name}`}
+                    key={`${field.name}-saml`}
+                    data-testid={`user-property-field-values__saml-${field.name}`}
+                >
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.table.values.synced_with.saml'
+                        defaultMessage='SAML: {propertyName}'
+                        values={{propertyName: field.attrs.saml}}
+                    />
+                </BlockableLink>
+            ),
+
+        ].filter(Boolean);
+
+        return (
+            <span className='user-property-field-values'>
+                <SyncIcon size={18}/>
+                <FormattedMessage
+                    id='admin.system_properties.user_properties.table.values.synced_with'
+                    defaultMessage='Synced with: {syncedProperties}'
+                    values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
+                />
+            </span>
+        );
+    }
 
     if (field.type !== 'multiselect' && field.type !== 'select') {
         return (
@@ -138,6 +186,7 @@ const styles: SelectProps['styles'] = {
         paddingLeft: '6px',
         paddingTop: '1px',
         paddingBottom: '1px',
+        backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.08)',
     }),
     multiValueLabel: (base) => ({
         ...base,

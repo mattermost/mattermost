@@ -502,7 +502,7 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
         },
         description: {
             id: 'admin.permissions.permission.playbook_public_manage_members.description',
-            defaultMessage: 'Add and remove public playbook members.',
+            defaultMessage: 'Add and remove public playbook members (including playbook admins).',
         },
     }),
     playbook_public_make_private: defineMessages({
@@ -542,7 +542,7 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
         },
         description: {
             id: 'admin.permissions.permission.playbook_private_manage_members.description',
-            defaultMessage: 'Add and remove private playbook members.',
+            defaultMessage: 'Add and remove private playbook members (including playbook admins).',
         },
     }),
     playbook_private_make_public: defineMessages({
@@ -623,6 +623,26 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
         description: {
             id: 'admin.permissions.permission.manage_outgoing_oauth_connections.description',
             defaultMessage: 'Create, edit, and delete outgoing OAuth credentials.',
+        },
+    }),
+    manage_public_channel_banner: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_public_channel_banner.name',
+            defaultMessage: 'Manage Channel Banner',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_public_channel_banner.description',
+            defaultMessage: 'Enable, disable and edit channel banner.',
+        },
+    }),
+    manage_private_channel_banner: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_private_channel_banner.name',
+            defaultMessage: 'Manage Channel Banner',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_private_channel_banner.description',
+            defaultMessage: 'Enable, disable and edit channel banner.',
         },
     }),
 };

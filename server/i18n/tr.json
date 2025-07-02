@@ -208,10 +208,6 @@
     "translation": "Kanala doğrudan ileti bırakılamaz."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Kanalda yalnızca siz kaldınız. Kanaldan ayrılmak yerine özel kanalı kaldırmayı deneyin."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v kanaldan ayrıldı."
   },
@@ -5664,15 +5660,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 132+"
+    "translation": "Sürüm 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 132+"
+    "translation": "Sürüm 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 119+"
+    "translation": "Sürüm 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -5788,7 +5784,7 @@
   },
   {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
-    "translation": "Kullanıcı için yan çubuk başlangıç kategorileri oluşturulamadı."
+    "translation": "Kullanıcı için kenar çubuğu başlangıç kategorileri oluşturulamadı."
   },
   {
     "id": "api.invalid_channel",
@@ -5988,11 +5984,11 @@
   },
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
-    "translation": "Yan çubuk güncellenmiş ayarlara göre güncellenemedi"
+    "translation": "Kenar çubuğu güncellenmiş ayarlara göre güncellenemedi"
   },
   {
     "id": "api.preference.delete_preferences.update_sidebar.app_error",
-    "translation": "Yan çubuk silinmiş ayarlara göre güncellenemedi"
+    "translation": "Kenar çubuğu silinmiş ayarlara göre güncellenemedi"
   },
   {
     "id": "app.user_access_token.update_token_enable.app_error",
@@ -7448,7 +7444,7 @@
   },
   {
     "id": "api.command_custom_status.success",
-    "translation": "Durumunuz “{{.EmojiName}} {{.StatusMessage}}” olarak ayarlandı. Durumunuzu, kanal içinde üste açılan durum penceresinden değiştirebilirsiniz."
+    "translation": "Durumunuz “{{.EmojiName}} {{.StatusMessage}}” olarak ayarlandı. Durumunuzu, kanal kenar çubuğunda üste açılan durum penceresinden değiştirebilirsiniz."
   },
   {
     "id": "api.command_custom_status.name",
@@ -8195,7 +8191,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Yeni deneme lisansı kullanılamadı. Bu Mattermost kopyasında daha önce deneme lisansı kullanmışsınız. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
+    "translation": "Çalışma alanınız daha önce bir deneme lisansı kullandığı için yeni deneme lisansı için başvurulamadı. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9059,7 +9055,7 @@
   },
   {
     "id": "app.channel.gm_conversion_set_categories.delete_all.error",
-    "translation": "Dönüştürülmüş grup iletisi için var olan yan çubuk kategorileri silinemedi."
+    "translation": "Dönüştürülmüş grup iletisi için var olan kenar çubuğu kategorileri silinemedi."
   },
   {
     "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
@@ -10392,10 +10388,6 @@
     "translation": "Kanal yer imi güncellenemedi."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "var olmayan bir alana eklenmeye çalışılıyor"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Arşivlenmiş bir kanalın yer imleri alınamaz"
   },
@@ -10458,5 +10450,201 @@
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
     "translation": "Kanal duyurusu bilgi metni çok uzun. En fazla {{.maxLength}} karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Kullanıcının özel profil öznitelik değerleri silinemedi"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Sertifika eklenemedi."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "İstekte 'certificate' altında çok fazla dosya var."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Sertifika kaldırılamadı."
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Aylık etkin kullanıcı sayısı hesaplanamadı."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Eşitlenmiş bir özel profil özniteliği alanının değeri güncellenemedi"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Çok fazla başarısız olan parola denendiği için hesabınız kilitlendi. Lütfen sistem yöneticinizle görüşün."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Kullanıcı kimlik doğrulama hizmeti LDAP ya da E-posta olmalıdır."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Bu kaynağı güncelleme izniniz yok."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Özellik alanı özel bir profil öznitelik alanına dönüştürülemedi"
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Özel profil öznitelik alanı yaması geçersiz"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Özellik değeri doğrulanamadı"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "CPA alanları alınamadı"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "CPA değeri yamanırken sorun çıktı"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAML onaylama özniteliği ifadesi geçersiz"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "CPA değerleri güncellenirken sorun çıktı"
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Bu erişim denetimi ilkesinin sürümü geçersiz."
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "{{.hook_id}} internet kancasının formu işlenemedi."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "{{.hook_id}} internet kancasının çok parçalı formu işlenemedi."
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Profil görseli verileri okunamadı."
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Profil görseli dosyası açılamadı: {{.FileName}}"
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Etkileşimli pencere gönderimindeki JSON yanıtını çözülürken bir sorun çıktı."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Etkileşimli pencere gönderiminde bir hata okuma yanıtı içeriği ile karşılaştı."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "AD/LDAP kimliği geçersiz"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "CPA alanları alınamadı"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "LDAP özniteliği değeri alınamadı"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "AD/LDAP kimliği geçersiz"
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "AD/LDAP sunucusunda SAML kullanıcısıyla eşleşen bir kayıtlı kullanıcı yok."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} özelliği geçerli lisans ile kullanılamaz"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Sorun bildirme bağlantısı geçersiz. http:// ya da https:// ile başlayan geçerli bir adres olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Sorun bildirme bağlantısı belirtilmelidir."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Sorun bildirme e-posta adresi geçersiz. Geçerli bir e-posta adresi olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Sorun bildirme e-posta adresi belirtilmelidir."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Kullanıcının taslakları silinemedi."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAP lisansı gereklidir."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Oturum açma girişimi sayısı sıfırlanamadı."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Kullanıcı alınamadı."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Bu özellik geçerli lisans ile kullanılamaz"
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "İlke kimliği geçersiz."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "İlke içe aktarmaları geçersiz."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "İlke adı geçersiz."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "İlke sürümü geçersiz."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Kurallar geçersiz."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "İlke kuralları içe aktarmalı ya da tanımlamalı."
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Özellik değeri önitelikleri geçersiz: {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "İlke türü geçersiz."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "LDAP ayarları için en fazla oturum açma girişimi sayısı geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "GlobalSearchPrefix ayarlanmış ise IndexPrefix boş olamaz."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} değeri IndexPrefix {{.IndexPrefix}} değerinin bir ön eki olmalıdır."
   }
 ]

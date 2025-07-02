@@ -8,6 +8,8 @@ import {AxeBuilder} from '@axe-core/playwright';
 import {TestBrowser} from './browser_context';
 import {
     ensureLicense,
+    ensurePluginsLoaded,
+    ensureServerDeployment,
     shouldHaveCallsEnabled,
     shouldHaveFeatureFlag,
     shouldRunInLinux,
@@ -16,12 +18,14 @@ import {
 } from './flag';
 import {getBlobFromAsset, getFileFromAsset} from './file';
 import {
+    createNewUserProfile,
     createRandomChannel,
     createRandomPost,
     createRandomTeam,
     createRandomUser,
     getAdminClient,
     initSetup,
+    isOutsideRemoteUserHour,
 } from './server';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
 import {pages} from './ui/pages';
@@ -63,6 +67,7 @@ export class PlaywrightExtended {
     readonly shouldHaveFeatureFlag;
     readonly shouldRunInLinux;
     readonly ensureLicense;
+    readonly ensureServerDeployment;
     readonly skipIfNoLicense;
     readonly skipIfFeatureFlagNotSet;
 
@@ -71,6 +76,7 @@ export class PlaywrightExtended {
     readonly getFileFromAsset;
 
     // ./server
+    readonly ensurePluginsLoaded;
     readonly getAdminClient;
     readonly initSetup;
 
@@ -82,6 +88,10 @@ export class PlaywrightExtended {
     // ./mock_browser_api
     readonly stubNotification;
     readonly waitForNotification;
+
+    // ./server
+    readonly createNewUserProfile;
+    readonly isOutsideRemoteUserHour;
 
     // ./visual
     readonly matchSnapshot;
@@ -111,6 +121,7 @@ export class PlaywrightExtended {
         this.shouldHaveFeatureFlag = shouldHaveFeatureFlag;
         this.shouldRunInLinux = shouldRunInLinux;
         this.ensureLicense = ensureLicense;
+        this.ensureServerDeployment = ensureServerDeployment;
         this.skipIfNoLicense = skipIfNoLicense;
         this.skipIfFeatureFlagNotSet = skipIfFeatureFlagNotSet;
 
@@ -119,9 +130,10 @@ export class PlaywrightExtended {
         this.getFileFromAsset = getFileFromAsset;
 
         // ./server
+        this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
-
+        this.isOutsideRemoteUserHour = isOutsideRemoteUserHour;
         // ./test_action
         this.hideDynamicChannelsContent = hideDynamicChannelsContent;
         this.waitForAnimationEnd = waitForAnimationEnd;
@@ -136,6 +148,9 @@ export class PlaywrightExtended {
         // ./mock_browser_api
         this.stubNotification = stubNotification;
         this.waitForNotification = waitForNotification;
+
+        // ./server
+        this.createNewUserProfile = createNewUserProfile;
 
         // ./visual
         this.matchSnapshot = matchSnapshot;

@@ -28,7 +28,7 @@ func TestUpdateConfigRace(t *testing.T) {
 		driverName = model.DatabaseDriverPostgres
 	}
 	settings := storetest.MakeSqlSettings(driverName, false)
-	store, err := sqlstore.New(*settings, logger, nil)
+	store, err := sqlstore.New(*settings, logger, nil, sqlstore.DisableMorphLogging())
 	require.NoError(t, err)
 
 	cfg := &model.Config{}

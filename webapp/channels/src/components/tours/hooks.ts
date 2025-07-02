@@ -13,7 +13,7 @@ import {switchToChannels} from 'actions/views/onboarding_tasks';
 
 import {openMenu, dismissMenu} from 'components/menu';
 import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName} from 'components/onboarding_tasks';
-import {ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU} from 'components/sidebar/sidebar_header/sidebar_browse_or_add_channel_menu';
+import {ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON} from 'components/sidebar/sidebar_header/sidebar_browse_or_add_channel_menu';
 
 import {getHistory} from 'utils/browser_history';
 
@@ -52,11 +52,11 @@ export const useHandleNavigationAndExtraActions = (tourCategory: string) => {
                 break;
             }
             case OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS : {
-                openMenu(ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU);
+                openMenu(ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON);
                 break;
             }
             case OnboardingTourSteps.INVITE_PEOPLE : {
-                openMenu(ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU);
+                openMenu(ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON);
                 break;
             }
             case OnboardingTourSteps.SEND_MESSAGE : {

@@ -10,6 +10,7 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
+import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import GetPublicModal from 'components/get_public_link_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -65,8 +66,11 @@ export default function FileAttachment(props: Props) {
     const [loadFilesCalled, setLoadFilesCalled] = useState(false);
     const [keepOpen, setKeepOpen] = useState(false);
     const [openUp, setOpenUp] = useState(false);
+    const [showTooltip, setShowTooltip] = useState(true);
 
     const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(props.currentChannel?.id);
 
     const handleImageLoaded = () => {
         if (mounted.current) {
@@ -139,6 +143,7 @@ export default function FileAttachment(props: Props) {
     const handleDropdownOpened = (open: boolean) => {
         props.handleFileDropdownOpened?.(open);
         setKeepOpen(open);
+        setShowTooltip(!open);
 
         if (open) {
             setMenuPosition();
@@ -193,16 +198,19 @@ export default function FileAttachment(props: Props) {
             );
         }
 
-        const pluginItems = pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
-            return (
-                <Menu.ItemAction
-                    id={item.id + '_pluginmenuitem'}
-                    key={item.id + '_pluginmenuitem'}
-                    onClick={() => item?.action(fileInfo)}
-                    text={item.text}
-                />
-            );
-        });
+        let pluginItems: JSX.Element[] = [];
+        if (pluginItemsVisible) {
+            pluginItems = pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
+                return (
+                    <Menu.ItemAction
+                        id={item.id + '_pluginmenuitem'}
+                        key={item.id + '_pluginmenuitem'}
+                        onClick={() => item?.action(fileInfo)}
+                        text={item.text}
+                    />
+                );
+            });
+        }
 
         const isMenuVisible = defaultItems?.length || pluginItems?.length;
         if (!isMenuVisible) {
@@ -227,13 +235,14 @@ export default function FileAttachment(props: Props) {
             >
                 <WithTooltip
                     title={formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
+                    disabled={!showTooltip}
                 >
                     <button
                         ref={buttonRef}
                         id={`file_action_button_${props.fileInfo.id}`}
                         aria-label={formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'}).toLowerCase()}
                         className={classNames(
-                            'file-dropdown-icon', 'dots-icon',
+                            'file-dropdown-icon', 'dots-icon', 'btn', 'btn-icon', 'btn-sm',
                             {'a11y--active': keepOpen},
                         )}
                         aria-expanded={keepOpen}

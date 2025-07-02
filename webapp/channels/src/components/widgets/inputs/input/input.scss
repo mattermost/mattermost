@@ -66,6 +66,12 @@
         textarea {
             margin-top: 6px;
         }
+
+        .form-control[disabled] {
+            background: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
     }
 
     .Input_limit-exceeded {
@@ -186,6 +192,7 @@
         background-color: var(--center-channel-bg);
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 10px;
+        font-weight: normal;
         line-height: 14px;
         opacity: 0;
         transform: translateY(8px);

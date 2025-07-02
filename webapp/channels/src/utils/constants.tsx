@@ -49,6 +49,7 @@ export const SettingsTypes = {
     TYPE_FILE_UPLOAD: 'fileupload' as const,
     TYPE_CUSTOM: 'custom' as const,
     TYPE_ROLES: 'roles' as const,
+    TYPE_EXPANDABLE_SETTING: 'expandable_setting' as const,
 };
 
 export const InviteTypes = {
@@ -91,6 +92,8 @@ export const Preferences = {
     CLICK_TO_REPLY: 'click_to_reply',
     CLICK_TO_REPLY_DEFAULT: 'true',
     COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT: 'off',
+    RENDER_EMOTICONS_AS_EMOJI: 'render_emoticons_as_emoji',
+    RENDER_EMOTICONS_AS_EMOJI_DEFAULT: 'true',
     LINK_PREVIEW_DISPLAY: 'link_previews',
     LINK_PREVIEW_DISPLAY_DEFAULT: 'true',
     COLLAPSE_DISPLAY: 'collapse_previews',
@@ -265,6 +268,8 @@ export const ActionTypes = keyMirror({
     SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
     SET_SHOW_PREVIEW_ON_CREATE_POST: null,
     SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL: null,
+    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL: null,
+    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL: null,
 
     TOGGLE_RHS_MENU: null,
     OPEN_RHS_MENU: null,
@@ -324,6 +329,9 @@ export const ActionTypes = keyMirror({
 
     SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: null,
     CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: null,
+
+    SET_READOUT: 'SET_READOUT',
+    CLEAR_READOUT: 'CLEAR_READOUT',
 });
 
 export const PostRequestTypes = keyMirror({
@@ -340,7 +348,9 @@ export const ModalIdentifiers = {
     CHANNEL_NOTIFICATIONS: 'channel_notifications',
     CHANNEL_INVITE: 'channel_invite',
     CHANNEL_MEMBERS: 'channel_members',
+    CHANNEL_SETTINGS: 'channel_settings',
     TEAM_MEMBERS: 'team_members',
+    TEST_RESULTS: 'test_results',
     ADD_USER_TO_CHANNEL: 'add_user_to_channel',
     ADD_USER_TO_ROLE: 'add_user_to_role',
     ADD_USER_TO_TEAM: 'add_user_to_team',
@@ -539,7 +549,7 @@ export enum LicenseSkus {
     Starter = 'starter',
     Professional = 'professional',
     Enterprise = 'enterprise',
-    Premium = 'premium',
+    EnterpriseAdvanced = 'advanced',
 }
 
 export function getLicenseTier(licenseSku: string): number {
@@ -548,7 +558,7 @@ export function getLicenseTier(licenseSku: string): number {
         return 10;
     case LicenseSkus.Enterprise:
         return 20;
-    case LicenseSkus.Premium:
+    case LicenseSkus.EnterpriseAdvanced:
         return 30;
     default:
         return 0;
@@ -747,6 +757,7 @@ export const Threads = {
     CHANGED_SELECTED_THREAD: 'changed_selected_thread',
     CHANGED_LAST_VIEWED_AT: 'changed_last_viewed_at',
     MANUALLY_UNREAD_THREAD: 'manually_unread_thread',
+    CHANGED_LAST_UPDATE_AT: 'changed_last_update_at',
 };
 
 export const CloudBanners = {
@@ -920,6 +931,7 @@ export const ErrorPageTypes = {
     PERMALINK_NOT_FOUND: 'permalink_not_found',
     TEAM_NOT_FOUND: 'team_not_found',
     CHANNEL_NOT_FOUND: 'channel_not_found',
+    POST_NOT_FOUND: 'post_not_found',
     CLOUD_ARCHIVED: 'cloud_archived',
 };
 
@@ -929,6 +941,7 @@ export const JobTypes = {
     BLEVE_POST_INDEXING: 'bleve_post_indexing',
     LDAP_SYNC: 'ldap_sync',
     MESSAGE_EXPORT: 'message_export',
+    ACCESS_CONTROL_SYNC: 'access_control_sync',
 } as const;
 
 export const JobStatuses = {
@@ -1303,6 +1316,8 @@ export const PermissionsScope = {
     [Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL]: 'channel_scope',
     [Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL]: 'channel_scope',
     [Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL]: 'channel_scope',
+    [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: 'channel_scope',
+    [Permissions.MANAGE_PRIVATE_CHANNEL_BANNER]: 'channel_scope',
 };
 
 export const DefaultRolePermissions = {
@@ -1382,6 +1397,8 @@ export const DefaultRolePermissions = {
         Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+        Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
+        Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
     ],
     team_admin: [
         Permissions.EDIT_OTHERS_POSTS,
@@ -1417,6 +1434,8 @@ export const DefaultRolePermissions = {
         Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+        Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
+        Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
     ],
     guests: [
         Permissions.EDIT_POST,
@@ -2238,9 +2257,12 @@ export const DataSearchTypes = {
     MESSAGES_SEARCH_TYPE: 'messages',
 } as const;
 
+// Currently, the overage user limits are set to 0, which means that the overage active users warning
+// is immediatly shown when over 100% usage.
+// Originally it was set to Min 5% and Max 10% (5% would be a blue warning and 10% would be a red warning).
 export const OverActiveUserLimits = {
-    MIN: 0.05,
-    MAX: 0.1,
+    MIN: 0,
+    MAX: 0,
 } as const;
 
 export const PageLoadContext = {
@@ -2248,6 +2270,7 @@ export const PageLoadContext = {
     RECONNECT: 'reconnect',
 } as const;
 
+export const DRAFT_URL_SUFFIX = 'drafts';
 export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
 
 export const scheduledPosts = {

@@ -381,6 +381,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         if (!this.state.loaded) {
             return <LoadingScreen/>;
         }
+
         const isLicensed = this.props.license?.IsLicensed === 'true';
         return (
             <div className='wrapper--fixed'>
@@ -537,6 +538,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                     <BlockableLink
                         className='btn btn-tertiary'
                         to='/admin_console/user_management/permissions'
+                        data-testid='permission-scheme-cancel-button'
                     >
                         <FormattedMessage
                             id='admin.permissions.permissionSchemes.cancel'

@@ -192,7 +192,7 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
         },
         description: {
             id: 'admin.permissions.group.manage_private_channel_members_and_read_groups.description',
-            defaultMessage: 'Add and remove private channel members.',
+            defaultMessage: 'Add and remove private channel members (including channel admins).',
         },
     }),
     manage_public_channel_members_and_read_groups: defineMessages({
@@ -202,7 +202,7 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
         },
         description: {
             id: 'admin.permissions.group.manage_public_channel_members_and_read_groups.description',
-            defaultMessage: 'Add and remove public channel members.',
+            defaultMessage: 'Add and remove public channel members (including channel admins).',
         },
     }),
     convert_public_channel_to_private: defineMessages({

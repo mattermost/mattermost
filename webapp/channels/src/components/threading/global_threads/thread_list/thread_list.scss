@@ -13,6 +13,10 @@
         color: rgba(var(--center-channel-color-rgb), 0.75);
         grid-area: header;
 
+        .tab-buttons-list {
+            display: flex;
+        }
+
         .tab-button-wrapper {
             position: relative;
             display: flex;

@@ -105,7 +105,7 @@ describe('Custom Status - Verifying Where Custom Status Appears', () => {
 
     it('MM-T3850_8 should show custom status emoji next to username in the team members modal', () => {
         // # Open team menu and click on "View Members"
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
         cy.get('#teamMembersModal').should('exist');
 
         // # Search the current user's username in the search input

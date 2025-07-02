@@ -32,6 +32,7 @@ jobs:
         run: |
           cd server/build
           docker compose --no-ansi run --rm start_dependencies
+          cat ../tests/custom-schema-cpa.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
           cat ../tests/test-data.ldif | docker compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --no-ansi ps
@@ -103,6 +104,7 @@ jobs:
         run: |
           cd server/build
           docker compose --no-ansi run --rm start_dependencies
+          cat ../tests/custom-schema-cpa.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
           cat ../tests/test-data.ldif | docker compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --no-ansi ps
@@ -145,7 +147,7 @@ jobs:
       - esr-upgrade-script
     steps:
       - name: Retrieve dumps
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       - name: Diff dumps
         run: |
           gzip -d upgraded-dump-server/${DUMP_SERVER_NAME}.gz

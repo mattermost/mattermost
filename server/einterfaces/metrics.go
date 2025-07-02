@@ -48,7 +48,7 @@ type MetricsInterface interface {
 	DecrementWebSocketBroadcastBufferSize(hub string, amount float64)
 	IncrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
 	DecrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
-	IncrementWebsocketReconnectEvent(eventType string)
+	IncrementWebsocketReconnectEventWithDisconnectErrCode(eventType string, disconnectErrCode string)
 
 	IncrementHTTPWebSockets(originClient string)
 	DecrementHTTPWebSockets(originClient string)
@@ -134,4 +134,9 @@ type MetricsInterface interface {
 	ObserveMobileClientSessionMetadata(version string, platform string, value float64, notificationDisabled string)
 	ObserveDesktopCpuUsage(platform, version, process string, usage float64)
 	ObserveDesktopMemoryUsage(platform, version, process string, usage float64)
+
+	ObserveAccessControlSearchQueryDuration(value float64)
+	ObserveAccessControlExpressionCompileDuration(value float64)
+	ObserveAccessControlEvaluateDuration(value float64)
+	IncrementAccessControlCacheInvalidation()
 }

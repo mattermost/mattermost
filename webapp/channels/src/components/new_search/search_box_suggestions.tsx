@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
@@ -14,7 +15,7 @@ import type {SuggestionProps} from 'components/suggestion/suggestion';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
 
-const SuggestionsHeader = styled.div`
+const SuggestionsHeader = styled.h2`
     margin-top: 16px;
     padding: 8px 24px;
     color: rgba(var(--center-channel-color-rgb), 0.56);
@@ -22,6 +23,11 @@ const SuggestionsHeader = styled.div`
     line-height: 16px;
     font-weight: 600;
     text-transform: uppercase;
+    margin-bottom: 0;
+
+    && {
+        font-family: 'Open Sans', sans-serif;
+    }
 `;
 
 const SuggestionsBody = styled.div`
@@ -88,7 +94,15 @@ const SearchSuggestions = ({searchType, searchTeam, searchTerms, suggestionsHead
                         className='sr-only'
                         key={providerResults.terms[selectedOption]}
                     >
-                        {generateLabel(providerResults.items[selectedOption])}
+                        <FormattedMessage
+                            id='search_box_suggestions.suggestions_readout'
+                            defaultMessage='{label} ({idx} of {total} results available)'
+                            values={{
+                                label: generateLabel(providerResults.items[selectedOption]),
+                                idx: selectedOption + 1,
+                                total: providerResults.items.length,
+                            }}
+                        />
                     </div>
                 )}
                 {providerResults.items.map((item, idx) => {

@@ -25,6 +25,7 @@ func TestJobStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("JobGetAllByTypePage", func(t *testing.T) { testJobGetAllByTypePage(t, rctx, ss) })
 	t.Run("JobGetAllByTypesPage", func(t *testing.T) { testJobGetAllByTypesPage(t, rctx, ss) })
 	t.Run("JobGetAllByTypeAndStatusPage", func(t *testing.T) { testJobGetAllByTypeAndStatusPage(t, rctx, ss) })
+	t.Run("JobGetAllByTypesAndStatusesPage", func(t *testing.T) { testJobGetAllByTypesAndStatusesPage(t, rctx, ss) })
 	t.Run("JobGetAllByStatus", func(t *testing.T) { testJobGetAllByStatus(t, rctx, ss) })
 	t.Run("GetNewestJobByStatusAndType", func(t *testing.T) { testJobStoreGetNewestJobByStatusAndType(t, rctx, ss) })
 	t.Run("GetNewestJobByStatusesAndType", func(t *testing.T) { testJobStoreGetNewestJobByStatusesAndType(t, rctx, ss) })
@@ -199,7 +200,7 @@ func testJobGetAllByTypePage(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
 	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
 
-	received, err = ss.Job().GetAllByTypePage(rctx, jobType, 2, 2)
+	received, err = ss.Job().GetAllByTypePage(rctx, jobType, 1, 2)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
 	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")
@@ -254,7 +255,7 @@ func testJobGetAllByTypesPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
 	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
 
-	received, err = ss.Job().GetAllByTypesPage(rctx, jobTypes, 2, 2)
+	received, err = ss.Job().GetAllByTypesPage(rctx, jobTypes, 1, 2)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
 	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")
@@ -299,21 +300,131 @@ func testJobGetAllByTypeAndStatusPage(t *testing.T, rctx request.CTX, ss store.S
 	}
 
 	jobTypes := []string{jobType, jobType2}
-	received, err := ss.Job().GetAllByTypeAndStatusPage(rctx, jobTypes, model.JobStatusPending, 0, 4)
+	received, err := ss.Job().GetAllByTypesAndStatusesPage(rctx, jobTypes, []string{model.JobStatusPending}, 0, 4)
 	require.NoError(t, err)
 	require.Len(t, received, 2)
 	require.Equal(t, received[0].Id, jobs[1].Id, "should've received newest job first")
 	require.Equal(t, received[1].Id, jobs[0].Id, "should've received oldest job last")
 
-	received, err = ss.Job().GetAllByTypeAndStatusPage(rctx, jobTypes, model.JobStatusPending, 1, 1)
+	received, err = ss.Job().GetAllByTypesAndStatusesPage(rctx, jobTypes, []string{model.JobStatusPending}, 1, 1)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
 	require.Equal(t, received[0].Id, jobs[0].Id, "should've received the oldest pending job")
 
-	received, err = ss.Job().GetAllByTypeAndStatusPage(rctx, []string{jobType2}, model.JobStatusCanceled, 1, 1)
+	received, err = ss.Job().GetAllByTypesAndStatusesPage(rctx, []string{jobType2}, []string{model.JobStatusCanceled}, 1, 1)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
 	require.Equal(t, received[0].Id, jobs[2].Id, "should've received the oldest canceled job")
+}
+
+func testJobGetAllByTypesAndStatusesPage(t *testing.T, rctx request.CTX, ss store.Store) {
+	jobType1 := model.NewId()
+	jobType2 := model.NewId()
+	jobType3 := model.NewId()
+	status1 := model.JobStatusPending
+	status2 := model.JobStatusInProgress
+	status3 := model.JobStatusSuccess
+	t0 := model.GetMillis()
+
+	jobs := []*model.Job{
+		{
+			Id:       model.NewId(), // 0: type1, status1, t0
+			Type:     jobType1,
+			Status:   status1,
+			CreateAt: t0,
+		},
+		{
+			Id:       model.NewId(), // 1: type1, status2, t0+1
+			Type:     jobType1,
+			Status:   status2,
+			CreateAt: t0 + 1,
+		},
+		{
+			Id:       model.NewId(), // 2: type2, status1, t0+2
+			Type:     jobType2,
+			Status:   status1,
+			CreateAt: t0 + 2,
+		},
+		{
+			Id:       model.NewId(), // 3: type2, status2, t0+3
+			Type:     jobType2,
+			Status:   status2,
+			CreateAt: t0 + 3,
+		},
+		{
+			Id:       model.NewId(), // 4: type1, status3, t0+4
+			Type:     jobType1,
+			Status:   status3,
+			CreateAt: t0 + 4,
+		},
+		{
+			Id:       model.NewId(), // 5: type3, status1, t0+5
+			Type:     jobType3,
+			Status:   status1,
+			CreateAt: t0 + 5,
+		},
+	}
+
+	for _, job := range jobs {
+		_, err := ss.Job().Save(job)
+		require.NoError(t, err)
+		defer ss.Job().Delete(job.Id)
+	}
+
+	// Test case 1: Get jobs of type1 or type2 with status1 or status2, limit 4, offset 0
+	types1 := []string{jobType1, jobType2}
+	statuses1 := []string{status1, status2}
+	received, err := ss.Job().GetAllByTypesAndStatusesPage(rctx, types1, statuses1, 0, 4)
+	require.NoError(t, err)
+	require.Len(t, received, 4)
+	require.Equal(t, jobs[3].Id, received[0].Id, "case 1: newest job type2/status2")
+	require.Equal(t, jobs[2].Id, received[1].Id, "case 1: second newest job type2/status1")
+	require.Equal(t, jobs[1].Id, received[2].Id, "case 1: third newest job type1/status2")
+	require.Equal(t, jobs[0].Id, received[3].Id, "case 1: oldest job type1/status1")
+
+	// Test case 2: Get jobs of type1 or type2 with status1 or status2, limit 2, offset 2
+	received, err = ss.Job().GetAllByTypesAndStatusesPage(rctx, types1, statuses1, 2, 2)
+	require.NoError(t, err)
+	require.Len(t, received, 2)
+	require.Equal(t, jobs[1].Id, received[0].Id, "case 2: third newest job type1/status2")
+	require.Equal(t, jobs[0].Id, received[1].Id, "case 2: oldest job type1/status1")
+
+	// Test case 3: Get jobs of type1 with status1 or status3, limit 5, offset 0
+	types2 := []string{jobType1}
+	statuses2 := []string{status1, status3}
+	received, err = ss.Job().GetAllByTypesAndStatusesPage(rctx, types2, statuses2, 0, 5)
+	require.NoError(t, err)
+	require.Len(t, received, 2)
+	require.Equal(t, jobs[4].Id, received[0].Id, "case 3: newest job type1/status3")
+	require.Equal(t, jobs[0].Id, received[1].Id, "case 3: oldest job type1/status1")
+
+	// Test case 4: Get jobs of type3 with status1, limit 1, offset 0
+	types3 := []string{jobType3}
+	statuses3 := []string{status1}
+	received, err = ss.Job().GetAllByTypesAndStatusesPage(rctx, types3, statuses3, 0, 1)
+	require.NoError(t, err)
+	require.Len(t, received, 1)
+	require.Equal(t, jobs[5].Id, received[0].Id, "case 4: only job type3/status1")
+
+	// Test case 5: Get jobs with non-existent type
+	received, err = ss.Job().GetAllByTypesAndStatusesPage(rctx, []string{model.NewId()}, statuses1, 0, 5)
+	require.NoError(t, err)
+	require.Len(t, received, 0, "case 5: no jobs with non-existent type")
+
+	// Test case 6: Get jobs with non-existent status
+	received, err = ss.Job().GetAllByTypesAndStatusesPage(rctx, types1, []string{model.NewId()}, 0, 5)
+	require.NoError(t, err)
+	require.Len(t, received, 0, "case 6: no jobs with non-existent status")
+
+	// Test case 7: Empty types slice
+	received, err = ss.Job().GetAllByTypesAndStatusesPage(rctx, []string{}, statuses1, 0, 5)
+	require.NoError(t, err)
+	require.Len(t, received, 0, "case 7: empty types slice should return no jobs")
+
+	// Test case 8: Empty statuses slice
+	received, err = ss.Job().GetAllByTypesAndStatusesPage(rctx, types1, []string{}, 0, 5)
+	require.NoError(t, err)
+	require.Len(t, received, 0, "case 8: empty statuses slice should return no jobs")
 }
 
 func testJobGetAllByStatus(t *testing.T, rctx request.CTX, ss store.Store) {

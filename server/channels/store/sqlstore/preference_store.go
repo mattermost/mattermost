@@ -242,7 +242,7 @@ func (s *SqlPreferenceStore) DeleteOrphanedRows(limit int) (deleted int64, err e
 	// We need the extra level of nesting to deal with MySQL's locking
 	const query = `
 	DELETE FROM Preferences WHERE Name IN (
-		SELECT * FROM (
+		SELECT Name FROM (
 			SELECT Preferences.Name FROM Preferences
 			LEFT JOIN Posts ON Preferences.Name = Posts.Id
 			WHERE Posts.Id IS NULL AND Category = ?
@@ -264,7 +264,7 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 		// it is better to manually check here, or change the function type to uint64
 		return int64(0), errors.Errorf("Received a negative limit")
 	}
-	nameInQ, nameInArgs, err := sq.Select("*").
+	nameInQ, nameInArgs, err := sq.Select("Name").
 		FromSelect(
 			sq.Select("Preferences.Name").
 				From("Preferences").

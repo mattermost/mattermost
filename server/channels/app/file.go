@@ -891,7 +891,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	t.fileinfo.Height = cfg.Height
 
 	if err = checkImageResolutionLimit(cfg.Width, cfg.Height, t.maxImageRes); err != nil {
-		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest)
+		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest).Wrap(err)
 	}
 
 	t.fileinfo.HasPreviewImage = true
@@ -1165,7 +1165,9 @@ func prepareImage(rctx request.CTX, imgDecoder *imaging.Decoder, imgData io.Read
 	if err != nil {
 		return nil, "", nil, fmt.Errorf("prepareImage: failed to decode image: %w", err)
 	}
-	imgData.Seek(0, io.SeekStart)
+	if _, err = imgData.Seek(0, io.SeekStart); err != nil {
+		return nil, "", nil, fmt.Errorf("prepareImage: failed to seek image data: %w", err)
+	}
 
 	// Flip the image to be upright
 	orientation, err := imaging.GetImageOrientation(imgData, imgType)
@@ -1409,7 +1411,7 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 	// Create Zip File (temporarily stored on disk)
 	conglomerateZipFile, err := os.Create(zipFileName)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create temporary zip file %q: %w", zipFileName, err)
 	}
 	defer os.Remove(zipFileName)
 
@@ -1422,10 +1424,13 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 		return err
 	}
 
-	conglomerateZipFile.Seek(0, 0)
+	_, err = conglomerateZipFile.Seek(0, 0)
+	if err != nil {
+		return fmt.Errorf("failed to seek to beginning of zip file %q: %w", conglomerateZipFile.Name(), err)
+	}
 	_, err = fileBackend.WriteFile(conglomerateZipFile, path.Join(directory, zipFileName))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to write zip file to file backend at path %s: %w", path.Join(directory, zipFileName), err)
 	}
 
 	return nil

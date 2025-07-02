@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
+
+import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import {usePost} from 'components/common/hooks/usePost';
 import {useUser} from 'components/common/hooks/useUser';
@@ -12,16 +14,32 @@ import CommentedOnFilesMessage from 'components/post_view/commented_on_files_mes
 import UserProfile from 'components/user_profile';
 
 import {stripMarkdown} from 'utils/markdown';
+import {isFromWebhook} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 type Props = {
     onCommentClick?: React.EventHandler<React.MouseEvent>;
     rootId: string;
+    enablePostUsernameOverride?: boolean;
 };
 
-function CommentedOn({onCommentClick, rootId}: Props) {
+function CommentedOn({onCommentClick, rootId, enablePostUsernameOverride}: Props) {
     const rootPost = usePost(rootId);
     const rootPostUser = useUser(rootPost?.user_id ?? '');
+
+    const rootPostOverriddenUsername = useMemo((): string => {
+        if (!rootPost) {
+            return '';
+        }
+
+        const rootPostIsFromWebhook = isFromWebhook(rootPost);
+        if (!rootPostIsFromWebhook) {
+            return '';
+        }
+
+        const propOverrideName = ensureString(rootPost?.props.override_username);
+        return (propOverrideName && enablePostUsernameOverride ? propOverrideName : '');
+    }, [enablePostUsernameOverride, rootPost]);
 
     let message: React.ReactNode = '';
     if (!rootPost) {
@@ -46,6 +64,7 @@ function CommentedOn({onCommentClick, rootId}: Props) {
     const parentUserProfile = (
         <UserProfile
             userId={rootPostUser?.id ?? ''}
+            overwriteName={rootPostOverriddenUsername}
         />
     );
 

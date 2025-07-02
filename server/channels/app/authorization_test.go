@@ -21,7 +21,104 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
+func TestSessionHasPermissionTo(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	localSession := model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+		Local:  true,
+	}
+
+	adminSession := model.Session{
+		UserId: th.SystemAdminUser.Id,
+		Roles:  model.SystemAdminRoleId,
+	}
+
+	session := model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+	}
+
+	t.Run("basic user cannot manage system", func(t *testing.T) {
+		require.False(t, th.App.SessionHasPermissionTo(session, model.PermissionManageSystem))
+	})
+
+	t.Run("basic user generally has no global permissions", func(t *testing.T) {
+		require.False(t, th.App.SessionHasPermissionTo(session, model.PermissionReadPublicChannel))
+	})
+
+	t.Run("system admin can manage system", func(t *testing.T) {
+		require.True(t, th.App.SessionHasPermissionTo(adminSession, model.PermissionManageSystem))
+	})
+
+	t.Run("unrestricted session has all permissions", func(t *testing.T) {
+		require.True(t, th.App.SessionHasPermissionTo(localSession, model.PermissionManageSystem))
+		require.True(t, th.App.SessionHasPermissionTo(localSession, model.PermissionCreateBot))
+		require.True(t, th.App.SessionHasPermissionTo(localSession, model.PermissionReadPublicChannel))
+	})
+}
+
+func TestSessionHasPermissionToAndNotRestrictedAdmin(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	localSession := model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+		Local:  true,
+	}
+
+	adminSession := model.Session{
+		UserId: th.SystemAdminUser.Id,
+		Roles:  model.SystemAdminRoleId,
+	}
+
+	session := model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+	}
+
+	t.Run("basic user cannot manage system", func(t *testing.T) {
+		require.False(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(session, model.PermissionManageSystem))
+	})
+
+	t.Run("allow system admin when not restricted", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = false
+		})
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(adminSession, model.PermissionManageSystem))
+	})
+
+	t.Run("reject system admin when restricted", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = true
+		})
+		require.False(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(adminSession, model.PermissionManageSystem))
+	})
+
+	t.Run("always allow unrestricted session", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = false
+		})
+
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionManageSystem))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionCreateBot))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionReadPublicChannel))
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = true
+		})
+
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionManageSystem))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionCreateBot))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionReadPublicChannel))
+	})
+}
+
 func TestCheckIfRolesGrantPermission(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -48,12 +145,14 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 }
 
 func TestChannelRolesGrantPermission(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
 		require.Equal(t, testData.shouldHavePermission, th.App.RolesGrantPermission([]string{testData.channelRole.Name}, testData.permission.Id), "row: %+v\n", testData.truthTableRow)
 	})
 }
 
 func TestHasPermissionToTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -71,6 +170,7 @@ func TestHasPermissionToTeam(t *testing.T) {
 }
 
 func TestSessionHasPermissionToTeams(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -129,6 +229,7 @@ func TestSessionHasPermissionToTeams(t *testing.T) {
 }
 
 func TestSessionHasPermissionToChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -200,6 +301,7 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 }
 
 func TestSessionHasPermissionToChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -348,6 +450,7 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 }
 
 func TestHasPermissionToUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -357,6 +460,7 @@ func TestHasPermissionToUser(t *testing.T) {
 }
 
 func TestSessionHasPermissionToManageBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -468,6 +572,7 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 }
 
 func TestSessionHasPermissionToUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -518,6 +623,7 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 }
 
 func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -573,6 +679,7 @@ func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 }
 
 func TestHasPermissionToCategory(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
@@ -591,6 +698,7 @@ func TestHasPermissionToCategory(t *testing.T) {
 }
 
 func TestSessionHasPermissionToGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -675,6 +783,7 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 }
 
 func TestHasPermissionToReadChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -789,6 +898,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 }
 
 func TestSessionHasPermissionToChannelByPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -852,6 +962,7 @@ func TestSessionHasPermissionToChannelByPost(t *testing.T) {
 }
 
 func TestHasPermissionToChannelByPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

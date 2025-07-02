@@ -386,10 +386,11 @@ func (c GetPostsSinceForSyncCursor) IsEmpty() bool {
 }
 
 type GetPostsSinceForSyncOptions struct {
-	ChannelId       string
-	ExcludeRemoteId string
-	IncludeDeleted  bool
-	SinceCreateAt   bool // determines whether the cursor will be based on CreateAt or UpdateAt
+	ChannelId                         string
+	ExcludeRemoteId                   string
+	IncludeDeleted                    bool
+	SinceCreateAt                     bool // determines whether the cursor will be based on CreateAt or UpdateAt
+	ExcludeChannelMetadataSystemPosts bool // if true, exclude channel metadata system posts (header, display name, purpose changes)
 }
 
 type GetPostsOptions struct {
@@ -403,7 +404,9 @@ type GetPostsOptions struct {
 	CollapsedThreadsExtended bool
 	FromPost                 string // PostId after which to send the items
 	FromCreateAt             int64  // CreateAt after which to send the items
+	FromUpdateAt             int64  // UpdateAt after which to send the items. This cannot be used with FromCreateAt.
 	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
+	UpdatesOnly              bool   // This flag is used to make the API work with the updateAt value.
 	IncludeDeleted           bool
 	IncludePostPriority      bool
 }

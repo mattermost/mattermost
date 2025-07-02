@@ -596,17 +596,53 @@ func (s *MmctlUnitTestSuite) TestDeleteAllUsersCmd() {
 func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 	s.Run("Search for an existing user", func() {
 		emailArg := "example@example.com"
-		mockUser := model.User{Username: "ExampleUser", Email: emailArg}
+		mockUser := &model.User{Username: "ExampleUser", Email: emailArg}
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(context.TODO(), emailArg, "").
-			Return(&mockUser, &model.Response{}, nil).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		err := searchUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
 		s.Require().Nil(err)
-		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Equal(userOut{User: mockUser, Deactivated: false}, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Search for a disabled user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := &model.User{Username: "ExampleUser", Email: emailArg, DeleteAt: 1234}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.TODO(), emailArg, "").
+			Return(mockUser, &model.Response{}, nil).
+			Times(1)
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(userOut{User: mockUser, Deactivated: true}, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Search for a user with authData", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := &model.User{Username: "ExampleUser", Email: emailArg, AuthData: model.NewPointer("1234"), AuthService: model.UserAuthServiceLdap}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.TODO(), emailArg, "").
+			Return(mockUser, &model.Response{}, nil).
+			Times(1)
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(userOut{User: mockUser, Deactivated: false, AuthData: "1234"}, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -1735,7 +1771,7 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 		var expected error
 
 		expected = multierror.Append(
-			expected, fmt.Errorf("unable to reset user \"userId\" MFA. Error: "+mockError.Error()),
+			expected, fmt.Errorf("unable to reset user \"userId\" MFA. Error: %s", mockError.Error()),
 		)
 
 		s.Require().EqualError(err, expected.Error())
@@ -1796,7 +1832,7 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			),
 		)
 		expected = multierror.Append(
-			expected, fmt.Errorf("unable to reset user \""+users[1]+"\" MFA. Error: "+mockError.Error()),
+			expected, fmt.Errorf("unable to reset user \"%s\" MFA. Error: %s", users[1], mockError.Error()),
 		)
 
 		s.Require().EqualError(err, expected.ErrorOrNil().Error())

@@ -1,0 +1,81 @@
+@use "utils/mixins";
+@use "utils/variables";
+
+.sidebar--menu {
+    position: absolute;
+    right: 0;
+    overflow: auto;
+    width: 290px;
+    height: 100%;
+    padding: 0 0 2em;
+    border-right: variables.$border-gray;
+    background: var(--sidebar-bg);
+    color: rgba(var(--sidebar-text-rgb), 0.8);
+    -webkit-overflow-scrolling: touch;
+    transform: translate3d(290px, 0, 0);
+    transition: transform 0.3s linear;
+
+    &.move--left {
+        transform: translate3d(0, 0, 0);
+    }
+
+    .mentions {
+        font-size: 17px;
+        font-weight: bold;
+    }
+
+    .Menu .MenuItem.MenuItem--with-icon .MenuItem__help-text {
+        padding-left: 0;
+    }
+
+    .icon {
+        display: inline-block;
+        width: 20px;
+        margin-right: 8px;
+        text-align: center;
+
+        svg {
+            max-width: 16px;
+            max-height: 16px;
+            fill: var(--sidebar-text);
+        }
+    }
+
+    .nav-pills__container {
+        padding-top: 5px;
+    }
+
+    .nav {
+        > li {
+            > a,
+            > button {
+                padding: 0 15px;
+                background: none !important;
+                color: inherit;
+                font-size: 15px;
+                line-height: 40px;
+
+                svg {
+                    position: relative;
+                    top: 4px;
+                    width: 18px;
+                    height: 18px;
+                    fill-opacity: 0.85;
+                }
+
+                .icon {
+                    position: relative;
+                    left: -5px;
+                    display: inline-block;
+                    width: 25px;
+                    text-align: center;
+                }
+
+                .mentions {
+                    font-size: 17px;
+                    font-weight: bold;
+                }
+            }
+        }
+    }
+}

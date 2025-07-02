@@ -441,8 +441,9 @@ func (s *SqlRetentionPolicyStore) Delete(id string) error {
 }
 
 func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int) (model.ChannelListWithTeamData, error) {
-	query := s.getQueryBuilder().Select(`Channels.*, Teams.DisplayName AS TeamDisplayName,
-	  Teams.Name AS TeamName,Teams.UpdateAt AS TeamUpdateAt`).
+	query := s.getQueryBuilder().
+		Select("Teams.DisplayName AS TeamDisplayName", "Teams.Name AS TeamName", "Teams.UpdateAt AS TeamUpdateAt").
+		Columns(channelSliceColumns(true, "Channels")...).
 		From("RetentionPoliciesChannels").
 		InnerJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
 		InnerJoin("Teams ON Channels.TeamId = Teams.Id").
@@ -550,7 +551,7 @@ func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []s
 
 func (s *SqlRetentionPolicyStore) GetTeams(policyId string, offset, limit int) ([]*model.Team, error) {
 	query := s.getQueryBuilder().
-		Select("Teams.*").
+		Select(teamSliceColumns()...).
 		From("RetentionPoliciesTeams").
 		InnerJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
 		Where(sq.Eq{"RetentionPoliciesTeams.PolicyId": policyId}).
@@ -642,7 +643,8 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 
 func subQueryIN(property string, query sq.SelectBuilder) sq.Sqlizer {
 	queryString, args := query.MustSql()
-	subQuery := fmt.Sprintf("%s IN (SELECT * FROM (%s) AS A)", property, queryString)
+
+	subQuery := fmt.Sprintf("%s IN (%s)", property, queryString)
 	return sq.Expr(subQuery, args...)
 }
 
@@ -650,11 +652,14 @@ func subQueryIN(property string, query sq.SelectBuilder) sq.Sqlizer {
 // where a channel or team no longer exists.
 func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
 	// We need the extra level of nesting to deal with MySQL's locking
-	rpcSubQuery := sq.Select("ChannelId").
-		From("RetentionPoliciesChannels").
-		LeftJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
-		Where("Channels.Id IS NULL").
-		Limit(uint64(limit))
+	rpcSubQuery := sq.Select("ChannelId").FromSelect(
+		sq.Select("ChannelId").
+			From("RetentionPoliciesChannels").
+			LeftJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
+			Where("Channels.Id IS NULL").
+			Limit(uint64(limit)),
+		"A",
+	)
 
 	rpcDeleteQuery, rpcArgs, err := s.getQueryBuilder().
 		Delete("RetentionPoliciesChannels").
@@ -664,11 +669,15 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 		return int64(0), errors.Wrap(err, "retention_policies_channels_tosql")
 	}
 
-	rptSubQuery := sq.Select("TeamId").
-		From("RetentionPoliciesTeams").
-		LeftJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
-		Where("Teams.Id IS NULL").
-		Limit(uint64(limit))
+	// We need the extra level of nesting to deal with MySQL's locking
+	rptSubQuery := sq.Select("TeamId").FromSelect(
+		sq.Select("TeamId").
+			From("RetentionPoliciesTeams").
+			LeftJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
+			Where("Teams.Id IS NULL").
+			Limit(uint64(limit)),
+		"A",
+	)
 
 	rptDeleteQuery, rptArgs, err := s.getQueryBuilder().
 		Delete("RetentionPoliciesTeams").
@@ -850,7 +859,7 @@ func scanRetentionIdsForDeletion(rows *sql.Rows, isPostgres bool) ([]*model.Rete
 
 func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error) {
 	query := s.getQueryBuilder().
-		Select("*").
+		Select("Id", "TableName", "Ids").
 		From("RetentionIdsForDeletion").
 		Where(
 			sq.Eq{"TableName": tableName},
