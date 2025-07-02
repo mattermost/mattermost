@@ -199,7 +199,9 @@ const ChannelInviteModalComponent = (props: Props) => {
         }
 
         const groupsAndUsers = [
-            ...filterGroupsMatchingTerm(props.groups, term) as GroupValue[],
+
+            // Only include groups if ABAC policy is NOT enforced
+            ...(props.channel.policy_enforced ? [] : filterGroupsMatchingTerm(props.groups, term) as GroupValue[]),
             ...users,
         ].sort(sortUsersAndGroups);
 
@@ -362,7 +364,9 @@ const ChannelInviteModalComponent = (props: Props) => {
                 const promises = [
                     props.actions.searchProfiles(term, options),
                 ];
-                if (props.isGroupsEnabled) {
+
+                // Only search for groups if groups are enabled AND ABAC policy is NOT enforced
+                if (props.isGroupsEnabled && !props.channel.policy_enforced) {
                     promises.push(props.actions.searchAssociatedGroupsForReference(term, props.channel.team_id, props.channel.id, opts));
                 }
                 await Promise.all(promises);
@@ -488,11 +492,6 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.channel.policy_enforced,
         props.actions,
         fetchAbacUsers,
-
-        // Removing these dependencies as they cause an infinite loop
-        // These profiles are updated by the actions above, which triggers the effect again
-        // props.profilesNotInCurrentChannel,
-        // props.profilesInCurrentChannel,
     ]);
 
     // Compute options with useMemo to ensure they're always fresh
