@@ -26,7 +26,7 @@ func newLDAPSyncCmd() *cobra.Command {
 		Use:     "sync",
 		Short:   "Synchronize now",
 		Long:    "Synchronize all LDAP users and groups now.",
-		Example: "  ldap sync",
+		Example: "mmctl ldap sync",
 		RunE:    withClient(ldapSyncCmdF),
 	}
 
@@ -48,7 +48,7 @@ var LdapIDMigrate = &cobra.Command{
 2. Run the command "mmctl ldap idmigrate objectGUID".
 3. Update the config within the System Console to the new value "objectGUID".
 4. Restart the Mattermost server.`,
-	Example: "  ldap idmigrate objectGUID",
+	Example: "mmctl ldap idmigrate objectGUID",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(ldapIDMigrateCmdF),
 }
@@ -60,7 +60,7 @@ var LdapJobCmd = &cobra.Command{
 
 var LdapJobListCmd = &cobra.Command{
 	Use:     "list",
-	Example: "  ldap job list",
+	Example: "mmctl ldap job list",
 	Short:   "List LDAP sync jobs",
 	// Alisases cause error in zsh. Supposedly, completion V2 will fix that: https://github.com/spf13/cobra/pull/1146
 	// https://mattermost.atlassian.net/browse/MM-57062
@@ -72,7 +72,7 @@ var LdapJobListCmd = &cobra.Command{
 
 var LdapJobShowCmd = &cobra.Command{
 	Use:               "show [ldapJobID]",
-	Example:           " import ldap show f3d68qkkm7n8xgsfxwuo498rah",
+	Example:           "mmctl ldap show f3d68qkkm7n8xgsfxwuo498rah",
 	Short:             "Show LDAP sync job",
 	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: validateArgsWithClient(ldapJobShowCompletionF),
