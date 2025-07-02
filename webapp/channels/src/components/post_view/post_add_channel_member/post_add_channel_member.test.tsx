@@ -43,6 +43,7 @@ describe('components/post_view/PostAddChannelMember', () => {
             addChannelMember: jest.fn(),
         },
         noGroupsUsernames: [],
+        isPolicyEnforced: false,
     };
 
     test('should match snapshot, empty postId', () => {
@@ -139,5 +140,40 @@ describe('components/post_view/PostAddChannelMember', () => {
         };
         const wrapper = shallow(<PostAddChannelMember {...props}/>);
         expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, with ABAC policy enforced', () => {
+        const props: Props = {
+            ...requiredProps,
+            usernames: ['username_1', 'username_2', 'username_3'],
+            isPolicyEnforced: true,
+        };
+        const wrapper = shallow(<PostAddChannelMember {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should never show invite links when policy is enforced (ABAC channels)', () => {
+        const props: Props = {
+            ...requiredProps,
+            usernames: ['username_1', 'username_2'],
+            noGroupsUsernames: [],
+            isPolicyEnforced: true,
+        };
+        const wrapper = shallow(<PostAddChannelMember {...props}/>);
+        expect(wrapper.find('.PostBody_addChannelMemberLink')).toHaveLength(0);
+    });
+
+    test('should show single consolidated message for ABAC channels regardless of user types', () => {
+        const props: Props = {
+            ...requiredProps,
+            usernames: ['user1', 'user2'],
+            noGroupsUsernames: ['user3'],
+            isPolicyEnforced: true,
+        };
+        const wrapper = shallow(<PostAddChannelMember {...props}/>);
+
+        // Should render only one consolidated message with no invite links
+        expect(wrapper.find('p')).toHaveLength(1);
+        expect(wrapper.find('.PostBody_addChannelMemberLink')).toHaveLength(0);
     });
 });
