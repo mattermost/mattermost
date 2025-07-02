@@ -27,6 +27,7 @@ function mapStateToProps(state: GlobalState) {
             submitLabel: undefined,
             notifyOnCancel: undefined,
             state: undefined,
+            sourceUrl: undefined, // NEW: Default to undefined when no dialog data
             emojiMap: getEmojiMap(state),
         };
     }
@@ -41,6 +42,7 @@ function mapStateToProps(state: GlobalState) {
         submitLabel: data.dialog.submit_label,
         notifyOnCancel: data.dialog.notify_on_cancel,
         state: data.dialog.state,
+        sourceUrl: data.dialog.source_url, // NEW: Pass source_url for form refresh functionality
         emojiMap: getEmojiMap(state),
     };
 }

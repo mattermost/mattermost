@@ -156,6 +156,7 @@ type Dialog = {
     submit_label?: string;
     notify_on_cancel?: boolean;
     state?: string;
+    source_url?: string; // Optional URL for form refresh functionality (Apps Form feature flag only)
 };
 
 export type DialogSubmission = {
@@ -169,6 +170,7 @@ export type DialogSubmission = {
         [x: string]: string;
     };
     cancelled: boolean;
+    type?: string; // Optional type field for field refresh functionality
 };
 
 export type DialogElement = {
@@ -187,9 +189,12 @@ export type DialogElement = {
         text: string;
         value: any;
     }>;
+    refresh?: boolean; // Optional field refresh functionality (Apps Form feature flag only)
 };
 
 export type SubmitDialogResponse = {
     error?: string;
     errors?: Record<string, string>;
+    type?: string; // Form refresh functionality - can be "form" for multi-step
+    form?: Dialog; // New form for multi-step workflows
 };
