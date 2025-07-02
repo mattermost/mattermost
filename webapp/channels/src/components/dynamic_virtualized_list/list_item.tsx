@@ -82,11 +82,10 @@ const ListItem = (props: Props) => {
             cleanupSizeObserver = listItemSizeObserver.observe(props.itemId, rowRef.current, itemRowSizeObserverCallback);
         }
 
-        // We remove the observer here from a row
         return () => {
-            if (cleanupSizeObserver) {
-                cleanupSizeObserver();
-            }
+            // We remove the observer here from a row
+            cleanupSizeObserver?.();
+            debouncedOnHeightChange?.cancel();
             props.onUnmount(props.itemId, indexRef.current);
         };
     }, [props.itemId]);
