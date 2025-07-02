@@ -1219,7 +1219,7 @@ func TestLookupInteractiveDialog(t *testing.T) {
 		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
 		require.NotNil(t, err)
 		assert.Nil(t, resp)
-		assert.Contains(t, err.Error(), "decode_json_error")
+		assert.Contains(t, err.Error(), "Encountered an error decoding JSON response")
 	})
 
 	t.Run("should handle plugin lookup", func(t *testing.T) {
@@ -1291,7 +1291,7 @@ func TestLookupInteractiveDialog(t *testing.T) {
 		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
 		require.NotNil(t, err)
 		assert.Nil(t, resp)
-		assert.Contains(t, err.Error(), "missing protocol scheme")
+		assert.Contains(t, err.Error(), "unsupported protocol scheme")
 	})
 
 	t.Run("should handle timeout", func(t *testing.T) {
