@@ -65,5 +65,5 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
         parsedUrl.search = Object.entries(queryParams).map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join('&');
 
         return [parsedUrl.toString(), queryParams];
-    }, [href, isCloud, isCloudPreview, location, overwriteQueryParams, telemetryId, userId, config, license, subscription]);
+    }, [href, isCloud, isCloudPreview, location, overwriteQueryParams, telemetryId, userId, config, license]);
 }
