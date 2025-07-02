@@ -1957,38 +1957,38 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         });
     });
 
-    // describe('Dynamic Select Support', () => {
-    //     test('should convert dynamic_select element correctly', async () => {
-    //         const dynamicSelectElement: DialogElement = {
-    //             name: 'dynamic-select-field',
-    //             type: 'dynamic_select',
-    //             display_name: 'Dynamic Select Field',
-    //             help_text: 'Choose an option',
-    //             placeholder: 'Type to search...',
-    //             default: 'default_value',
-    //             optional: false,
-    //             max_length: 0,
-    //             min_length: 0,
-    //             subtype: '',
-    //             data_source: '',
-    //             options: [],
-    //         };
+    describe('Dynamic Select Support', () => {
+        // test('should convert dynamic_select element correctly', async () => {
+        //     const dynamicSelectElement: DialogElement = {
+        //         name: 'dynamic-select-field',
+        //         type: 'dynamic_select',
+        //         display_name: 'Dynamic Select Field',
+        //         help_text: 'Choose an option',
+        //         placeholder: 'Type to search...',
+        //         default: 'default_value',
+        //         optional: false,
+        //         max_length: 0,
+        //         min_length: 0,
+        //         subtype: '',
+        //         data_source: '',
+        //         options: [],
+        //     };
 
-    //         const props = {
-    //             ...baseProps,
-    //             elements: [dynamicSelectElement],
-    //         };
+        //     const props = {
+        //         ...baseProps,
+        //         elements: [dynamicSelectElement],
+        //     };
 
-    //         const {getByTestId} = renderWithContext(
-    //             <InteractiveDialogAdapter {...props}/>,
-    //         );
+        //     const {getByTestId} = renderWithContext(
+        //         <InteractiveDialogAdapter {...props}/>,
+        //     );
 
-    //         await waitFor(() => {
-    //             expect(getByTestId('field-type-dynamic-select-field')).toHaveTextContent(AppFieldTypes.DYNAMIC_SELECT);
-    //             expect(getByTestId('field-value-dynamic-select-field')).toHaveTextContent('"default_value"');
-    //             expect(getByTestId('field-required-dynamic-select-field')).toHaveTextContent('required');
-    //         });
-    //     });
+        //     await waitFor(() => {
+        //         expect(getByTestId('field-type-dynamic-select-field')).toHaveTextContent(AppFieldTypes.DYNAMIC_SELECT);
+        //         expect(getByTestId('field-value-dynamic-select-field')).toHaveTextContent('"default_value"');
+        //         expect(getByTestId('field-required-dynamic-select-field')).toHaveTextContent('required');
+        //     });
+        // });
 
         test('should convert select element with dynamic data_source correctly', async () => {
             const dynamicDataSourceElement: DialogElement = {
