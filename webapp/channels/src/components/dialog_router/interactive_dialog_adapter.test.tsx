@@ -1331,6 +1331,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [requiredElement],
                 actions: {
                     submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                    lookupInteractiveDialog: jest.fn(),
                 },
             };
 
@@ -1439,9 +1440,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const mockCall = MockAppsFormContainer.mock.calls[0][0];
             const refreshHandler = mockCall.actions.doAppFetchForm;
 
-            await lookupHandler({
-                values: {},
-            });
             await refreshHandler({
                 values: {},
                 selected_field: 'test-field',
