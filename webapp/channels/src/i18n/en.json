@@ -5038,8 +5038,6 @@
   "post_body.check_for_out_of_channel_mentions.link.public": "add them to the channel",
   "post_body.check_for_out_of_channel_mentions.message_last": "? They will have access to all message history.",
   "post_body.check_for_out_of_channel_mentions.message.multiple": "did not get notified by this mention because they are not in the channel. Would you like to ",
-  "post_body.check_for_out_of_channel_mentions.message.non_invitable.multiple": "did not get notified by this mention because they are not in the channel.",
-  "post_body.check_for_out_of_channel_mentions.message.non_invitable.one": "did not get notified by this mention because they are not in the channel.",
   "post_body.check_for_out_of_channel_mentions.message.one": "did not get notified by this mention because they are not in the channel. Would you like to ",
   "post_body.check_for_out_of_channel_mentions.others": "{numOthers} others",
   "post_body.commentedOn": "Commented on {name}'s message: ",

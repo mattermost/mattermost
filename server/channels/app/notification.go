@@ -1263,41 +1263,12 @@ func (a *App) filterOutOfChannelMentions(c request.CTX, sender *model.User, post
 	var outOfGroupsUsers model.UserSlice
 	var nonInvitableUsers model.UserSlice
 
-	// Check if channel is ABAC controlled and filter users accordingly
+	// Check if channel is ABAC controlled - if so, mark ALL users as non-invitable
 	if ok, err := a.ChannelAccessControlled(c, channel.Id); err != nil {
 		return nil, nil, nil, nil, err
 	} else if ok {
-		// Channel is ABAC controlled - filter users based on attributes
-		acs := a.Srv().ch.AccessControl
-		if acs != nil {
-			// Get all users that can potentially access this channel
-			filteredUsers, _, appErr := acs.QueryUsersForResource(c, channel.Id, "*", model.SubjectSearchOptions{
-				Term:   "",
-				TeamID: channel.TeamId,
-				Limit:  1000, // Set a reasonable limit
-			})
-			if appErr != nil {
-				return nil, nil, nil, nil, appErr
-			}
-
-			// Create a map for quick lookup of users who match ABAC attributes
-			allowedUserIDs := make(map[string]bool)
-			for _, user := range filteredUsers {
-				allowedUserIDs[user.Id] = true
-			}
-
-			// Separate users into those who can and cannot be invited
-			for _, user := range teamUsers {
-				if allowedUserIDs[user.Id] {
-					outOfChannelUsers = append(outOfChannelUsers, user)
-				} else {
-					nonInvitableUsers = append(nonInvitableUsers, user)
-				}
-			}
-		} else {
-			// ABAC service not available, treat all as invitable
-			outOfChannelUsers = teamUsers
-		}
+		// Channel is ABAC controlled - mark all out-of-channel users as non-invitable
+		nonInvitableUsers = teamUsers
 	} else {
 		// Channel is not ABAC controlled - use existing logic
 		if channel.IsGroupConstrained() {
