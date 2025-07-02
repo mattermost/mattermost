@@ -88,7 +88,7 @@ jobs:
           cd server/build
           docker compose --ansi never stop
       - name: Annotate test failures (local branches, requires write access)
-        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+        if: ${{ always() && github.event.pull_request.head.repo.full_name == github.repository }}
         id: report-local
         uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5.5.1
         with:
@@ -101,7 +101,7 @@ jobs:
           include_passed: true
           check_annotations: true
       - name: Annotate test failures (forked branches, write access denied)
-        if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+        if: ${{ always() && github.event.pull_request.head.repo.full_name != github.repository }}
         id: report-forked
         uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5.5.1
         with:
