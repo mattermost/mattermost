@@ -45,6 +45,21 @@ Object.defineProperty(document, 'execCommand', {
 
 document.documentElement.style.fontSize = '12px';
 
+// Mock window.matchMedia for media query tests
+Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation((query) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(), // deprecated
+        removeListener: jest.fn(), // deprecated
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+    })),
+});
+
 // https://mui.com/material-ui/guides/styled-engine/
 jest.mock('@mui/styled-engine', () => {
     const styledEngineSc = require('@mui/styled-engine-sc');
