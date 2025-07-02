@@ -58,7 +58,7 @@ const ListItem = (props: Props) => {
 
             // If width of container has changed then scroll bar position will be out of sync
             // so we need to force a scroll correction
-            const forceScrollCorrection = rowRef.current?.offsetWidth !== widthRef.current;
+            const forceScrollCorrection = rowRef.current.offsetWidth !== widthRef.current;
 
             heightRef.current = changedHeight;
 
