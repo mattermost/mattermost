@@ -373,17 +373,6 @@ type LookupDialogResponse struct {
 	Items []DialogSelectOption `json:"items"`
 }
 
-// DialogSelectOption represents an option in a select dropdown for dialogs
-type DialogSelectOption struct {
-	Text  string `json:"text"`
-	Value string `json:"value"`
-}
-
-// LookupDialogResponse represents the response for a lookup dialog request.
-type LookupDialogResponse struct {
-	Items []DialogSelectOption `json:"items"`
-}
-
 func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
 	clientTriggerId := NewId()
 	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10)}, ":") + ":"
