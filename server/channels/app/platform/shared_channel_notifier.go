@@ -54,9 +54,6 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 				mlog.String("event", event.EventType()),
 				mlog.String("action", "content_sync"),
 			)
-		} else {
-			syncService.PostMembershipSyncDebugMessage(fmt.Sprintf("🎉 WEBSOCKET: Content sync successful - event=%s, channel_id=%s",
-				event.EventType(), channelId))
 		}
 	} else if isEligibleForEvents(syncService, event, sharedChannelEventsForInvitation) {
 		err := handleInvitation(ps, syncService, event)
