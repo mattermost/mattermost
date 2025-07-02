@@ -21,12 +21,11 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
     const userId = useSelector(getCurrentUserId);
     const config = useSelector(getConfig);
     const license = useSelector(getLicense);
-    const subscription = useSelector((state: GlobalState) => {
-        return state.entities?.cloud?.subscription;
+    const isCloudPreview = useSelector((state: GlobalState) => {
+        return state.entities?.cloud?.subscription?.is_cloud_preview === true;
     });
     const telemetryId = useSelector((state: GlobalState) => getConfig(state)?.TelemetryId || '');
     const isCloud = useSelector((state: GlobalState) => getLicense(state)?.Cloud === 'true');
-    const isCloudPreview = subscription?.is_cloud_preview === true;
 
     return useMemo(() => {
         if (!href?.includes('mattermost.com') || href?.startsWith('mailto:')) {
