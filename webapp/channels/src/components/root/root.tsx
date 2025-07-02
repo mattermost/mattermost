@@ -288,11 +288,6 @@ export default class Root extends React.PureComponent<Props, State> {
             this.setRudderConfig();
         }
 
-        if (!prevProps.currentUserId && this.props.currentUserId) {
-            if (this.props.customProfileAttributesEnabled) {
-                this.props.actions.getCustomProfileAttributeFields();
-            }
-        }
 
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
             if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
