@@ -288,7 +288,6 @@ export default class Root extends React.PureComponent<Props, State> {
             this.setRudderConfig();
         }
 
-
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
             if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
                 DesktopApp.reactAppInitialized();
