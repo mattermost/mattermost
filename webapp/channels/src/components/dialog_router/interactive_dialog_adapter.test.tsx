@@ -15,11 +15,15 @@ import InteractiveDialogAdapter from './interactive_dialog_adapter';
 
 // Mock AppsFormContainer to avoid dynamic import complexity in tests
 const MockAppsFormContainer = jest.fn((props: any) => {
+    if (!props || !props.form) {
+        return <div data-testid='apps-form-container-loading'>{'Loading...'}</div>;
+    }
+
     return (
         <div data-testid='apps-form-container'>
-            <div data-testid='form-title'>{props.form?.title}</div>
-            <div data-testid='form-header'>{props.form?.header}</div>
-            <div data-testid='form-icon'>{props.form?.icon}</div>
+            <div data-testid='form-title'>{props.form?.title || ''}</div>
+            <div data-testid='form-header'>{props.form?.header || ''}</div>
+            <div data-testid='form-icon'>{props.form?.icon || ''}</div>
             <div data-testid='form-fields-count'>{props.form?.fields?.length || 0}</div>
             {props.form?.fields?.map((field: any) => (
                 <div
@@ -30,7 +34,7 @@ const MockAppsFormContainer = jest.fn((props: any) => {
                     <span data-testid={`field-value-${field.name}`}>{JSON.stringify(field.value)}</span>
                     <span data-testid={`field-required-${field.name}`}>{field.is_required ? 'required' : 'optional'}</span>
                 </div>
-            ))}
+            )) || []}
         </div>
     );
 });
@@ -1314,9 +1318,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const props = {
                 ...baseProps,
                 elements: [requiredElement],
-                conversionOptions: {
-                    validateInputs: true,
-                },
                 actions: {
                     submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
                 },
@@ -1334,22 +1335,15 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const mockCall = MockAppsFormContainer.mock.calls[0][0];
             const submitAdapter = mockCall.actions.doAppSubmit;
 
-            // Test with null value for required field
-            await submitAdapter({
+            // Test with null value for required field - should not crash
+            const result = await submitAdapter({
                 values: {
                     'required-field': null,
                 },
             });
 
-            expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[InteractiveDialogAdapter]',
-                'Required field has null/undefined value',
-                expect.objectContaining({
-                    fieldName: 'required-field',
-                    fieldType: 'text',
-                    isOptional: false,
-                }),
-            );
+            // Should complete successfully (null values are simply skipped)
+            expect(result.data?.type).toBe('ok');
         });
     });
 
@@ -1388,7 +1382,10 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const mockCall = MockAppsFormContainer.mock.calls[0][0];
             const refreshHandler = mockCall.actions.doAppFetchForm;
 
-            const result = await refreshHandler();
+            const result = await refreshHandler({
+                values: {},
+                selected_field: 'test-field',
+            });
 
             expect(result.data).toEqual({
                 type: 'ok',
@@ -1416,8 +1413,13 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const lookupHandler = mockCall.actions.doAppLookup;
             const refreshHandler = mockCall.actions.doAppFetchForm;
 
-            await lookupHandler();
-            await refreshHandler();
+            await lookupHandler({
+                values: {},
+            });
+            await refreshHandler({
+                values: {},
+                selected_field: 'test-field',
+            });
 
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
@@ -1430,10 +1432,10 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
-                'Refresh on select is not supported in Interactive Dialogs',
+                'Field refresh requested but no sourceUrl provided',
                 expect.objectContaining({
-                    feature: 'refresh on select',
-                    suggestion: 'Consider migrating to full Apps Framework',
+                    fieldName: 'test-field',
+                    suggestion: 'Add sourceUrl to dialog definition',
                 }),
             );
         });
@@ -1459,22 +1461,17 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
     });
 
     describe('Dynamic Import Loading', () => {
-        test('should handle loading state before AppsFormContainer loads', async () => {
-            // Mock useState to simulate loading state
-            const mockSetState = jest.fn();
-            const mockUseState = jest.
-                spyOn(React, 'useState').
-                mockReturnValueOnce([null, mockSetState]); // Component not loaded initially
-
-            const {container} = renderWithContext(
+        test('should handle lazy loading with React Suspense', async () => {
+            // With React.lazy, the component should load asynchronously
+            // but the test environment with mocking should handle it synchronously
+            const {getByTestId} = renderWithContext(
                 <InteractiveDialogAdapter {...baseProps}/>,
             );
 
-            // Should render nothing during loading
-            expect(container.firstChild).toBeNull();
-
-            // Restore useState
-            mockUseState.mockRestore();
+            // Should render the component successfully with mocked AppsFormContainer
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
         });
     });
 
