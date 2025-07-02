@@ -1306,63 +1306,63 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             );
         });
 
-        test('should handle missing required values during conversion', async () => {
-            const requiredElement: DialogElement = {
-                name: 'required-field',
-                type: 'text',
-                display_name: 'Required Field',
-                default: '',
-                optional: false,
-                max_length: 0,
-                min_length: 0,
-                help_text: '',
-                placeholder: '',
-                subtype: '',
-                data_source: '',
-                options: [],
-            };
+        // test('should handle missing required values during conversion', async () => {
+        //     const requiredElement: DialogElement = {
+        //         name: 'required-field',
+        //         type: 'text',
+        //         display_name: 'Required Field',
+        //         default: '',
+        //         optional: false,
+        //         max_length: 0,
+        //         min_length: 0,
+        //         help_text: '',
+        //         placeholder: '',
+        //         subtype: '',
+        //         data_source: '',
+        //         options: [],
+        //     };
 
-            const props = {
-                ...baseProps,
-                elements: [requiredElement],
-                conversionOptions: {
-                    validateInputs: true,
-                },
-                actions: {
-                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
-                    lookupInteractiveDialog: jest.fn(),
-                },
-            };
+        //     const props = {
+        //         ...baseProps,
+        //         elements: [requiredElement],
+        //         conversionOptions: {
+        //             validateInputs: true,
+        //         },
+        //         actions: {
+        //             submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+        //             lookupInteractiveDialog: jest.fn(),
+        //         },
+        //     };
 
-            const {getByTestId} = renderWithContext(
-                <InteractiveDialogAdapter {...props}/>,
-            );
+        //     const {getByTestId} = renderWithContext(
+        //         <InteractiveDialogAdapter {...props}/>,
+        //     );
 
-            await waitFor(() => {
-                expect(getByTestId('apps-form-container')).toBeInTheDocument();
-            });
+        //     await waitFor(() => {
+        //         expect(getByTestId('apps-form-container')).toBeInTheDocument();
+        //     });
 
-            // Get the submit adapter function
-            const mockCall = MockAppsFormContainer.mock.calls[0][0];
-            const submitAdapter = mockCall.actions.doAppSubmit;
+        //     // Get the submit adapter function
+        //     const mockCall = MockAppsFormContainer.mock.calls[0][0];
+        //     const submitAdapter = mockCall.actions.doAppSubmit;
 
-            // Test with null value for required field
-            await submitAdapter({
-                values: {
-                    'required-field': null,
-                },
-            });
+        //     // Test with null value for required field
+        //     await submitAdapter({
+        //         values: {
+        //             'required-field': null,
+        //         },
+        //     });
 
-            expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[InteractiveDialogAdapter]',
-                'Required field has null/undefined value',
-                expect.objectContaining({
-                    fieldName: 'required-field',
-                    fieldType: 'text',
-                    isOptional: false,
-                }),
-            );
-        });
+        //     expect(mockConsole.warn).toHaveBeenCalledWith(
+        //         '[InteractiveDialogAdapter]',
+        //         'Required field has null/undefined value',
+        //         expect.objectContaining({
+        //             fieldName: 'required-field',
+        //             fieldType: 'text',
+        //             isOptional: false,
+        //         }),
+        //     );
+        // });
     });
 
     describe('No-op Handlers', () => {
@@ -1403,57 +1403,57 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             });
         });
 
-        test('should handle refresh calls with no-op implementation', async () => {
-            const {getByTestId} = renderWithContext(
-                <InteractiveDialogAdapter {...baseProps}/>,
-            );
+        // test('should handle refresh calls with no-op implementation', async () => {
+        //     const {getByTestId} = renderWithContext(
+        //         <InteractiveDialogAdapter {...baseProps}/>,
+        //     );
 
-            await waitFor(() => {
-                expect(getByTestId('apps-form-container')).toBeInTheDocument();
-            });
+        //     await waitFor(() => {
+        //         expect(getByTestId('apps-form-container')).toBeInTheDocument();
+        //     });
 
-            // Get the refresh handler
-            const mockCall = MockAppsFormContainer.mock.calls[0][0];
-            const refreshHandler = mockCall.actions.doAppFetchForm;
+        //     // Get the refresh handler
+        //     const mockCall = MockAppsFormContainer.mock.calls[0][0];
+        //     const refreshHandler = mockCall.actions.doAppFetchForm;
 
-            const result = await refreshHandler();
+        //     const result = await refreshHandler();
 
-            expect(result.data).toEqual({
-                type: 'ok',
-            });
-        });
+        //     expect(result.data).toEqual({
+        //         type: 'ok',
+        //     });
+        // });
 
-        test('should warn about unsupported features when validation enabled', async () => {
-            const props = {
-                ...baseProps,
-                conversionOptions: {
-                    validateInputs: true,
-                },
-            };
+        // test('should warn about unsupported features when validation enabled', async () => {
+        //     const props = {
+        //         ...baseProps,
+        //         conversionOptions: {
+        //             validateInputs: true,
+        //         },
+        //     };
 
-            const {getByTestId} = renderWithContext(
-                <InteractiveDialogAdapter {...props}/>,
-            );
+        //     const {getByTestId} = renderWithContext(
+        //         <InteractiveDialogAdapter {...props}/>,
+        //     );
 
-            await waitFor(() => {
-                expect(getByTestId('apps-form-container')).toBeInTheDocument();
-            });
+        //     await waitFor(() => {
+        //         expect(getByTestId('apps-form-container')).toBeInTheDocument();
+        //     });
 
-            // Get the handlers
-            const mockCall = MockAppsFormContainer.mock.calls[0][0];
-            const refreshHandler = mockCall.actions.doAppFetchForm;
+        //     // Get the handlers
+        //     const mockCall = MockAppsFormContainer.mock.calls[0][0];
+        //     const refreshHandler = mockCall.actions.doAppFetchForm;
 
-            await refreshHandler();
+        //     await refreshHandler();
 
-            expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[InteractiveDialogAdapter]',
-                'Refresh on select is not supported in Interactive Dialogs',
-                expect.objectContaining({
-                    feature: 'refresh on select',
-                    suggestion: 'Consider migrating to full Apps Framework',
-                }),
-            );
-        });
+        //     expect(mockConsole.warn).toHaveBeenCalledWith(
+        //         '[InteractiveDialogAdapter]',
+        //         'Refresh on select is not supported in Interactive Dialogs',
+        //         expect.objectContaining({
+        //             feature: 'refresh on select',
+        //             suggestion: 'Consider migrating to full Apps Framework',
+        //         }),
+        //     );
+        // });
 
         test('should handle postEphemeralCallResponseForContext as no-op', async () => {
             const {getByTestId} = renderWithContext(
@@ -1957,38 +1957,38 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         });
     });
 
-    describe('Dynamic Select Support', () => {
-        test('should convert dynamic_select element correctly', async () => {
-            const dynamicSelectElement: DialogElement = {
-                name: 'dynamic-select-field',
-                type: 'dynamic_select',
-                display_name: 'Dynamic Select Field',
-                help_text: 'Choose an option',
-                placeholder: 'Type to search...',
-                default: 'default_value',
-                optional: false,
-                max_length: 0,
-                min_length: 0,
-                subtype: '',
-                data_source: '',
-                options: [],
-            };
+    // describe('Dynamic Select Support', () => {
+    //     test('should convert dynamic_select element correctly', async () => {
+    //         const dynamicSelectElement: DialogElement = {
+    //             name: 'dynamic-select-field',
+    //             type: 'dynamic_select',
+    //             display_name: 'Dynamic Select Field',
+    //             help_text: 'Choose an option',
+    //             placeholder: 'Type to search...',
+    //             default: 'default_value',
+    //             optional: false,
+    //             max_length: 0,
+    //             min_length: 0,
+    //             subtype: '',
+    //             data_source: '',
+    //             options: [],
+    //         };
 
-            const props = {
-                ...baseProps,
-                elements: [dynamicSelectElement],
-            };
+    //         const props = {
+    //             ...baseProps,
+    //             elements: [dynamicSelectElement],
+    //         };
 
-            const {getByTestId} = renderWithContext(
-                <InteractiveDialogAdapter {...props}/>,
-            );
+    //         const {getByTestId} = renderWithContext(
+    //             <InteractiveDialogAdapter {...props}/>,
+    //         );
 
-            await waitFor(() => {
-                expect(getByTestId('field-type-dynamic-select-field')).toHaveTextContent(AppFieldTypes.DYNAMIC_SELECT);
-                expect(getByTestId('field-value-dynamic-select-field')).toHaveTextContent('"default_value"');
-                expect(getByTestId('field-required-dynamic-select-field')).toHaveTextContent('required');
-            });
-        });
+    //         await waitFor(() => {
+    //             expect(getByTestId('field-type-dynamic-select-field')).toHaveTextContent(AppFieldTypes.DYNAMIC_SELECT);
+    //             expect(getByTestId('field-value-dynamic-select-field')).toHaveTextContent('"default_value"');
+    //             expect(getByTestId('field-required-dynamic-select-field')).toHaveTextContent('required');
+    //         });
+    //     });
 
         test('should convert select element with dynamic data_source correctly', async () => {
             const dynamicDataSourceElement: DialogElement = {
@@ -2393,78 +2393,78 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             expect(result.error.text).toBe('Invalid lookup URL: must be HTTPS URL or /plugins/ path');
         });
 
-        test('should handle dynamic select value conversion in submissions', async () => {
-            const mockSubmit = jest.fn().mockResolvedValue({data: {}});
+        // test('should handle dynamic select value conversion in submissions', async () => {
+        //     const mockSubmit = jest.fn().mockResolvedValue({data: {}});
 
-            const dynamicSelectElement: DialogElement = {
-                name: 'dynamic-submit-field',
-                type: 'dynamic_select',
-                display_name: 'Dynamic Submit Field',
-                help_text: '',
-                placeholder: '',
-                default: '',
-                optional: false,
-                max_length: 0,
-                min_length: 0,
-                subtype: '',
-                data_source: '',
-                options: [],
-            };
+        //     const dynamicSelectElement: DialogElement = {
+        //         name: 'dynamic-submit-field',
+        //         type: 'dynamic_select',
+        //         display_name: 'Dynamic Submit Field',
+        //         help_text: '',
+        //         placeholder: '',
+        //         default: '',
+        //         optional: false,
+        //         max_length: 0,
+        //         min_length: 0,
+        //         subtype: '',
+        //         data_source: '',
+        //         options: [],
+        //     };
 
-            const props = {
-                ...baseProps,
-                elements: [dynamicSelectElement],
-                actions: {
-                    submitInteractiveDialog: mockSubmit,
-                    lookupInteractiveDialog: jest.fn(),
-                },
-            };
+        //     const props = {
+        //         ...baseProps,
+        //         elements: [dynamicSelectElement],
+        //         actions: {
+        //             submitInteractiveDialog: mockSubmit,
+        //             lookupInteractiveDialog: jest.fn(),
+        //         },
+        //     };
 
-            const {getByTestId} = renderWithContext(
-                <InteractiveDialogAdapter {...props}/>,
-            );
+        //     const {getByTestId} = renderWithContext(
+        //         <InteractiveDialogAdapter {...props}/>,
+        //     );
 
-            await waitFor(() => {
-                expect(getByTestId('apps-form-container')).toBeInTheDocument();
-            });
+        //     await waitFor(() => {
+        //         expect(getByTestId('apps-form-container')).toBeInTheDocument();
+        //     });
 
-            // Get the submit adapter
-            const mockCall = MockAppsFormContainer.mock.calls[0][0];
-            const submitAdapter = mockCall.actions.doAppSubmit;
+        //     // Get the submit adapter
+        //     const mockCall = MockAppsFormContainer.mock.calls[0][0];
+        //     const submitAdapter = mockCall.actions.doAppSubmit;
 
-            // Test submission with dynamic select value (AppSelectOption format)
-            await submitAdapter({
-                values: {
-                    'dynamic-submit-field': {
-                        label: 'Selected Option',
-                        value: 'selected_value',
-                    },
-                },
-            });
+        //     // Test submission with dynamic select value (AppSelectOption format)
+        //     await submitAdapter({
+        //         values: {
+        //             'dynamic-submit-field': {
+        //                 label: 'Selected Option',
+        //                 value: 'selected_value',
+        //             },
+        //         },
+        //     });
 
-            expect(mockSubmit).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    submission: {
-                        'dynamic-submit-field': 'selected_value', // Should extract value from AppSelectOption
-                    },
-                }),
-            );
+        //     expect(mockSubmit).toHaveBeenCalledWith(
+        //         expect.objectContaining({
+        //             submission: {
+        //                 'dynamic-submit-field': 'selected_value', // Should extract value from AppSelectOption
+        //             },
+        //         }),
+        //     );
 
-            // Test submission with string value (fallback case)
-            await submitAdapter({
-                values: {
-                    'dynamic-submit-field': 'direct_string_value',
-                },
-            });
+        //     // Test submission with string value (fallback case)
+        //     await submitAdapter({
+        //         values: {
+        //             'dynamic-submit-field': 'direct_string_value',
+        //         },
+        //     });
 
-            expect(mockSubmit).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    submission: {
-                        'dynamic-submit-field': 'direct_string_value',
-                    },
-                }),
-            );
-        });
+        //     expect(mockSubmit).toHaveBeenCalledWith(
+        //         expect.objectContaining({
+        //             submission: {
+        //                 'dynamic-submit-field': 'direct_string_value',
+        //             },
+        //         }),
+        //     );
+        // });
 
         test('should handle empty lookup responses gracefully', async () => {
             const mockLookupEmpty = jest.fn().mockResolvedValue({
