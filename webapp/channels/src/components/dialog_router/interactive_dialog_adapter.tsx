@@ -458,7 +458,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 return null;
             }
 
-
             case 'text':
             case 'textarea': {
                 // Match original interactive dialog: e.default ?? null
@@ -728,7 +727,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                     submission[element.name] = this.sanitizeString(value);
                 }
                 break;
-
 
             default:
                 this.logWarn('Unknown element type in submission conversion', {
