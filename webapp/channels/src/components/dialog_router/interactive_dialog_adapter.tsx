@@ -458,19 +458,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 return null;
             }
 
-            case 'dynamic_select': {
-                // For dynamic selects, default value should be a simple AppSelectOption
-                // Since options are loaded dynamically, we can't validate against static options
-                if (element.default) {
-                    // If default is a string, create a basic option with the same label/value
-                    // The actual label will be resolved when the field is loaded
-                    return {
-                        label: this.sanitizeString(element.default),
-                        value: this.sanitizeString(element.default),
-                    };
-                }
-                return null;
-            }
 
             case 'text':
             case 'textarea': {
@@ -742,15 +729,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 }
                 break;
 
-            case 'dynamic_select':
-                // Handle dynamic selects - options are loaded dynamically via lookup calls
-                if (typeof value === 'object' && value !== null && 'value' in value) {
-                    const selectOption = value as AppSelectOption;
-                    submission[element.name] = this.sanitizeString(selectOption.value);
-                } else {
-                    submission[element.name] = this.sanitizeString(value);
-                }
-                break;
 
             default:
                 this.logWarn('Unknown element type in submission conversion', {
