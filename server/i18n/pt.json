@@ -58,5 +58,65 @@
   {
     "id": "api.admin.add_certificate.saving.app_error",
     "translation": "Não foi possível guardar o ficheiro do certificado."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Não é possível remover uma confirmação num canal arquivado."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Não pode eliminar uma confirmação depois de terem passados 54 minutos."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Não pode guardar uma confirmação num canal arquivado."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Nenhum ficheiro sob 'certificado' no pedido."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Erro ao analisar o pedido de multiformulário"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Falha ao adicionar o certificado."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Demasiados ficheiros sob 'certificado' no pedido."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Erro ao ler o ficheiro de registo."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Não é possível eliminar a imagem da marca, não encontrada."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "O armazenamento de imagem não está configurado."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP não está disponível."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Não foi possível remover o certificado."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Ocorreu um erro quando eliminava o certificado."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "O limite de obter canais não é válido."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "O limite de obter campos não é válido."
   }
 ]
