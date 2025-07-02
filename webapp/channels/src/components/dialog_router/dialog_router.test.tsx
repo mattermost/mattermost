@@ -52,6 +52,7 @@ describe('components/dialog_router/DialogRouter', () => {
         state: 'test-state',
         notifyOnCancel: true,
         elements: [],
+        sourceUrl: undefined, // NEW: Add sourceUrl property for backward compatibility
         emojiMap: new EmojiMap(new Map()),
         onExited: jest.fn(),
         actions: {
