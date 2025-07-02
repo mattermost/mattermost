@@ -1630,50 +1630,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 );
             });
         });
-
-        test('should validate conflicting select configurations', async () => {
-            const conflictingSelectElement: DialogElement = {
-                name: 'conflicting_select',
-                type: 'select',
-                display_name: 'Conflicting Select',
-                options: [{text: 'Option1', value: 'opt1'}],
-                data_source: 'users', // Conflict: both options and data_source
-                subtype: '',
-                default: '',
-                placeholder: '',
-                help_text: '',
-                optional: false,
-                min_length: 0,
-                max_length: 0,
-            };
-
-            const props = {
-                ...baseProps,
-                elements: [conflictingSelectElement],
-                conversionOptions: {
-                    validateInputs: true,
-                },
-            };
-
-            renderWithContext(
-                <InteractiveDialogAdapter {...props}/>,
-            );
-
-            await waitFor(() => {
-                expect(mockConsole.warn).toHaveBeenCalledWith(
-                    '[InteractiveDialogAdapter]',
-                    'Element validation errors for conflicting_select',
-                    expect.objectContaining({
-                        errors: expect.arrayContaining([
-                            expect.objectContaining({
-                                code: 'INVALID_FORMAT',
-                                message: 'Select element cannot have both options and data_source',
-                            }),
-                        ]),
-                    }),
-                );
-            });
-        });
     });
 
     describe('Enhanced Type Conversion', () => {
@@ -1958,38 +1914,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
     });
 
     describe('Dynamic Select Support', () => {
-        // test('should convert dynamic_select element correctly', async () => {
-        //     const dynamicSelectElement: DialogElement = {
-        //         name: 'dynamic-select-field',
-        //         type: 'dynamic_select',
-        //         display_name: 'Dynamic Select Field',
-        //         help_text: 'Choose an option',
-        //         placeholder: 'Type to search...',
-        //         default: 'default_value',
-        //         optional: false,
-        //         max_length: 0,
-        //         min_length: 0,
-        //         subtype: '',
-        //         data_source: '',
-        //         options: [],
-        //     };
-
-        //     const props = {
-        //         ...baseProps,
-        //         elements: [dynamicSelectElement],
-        //     };
-
-        //     const {getByTestId} = renderWithContext(
-        //         <InteractiveDialogAdapter {...props}/>,
-        //     );
-
-        //     await waitFor(() => {
-        //         expect(getByTestId('field-type-dynamic-select-field')).toHaveTextContent(AppFieldTypes.DYNAMIC_SELECT);
-        //         expect(getByTestId('field-value-dynamic-select-field')).toHaveTextContent('"default_value"');
-        //         expect(getByTestId('field-required-dynamic-select-field')).toHaveTextContent('required');
-        //     });
-        // });
-
         test('should convert select element with dynamic data_source correctly', async () => {
             const dynamicDataSourceElement: DialogElement = {
                 name: 'dynamic-data-source-field',
@@ -2027,7 +1951,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         test('should handle dynamic select default values correctly', async () => {
             const dynamicSelectWithDefault: DialogElement = {
                 name: 'dynamic-with-default',
-                type: 'dynamic_select',
+                type: 'select',
+                data_source: 'dynamic',
                 display_name: 'Dynamic Select with Default',
                 help_text: '',
                 placeholder: '',
@@ -2036,7 +1961,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 max_length: 0,
                 min_length: 0,
                 subtype: '',
-                data_source: '',
                 options: [],
             };
 
@@ -2063,7 +1987,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         test('should handle empty default for dynamic select', async () => {
             const dynamicSelectNoDefault: DialogElement = {
                 name: 'dynamic-no-default',
-                type: 'dynamic_select',
+                type: 'select',
+                data_source: 'dynamic',
                 display_name: 'Dynamic Select No Default',
                 help_text: '',
                 placeholder: '',
@@ -2072,7 +1997,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 max_length: 0,
                 min_length: 0,
                 subtype: '',
-                data_source: '',
                 options: [],
             };
 
@@ -2105,7 +2029,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const dynamicSelectElement: DialogElement = {
                 name: 'dynamic-lookup-field',
-                type: 'dynamic_select',
+                type: 'select',
+                data_source: 'dynamic',
                 display_name: 'Dynamic Lookup Field',
                 help_text: '',
                 placeholder: '',
@@ -2114,7 +2039,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 max_length: 0,
                 min_length: 0,
                 subtype: '',
-                data_source: '',
                 options: [],
             };
 
@@ -2252,7 +2176,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [{
                     name: 'dynamic-error-field',
-                    type: 'dynamic_select',
+                    type: 'select',
+                    data_source: 'dynamic',
                     display_name: 'Dynamic Error Field',
                     help_text: '',
                     placeholder: '',
@@ -2261,7 +2186,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                     max_length: 0,
                     min_length: 0,
                     subtype: '',
-                    data_source: '',
                     options: [],
                 }],
                 actions: {
@@ -2300,7 +2224,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [{
                     name: 'dynamic-exception-field',
-                    type: 'dynamic_select',
+                    type: 'select',
+                    data_source: 'dynamic',
                     display_name: 'Dynamic Exception Field',
                     help_text: '',
                     placeholder: '',
@@ -2309,7 +2234,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                     max_length: 0,
                     min_length: 0,
                     subtype: '',
-                    data_source: '',
                     options: [],
                 }],
                 actions: {
@@ -2352,7 +2276,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 url: 'http://insecure.com/lookup', // HTTP instead of HTTPS
                 elements: [{
                     name: 'secure-field',
-                    type: 'dynamic_select',
+                    type: 'select',
+                    data_source: 'dynamic',
                     display_name: 'Secure Field',
                     help_text: '',
                     placeholder: '',
@@ -2361,7 +2286,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                     max_length: 0,
                     min_length: 0,
                     subtype: '',
-                    data_source: '',
                     options: [],
                 }],
                 actions: {
@@ -2393,78 +2317,78 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             expect(result.error.text).toBe('Invalid lookup URL: must be HTTPS URL or /plugins/ path');
         });
 
-        // test('should handle dynamic select value conversion in submissions', async () => {
-        //     const mockSubmit = jest.fn().mockResolvedValue({data: {}});
+        test('should handle dynamic select value conversion in submissions', async () => {
+            const mockSubmit = jest.fn().mockResolvedValue({data: {}});
 
-        //     const dynamicSelectElement: DialogElement = {
-        //         name: 'dynamic-submit-field',
-        //         type: 'dynamic_select',
-        //         display_name: 'Dynamic Submit Field',
-        //         help_text: '',
-        //         placeholder: '',
-        //         default: '',
-        //         optional: false,
-        //         max_length: 0,
-        //         min_length: 0,
-        //         subtype: '',
-        //         data_source: '',
-        //         options: [],
-        //     };
+            const dynamicSelectElement: DialogElement = {
+                name: 'dynamic-submit-field',
+                type: 'select',
+                data_source: 'dynamic',
+                display_name: 'Dynamic Submit Field',
+                help_text: '',
+                placeholder: '',
+                default: '',
+                optional: false,
+                max_length: 0,
+                min_length: 0,
+                subtype: '',
+                options: [],
+            };
 
-        //     const props = {
-        //         ...baseProps,
-        //         elements: [dynamicSelectElement],
-        //         actions: {
-        //             submitInteractiveDialog: mockSubmit,
-        //             lookupInteractiveDialog: jest.fn(),
-        //         },
-        //     };
+            const props = {
+                ...baseProps,
+                elements: [dynamicSelectElement],
+                actions: {
+                    submitInteractiveDialog: mockSubmit,
+                    lookupInteractiveDialog: jest.fn(),
+                },
+            };
 
-        //     const {getByTestId} = renderWithContext(
-        //         <InteractiveDialogAdapter {...props}/>,
-        //     );
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
 
-        //     await waitFor(() => {
-        //         expect(getByTestId('apps-form-container')).toBeInTheDocument();
-        //     });
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
 
-        //     // Get the submit adapter
-        //     const mockCall = MockAppsFormContainer.mock.calls[0][0];
-        //     const submitAdapter = mockCall.actions.doAppSubmit;
+            // Get the submit adapter
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const submitAdapter = mockCall.actions.doAppSubmit;
 
-        //     // Test submission with dynamic select value (AppSelectOption format)
-        //     await submitAdapter({
-        //         values: {
-        //             'dynamic-submit-field': {
-        //                 label: 'Selected Option',
-        //                 value: 'selected_value',
-        //             },
-        //         },
-        //     });
+            // Test submission with dynamic select value (AppSelectOption format)
+            await submitAdapter({
+                values: {
+                    'dynamic-submit-field': {
+                        label: 'Selected Option',
+                        value: 'selected_value',
+                    },
+                },
+            });
 
-        //     expect(mockSubmit).toHaveBeenCalledWith(
-        //         expect.objectContaining({
-        //             submission: {
-        //                 'dynamic-submit-field': 'selected_value', // Should extract value from AppSelectOption
-        //             },
-        //         }),
-        //     );
+            expect(mockSubmit).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    submission: {
+                        'dynamic-submit-field': 'selected_value', // Should extract value from AppSelectOption
+                    },
+                }),
+            );
 
-        //     // Test submission with string value (fallback case)
-        //     await submitAdapter({
-        //         values: {
-        //             'dynamic-submit-field': 'direct_string_value',
-        //         },
-        //     });
+            // Test submission with string value (fallback case)
+            await submitAdapter({
+                values: {
+                    'dynamic-submit-field': 'direct_string_value',
+                },
+            });
 
-        //     expect(mockSubmit).toHaveBeenCalledWith(
-        //         expect.objectContaining({
-        //             submission: {
-        //                 'dynamic-submit-field': 'direct_string_value',
-        //             },
-        //         }),
-        //     );
-        // });
+            expect(mockSubmit).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    submission: {
+                        'dynamic-submit-field': 'direct_string_value',
+                    },
+                }),
+            );
+        });
 
         test('should handle empty lookup responses gracefully', async () => {
             const mockLookupEmpty = jest.fn().mockResolvedValue({
@@ -2473,7 +2397,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const dynamicSelectElement: DialogElement = {
                 name: 'test-field',
-                type: 'dynamic_select',
+                type: 'select',
+                data_source: 'dynamic',
                 display_name: 'Test Field',
                 help_text: '',
                 placeholder: '',
@@ -2482,7 +2407,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 max_length: 0,
                 min_length: 0,
                 subtype: '',
-                data_source: '',
                 options: [],
             };
 

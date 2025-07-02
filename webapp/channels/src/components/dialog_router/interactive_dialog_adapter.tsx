@@ -569,20 +569,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 return null;
             }
 
-            case 'dynamic_select': {
-                // For dynamic selects, default value should be a simple AppSelectOption
-                // Since options are loaded dynamically, we can't validate against static options
-                if (element.default) {
-                    // If default is a string, create a basic option with the same label/value
-                    // The actual label will be resolved when the field is loaded
-                    return {
-                        label: this.sanitizeString(element.default),
-                        value: this.sanitizeString(element.default),
-                    };
-                }
-                return null;
-            }
-
             case 'text':
             case 'textarea': {
                 // Match original interactive dialog: e.default ?? null
