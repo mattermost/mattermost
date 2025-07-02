@@ -93,7 +93,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
     static getDerivedStateFromProps(nextProps: Props, prevState: State) {
         if (nextProps.form !== prevState.form) {
             let values;
-            
+
             if (nextProps.updateType === 'refresh') {
                 // For refresh: clear all values and start fresh with new form defaults
                 values = initFormValues(nextProps.form);
@@ -104,7 +104,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     ...initFormValues(nextProps.form),
                 };
             }
-            
+
             return {
                 values,
                 form: nextProps.form,
