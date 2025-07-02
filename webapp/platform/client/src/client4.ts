@@ -2981,6 +2981,13 @@ export default class Client4 {
         );
     };
 
+    lookupInteractiveDialog = (data: DialogSubmission) => {
+        return this.doFetch<{items: Array<{text: string; value: string}>}>(
+            `${this.getBaseRoute()}/actions/dialogs/lookup`,
+            {method: 'post', body: JSON.stringify(data)},
+        );
+    };
+
     // Emoji Routes
 
     createCustomEmoji = (emoji: PartialExcept<CustomEmoji, 'name' | 'creator_id'>, imageData: File) => {

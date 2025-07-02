@@ -46,6 +46,7 @@ interface Props extends WrappedComponentProps {
     onExited?: () => void;
     actions: {
         submitInteractiveDialog: (submission: DialogSubmission) => Promise<ActionResult<SubmitDialogResponse>>;
+        lookupInteractiveDialog: (submission: DialogSubmission) => Promise<ActionResult<{items: Array<{text: string; value: string}>}>>;
     };
 
     // Enhanced configuration options
@@ -406,8 +407,10 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 if (element.data_source === 'channels') {
                     return AppFieldTypes.CHANNEL;
                 }
+                if (element.data_source === 'dynamic') {
+                    return AppFieldTypes.DYNAMIC_SELECT;
+                }
                 return AppFieldTypes.STATIC_SELECT;
-
             case 'bool':
                 return AppFieldTypes.BOOL;
             case 'radio':
@@ -444,6 +447,13 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
 
             case 'select':
             case 'radio': {
+                // Handle dynamic selects that use data_source instead of static options
+                if (element.type === 'select' && element.data_source === 'dynamic' && element.default) {
+                    return {
+                        label: this.sanitizeString(element.default),
+                        value: this.sanitizeString(element.default),
+                    };
+                }
                 if (element.options && element.default) {
                     // Handle multiselect defaults (comma-separated values)
                     if (element.type === 'select' && element.multiselect) {
@@ -483,6 +493,20 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                         defaultValue: element.default,
                         availableOptions: element.options?.map((opt) => opt.value),
                     });
+                }
+                return null;
+            }
+
+            case 'dynamic_select': {
+                // For dynamic selects, default value should be a simple AppSelectOption
+                // Since options are loaded dynamically, we can't validate against static options
+                if (element.default) {
+                    // If default is a string, create a basic option with the same label/value
+                    // The actual label will be resolved when the field is loaded
+                    return {
+                        label: this.sanitizeString(element.default),
+                        value: this.sanitizeString(element.default),
+                    };
                 }
                 return null;
             }
@@ -571,6 +595,12 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             // Add multiselect support for select fields
             if (element.type === 'select' && element.multiselect) {
                 appField.multiselect = true;
+            }
+
+            if (element.type === 'select' && element.data_source === 'dynamic') {
+                appField.lookup = {
+                    path: element.data_source_url || '',
+                };
             }
         }
 
@@ -781,6 +811,16 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 }
                 break;
 
+            case 'dynamic_select':
+                // Handle dynamic selects - options are loaded dynamically via lookup calls
+                if (typeof value === 'object' && value !== null && 'value' in value) {
+                    const selectOption = value as AppSelectOption;
+                    submission[element.name] = this.sanitizeString(selectOption.value);
+                } else {
+                    submission[element.name] = this.sanitizeString(value);
+                }
+                break;
+
             case 'date':
             case 'datetime':
                 // Date and datetime values should be passed through as strings (ISO format)
@@ -833,22 +873,121 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     };
 
     /**
-     * No-op lookup adapter for unsupported legacy feature
-     * Interactive Dialogs don't support dynamic lookup calls
+     * Handles dynamic lookup requests for interactive dialog select fields.
+     * Validates the lookup URL, processes form values, and makes the lookup call
+     * to fetch dynamic options for select elements.
+     *
+     * @param call - The app call request containing lookup parameters
+     * @returns Promise resolving to lookup response with options or error
      */
-    private performLookupCall = async (): Promise<DoAppCallResult<unknown>> => {
-        if (this.conversionContext.validateInputs) {
-            this.logWarn('Lookup calls are not supported in Interactive Dialogs', {
-                feature: 'dynamic lookup',
-                suggestion: 'Consider migrating to full Apps Framework',
-            });
+    private performLookupCall = async (call: AppCallRequest): Promise<DoAppCallResult<unknown>> => {
+        const {url, callbackId, state} = this.props;
+
+        // Get the lookup path from the call or field configuration
+        let lookupPath = call.path;
+
+        // If the field has a lookup path defined, use that instead
+        if (!lookupPath && call.selected_field) {
+            const field = this.props.elements?.find((element) => element.name === call.selected_field);
+            if (field?.data_source === 'dynamic' && field?.data_source_url) {
+                lookupPath = field.data_source_url;
+            }
         }
-        return {
-            data: {
-                type: 'ok' as const,
-                data: {items: []},
-            },
+
+        // If still no path, fall back to the dialog URL
+        if (!lookupPath) {
+            lookupPath = url || '';
+        }
+
+        // Validate URL for security
+        if (!lookupPath) {
+            return {
+                error: {
+                    type: 'error' as const,
+                    text: 'No lookup URL provided',
+                },
+            };
+        }
+
+        if (!lookupPath || !this.isValidLookupURL(lookupPath)) {
+            return {
+                error: {
+                    type: 'error' as const,
+                    text: 'Invalid lookup URL: must be HTTPS URL or /plugins/ path',
+                },
+            };
+        }
+
+        // Convert AppSelectOption values to their raw value before submission
+        const processedValues = this.convertAppFormValuesToDialogSubmission(call.values || {});
+
+        // For dynamic select, we need to make a lookup call to get options
+        const dialog: DialogSubmission = {
+            url: lookupPath || '',
+            callback_id: callbackId ?? '',
+            state: state ?? '',
+            submission: processedValues as { [x: string]: string },
+            user_id: '',
+            channel_id: '',
+            team_id: '',
+            cancelled: false,
         };
+
+        // Add the query and selected field to the submission
+        if (call.query) {
+            dialog.submission.query = call.query;
+        }
+
+        if (call.selected_field) {
+            dialog.submission.selected_field = call.selected_field;
+        }
+
+        try {
+            const response = await this.props.actions.lookupInteractiveDialog(dialog);
+
+            // Convert the response to the format expected by AppsFormContainer
+            if (response?.data?.items) {
+                return {
+                    data: {
+                        type: 'ok' as const,
+                        data: {
+                            items: response.data.items.map((item) => ({
+                                label: item.text,
+                                value: item.value,
+                            })),
+                        },
+                    },
+                };
+            }
+
+            if (response?.error) {
+                return {
+                    error: {
+                        type: 'error' as const,
+                        text: response.error.message || 'Lookup failed',
+                    },
+                };
+            }
+
+            return {
+                data: {
+                    type: 'ok' as const,
+                    data: {
+                        items: [],
+                    },
+                },
+            };
+        } catch (error) {
+            // Log the full error for debugging but return a sanitized message to the user
+            this.logError('Lookup request failed', error);
+
+            return {
+                error: {
+                    type: 'error' as const,
+                    text: this.getSafeErrorMessage(error),
+                },
+            };
+        }
     };
 
     /**
@@ -874,6 +1013,44 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
      */
     private postEphemeralCallResponseForContext = (): void => {
         // No-op for legacy dialogs - ephemeral responses not supported
+    };
+
+    /**
+     * Validates if a URL is safe for lookup operations
+     */
+    private isValidLookupURL = (url: string): boolean => {
+        if (!url) {
+            return false;
+        }
+
+        // Only allow HTTPS for external URLs (more secure than HTTP)
+        if (url.startsWith('https://')) {
+            return true; // Simple check, full validation happens server-side
+        }
+
+        // Only allow plugin paths that start with /plugins/
+        if (url.startsWith('/plugins/')) {
+            // Additional validation for plugin paths - ensure no path traversal
+            if (url.includes('..') || url.includes('//')) {
+                return false;
+            }
+            return true;
+        }
+
+        return false;
+    };
+
+    /**
+     * Gets a safe error message for display to users
+     */
+    private getSafeErrorMessage = (error: unknown): string => {
+        if (error instanceof Error) {
+            return error.message;
+        }
+        return this.props.intl.formatMessage({
+            id: 'interactive_dialog.lookup_failed',
+            defaultMessage: 'Lookup failed',
+        });
     };
 
     render() {
