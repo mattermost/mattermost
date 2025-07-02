@@ -193,6 +193,40 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, public
 </Fragment>
 `;
 
+exports[`components/post_view/PostAddChannelMember should match snapshot, with ABAC policy enforced 1`] = `
+<p>
+  <span>
+    <Connect(Component)
+      channelId="channel_id"
+      key="username_1"
+      mentionName="username_1"
+    />
+    <span
+      key="1"
+    >
+      , 
+    </span>
+    <Connect(Component)
+      channelId="channel_id"
+      key="username_2"
+      mentionName="username_2"
+    />
+    <MemoizedFormattedMessage
+      defaultMessage=" and "
+      id="post_body.check_for_out_of_channel_mentions.link.and"
+      key="2"
+    />
+    <Connect(Component)
+      channelId="channel_id"
+      key="username_3"
+      mentionName="username_3"
+    />
+  </span>
+   
+  did not get notified by this mention because they are not in the channel.
+</p>
+`;
+
 exports[`components/post_view/PostAddChannelMember should match snapshot, with no-groups usernames 1`] = `
 <Fragment>
   <p
@@ -235,47 +269,4 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, with n
     />
   </p>
 </Fragment>
-`;
-
-exports[`components/post_view/PostAddChannelMember should match snapshot, with non-invitable usernames (ABAC policy violation) 1`] = `
-<p>
-  <span>
-    <Connect(Component)
-      channelId="channel_id"
-      key="username_1"
-      mentionName="username_1"
-    />
-    <span
-      key="1"
-    >
-      , 
-    </span>
-    <a
-      className="PostBody_otherUsersLink"
-      onClick={[Function]}
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="{numOthers} others"
-        id="post_body.check_for_out_of_channel_mentions.others"
-        values={
-          Object {
-            "numOthers": 3,
-          }
-        }
-      />
-    </a>
-    <MemoizedFormattedMessage
-      defaultMessage=" and "
-      id="post_body.check_for_out_of_channel_mentions.link.and"
-      key="1"
-    />
-    <Connect(Component)
-      channelId="channel_id"
-      key="username_3"
-      mentionName="username_3"
-    />
-  </span>
-   
-  did not get notified by this mention because they are not in the channel.
-</p>
 `;

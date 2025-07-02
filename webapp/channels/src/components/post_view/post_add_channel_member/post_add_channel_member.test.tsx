@@ -43,7 +43,6 @@ describe('components/post_view/PostAddChannelMember', () => {
             addChannelMember: jest.fn(),
         },
         noGroupsUsernames: [],
-        nonInvitableUsernames: [],
         isPolicyEnforced: false,
     };
 
@@ -143,11 +142,10 @@ describe('components/post_view/PostAddChannelMember', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, with non-invitable usernames (ABAC policy violation)', () => {
+    test('should match snapshot, with ABAC policy enforced', () => {
         const props: Props = {
             ...requiredProps,
             usernames: ['username_1', 'username_2', 'username_3'],
-            nonInvitableUsernames: ['username_2', 'username_3'],
             isPolicyEnforced: true,
         };
         const wrapper = shallow(<PostAddChannelMember {...props}/>);
@@ -158,7 +156,6 @@ describe('components/post_view/PostAddChannelMember', () => {
         const props: Props = {
             ...requiredProps,
             usernames: ['username_1', 'username_2'],
-            nonInvitableUsernames: [],
             noGroupsUsernames: [],
             isPolicyEnforced: true,
         };
@@ -166,38 +163,10 @@ describe('components/post_view/PostAddChannelMember', () => {
         expect(wrapper.find('.PostBody_addChannelMemberLink')).toHaveLength(0);
     });
 
-    test('should never show invite links for any users when policy is enforced', () => {
-        const props: Props = {
-            ...requiredProps,
-            usernames: ['username_1', 'username_2'],
-            nonInvitableUsernames: ['username_1', 'username_2'],
-            isPolicyEnforced: true,
-        };
-        const wrapper = shallow(<PostAddChannelMember {...props}/>);
-        expect(wrapper.find('.PostBody_addChannelMemberLink')).toHaveLength(0);
-    });
-
-    // Test user categorization logic for non-ABAC channels
-    test('should correctly categorize users into invitable, non-invitable, and out-of-groups for non-ABAC channels', () => {
-        const props: Props = {
-            ...requiredProps,
-            usernames: ['invitable_user', 'non_invitable_user', 'out_of_groups_user'],
-            nonInvitableUsernames: ['non_invitable_user'],
-            noGroupsUsernames: ['out_of_groups_user'],
-            isPolicyEnforced: false, // Test non-ABAC scenario
-        };
-        const wrapper = shallow(<PostAddChannelMember {...props}/>);
-
-        // Should render separate messages for each category
-        expect(wrapper.find('p')).toHaveLength(3); // One for each category
-        expect(wrapper.find('.PostBody_addChannelMemberLink')).toHaveLength(1); // Only for invitable users
-    });
-
     test('should show single consolidated message for ABAC channels regardless of user types', () => {
         const props: Props = {
             ...requiredProps,
             usernames: ['user1', 'user2'],
-            nonInvitableUsernames: ['user2'],
             noGroupsUsernames: ['user3'],
             isPolicyEnforced: true,
         };
@@ -208,31 +177,30 @@ describe('components/post_view/PostAddChannelMember', () => {
         expect(wrapper.find('.PostBody_addChannelMemberLink')).toHaveLength(0);
     });
 
-    test('should show single message for ABAC channels even with no violations', () => {
+    // Test user categorization logic for non-ABAC channels
+    test('should correctly categorize users into invitable and out-of-groups for non-ABAC channels', () => {
         const props: Props = {
             ...requiredProps,
-            usernames: ['user1', 'user2'],
-            nonInvitableUsernames: [],
-            noGroupsUsernames: [],
-            isPolicyEnforced: true,
+            usernames: ['invitable_user', 'out_of_groups_user'],
+            noGroupsUsernames: ['out_of_groups_user'],
+            isPolicyEnforced: false, // Test non-ABAC scenario
         };
         const wrapper = shallow(<PostAddChannelMember {...props}/>);
 
-        // Should show single message with no invite functionality for ABAC channels
-        expect(wrapper.find('p')).toHaveLength(1);
-        expect(wrapper.find('.PostBody_addChannelMemberLink')).toHaveLength(0);
+        // Should render separate messages for each category
+        expect(wrapper.find('p')).toHaveLength(2); // One for invitable, one for out-of-groups
+        expect(wrapper.find('.PostBody_addChannelMemberLink')).toHaveLength(1); // Only for invitable users
     });
 
-    test('should only add invitable users when add link is clicked', () => {
+    test('should add users when add link is clicked', () => {
         const actions = {
             removePost: jest.fn(),
             addChannelMember: jest.fn(),
         };
         const props: Props = {
             ...requiredProps,
-            userIds: ['invitable_id', 'non_invitable_id', 'out_of_groups_id'],
-            usernames: ['invitable_user', 'non_invitable_user', 'out_of_groups_user'],
-            nonInvitableUsernames: ['non_invitable_user'],
+            userIds: ['invitable_id', 'out_of_groups_id'],
+            usernames: ['invitable_user', 'out_of_groups_user'],
             noGroupsUsernames: ['out_of_groups_user'],
             isPolicyEnforced: false,
             actions,
@@ -242,16 +210,14 @@ describe('components/post_view/PostAddChannelMember', () => {
         // Find and click the add link
         wrapper.find('.PostBody_addChannelMemberLink').simulate('click');
 
-        // Should only call addChannelMember for all users (current behavior - this tests existing logic)
-        // Note: The filtering happens in the backend, frontend still sends all userIds
-        expect(actions.addChannelMember).toHaveBeenCalledTimes(3);
+        // Should call addChannelMember for all users (backend handles filtering)
+        expect(actions.addChannelMember).toHaveBeenCalledTimes(2);
     });
 
     test('should handle empty user categories gracefully', () => {
         const props: Props = {
             ...requiredProps,
             usernames: [],
-            nonInvitableUsernames: [],
             noGroupsUsernames: [],
             isPolicyEnforced: false,
         };
@@ -259,20 +225,6 @@ describe('components/post_view/PostAddChannelMember', () => {
 
         // Should render nothing when no users
         expect(wrapper.find('p')).toHaveLength(0);
-    });
-
-    test('should render correct message for single non-invitable user', () => {
-        const props: Props = {
-            ...requiredProps,
-            usernames: ['non_invitable_user'],
-            nonInvitableUsernames: ['non_invitable_user'],
-            isPolicyEnforced: false,
-        };
-        const wrapper = shallow(<PostAddChannelMember {...props}/>);
-
-        // Should render message for non-invitable user
-        expect(wrapper.find('p')).toHaveLength(1);
-        expect(wrapper.find('.PostBody_addChannelMemberLink')).toHaveLength(0);
     });
 
     test('should render correct message for single out-of-groups user', () => {
@@ -292,15 +244,14 @@ describe('components/post_view/PostAddChannelMember', () => {
     test('should handle mixed scenarios with policy not enforced', () => {
         const props: Props = {
             ...requiredProps,
-            usernames: ['invitable1', 'invitable2', 'non_invitable1', 'out_of_groups1'],
-            nonInvitableUsernames: ['non_invitable1'],
+            usernames: ['invitable1', 'invitable2', 'out_of_groups1'],
             noGroupsUsernames: ['out_of_groups1'],
             isPolicyEnforced: false,
         };
         const wrapper = shallow(<PostAddChannelMember {...props}/>);
 
-        // Should render three separate messages: invitable, non-invitable, out-of-groups
-        expect(wrapper.find('p')).toHaveLength(3);
+        // Should render two separate messages: invitable and out-of-groups
+        expect(wrapper.find('p')).toHaveLength(2);
         expect(wrapper.find('.PostBody_addChannelMemberLink')).toHaveLength(1); // Only for invitable users
     });
 });

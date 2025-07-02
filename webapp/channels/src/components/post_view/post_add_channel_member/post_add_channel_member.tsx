@@ -26,7 +26,6 @@ export interface Props {
     userIds: string[];
     usernames: string[];
     noGroupsUsernames: string[];
-    nonInvitableUsernames: string[];
     isPolicyEnforced: boolean;
     actions: Actions;
 }
@@ -148,7 +147,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
     }
 
     render() {
-        const {channelType, postId, usernames, noGroupsUsernames, nonInvitableUsernames, isPolicyEnforced} = this.props;
+        const {channelType, postId, usernames, noGroupsUsernames, isPolicyEnforced} = this.props;
         if (!postId || !channelType) {
             return null;
         }
@@ -156,18 +155,20 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
         // For ABAC channels (policy enforced), NEVER show invite links - only show notification message
         if (isPolicyEnforced) {
             // Combine all users into a single message without any invite functionality
-            const allUsers = [...usernames, ...noGroupsUsernames, ...nonInvitableUsernames];
+            const allUsers = [...usernames, ...noGroupsUsernames];
             const allUsersAtMentions = this.generateAtMentions(allUsers);
 
             if (allUsers.length === 0) {
                 return null;
             }
 
+            const messageText = 'did not get notified by this mention because they are not in the channel.';
+
             return (
                 <p>
                     {allUsersAtMentions}
                     {' '}
-                    {'did not get notified by this mention because they are not in the channel.'}
+                    {messageText}
                 </p>
             );
         }
@@ -191,10 +192,8 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
         }
 
         // Separate users into different categories
-        const invitableUsers = usernames.filter((username) =>
-            !nonInvitableUsernames.includes(username) && !noGroupsUsernames.includes(username),
-        );
-        const nonInvitableUsers = nonInvitableUsernames;
+        // Since backend now filters out non-invitable users, all users in 'usernames' are invitable
+        const invitableUsers = usernames.filter((username) => !noGroupsUsernames.includes(username));
         const outOfGroupsUsers = noGroupsUsernames;
 
         const messages = [];
@@ -229,19 +228,6 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                         id='post_body.check_for_out_of_channel_mentions.message_last'
                         defaultMessage='? They will have access to all message history.'
                     />
-                </p>,
-            );
-        }
-
-        // Handle non-invitable users (ABAC policy violations)
-        if (nonInvitableUsers.length > 0) {
-            const nonInvitableAtMentions = this.generateAtMentions(nonInvitableUsers);
-
-            messages.push(
-                <p key='non-invitable'>
-                    {nonInvitableAtMentions}
-                    {' '}
-                    {'did not get notified by this mention because they are not in the channel.'}
                 </p>,
             );
         }
