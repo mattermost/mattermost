@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @collapsed_reply_threads
 
 import {Channel} from '@mattermost/types/channels';
@@ -136,6 +135,9 @@ describe('Collapsed Reply Threads', () => {
 
                 // # Switch to a different team
                 cy.apiCreateTeam('team', 'Team').then(({team: otherTeam}) => {
+                    // # Reload the page to ensure newly created team is loaded
+                    cy.reload();
+
                     // # Click on the other team button to switch teams
                     cy.get(`#${otherTeam.name}TeamButton`).click();
 

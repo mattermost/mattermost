@@ -1499,6 +1499,11 @@ func (s *Server) initJobs() {
 		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
+	if jobsAccessControlSyncJobInterface != nil {
+		builder := jobsAccessControlSyncJobInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeAccessControlSync, builder.MakeWorker(), builder.MakeScheduler())
+	}
+
 	s.Jobs.RegisterJobType(
 		model.JobTypeBlevePostIndexing,
 		indexer.MakeWorker(s.Jobs, s.platform.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),

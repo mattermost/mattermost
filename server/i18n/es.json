@@ -208,10 +208,6 @@
     "translation": "No puedes abandonar un canal de mensaje directo."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Eres el último miembro que queda, intenta eliminar el Canal Privado en vez de salirte."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v abandonó el canal."
   },

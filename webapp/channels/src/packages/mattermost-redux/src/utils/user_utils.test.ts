@@ -23,6 +23,7 @@ describe('user utils', () => {
             nickname: 'nick',
             first_name: 'test',
             last_name: 'user',
+            props: {RemoteUsername: 'remoteTestUser'},
         });
 
         it('should return username', () => {
@@ -54,6 +55,10 @@ describe('user utils', () => {
             expect(displayUsername(noUserObj, 'UNKNOWN_PREFERENCE')).toBe('Someone');
         });
 
+        it('should return remote username string if the user is remote', () => {
+            expect(displayUsername({...userObj, remote_id: 'remoteid'}, Preferences.DISPLAY_PREFER_USERNAME)).toBe('remoteTestUser');
+        });
+
         it('should return empty string when user does not exist and useDefaultUserName param is false', () => {
             let noUserObj;
             expect(displayUsername(noUserObj, 'UNKNOWN_PREFERENCE', false)).toBe('');
@@ -76,7 +81,7 @@ describe('user utils', () => {
                 'test.user', '.user', 'user',
                 'test', 'user name', 'test user name', 'tester',
                 'software engineer at mattermost', 'engineer at mattermost', 'at mattermost', 'mattermost',
-                'test.user_name@example.com', 'example.com',
+                'test.user_name',
             ];
             expect(suggestions).toEqual(expectedSuggestions);
         });
@@ -181,12 +186,12 @@ describe('user utils', () => {
             expect(filterProfilesStartingWithTerm(users, 'left')).toEqual([userB]);
         });
 
-        it('should match by email domain', () => {
-            expect(filterProfilesStartingWithTerm(users, 'right')).toEqual([userB]);
+        it('should not match by email domain as it is ignored', () => {
+            expect(filterProfilesStartingWithTerm(users, 'right')).not.toContain(userB);
         });
 
-        it('should match by full email', () => {
-            expect(filterProfilesStartingWithTerm(users, 'left@right.com')).toEqual([userB]);
+        it('should not match by full email as email domain is ignored', () => {
+            expect(filterProfilesStartingWithTerm(users, 'left@right.com')).not.toContain(userB);
         });
 
         it('should ignore leading @ for username', () => {
@@ -264,11 +269,11 @@ describe('user utils', () => {
         });
 
         it('should match by email domain', () => {
-            expect(filterProfilesMatchingWithTerm(users, 'right')).toEqual([userB]);
+            expect(filterProfilesMatchingWithTerm(users, 'right')).not.toContain(userB);
         });
 
         it('should match by full email', () => {
-            expect(filterProfilesMatchingWithTerm(users, 'left@right.com')).toEqual([userB]);
+            expect(filterProfilesMatchingWithTerm(users, 'left@right.com')).not.toContain(userB);
         });
 
         it('should ignore leading @ for username', () => {

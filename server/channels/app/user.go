@@ -236,12 +236,16 @@ func (a *App) CreateGuest(c request.CTX, user *model.User) (*model.User, *model.
 }
 
 func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*model.User, *model.AppError) {
-	exceeded, limitErr := a.isHardUserLimitExceeded()
+	atUserLimit, limitErr := a.isAtUserLimit()
 	if limitErr != nil {
 		return nil, limitErr
 	}
 
-	if exceeded {
+	if atUserLimit {
+		// Use different error messages based on whether server is licensed
+		if a.License() != nil {
+			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.license_user_limits.exceeded", nil, "", http.StatusBadRequest)
+		}
 		return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.user_limits.exceeded", nil, "", http.StatusBadRequest)
 	}
 
@@ -331,8 +335,13 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		// So, we log the error, not return
 		c.Logger().Error("Error fetching user limits in createUserOrGuest", mlog.Err(limitErr))
 	} else {
-		if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-			c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+		if userLimits.MaxUsersLimit > 0 && userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
+			// Use different warning messages based on whether server is licensed
+			if a.License() != nil {
+				c.Logger().Warn("ERROR_LICENSED_USERS_LIMIT_EXCEEDED: Created user exceeds the maximum licensed users.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			} else {
+				c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			}
 		}
 	}
 
@@ -658,6 +667,28 @@ func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupCon
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+func (a *App) GetUsersNotInAbacChannel(ctx request.CTX, teamID string, channelID string, groupConstrained bool, cursorID string, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	// Get the AccessControl service
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("GetUsersNotInAbacChannel", "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	// Use cursor-based pagination for ABAC channels
+	users, _, appErr := acs.QueryUsersForResource(ctx, channelID, "*", model.SubjectSearchOptions{
+		TeamID: teamID,
+		Limit:  limit,
+		Cursor: model.SubjectCursor{
+			TargetID: cursorID, // Empty string means start from beginning
+		},
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return a.sanitizeProfiles(users, asAdmin), nil
+}
+
 func (a *App) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersWithoutTeamPage(options, asAdmin)
 	if err != nil {
@@ -959,7 +990,7 @@ func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPa
 }
 
 func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
-	a.SetStatusOffline(userID, false)
+	a.SetStatusOffline(userID, false, true)
 
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -1013,12 +1044,16 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 
 func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
 	if active {
-		exceeded, appErr := a.isHardUserLimitExceeded()
+		atUserLimit, appErr := a.isAtUserLimit()
 		if appErr != nil {
 			return nil, appErr
 		}
 
-		if exceeded {
+		if atUserLimit {
+			// Use different error messages based on whether server is licensed
+			if a.License() != nil {
+				return nil, model.NewAppError("UpdateActive", "app.user.update_active.license_user_limit.exceeded", nil, "", http.StatusBadRequest)
+			}
 			return nil, model.NewAppError("UpdateActive", "app.user.update_active.user_limit.exceeded", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -1076,7 +1111,12 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 			c.Logger().Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
 		} else {
 			if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-				c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+				// Use different warning messages based on whether server is licensed
+				if a.License() != nil {
+					c.Logger().Warn("ERROR_LICENSED_USERS_LIMIT_EXCEEDED: Activated user exceeds the maximum licensed users.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+				} else {
+					c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+				}
 			}
 		}
 	}
@@ -2090,6 +2130,26 @@ func (a *App) SearchUsersInChannel(channelID string, term string, options *model
 
 func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
+
+	ctx := request.EmptyContext(a.Log())
+	if ok, err := a.ChannelAccessControlled(ctx, channelID); err != nil {
+		return nil, err
+	} else if ok {
+		acs := a.Srv().Channels().AccessControl
+		if acs != nil {
+			users, _, appErr := acs.QueryUsersForResource(ctx, channelID, "*", model.SubjectSearchOptions{
+				Term:   term,
+				TeamID: teamID,
+				Limit:  options.Limit,
+			})
+			if appErr != nil {
+				return nil, appErr
+			}
+
+			return users, nil
+		}
+	}
+
 	users, err := a.Srv().Store().User().SearchNotInChannel(teamID, channelID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("SearchUsersNotInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

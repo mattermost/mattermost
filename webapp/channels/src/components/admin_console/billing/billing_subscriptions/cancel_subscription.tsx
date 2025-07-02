@@ -31,7 +31,7 @@ const CancelSubscription = () => {
                 <ExternalLink
                     location='cancel_subscription'
                     href={contactSupportURL}
-                    className='cancelSubscriptionSection__contactUs'
+                    className='btn btn-secondary btn-sm btn-danger cancelSubscriptionSection__contactUs'
                     onClick={() => trackEvent('cloud_admin', 'click_contact_us')}
                 >
                     <FormattedMessage

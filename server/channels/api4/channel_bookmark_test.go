@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
@@ -16,9 +15,7 @@ import (
 )
 
 func TestCreateChannelBookmark(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -280,9 +277,7 @@ func TestCreateChannelBookmark(t *testing.T) {
 }
 
 func TestEditChannelBookmark(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -690,9 +685,7 @@ func TestEditChannelBookmark(t *testing.T) {
 }
 
 func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -1102,9 +1095,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 }
 
 func TestDeleteChannelBookmark(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -1461,9 +1452,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 }
 
 func TestListChannelBookmarksForChannel(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)

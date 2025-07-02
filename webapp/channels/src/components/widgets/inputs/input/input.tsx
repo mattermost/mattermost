@@ -42,6 +42,8 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
     clearable?: boolean;
     clearableTooltipText?: string;
     onClear?: () => void;
+    rows?: number;
+    validate?: (value: React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>['value']) => CustomMessageInputType | undefined;
 }
 
 const Input = React.forwardRef((
@@ -73,6 +75,8 @@ const Input = React.forwardRef((
         onBlur,
         onChange,
         onClear,
+        rows,
+        validate,
         ...otherProps
     }: InputProps,
     ref?: React.Ref<HTMLInputElement | HTMLTextAreaElement>,
@@ -149,37 +153,48 @@ const Input = React.forwardRef((
     };
 
     const validateInput = () => {
+        if (validate) {
+            const validationError = validate(value);
+            if (validationError) {
+                setCustomInputLabel(validationError);
+                return;
+            }
+        }
+
         // Only check for required field validation on blur
         // Length validation is handled through derived values in the render function
         if (required && (value === null || value === '')) {
             const validationErrorMsg = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
             setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
+            return;
+        }
+
+        const limitExceeded = limit && value && !Array.isArray(value) ? value.toString().length - limit : 0;
+        const minLengthNotMet = minLength && value !== undefined && !Array.isArray(value) ? minLength - value.toString().length : (minLength || 0);
+
+        // Show min length error even when the input is empty (to match existing behavior in tests)
+        // Generate derived error messages
+        if (limitExceeded > 0) {
+            setCustomInputLabel({
+                type: ItemStatus.ERROR,
+                value: formatMessage(
+                    {id: 'widget.input.max_length', defaultMessage: 'Must be no more than {limit} characters'},
+                    {limit},
+                )});
+        } else if (minLengthNotMet > 0) {
+            setCustomInputLabel({
+                type: ItemStatus.ERROR,
+                value: formatMessage(
+                    {id: 'widget.input.min_length', defaultMessage: 'Must be at least {minLength} characters'},
+                    {minLength},
+                ),
+            });
         }
     };
 
     const showLegend = Boolean(focused || value);
     const error = customInputLabel?.type === ItemStatus.ERROR;
     const warning = customInputLabel?.type === ItemStatus.WARNING;
-    const limitExceeded = limit && value && !Array.isArray(value) ? value.toString().length - limit : 0;
-    const minLengthNotMet = minLength && value !== undefined && !Array.isArray(value) ? minLength - value.toString().length : (minLength || 0);
-
-    // Show min length error even when the input is empty (to match existing behavior in tests)
-    const isMinLengthError = minLengthNotMet > 0;
-    const isMaxLengthError = limitExceeded > 0;
-
-    // Generate derived error messages
-    let derivedErrorMessage: React.ReactNode | null = null;
-    if (isMaxLengthError && !customInputLabel) {
-        derivedErrorMessage = formatMessage(
-            {id: 'widget.input.max_length', defaultMessage: 'Must be no more than {limit} characters'},
-            {limit},
-        );
-    } else if (isMinLengthError && !customInputLabel) {
-        derivedErrorMessage = formatMessage(
-            {id: 'widget.input.min_length', defaultMessage: 'Must be at least {minLength} characters'},
-            {minLength},
-        );
-    }
 
     const clearButton = value && clearable ? (
         <div
@@ -208,9 +223,9 @@ const Input = React.forwardRef((
                     value={value}
                     placeholder={placeholderValue}
                     aria-label={ariaLabel}
-                    aria-describedby={error ? errorId : undefined}
-                    aria-invalid={error || hasError || limitExceeded > 0}
-                    rows={3}
+                    aria-describedby={customInputLabel ? errorId : undefined}
+                    aria-invalid={error || hasError}
+                    rows={rows || 3}
                     name={name}
                     disabled={disabled}
                     {...otherProps}
@@ -228,8 +243,8 @@ const Input = React.forwardRef((
                 value={value}
                 placeholder={placeholderValue}
                 aria-label={ariaLabel}
-                aria-describedby={error ? errorId : undefined}
-                aria-invalid={error || hasError || limitExceeded > 0}
+                aria-describedby={customInputLabel ? errorId : undefined}
+                aria-invalid={error || hasError}
                 name={name}
                 disabled={disabled}
                 {...otherProps}
@@ -243,38 +258,31 @@ const Input = React.forwardRef((
 
     return (
         <div className={classNames('Input_container', containerClassName, {disabled})}>
-            <fieldset
+            <div
                 className={classNames('Input_fieldset', className, {
-                    Input_fieldset___error: hasError || limitExceeded > 0 || isMinLengthError || customInputLabel?.type === 'error',
+                    Input_fieldset___error: hasError || customInputLabel?.type === 'error',
                     Input_fieldset___legend: showLegend,
                 })}
+                data-testid='input-wrapper'
             >
                 {useLegend && (
-                    <legend className={classNames('Input_legend', {Input_legend___focus: showLegend})}>
-                        {showLegend ? formatAsString(formatMessage, label || placeholder) : null}
-                    </legend>
+                    <label
+                        htmlFor={inputId}
+                        className={classNames('Input_legend', {Input_legend___focus: showLegend})}
+                    >                        {showLegend ? formatAsString(formatMessage, label || placeholder) : null}
+                    </label>
                 )}
                 <div className={classNames('Input_wrapper', wrapperClassName)}>
                     {inputPrefix}
                     {textPrefix && <span>{textPrefix}</span>}
                     {generateInput()}
-                    {limitExceeded > 0 && (
-                        <span className='Input_limit-exceeded'>
-                            {'-'}{limitExceeded}
-                        </span>
-                    )}
-                    {isMinLengthError && (
-                        <span className='Input_limit-exceeded'>
-                            {'+'}{minLengthNotMet}
-                        </span>
-                    )}
                     {inputSuffix}
                     {clearButton}
                 </div>
                 {addon}
-            </fieldset>
+            </div>
             {/* Display custom or derived error messages */}
-            {(customInputLabel || derivedErrorMessage) && (
+            {customInputLabel && (
                 <div
                     className={`Input___customMessage Input___${customInputLabel?.type || 'error'}`}
                     id={errorId}
@@ -287,8 +295,11 @@ const Input = React.forwardRef((
                             'icon-information-outline': (customInputLabel?.type || 'error') === ItemStatus.INFO,
                             'icon-check': (customInputLabel?.type || 'error') === ItemStatus.SUCCESS,
                         })}
+                        role='img'
+                        aria-label={customInputLabel.value ? '' : customInputLabel.type || 'error'}
+                        aria-hidden={Boolean(customInputLabel.value)}
                     />
-                    <span>{customInputLabel?.value || derivedErrorMessage}</span>
+                    <span>{customInputLabel?.value}</span>
                 </div>
             )}
         </div>

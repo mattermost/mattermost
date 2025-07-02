@@ -202,6 +202,7 @@ const defaultServerConfig: AdminConfig = {
         ScheduledPosts: true,
         EnableWebHubChannelIteration: false,
         FrameAncestors: '',
+        DeleteAccountLink: '',
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -565,6 +566,8 @@ const defaultServerConfig: AdminConfig = {
         MobileEnableBiometrics: false,
         MobilePreventScreenCapture: false,
         MobileJailbreakProtection: false,
+        MobileEnableSecureFilePreview: false,
+        MobileAllowPdfLinkNavigation: false,
     },
     CacheSettings: {
         CacheType: 'lru',
@@ -608,6 +611,7 @@ const defaultServerConfig: AdminConfig = {
         DisableWakeUpReconnectHandler: false,
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
+        ExperimentalChannelCategorySorting: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,

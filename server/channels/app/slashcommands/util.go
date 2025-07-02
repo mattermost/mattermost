@@ -16,11 +16,11 @@ const (
 	ActionKey = "-action"
 )
 
-// responsef creates an ephemeral command response using printf syntax.
-func responsef(format string, args ...any) *model.CommandResponse {
+// response creates an ephemeral command response with the given message.
+func response(message string) *model.CommandResponse {
 	return &model.CommandResponse{
 		ResponseType: model.CommandResponseTypeEphemeral,
-		Text:         fmt.Sprintf(format, args...),
+		Text:         message,
 		Type:         model.PostTypeDefault,
 	}
 }

@@ -24,13 +24,18 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
       "remove": [Function],
     }
   }
-  onExited={[MockFunction]}
+  onExited={[Function]}
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   role="none"
   show={true}
 >
+  <div
+    aria-live="polite"
+    className="sr-only"
+    role="alert"
+  />
   <ModalHeader
     bsClass="modal-header"
     closeButton={true}
@@ -88,6 +93,7 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
               "id": "user_groups_modal.name",
             }
           }
+          required={true}
           type="text"
           value=""
         />
@@ -111,37 +117,42 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
               "id": "user_groups_modal.mention",
             }
           }
+          required={true}
           type="text"
           value=""
         />
       </div>
-      <h2>
-        <MemoizedFormattedMessage
-          defaultMessage="Add People"
-          id="user_groups_modal.addPeople"
-        />
-      </h2>
-      <div
-        className="group-add-user"
+      <fieldset
+        className="group-add-people-fieldset"
       >
-        <Connect(injectIntl(AddUserToGroupMultiSelect))
-          addUserCallback={[Function]}
-          backButtonClass="multiselect-back"
-          backButtonClick={[Function]}
-          backButtonText={
-            Object {
-              "defaultMessage": "Cancel",
-              "id": "multiselect.cancelButton",
+        <legend>
+          <MemoizedFormattedMessage
+            defaultMessage="Add People"
+            id="user_groups_modal.addPeople"
+          />
+        </legend>
+        <div
+          className="group-add-user"
+        >
+          <Connect(injectIntl(AddUserToGroupMultiSelect))
+            addUserCallback={[Function]}
+            backButtonClass="multiselect-back"
+            backButtonClick={[Function]}
+            backButtonText={
+              Object {
+                "defaultMessage": "Cancel",
+                "id": "multiselect.cancelButton",
+              }
             }
-          }
-          deleteUserCallback={[Function]}
-          focusOnLoad={false}
-          multilSelectKey="addUsersToGroupKey"
-          onSubmitCallback={[Function]}
-          saving={false}
-          savingEnabled={false}
-        />
-      </div>
+            deleteUserCallback={[Function]}
+            focusOnLoad={false}
+            multilSelectKey="addUsersToGroupKey"
+            onSubmitCallback={[Function]}
+            saving={false}
+            savingEnabled={false}
+          />
+        </div>
+      </fieldset>
     </div>
   </ModalBody>
 </Modal>
@@ -171,13 +182,18 @@ exports[`component/create_user_groups_modal should match snapshot without back b
       "remove": [Function],
     }
   }
-  onExited={[MockFunction]}
+  onExited={[Function]}
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   role="none"
   show={true}
 >
+  <div
+    aria-live="polite"
+    className="sr-only"
+    role="alert"
+  />
   <ModalHeader
     bsClass="modal-header"
     closeButton={true}
@@ -221,6 +237,7 @@ exports[`component/create_user_groups_modal should match snapshot without back b
               "id": "user_groups_modal.name",
             }
           }
+          required={true}
           type="text"
           value=""
         />
@@ -244,37 +261,42 @@ exports[`component/create_user_groups_modal should match snapshot without back b
               "id": "user_groups_modal.mention",
             }
           }
+          required={true}
           type="text"
           value=""
         />
       </div>
-      <h2>
-        <MemoizedFormattedMessage
-          defaultMessage="Add People"
-          id="user_groups_modal.addPeople"
-        />
-      </h2>
-      <div
-        className="group-add-user"
+      <fieldset
+        className="group-add-people-fieldset"
       >
-        <Connect(injectIntl(AddUserToGroupMultiSelect))
-          addUserCallback={[Function]}
-          backButtonClass="multiselect-back"
-          backButtonClick={[Function]}
-          backButtonText={
-            Object {
-              "defaultMessage": "Cancel",
-              "id": "multiselect.cancelButton",
+        <legend>
+          <MemoizedFormattedMessage
+            defaultMessage="Add People"
+            id="user_groups_modal.addPeople"
+          />
+        </legend>
+        <div
+          className="group-add-user"
+        >
+          <Connect(injectIntl(AddUserToGroupMultiSelect))
+            addUserCallback={[Function]}
+            backButtonClass="multiselect-back"
+            backButtonClick={[Function]}
+            backButtonText={
+              Object {
+                "defaultMessage": "Cancel",
+                "id": "multiselect.cancelButton",
+              }
             }
-          }
-          deleteUserCallback={[Function]}
-          focusOnLoad={false}
-          multilSelectKey="addUsersToGroupKey"
-          onSubmitCallback={[Function]}
-          saving={false}
-          savingEnabled={false}
-        />
-      </div>
+            deleteUserCallback={[Function]}
+            focusOnLoad={false}
+            multilSelectKey="addUsersToGroupKey"
+            onSubmitCallback={[Function]}
+            saving={false}
+            savingEnabled={false}
+          />
+        </div>
+      </fieldset>
     </div>
   </ModalBody>
 </Modal>

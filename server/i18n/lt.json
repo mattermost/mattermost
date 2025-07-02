@@ -104,10 +104,6 @@
     "translation": "Naudotojui neleidžiama konvertuoti grupės žinutės į privatų kanalą"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Esate vienintelis likęs narys, pabandykite pašalinti privatų kanalą, o ne išeiti."
-  },
-  {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
     "translation": "Nepavyko gauti naudotojo atnaujinant kanalo lauką DisplayName"
   },

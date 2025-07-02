@@ -18,6 +18,7 @@ import (
 )
 
 func TestGetGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -67,7 +68,9 @@ func TestGetGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
+
 func TestCreateGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -178,6 +181,7 @@ func TestCreateGroup(t *testing.T) {
 }
 
 func TestDeleteGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -223,6 +227,7 @@ func TestDeleteGroup(t *testing.T) {
 }
 
 func TestUndeleteGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -255,6 +260,7 @@ func TestUndeleteGroup(t *testing.T) {
 }
 
 func TestPatchGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -358,6 +364,7 @@ func TestPatchGroup(t *testing.T) {
 }
 
 func TestLinkGroupTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -471,6 +478,7 @@ func TestLinkGroupTeam(t *testing.T) {
 }
 
 func TestLinkGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -596,6 +604,7 @@ func TestLinkGroupChannel(t *testing.T) {
 }
 
 func TestUnlinkGroupTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -715,6 +724,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 }
 
 func TestUnlinkGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -996,6 +1006,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 }
 
 func TestGetGroupTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1059,6 +1070,7 @@ func TestGetGroupTeam(t *testing.T) {
 }
 
 func TestGetGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1122,6 +1134,7 @@ func TestGetGroupChannel(t *testing.T) {
 }
 
 func TestGetGroupTeams(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1176,6 +1189,7 @@ func TestGetGroupTeams(t *testing.T) {
 }
 
 func TestGetGroupChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1229,6 +1243,7 @@ func TestGetGroupChannels(t *testing.T) {
 }
 
 func TestPatchGroupTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1302,6 +1317,7 @@ func TestPatchGroupTeam(t *testing.T) {
 }
 
 func TestPatchGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1386,6 +1402,7 @@ func TestPatchGroupChannel(t *testing.T) {
 }
 
 func TestGetGroupsByChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1529,6 +1546,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 }
 
 func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1681,6 +1699,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 }
 
 func TestGetGroupsByTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1873,6 +1892,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 }
 
 func TestGetGroups(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2255,6 +2275,7 @@ func TestGetGroups(t *testing.T) {
 }
 
 func TestGetGroupsByUserId(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2326,6 +2347,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 }
 
 func TestGetGroupMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2393,6 +2415,7 @@ func TestGetGroupMembers(t *testing.T) {
 }
 
 func TestGetGroupStats(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2442,6 +2465,7 @@ func TestGetGroupStats(t *testing.T) {
 }
 
 func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -2525,89 +2549,195 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 }
 
 func TestAddMembersToGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
-	// 1. Test with custom source
-	id := model.NewId()
-	group, err := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn_" + id,
-		Name:        model.NewPointer("name" + id),
-		Source:      model.GroupSourceCustom,
-		Description: "description_" + id,
-	})
-	assert.Nil(t, err)
-
-	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
-	assert.Nil(t, appErr)
-
-	user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
-	assert.Nil(t, appErr)
-
-	members := &model.GroupModifyMembers{
-		UserIds: []string{user1.Id, user2.Id},
-	}
-
+	// Set license for all tests
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
-	//Empty group members returns bad request
-	_, resp, nullErr := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, nil)
-	require.Error(t, nullErr)
-	CheckBadRequestStatus(t, resp)
+	// setup creates a fresh group and users for each test
+	setup := func(t *testing.T) (*model.Group, []*model.User) {
+		// Create custom group
+		id := model.NewId()
+		group, err := th.App.CreateGroup(&model.Group{
+			DisplayName: "dn_" + id,
+			Name:        model.NewPointer("name" + id),
+			Source:      model.GroupSourceCustom,
+			Description: "description_" + id,
+		})
+		require.Nil(t, err)
 
-	groupMembers, response, upsertErr := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, members)
-	require.NoError(t, upsertErr)
-	CheckOKStatus(t, response)
+		// Create test users with random usernames to prevent collisions
+		users := make([]*model.User, 3)
+		for i := 0; i < 3; i++ {
+			randomId := model.NewId()
+			user, appErr := th.App.CreateUser(th.Context, &model.User{
+				Email:    th.GenerateTestEmail(),
+				Nickname: fmt.Sprintf("test user%d-%s", i+1, randomId),
+				Password: fmt.Sprintf("test-password-%d", i+1),
+				Username: fmt.Sprintf("test-user-%d-%s", i+1, randomId),
+				Roles:    model.SystemUserRoleId,
+			})
+			require.Nil(t, appErr)
+			users[i] = user
+		}
 
-	assert.Len(t, groupMembers, 2)
-
-	count, countErr := th.App.GetGroupMemberCount(group.Id, nil)
-	assert.Nil(t, countErr)
-
-	assert.Equal(t, count, int64(2))
-
-	// 2. Test invalid group ID
-	_, response, upsertErr = th.Client.UpsertGroupMembers(context.Background(), "abc123", members)
-	require.Error(t, upsertErr)
-	CheckBadRequestStatus(t, response)
-
-	// 3. Test invalid user ID
-	invalidMembers := &model.GroupModifyMembers{
-		UserIds: []string{"abc123"},
+		return group, users
 	}
 
-	_, response, upsertErr = th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, invalidMembers)
-	require.Error(t, upsertErr)
-	CheckInternalErrorStatus(t, response)
+	t.Run("empty group members returns bad request", func(t *testing.T) {
+		group, _ := setup(t)
 
-	// 4. Test with ldap source
-	ldapId := model.NewId()
-	ldapGroup, err := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn_" + ldapId,
-		Name:        model.NewPointer("name" + ldapId),
-		Source:      model.GroupSourceLdap,
-		Description: "description_" + ldapId,
-		RemoteId:    model.NewPointer(model.NewId()),
+		_, resp, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, nil)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
-	assert.Nil(t, err)
 
-	_, response, upsertErr = th.SystemAdminClient.UpsertGroupMembers(context.Background(), ldapGroup.Id, members)
+	t.Run("successfully add members to custom group", func(t *testing.T) {
+		group, users := setup(t)
 
-	require.Error(t, upsertErr)
-	CheckBadRequestStatus(t, response)
+		members := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id, users[1].Id},
+		}
+
+		groupMembers, response, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, members)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		require.Len(t, groupMembers, 2)
+
+		count, countErr := th.App.GetGroupMemberCount(group.Id, nil)
+		require.Nil(t, countErr)
+		require.Equal(t, int64(2), count)
+	})
+
+	t.Run("adding existing members", func(t *testing.T) {
+		group, users := setup(t)
+
+		// First, add two users to the group
+		initialMembers := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id, users[1].Id},
+		}
+
+		returnedMembers, response, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, initialMembers)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Len(t, returnedMembers, 2)
+
+		// Try to add a user that's already in the group
+		existingMembers := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id},
+		}
+
+		groupMembers, response, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, existingMembers)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		// Should return empty array since no new members were added
+		require.Len(t, groupMembers, 1)
+
+		// Verify the group still has the original member count
+		count, countErr := th.App.GetGroupMemberCount(group.Id, nil)
+		require.Nil(t, countErr)
+		require.Equal(t, int64(2), count)
+
+		// Try with multiple users - one already in group, one not
+		mixedMembers := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id, users[2].Id},
+		}
+
+		groupMembers, response, err = th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, mixedMembers)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		// Should only return the new member
+		require.Len(t, groupMembers, 2)
+
+		// Verify the group now has 3 members
+		count, countErr = th.App.GetGroupMemberCount(group.Id, nil)
+		require.Nil(t, countErr)
+		require.Equal(t, int64(3), count)
+	})
+
+	t.Run("invalid group ID", func(t *testing.T) {
+		_, users := setup(t)
+
+		members := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id, users[1].Id},
+		}
+
+		_, response, err := th.Client.UpsertGroupMembers(context.Background(), "abc123", members)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+	})
+
+	t.Run("invalid user ID format", func(t *testing.T) {
+		group, _ := setup(t)
+
+		invalidMembers := &model.GroupModifyMembers{
+			UserIds: []string{"abc123"},
+		}
+
+		_, response, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, invalidMembers)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+	})
+
+	t.Run("non-existent user ID", func(t *testing.T) {
+		group, _ := setup(t)
+
+		nonExistentID := model.NewId()
+		nonExistentMembers := &model.GroupModifyMembers{
+			UserIds: []string{nonExistentID},
+		}
+
+		_, response, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, nonExistentMembers)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+		require.Contains(t, err.Error(), fmt.Sprintf(`User with username "%s" could not be found.`, nonExistentID))
+	})
+
+	t.Run("ldap group rejects adding members", func(t *testing.T) {
+		_, users := setup(t)
+
+		// Create LDAP group
+		ldapId := model.NewId()
+		ldapGroup, err := th.App.CreateGroup(&model.Group{
+			DisplayName: "dn_" + ldapId,
+			Name:        model.NewPointer("name" + ldapId),
+			Source:      model.GroupSourceLdap,
+			Description: "description_" + ldapId,
+			RemoteId:    model.NewPointer(model.NewId()),
+		})
+		require.Nil(t, err)
+
+		members := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id, users[1].Id},
+		}
+
+		_, response, upsertErr := th.SystemAdminClient.UpsertGroupMembers(context.Background(), ldapGroup.Id, members)
+		require.Error(t, upsertErr)
+		CheckBadRequestStatus(t, response)
+	})
 }
 
 func TestDeleteMembersFromGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
-	// 1. Test with custom source
+	// Create test users
 	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
-	assert.Nil(t, appErr)
+	require.Nil(t, appErr)
 
 	user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
-	assert.Nil(t, appErr)
+	require.Nil(t, appErr)
 
+	user3, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user3", Password: "test-password-3", Username: "test-user-3", Roles: model.SystemUserRoleId})
+	require.Nil(t, appErr)
+
+	// Create custom group with two members
 	id := model.NewId()
 	g := &model.Group{
 		DisplayName: "dn_" + id,
@@ -2619,46 +2749,9 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 		Group:   *g,
 		UserIds: []string{user1.Id, user2.Id},
 	})
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
-	members := &model.GroupModifyMembers{
-		UserIds: []string{user1.Id},
-	}
-
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-
-	_, resp, nullErr := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, nil)
-	require.Error(t, nullErr)
-	CheckBadRequestStatus(t, resp)
-
-	groupMembers, response, deleteErr := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, members)
-	require.NoError(t, deleteErr)
-	CheckOKStatus(t, response)
-
-	assert.Len(t, groupMembers, 1)
-	assert.Equal(t, groupMembers[0].UserId, user1.Id)
-
-	users, usersErr := th.App.GetGroupMemberUsers(group.Id)
-	assert.Nil(t, usersErr)
-
-	assert.Len(t, users, 1)
-	assert.Equal(t, users[0].Id, user2.Id)
-
-	// 2. Test invalid group ID
-	_, response, deleteErr = th.Client.DeleteGroupMembers(context.Background(), "abc123", members)
-	require.Error(t, deleteErr)
-	CheckBadRequestStatus(t, response)
-
-	// 3. Test invalid user ID
-	invalidMembers := &model.GroupModifyMembers{
-		UserIds: []string{"abc123"},
-	}
-
-	_, response, deleteErr = th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, invalidMembers)
-	require.Error(t, deleteErr)
-	CheckInternalErrorStatus(t, response)
-
-	// 4. Test with ldap source
+	// Create LDAP group with the same members
 	ldapId := model.NewId()
 	g1 := &model.Group{
 		DisplayName: "dn_" + ldapId,
@@ -2671,10 +2764,86 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 		Group:   *g1,
 		UserIds: []string{user1.Id, user2.Id},
 	})
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
-	_, response, deleteErr = th.SystemAdminClient.DeleteGroupMembers(context.Background(), ldapGroup.Id, members)
+	// Set license
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
-	require.Error(t, deleteErr)
-	CheckBadRequestStatus(t, response)
+	t.Run("Fail with nil member list", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, nil)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Success with valid member removal", func(t *testing.T) {
+		members := &model.GroupModifyMembers{
+			UserIds: []string{user1.Id},
+		}
+
+		groupMembers, response, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, members)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		require.Len(t, groupMembers, 1)
+		require.Equal(t, groupMembers[0].UserId, user1.Id)
+
+		// Verify only one user remains in the group
+		users, usersErr := th.App.GetGroupMemberUsers(group.Id)
+		require.Nil(t, usersErr)
+		require.Len(t, users, 1)
+		require.Equal(t, users[0].Id, user2.Id)
+	})
+
+	t.Run("Fail with invalid group ID", func(t *testing.T) {
+		members := &model.GroupModifyMembers{
+			UserIds: []string{user1.Id},
+		}
+
+		_, response, err := th.Client.DeleteGroupMembers(context.Background(), "abc123", members)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+	})
+
+	t.Run("Fail with invalid user ID format", func(t *testing.T) {
+		invalidMembers := &model.GroupModifyMembers{
+			UserIds: []string{"abc123"},
+		}
+
+		_, response, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, invalidMembers)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+	})
+
+	t.Run("Fail with non-existent user ID", func(t *testing.T) {
+		nonExistentID := model.NewId()
+		nonExistentMembers := &model.GroupModifyMembers{
+			UserIds: []string{nonExistentID},
+		}
+
+		_, response, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, nonExistentMembers)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+		require.Contains(t, err.Error(), fmt.Sprintf(`User with username "%s" could not be found.`, nonExistentID))
+	})
+
+	t.Run("Fail with user not in group", func(t *testing.T) {
+		validNonMemberMembers := &model.GroupModifyMembers{
+			UserIds: []string{user3.Id},
+		}
+
+		_, response, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, validNonMemberMembers)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+		require.Contains(t, err.Error(), fmt.Sprintf(`User with username "%s" could not be found.`, user3.Id))
+	})
+
+	t.Run("Fail with LDAP source group", func(t *testing.T) {
+		members := &model.GroupModifyMembers{
+			UserIds: []string{user1.Id},
+		}
+
+		_, response, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), ldapGroup.Id, members)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+	})
 }

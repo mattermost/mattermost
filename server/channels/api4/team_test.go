@@ -28,6 +28,7 @@ import (
 )
 
 func TestCreateTeam(t *testing.T) {
+	// Test cannot easily run in parallel because it relies on (and mutates) i18n package translations.
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -198,6 +199,7 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestCreateTeamSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -235,6 +237,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 }
 
 func TestGetTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -291,6 +294,7 @@ func TestGetTeam(t *testing.T) {
 }
 
 func TestGetTeamSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -360,6 +364,7 @@ func TestGetTeamSanitization(t *testing.T) {
 }
 
 func TestGetTeamUnread(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -396,6 +401,7 @@ func TestGetTeamUnread(t *testing.T) {
 }
 
 func TestUpdateTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -580,6 +586,7 @@ func TestUpdateTeamPrivacyInvitePermissions(t *testing.T) {
 }
 
 func TestUpdateTeamSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -612,6 +619,7 @@ func TestUpdateTeamSanitization(t *testing.T) {
 }
 
 func TestPatchTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -880,6 +888,7 @@ func TestPatchTeam(t *testing.T) {
 }
 
 func TestRestoreTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -939,6 +948,56 @@ func TestRestoreTeam(t *testing.T) {
 		require.Zero(t, team.DeleteAt)
 		require.Equal(t, model.TeamOpen, team.Type)
 	}, "restore active public team")
+
+	t.Run("sanitization", func(t *testing.T) {
+		t.Run("team admin without invite permission gets sanitized invite id", func(t *testing.T) {
+			team := createTeam(t, true, model.TeamOpen)
+			th.LinkUserToTeam(th.BasicUser2, team)
+
+			client2 := th.CreateClient()
+			th.LoginBasic2WithClient(client2)
+
+			// Make BasicUser2 a team admin
+			resp, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), team.Id, th.BasicUser2.Id, "team_user team_admin")
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			defaultRolePermissions := th.SaveDefaultRolePermissions()
+			defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+
+			// Remove invite permission from both team user and team admin roles
+			th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+			th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+			restoredTeam, _, err := client2.RestoreTeam(context.Background(), team.Id)
+			require.NoError(t, err)
+			require.Empty(t, restoredTeam.InviteId, "InviteId should be sanitized for team admins without invite permission")
+		})
+
+		t.Run("team admin with invite permission gets unsanitized invite id", func(t *testing.T) {
+			team := createTeam(t, true, model.TeamOpen)
+			th.LinkUserToTeam(th.BasicUser2, team)
+
+			client2 := th.CreateClient()
+			th.LoginBasic2WithClient(client2)
+
+			// Make BasicUser2 a team admin
+			resp, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), team.Id, th.BasicUser2.Id, "team_user team_admin")
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			defaultRolePermissions := th.SaveDefaultRolePermissions()
+			defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+
+			// Ensure team admin role has invite permission
+			th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+			restoredTeam, _, err := client2.RestoreTeam(context.Background(), team.Id)
+			require.NoError(t, err)
+			require.NotEmpty(t, restoredTeam.InviteId, "InviteId should be present for team admins with invite permission")
+			require.Equal(t, team.InviteId, restoredTeam.InviteId)
+		})
+	})
 
 	t.Run("not logged in", func(t *testing.T) {
 		_, err := client.Logout(context.Background())
@@ -1007,6 +1066,7 @@ func TestRestoreTeam(t *testing.T) {
 }
 
 func TestPatchTeamSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1039,6 +1099,7 @@ func TestPatchTeamSanitization(t *testing.T) {
 }
 
 func TestUpdateTeamPrivacy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -1131,6 +1192,7 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 }
 
 func TestTeamUnicodeNames(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -1201,6 +1263,7 @@ func TestTeamUnicodeNames(t *testing.T) {
 }
 
 func TestRegenerateTeamInviteId(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -1225,6 +1288,7 @@ func TestRegenerateTeamInviteId(t *testing.T) {
 }
 
 func TestSoftDeleteTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1262,6 +1326,7 @@ func TestSoftDeleteTeam(t *testing.T) {
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1313,6 +1378,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 }
 
 func TestGetAllTeams(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	th.LoginSystemManager()
 	defer th.TearDown()
@@ -1579,6 +1645,7 @@ func TestGetAllTeams(t *testing.T) {
 }
 
 func TestGetAllTeamsSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1640,6 +1707,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 }
 
 func TestGetTeamByName(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	team := th.BasicTeam
@@ -1694,6 +1762,7 @@ func TestGetTeamByName(t *testing.T) {
 }
 
 func TestGetTeamByNameSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1764,6 +1833,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 }
 
 func TestSearchAllTeams(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	th.LoginSystemManager()
 	defer th.TearDown()
@@ -1871,6 +1941,7 @@ func TestSearchAllTeams(t *testing.T) {
 }
 
 func TestSearchAllTeamsPaged(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	commonRandom := model.NewId()
@@ -2000,6 +2071,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 }
 
 func TestSearchAllTeamsSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2070,6 +2142,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 }
 
 func TestGetTeamsForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2112,6 +2185,7 @@ func TestGetTeamsForUser(t *testing.T) {
 }
 
 func TestGetTeamsForUserSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2211,6 +2285,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 }
 
 func TestGetTeamMember(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2249,6 +2324,7 @@ func TestGetTeamMember(t *testing.T) {
 }
 
 func TestGetTeamMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2321,6 +2397,7 @@ func TestGetTeamMembers(t *testing.T) {
 }
 
 func TestGetTeamMembersForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2363,6 +2440,7 @@ func TestGetTeamMembersForUser(t *testing.T) {
 }
 
 func TestGetTeamMembersByIds(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2400,6 +2478,7 @@ func TestGetTeamMembersByIds(t *testing.T) {
 }
 
 func TestAddTeamMember(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2688,6 +2767,7 @@ func TestAddTeamMemberGuestPermissions(t *testing.T) {
 }
 
 func TestAddTeamMemberMyself(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2778,6 +2858,7 @@ func TestAddTeamMemberMyself(t *testing.T) {
 }
 
 func TestAddTeamMembersDomainConstrained(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.SystemAdminClient
@@ -2838,6 +2919,7 @@ func TestAddTeamMembersDomainConstrained(t *testing.T) {
 }
 
 func TestAddTeamMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3037,6 +3119,7 @@ func TestAddTeamMembersGuestPermissions(t *testing.T) {
 }
 
 func TestRemoveTeamMember(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3104,6 +3187,7 @@ func TestRemoveTeamMember(t *testing.T) {
 }
 
 func TestRemoveTeamMemberEvents(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3138,6 +3222,7 @@ func TestRemoveTeamMemberEvents(t *testing.T) {
 }
 
 func TestGetTeamStats(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3189,6 +3274,7 @@ func TestGetTeamStats(t *testing.T) {
 }
 
 func TestUpdateTeamMemberRoles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3268,6 +3354,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 }
 
 func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
@@ -3296,18 +3383,19 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	SystemAdminClient := th.SystemAdminClient
 	th.LoginBasic()
 
+	// cannot change the user scheme to false
 	s1 := &model.SchemeRoles{
 		SchemeAdmin: false,
 		SchemeUser:  false,
 		SchemeGuest: false,
 	}
 	_, err := SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s1)
-	require.NoError(t, err)
+	require.Error(t, err)
 
 	tm1, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
 	require.NoError(t, err)
 	assert.Equal(t, false, tm1.SchemeGuest)
-	assert.Equal(t, false, tm1.SchemeUser)
+	assert.Equal(t, true, tm1.SchemeUser)
 	assert.Equal(t, false, tm1.SchemeAdmin)
 
 	s2 := &model.SchemeRoles{
@@ -3331,7 +3419,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 
 	s3 := &model.SchemeRoles{
 		SchemeAdmin: true,
-		SchemeUser:  false,
+		SchemeUser:  true,
 		SchemeGuest: false,
 	}
 	_, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s3)
@@ -3340,76 +3428,63 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	tm3, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
 	require.NoError(t, err)
 	assert.Equal(t, false, tm3.SchemeGuest)
-	assert.Equal(t, false, tm3.SchemeUser)
+	assert.Equal(t, true, tm3.SchemeUser)
 	assert.Equal(t, true, tm3.SchemeAdmin)
 
 	s4 := &model.SchemeRoles{
-		SchemeAdmin: true,
-		SchemeUser:  true,
-		SchemeGuest: false,
-	}
-	_, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s4)
-	require.NoError(t, err)
-
-	tm4, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
-	require.NoError(t, err)
-	assert.Equal(t, false, tm4.SchemeGuest)
-	assert.Equal(t, true, tm4.SchemeUser)
-	assert.Equal(t, true, tm4.SchemeAdmin)
-
-	s5 := &model.SchemeRoles{
 		SchemeAdmin: false,
 		SchemeUser:  false,
 		SchemeGuest: true,
 	}
 
 	// cannot set user to guest for a single team
-	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s5)
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s4)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	s6 := &model.SchemeRoles{
+	s5 := &model.SchemeRoles{
 		SchemeAdmin: false,
 		SchemeUser:  true,
 		SchemeGuest: true,
 	}
-	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s6)
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s5)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), model.NewId(), th.BasicUser.Id, s4)
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), model.NewId(), th.BasicUser.Id, s3)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, model.NewId(), s4)
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, model.NewId(), s3)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, guest.Id, s4)
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, guest.Id, s3)
 	require.Error(t, err) // user is a guest, cannot be set as member or admin
 	CheckBadRequestStatus(t, resp)
 
-	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), "ASDF", th.BasicUser.Id, s4)
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), "ASDF", th.BasicUser.Id, s3)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, "ASDF", s4)
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, "ASDF", s3)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	th.LoginBasic2()
-	resp, err = th.Client.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s4)
+	resp, err = th.Client.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s3)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	_, err = SystemAdminClient.Logout(context.Background())
 	require.NoError(t, err)
-	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.SystemAdminUser.Id, s4)
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.SystemAdminUser.Id, s3)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestGetMyTeamsUnread(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3442,6 +3517,7 @@ func TestGetMyTeamsUnread(t *testing.T) {
 }
 
 func TestTeamExists(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3538,6 +3614,7 @@ func TestTeamExists(t *testing.T) {
 }
 
 func TestImportTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3629,6 +3706,7 @@ func TestImportTeam(t *testing.T) {
 }
 
 func TestValidateUserPermissionsOnChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3657,6 +3735,7 @@ func TestValidateUserPermissionsOnChannels(t *testing.T) {
 }
 
 func TestInviteUsersToTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3826,6 +3905,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 }
 
 func TestInviteGuestsToTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3971,6 +4051,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 }
 
 func TestInviteGuest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	guest1 := th.GenerateTestEmail()
@@ -4017,6 +4098,7 @@ func TestInviteGuest(t *testing.T) {
 }
 
 func TestGetTeamInviteInfo(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4042,6 +4124,7 @@ func TestGetTeamInviteInfo(t *testing.T) {
 }
 
 func TestSetTeamIcon(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4100,6 +4183,7 @@ func TestSetTeamIcon(t *testing.T) {
 }
 
 func TestGetTeamIcon(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4119,6 +4203,7 @@ func TestGetTeamIcon(t *testing.T) {
 }
 
 func TestRemoveTeamIcon(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4158,6 +4243,7 @@ func TestRemoveTeamIcon(t *testing.T) {
 }
 
 func TestUpdateTeamScheme(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -4238,6 +4324,7 @@ func TestUpdateTeamScheme(t *testing.T) {
 }
 
 func TestTeamMembersMinusGroupMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -4331,6 +4418,7 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 }
 
 func TestInvalidateAllEmailInvites(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

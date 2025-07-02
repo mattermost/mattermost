@@ -143,8 +143,8 @@
     }
 
     input[type="checkbox"]:checked {
-        border-color: var(--denim-button-bg);
-        background: var(--denim-button-bg);
+        border-color: var(--button-bg);
+        background: var(--button-bg);
     }
 
     input[type=radio] {
@@ -167,7 +167,7 @@
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: var(--denim-button-bg);
+        background: var(--button-bg);
         content: '';
         transform: scale(0);
         transform-origin: center center;
@@ -179,6 +179,6 @@
     }
 
     input[type="radio"]:checked {
-        border-color: var(--denim-button-bg);
+        border-color: var(--button-bg);
     }
 }

@@ -30,6 +30,7 @@ import (
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
+	mainHelper.Parallel(t)
 	filename1 := model.NewId() + "/" + model.NewRandomString(16) + ".txt"
 	filename2 := model.NewId() + "/" + model.NewRandomString(16) + ".txt"
 	salt1 := model.NewRandomString(32)
@@ -48,6 +49,7 @@ func TestGeneratePublicLinkHash(t *testing.T) {
 }
 
 func TestDoUploadFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -60,8 +62,10 @@ func TestDoUploadFile(t *testing.T) {
 	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
-		th.App.RemoveFile(info1.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info1.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value := fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info1.Id, filename)
@@ -70,8 +74,10 @@ func TestDoUploadFile(t *testing.T) {
 	info2, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
-		th.App.RemoveFile(info2.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info2.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value = fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info2.Id, filename)
@@ -80,8 +86,10 @@ func TestDoUploadFile(t *testing.T) {
 	info3, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info3.Id)
-		th.App.RemoveFile(info3.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info3.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info3.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value = fmt.Sprintf("20080305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info3.Id, filename)
@@ -90,8 +98,10 @@ func TestDoUploadFile(t *testing.T) {
 	info4, err := th.App.DoUploadFile(th.Context, time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamID, "../../"+channelID, "../../"+userID, "../../"+filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info4.Id)
-		th.App.RemoveFile(info4.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info4.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info4.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value = fmt.Sprintf("20090305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info4.Id, filename)
@@ -100,8 +110,10 @@ func TestDoUploadFile(t *testing.T) {
 	info5, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, model.BookmarkFileOwner, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info5.Id)
-		th.App.RemoveFile(info3.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info5.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info5.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value = fmt.Sprintf("%v/teams/%v/channels/%v/%v/%v", model.BookmarkFileOwner, teamID, channelID, info5.Id, filename)
@@ -109,6 +121,7 @@ func TestDoUploadFile(t *testing.T) {
 }
 
 func TestUploadFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -127,8 +140,10 @@ func TestUploadFile(t *testing.T) {
 	info1, err = th.App.UploadFile(th.Context, data, channelID, filename)
 	require.Nil(t, err, "UploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
-		th.App.RemoveFile(info1.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info1.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value := fmt.Sprintf("%v/teams/noteam/channels/%v/users/nouser/%v/%v",
@@ -137,6 +152,7 @@ func TestUploadFile(t *testing.T) {
 }
 
 func TestParseOldFilenames(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -234,6 +250,7 @@ func TestParseOldFilenames(t *testing.T) {
 }
 
 func TestGetInfoForFilename(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -245,6 +262,7 @@ func TestGetInfoForFilename(t *testing.T) {
 }
 
 func TestFindTeamIdForFilename(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -259,6 +277,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 }
 
 func TestMigrateFilenamesToFileInfos(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -293,6 +312,7 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 }
 
 func TestCreateZipFileAndAddFiles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -349,6 +369,7 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 }
 
 func TestCopyFileInfos(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -361,8 +382,8 @@ func TestCopyFileInfos(t *testing.T) {
 	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
-		th.App.RemoveFile(info1.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
+		require.NoError(t, err)
 	}()
 
 	infoIds, err := th.App.CopyFileInfos(th.Context, userID, []string{info1.Id})
@@ -371,8 +392,10 @@ func TestCopyFileInfos(t *testing.T) {
 	info2, err := th.App.GetFileInfo(th.Context, infoIds[0])
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
-		th.App.RemoveFile(info2.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info2.Path)
+		require.Nil(t, appErr)
 	}()
 
 	assert.NotEqual(t, info1.Id, info2.Id, "should not be equal")
@@ -380,12 +403,13 @@ func TestCopyFileInfos(t *testing.T) {
 }
 
 func TestGenerateThumbnailImage(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("test generating thumbnail image", func(t *testing.T) {
 		// given
 		th := Setup(t)
 		defer th.TearDown()
 		img := createDummyImage()
-		dataPath, _ := fileutils.FindDir("data")
+		dataPath := *th.App.Config().FileSettings.Directory
 		thumbnailName := "thumb.jpg"
 		thumbnailPath := filepath.Join(dataPath, thumbnailName)
 
@@ -409,6 +433,7 @@ func createDummyImage() *image.RGBA {
 }
 
 func TestSearchFilesInTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	perPage := 5
 	searchTerm := "searchTerm"
 
@@ -602,6 +627,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 }
 
 func TestExtractContentFromFileInfo(t *testing.T) {
+	mainHelper.Parallel(t)
 	app := &App{}
 	fi := &model.FileInfo{
 		MimeType: "image/jpeg",
@@ -612,6 +638,7 @@ func TestExtractContentFromFileInfo(t *testing.T) {
 }
 
 func TestGetLastAccessibleFileTime(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -645,6 +672,7 @@ func TestGetLastAccessibleFileTime(t *testing.T) {
 }
 
 func TestComputeLastAccessibleFileTime(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Updates the time, if cloud limit is applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
@@ -704,6 +732,7 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 }
 
 func TestSetFileSearchableContent(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -732,6 +761,7 @@ func TestSetFileSearchableContent(t *testing.T) {
 }
 
 func TestPermanentDeleteFilesByPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

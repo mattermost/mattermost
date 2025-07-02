@@ -31,6 +31,7 @@ import (
 )
 
 func TestCreateTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -50,6 +51,7 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestCreateTeamWithUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -69,6 +71,7 @@ func TestCreateTeamWithUser(t *testing.T) {
 }
 
 func TestUpdateTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -80,6 +83,7 @@ func TestUpdateTeam(t *testing.T) {
 }
 
 func TestAddUserToTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -223,6 +227,7 @@ func TestAddUserToTeam(t *testing.T) {
 }
 
 func TestAddUserToTeamByToken(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -482,6 +487,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 }
 
 func TestAddUserToTeamByTeamId(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -512,6 +518,7 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 }
 
 func TestAdjustTeamsFromProductLimits(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	teams := []*model.Team{
@@ -665,6 +672,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -713,6 +721,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 }
 
 func TestSanitizeTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -839,6 +848,7 @@ func TestSanitizeTeam(t *testing.T) {
 }
 
 func TestSanitizeTeams(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -912,6 +922,7 @@ func TestSanitizeTeams(t *testing.T) {
 }
 
 func TestJoinUserToTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1045,6 +1056,7 @@ func TestJoinUserToTeam(t *testing.T) {
 }
 
 func TestLeaveTeamPanic(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -1058,7 +1070,8 @@ func TestLeaveTeamPanic(t *testing.T) {
 	mockChannelStore.On("GetMember", context.Background(), "channelID", "userID").Return(&model.ChannelMember{
 		NotifyProps: model.StringMap{
 			model.PushNotifyProp: model.ChannelNotifyDefault,
-		}}, nil)
+		},
+	}, nil)
 	mockChannelStore.On("GetChannels", "myteam", "userID", mock.Anything).Return(model.ChannelList{}, nil)
 
 	var err error
@@ -1127,6 +1140,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 }
 
 func TestAppUpdateTeamScheme(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1182,6 +1196,7 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 }
 
 func TestGetTeamMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1293,6 +1308,7 @@ func TestGetTeamMembers(t *testing.T) {
 }
 
 func TestGetTeamStats(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1357,6 +1373,7 @@ func TestGetTeamStats(t *testing.T) {
 }
 
 func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1420,6 +1437,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 }
 
 func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1443,6 +1461,7 @@ func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
 }
 
 func TestInvalidateAllEmailInvites(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1487,6 +1506,7 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 }
 
 func TestClearTeamMembersCache(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -1509,6 +1529,7 @@ func TestClearTeamMembersCache(t *testing.T) {
 }
 
 func TestInviteNewUsersToTeamGracefully(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1622,6 +1643,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 }
 
 func TestInviteGuestsToChannelsGracefully(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1685,7 +1707,54 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 	})
 }
 
+func TestInviteGuestsToChannelsWithPolicyEnforced(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	// Create a private channel
+	channel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+	// Create a policy with the same ID as the channel
+	channelPolicy := &model.AccessControlPolicy{
+		Type:     model.AccessControlPolicyTypeChannel,
+		ID:       channel.Id, // Use the channel ID directly
+		Name:     "Test Channel Policy",
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_1,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"view", "join_channel"},
+				Expression: "user.attributes.program == \"test-program\"",
+			},
+		},
+	}
+
+	// Save the channel policy
+	channelPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, channelPolicy)
+	require.NoError(t, err)
+	require.NotNil(t, channelPolicy)
+
+	// Attempt to invite guests to the policy-enforced channel
+	guestsInvite := &model.GuestsInvite{
+		Emails:   []string{"guest@example.com"},
+		Channels: []string{channel.Id},
+		Message:  "test message",
+	}
+
+	// Call the function we want to test
+	_, _, _, appErr := th.App.prepareInviteGuestsToChannels(th.BasicTeam.Id, guestsInvite, th.BasicUser.Id)
+
+	// Verify that the appropriate error is returned
+	require.NotNil(t, appErr)
+	require.Equal(t, "api.team.invite_guests.policy_enforced_channel.app_error", appErr.Id)
+}
+
 func TestTeamSendEvents(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

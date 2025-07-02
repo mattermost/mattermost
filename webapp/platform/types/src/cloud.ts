@@ -47,6 +47,7 @@ export type Subscription = {
     cancel_at?: number;
     will_renew?: string;
     simulated_current_time_ms?: number;
+    is_cloud_preview?: boolean;
 }
 
 export type Product = {

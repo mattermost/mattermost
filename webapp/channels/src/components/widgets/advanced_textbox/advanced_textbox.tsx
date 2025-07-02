@@ -136,6 +136,7 @@ const AdvancedTextbox = ({
                     hasError={hasError}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
+                    disabled={readOnly}
                 />
             </div>
             {!readOnly && value.trim().length > 0 && (

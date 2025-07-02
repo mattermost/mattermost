@@ -44,10 +44,10 @@
                 height: 24px;
                 align-items: center;
                 padding: 0 12px;
-                border: 1px solid rgba(var(--denim-button-bg-rgb), 0.08);
+                border: 1px solid rgba(var(--button-bg-rgb), 0.08);
                 border-radius: 20px;
-                background: rgba(var(--denim-button-bg-rgb), 0.04);
-                color: var(--denim-button-bg);
+                background: rgba(var(--button-bg-rgb), 0.04);
+                color: var(--button-bg);
 
                 .RestrictedIndicator__icon-tooltip-container {
                     padding: 0;

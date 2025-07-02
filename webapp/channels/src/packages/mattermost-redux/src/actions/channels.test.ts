@@ -1063,11 +1063,8 @@ describe('Actions.Channels', () => {
         const mockQuery = {
             page: 0,
             per_page: 50,
-            not_associated_to_group: '',
-            exclude_default_channels: false,
             include_total_count: true,
             include_deleted: false,
-            exclude_policy_constrained: false,
         };
         nock(Client4.getBaseRoute()).
             get('/channels').

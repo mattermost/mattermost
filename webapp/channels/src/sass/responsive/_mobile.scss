@@ -70,14 +70,14 @@
             .settings-modal {
                 .modal-body {
                     min-height: 100%;
-                }
 
-                .nav-pills {
-                    > &__tab {
-                        &:hover {
-                            a {
-                                background: transparent !important;
-                            }
+                    .GenericModal__body {
+                        display: flex;
+                        max-height: 100%;
+
+                        > div {
+                            max-height: 100%;
+                            flex-grow: 1;
                         }
                     }
                 }
@@ -88,9 +88,22 @@
                     }
 
                     .settings-table {
-                        display: block;
+                        display: flex;
+                        min-height: 0;
+                        max-height: 100%;
 
                         .settings-content {
+                            > div {
+                                display: flex;
+                                max-height: 100%;
+
+                                > div {
+                                    display: flex;
+                                    flex-direction: column;
+                                    flex-grow: 1;
+                                }
+                            }
+
                             .section-min__title {
                                 padding-right: 15px;
                             }
@@ -137,9 +150,6 @@
                         }
 
                         .modal-header {
-                            position: absolute;
-                            z-index: 5;
-                            top: 0;
                             display: flex;
                             width: 100%;
                             background-color: var(--center-channel-bg);
@@ -204,7 +214,7 @@
                             .user-settings {
                                 overflow: auto;
                                 max-height: 100vh;
-                                padding: 100px 20px 30px;
+                                padding: 20px 30px;
                             }
                         }
 
@@ -535,7 +545,7 @@
         border: none;
     }
 
-    .multi-select__container {
+    .multi-select__container, .multi-select__error {
         .btn {
             display: block;
             min-width: 50px;
@@ -1425,6 +1435,7 @@
 
         .sidebar-right__body {
             height: calc(100% - 56px);
+            overflow-y: scroll;
         }
     }
 
@@ -1568,7 +1579,7 @@
     }
 
     .filtered-user-list {
-        height: calc(100vh - 80px);
+        height: calc(100vh - 80px) !important;
     }
 
     .more-modal--action {
@@ -1835,6 +1846,37 @@
                             margin-bottom: 0;
                         }
                     }
+                }
+            }
+        }
+
+        #browseChannelsModal.modal .GenericModal, #userGroupsModal.modal .GenericModal {
+            .GenericModal__wrapper {
+                display: flex;
+                max-height: 100vh;
+                flex-direction: column;
+            }
+
+            .modal-header {
+                min-height: unset;
+                box-shadow: none;
+            
+                .GenericModal__header__text_container .GenericModal__header {
+                    flex-direction: column;
+                    align-items: flex-start;
+    
+                    button {
+                        margin-top: 16px;
+                    }
+                }
+            }
+    
+            .more-modal__dropdown {
+                flex-direction: column;
+                align-items: flex-start;
+    
+                #modalPreferenceContainer #menuWrapper {
+                    padding-left: 0;
                 }
             }
         }
