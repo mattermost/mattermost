@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {AppField, AppSelectOption} from '@mattermost/types/apps';
+import type {AppField, AppFormValue, AppSelectOption} from '@mattermost/types/apps';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -30,7 +30,7 @@ export interface Props {
     errorText?: React.ReactNode;
     teammateNameDisplay?: string;
 
-    value: AppSelectOption | string | boolean | number | null;
+    value: AppFormValue;
     onChange: (name: string, value: any) => void;
     autoFocus?: boolean;
     listComponent?: React.ComponentProps<typeof AutocompleteSelector>['listComponent'];
