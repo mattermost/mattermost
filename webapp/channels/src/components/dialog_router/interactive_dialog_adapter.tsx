@@ -16,6 +16,9 @@ import type EmojiMap from 'utils/emoji_map';
 
 import type {DoAppCallResult} from 'types/apps';
 
+// Lazy import to avoid circular dependency issues
+const AppsFormContainer = React.lazy(() => import('components/apps_form/apps_form_container'));
+
 type ValidationError = {
     field: string;
     message: string;
@@ -1275,21 +1278,11 @@ type AppsFormContainerProps = {
 
 // Dynamic wrapper component for AppsFormContainer to avoid circular dependency
 const DynamicAppsFormContainer: React.FC<AppsFormContainerProps> = (props) => {
-    const [AppsFormContainer, setAppsFormContainer] = React.useState<React.ComponentType<AppsFormContainerProps> | null>(null);
-
-    React.useEffect(() => {
-        const loadComponent = async () => {
-            const {default: Component} = await import('components/apps_form/apps_form_container');
-            setAppsFormContainer(() => Component as React.ComponentType<AppsFormContainerProps>);
-        };
-        loadComponent();
-    }, []);
-
-    if (!AppsFormContainer) {
-        return null; // Loading state
-    }
-
-    return <AppsFormContainer {...props}/>;
+    return (
+        <React.Suspense fallback={null}>
+            <AppsFormContainer {...props}/>
+        </React.Suspense>
+    );
 };
 
 export default injectIntl(InteractiveDialogAdapter);
