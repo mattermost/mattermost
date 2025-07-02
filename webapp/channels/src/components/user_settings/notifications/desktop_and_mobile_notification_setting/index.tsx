@@ -3,7 +3,7 @@
 
 import React, {Fragment, useCallback, useEffect, useMemo, useRef, memo} from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl, defineMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, Options} from 'react-select';
 
@@ -14,15 +14,12 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 import NotificationPermissionSectionNotice from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_section_notice';
 import NotificationPermissionTitleTag from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_title_tag';
+import {getOptionLabel, type SelectOption} from 'components/widgets/modals/components/react_select_item';
 
 import Constants, {NotificationLevels, UserSettingsNotificationSections} from 'utils/constants';
+import {formatAsComponent} from 'utils/i18n';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
-
-export type SelectOption = {
-    label: ReactNode;
-    value: string;
-};
 
 export type Props = {
     active: boolean;
@@ -63,6 +60,7 @@ function DesktopAndMobileNotificationSettings({
 }: Props) {
     const editButtonRef = useRef<SettingItemMinComponent>(null);
     const previousActiveRef = useRef(active);
+    const intl = useIntl();
 
     // Focus back on the edit button, after this section was closed after it was opened
     useEffect(() => {
@@ -131,7 +129,7 @@ function DesktopAndMobileNotificationSettings({
                                 value={optionOfSendNotifications.value}
                                 onChange={handleChangeForSendDesktopNotificationsRadio}
                             />
-                            {optionOfSendNotifications.label}
+                            {formatAsComponent(optionOfSendNotifications.label)}
                         </label>
                     </div>
                 ))}
@@ -208,6 +206,8 @@ function DesktopAndMobileNotificationSettings({
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
                         value={getValueOfSendMobileNotificationForSelect(pushActivity)}
                         onChange={handleChangeForSendMobileNotificationsSelect}
+                        getOptionLabel={(option) => getOptionLabel(option, intl)}
+
                     />
                 </React.Fragment>
             );
@@ -261,6 +261,7 @@ function DesktopAndMobileNotificationSettings({
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
                         value={getValueOfSendMobileNotificationWhenSelect(pushStatus)}
                         onChange={handleChangeForTriggerMobileNotificationsSelect}
+                        getOptionLabel={(option) => getOptionLabel(option, intl)}
                     />
                 </React.Fragment>
             );
@@ -352,30 +353,24 @@ function NoIndicatorSeparatorComponent() {
 
 const optionsOfSendNotifications = [
     {
-        label: (
-            <FormattedMessage
-                id='user.settings.notifications.desktopAndMobile.allNewMessages'
-                defaultMessage='All new messages'
-            />
-        ),
+        label: defineMessage({
+            id: 'user.settings.notifications.desktopAndMobile.allNewMessages',
+            defaultMessage: 'All new messages',
+        }),
         value: NotificationLevels.ALL,
     },
     {
-        label: (
-            <FormattedMessage
-                id='user.settings.notifications.desktopAndMobile.onlyMentions'
-                defaultMessage='Mentions, direct messages, and group messages'
-            />
-        ),
+        label: defineMessage({
+            id: 'user.settings.notifications.desktopAndMobile.onlyMentions',
+            defaultMessage: 'Mentions, direct messages, and group messages',
+        }),
         value: NotificationLevels.MENTION,
     },
     {
-        label: (
-            <FormattedMessage
-                id='user.settings.notifications.desktopAndMobile.nothing'
-                defaultMessage='Nothing'
-            />
-        ),
+        label: defineMessage({
+            id: 'user.settings.notifications.desktopAndMobile.nothing',
+            defaultMessage: 'Nothing',
+        }),
         value: NotificationLevels.NONE,
     },
 ];
@@ -462,30 +457,24 @@ export function shouldShowTriggerMobileNotificationsSection(sendPushNotification
 
 const optionsOfSendMobileNotificationsWhenSelect: Options<SelectOption> = [
     {
-        label: (
-            <FormattedMessage
-                id='user.settings.notifications.desktopAndMobile.online'
-                defaultMessage='Online, away, or offline'
-            />
-        ),
+        label: defineMessage({
+            id: 'user.settings.notifications.desktopAndMobile.online',
+            defaultMessage: 'Online, away, or offline',
+        }),
         value: Constants.UserStatuses.ONLINE,
     },
     {
-        label: (
-            <FormattedMessage
-                id='user.settings.notifications.desktopAndMobile.away'
-                defaultMessage='Away or offline'
-            />
-        ),
+        label: defineMessage({
+            id: 'user.settings.notifications.desktopAndMobile.away',
+            defaultMessage: 'Away or offline',
+        }),
         value: Constants.UserStatuses.AWAY,
     },
     {
-        label: (
-            <FormattedMessage
-                id='user.settings.notifications.desktopAndMobile.offline'
-                defaultMessage='Offline'
-            />
-        ),
+        label: defineMessage({
+            id: 'user.settings.notifications.desktopAndMobile.offline',
+            defaultMessage: 'Offline',
+        }),
         value: Constants.UserStatuses.OFFLINE,
     },
 ];

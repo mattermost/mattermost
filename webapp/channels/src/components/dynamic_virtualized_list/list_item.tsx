@@ -5,7 +5,7 @@ import debounce from 'lodash/debounce';
 import type {ReactNode} from 'react';
 import React, {memo, useEffect, useRef} from 'react';
 
-import {ListItemSizeObserver} from './item_row_size_observer';
+import {ListItemSizeObserver} from './list_item_size_observer';
 
 const RESIZE_DEBOUNCE_TIME = 200; // in ms
 
@@ -50,9 +50,15 @@ const ListItem = (props: Props) => {
     // This effects adds the observer which calls height change callback debounced
     useEffect(() => {
         const debouncedOnHeightChange = debounce((changedHeight: number) => {
+            // Check if component is still mounted as it may have been
+            // unmounted by the time the debounced function is called
+            if (!rowRef.current) {
+                return;
+            }
+
             // If width of container has changed then scroll bar position will be out of sync
             // so we need to force a scroll correction
-            const forceScrollCorrection = rowRef.current?.offsetWidth !== widthRef.current;
+            const forceScrollCorrection = rowRef.current.offsetWidth !== widthRef.current;
 
             heightRef.current = changedHeight;
 
@@ -76,11 +82,10 @@ const ListItem = (props: Props) => {
             cleanupSizeObserver = listItemSizeObserver.observe(props.itemId, rowRef.current, itemRowSizeObserverCallback);
         }
 
-        // We remove the observer here from a row
         return () => {
-            if (cleanupSizeObserver) {
-                cleanupSizeObserver();
-            }
+            // We remove the observer here from a row
+            cleanupSizeObserver?.();
+            debouncedOnHeightChange?.cancel();
             props.onUnmount(props.itemId, indexRef.current);
         };
     }, [props.itemId]);
