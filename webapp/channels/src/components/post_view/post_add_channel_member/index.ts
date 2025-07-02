@@ -18,8 +18,6 @@ import PostAddChannelMember from './post_add_channel_member';
 type OwnProps = {
     postId: string;
     userIds: string[];
-    usernames: string[];
-    noGroupsUsernames: string[];
 }
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {

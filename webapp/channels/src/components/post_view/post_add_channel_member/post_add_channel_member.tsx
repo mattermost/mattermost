@@ -191,8 +191,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
             );
         }
 
-        // Backend filters out ABAC non-compliant users
-        // Frontend separates remaining users: invitable vs group-constrained
+        // Separate invitable users from group-constrained users
         const invitableUsers = usernames.filter((username) => !noGroupsUsernames.includes(username));
         const outOfGroupsUsers = noGroupsUsernames;
 
