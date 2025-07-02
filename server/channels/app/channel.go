@@ -1662,41 +1662,124 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 	}
 
 	if channel.Type == model.ChannelTypePrivate {
+		// Debug logging for shared channel membership sync
+		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("🔍 ACP Check Start: user_id=%s, channel_id=%s, is_remote=%t, channel_shared=%t",
+				user.Id, channel.Id, user.IsRemote(), channel.IsShared()))
+		}
+
 		if ok, appErr := a.ChannelAccessControlled(c, channel.Id); ok {
+			// Debug logging: Channel is access controlled
+			if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+				scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✓ Channel is access controlled: channel_id=%s", channel.Id))
+			}
+
 			if acs := a.Srv().Channels().AccessControl; acs != nil {
+				// Debug logging: Access control service available
+				if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+					scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✓ Access control service available: channel_id=%s", channel.Id))
+				}
+
 				groupID, err := a.CpaGroupID()
 				if err != nil {
+					// Debug logging: Failed to get group ID
+					if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+						scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ Failed to get CPA group ID: err=%v, user_id=%s, channel_id=%s", err, user.Id, channel.Id))
+					}
 					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
 						fmt.Sprintf("failed to get group: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
 				}
 
+				// Debug logging: Got group ID successfully
+				if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+					scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✓ Got CPA group ID: group_id=%s, user_id=%s, channel_id=%s", groupID, user.Id, channel.Id))
+				}
+
 				s, err := a.Srv().Store().Attributes().GetSubject(c, user.Id, groupID)
 				if err != nil {
-					// Remote users can skip ACP evaluation since they don't have local attribute records
-					// This is safe because shared channel access is controlled at the cluster level
-					if !user.IsRemote() {
-						return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-							fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
+					// Debug logging: Failed to get subject
+					if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+						scs.PostMembershipSyncDebugMessage(fmt.Sprintf("⚠️  Failed to get subject: err=%v, user_id=%s, channel_id=%s, is_remote=%t", err, user.Id, channel.Id, user.IsRemote()))
 					}
-				} else {
-					// Evaluate ACP for users with local attribute records
-					decision, evalErr := acs.AccessEvaluation(c, model.AccessRequest{
-						Subject: *s,
-						Resource: model.Resource{
-							Type: model.AccessControlPolicyTypeChannel,
-							ID:   channel.Id,
-						},
-						Action: "join_channel",
-					})
-					if evalErr != nil {
-						return nil, evalErr
-					} else if !decision.Decision {
-						return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.rejected", nil, "", http.StatusForbidden)
+
+					// COMMENTED OUT PR 32771 FIX - Testing what happens without it
+					/*
+						// Remote users can skip ACP evaluation since they don't have local attribute records
+						// This is safe because shared channel access is controlled at the cluster level
+						if !user.IsRemote() {
+							// Debug logging: Non-remote user failing subject lookup
+							if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+								scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ Non-remote user subject lookup failed - BLOCKING: user_id=%s, channel_id=%s", user.Id, channel.Id))
+							}
+							return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
+								fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
+						}
+						// Debug logging: Remote user skipping ACP
+						if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+							scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✓ Remote user skipping ACP evaluation: user_id=%s, channel_id=%s", user.Id, channel.Id))
+						}
+					*/
+
+					// ORIGINAL BEHAVIOR - ALWAYS FAIL WHEN GetSubject FAILS (testing without PR 32771)
+					if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+						scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ ORIGINAL BEHAVIOR: GetSubject failed, returning error for ALL users: user_id=%s, channel_id=%s", user.Id, channel.Id))
 					}
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
+						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
+				}
+				// Debug logging: Got subject successfully
+				if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+					scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✓ Got subject successfully: user_id=%s, channel_id=%s, subject_id=%s", user.Id, channel.Id, s.ID))
+				}
+
+				// Evaluate ACP for users with local attribute records
+				decision, evalErr := acs.AccessEvaluation(c, model.AccessRequest{
+					Subject: *s,
+					Resource: model.Resource{
+						Type: model.AccessControlPolicyTypeChannel,
+						ID:   channel.Id,
+					},
+					Action: "join_channel",
+				})
+				if evalErr != nil {
+					// Debug logging: ACP evaluation error
+					if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+						scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ ACP evaluation error: err=%v, user_id=%s, channel_id=%s", evalErr, user.Id, channel.Id))
+					}
+					return nil, evalErr
+				} else if !decision.Decision {
+					// Debug logging: ACP decision denied
+					if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+						scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ ACP decision DENIED: user_id=%s, channel_id=%s, decision=%+v", user.Id, channel.Id, decision))
+					}
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.rejected", nil, "", http.StatusForbidden)
+				}
+				// Debug logging: ACP decision allowed
+				if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+					scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✓ ACP decision ALLOWED: user_id=%s, channel_id=%s", user.Id, channel.Id))
+				}
+			} else {
+				// Debug logging: No access control service
+				if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+					scs.PostMembershipSyncDebugMessage(fmt.Sprintf("⚠️  No access control service available: channel_id=%s", channel.Id))
 				}
 			}
 		} else if appErr != nil {
+			// Debug logging: Error checking if channel is access controlled
+			if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+				scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ Error checking channel access control: err=%v, channel_id=%s", appErr, channel.Id))
+			}
 			return nil, appErr
+		} else {
+			// Debug logging: Channel is not access controlled
+			if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+				scs.PostMembershipSyncDebugMessage(fmt.Sprintf("ℹ️  Channel is NOT access controlled: channel_id=%s", channel.Id))
+			}
+		}
+
+		// Debug logging for ACP check completion
+		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("🏁 ACP Check Complete: user_id=%s, channel_id=%s - proceeding to save member", user.Id, channel.Id))
 		}
 	}
 

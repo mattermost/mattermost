@@ -37,18 +37,40 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 	if syncService == nil {
 		return
 	}
+
+	// Debug: Log when sync handler is triggered
+	channelId := ""
+	if event.GetBroadcast() != nil {
+		channelId = event.GetBroadcast().ChannelId
+	}
+	syncService.PostMembershipSyncDebugMessage(fmt.Sprintf("🌐 WEBSOCKET: SharedChannelSyncHandler triggered - event=%s, channel_id=%s",
+		event.EventType(), channelId))
+
 	if isEligibleForEvents(syncService, event, sharedChannelEventsForSync) {
+		syncService.PostMembershipSyncDebugMessage(fmt.Sprintf("✅ WEBSOCKET: Event eligible for content sync - event=%s, channel_id=%s",
+			event.EventType(), channelId))
+
 		err := handleContentSync(ps, syncService, event)
 		if err != nil {
+			syncService.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ WEBSOCKET: Content sync failed - event=%s, channel_id=%s, err=%v",
+				event.EventType(), channelId, err))
 			mlog.Warn(
 				err.Error(),
 				mlog.String("event", event.EventType()),
 				mlog.String("action", "content_sync"),
 			)
+		} else {
+			syncService.PostMembershipSyncDebugMessage(fmt.Sprintf("🎉 WEBSOCKET: Content sync successful - event=%s, channel_id=%s",
+				event.EventType(), channelId))
 		}
 	} else if isEligibleForEvents(syncService, event, sharedChannelEventsForInvitation) {
+		syncService.PostMembershipSyncDebugMessage(fmt.Sprintf("📧 WEBSOCKET: Event eligible for invitation sync - event=%s, channel_id=%s",
+			event.EventType(), channelId))
+
 		err := handleInvitation(ps, syncService, event)
 		if err != nil {
+			syncService.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ WEBSOCKET: Invitation sync failed - event=%s, channel_id=%s, err=%v",
+				event.EventType(), channelId, err))
 			mlog.Warn(
 				err.Error(),
 				mlog.String("event", event.EventType()),
