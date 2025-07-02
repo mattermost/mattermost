@@ -141,7 +141,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     // Track current dialog elements for validation
     private currentDialogElements: DialogElement[] | undefined;
 
-
     /**
      * Logging utility following Mattermost webapp conventions
      * Uses standard console methods with ESLint disable comments
@@ -972,7 +971,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             if (result?.data?.type === 'form' && result?.data?.form) {
                 // Transform server response format to props format
                 const transformedDialog = this.transformServerDialogToProps(result.data.form);
-                
+
                 // Convert to AppForm format
                 const refreshedAppForm = this.convertToAppForm(transformedDialog);
 
@@ -990,7 +989,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                     type: 'ok' as const,
                 },
             };
-
         } catch (error) {
             this.logError('Field refresh failed', {
                 error: error instanceof Error ? error.message : String(error),

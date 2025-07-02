@@ -308,15 +308,15 @@ type PostActionAPIResponse struct {
 }
 
 type Dialog struct {
-	CallbackId       string         `json:"callback_id"`
-	Title            string         `json:"title"`
-	IntroductionText string         `json:"introduction_text"`
-	IconURL          string         `json:"icon_url"`
+	CallbackId       string          `json:"callback_id"`
+	Title            string          `json:"title"`
+	IntroductionText string          `json:"introduction_text"`
+	IconURL          string          `json:"icon_url"`
 	Elements         []DialogElement `json:"elements"`
-	SubmitLabel      string         `json:"submit_label"`
-	NotifyOnCancel   bool           `json:"notify_on_cancel"`
-	State            string         `json:"state"`
-	SourceURL        string         `json:"source_url,omitempty"`
+	SubmitLabel      string          `json:"submit_label"`
+	NotifyOnCancel   bool            `json:"notify_on_cancel"`
+	State            string          `json:"state"`
+	SourceURL        string          `json:"source_url,omitempty"`
 }
 
 type DialogElement struct {
