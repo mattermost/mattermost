@@ -1260,6 +1260,7 @@ func (a *App) filterOutOfChannelMentions(c request.CTX, sender *model.User, post
 	// Differentiate between mentionedUsersInTheTeam who can and can't be added to the channel
 	var outOfChannelUsers model.UserSlice
 	var outOfGroupsUsers model.UserSlice
+
 	if channel.IsGroupConstrained() {
 		nonMemberIDs, err := a.FilterNonGroupChannelMembers(teamUsers.IDs(), channel)
 		if err != nil {
@@ -1289,6 +1290,8 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 
 	ephemeralPostId := model.NewId()
 	var message string
+
+	// Generate message for users who can be invited
 	if len(outOfChannelUsers) == 1 {
 		message = T("api.post.check_for_out_of_channel_mentions.message.one", map[string]any{
 			"Username": ocUsernames[0],
