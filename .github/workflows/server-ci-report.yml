@@ -55,7 +55,8 @@ jobs:
         if: github.event.workflow_run.name == 'Server CI PR'
         id: incoming-pr
         run: echo "NUMBER=$(cat ${{ matrix.test.artifact }}/pr-number)" >> ${GITHUB_OUTPUT}
-      - name: Publish test report
+      - name: Publish test report (forked branches, write access disabled)
+        if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
         id: report
         uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5.5.1
         with:
