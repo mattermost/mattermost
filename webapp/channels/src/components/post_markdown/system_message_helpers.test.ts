@@ -33,7 +33,6 @@ describe('isAddMemberProps', () => {
             not_in_channel_user_ids: [],
             not_in_channel_usernames: [],
             not_in_groups_usernames: [],
-
         };
 
         expect(isAddMemberProps(baseProp)).toBe(true);

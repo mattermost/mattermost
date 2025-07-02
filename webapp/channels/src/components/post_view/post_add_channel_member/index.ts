@@ -20,7 +20,6 @@ type OwnProps = {
     userIds: string[];
     usernames: string[];
     noGroupsUsernames: string[];
-    nonInvitableUsernames: string[];
 }
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {

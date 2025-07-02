@@ -1191,11 +1191,10 @@ func (a *App) sendOutOfChannelMentions(c request.CTX, sender *model.User, post *
 		return false, nil
 	}
 
-	// Send a single consolidated ephemeral message
 	if len(outOfChannelUsers) != 0 || len(outOfGroupsUsers) != 0 {
 		a.SendEphemeralPost(c, post.UserId, makeOutOfChannelMentionPost(sender, post, outOfChannelUsers, outOfGroupsUsers))
-	} else if len(outOfTeamUsers) != 0 {
-		// Only send out-of-team message if there are no out-of-channel users
+	}
+	if len(outOfTeamUsers) != 0 {
 		a.SendEphemeralPost(c, post.UserId, makeOutOfTeamMentionPost(sender, post, outOfTeamUsers))
 	}
 	return true, nil
