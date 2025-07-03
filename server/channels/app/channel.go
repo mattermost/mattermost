@@ -1676,7 +1676,6 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
 				}
 
-				// Evaluate ACP for users with local attribute records
 				decision, evalErr := acs.AccessEvaluation(c, model.AccessRequest{
 					Subject: *s,
 					Resource: model.Resource{

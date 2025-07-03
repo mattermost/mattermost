@@ -344,7 +344,6 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 		if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
 			return nil, fmt.Errorf("error adding sync user to Team: %w", err)
 		}
-
 		// add user to channel
 		if _, err := scs.app.AddUserToChannel(c, userSaved, channel, false); err != nil {
 			return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)

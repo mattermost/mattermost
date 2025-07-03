@@ -37,7 +37,6 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 	if syncService == nil {
 		return
 	}
-
 	if isEligibleForEvents(syncService, event, sharedChannelEventsForSync) {
 		err := handleContentSync(ps, syncService, event)
 		if err != nil {
