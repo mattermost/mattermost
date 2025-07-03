@@ -717,7 +717,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 	t.Run("should pass with select element with dynamic data_source", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
-			DisplayName:   "Dynamic select via data_source",
+			DisplayName:   "Dynamic data_source",
 			Name:          "dynamic_field",
 			Type:          "select",
 			DataSource:    "dynamic",
@@ -730,7 +730,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 	t.Run("should fail dynamic data_source without data_source_url", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
-			DisplayName: "Dynamic select via data_source",
+			DisplayName: "Dynamic data_source",
 			Name:        "dynamic_field",
 			Type:        "select",
 			DataSource:  "dynamic",
@@ -742,7 +742,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 	t.Run("should fail dynamic data_source with invalid URL", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
-			DisplayName:   "Dynamic select via data_source",
+			DisplayName:   "Dynamic data_source",
 			Name:          "dynamic_field",
 			Type:          "select",
 			DataSource:    "dynamic",
@@ -755,7 +755,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 	t.Run("should pass dynamic data_source with plugin URL", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
-			DisplayName:   "Dynamic select via data_source",
+			DisplayName:   "Dynamic data_source",
 			Name:          "dynamic_field",
 			Type:          "select",
 			DataSource:    "dynamic",
@@ -768,7 +768,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 	t.Run("should fail dynamic data_source with static options", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
-			DisplayName:   "Dynamic select via data_source",
+			DisplayName:   "Dynamic data_source",
 			Name:          "dynamic_field",
 			Type:          "select",
 			DataSource:    "dynamic",
