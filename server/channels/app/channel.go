@@ -1702,25 +1702,6 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 						scs.PostMembershipSyncDebugMessage(fmt.Sprintf("⚠️  Failed to get subject: err=%v, user_id=%s, channel_id=%s, is_remote=%t", err, user.Id, channel.Id, user.IsRemote()))
 					}
 
-					// COMMENTED OUT PR 32771 FIX - Testing what happens without it
-					/*
-						// Remote users can skip ACP evaluation since they don't have local attribute records
-						// This is safe because shared channel access is controlled at the cluster level
-						if !user.IsRemote() {
-							// Debug logging: Non-remote user failing subject lookup
-							if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-								scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ Non-remote user subject lookup failed - BLOCKING: user_id=%s, channel_id=%s", user.Id, channel.Id))
-							}
-							return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-								fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
-						}
-						// Debug logging: Remote user skipping ACP
-						if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-							scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✓ Remote user skipping ACP evaluation: user_id=%s, channel_id=%s", user.Id, channel.Id))
-						}
-					*/
-
-					// ORIGINAL BEHAVIOR - ALWAYS FAIL WHEN GetSubject FAILS (testing without PR 32771)
 					if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
 						scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ ORIGINAL BEHAVIOR: GetSubject failed, returning error for ALL users: user_id=%s, channel_id=%s", user.Id, channel.Id))
 					}
