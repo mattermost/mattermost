@@ -122,19 +122,19 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 
 // processMemberAdd handles adding a user to a channel as part of batch processing
 func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel *model.Channel, rc *model.RemoteCluster, maxChangeTime int64, syncMsg *model.SyncMsg) error {
+	rctx := request.EmptyContext(scs.server.Log())
 	var user *model.User
 	var err error
 
 	// First try to upsert user from sync message (mirrors mention scenario)
 	if userProfile, exists := syncMsg.Users[change.UserId]; exists {
-		rctx := request.EmptyContext(scs.server.Log())
 		user, err = scs.upsertSyncUser(rctx, userProfile, channel, rc)
 		if err != nil {
 			return fmt.Errorf("cannot upsert user for channel add: %w", err)
 		}
 	} else {
 		// Fallback to existing lookup for users not in sync message
-		user, err = scs.server.GetStore().User().Get(request.EmptyContext(scs.server.Log()).Context(), change.UserId)
+		user, err = scs.server.GetStore().User().Get(rctx.Context(), change.UserId)
 		if err != nil {
 			return fmt.Errorf("cannot get user for channel add: %w", err)
 		}
@@ -142,26 +142,35 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 
 	// If user was upserted from sync message, it's already been added to team and channel
 	// Only need AddUserToChannel for users found via direct lookup
-	if _, exists := syncMsg.Users[change.UserId]; !exists {
-		// User was found via direct lookup, need to add to team/channel manually
-		if channel.Type == model.ChannelTypePrivate {
-			// Add user to team if needed for private channel
-			rctx := request.EmptyContext(scs.server.Log())
-			appErr := scs.app.AddUserToTeamByTeamId(rctx, channel.TeamId, user)
-			if appErr != nil {
-				return fmt.Errorf("cannot add user to team for private channel: %w", appErr)
-			}
+	_, exists := syncMsg.Users[change.UserId]
+	if exists {
+		// User already added via upsertSyncUser, skip manual addition
+		if syncErr := scs.server.GetStore().SharedChannel().UpdateUserLastMembershipSyncAt(change.UserId, change.ChannelId, rc.RemoteId, maxChangeTime); syncErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user LastMembershipSyncAt after batch member add",
+				mlog.String("user_id", change.UserId),
+				mlog.String("channel_id", change.ChannelId),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(syncErr),
+			)
 		}
+		return nil
+	}
 
-		// Use the standard method - ACP checks now handle remote users gracefully
-		rctx := request.EmptyContext(scs.server.Log())
-		_, appErr := scs.app.AddUserToChannel(rctx, user, channel, true)
-		if appErr != nil {
-			// Skip "already added" errors
-			if appErr.Error() != "api.channel.add_user.to_channel.failed.app_error" &&
-				!strings.Contains(appErr.Error(), "channel_member_exists") {
-				return fmt.Errorf("cannot add user to channel: %w", appErr)
-			}
+	// User was found via direct lookup, need to add to team/channel manually
+	if channel.Type == model.ChannelTypePrivate {
+		// Add user to team if needed for private channel
+		if appErr := scs.app.AddUserToTeamByTeamId(rctx, channel.TeamId, user); appErr != nil {
+			return fmt.Errorf("cannot add user to team for private channel: %w", appErr)
+		}
+	}
+
+	// Use the standard method - ACP checks now handle remote users gracefully
+	_, appErr := scs.app.AddUserToChannel(rctx, user, channel, true)
+	if appErr != nil {
+		// Skip "already added" errors
+		if appErr.Error() != "api.channel.add_user.to_channel.failed.app_error" &&
+			!strings.Contains(appErr.Error(), "channel_member_exists") {
+			return fmt.Errorf("cannot add user to channel: %w", appErr)
 		}
 	}
 
