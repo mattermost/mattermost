@@ -38,17 +38,9 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 		return
 	}
 
-	// Debug: Log when sync handler is triggered
-	channelId := ""
-	if event.GetBroadcast() != nil {
-		channelId = event.GetBroadcast().ChannelId
-	}
-
 	if isEligibleForEvents(syncService, event, sharedChannelEventsForSync) {
 		err := handleContentSync(ps, syncService, event)
 		if err != nil {
-			syncService.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ WEBSOCKET: Content sync failed - event=%s, channel_id=%s, err=%v",
-				event.EventType(), channelId, err))
 			mlog.Warn(
 				err.Error(),
 				mlog.String("event", event.EventType()),
@@ -58,8 +50,6 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 	} else if isEligibleForEvents(syncService, event, sharedChannelEventsForInvitation) {
 		err := handleInvitation(ps, syncService, event)
 		if err != nil {
-			syncService.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ WEBSOCKET: Invitation sync failed - event=%s, channel_id=%s, err=%v",
-				event.EventType(), channelId, err))
 			mlog.Warn(
 				err.Error(),
 				mlog.String("event", event.EventType()),

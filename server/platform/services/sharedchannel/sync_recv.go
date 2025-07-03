@@ -287,41 +287,22 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
 
-	// Debug: Log upsert user start
-	channelInfo := "nil"
-	if channel != nil {
-		channelInfo = fmt.Sprintf("%s (type=%s, shared=%t)", channel.Id, channel.Type, channel.IsShared())
-	}
-	scs.PostMembershipSyncDebugMessage(fmt.Sprintf("🔄 USER SYNC: Starting upsertSyncUser - user_id=%s, username=%s, channel=%s, remote_id=%s",
-		user.Id, user.Username, channelInfo, rc.RemoteId))
-
 	// Check if user already exists
 	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ USER SYNC: Error checking if user exists - user_id=%s, err=%v", user.Id, err))
 			return nil, fmt.Errorf("error checking sync user: %w", err)
 		}
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("🆕 USER SYNC: User does not exist locally - user_id=%s, will create new user", user.Id))
-	} else {
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("🔍 USER SYNC: User already exists locally - user_id=%s, username=%s, is_remote=%t",
-			euser.Id, euser.Username, euser.IsRemote()))
 	}
 
 	var userSaved *model.User
 	if euser == nil {
 		// new user.  Make sure the remoteID is correct and insert the record
 		user.RemoteId = model.NewPointer(rc.RemoteId)
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("➕ USER SYNC: Creating new remote user - user_id=%s, username=%s, remote_id=%s",
-			user.Id, user.Username, rc.RemoteId))
 
 		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ USER SYNC: Failed to create new user - user_id=%s, err=%v", user.Id, err))
 			return nil, err
 		}
-
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✅ USER SYNC: Successfully created new user - user_id=%s, username=%s",
-			userSaved.Id, userSaved.Username))
 	} else {
 		// existing user. Make sure user belongs to the remote that issued the update
 		if euser.GetRemoteID() != rc.RemoteId {
@@ -359,38 +340,16 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	// time. AddUserToChannel & AddUserToTeamByTeamId do not error if user was already
 	// added and exit quickly.  Not needed for DMs where teamId is empty.
 	if channel != nil && channel.TeamId != "" {
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("🏢 USER SYNC: Adding user to team and channel - user_id=%s, team_id=%s, channel_id=%s, channel_type=%s",
-			userSaved.Id, channel.TeamId, channel.Id, channel.Type))
-
 		// add user to team
 		if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ USER SYNC: Failed to add user to team - user_id=%s, team_id=%s, err=%v",
-				userSaved.Id, channel.TeamId, err))
 			return nil, fmt.Errorf("error adding sync user to Team: %w", err)
 		}
 
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✅ USER SYNC: Successfully added user to team - user_id=%s, team_id=%s", userSaved.Id, channel.TeamId))
-
 		// add user to channel
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("📞 USER SYNC: About to call AddUserToChannel - user_id=%s, channel_id=%s, channel_type=%s, skip_team_check=false",
-			userSaved.Id, channel.Id, channel.Type))
-
 		if _, err := scs.app.AddUserToChannel(c, userSaved, channel, false); err != nil {
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ USER SYNC: AddUserToChannel FAILED - user_id=%s, channel_id=%s, err=%v",
-				userSaved.Id, channel.Id, err))
 			return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
 		}
-
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("🎉 USER SYNC: Successfully added user to channel - user_id=%s, channel_id=%s", userSaved.Id, channel.Id))
-	} else {
-		if channel == nil {
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("ℹ️  USER SYNC: No channel provided, skipping team/channel addition - user_id=%s", userSaved.Id))
-		} else {
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("ℹ️  USER SYNC: DM channel (no team), skipping team addition - user_id=%s, channel_id=%s", userSaved.Id, channel.Id))
-		}
 	}
-
-	scs.PostMembershipSyncDebugMessage(fmt.Sprintf("🏁 USER SYNC: upsertSyncUser complete - user_id=%s, username=%s", userSaved.Id, userSaved.Username))
 
 	return userSaved, nil
 }

@@ -122,98 +122,47 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 
 // processMemberAdd handles adding a user to a channel as part of batch processing
 func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel *model.Channel, rc *model.RemoteCluster, maxChangeTime int64, syncMsg *model.SyncMsg) error {
-	// Debug logging: Start of membership add process
-	scs.PostMembershipSyncDebugMessage(fmt.Sprintf("🚀 SHARED CHANNEL: Starting processMemberAdd - user_id=%s, channel_id=%s, channel_type=%s, remote_id=%s",
-		change.UserId, change.ChannelId, channel.Type, rc.RemoteId))
-
 	var user *model.User
 	var err error
 
 	// First try to upsert user from sync message (mirrors mention scenario)
 	if userProfile, exists := syncMsg.Users[change.UserId]; exists {
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("🔄 SHARED CHANNEL: Found user in sync message, calling upsertSyncUser - user_id=%s, username=%s",
-			change.UserId, userProfile.Username))
-
 		rctx := request.EmptyContext(scs.server.Log())
 		user, err = scs.upsertSyncUser(rctx, userProfile, channel, rc)
 		if err != nil {
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ SHARED CHANNEL: Failed to upsert user from sync data - user_id=%s, err=%v",
-				change.UserId, err))
 			return fmt.Errorf("cannot upsert user for channel add: %w", err)
 		}
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✅ SHARED CHANNEL: Successfully upserted user - user_id=%s, username=%s",
-			user.Id, user.Username))
 	} else {
 		// Fallback to existing lookup for users not in sync message
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("⚠️  SHARED CHANNEL: User not found in sync message, trying direct lookup - user_id=%s",
-			change.UserId))
-
 		user, err = scs.server.GetStore().User().Get(request.EmptyContext(scs.server.Log()).Context(), change.UserId)
 		if err != nil {
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ SHARED CHANNEL: Failed to get user from store - user_id=%s, channel_id=%s, err=%v",
-				change.UserId, change.ChannelId, err))
 			return fmt.Errorf("cannot get user for channel add: %w", err)
 		}
 	}
-
-	// Debug logging: Got user successfully
-	scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✓ SHARED CHANNEL: Got user successfully - user_id=%s, username=%s, is_remote=%t, remote_id=%s",
-		user.Id, user.Username, user.IsRemote(), user.GetRemoteID()))
 
 	// If user was upserted from sync message, it's already been added to team and channel
 	// Only need AddUserToChannel for users found via direct lookup
 	if _, exists := syncMsg.Users[change.UserId]; !exists {
 		// User was found via direct lookup, need to add to team/channel manually
 		if channel.Type == model.ChannelTypePrivate {
-			// Debug logging: Processing private channel membership
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("🔒 SHARED CHANNEL: Processing PRIVATE channel for direct lookup user - user_id=%s, channel_id=%s, team_id=%s",
-				user.Id, channel.Id, channel.TeamId))
-
 			// Add user to team if needed for private channel
 			rctx := request.EmptyContext(scs.server.Log())
 			appErr := scs.app.AddUserToTeamByTeamId(rctx, channel.TeamId, user)
 			if appErr != nil {
-				scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ SHARED CHANNEL: Failed to add user to team - user_id=%s, team_id=%s, err=%v",
-					user.Id, channel.TeamId, appErr))
 				return fmt.Errorf("cannot add user to team for private channel: %w", appErr)
 			}
-
-			// Debug logging: Added user to team successfully
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✓ SHARED CHANNEL: Added user to team successfully - user_id=%s, team_id=%s",
-				user.Id, channel.TeamId))
 		}
-
-		// Debug logging: About to call AddUserToChannel
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("📞 SHARED CHANNEL: About to call AddUserToChannel - user_id=%s, channel_id=%s, skip_team_check=true",
-			user.Id, channel.Id))
 
 		// Use the standard method - ACP checks now handle remote users gracefully
 		rctx := request.EmptyContext(scs.server.Log())
 		_, appErr := scs.app.AddUserToChannel(rctx, user, channel, true)
 		if appErr != nil {
-			// Debug logging: AddUserToChannel failed
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("❌ SHARED CHANNEL: AddUserToChannel FAILED - user_id=%s, channel_id=%s, err=%v, err_id=%s",
-				user.Id, channel.Id, appErr, appErr.Id))
-
 			// Skip "already added" errors
 			if appErr.Error() != "api.channel.add_user.to_channel.failed.app_error" &&
 				!strings.Contains(appErr.Error(), "channel_member_exists") {
-				scs.PostMembershipSyncDebugMessage(fmt.Sprintf("💥 SHARED CHANNEL: AddUserToChannel FATAL ERROR - user_id=%s, channel_id=%s, err=%v",
-					user.Id, channel.Id, appErr))
 				return fmt.Errorf("cannot add user to channel: %w", appErr)
 			}
-			// User is already in the channel, which is fine
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("⚠️  SHARED CHANNEL: User already in channel (ignoring) - user_id=%s, channel_id=%s",
-				user.Id, channel.Id))
-		} else {
-			// Debug logging: AddUserToChannel succeeded
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✅ SHARED CHANNEL: AddUserToChannel SUCCESS - user_id=%s, channel_id=%s",
-				user.Id, channel.Id))
 		}
-	} else {
-		// User was upserted from sync data - already added to team and channel by upsertSyncUser
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✅ SHARED CHANNEL: User already added to team and channel via upsertSyncUser - user_id=%s, channel_id=%s",
-			user.Id, channel.Id))
 	}
 
 	// Update the sync status
@@ -275,56 +224,4 @@ func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *m
 	}
 
 	return nil
-}
-
-// PostMembershipSyncDebugMessage posts a debug system message to track membership sync execution
-// Posts to Town Square channel to ensure visibility even when no shared channels exist
-func (scs *Service) PostMembershipSyncDebugMessage(message string) {
-	if scs.app == nil {
-		return
-	}
-
-	// Try to find Town Square channel (default channel that should always exist)
-	// Get all teams and try to find Town Square in any team
-	teams, err := scs.server.GetStore().Team().GetAll()
-	if err != nil || len(teams) == 0 {
-		return
-	}
-
-	// Use the first team's Town Square channel
-	team := teams[0]
-	townSquareChannel, err := scs.server.GetStore().Channel().GetByName(team.Id, model.DefaultChannelName, true)
-	if err != nil {
-		return
-	}
-
-	// Find a system admin user to post as
-	adminUsersMap, err := scs.server.GetStore().User().GetSystemAdminProfiles()
-	if err != nil || len(adminUsersMap) == 0 {
-		return
-	}
-
-	// Get the first admin user from the map
-	var adminUser *model.User
-	for _, user := range adminUsersMap {
-		adminUser = user
-		break
-	}
-	if adminUser == nil {
-		return
-	}
-
-	post := &model.Post{
-		ChannelId: townSquareChannel.Id,
-		UserId:    adminUser.Id,
-		Message:   message,
-		Type:      model.PostTypeSystemGeneric,
-		CreateAt:  model.GetMillis(),
-	}
-
-	ctx := request.EmptyContext(scs.server.Log())
-	_, appErr := scs.app.CreatePost(ctx, post, townSquareChannel, model.CreatePostFlags{})
-	if appErr != nil {
-		scs.server.Log().Warn("Failed to post membership sync debug message", mlog.String("channel_id", townSquareChannel.Id), mlog.Err(appErr))
-	}
 }

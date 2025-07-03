@@ -450,31 +450,17 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		// get mentions and users for each mention
 		mentionMap := scs.app.MentionsToTeamMembers(request.EmptyContext(scs.server.Log()), post.Message, sc.TeamId)
 
-		// Debug: Log mention processing
-		scs.PostMembershipSyncDebugMessage(fmt.Sprintf("🔍 MENTION SYNC: Processing post mentions - post_id=%s, channel_id=%s, mentions_found=%d, message='%s'",
-			post.Id, post.ChannelId, len(mentionMap), post.Message))
-
 		// Skip notifications for remote users unless mentioned with @username:remote format
 		for mention, userID := range mentionMap {
 			user, err := scs.server.GetStore().User().Get(context.Background(), userID)
 			if err != nil {
-				scs.PostMembershipSyncDebugMessage(fmt.Sprintf("⚠️  MENTION SYNC: Failed to get user for mention - mention=%s, user_id=%s, err=%v",
-					mention, userID, err))
 				continue
 			}
-
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("👤 MENTION SYNC: Found mentioned user - mention=%s, user_id=%s, username=%s, is_remote=%t, remote_id=%s",
-				mention, userID, user.Username, user.IsRemote(), user.GetRemoteID()))
 
 			// Skip remote users unless mention contains a colon (@username:remote)
 			if user.RemoteId != nil && !strings.Contains(mention, ":") {
-				scs.PostMembershipSyncDebugMessage(fmt.Sprintf("⏭️  MENTION SYNC: Skipping remote user (no colon format) - mention=%s, user_id=%s, username=%s",
-					mention, userID, user.Username))
 				continue
 			}
-
-			scs.PostMembershipSyncDebugMessage(fmt.Sprintf("✅ MENTION SYNC: Adding user to sync list - mention=%s, user_id=%s, username=%s, is_remote=%t",
-				mention, userID, user.Username, user.IsRemote()))
 
 			userIDs[userID] = p2mm{
 				post:       post,
