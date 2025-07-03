@@ -32,6 +32,7 @@ describe('components/PostMarkdown', () => {
         isEnterpriseOrCloudOrSKUStarterFree: true,
         isEnterpriseReady: false,
         dispatch: jest.fn(),
+        fileInfos: undefined,
         renderEmoticonsAsEmoji: true,
     };
 
