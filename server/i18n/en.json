@@ -10233,6 +10233,10 @@
     "translation": "Invalid theme."
   },
   {
+    "id": "model.preference.is_valid.theme_auto_switch.app_error",
+    "translation": "Invalid auto theme switch value."
+  },
+  {
     "id": "model.preference.is_valid.value.app_error",
     "translation": "Value is too long."
   },
