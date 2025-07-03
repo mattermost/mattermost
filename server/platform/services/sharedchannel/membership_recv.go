@@ -140,22 +140,6 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 		}
 	}
 
-	// If user was upserted from sync message, it's already been added to team and channel
-	// Only need AddUserToChannel for users found via direct lookup
-	_, exists := syncMsg.Users[change.UserId]
-	if exists {
-		// User already added via upsertSyncUser, skip manual addition
-		if syncErr := scs.server.GetStore().SharedChannel().UpdateUserLastMembershipSyncAt(change.UserId, change.ChannelId, rc.RemoteId, maxChangeTime); syncErr != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user LastMembershipSyncAt after batch member add",
-				mlog.String("user_id", change.UserId),
-				mlog.String("channel_id", change.ChannelId),
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.Err(syncErr),
-			)
-		}
-		return nil
-	}
-
 	// User was found via direct lookup, need to add to team/channel manually
 	if channel.Type == model.ChannelTypePrivate {
 		// Add user to team if needed for private channel
