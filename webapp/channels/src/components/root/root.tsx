@@ -84,9 +84,7 @@ const Pluggable = makeAsyncPluggableComponent();
 
 const noop = () => {};
 
-export type Props = PropsFromRedux & RouteComponentProps & {
-    customProfileAttributesEnabled?: boolean;
-}
+export type Props = PropsFromRedux & RouteComponentProps
 
 interface State {
     shouldMountAppRoutes?: boolean;

@@ -15,6 +15,7 @@ import {getCurrentUser, shouldShowTermsOfService} from 'mattermost-redux/selecto
 import {getChannelURL} from 'selectors/urls';
 
 import {getHistory} from 'utils/browser_history';
+import {isEnterpriseLicense} from 'utils/license_utils';
 import {checkIfMFARequired} from 'utils/route';
 import {isPermalinkURL} from 'utils/url';
 
@@ -28,7 +29,7 @@ type Props = {
     };
 };
 
-function mapStateToProps(state: GlobalState, ownProps: Props) {
+export function mapStateToProps(state: GlobalState, ownProps: Props) {
     const license = getLicense(state);
     const config = getConfig(state);
     const showTermsOfService = shouldShowTermsOfService(state);
@@ -40,7 +41,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         isCurrentChannelManuallyUnread: isManuallyUnread(state, currentChannelId),
         mfaRequired: checkIfMFARequired(getCurrentUser(state), license, config, ownProps.match.url),
         showTermsOfService,
-        customProfileAttributesEnabled: getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true',
+        customProfileAttributesEnabled: isEnterpriseLicense(license) && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true',
     };
 }
 
