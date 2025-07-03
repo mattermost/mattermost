@@ -249,6 +249,14 @@ export function getThread(userId: string, teamId: string, threadId: string, exte
     };
 }
 
+export function getThreadForCurrentUser(teamId: string, threadId: string, extended = true): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const currentUserId = getCurrentUserId(getState());
+
+        return dispatch(getThread(currentUserId, teamId, threadId, extended));
+    };
+}
+
 export function handleAllMarkedRead(teamId: string) {
     return {
         type: ThreadTypes.ALL_TEAM_THREADS_READ,

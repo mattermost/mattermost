@@ -28,6 +28,7 @@ import type {OwnProps, PropsFromRedux} from './index';
 
 const BackstageController = makeAsyncComponent('BackstageController', lazy(() => import('components/backstage')));
 const Pluggable = makeAsyncPluggableComponent();
+const StandaloneThread = makeAsyncComponent('StandaloneThread', lazy(() => import('components/standalone_thread')));
 
 const WAKEUP_CHECK_INTERVAL = 30000; // 30 seconds
 const WAKEUP_THRESHOLD = 60000; // 60 seconds
@@ -235,7 +236,13 @@ function TeamController(props: Props) {
                     )}
                 />
             ))}
-            <ChannelController shouldRenderCenterChannel={initialChannelsLoaded && teamLoaded}/>
+            <Route
+                path={`/:team(${TEAM_NAME_PATH_PATTERN})/standalone/thread/:threadId`}
+                component={StandaloneThread}
+            />
+            <Route
+                render={() => <ChannelController shouldRenderCenterChannel={initialChannelsLoaded && teamLoaded}/>}
+            />
         </Switch>
     );
 }
