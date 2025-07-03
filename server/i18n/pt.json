@@ -182,5 +182,97 @@
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
     "translation": "Nodo dos Descritores de Chave do Provedor de Identidade em falta no XML."
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s atualizou o nome a exibir do canal de: %s para: %s"
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} desarquivou o canal."
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "O canal foi arquivado ou eliminado."
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[name@domain.com ...]"
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "cabeçalho"
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[texto]"
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Não é possível sair de um canal de mensagem direta."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v saiu do canal."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "A sua licença não suporta a moderação de canais"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[texto]"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Por favor, especifique um ou mais endereços de correio eletrónico válido"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "ausente"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s atualizou o cabeçalho do canal de: %s para: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s atualizou o cabeçalho do canal para: %s"
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v removido do canal."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "A sua licença não suporta a atualização do esquema de um canal"
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "A sua licença não suporta os pedidos da nuvem."
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "Os comandos foram desativados pelo administrador do sistema."
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Não é possível mover os canais de mensagem direta ou grupo"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Erro ao invalidar a cache"
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Não foi possível atualizar o canal."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Não tem permissão para atualizar o nome, nome a exibir, e a finalidade das mensagens diretas ou grupo."
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s removeu o cabeçalho do canal (era: %s)"
   }
 ]
