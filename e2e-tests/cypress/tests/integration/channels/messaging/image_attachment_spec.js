@@ -156,7 +156,7 @@ describe('Image attachment', () => {
     it('opens image preview window when small image is clicked', () => {
         const filename = 'small-image.png';
 
-        // # Start a fresh message 
+        // # Start a fresh message
         cy.uiGetPostTextBox().clear();
 
         // # Upload a file on center view

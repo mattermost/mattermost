@@ -20,13 +20,13 @@ describe('Messaging', () => {
 
     it('MM-T187 Inline markdown images open preview window', () => {
         const message = 'Hello ![test image](https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/image-small-height.png)';
-        
+
         // # Post the message using basic input approach that was working
         cy.get('input, textarea, [contenteditable]').first().should('be.visible').clear().type(message + '{enter}');
 
         // * Wait for the message to appear in the post content (not sr-only elements)
         cy.get('.post-message__text').contains('Hello', {timeout: 10000}).should('be.visible');
-        
+
         // * Check for the markdown inline image container
         cy.get('.markdown-inline-img__container', {timeout: 5000}).should('be.visible');
 
