@@ -10858,5 +10858,41 @@
   {
     "id": "app.user.update_active.license_user_limit.exceeded",
     "translation": "Kan gebruiker niet activeren. Server overschrijdt maximum aantal gelicentieerde gebruikers. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Ongeldig testtype: {{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Importeren van externe cluster is niet toegestaan"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Toegangscontroleservice niet beschikbaar. Kan gebruikers niet filteren voor kanaal met kenmerkengebaseerde toegangscontrole."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Maximum Bestandbackups van audit logs config mag niet negatief zijn."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Maximum Bestandsqueue van audit logs config moet groter zijn dan nul."
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Kan geen gastgebruikers uitnodigen voor dit kanaal omdat het toegangsbeperkingen heeft op basis van gebruikerskenmerken."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAPverbindingstest mislukt: Server: {{.Server}}:{{.Port}}, Verbindingsbeveiliging {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, Publieke certificaatssleutel {{.PublicCertFilename}}, BindGebruikersnaam: {{.BindUsername}}. Fout: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Maximum Bestandsleeftijd van audit logs config mag niet negatief zijn."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Maximale bestandsgrootte van audit logs config moet groter zijn dan nul."
   }
 ]
