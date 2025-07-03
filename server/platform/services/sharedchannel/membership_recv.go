@@ -149,7 +149,7 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 	}
 
 	// Use the app layer to add the user to the channel
-	// This ensures proper processing of all side effects
+	// Skip team member check (true) since we already handled team membership above
 	_, appErr := scs.app.AddUserToChannel(rctx, user, channel, true)
 	if appErr != nil {
 		// Skip "already added" errors
