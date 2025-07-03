@@ -7,7 +7,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {submitInteractiveDialog} from 'actions/integration_actions';
+import {submitInteractiveDialog, lookupInteractiveDialog} from 'actions/integration_actions';
 import {getEmojiMap} from 'selectors/emojis';
 
 import DialogRouter from 'components/dialog_router';
@@ -49,6 +49,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             submitInteractiveDialog,
+            lookupInteractiveDialog,
         }, dispatch),
     };
 }
