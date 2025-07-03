@@ -65,7 +65,7 @@
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
-    "translation": "Não pode eliminar uma confirmação depois de terem passados 54 minutos."
+    "translation": "Não pode eliminar uma confirmação depois de terem passados 5 minutos."
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
@@ -274,5 +274,293 @@
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
     "translation": "%s removeu o cabeçalho do canal (era: %s)"
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Erro ao recuperar o canal atual."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[texto]"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "O seu estado foi limpo."
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] ou limpar"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Definir ou limpar o seu estado"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Mostrar a mensagem da ajuda de Mattermost"
+  },
+  {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "Não tem as permissões apropriadas para criar uma nova mensagem de grupo."
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "ajuda"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost é uma plataforma de código aberto para uma comunicação segura, colaboração, e orquestração do trabalho entre ferramentas e equipas.\nMattermost contém duas ferramentas chave:\n\n**Canais** - Mantenha-se ligado com a sua equipa através de 1:1 e mensagem de grupo.\n**[Manuais](/playbooks)** - Crie e configure processos repetíveis para alcançar resultados específicos e previsíveis.\n\n[Veja a documentação e guias]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "Não tem permissões suficientes para adicionar {{.User}} no {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} adicionado ao canal {{.Channel}}."
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "mensagem"
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "~[canal]"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[ação]"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Nome da ligação segura"
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Um nome único para a ligação segura"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Adicionar/remover ligações seguras. Ações disponíveis: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Ligação segura | Nome a exibir | Id. da ligação | URL do Site | Equipa Predefinida | Convite aceite | On-line | Último ping | Eliminado |"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Sem ligações seguras."
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Não foi possível remover a ligação segura: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Remove uma ligação segura"
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "remover"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Erro para recuperar o canal atual."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Renomear o canal"
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "renomear"
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "O nome do canal deve ter {{.Length}} ou mais carateres."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Convide um utilizador para um canal"
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[nomedeutilizador]... ~[canal]..."
+  },
+  {
+    "id": "api.command_join.desc",
+    "translation": "Junte-se ao canal aberto"
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Sair do canal atual"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Terminar Sessão do Mattermost"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[texto]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "procurar"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Não tem as permissões apropriadas para renomear o canal."
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "many": "Não é possível encontrar os utilizadores: {{.Users}}",
+      "one": "Não é possível encontrar o utilizador: {{.Users}}",
+      "other": "Não é possível encontrar os utilizadores: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Nome de utilizador e/ou canal em falta."
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "sair"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "terminar sessão"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "silenciar"
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "código"
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Erro ao definir o estado."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Erro ao limpar o estado."
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "ocultar"
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "As hiperligações de imagem agora são ocultadas por predefinição"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "estado"
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "As hiperligações de imagem agora expandem por predefinição"
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Gerar uma hiperligação para transferir uma exportação."
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "expandir"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "mensagem"
+  },
+  {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "Erro para recuperar o canal atual."
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "convidar"
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} e {{.Others}} adicionados ao canal {{.Channel}}."
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "Ocorreu um erro enquanto aderia ao canal."
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "O comando das definições não é suportado no seu dispositivo."
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "O comando de procura não é suportado no seu dispositivo."
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Abrir a janela das Definições"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "definições"
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[nomedeutilizador]"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[ação]"
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'mensagem'"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[texto]"
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "O nome do canal deve ter {{.Length}} ou menos carateres."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Erro ao atualizar o canal atual."
+  },
+  {
+    "id": "api.command_kick.name",
+    "translation": "expulsar"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "eu"
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "abrir"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "Não tem permissão para convidar novos utilizadores para este servidor."
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "~[canal]"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "aderir"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[mensagem}"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "ligação segura"
   }
 ]
