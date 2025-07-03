@@ -273,26 +273,15 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         if (handleSmallImageContainer && this.state.isSmallImage) {
             const minSize = this.getContainerSize();
 
-            // For small images, container is at least minSize, but image is native/scaled size
-            const containerStyle = {
-                minWidth: minSize,
-                minHeight: minSize,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                maxWidth: '100%',
-                maxHeight: MAX_IMAGE_HEIGHT,
-            };
-
             return (
                 <div
                     className='small-image__container'
-                    style={containerStyle}
+                    style={{
+                        minWidth: minSize,
+                        minHeight: minSize,
+                    }}
                 >
-                    <figure
-                        className={classNames('image-loaded-container')}
-                        style={{margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%'}}
-                    >
+                    <figure className={classNames('image-loaded-container')}>
                         {image}
                     </figure>
                 </div>
