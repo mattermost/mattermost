@@ -229,6 +229,5 @@ describe('components/logged_in/LoggedIn', () => {
 
             expect(props.actions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
         });
-
     });
 });
