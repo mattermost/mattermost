@@ -412,7 +412,6 @@ describe('components/Root', () => {
             expect(Utils.applyTheme).not.toHaveBeenCalled();
         });
     });
-
 });
 
 describe('doesRouteBelongToTeamControllerRoutes', () => {

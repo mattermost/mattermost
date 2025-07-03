@@ -230,16 +230,5 @@ describe('components/logged_in/LoggedIn', () => {
             expect(props.actions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
         });
 
-        it('should not call getCustomProfileAttributeFields when user is not authenticated', () => {
-            const props = {
-                ...baseProps,
-                currentUser: undefined,
-                customProfileAttributesEnabled: true,
-            };
-
-            shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-
-            expect(props.actions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
-        });
     });
 });

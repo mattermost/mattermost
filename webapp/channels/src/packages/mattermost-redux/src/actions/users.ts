@@ -81,7 +81,6 @@ export function loadMe(): ActionFuncAsync<boolean> {
                 dispatch(getMyTeamMembers()),
             ]);
 
-
             const isCollapsedThreads = isCollapsedThreadsEnabled(getState());
             await dispatch(getMyTeamUnreads(isCollapsedThreads));
 
