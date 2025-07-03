@@ -62,8 +62,8 @@ describe('LoggedIn mapStateToProps', () => {
                         license: {
                             IsLicensed: 'false',
                         } as ClientLicense,
-                        featureFlags: {
-                            CustomProfileAttributes: 'true',
+                        config: {
+                            FeatureFlagCustomProfileAttributes: 'true',
                         },
                     },
                 },
@@ -80,9 +80,10 @@ describe('LoggedIn mapStateToProps', () => {
                     general: {
                         license: {
                             IsLicensed: 'true',
+                            SkuShortName: LicenseSkus.Enterprise,
                         } as ClientLicense,
-                        featureFlags: {
-                            CustomProfileAttributes: 'false',
+                        config: {
+                            FeatureFlagCustomProfileAttributes: 'false',
                         },
                     },
                 },
@@ -99,8 +100,9 @@ describe('LoggedIn mapStateToProps', () => {
                     general: {
                         license: {
                             IsLicensed: 'true',
+                            SkuShortName: LicenseSkus.Enterprise,
                         } as ClientLicense,
-                        featureFlags: {},
+                        config: {},
                     },
                 },
             });
@@ -118,8 +120,8 @@ describe('LoggedIn mapStateToProps', () => {
                             IsLicensed: 'true',
                             SkuShortName: LicenseSkus.Enterprise,
                         } as ClientLicense,
-                        featureFlags: {
-                            CustomProfileAttributes: 'true',
+                        config: {
+                            FeatureFlagCustomProfileAttributes: 'true',
                         },
                     },
                 },
@@ -135,8 +137,8 @@ describe('LoggedIn mapStateToProps', () => {
                 entities: {
                     general: {
                         license: {} as ClientLicense,
-                        featureFlags: {
-                            CustomProfileAttributes: 'true',
+                        config: {
+                            FeatureFlagCustomProfileAttributes: 'true',
                         },
                     },
                 },
@@ -157,8 +159,8 @@ describe('LoggedIn mapStateToProps', () => {
                             IsLicensed: 'true',
                             SkuShortName: LicenseSkus.Enterprise,
                         } as ClientLicense,
-                        featureFlags: {
-                            CustomProfileAttributes: 'true',
+                        config: {
+                            FeatureFlagCustomProfileAttributes: 'true',
                         },
                     },
                 },

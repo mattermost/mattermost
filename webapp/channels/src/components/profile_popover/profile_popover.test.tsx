@@ -386,6 +386,10 @@ describe('components/ProfilePopover', () => {
         });
 
         initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.license = {
+            IsLicensed: 'true',
+            SkuShortName: 'enterprise',
+        };
         initialState.entities!.general!.customProfileAttributes = {
             123: {id: '123', name: 'Rank', type: 'text'},
             456: {id: '456', name: 'CO', type: 'text'},
@@ -411,6 +415,10 @@ describe('components/ProfilePopover', () => {
         });
 
         initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.license = {
+            IsLicensed: 'true',
+            SkuShortName: 'enterprise',
+        };
         initialState.entities!.general!.customProfileAttributes = {
             123: {
                 id: '123',
@@ -441,6 +449,10 @@ describe('components/ProfilePopover', () => {
         });
 
         initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.license = {
+            IsLicensed: 'true',
+            SkuShortName: 'enterprise',
+        };
         initialState.entities!.general!.customProfileAttributes = {
             123: {
                 id: '123',
@@ -466,6 +478,10 @@ describe('components/ProfilePopover', () => {
         const [props, initialState] = getBasePropsAndState();
 
         initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.license = {
+            IsLicensed: 'true',
+            SkuShortName: 'enterprise',
+        };
         initialState.entities!.general!.customProfileAttributes = {
             123: {id: '123', name: 'Rank', type: 'text'},
             456: {id: '456', name: 'CO', type: 'text'},
