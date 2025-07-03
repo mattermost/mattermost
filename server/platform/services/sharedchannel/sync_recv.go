@@ -299,7 +299,6 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	if euser == nil {
 		// new user.  Make sure the remoteID is correct and insert the record
 		user.RemoteId = model.NewPointer(rc.RemoteId)
-
 		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
 			return nil, err
 		}
