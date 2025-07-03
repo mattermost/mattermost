@@ -52,8 +52,14 @@ export function cleanupSystemThemeDetection(): void {
             // Modern browsers
             darkModeMediaQuery.removeEventListener('change', applySystemThemeIfNeeded);
         } catch (e) {
-            // Fallback for older browsers
-            darkModeMediaQuery.removeListener(applySystemThemeIfNeeded);
+            // Fallback for older browsers that support the deprecated removeListener method
+            try {
+                if (typeof darkModeMediaQuery.removeListener === 'function') {
+                    darkModeMediaQuery.removeListener(applySystemThemeIfNeeded);
+                }
+            } catch (fallbackError) {
+                // Ignore errors and avoid theme light/dark mode switching in older browsers.
+            }
         }
 
         isListenerInitialized = false;
