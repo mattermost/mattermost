@@ -825,7 +825,11 @@ func TestIsValidLookupURL(t *testing.T) {
 		},
 		"localhost HTTP": {
 			url:      "http://localhost:8080/api/lookup",
-			expected: false,
+			expected: true,
+		},
+		"127.0.0.1 HTTP": {
+			url:      "http://127.0.0.1:8080/api/lookup",
+			expected: true,
 		},
 	}
 
