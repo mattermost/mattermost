@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -20,130 +20,118 @@ type Props = {
     getContent?: (code: string) => void;
 };
 
-type State = {
-    code: string;
-    lang: string;
-    highlighted: string;
-    loading: boolean;
-    success: boolean;
-    prevFileUrl?: string;
+export function supports(fileInfo: FileInfo | LinkInfo) {
+    return Boolean(SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension));
 }
 
-export default class CodePreview extends React.PureComponent<Props, State> {
-    constructor(props: Props) {
-        super(props);
+const CodePreview = ({
+    fileInfo,
+    fileUrl,
+    getContent,
+}: Props) => {
+    const [codeInfo, setCodeInfo] = useState({
+        code: '',
+        lang: '',
+        highlighted: '',
+    });
 
-        this.state = {
-            code: '',
-            lang: '',
-            highlighted: '',
-            loading: true,
-            success: true,
-        };
+    const [status, setStatus] = useState({loading: true, success: true});
+    const [prevFileUrl, setPrevFileUrl] = useState<string | undefined>();
+
+    if (fileUrl !== prevFileUrl) {
+        const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension);
+
+        if (!usedLanguage || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
+            setCodeInfo({...codeInfo, code: '', lang: ''});
+
+            setStatus({loading: false, success: false});
+        } else {
+            setCodeInfo({...codeInfo, code: '', lang: usedLanguage});
+
+            setStatus({...status, loading: true});
+        }
+
+        setPrevFileUrl(fileUrl);
     }
 
-    componentDidMount() {
-        this.getCode();
-    }
+    // This 'useEffect' handles the 'componentDidMount' and 'componentDidUpdate' (because
+    // 'componentDidUpdate' also calls 'getCode()' if 'fileUrl' changes but that's already passed
+    // in the dependency array, so 'getCode()' will be called if 'fileUrl' prop changes).
+    useEffect(() => {
+        const handleReceivedCode = async (data: string | Node) => {
+            let code = data as string;
+            const Data = data as Node;
 
-    static getDerivedStateFromProps(props: Props, state: State) {
-        if (props.fileUrl !== state.prevFileUrl) {
-            const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(props.fileInfo.extension);
-
-            if (!usedLanguage || props.fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
-                return {
-                    code: '',
-                    lang: '',
-                    loading: false,
-                    success: false,
-                    prevFileUrl: props.fileUrl,
-                };
+            if (Data.nodeName === '#document') {
+                code = new XMLSerializer().serializeToString(Data);
             }
 
-            return {
-                code: '',
-                lang: usedLanguage,
-                loading: true,
-                prevFileUrl: props.fileUrl,
-            };
-        }
-        return null;
-    }
+            getContent?.(code);
 
-    componentDidUpdate(prevProps: Props) {
-        if (this.props.fileUrl !== prevProps.fileUrl) {
-            this.getCode();
-        }
-    }
+            setCodeInfo({
+                ...codeInfo,
+                code,
+                highlighted: await SyntaxHighlighting.highlight(codeInfo.lang, code),
+            });
 
-    getCode = async () => {
-        if (!this.state.lang || this.props.fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
-            return;
-        }
-        try {
-            const data = await fetch(this.props.fileUrl);
-            const text = await data.text();
-            this.handleReceivedCode(text);
-        } catch (e) {
-            this.handleReceivedError();
-        }
-    };
+            setStatus({loading: false, success: true});
+        };
 
-    handleReceivedCode = async (data: string | Node) => {
-        let code = data as string;
-        const Data = data as Node;
-        if (Data.nodeName === '#document') {
-            code = new XMLSerializer().serializeToString(Data);
-        }
-        this.props.getContent?.(code);
-        this.setState({
-            code,
-            highlighted: await SyntaxHighlighting.highlight(this.state.lang, code),
-            loading: false,
-            success: true,
-        });
-    };
+        const handleReceivedError = () => {
+            setStatus({loading: false, success: false});
+        };
 
-    handleReceivedError = () => {
-        this.setState({loading: false, success: false});
-    };
+        const getCode = async () => {
+            if (
+                !codeInfo.lang ||
+                fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE
+            ) {
+                return;
+            }
+            try {
+                const data = await fetch(fileUrl);
+                const text = await data.text();
+                handleReceivedCode(text);
+            } catch (e) {
+                handleReceivedError();
+            }
+        };
 
-    static supports(fileInfo: FileInfo | LinkInfo) {
-        return Boolean(SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension));
-    }
+        getCode();
+    }, [codeInfo, fileInfo.size, fileUrl, getContent]);
 
-    render() {
-        if (this.state.loading) {
-            return (
-                <div className='view-image__loading'>
-                    <LoadingSpinner/>
-                </div>
-            );
-        }
-
-        if (!this.state.success) {
-            return (
-                <FileInfoPreview
-                    fileInfo={this.props.fileInfo}
-                    fileUrl={this.props.fileUrl}
-                />
-            );
-        }
-
-        const language = SyntaxHighlighting.getLanguageName(this.state.lang);
-
+    if (status.loading) {
         return (
-            <div className='post-code code-preview'>
-                <span className='post-code__language'>
-                    {`${this.props.fileInfo.name} - ${language}`}
-                </span>
-                <div className='hljs'>
-                    <div className='post-code__line-numbers'>
-                        {SyntaxHighlighting.renderLineNumbers(this.state.code)}
-                    </div>
-                    <code dangerouslySetInnerHTML={{__html: this.state.highlighted}}/>
-                </div>
+            <div className='view-image__loading'>
+                <LoadingSpinner/>
             </div>
         );
     }
-}
+
+    if (status.success) {
+        return (
+            <FileInfoPreview
+                fileInfo={fileInfo}
+                fileUrl={fileUrl}
+            />
+        );
+    }
+
+    const language = SyntaxHighlighting.getLanguageName(codeInfo.lang);
+
+    return (
+        <div className='post-code code-preview'>
+            <span className='post-code__language'>
+                {`${fileInfo.name} - ${language}`}
+            </span>
+            <div className='hljs'>
+                <div className='post-code__line-numbers'>
+                    {SyntaxHighlighting.renderLineNumbers(codeInfo.code)}
+                </div>
+                <code dangerouslySetInnerHTML={{__html: codeInfo.highlighted}}/>
+            </div>
+        </div>
+    );
+};
+
+export default React.memo(CodePreview);
