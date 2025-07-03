@@ -341,7 +341,7 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 	})
 }
 
-func TestUnAssignPoliciesFromChannels(t *testing.T) {
+func TestUnassignPoliciesFromChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

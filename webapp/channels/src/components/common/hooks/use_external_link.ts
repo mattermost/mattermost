@@ -21,6 +21,9 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
     const userId = useSelector(getCurrentUserId);
     const config = useSelector(getConfig);
     const license = useSelector(getLicense);
+    const isCloudPreview = useSelector((state: GlobalState) => {
+        return state.entities?.cloud?.subscription?.is_cloud_preview === true;
+    });
     const telemetryId = useSelector((state: GlobalState) => getConfig(state)?.TelemetryId || '');
     const isCloud = useSelector((state: GlobalState) => getLicense(state)?.Cloud === 'true');
 
@@ -38,11 +41,19 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
         // Determine server version
         const serverVersion = config?.BuildNumber === 'dev' ? config.BuildNumber : (config?.Version || '');
 
+        // Determine utm_medium based on cloud preview, cloud, or regular
+        let utmMedium = 'in-product';
+        if (isCloudPreview) {
+            utmMedium = 'in-product-preview';
+        } else if (isCloud) {
+            utmMedium = 'in-product-cloud';
+        }
+
         const existingURLSearchParams = parsedUrl.searchParams;
         const existingQueryParamsObj = Object.fromEntries(existingURLSearchParams.entries());
         const queryParams = {
             utm_source: 'mattermost',
-            utm_medium: isCloud ? 'in-product-cloud' : 'in-product',
+            utm_medium: utmMedium,
             utm_content: location,
             uid: userId,
             sid: telemetryId,
@@ -54,5 +65,5 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
         parsedUrl.search = Object.entries(queryParams).map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join('&');
 
         return [parsedUrl.toString(), queryParams];
-    }, [href, isCloud, location, overwriteQueryParams, telemetryId, userId, config, license]);
+    }, [href, isCloud, isCloudPreview, location, overwriteQueryParams, telemetryId, userId, config, license]);
 }
