@@ -140,7 +140,7 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 		}
 	}
 
-	// User was found via direct lookup, need to add to team/channel manually
+	// Check user permissions for private channels
 	if channel.Type == model.ChannelTypePrivate {
 		// Add user to team if needed for private channel
 		if appErr := scs.app.AddUserToTeamByTeamId(rctx, channel.TeamId, user); appErr != nil {
@@ -148,7 +148,8 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 		}
 	}
 
-	// Use the standard method - ACP checks now handle remote users gracefully
+	// Use the app layer to add the user to the channel
+	// This ensures proper processing of all side effects
 	_, appErr := scs.app.AddUserToChannel(rctx, user, channel, true)
 	if appErr != nil {
 		// Skip "already added" errors
@@ -156,6 +157,7 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 			!strings.Contains(appErr.Error(), "channel_member_exists") {
 			return fmt.Errorf("cannot add user to channel: %w", appErr)
 		}
+		// User is already in the channel, which is fine
 	}
 
 	// Update the sync status
