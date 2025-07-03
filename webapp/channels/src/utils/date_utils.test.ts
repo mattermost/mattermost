@@ -41,8 +41,15 @@ describe('date_utils', () => {
         });
 
         it('should return null for invalid date', () => {
+            // Suppress moment.js deprecation warning for this test
+            const originalWarn = console.warn;
+            console.warn = jest.fn();
+
             const result = stringToMoment('invalid-date', testTimezone);
             expect(result).toBeNull();
+
+            // Restore console.warn
+            console.warn = originalWarn;
         });
 
         it('should return null for null input', () => {

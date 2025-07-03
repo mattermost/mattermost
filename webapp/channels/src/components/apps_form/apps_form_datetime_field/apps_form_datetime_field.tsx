@@ -11,7 +11,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import DateTimeInput, {getRoundedTime} from 'components/datetime_input/datetime_input';
 
-import {stringToMoment, momentToString, validateDateRange} from 'utils/date_utils';
+import {stringToMoment, momentToString, validateDateRange, getDefaultTime, combineDateAndTime} from 'utils/date_utils';
 
 type Props = {
     field: AppField;
@@ -30,9 +30,9 @@ const AppsFormDateTimeField: React.FC<Props> = ({
 }) => {
     const timezone = useSelector(getCurrentTimezone);
 
-    // Set default value to current time if no value is provided
+    // Set default value to current time if no value is provided and field is required
     useEffect(() => {
-        if (!value) {
+        if (!value && field.is_required) {
             // Use current time rounded to next interval
             const currentTime = timezone ? moment.tz(timezone) : moment();
             const timePickerInterval = field.time_interval || 60; // Default to 60 minutes
@@ -40,7 +40,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
             const newValue = momentToString(defaultMoment, true);
             onChange(field.name, newValue);
         }
-    }, [value, field.name, field.time_interval, onChange, timezone]);
+    }, [value, field.name, field.time_interval, field.is_required, onChange, timezone]);
 
     const momentValue = useMemo(() => {
         if (!value) {
@@ -74,7 +74,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
             )}
 
             <div className={`apps-form-datetime-input ${hasError || validationError ? 'has-error' : ''}`}>
-                {momentValue && (
+                {momentValue ? (
                     <DateTimeInput
                         time={momentValue}
                         handleChange={handleDateTimeChange}
@@ -82,6 +82,27 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                         relativeDate={true}
                         timePickerInterval={timePickerInterval}
                         allowPastDates={true}
+                    />
+                ) : (
+                    <input
+                        type='text'
+                        placeholder={field.hint || 'Select date and time'}
+                        readOnly={field.readonly}
+                        disabled={field.readonly}
+                        onClick={() => {
+                            if (!field.readonly) {
+                                // Initialize with today's date and default time
+                                const today = stringToMoment('today', timezone);
+                                const defaultTime = getDefaultTime(field.default_time);
+                                const newValue = combineDateAndTime(
+                                    today?.format('YYYY-MM-DD') || moment().format('YYYY-MM-DD'),
+                                    defaultTime,
+                                    timezone,
+                                );
+                                onChange(field.name, newValue);
+                            }
+                        }}
+                        className='form-control'
                     />
                 )}
             </div>

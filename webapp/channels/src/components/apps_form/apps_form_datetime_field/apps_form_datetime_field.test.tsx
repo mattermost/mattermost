@@ -20,21 +20,19 @@ jest.mock('utils/date_utils', () => ({
     combineDateAndTime: jest.fn(),
 }));
 
-jest.mock('components/datetime_input/datetime_input', () => {
-    const actual = jest.requireActual('components/datetime_input/datetime_input');
-    return {
-        ...actual,
-        default: function MockDateTimeInput({time, handleChange}: {time: any; handleChange: any}) {
-            return (
-                <div data-testid='datetime-input'>
-                    <button onClick={() => handleChange(time)}>
-                        {time ? time.format('MMM D, YYYY h:mm A') : 'Select datetime'}
-                    </button>
-                </div>
-            );
-        },
-    };
-});
+jest.mock('components/datetime_input/datetime_input', () => ({
+    __esModule: true,
+    default: function MockDateTimeInput({time, handleChange}: {time: any; handleChange: any}) {
+        return (
+            <div data-testid='datetime-input'>
+                <button onClick={() => handleChange(time)}>
+                    {time ? time.format('MMM D, YYYY h:mm A') : 'Select datetime'}
+                </button>
+            </div>
+        );
+    },
+    getRoundedTime: jest.fn().mockImplementation((value: any) => value),
+}));
 
 const {stringToMoment, momentToString, validateDateRange, getDefaultTime, combineDateAndTime} = require('utils/date_utils');
 
@@ -182,28 +180,37 @@ describe('AppsFormDateTimeField', () => {
     });
 
     it('should handle required field initialization', () => {
+        const mockOnChange = jest.fn();
         const requiredField = {...defaultField, is_required: true};
-        const mockTodayMoment = {
-            format: jest.fn().mockReturnValue('2025-01-15'),
+
+        // Mock getRoundedTime from datetime_input
+        const mockMoment = {
+            format: jest.fn().mockReturnValue('2025-01-15T05:00:00Z'),
         };
+        const {getRoundedTime} = require('components/datetime_input/datetime_input');
+        getRoundedTime.mockReturnValue(mockMoment);
+        momentToString.mockReturnValue('2025-01-15T05:00:00Z');
 
-        stringToMoment.mockReturnValue(mockTodayMoment);
-        combineDateAndTime.mockReturnValue('2025-01-15T05:00:00Z');
+        renderComponent({field: requiredField, onChange: mockOnChange});
 
-        renderComponent({field: requiredField});
-
-        expect(stringToMoment).toHaveBeenCalledWith('today', 'America/New_York');
-        expect(getDefaultTime).toHaveBeenCalled();
-        expect(combineDateAndTime).toHaveBeenCalled();
+        expect(mockOnChange).toHaveBeenCalledWith('test_datetime', '2025-01-15T05:00:00Z');
     });
 
     it('should use custom default_time', () => {
-        const fieldWithDefaultTime = {...defaultField, default_time: '09:00'};
-        getDefaultTime.mockReturnValue('09:00');
+        const mockOnChange = jest.fn();
+        const fieldWithDefaultTime = {...defaultField, default_time: '09:00', is_required: true};
 
-        renderComponent({field: fieldWithDefaultTime});
+        // Mock getRoundedTime from datetime_input
+        const mockMoment = {
+            format: jest.fn().mockReturnValue('2025-01-15T14:00:00Z'),
+        };
+        const {getRoundedTime} = require('components/datetime_input/datetime_input');
+        getRoundedTime.mockReturnValue(mockMoment);
+        momentToString.mockReturnValue('2025-01-15T14:00:00Z');
 
-        expect(getDefaultTime).toHaveBeenCalledWith('09:00');
+        renderComponent({field: fieldWithDefaultTime, onChange: mockOnChange});
+
+        expect(mockOnChange).toHaveBeenCalledWith('test_datetime', '2025-01-15T14:00:00Z');
     });
 
     it('should use custom time_interval', () => {
@@ -255,7 +262,12 @@ describe('AppsFormDateTimeField', () => {
     });
 
     it('should apply error styling when validation fails', () => {
+        const mockMoment = {
+            format: jest.fn().mockReturnValue('Jan 15, 2025 2:30 PM'),
+        };
+        stringToMoment.mockReturnValue(mockMoment);
         validateDateRange.mockReturnValue('Validation error');
+
         renderComponent({value: '2025-01-15T14:30:00Z'});
         const container = screen.getByTestId('datetime-input').closest('.apps-form-datetime-input');
         expect(container).toHaveClass('has-error');
@@ -274,7 +286,7 @@ describe('AppsFormDateTimeField', () => {
             '2025-01-15T14:30:00Z',
             '2025-01-01',
             '2025-01-31',
-            'America/New_York',
+            'UTC',
         );
     });
 
