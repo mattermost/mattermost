@@ -8,8 +8,6 @@ import AccordionToggleIcon from 'components/widgets/icons/accordion_toggle_icon'
 
 import AdminPanel from './admin_panel';
 
-import './admin_panel_togglable.scss';
-
 type Props = {
     children?: React.ReactNode;
     className: string;
