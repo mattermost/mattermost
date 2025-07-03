@@ -403,6 +403,10 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 return AppFieldTypes.BOOL;
             case 'radio':
                 return AppFieldTypes.RADIO;
+            case 'date':
+                return AppFieldTypes.DATE;
+            case 'datetime':
+                return AppFieldTypes.DATETIME;
             default:
                 this.logWarn('Unknown dialog element type encountered', {
                     elementType: element.type,
@@ -451,6 +455,13 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             case 'text':
             case 'textarea': {
                 // Match original interactive dialog: e.default ?? null
+                const defaultValue = element.default ?? null;
+                return defaultValue === null ? null : this.sanitizeString(defaultValue);
+            }
+
+            case 'date':
+            case 'datetime': {
+                // Date and datetime values should be passed through as strings (ISO format)
                 const defaultValue = element.default ?? null;
                 return defaultValue === null ? null : this.sanitizeString(defaultValue);
             }
@@ -704,6 +715,12 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 } else {
                     submission[element.name] = this.sanitizeString(value);
                 }
+                break;
+
+            case 'date':
+            case 'datetime':
+                // Date and datetime values should be passed through as strings (ISO format)
+                submission[element.name] = this.sanitizeString(value);
                 break;
 
             default:

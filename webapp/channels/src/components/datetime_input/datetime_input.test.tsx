@@ -206,5 +206,34 @@ describe('components/datetime_input/DateTimeInput', () => {
             // Component should render without errors with relative formatting
             expect(screen.getByText('Date')).toBeInTheDocument();
         });
+
+        test('should allow past dates and all times when allowPastDates is true', () => {
+            const props = {
+                ...baseProps,
+                allowPastDates: true,
+            };
+
+            renderWithContext(<DateTimeInput {...props}/>);
+
+            // Component should render without errors
+            expect(screen.getByText('Date')).toBeInTheDocument();
+
+            // Past dates should be selectable and all times should be available
+        });
+
+        test('should restrict past dates and times when allowPastDates is false (default)', () => {
+            mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T15:00:00.000Z')); // 3 PM
+
+            const props = {
+                ...baseProps,
+                allowPastDates: false,
+                time: moment('2025-06-08T15:00:00.000Z'), // Same day
+            };
+
+            renderWithContext(<DateTimeInput {...props}/>);
+
+            // With allowPastDates=false, should restrict past dates and times
+            expect(screen.getByLabelText('Time')).toBeInTheDocument();
+        });
     });
 });

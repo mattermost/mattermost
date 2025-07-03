@@ -541,6 +541,14 @@ func (e *DialogElement) IsValid() error {
 			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
 		}
 
+	case "date":
+		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
+		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
+
+	case "datetime":
+		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
+		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
+
 	default:
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid element type: %q", e.Type))
 	}
