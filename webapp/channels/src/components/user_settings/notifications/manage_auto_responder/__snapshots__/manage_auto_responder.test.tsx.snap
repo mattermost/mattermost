@@ -161,7 +161,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             <button
               className="btn btn-tertiary"
               id="cancelSetting"
-              onClick={[Function]}
+              onMouseDown={[Function]}
             >
               <FormattedMessage
                 defaultMessage="Cancel"
@@ -414,7 +414,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             <button
               className="btn btn-tertiary"
               id="cancelSetting"
-              onClick={[Function]}
+              onMouseDown={[Function]}
             >
               <FormattedMessage
                 defaultMessage="Cancel"
