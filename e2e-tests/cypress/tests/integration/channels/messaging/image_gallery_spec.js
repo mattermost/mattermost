@@ -33,7 +33,7 @@ describe('Image Gallery', () => {
         });
     });
 
-    it('MM-T1798 Gallery grid layout with multiple images', () => {
+    it('Gallery grid layout with multiple images', () => {
         // Ensure we're in a clean state before starting the test
         cy.get('#channelHeaderTitle', {timeout: 30000}).should('be.visible');
         cy.get('#post_textbox', {timeout: 30000}).should('be.visible');
@@ -108,7 +108,7 @@ describe('Image Gallery', () => {
         });
     });
 
-    it('MM-T1799 Gallery with mixed content types', () => {
+    it('Gallery with mixed content types', () => {
         // Ensure we're in a clean state before starting the test
         cy.get('#channelHeaderTitle', {timeout: 30000}).should('be.visible');
         cy.get('#post_textbox', {timeout: 30000}).should('be.visible');
