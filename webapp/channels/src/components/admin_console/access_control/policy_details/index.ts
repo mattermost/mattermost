@@ -5,9 +5,12 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {ServiceEnvironment} from '@mattermost/types/config';
+
 import {getAccessControlPolicy as fetchPolicy, createAccessControlPolicy as createPolicy, deleteAccessControlPolicy as deletePolicy, searchAccessControlPolicyChannels as searchChannels, assignChannelsToAccessControlPolicy, unassignChannelsFromAccessControlPolicy, getAccessControlFields, updateAccessControlPolicyActive, getVisualAST} from 'mattermost-redux/actions/access_control';
 import {createJob} from 'mattermost-redux/actions/jobs';
 import {getAccessControlPolicy as getPolicy} from 'mattermost-redux/selectors/entities/access_control';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
@@ -26,9 +29,11 @@ type OwnProps = {
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const policyId = ownProps.match.params.policy_id;
     const policy = getPolicy(state, policyId);
+    const config = getConfig(state);
     return {
         policy,
         policyId,
+        serviceEnvironment: config.ServiceEnvironment as ServiceEnvironment,
     };
 }
 
