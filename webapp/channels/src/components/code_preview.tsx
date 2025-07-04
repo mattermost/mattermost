@@ -54,9 +54,6 @@ const CodePreview = ({
         setPrevFileUrl(fileUrl);
     }
 
-    // This 'useEffect' handles the 'componentDidMount' and 'componentDidUpdate' (because
-    // 'componentDidUpdate' also calls 'getCode()' if 'fileUrl' changes but that's already passed
-    // in the dependency array, so 'getCode()' will be called if 'fileUrl' prop changes).
     useEffect(() => {
         const handleReceivedCode = async (data: string | Node) => {
             let code = data as string;
