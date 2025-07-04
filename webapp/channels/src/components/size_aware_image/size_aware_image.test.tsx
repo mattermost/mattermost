@@ -216,7 +216,7 @@ describe('components/SizeAwareImage', () => {
 
         const imageUtilityButtons = wrapper.find('injectIntl(ImageUtilityButtons)');
         expect(imageUtilityButtons).toHaveLength(1);
-        
+
         const onCopyLink = imageUtilityButtons.prop('onCopyLink') as () => void;
         onCopyLink();
         expect(wrapper.state('linkCopyInProgress')).toBe(true);
@@ -235,7 +235,7 @@ describe('components/SizeAwareImage', () => {
         expect(imageUtilityButtons).toHaveLength(1);
         expect(imageUtilityButtons.prop('enablePublicLink')).toBe(false);
         expect(imageUtilityButtons.prop('isInternalImage')).toBe(true);
-        
+
         const enablePublicLink = imageUtilityButtons.prop('enablePublicLink') as boolean;
         const isInternalImage = imageUtilityButtons.prop('isInternalImage') as boolean;
         const shouldShowCopyLink = enablePublicLink || !isInternalImage;
@@ -316,11 +316,11 @@ describe('components/SizeAwareImage', () => {
         expect(imageUtilityButtons.prop('isSmallImage')).toBe(true);
         expect(imageUtilityButtons.prop('imageWidth')).toBe(80);
         expect(imageUtilityButtons.prop('handleSmallImageContainer')).toBe(true);
-        
+
         const isSmallImage = imageUtilityButtons.prop('isSmallImage') as boolean;
         const imageWidth = imageUtilityButtons.prop('imageWidth') as number;
         const handleSmallImageContainer = imageUtilityButtons.prop('handleSmallImageContainer') as boolean;
-        
+
         expect(handleSmallImageContainer && isSmallImage).toBe(true);
         expect(imageWidth < MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS).toBe(true);
     });
