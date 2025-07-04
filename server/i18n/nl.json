@@ -10894,5 +10894,17 @@
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
     "translation": "Maximale bestandsgrootte van audit logs config moet groter zijn dan nul."
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Gedeelde Kanalen Service is ingeschakeld maar niet actief."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "Als het loggen van auditbestanden is ingeschakeld, moet er een bestandsnaam worden opgegeven."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "De bestandsnaam mag geen directory zijn."
   }
 ]
