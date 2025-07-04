@@ -265,7 +265,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 onLoad={this.handleLoad}
                 style={{
                     ...conditionalSVGStyleAttribute,
-                    objectFit: 'cover',
                 }}
             />
         );

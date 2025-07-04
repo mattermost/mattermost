@@ -153,14 +153,14 @@
                     width: auto;
                     max-width: 100%;
                     height: auto;
-                    object-fit: contain;
+                    object-fit: cover;
 
                     &.small-image--inside-container {
                         width: auto;
                         max-width: 100%;
                         height: auto;
                         max-height: 100%;
-                        object-fit: contain;
+                        object-fit: cover;
                     }
                 }
             }
