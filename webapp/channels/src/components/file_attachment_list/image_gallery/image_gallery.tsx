@@ -382,6 +382,7 @@ const ImageGallery = (props: Props) => {
                 <button
                     ref={toggleButtonRef}
                     className='image-gallery__toggle'
+                    data-testid='image-gallery__toggle'
                     onClick={toggleGallery}
                     aria-expanded={!isCollapsed}
                     aria-describedby={`${imageCountId} ${galleryDescriptionId}`}
@@ -426,6 +427,7 @@ const ImageGallery = (props: Props) => {
                 className={classNames('image-gallery__body', {
                     collapsed: isCollapsed,
                 })}
+                data-testid='image-gallery__body'
                 role='application'
                 aria-label={formatMessage(
                     {id: 'image_gallery.list_label', defaultMessage: 'Image gallery with {count} images'},

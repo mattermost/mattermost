@@ -67,6 +67,7 @@ const ImageGalleryItem = ({
                 'image-gallery__item--small': isSmall,
                 'image-gallery__item--focused': isFocused,
             })}
+            data-testid='image-gallery__item'
             style={itemStyle}
             role='listitem'
             tabIndex={0}
