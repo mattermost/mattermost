@@ -36,7 +36,6 @@ export interface Props extends PropsFromRedux {
     isEmbedVisible?: boolean;
     isInPermalink?: boolean;
     disableActions?: boolean;
-    handleImageClick?: () => void;
     smallImageThreshold?: number;
     isGallery?: boolean;
     actions: {
@@ -128,13 +127,6 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
     handleImageClick = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLDivElement | HTMLImageElement>)) => {
         e.preventDefault();
 
-        // If a parent handleImageClick is provided, use it instead of opening the modal ourselves
-        if (this.props.handleImageClick) {
-            this.props.handleImageClick();
-            return;
-        }
-
-        // Default behavior: open modal with this component's logic
         this.props.actions.openModal({
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
             dialogType: FilePreviewModal,

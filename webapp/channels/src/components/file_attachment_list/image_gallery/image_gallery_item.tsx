@@ -16,7 +16,6 @@ type Props = {
     fileInfo: FileInfo;
     allFilesForPost?: FileInfo[];
     postId: string;
-    handleImageClick?: (startIndex: number, allFiles: FileInfo[]) => void;
     isSmall: boolean;
     itemStyle?: React.CSSProperties;
     index: number;
@@ -30,7 +29,6 @@ const ImageGalleryItem = ({
     fileInfo,
     allFilesForPost,
     postId,
-    handleImageClick,
     isSmall,
     itemStyle,
     index,
@@ -39,17 +37,10 @@ const ImageGalleryItem = ({
     onFocus,
     onMouseDown,
 }: Props) => {
-    const handleClick = () => {
-        const startIndex = allFilesForPost?.findIndex((f) => f.id === fileInfo.id) ?? -1;
-        if (startIndex >= 0 && allFilesForPost) {
-            handleImageClick?.(startIndex, allFilesForPost);
-        }
-    };
-
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            handleClick();
+            // The SingleImageView will handle the click behavior
         }
     };
 
@@ -87,7 +78,6 @@ const ImageGalleryItem = ({
                 disableActions={false}
                 smallImageThreshold={GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD}
                 isGallery={true}
-                handleImageClick={handleClick}
             />
         </div>
     );

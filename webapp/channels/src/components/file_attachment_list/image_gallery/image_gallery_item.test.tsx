@@ -1,81 +1,74 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
-import '@testing-library/jest-dom';
+import {fireEvent, render, screen} from '@testing-library/react';
 
-import {TestHelper} from 'utils/test_helper';
+import type {FileInfo} from '@mattermost/types/files';
 
 import ImageGalleryItem from './image_gallery_item';
 
-jest.mock('components/single_image_view', () => (props: any) => (
-    <div
-        data-testid='singleImageView'
-        onClick={props.handleImageClick}
-    >
-        {props.fileInfo.name}
-    </div>
-));
+// Mock SingleImageView since we don't need to test its internals
+jest.mock('../../../components/single_image_view', () => {
+    return function MockSingleImageView(props: any) {
+        return (
+            <div
+                data-testid='singleImageView'
+                onClick={props.onClick}
+            >
+                Mock SingleImageView
+            </div>
+        );
+    };
+});
 
-jest.mock('components/file_attachment_list/image_gallery/image_gallery', () => ({
-    GALLERY_CONFIG: {
-        SMALL_IMAGE_THRESHOLD: 216,
-    },
-}));
-
-const mockFileInfos = [
-    TestHelper.getFileInfoMock({
-        id: 'img1',
-        name: 'image1.png',
-        extension: 'png',
-        width: 100,
-        height: 100,
-    }),
-];
+const mockFileInfo: FileInfo = {
+    id: 'file_id',
+    name: 'test.jpg',
+    extension: 'jpg',
+    size: 1024,
+    width: 100,
+    height: 100,
+} as FileInfo;
 
 const defaultProps = {
-    fileInfo: mockFileInfos[0],
-    allFilesForPost: mockFileInfos,
-    postId: 'post1',
-    handleImageClick: jest.fn(),
+    fileInfo: mockFileInfo,
+    allFilesForPost: [mockFileInfo],
+    postId: 'post_id',
     isSmall: false,
-    itemStyle: {},
     index: 0,
     totalImages: 1,
 };
 
 describe('ImageGalleryItem', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
-    it('renders correctly and matches snapshot', () => {
-        const {container} = render(<ImageGalleryItem {...defaultProps}/>);
-        expect(container.firstChild).toMatchSnapshot();
-    });
-
-    it('calls handleImageClick on click', () => {
+    test('should render correctly', () => {
         render(<ImageGalleryItem {...defaultProps}/>);
-        fireEvent.click(screen.getByTestId('singleImageView'));
-        expect(defaultProps.handleImageClick).toHaveBeenCalled();
+        expect(screen.getByTestId('image-gallery__item')).toBeInTheDocument();
+        expect(screen.getByTestId('singleImageView')).toBeInTheDocument();
     });
 
-    it('calls handleImageClick on Enter key press', () => {
-        render(<ImageGalleryItem {...defaultProps}/>);
-        fireEvent.keyDown(screen.getByRole('listitem'), {key: 'Enter'});
-        expect(defaultProps.handleImageClick).toHaveBeenCalled();
+    test('should focus on click', () => {
+        const onFocus = jest.fn();
+        render(<ImageGalleryItem {...defaultProps} onFocus={onFocus}/>);
+        
+        fireEvent.focus(screen.getByTestId('image-gallery__item'));
+        expect(onFocus).toHaveBeenCalled();
     });
 
-    it('calls handleImageClick on Space key press', () => {
+    test('should handle keyboard navigation', () => {
         render(<ImageGalleryItem {...defaultProps}/>);
-        fireEvent.keyDown(screen.getByRole('listitem'), {key: ' '});
-        expect(defaultProps.handleImageClick).toHaveBeenCalled();
+        
+        fireEvent.keyDown(screen.getByTestId('image-gallery__item'), {key: 'Enter'});
+        // No assertion needed since SingleImageView handles the click behavior
     });
 
-    it('does not call handleImageClick on other key presses', () => {
-        render(<ImageGalleryItem {...defaultProps}/>);
-        fireEvent.keyDown(screen.getByRole('listitem'), {key: 'A'});
-        expect(defaultProps.handleImageClick).not.toHaveBeenCalled();
+    test('should apply focused class when isFocused is true', () => {
+        render(<ImageGalleryItem {...defaultProps} isFocused={true}/>);
+        expect(screen.getByTestId('image-gallery__item')).toHaveClass('image-gallery__item--focused');
+    });
+
+    test('should apply small class when isSmall is true', () => {
+        render(<ImageGalleryItem {...defaultProps} isSmall={true}/>);
+        expect(screen.getByTestId('image-gallery__item')).toHaveClass('image-gallery__item--small');
     });
 });

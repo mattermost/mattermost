@@ -454,7 +454,6 @@ const ImageGallery = (props: Props) => {
                                 fileInfo={fileInfo}
                                 allFilesForPost={allFilesForPost}
                                 postId={postId}
-                                handleImageClick={handleImageClick}
                                 isSmall={isSmall}
                                 itemStyle={itemStyle}
                                 index={idx}
