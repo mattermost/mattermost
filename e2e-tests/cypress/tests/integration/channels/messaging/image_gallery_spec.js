@@ -171,3 +171,34 @@ describe('Image Gallery', () => {
         });
     });
 });
+
+function verifyFileThumbnail({filename, actualImage = {}, container = {}, clickPreview}) {
+    // # File thumbnail should have correct dimensions
+    cy.getLastPostId().then((postId) => {
+        // * Verify that the image is inside a container div
+        cy.get(`#${postId}_message`).within(() => {
+            cy.uiGetFileThumbnail(filename).
+                should((img) => {
+                    expect(img.height()).to.be.closeTo(actualImage.height, 2.0);
+                    expect(img.width()).to.be.closeTo(actualImage.width, 2.0);
+                }).
+                parent().
+                should((img) => {
+                    if (container.width || container.height) {
+                        expect(img.height()).to.be.closeTo(container.height, 2.0);
+                        expect(img.width()).to.be.closeTo(container.width, 2.0);
+                    }
+                });
+
+            if (clickPreview) {
+                // # Open file preview
+                clickPreview();
+            }
+        });
+    });
+}
+
+function verifyImageInPostFooter(verifyExistence = true) {
+    // * Verify that the image exists or not
+    cy.get('#advancedTextEditorCell').find('.file-preview').should(verifyExistence ? 'be.visible' : 'not.exist');
+}
