@@ -65,8 +65,6 @@ export type Props = {
      * The index number of starting image
      **/
     startIndex: number;
-
-    handleImageClick?: (index: number) => void;
 }
 
 type State = {
@@ -313,14 +311,6 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         if (e.currentTarget === e.target) {
             this.handleModalClose();
         }
-    };
-
-    handleImageClick = (index: number) => {
-        const image = document.querySelector(`.file-view--single .file__image .image-container .image-loaded img[data-index="${index}"]`);
-        if (image) {
-            image.classList.add('transitioning');
-        }
-        this.props.handleImageClick?.(index);
     };
 
     handleKeyDown = (e: React.KeyboardEvent) => {

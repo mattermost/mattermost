@@ -142,7 +142,6 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 fileInfos: this.props.fileInfos || [this.props.fileInfo],
                 startIndex: this.props.fileInfos ? this.props.fileInfos.findIndex((f) => f.id === this.props.fileInfo.id) : 0,
                 onExited: () => {},
-                handleImageClick: () => {},
                 postId: this.props.postId,
             },
         });
