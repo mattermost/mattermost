@@ -470,7 +470,7 @@ const ImageGallery = (props: Props) => {
             <div
                 aria-live='polite'
                 aria-atomic='true'
-                style={{position: 'absolute', left: '-9999px', height: '1px', width: '1px', overflow: 'hidden'}}
+                className='sr-only'
             >
                 {ariaLiveMessage}
             </div>
