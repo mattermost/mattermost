@@ -92,7 +92,6 @@ type Props = PropsFromRedux & {
 const ImageGallery = (props: Props) => {
     const {
         fileInfos,
-        handleImageClick,
         onToggleCollapse,
         isEmbedVisible = true,
         postId,

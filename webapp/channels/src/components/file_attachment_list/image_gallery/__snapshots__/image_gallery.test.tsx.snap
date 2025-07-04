@@ -14,6 +14,7 @@ exports[`ImageGallery matches snapshot 1`] = `
         aria-describedby="image-gallery-count image-gallery-description-post1"
         aria-expanded="true"
         class="image-gallery__toggle"
+        data-testid="image-gallery__toggle"
       >
         <svg
           fill="currentColor"
@@ -43,6 +44,7 @@ exports[`ImageGallery matches snapshot 1`] = `
     <div
       aria-label="Image gallery with 2 images"
       class="image-gallery__body"
+      data-testid="image-gallery__body"
       id="image-gallery-body-post1"
       role="application"
       tabindex="0"
@@ -54,6 +56,7 @@ exports[`ImageGallery matches snapshot 1`] = `
         <div
           aria-label="Image 1 of 2: image1.png (PNG). Press Enter or Space to open in image viewer."
           class="image-gallery__item image-gallery__item--small"
+          data-testid="image-gallery__item"
           role="listitem"
           tabindex="0"
         >
@@ -130,17 +133,15 @@ exports[`ImageGallery matches snapshot 1`] = `
                   >
                     <div
                       class="small-image__container"
-                      style="min-width: 50px; min-height: 50px; display: flex; align-items: center; justify-content: center; max-width: 100%; max-height: 350px;"
+                      style="min-width: 50px; min-height: 50px;"
                     >
                       <figure
                         class="image-loaded-container"
-                        style="margin: 0px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"
                       >
                         <img
                           aria-label="file thumbnail image1.png"
                           class=" single-image-view__image small-image--inside-container"
                           src="/api/v4/files/img1/preview"
-                          style="object-fit: cover;"
                           tabindex="0"
                         />
                       </figure>
@@ -154,6 +155,7 @@ exports[`ImageGallery matches snapshot 1`] = `
         <div
           aria-label="Image 2 of 2: image2.jpg (JPG). Press Enter or Space to open in image viewer."
           class="image-gallery__item image-gallery__item--small"
+          data-testid="image-gallery__item"
           role="listitem"
           tabindex="0"
         >
@@ -230,17 +232,15 @@ exports[`ImageGallery matches snapshot 1`] = `
                   >
                     <div
                       class="small-image__container"
-                      style="min-width: 50px; min-height: 50px; display: flex; align-items: center; justify-content: center; max-width: 100%; max-height: 350px;"
+                      style="min-width: 50px; min-height: 50px;"
                     >
                       <figure
                         class="image-loaded-container"
-                        style="margin: 0px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"
                       >
                         <img
                           aria-label="file thumbnail image2.jpg"
                           class=" single-image-view__image small-image--inside-container"
                           src="/api/v4/files/img2/preview"
-                          style="object-fit: cover;"
                           tabindex="0"
                         />
                       </figure>
@@ -256,7 +256,7 @@ exports[`ImageGallery matches snapshot 1`] = `
     <div
       aria-atomic="true"
       aria-live="polite"
-      style="position: absolute; left: -9999px; height: 1px; width: 1px; overflow: hidden;"
+      class="sr-only"
     />
   </div>
 </div>
