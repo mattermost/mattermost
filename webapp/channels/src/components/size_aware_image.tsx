@@ -9,7 +9,6 @@ import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage} from '@mattermost/types/posts';
 
@@ -17,13 +16,12 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingImagePreview from 'components/loading_image_preview';
-import WithTooltip from 'components/with_tooltip';
 
+import ImageUtilityButtons from './size_aware_image/image_utility_buttons';
 import {FileTypes} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 50;
-const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
 const MAX_IMAGE_HEIGHT = 350;
 const MIN_CONTAINER_SIZE = 50;
 
@@ -388,7 +386,19 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     style={{display: shouldShowImg ? 'flex' : 'none'}}
                 >
                     {imageContainer}
-                    {shouldShowImg && !hideUtilities && this.renderUtilityButtons()}
+                    {shouldShowImg && !hideUtilities && (
+                        <ImageUtilityButtons
+                            enablePublicLink={enablePublicLink}
+                            src={src}
+                            fileURL={fileURL}
+                            handleSmallImageContainer={handleSmallImageContainer}
+                            isSmallImage={this.state.isSmallImage}
+                            linkCopiedRecently={this.state.linkCopiedRecently}
+                            imageWidth={this.state.imageWidth}
+                            isInternalImage={this.isInternalImage}
+                            onCopyLink={this.copyLinkToAsset}
+                        />
+                    )}
                 </div>
             </>
         );
@@ -430,103 +440,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         }
     };
 
-    renderUtilityButtons = () => {
-        const {
-            enablePublicLink,
-            intl,
-            src,
-            fileURL,
-            handleSmallImageContainer,
-        } = this.props;
 
-        // Don't render utility buttons for external small images
-        if (this.state.isSmallImage && !this.isInternalImage) {
-            return null;
-        }
-
-        const copyLinkTooltipText = this.state.linkCopiedRecently ? (
-            <FormattedMessage
-                id={'single_image_view.copied_link_tooltip'}
-                defaultMessage={'Copied'}
-            />
-        ) : (
-            <FormattedMessage
-                id={'single_image_view.copy_link_tooltip'}
-                defaultMessage={'Copy link'}
-            />
-        );
-        const copyLink = (
-            <WithTooltip
-                title={copyLinkTooltipText}
-            >
-                <button
-                    className={classNames('style--none', 'size-aware-image__copy_link', {
-                        'size-aware-image__copy_link--recently_copied': this.state.linkCopiedRecently,
-                    })}
-                    aria-label={intl.formatMessage({id: 'single_image_view.copy_link_tooltip', defaultMessage: 'Copy link'})}
-                    onClick={this.copyLinkToAsset}
-                >
-                    {this.state.linkCopiedRecently ? (
-                        <CheckIcon
-                            className={'svg-check style--none'}
-                            size={20}
-                        />
-                    ) : (
-                        <LinkVariantIcon
-                            className={'style--none'}
-                            size={20}
-                        />
-                    )}
-                </button>
-            </WithTooltip>
-        );
-
-        const downloadTooltipText = (
-            <FormattedMessage
-                id='single_image_view.download_tooltip'
-                defaultMessage='Download'
-            />
-        );
-        const download = (
-            <WithTooltip
-                title={downloadTooltipText}
-            >
-                <a
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    href={this.isInternalImage ? fileURL : src}
-                    className='style--none size-aware-image__download'
-                    download={true}
-                    role={this.isInternalImage ? 'button' : undefined}
-                    aria-label={intl.formatMessage({id: 'single_image_view.download_tooltip', defaultMessage: 'Download'})}
-                >
-                    <DownloadOutlineIcon
-                        className={'style--none'}
-                        size={20}
-                    />
-                </a>
-            </WithTooltip>
-        );
-
-        // Determine which CSS classes to use based on image type and size
-        const isSmallImage = handleSmallImageContainer && this.state.isSmallImage;
-        const hasSmallWidth = this.state.imageWidth < MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS;
-
-        const containerClasses = classNames('image-preview-utility-buttons-container', {
-            'image-preview-utility-buttons-container--small-image': isSmallImage || hasSmallWidth,
-            'image-preview-utility-buttons-container--small-image-no-copy-button': (!enablePublicLink || !this.isInternalImage) && (isSmallImage || hasSmallWidth),
-        });
-
-        // Determine which buttons to show
-        const showCopyLink = (enablePublicLink || !this.isInternalImage);
-
-        return (
-            <span className={containerClasses}>
-                {showCopyLink && copyLink}
-                {download}
-            </span>
-        );
-    };
 
     render() {
         return (
