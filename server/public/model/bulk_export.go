@@ -12,5 +12,6 @@ type BulkExportOpts struct {
 	IncludeProfilePictures  bool
 	IncludeArchivedChannels bool
 	IncludeRolesAndSchemes  bool
+	TeamName                string
 	CreateArchive           bool
 }
