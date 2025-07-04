@@ -307,8 +307,6 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
     };
 
-
-
     render() {
         if (this.props.fileInfos.length < 1 || this.props.fileInfos.length - 1 < this.state.imageIndex) {
             return null;
@@ -462,7 +460,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                     <div
                         className={classNames('modal-image__wrapper', {
                             'initial-load': this.state.isInitialLoad,
-                            'closing': this.state.isClosing,
+                            closing: this.state.isClosing,
                         })}
                         onClick={this.handleModalClose}
                         role='button'
