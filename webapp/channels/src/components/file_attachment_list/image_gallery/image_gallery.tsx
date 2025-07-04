@@ -28,8 +28,8 @@ export const GALLERY_CONFIG = {
     GRID_SPANS: {
         SMALL: 2,
         VERTICAL: 3,
-        SQUARE: 5,
-        HORIZONTAL: 7,
+        SQUARE: 4,
+        HORIZONTAL: 6,
     },
 } as const;
 

@@ -113,7 +113,7 @@
         min-height: 0; // Required for grid-template-rows animation
         grid-column-gap: 8px;
         grid-row-gap: 8px;
-        grid-template-columns: repeat(auto-fit, 40px);
+        grid-template-columns: repeat(auto-fit, 50px);
     }
 
     /* Container Query: large container breakpoint (380px <= width < 640px) */
