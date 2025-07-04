@@ -3,7 +3,6 @@
 
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
-import type {Dispatch} from 'redux';
 
 import ImageGallery from './image_gallery';
 
@@ -20,13 +19,7 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch) {
-    return {
-        // handleImageClick removed - SingleImageView now handles all image clicks with its default behavior
-    };
-}
-
-const connector = connect(makeMapStateToProps, mapDispatchToProps);
+const connector = connect(makeMapStateToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 

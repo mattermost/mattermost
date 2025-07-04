@@ -8,9 +8,9 @@ import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import configureStore from 'redux-mock-store';
 
-import {TestHelper} from '../../../utils/test_helper';
-
 import ImageGallery from './image_gallery';
+
+import {TestHelper} from '../../../utils/test_helper';
 
 const mockActions = {
     getFilePublicLink: jest.fn(),

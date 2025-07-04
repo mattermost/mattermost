@@ -40,6 +40,7 @@ const ImageGalleryItem = ({
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
+
             // The SingleImageView will handle the click behavior
         }
     };
