@@ -86,7 +86,6 @@ linters:
           - errcheck
         path: "\
           channels/api4/apitestlib.go|\
-          channels/api4/channel_test.go|\
           channels/app/helper_test.go|\
           channels/app/platform/helper_test.go|\
           channels/store/localcachelayer/channel_layer.go|\
