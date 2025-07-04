@@ -6,7 +6,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
@@ -15,11 +15,11 @@ import type {PostImage} from '@mattermost/types/posts';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
-import LoadingImagePreview from 'components/loading_image_preview';
+import ImageUtilityButtons from './image_utility_buttons';
 
-import ImageUtilityButtons from './size_aware_image/image_utility_buttons';
-import {FileTypes} from 'utils/constants';
-import {copyToClipboard, getFileType} from 'utils/utils';
+import {FileTypes} from '../../utils/constants';
+import {copyToClipboard, getFileType} from '../../utils/utils';
+import LoadingImagePreview from '../loading_image_preview';
 
 const MIN_IMAGE_SIZE = 50;
 const MAX_IMAGE_HEIGHT = 350;
@@ -439,8 +439,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             }
         }
     };
-
-
 
     render() {
         return (

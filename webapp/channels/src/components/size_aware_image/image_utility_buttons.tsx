@@ -8,6 +8,7 @@ import type {WrappedComponentProps} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
 
+import ExternalLink from '../external_link';
 import WithTooltip from '../with_tooltip';
 
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
@@ -90,20 +91,19 @@ function ImageUtilityButtons({
         <WithTooltip
             title={downloadTooltipText}
         >
-            <a
-                target='_blank'
-                rel='noopener noreferrer'
-                href={isInternalImage ? fileURL : src}
+            <ExternalLink
+                href={isInternalImage ? fileURL || src : src}
                 className='style--none size-aware-image__download'
                 download={true}
                 role={isInternalImage ? 'button' : undefined}
                 aria-label={intl.formatMessage({id: 'single_image_view.download_tooltip', defaultMessage: 'Download'})}
+                location='image_utility_buttons'
             >
                 <DownloadOutlineIcon
                     className={'style--none'}
                     size={20}
                 />
-            </a>
+            </ExternalLink>
         </WithTooltip>
     );
 
@@ -127,4 +127,4 @@ function ImageUtilityButtons({
     );
 }
 
-export default injectIntl(ImageUtilityButtons); 
+export default injectIntl(ImageUtilityButtons);

@@ -4,12 +4,12 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import LoadingImagePreview from 'components/loading_image_preview';
-import SizeAwareImage, {SizeAwareImage as SizeAwareImageComponent} from 'components/size_aware_image';
+import SizeAwareImage, {SizeAwareImage as SizeAwareImageComponent} from './size_aware_image';
 
-import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
-import {TestHelper} from 'utils/test_helper';
+import {shallowWithIntl, mountWithIntl} from '../../tests/helpers/intl-test-helper';
+import mockStore from '../../tests/test_store';
+import {TestHelper} from '../../utils/test_helper';
+import LoadingImagePreview from '../loading_image_preview';
 
 describe('components/SizeAwareImage', () => {
     const baseProps = {

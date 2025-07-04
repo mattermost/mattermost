@@ -44,11 +44,7 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
-        style={
-          Object {
-            "objectFit": "cover",
-          }
-        }
+        style={Object {}}
         tabIndex={0}
       />
     </figure>
@@ -93,11 +89,6 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
       className="small-image__container"
       style={
         Object {
-          "alignItems": "center",
-          "display": "flex",
-          "justifyContent": "center",
-          "maxHeight": 350,
-          "maxWidth": "100%",
           "minHeight": 50,
           "minWidth": 50,
         }
@@ -105,16 +96,6 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
     >
       <figure
         className="image-loaded-container"
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "height": "100%",
-            "justifyContent": "center",
-            "margin": 0,
-            "width": "100%",
-          }
-        }
       >
         <img
           aria-label="file thumbnail photo-1533709752211-118fcaf03312"
@@ -124,11 +105,7 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
           onKeyDown={[Function]}
           onLoad={[Function]}
           src="https://example.com/image.png"
-          style={
-            Object {
-              "objectFit": "cover",
-            }
-          }
+          style={Object {}}
           tabIndex={0}
         />
       </figure>
@@ -195,11 +172,7 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
-        style={
-          Object {
-            "objectFit": "cover",
-          }
-        }
+        style={Object {}}
         tabIndex={0}
       />
     </figure>
