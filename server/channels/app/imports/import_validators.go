@@ -563,6 +563,14 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 		}
 	}
 
+	if data.ThreadFollowers != nil {
+		for _, follower := range *data.ThreadFollowers {
+			if err := ValidateThreadFollowerImportData(&follower); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_post_import_data.thread_follower.error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -687,6 +695,14 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 		}
 	}
 
+	if data.ThreadFollowers != nil {
+		for _, follower := range *data.ThreadFollowers {
+			if err := ValidateThreadFollowerImportData(&follower); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.thread_follower.error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -712,6 +728,18 @@ func ValidateEmojiImportData(data *EmojiImportData) *model.AppError {
 
 	if err := model.IsValidEmojiName(*data.Name); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func ValidateThreadFollowerImportData(data *ThreadFollowerImportData) *model.AppError {
+	if data == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_thread_follower_data.empty.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.User == nil || *data.User == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_thread_follower_data.user_missing.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

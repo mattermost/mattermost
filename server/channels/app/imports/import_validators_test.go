@@ -1541,6 +1541,36 @@ func TestImportValidateEmojiImportData(t *testing.T) {
 	}
 }
 
+func TestImportValidateThreadFollowerImportData(t *testing.T) {
+	testCases := []struct {
+		testName       string
+		lastViewed     *int64
+		unreadMentions *int64
+		user           *string
+		expectError    bool
+	}{
+		{"success", model.NewPointer(int64(0)), model.NewPointer(int64(0)), model.NewPointer("user1"), false},
+		{"missing user", model.NewPointer(int64(0)), model.NewPointer(int64(0)), nil, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			data := ThreadFollowerImportData{
+				LastViewed:     tc.lastViewed,
+				UnreadMentions: tc.unreadMentions,
+				User:           tc.user,
+			}
+
+			err := ValidateThreadFollowerImportData(&data)
+			if tc.expectError {
+				require.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
 func checkError(t *testing.T, err *model.AppError) {
 	require.NotNil(t, err, "Should have returned an error.")
 }
