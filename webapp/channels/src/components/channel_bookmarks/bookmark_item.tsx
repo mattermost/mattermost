@@ -64,11 +64,15 @@ const useBookmarkLink = (bookmark: ChannelBookmark) => {
     let link;
 
     if (bookmark.type === 'link' && bookmark.link_url) {
+        // Determine if it's an in-app link based on URL scheme
+        const isInAppLink = !bookmark.link_url.startsWith('http://') && !bookmark.link_url.startsWith('https://');
+        
         link = (
             <DynamicLink
                 href={bookmark.link_url}
                 ref={linkRef}
                 isFile={false}
+                isInAppLink={isInAppLink}
             >
                 {icon}
                 <Label>{bookmark.display_name}</Label>
@@ -193,11 +197,13 @@ type DynamicLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
     href: string;
     children: React.ReactNode;
     isFile: boolean;
+    isInAppLink?: boolean;
 };
 const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     href,
     children,
     isFile,
+    isInAppLink,
     onClick,
     ...otherProps
 }, ref) => {
@@ -205,6 +211,21 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     const openInNewTab = shouldOpenInNewTab(href, siteURL);
 
     const prefixed = href[0] === TARGET_BLANK_URL_PREFIX;
+
+    // Handle in-app links
+    if (isInAppLink) {
+        return (
+            <StyledAnchor
+                {...otherProps}
+                href={href}
+                ref={ref}
+                onClick={onClick}
+                className="inapp-link"
+            >
+                {children}
+            </StyledAnchor>
+        );
+    }
 
     if (prefixed || openInNewTab) {
         return (

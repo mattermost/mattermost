@@ -75,6 +75,7 @@ function ChannelBookmarkCreateModal({
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
 
+
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
         if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !showEmojiPicker) {
             onHide();
@@ -400,6 +401,7 @@ function ChannelBookmarkCreateModal({
                             addon={linkStatusIndicator}
                             customMessage={linkError ? {type: 'error', value: linkError} : {value: linkMessage}}
                         />
+
                     </>
                 ) : (
                     <>
