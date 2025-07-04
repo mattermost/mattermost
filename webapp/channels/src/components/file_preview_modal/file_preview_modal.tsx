@@ -79,6 +79,7 @@ type State = {
     scale: Record<number, number>;
     content: string;
     isInitialLoad: boolean;
+    isClosing: boolean;
 }
 
 export default class FilePreviewModal extends React.PureComponent<Props, State> {
@@ -103,6 +104,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             scale: Utils.fillRecord(ZoomSettings.DEFAULT_SCALE, this.props.fileInfos.length),
             content: '',
             isInitialLoad: true,
+            isClosing: false,
         };
     }
 
@@ -286,16 +288,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     };
 
     handleModalClose = () => {
-        // Add closing animation to both image and wrapper
-        const imageElement = document.querySelector('.image_preview__image');
-        const wrapperElement = document.querySelector('.modal-image__wrapper');
-
-        if (imageElement) {
-            imageElement.classList.add('closing');
-        }
-        if (wrapperElement) {
-            wrapperElement.classList.add('closing');
-        }
+        // Start closing animation using React state
+        this.setState({isClosing: true});
 
         // Delay the actual modal close to allow for animation
         setTimeout(() => {
@@ -468,6 +462,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                     <div
                         className={classNames('modal-image__wrapper', {
                             'initial-load': this.state.isInitialLoad,
+                            'closing': this.state.isClosing,
                         })}
                         onClick={this.handleModalClose}
                         role='button'
