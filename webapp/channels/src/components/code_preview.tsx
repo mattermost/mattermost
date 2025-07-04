@@ -108,7 +108,7 @@ const CodePreview = ({
         );
     }
 
-    if (status.success) {
+    if (!status.success) {
         return (
             <FileInfoPreview
                 fileInfo={fileInfo}
