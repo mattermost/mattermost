@@ -65,7 +65,7 @@ describe('Image Gallery', () => {
                     cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed').within(() => {
                         cy.findAllByTestId('image-gallery__item').should('have.length', 4);
                         cy.get('.image-gallery__item--small').should('have.length', 3);
-                        
+
                         // * Verify images display with reasonable aspect ratios
                         cy.findAllByTestId('image-gallery__item').each(($item) => {
                             cy.wrap($item).find('img').should('be.visible').and(($img) => {
@@ -75,23 +75,23 @@ describe('Image Gallery', () => {
                             });
                         });
                     });
-                    
+
                     // * Test collapse/expand functionality
                     cy.findByTestId('image-gallery__toggle').click();
                     cy.findByTestId('image-gallery__body').should('have.class', 'collapsed');
                     cy.findByTestId('image-gallery__toggle').should('contain.text', 'Show 4 images');
                     cy.findAllByTestId('image-gallery__item').should('not.be.visible');
-                    
+
                     cy.findByTestId('image-gallery__toggle').click();
                     cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed');
                     cy.findByTestId('image-gallery__toggle').should('contain.text', '4 images');
                     cy.findAllByTestId('image-gallery__item').should('exist').and('be.visible');
                 });
             });
-            
+
             // * Test image preview modal opens when clicking gallery items
             cy.findAllByTestId('image-gallery__item').first().click();
-            
+
             // * Verify modal opens and close it
             cy.uiGetFilePreviewModal();
             cy.uiCloseFilePreviewModal();
