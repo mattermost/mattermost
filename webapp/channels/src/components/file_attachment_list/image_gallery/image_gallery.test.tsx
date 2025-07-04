@@ -81,6 +81,7 @@ const defaultProps = {
     isEmbedVisible: true,
     postId: 'post1',
     allFilesForPost: mockFileInfos,
+    dispatch: jest.fn(),
 };
 
 function renderWithProvider(ui: React.ReactElement) {
