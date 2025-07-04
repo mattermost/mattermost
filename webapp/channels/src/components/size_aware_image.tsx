@@ -380,9 +380,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         const shouldShowImg = !this.dimensionsAvailable(dimensions) || this.state.loaded;
         const imageContainer = this.renderImageWithContainerIfNeeded();
 
-        // Always render utility buttons outside the figure but inside file-preview__button (unless hideUtilities is true)
-        const utilityButtons = hideUtilities ? null : this.renderUtilityButtons();
-
         return (
             <>
                 {fallback}
@@ -391,7 +388,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     style={{display: shouldShowImg ? 'flex' : 'none'}}
                 >
                     {imageContainer}
-                    {shouldShowImg && utilityButtons}
+                    {shouldShowImg && !hideUtilities && this.renderUtilityButtons()}
                 </div>
             </>
         );
