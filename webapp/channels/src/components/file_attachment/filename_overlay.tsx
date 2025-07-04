@@ -12,7 +12,7 @@ import ExternalLink from 'components/external_link';
 import AttachmentIcon from 'components/widgets/icons/attachment_icon';
 import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
+import {trimFilename} from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';
 
 type Props = {
@@ -49,14 +49,6 @@ type Props = {
 }
 
 export default class FilenameOverlay extends React.PureComponent<Props> {
-    private trimFilename(filename: string) {
-        let trimmedFilename = filename;
-        if (filename.length > Constants.MAX_FILENAME_LENGTH) {
-            trimmedFilename = filename.substring(0, Math.min(Constants.MAX_FILENAME_LENGTH, filename.length)) + '...';
-        }
-        return trimmedFilename;
-    }
-
     render() {
         const {
             canDownload,
@@ -68,7 +60,7 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
         } = this.props;
 
         const fileName = fileInfo.name;
-        const trimmedFilename = this.trimFilename(fileName);
+        const trimmedFilename = trimFilename(fileName);
 
         let filenameOverlay;
         if (compactDisplay) {
