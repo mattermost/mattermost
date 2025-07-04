@@ -230,7 +230,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             <button
               className="btn btn-tertiary"
               id="cancelSetting"
-              onClick={[Function]}
+              onMouseDown={[Function]}
             >
               <FormattedMessage
                 defaultMessage="Cancel"
@@ -650,7 +650,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             <button
               className="btn btn-tertiary"
               id="cancelSetting"
-              onClick={[Function]}
+              onMouseDown={[Function]}
             >
               <FormattedMessage
                 defaultMessage="Cancel"
