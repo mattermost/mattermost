@@ -45,7 +45,6 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
       aria-label="Close preview"
       className="modal-image__wrapper initial-load"
       onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -128,7 +127,6 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
           aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
-          onKeyDown={[Function]}
           role="button"
           tabIndex={0}
         >
@@ -194,7 +192,6 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
       aria-label="Close preview"
       className="modal-image__wrapper initial-load"
       onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -277,7 +274,6 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
           aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
-          onKeyDown={[Function]}
           role="button"
           tabIndex={0}
         >
@@ -343,7 +339,6 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
       aria-label="Close preview"
       className="modal-image__wrapper initial-load"
       onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -426,7 +421,6 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
           aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
-          onKeyDown={[Function]}
           role="button"
           tabIndex={0}
         >
@@ -492,7 +486,6 @@ exports[`components/FilePreviewModal should match snapshot when plugin overrides
       aria-label="Close preview"
       className="modal-image__wrapper initial-load"
       onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -575,7 +568,6 @@ exports[`components/FilePreviewModal should match snapshot when plugin overrides
           aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
-          onKeyDown={[Function]}
           role="button"
           tabIndex={0}
         >
@@ -680,7 +672,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
       aria-label="Close preview"
       className="modal-image__wrapper initial-load"
       onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -763,7 +754,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
           aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
-          onKeyDown={[Function]}
           role="button"
           tabIndex={0}
         >
@@ -841,7 +831,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
       aria-label="Close preview"
       className="modal-image__wrapper initial-load"
       onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -924,7 +913,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
           aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
-          onKeyDown={[Function]}
           role="button"
           tabIndex={0}
         >
@@ -1002,7 +990,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
       aria-label="Close preview"
       className="modal-image__wrapper initial-load"
       onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -1085,7 +1072,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
           aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
-          onKeyDown={[Function]}
           role="button"
           tabIndex={0}
         >
@@ -1165,7 +1151,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .m4a fil
       aria-label="Close preview"
       className="modal-image__wrapper initial-load"
       onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -1248,7 +1233,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .m4a fil
           aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
-          onKeyDown={[Function]}
           role="button"
           tabIndex={0}
         >
@@ -1326,7 +1310,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .mov fil
       aria-label="Close preview"
       className="modal-image__wrapper initial-load"
       onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -1409,7 +1392,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .mov fil
           aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
-          onKeyDown={[Function]}
           role="button"
           tabIndex={0}
         >
@@ -1487,7 +1469,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
       aria-label="Close preview"
       className="modal-image__wrapper initial-load"
       onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -1570,7 +1551,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
           aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
-          onKeyDown={[Function]}
           role="button"
           tabIndex={0}
         >
@@ -1648,7 +1628,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
       aria-label="Close preview"
       className="modal-image__wrapper initial-load"
       onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -1731,7 +1710,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
           aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
-          onKeyDown={[Function]}
           role="button"
           tabIndex={0}
         >
@@ -1809,7 +1787,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
       aria-label="Close preview"
       className="modal-image__wrapper initial-load"
       onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -1892,7 +1869,6 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
           aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
-          onKeyDown={[Function]}
           role="button"
           tabIndex={0}
         >
