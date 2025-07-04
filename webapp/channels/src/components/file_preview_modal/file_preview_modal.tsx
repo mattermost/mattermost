@@ -313,11 +313,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
     };
 
-    handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Escape') {
-            this.handleModalClose();
-        }
-    };
+
 
     render() {
         if (this.props.fileInfos.length < 1 || this.props.fileInfos.length - 1 < this.state.imageIndex) {
@@ -474,7 +470,6 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                             'initial-load': this.state.isInitialLoad,
                         })}
                         onClick={this.handleModalClose}
-                        onKeyDown={this.handleKeyDown}
                         role='button'
                         tabIndex={0}
                         aria-label='Close preview'
@@ -518,7 +513,6 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     },
                                 )}
                                 onClick={this.handleBgClose}
-                                onKeyDown={this.handleKeyDown}
                                 role='button'
                                 tabIndex={0}
                                 aria-label='Close preview'
