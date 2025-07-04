@@ -12,6 +12,8 @@ import SingleImageView from 'components/single_image_view';
 import {FileTypes, ModalIdentifiers} from 'utils/constants';
 import {getFileType} from 'utils/utils';
 
+import ImageGallery from './image_gallery/index';
+
 import type {OwnProps, PropsFromRedux} from './index';
 
 type Props = OwnProps & PropsFromRedux;
@@ -36,12 +38,30 @@ export default function FileAttachmentList(props: Props) {
         fileCount,
         locale,
         isInPermalink,
+        isEmbedVisible,
+        post,
     } = props;
 
     const sortedFileInfos = useMemo(() => sortFileInfos(fileInfos ? [...fileInfos] : [], locale), [fileInfos, locale]);
 
     if (fileInfos.length === 0) {
         return null;
+    }
+
+    // Check if all files are images
+    const allImages = sortedFileInfos.every((fileInfo) => {
+        const fileType = getFileType(fileInfo.extension);
+        return fileType === FileTypes.IMAGE || (fileType === FileTypes.SVG && enableSVGs);
+    });
+
+    if (allImages && sortedFileInfos.length > 1) {
+        return (
+            <ImageGallery
+                fileInfos={sortedFileInfos}
+                isEmbedVisible={isEmbedVisible}
+                postId={post.id}
+            />
+        );
     }
 
     if (fileInfos && fileInfos.length === 1 && !fileInfos[0].archived) {
@@ -51,11 +71,13 @@ export default function FileAttachmentList(props: Props) {
             return (
                 <SingleImageView
                     fileInfo={fileInfos[0]}
-                    isEmbedVisible={props.isEmbedVisible}
-                    postId={props.post.id}
+                    fileInfos={fileInfos}
+                    isEmbedVisible={isEmbedVisible}
+                    postId={post.id}
                     compactDisplay={compactDisplay}
                     isInPermalink={isInPermalink}
                     disableActions={props.disableActions}
+                    isGallery={false}
                 />
             );
         }
@@ -65,7 +87,7 @@ export default function FileAttachmentList(props: Props) {
         );
     }
 
-    const postFiles = [];
+    const postFiles: React.ReactElement[] = [];
     if (sortedFileInfos && sortedFileInfos.length > 0) {
         for (let i = 0; i < sortedFileInfos.length; i++) {
             const fileInfo = sortedFileInfos[i];
