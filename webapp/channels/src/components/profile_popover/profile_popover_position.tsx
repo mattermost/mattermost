@@ -2,27 +2,40 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-import type {UserProfile} from '@mattermost/types/users';
-
-import Constants from 'utils/constants';
+import {FormattedMessage} from 'react-intl';
 
 type Props = {
-    position: UserProfile['position'];
+    position?: string;
+    haveOverrideProp?: boolean;
 }
 
-const ProfilePopoverPosition = ({
-    position,
-}: Props) => {
-    const positionSubstringed = (position).substring(0, Constants.MAX_POSITION_LENGTH);
+const ProfilePopoverPosition = ({position, haveOverrideProp}: Props) => {
+    // Return null if position is empty or we have an override prop
+    if (!position || haveOverrideProp) {
+        return null;
+    }
+
+    // Generate a unique ID for accessibility
+    const titleId = `user-popover__position-title-${Math.random().toString(36).substring(2, 26)}`;
 
     return (
-        <p
-            className='user-profile-popover__non-heading'
-            title={position}
-        >
-            {positionSubstringed}
-        </p>
+        <div className='user-popover__custom_attributes'>
+            <strong
+                id={titleId}
+                className='user-popover__subtitle'
+            >
+                <FormattedMessage
+                    id='user.settings.general.position'
+                    defaultMessage='Position'
+                />
+            </strong>
+            <p
+                aria-labelledby={titleId}
+                className='user-popover__subtitle-text'
+            >
+                {position}
+            </p>
+        </div>
     );
 };
 
