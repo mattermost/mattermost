@@ -22,8 +22,11 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
         selected: false,
         updateSection: jest.fn(),
         setRequireConfirm: jest.fn(),
+        themeAutoSwitch: false,
         actions: {
             saveTheme: jest.fn().mockResolvedValue({data: true}),
+            saveDarkTheme: jest.fn().mockResolvedValue({data: true}),
+            saveThemeAutoSwitch: jest.fn().mockResolvedValue({data: true}),
             deleteTeamSpecificThemes: jest.fn().mockResolvedValue({data: true}),
             openModal: jest.fn(),
         },
@@ -62,6 +65,8 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
             ...requiredProps,
             actions: {
                 saveTheme: jest.fn().mockResolvedValue({data: true}),
+                saveDarkTheme: jest.fn().mockResolvedValue({data: true}),
+                saveThemeAutoSwitch: jest.fn().mockResolvedValue({data: true}),
                 deleteTeamSpecificThemes: jest.fn().mockResolvedValue({data: true}),
                 openModal: jest.fn(),
             },
