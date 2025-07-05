@@ -641,6 +641,8 @@
                   type: string
                   description: Markdown-formatted text to display in the header of the
                     channel
+                banner_info:
+                  $ref: "#/components/schemas/ChannelBanner"
         description: Channel object to be updated
         required: true
       responses:
