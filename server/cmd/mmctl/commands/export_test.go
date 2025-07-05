@@ -87,6 +87,74 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		s.Empty(printer.GetErrorLines())
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
 	})
+
+	s.Run("create only-users export", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"users_only": "true",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("only-users", true, "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("create only-users export with profile pictures", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"users_only":               "true",
+				"include_profile_pictures": "true",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("only-users", true, "")
+		cmd.Flags().Bool("include-profile-pictures", true, "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("only-users export errors with incompatible flags", func() {
+		printer.Clean()
+
+		// No client expectations since we should error before making any calls
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("only-users", true, "")
+		cmd.Flags().Bool("no-attachments", true, "")
+		cmd.Flags().Bool("include-archived-channels", false, "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "flag --no-attachments cannot be used with --only-users")
+		s.Empty(printer.GetLines())
+	})
 }
 func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 	printer.Clean()
