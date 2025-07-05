@@ -15,6 +15,7 @@ func (api *API) InitSharedChannels() {
 	api.BaseRoutes.SharedChannels.Handle("/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getSharedChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.SharedChannels.Handle("/remote_info/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteClusterInfo)).Methods(http.MethodGet)
 	api.BaseRoutes.SharedChannels.Handle("/{channel_id:[A-Za-z0-9]+}/remotes", api.APISessionRequired(getSharedChannelRemotes)).Methods(http.MethodGet)
+	api.BaseRoutes.SharedChannels.Handle("/users/{user_id:[A-Za-z0-9]+}/can_dm/{other_user_id:[A-Za-z0-9]+}", api.APISessionRequired(canUserDirectMessage)).Methods(http.MethodGet)
 
 	api.BaseRoutes.SharedChannelRemotes.Handle("", api.APISessionRequired(getSharedChannelRemotesByRemoteCluster)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelForRemote.Handle("/invite", api.APISessionRequired(inviteRemoteClusterToChannel)).Methods(http.MethodPost)
@@ -292,5 +293,59 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 
 	if err := json.NewEncoder(w).Encode(remoteInfos); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func canUserDirectMessage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireOtherUserId()
+	if c.Err != nil {
+		return
+	}
+
+	// Check if the user can see the other user at all
+	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.Params.UserId, c.Params.OtherUserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if !canSee {
+		result := map[string]bool{"can_dm": false}
+		if err := json.NewEncoder(w).Encode(result); err != nil {
+			c.Logger.Warn("Error encoding JSON response", mlog.Err(err))
+		}
+		return
+	}
+
+	canDM := true
+
+	// Get shared channel sync service for remote user checks
+	scs := c.App.Srv().GetSharedChannelSyncService()
+	if scs != nil {
+		otherUser, otherErr := c.App.GetUser(c.Params.OtherUserId)
+		if otherErr != nil {
+			canDM = false
+		} else {
+			originalRemoteId := otherUser.GetOriginalRemoteID()
+
+			// Check if the other user is from a remote cluster
+			if otherUser.IsRemote() {
+				// If original remote ID is unknown, fall back to current RemoteId as best guess
+				if originalRemoteId == model.UserOriginalRemoteIdUnknown {
+					originalRemoteId = otherUser.GetRemoteID()
+				}
+
+				// For DMs, we require a direct connection to the ORIGINAL remote cluster
+				isDirectlyConnected := scs.IsRemoteClusterDirectlyConnected(originalRemoteId)
+
+				if !isDirectlyConnected {
+					canDM = false
+				}
+			}
+		}
+	}
+
+	result := map[string]bool{"can_dm": canDM}
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		c.Logger.Warn("Error encoding JSON response", mlog.Err(err))
 	}
 }
