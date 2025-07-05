@@ -63,6 +63,7 @@ const (
 	OnSharedChannelsProfileImageSyncMsgID     = 44
 	GenerateSupportDataID                     = 45
 	OnSAMLLoginID                             = 46
+	NotificationsWillBeSentID                 = 47
 	TotalHooksID                              = iota
 )
 
@@ -313,6 +314,20 @@ type Hooks interface {
 	// config object can be returned to be stored in place of the provided one.
 	// Minimum server version: 8.0
 	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
+
+	// NotificationsWillBeSent is invoked before notifications are sent for a post.
+	// This hook allows plugins to prevent notifications from being sent by returning
+	// a non-empty string containing an error message or reason for rejection.
+	//
+	// To allow notifications to be sent, return an empty string.
+	// To prevent notifications from being sent, return a non-empty string describing
+	// why the notifications should be blocked.
+	//
+	// This hook is called for all posts that would normally trigger notifications,
+	// including posts created by plugins.
+	//
+	// Minimum server version: 10.8
+	NotificationsWillBeSent(post *model.Post) string
 
 	// NotificationWillBePushed is invoked before a push notification is sent to the push
 	// notification server.

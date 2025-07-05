@@ -567,9 +567,11 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	}
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	if _, err := a.SendNotifications(c, post, team, channel, user, parentPostList, setOnline); err != nil {
-		return err
-	}
+	a.Srv().Go(func() {
+		if _, err := a.SendNotifications(c, post, team, channel, user, parentPostList, setOnline); err != nil {
+			c.Logger().Error("Failed to send notifications", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+		}
+	})
 
 	if post.Type != model.PostTypeAutoResponder { // don't respond to an auto-responder
 		a.Srv().Go(func() {
