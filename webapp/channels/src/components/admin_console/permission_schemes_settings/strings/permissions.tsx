@@ -645,4 +645,14 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Enable, disable and edit channel banner.',
         },
     }),
+    manage_channel_access_rules: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_channel_access_rules.name',
+            defaultMessage: 'Manage Channel Access Rules',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_channel_access_rules.description',
+            defaultMessage: 'Configure attribute-based access control rules for channels.',
+        },
+    }),
 };
