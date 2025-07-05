@@ -593,6 +593,7 @@ https://myothersite.com/api/v2"
                         restoreFocus={true}
                         role="none"
                         show={false}
+                        style={Object {}}
                       >
                         <Modal
                           autoFocus={true}
@@ -703,6 +704,7 @@ https://myothersite.com/api/v2"
                   restoreFocus={true}
                   role="none"
                   show={false}
+                  style={Object {}}
                 >
                   <Modal
                     autoFocus={true}
@@ -1337,6 +1339,7 @@ https://myothersite.com/api/v2"
                         restoreFocus={true}
                         role="none"
                         show={false}
+                        style={Object {}}
                       >
                         <Modal
                           autoFocus={true}
@@ -1447,6 +1450,7 @@ https://myothersite.com/api/v2"
                   restoreFocus={true}
                   role="none"
                   show={false}
+                  style={Object {}}
                 >
                   <Modal
                     autoFocus={true}
@@ -2080,6 +2084,7 @@ https://myothersite.com/api/v2"
                         restoreFocus={true}
                         role="none"
                         show={false}
+                        style={Object {}}
                       >
                         <Modal
                           autoFocus={true}
@@ -2190,6 +2195,7 @@ https://myothersite.com/api/v2"
                   restoreFocus={true}
                   role="none"
                   show={false}
+                  style={Object {}}
                 >
                   <Modal
                     autoFocus={true}
