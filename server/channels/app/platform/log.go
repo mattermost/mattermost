@@ -186,6 +186,7 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 					} else {
 						filtered = isLogFilteredByLevel(logFilter, entry) || filtered
 						filtered = isLogFilteredByDate(rctx, logFilter, entry) || filtered
+						filtered = isLogFilteredByPluginId(logFilter, entry) || filtered
 					}
 
 					if filtered {
@@ -342,4 +343,8 @@ func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *mo
 	}
 
 	return true
+}
+
+func isLogFilteredByPluginId(logFilter *model.LogFilter, entry *model.LogEntry) bool {
+	return logFilter.PluginId != entry.PluginId
 }
