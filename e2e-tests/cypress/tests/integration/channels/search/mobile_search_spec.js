@@ -79,4 +79,38 @@ describe('Mobile Search', () => {
         // * Verify that the loading spinner is eventually gone
         verifyLoadingSpinnerIsGone();
     });
+
+    it('MM-64681 should be able to autocomplete users and channels in mobile view', () => {
+        // * Open the search box
+        cy.get('button.navbar-search').click();
+
+        // * Verify that the search box is open
+        cy.get('#sbrSearchBox').should('be.visible');
+
+        // # Trigger the user autocomplete to appear
+        cy.get('#sbrSearchBox').type('from:');
+
+        // * Verify that the autocomplete is visible and contains some result
+        cy.get('[role="listbox"]').get('[role="option"]').should('be.visible').and('contain.text', 'sysadmin');
+
+        // # Select a user
+        cy.get('[role="option"]').contains('sysadmin').click();
+
+        // * Verify that the autocomplete closed and the user's name was added to the result
+        cy.get('[role="listbox"]').should('not.exist');
+        cy.get('#sbrSearchBox').should('have.value', 'from:sysadmin ');
+
+        // # Trigger the channel autocomplete to appear
+        cy.get('#sbrSearchBox').type('in:');
+
+        // * Verify that the autocomplete is visible and contains some results
+        cy.get('[role="listbox"]').get('[role="option"]').should('be.visible');
+
+        // # Select a channel
+        cy.get('[role="option"]').contains('Off-Topic').click();
+
+        // * Verify that the autocomplete closed and the Off-Topic channel was selected was added to the result
+        cy.get('[role="listbox"]').should('not.exist');
+        cy.get('#sbrSearchBox').should('have.value', 'from:sysadmin in:off-topic ');
+    });
 });
