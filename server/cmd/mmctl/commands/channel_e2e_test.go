@@ -360,6 +360,63 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		s.CheckErrorID(err, "app.channel.get.existing.app_error")
 	})
 
+	s.Run("Delete channel with disabled config as system admin", func() {
+		channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: "channel_name_you_cannot_delete", CreatorId: user.Id}, true)
+		s.Require().Nil(appErr)
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableAPIChannelDeletion
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = false })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = *previousVal })
+		}()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		args := []string{team.Id + ":" + channel.Id}
+
+		printer.Clean()
+		err := deleteChannelsCmdF(s.th.SystemAdminClient, cmd, args)
+
+		var expected error
+		expected = multierror.Append(expected, errors.New("unable to delete channel '\""+channel.Name+"\"' error: Permanent channel deletion feature is not enabled. ServiceSettings.EnableAPIChannelDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information"))
+
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expected.Error())
+
+		channel, err = s.th.App.GetChannel(s.th.Context, channel.Id)
+
+		s.Require().Nil(err)
+		s.Require().NotNil(channel)
+	})
+
+	s.Run("Delete channel with disabled config as local client", func() {
+		channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: "channel_name", CreatorId: user.Id}, true)
+		s.Require().Nil(appErr)
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableAPIChannelDeletion
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = false })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = *previousVal })
+		}()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		args := []string{team.Id + ":" + channel.Id}
+
+		printer.Clean()
+		err := deleteChannelsCmdF(s.th.LocalClient, cmd, args)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(channel, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		// expect the channel deleted
+		_, err = s.th.App.GetChannel(s.th.Context, channel.Id)
+		s.Require().NotNil(err)
+		s.CheckErrorID(err, "app.channel.get.existing.app_error")
+	})
+
 	s.Run("Delete channel without permissions", func() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
