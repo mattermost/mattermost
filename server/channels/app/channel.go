@@ -534,7 +534,11 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	users, err := a.Srv().Store().User().GetProfileByIds(context.Background(), userIDs, nil, true)
+	// we skip cache and use master when fetching profiles to avoid
+	// issues in shared channels and HA, when users are created from a
+	// shared channels GM invite right before creating the GM
+	ctx := sqlstore.RequestContextWithMaster(c).Context()
+	users, err := a.Srv().Store().User().GetProfileByIds(ctx, userIDs, nil, false)
 	if err != nil {
 		return nil, model.NewAppError("createGroupChannel", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -650,7 +654,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 		} else {
 			// if we could successfully share the channel, we invite
 			// the remotes involved to it
-			if sc, _ := a.getSharedChannelsService(); sc != nil {
+			if sc, _ := a.getSharedChannelsService(false); sc != nil {
 				for remoteID := range remoteIDs {
 					rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
 					if err != nil {
@@ -1318,6 +1322,10 @@ func (a *App) UpdateChannelMemberSchemeRoles(c request.CTX, channelID string, us
 
 	if isSchemeGuest {
 		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.user_and_guest.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !isSchemeUser {
+		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.unset_user_scheme.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	member.SchemeAdmin = isSchemeAdmin
