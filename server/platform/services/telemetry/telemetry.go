@@ -823,13 +823,13 @@ func (ts *TelemetryService) trackConfig() {
 	}
 
 	configs[TrackConfigCluster] = map[string]any{
-		"enable":                                *cfg.ClusterSettings.Enable,
-		"network_interface":                     isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
-		"bind_address":                          isDefault(*cfg.ClusterSettings.BindAddress, ""),
-		"advertise_address":                     isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
-		"use_ip_address":                        *cfg.ClusterSettings.UseIPAddress,
-		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
-		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
+		"enable":                    *cfg.ClusterSettings.Enable,
+		"network_interface":         isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
+		"bind_address":              isDefault(*cfg.ClusterSettings.BindAddress, ""),
+		"advertise_address":         isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
+		"use_ip_address":            *cfg.ClusterSettings.UseIPAddress,
+		"enable_gossip_compression": *cfg.ClusterSettings.EnableGossipCompression,
+		"read_only_config":          *cfg.ClusterSettings.ReadOnlyConfig,
 	}
 
 	configs[TrackConfigMetrics] = map[string]any{
