@@ -3859,6 +3859,10 @@
     "translation": "Failed to get upload."
   },
   {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Failed to upload file. Upload channel is not shared with remote."
+  },
+  {
     "id": "api.upload.upload_data.invalid_content_length",
     "translation": "Invalid Content-Length."
   },
