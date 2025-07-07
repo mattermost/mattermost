@@ -1102,7 +1102,7 @@ func (s *ClusterSettings) SetDefaults() {
 		if s.EnableExperimentalGossipEncryption != nil {
 			s.EnableGossipEncryption = NewPointer(*s.EnableExperimentalGossipEncryption)
 		} else {
-			s.EnableGossipEncryption = NewPointer(false)
+			s.EnableGossipEncryption = NewPointer(true)
 		}
 	}
 
