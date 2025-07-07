@@ -10906,5 +10906,9 @@
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
     "translation": "De bestandsnaam mag geen directory zijn."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Ongeldige update kanaallid: Een kanaallid heeft altijd een gebruikersschema."
   }
 ]
