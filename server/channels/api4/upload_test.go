@@ -120,8 +120,11 @@ func TestCreateUpload(t *testing.T) {
 	})
 
 	t.Run("should clean filename", func(t *testing.T) {
-		us := *&us
-		us.Filename = "../../../image.png"
+		us := &model.UploadSession{
+			ChannelId: th.BasicChannel.Id,
+			Filename:  "../../../image.png",
+			FileSize:  8 * 1024 * 1024,
+		}
 
 		u, resp, err := th.Client.CreateUpload(context.Background(), us)
 		require.NoError(t, err)
