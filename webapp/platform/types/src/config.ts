@@ -800,7 +800,7 @@ export type ClusterSettings = {
     AdvertiseAddress: string;
     UseIPAddress: boolean;
     EnableGossipCompression: boolean;
-    EnableExperimentalGossipEncryption: boolean;
+    EnableGossipEncryption: boolean;
     ReadOnlyConfig: boolean;
     GossipPort: number;
 };
