@@ -576,6 +576,10 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member."
   },
   {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Invalid channel member update: A channel member always has a user scheme."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
     "translation": "Invalid channel member update: A guest cannot be set for a single channel, a System Admin must promote or demote users to/from guests."
   },
@@ -2630,15 +2634,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@all notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@channel notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@here notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -3389,6 +3393,10 @@
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Invalid team member update: A user must be a guest or a user but not both."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Invalid team member update: A team member always has a user scheme."
   },
   {
     "id": "api.team.update_team_member_roles.user_and_guest.app_error",

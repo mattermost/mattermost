@@ -2040,6 +2040,12 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		"focalboard": "/boards",
 	}
 
+	useCaseToURL := map[string]string{
+		"mission-ops":   "/mission-ops-hq",
+		"dev-sec-ops":   "/dev-sec-ops-hq",
+		"cyber-defense": "/cyber-defense-hq",
+	}
+
 	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
 		return
@@ -2050,6 +2056,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	var loginID string
 	var token string
 	var campaign string
+	var useCase string
 	if len(r.Form) > 0 {
 		for key, value := range r.Form {
 			if key == "login_id" {
@@ -2060,6 +2067,9 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			if key == "utm_campaign" {
 				campaign = value[0]
+			}
+			if key == "use_case" {
+				useCase = value[0]
 			}
 		}
 	}
@@ -2095,6 +2105,13 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 				"redirect_to": strings.TrimSuffix(url, "/"),
 			}
 			c.App.Srv().GetTelemetryService().SendTelemetry("product_start_redirect", properties)
+			redirectURL += url
+		}
+	}
+
+	// If a cloud preview, redirect to the correct use case URL
+	if c.App.License().IsCloudPreview() && useCase != "" {
+		if url, ok := useCaseToURL[useCase]; ok {
 			redirectURL += url
 		}
 	}
