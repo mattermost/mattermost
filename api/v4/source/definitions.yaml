@@ -4238,7 +4238,7 @@ components:
       properties:
         enabled:
           type: boolean
-          description: enabled indicated whether the channel banner is enabled or not
+          description: enabled indicates whether the channel banner is enabled or not
         text:
           type: string
           description: text is the actual text that renders in the channel banner. Markdown is supported.
