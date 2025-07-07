@@ -1543,25 +1543,47 @@ func TestImportValidateEmojiImportData(t *testing.T) {
 
 func TestImportValidateThreadFollowerImportData(t *testing.T) {
 	testCases := []struct {
-		testName       string
-		lastViewed     *int64
-		unreadMentions *int64
-		user           *string
-		expectError    bool
+		testName    string
+		input       *ThreadFollowerImportData
+		expectError bool
 	}{
-		{"success", model.NewPointer(int64(0)), model.NewPointer(int64(0)), model.NewPointer("user1"), false},
-		{"missing user", model.NewPointer(int64(0)), model.NewPointer(int64(0)), nil, true},
+		{
+			testName: "success",
+			input: &ThreadFollowerImportData{
+				LastViewed:     model.NewPointer(int64(0)),
+				UnreadMentions: model.NewPointer(int64(0)),
+				User:           model.NewPointer("user1"),
+			},
+			expectError: false,
+		},
+		{
+			testName:    "nil",
+			input:       nil,
+			expectError: true,
+		},
+		{
+			testName: "nil user",
+			input: &ThreadFollowerImportData{
+				LastViewed:     model.NewPointer(int64(0)),
+				UnreadMentions: model.NewPointer(int64(0)),
+				User:           nil,
+			},
+			expectError: true,
+		},
+		{
+			testName: "empty user",
+			input: &ThreadFollowerImportData{
+				LastViewed:     model.NewPointer(int64(0)),
+				UnreadMentions: model.NewPointer(int64(0)),
+				User:           model.NewPointer(""),
+			},
+			expectError: true,
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
-			data := ThreadFollowerImportData{
-				LastViewed:     tc.lastViewed,
-				UnreadMentions: tc.unreadMentions,
-				User:           tc.user,
-			}
-
-			err := ValidateThreadFollowerImportData(&data)
+			err := ValidateThreadFollowerImportData(tc.input)
 			if tc.expectError {
 				require.NotNil(t, err)
 			} else {
