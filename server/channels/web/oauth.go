@@ -22,6 +22,9 @@ import (
 )
 
 func (w *Web) InitOAuth() {
+	// OAuth 2.0 Authorization Server Metadata endpoint (RFC 8414)
+	w.MainRouter.Handle("/.well-known/oauth-authorization-server", w.APIHandlerTrustRequester(getAuthorizationServerMetadata)).Methods(http.MethodGet)
+
 	// API version independent OAuth 2.0 as a service provider endpoints
 	w.MainRouter.Handle("/oauth/authorize", w.APIHandlerTrustRequester(authorizeOAuthPage)).Methods(http.MethodGet)
 	w.MainRouter.Handle("/oauth/authorize", w.APISessionRequired(authorizeOAuthApp)).Methods(http.MethodPost)
@@ -544,4 +547,24 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
 		targetURL = "/" + targetURL
 	}
 	return siteURLPrefix + targetURL
+}
+
+func getAuthorizationServerMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+		c.Err = model.NewAppError("getAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	metadata, err := c.App.GetAuthorizationServerMetadata(c.AppContext)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "public, max-age=3600") // Cache for 1 hour
+
+	if err := json.NewEncoder(w).Encode(metadata); err != nil {
+		c.Logger.Warn("Error writing authorization server metadata response", mlog.Err(err))
+	}
 }

@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -19,6 +20,9 @@ func (api *API) InitOAuth() {
 	api.BaseRoutes.OAuthApp.Handle("/info", api.APISessionRequired(getOAuthAppInfo)).Methods(http.MethodGet)
 	api.BaseRoutes.OAuthApp.Handle("", api.APISessionRequired(deleteOAuthApp)).Methods(http.MethodDelete)
 	api.BaseRoutes.OAuthApp.Handle("/regen_secret", api.APISessionRequired(regenerateOAuthAppSecret)).Methods(http.MethodPost)
+
+	// DCR (Dynamic Client Registration) endpoints as per RFC 7591
+	api.BaseRoutes.OAuthApps.Handle("/register", api.APISessionRequired(registerOAuthClient)).Methods(http.MethodPost)
 
 	api.BaseRoutes.User.Handle("/oauth/apps/authorized", api.APISessionRequired(getAuthorizedOAuthApps)).Methods(http.MethodGet)
 }
@@ -311,5 +315,141 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	if _, err := w.Write(js); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// DCR (Dynamic Client Registration) endpoint handlers as per RFC 7591
+
+func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Check permissions for OAuth management
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
+		c.SetPermissionError(model.PermissionManageOAuth)
+		return
+	}
+
+	var clientRequest model.ClientRegistrationRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&clientRequest); jsonErr != nil {
+		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Invalid JSON in request body")
+
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
+			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+		}
+		return
+	}
+
+	// Check if OAuth service provider is enabled
+	if !*c.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "OAuth service provider is disabled")
+
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
+			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+		}
+		return
+	}
+
+	// Check if DCR is enabled
+	if !*c.App.Config().ServiceSettings.EnableDynamicClientRegistration {
+		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Dynamic client registration is disabled")
+
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
+			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+		}
+		return
+	}
+
+	// Validate the request
+	if err := clientRequest.IsValid(); err != nil {
+		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, err.Message)
+
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
+			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+		}
+		return
+	}
+
+	// Check grant types and response types compatibility
+	if err := model.ValidateGrantTypesAndResponseTypes(clientRequest.GrantTypes, clientRequest.ResponseTypes); err != nil {
+		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, err.Message)
+
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
+			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+		}
+		return
+	}
+
+	// Mattermost only supports "user" scope - ignore whatever client requests
+	// and always set it to "user" for consistency
+	userScope := "user"
+	clientRequest.Scope = &userScope
+
+	// Check for initial access token if required
+	if *c.App.Config().ServiceSettings.DCRRequireInitialAccessToken {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Initial access token required")
+
+			w.WriteHeader(http.StatusUnauthorized)
+			if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
+				c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+			}
+			return
+		}
+
+		// Validate initial access token format (Bearer <token>)
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Invalid initial access token format")
+
+			w.WriteHeader(http.StatusUnauthorized)
+			if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
+				c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+			}
+			return
+		}
+
+		token := strings.TrimPrefix(authHeader, "Bearer ")
+		if token == "" {
+			dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Empty initial access token")
+
+			w.WriteHeader(http.StatusUnauthorized)
+			if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
+				c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+			}
+			return
+		}
+
+		// Validate the token (for now, just check it's a valid format)
+		if len(token) < 10 || len(token) > 256 {
+			dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Invalid initial access token")
+
+			w.WriteHeader(http.StatusUnauthorized)
+			if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
+				c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+			}
+			return
+		}
+	}
+
+	app, appErr := c.App.RegisterOAuthClient(c.AppContext, &clientRequest, c.AppContext.Session().UserId)
+	if appErr != nil {
+		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, appErr.Message)
+
+		w.WriteHeader(appErr.StatusCode)
+		if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
+			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+		}
+		return
+	}
+
+	siteURL := *c.App.Config().ServiceSettings.SiteURL
+	response := app.ToClientRegistrationResponse(siteURL)
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		c.Logger.Warn("Error writing DCR response", mlog.Err(err))
 	}
 }

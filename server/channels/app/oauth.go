@@ -51,6 +51,7 @@ func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppEr
 		case errors.As(err, &invErr):
 			return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
+			a.Log().Error("Error saving OAuth app", mlog.Err(err), mlog.String("app_id", app.Id), mlog.String("name", app.Name))
 			return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -1026,4 +1027,42 @@ func (a *App) SwitchOAuthToEmail(c request.CTX, email, password, requesterId str
 
 func generateOAuthStateTokenExtra(email, action, cookie string) string {
 	return email + ":" + action + ":" + cookie
+}
+
+func (a *App) GetAuthorizationServerMetadata(c request.CTX) (*model.AuthorizationServerMetadata, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
+		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	siteURL := *a.Config().ServiceSettings.SiteURL
+	if siteURL == "" {
+		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.site_url_required.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	// Get the default metadata and customize it based on our configuration
+	metadata := model.GetDefaultMetadata(siteURL)
+
+	// Add registration endpoint if dynamic client registration is enabled
+	if a.Config().ServiceSettings.EnableDynamicClientRegistration != nil && *a.Config().ServiceSettings.EnableDynamicClientRegistration {
+		metadata.RegistrationEndpoint = siteURL + "/api/v4/oauth/register"
+	}
+
+	// Note: Revocation endpoint not currently implemented
+
+	return metadata, nil
+}
+
+// DCR (Dynamic Client Registration) business logic methods
+
+func (a *App) RegisterOAuthClient(c request.CTX, req *model.ClientRegistrationRequest, userID string) (*model.OAuthApp, *model.AppError) {
+	// Create OAuth app from request
+	app := model.NewOAuthAppFromClientRegistration(req, userID)
+
+	// Save the app
+	rapp, err := a.CreateOAuthApp(app)
+	if err != nil {
+		return nil, err
+	}
+
+	return rapp, nil
 }

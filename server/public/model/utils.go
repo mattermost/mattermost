@@ -17,6 +17,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -760,6 +761,71 @@ func IsValidHTTPURL(rawURL string) bool {
 
 	if u, err := url.ParseRequestURI(rawURL); err != nil || u.Scheme == "" || u.Host == "" {
 		return false
+	}
+
+	return true
+}
+
+// IsValidDCRRedirectURI validates redirect URIs for Dynamic Client Registration
+// according to RFC 7591 security requirements
+func IsValidDCRRedirectURI(rawURL string) bool {
+	// Parse the URL
+	u, err := url.ParseRequestURI(rawURL)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return false
+	}
+
+	// Only allow http and https schemes
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return false
+	}
+
+	// For HTTP, only allow localhost/loopback addresses
+	if u.Scheme == "http" {
+		host := u.Hostname()
+		if host != "localhost" && host != "127.0.0.1" && host != "::1" {
+			return false
+		}
+	}
+
+	// For HTTPS, perform additional security checks
+	if u.Scheme == "https" {
+		host := u.Hostname()
+		
+		// Block private IP ranges for HTTPS
+		if ip := net.ParseIP(host); ip != nil {
+			// Block private IPv4 ranges
+			if ip.To4() != nil {
+				if ip.IsLoopback() || ip.IsPrivate() {
+					return false
+				}
+			}
+			// Block private IPv6 ranges
+			if ip.To16() != nil && ip.IsPrivate() {
+				return false
+			}
+		}
+	}
+
+	// Block dangerous ports
+	if u.Port() != "" {
+		port, err := strconv.Atoi(u.Port())
+		if err != nil {
+			return false
+		}
+		
+		// Block well-known dangerous ports
+		dangerousPorts := []int{
+			22, 23, 25, 53, 80, 110, 143, 443, 993, 995, // Standard services
+			1433, 1521, 3306, 5432, 6379, 11211, 27017, // Database ports
+			5984, 5985, 6000, 8080, 8888, 9200, 9300, // Application ports
+		}
+		
+		for _, dangerousPort := range dangerousPorts {
+			if port == dangerousPort {
+				return false
+			}
+		}
 	}
 
 	return true
