@@ -88,6 +88,24 @@ func TestMfaRequired(t *testing.T) {
 	assert.Equal(t, c.Err.Id, "api.context.get_user.app_error")
 }
 
+func TestTermsOfServiceExemption(t *testing.T) {
+	// Create a minimal context just for path checking - this should work without any setup
+	// since the method returns early for ToS endpoints
+	c := &Context{}
+
+	// Test various ToS endpoint paths - these should be exempt regardless of other settings
+	paths := []string{
+		"/api/v4/terms_of_service",
+		"/api/v4/users/12345/terms_of_service",
+	}
+
+	for _, path := range paths {
+		req, _ := http.NewRequest("GET", path, nil)
+		err := c.TermsOfServiceRequired(req)
+		assert.Nil(t, err, "ToS endpoint %s should be exempt", path)
+	}
+}
+
 func TestTermsOfServiceRequired(t *testing.T) {
 	th := SetupWithStoreMock(t)
 
@@ -232,30 +250,5 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
 		err := c.TermsOfServiceRequired(req)
 		assert.Nil(t, err)
-	})
-
-	t.Run("when accessing ToS endpoints should be exempt", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.SupportSettings.CustomTermsOfServiceEnabled = true
-		})
-
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-		}
-
-		// Test various ToS endpoint paths
-		paths := []string{
-			"/api/v4/terms_of_service",
-			"/api/v4/users/12345/terms_of_service",
-		}
-
-		for _, path := range paths {
-			req, _ := http.NewRequest("GET", path, nil)
-			err := c.TermsOfServiceRequired(req)
-			assert.Nil(t, err, "ToS endpoint %s should be exempt", path)
-		}
 	})
 }
