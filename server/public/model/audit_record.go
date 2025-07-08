@@ -1,28 +1,48 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package audit
+package model
 
-// Record provides a consistent set of fields used for all audit logging.
-type Record struct {
-	EventName string         `json:"event_name"`
-	Status    string         `json:"status"`
-	EventData EventData      `json:"event"`
-	Actor     EventActor     `json:"actor"`
-	Meta      map[string]any `json:"meta"`
-	Error     EventError     `json:"error"`
+const (
+	AuditKeyActor     = "actor"
+	AuditKeyAPIPath   = "api_path"
+	AuditKeyEvent     = "event"
+	AuditKeyEventData = "event_data"
+	AuditKeyEventName = "event_name"
+	AuditKeyMeta      = "meta"
+	AuditKeyError     = "error"
+	AuditKeyStatus    = "status"
+	AuditKeyUserID    = "user_id"
+	AuditKeySessionID = "session_id"
+	AuditKeyClient    = "client"
+	AuditKeyIPAddress = "ip_address"
+	AuditKeyClusterID = "cluster_id"
+
+	AuditStatusSuccess = "success"
+	AuditStatusAttempt = "attempt"
+	AuditStatusFail    = "fail"
+)
+
+// AuditRecord provides a consistent set of fields used for all audit logging.
+type AuditRecord struct {
+	EventName string          `json:"event_name"`
+	Status    string          `json:"status"`
+	EventData AuditEventData  `json:"event"`
+	Actor     AuditEventActor `json:"actor"`
+	Meta      map[string]any  `json:"meta"`
+	Error     AuditEventError `json:"error"`
 }
 
-// EventData contains all event specific data about the modified entity
-type EventData struct {
+// AuditEventData contains all event specific data about the modified entity
+type AuditEventData struct {
 	Parameters  map[string]any `json:"parameters"`      // Payload and parameters being processed as part of the request
 	PriorState  map[string]any `json:"prior_state"`     // Prior state of the object being modified, nil if no prior state
 	ResultState map[string]any `json:"resulting_state"` // Resulting object after creating or modifying it
 	ObjectType  string         `json:"object_type"`     // String representation of the object type. eg. "post"
 }
 
-// EventActor is the subject triggering the event
-type EventActor struct {
+// AuditEventActor is the subject triggering the event
+type AuditEventActor struct {
 	UserId        string `json:"user_id"`
 	SessionId     string `json:"session_id"`
 	Client        string `json:"client"`
@@ -36,8 +56,8 @@ type EventMeta struct {
 	ClusterId string `json:"cluster_id"`
 }
 
-// EventError contains error information in case of failure of the event
-type EventError struct {
+// AuditEventError contains error information in case of failure of the event
+type AuditEventError struct {
 	Description string `json:"description,omitempty"`
 	Code        int    `json:"status_code,omitempty"`
 }
@@ -50,17 +70,17 @@ type Auditable interface {
 }
 
 // Success marks the audit record status as successful.
-func (rec *Record) Success() {
-	rec.Status = Success
+func (rec *AuditRecord) Success() {
+	rec.Status = AuditStatusSuccess
 }
 
 // Fail marks the audit record status as failed.
-func (rec *Record) Fail() {
-	rec.Status = Fail
+func (rec *AuditRecord) Fail() {
+	rec.Status = AuditStatusFail
 }
 
-// AddEventParameter adds a parameter, e.g. query or post body, to the event
-func AddEventParameter[T string | bool | int | int64 | []string | map[string]string](rec *Record, key string, val T) {
+// AddEventParameterToAuditRec adds a parameter, e.g. query or post body, to the event
+func AddEventParameterToAuditRec[T string | bool | int | int64 | []string | map[string]string](rec *AuditRecord, key string, val T) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]any)
 	}
@@ -68,8 +88,8 @@ func AddEventParameter[T string | bool | int | int64 | []string | map[string]str
 	rec.EventData.Parameters[key] = val
 }
 
-// AddEventParameterAuditable adds an object that is of type Auditable to the event
-func AddEventParameterAuditable(rec *Record, key string, val Auditable) {
+// AddEventParameterAuditableToAuditRec adds an object that is of type Auditable to the event
+func AddEventParameterAuditableToAuditRec(rec *AuditRecord, key string, val Auditable) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]any)
 	}
@@ -77,8 +97,8 @@ func AddEventParameterAuditable(rec *Record, key string, val Auditable) {
 	rec.EventData.Parameters[key] = val.Auditable()
 }
 
-// AddEventParameterAuditableArray adds an array of objects of type Auditable to the event
-func AddEventParameterAuditableArray[T Auditable](rec *Record, key string, val []T) {
+// AddEventParameterAuditableArrayToAuditRec adds an array of objects of type Auditable to the event
+func AddEventParameterAuditableArrayToAuditRec[T Auditable](rec *AuditRecord, key string, val []T) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]any)
 	}
@@ -92,32 +112,38 @@ func AddEventParameterAuditableArray[T Auditable](rec *Record, key string, val [
 }
 
 // AddEventPriorState adds the prior state of the modified object to the audit record
-func (rec *Record) AddEventPriorState(object Auditable) {
+func (rec *AuditRecord) AddEventPriorState(object Auditable) {
 	rec.EventData.PriorState = object.Auditable()
 }
 
 // AddEventResultState adds the result state of the modified object to the audit record
-func (rec *Record) AddEventResultState(object Auditable) {
+func (rec *AuditRecord) AddEventResultState(object Auditable) {
 	rec.EventData.ResultState = object.Auditable()
 }
 
 // AddEventObjectType adds the object type of the modified object to the audit record
-func (rec *Record) AddEventObjectType(objectType string) {
+func (rec *AuditRecord) AddEventObjectType(objectType string) {
 	rec.EventData.ObjectType = objectType
 }
 
 // AddMeta adds a key/value entry to the audit record that can be used for related information not directly related to
 // the modified object, e.g. authentication method
-func (rec *Record) AddMeta(name string, val any) {
+func (rec *AuditRecord) AddMeta(name string, val any) {
 	rec.Meta[name] = val
 }
 
 // AddErrorCode adds the error code for a failed event to the audit record
-func (rec *Record) AddErrorCode(code int) {
+func (rec *AuditRecord) AddErrorCode(code int) {
 	rec.Error.Code = code
 }
 
 // AddErrorDesc adds the error description for a failed event to the audit record
-func (rec *Record) AddErrorDesc(description string) {
+func (rec *AuditRecord) AddErrorDesc(description string) {
 	rec.Error.Description = description
+}
+
+// AddAppError adds an AppError to the audit record
+func (rec *AuditRecord) AddAppError(err *AppError) {
+	rec.AddErrorCode(err.StatusCode)
+	rec.AddErrorDesc(err.Error())
 }

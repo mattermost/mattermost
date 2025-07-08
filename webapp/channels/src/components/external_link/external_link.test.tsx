@@ -73,6 +73,40 @@ describe('components/external_link', () => {
         );
     });
 
+    it('should use in-product-preview utm_medium for cloud preview workspaces', () => {
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    ...initialState?.entities?.general,
+                    config: {
+                        DiagnosticsEnabled: 'true',
+                    },
+                },
+                cloud: {
+                    subscription: {
+                        is_cloud_preview: true,
+                    },
+                },
+            },
+        };
+        renderWithContext(
+            <ExternalLink
+                location='test'
+                href='https://mattermost.com'
+            >
+                {'Click Me'}
+            </ExternalLink>,
+            state,
+        );
+
+        expect(screen.queryByText('Click Me')).toHaveAttribute(
+            'href',
+            expect.stringMatching('utm_medium=in-product-preview'),
+        );
+    });
+
     it('should preserve query params that already exist in the href', () => {
         const state = {
             ...initialState,
@@ -98,7 +132,7 @@ describe('components/external_link', () => {
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
             'href',
-            'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=&test=true',
+            'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=&edition=team&server_version=&test=true',
         );
     });
 
@@ -191,7 +225,7 @@ describe('components/external_link', () => {
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
             'href',
-            'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=#desktop',
+            'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=&edition=team&server_version=#desktop',
         );
     });
 });

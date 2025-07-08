@@ -27,6 +27,8 @@ var excludedPluginHooks = []string{
 	"Implemented",
 	"LoadPluginConfiguration",
 	"InstallPlugin",
+	"LogAuditRec",
+	"LogAuditRecWithLevel",
 	"LogDebug",
 	"LogError",
 	"LogInfo",
