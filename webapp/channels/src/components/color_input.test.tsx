@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {renderWithContext, userEvent, fireEvent, screen} from 'tests/react_testing_utils';
 
 import ColorInput from './color_input';
 
@@ -13,80 +14,75 @@ describe('components/ColorInput', () => {
         value: '#ffffff',
     };
 
-    test('should match snapshot, init', () => {
-        const wrapper = shallow(
-            <ColorInput {...baseProps}/>,
-        );
+    test('should hide color picker when first rendered', () => {
+        const {getByTestId} = renderWithContext(<ColorInput {...baseProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        const inputElement = getByTestId('color-inputColorValue');
+
+        expect(inputElement).toBeInTheDocument();
+        expect(inputElement).toBeVisible();
+        expect(screen.queryByTestId('color-popover')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot, opened', () => {
-        const wrapper = shallow(
-            <ColorInput {...baseProps}/>,
-        );
+    test('should toggle color picker when color picker button is clicked', () => {
+        const {getByTestId} = renderWithContext(<ColorInput {...baseProps}/>);
 
-        wrapper.find('.input-group-addon').simulate('click');
+        const colorPickerToggleButton = getByTestId('color-togglerButton');
 
-        expect(wrapper).toMatchSnapshot();
+        fireEvent.click(colorPickerToggleButton);
+
+        const colorPopover = getByTestId('color-popover');
+
+        expect(colorPopover).toBeInTheDocument();
+        expect(colorPopover).toBeVisible();
+        expect(document.activeElement).toBe(getByTestId('color-inputColorValue'));
+
+        fireEvent.click(colorPickerToggleButton);
+
+        expect(screen.queryByTestId('color-popover')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot, toggle picker', () => {
-        const wrapper = shallow(
-            <ColorInput {...baseProps}/>,
-        );
-        wrapper.find('.input-group-addon').simulate('click');
-        wrapper.find('.input-group-addon').simulate('click');
+    test('should change color when the color picker is clicked', () => {
+        const {getByTestId} = renderWithContext(<ColorInput {...baseProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
-    });
+        fireEvent.click(getByTestId('color-togglerButton'));
 
-    test('should match snapshot, click on picker', () => {
-        const wrapper = shallow(
-            <ColorInput {...baseProps}/>,
-        );
+        const colorPopover = getByTestId('color-popover');
 
-        wrapper.find('.input-group-addon').simulate('click');
-        wrapper.find('.color-popover').simulate('click');
+        userEvent.click(colorPopover);
 
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should have match state on togglePicker', () => {
-        const wrapper = shallow(
-            <ColorInput {...baseProps}/>,
-        );
-
-        wrapper.setState({isOpened: true});
-
-        wrapper.find('.input-group-addon').simulate('click');
-        expect(wrapper.state('isOpened')).toEqual(false);
-
-        wrapper.find('.input-group-addon').simulate('click');
-        expect(wrapper.state('isOpened')).toEqual(true);
+        expect(colorPopover).toBeInTheDocument();
+        expect(baseProps.onChange).toHaveBeenCalledTimes(1);
     });
 
     test('should keep what the user types in the textbox until blur', () => {
-        const wrapper = shallow(
-            <ColorInput {...baseProps}/>,
-        );
+        const {getByTestId} = renderWithContext(<ColorInput {...baseProps}/>);
 
-        baseProps.onChange.mockImplementation((value) => wrapper.setProps({value}));
+        const inputElement = getByTestId('color-inputColorValue');
 
-        wrapper.find('input').simulate('focus', {target: null});
-        expect(wrapper.state('focused')).toBe(true);
+        inputElement.focus();
 
-        wrapper.find('input').simulate('change', {target: {value: '#abc'}});
-        expect(wrapper.state('value')).toBe('#abc');
+        expect(document.activeElement).toBe(inputElement);
+
+        fireEvent.change(inputElement, {target: {value: '#abc'}});
+
+        expect(inputElement).toHaveValue('#abc');
         expect(baseProps.onChange).toHaveBeenLastCalledWith('#aabbcc');
-        expect(wrapper.find('input').prop('value')).toEqual('#abc');
-        expect(wrapper.find('.color-icon').prop('style')).toHaveProperty('backgroundColor', '#abc');
 
-        wrapper.find('input').simulate('blur');
-        expect(wrapper.state('focused')).toBe(false);
-        expect(wrapper.state('value')).toBe('#aabbcc');
+        // The RGB here is the equivalent of '#abc'.
+        expect(getByTestId('color-icon').style.backgroundColor).toBe('rgb(170, 187, 204)');
+
+        inputElement.blur();
+
+        expect(document.activeElement).not.toBe(inputElement);
+        expect(inputElement).toHaveValue('#ffffff');
         expect(baseProps.onChange).toHaveBeenLastCalledWith('#aabbcc');
-        expect(wrapper.find('input').prop('value')).toEqual('#aabbcc');
-        expect(wrapper.find('.color-icon').prop('style')).toHaveProperty('backgroundColor', '#aabbcc');
+
+        /**
+         * The icon color is set back to the one provided in props (#ffffff) because the input isn't
+         * focused anymore, and the props value is different from the state value. The RGB value passed
+         * in the assertion is the equivalent of '#ffffff'.
+         */
+        expect(getByTestId('color-icon').style.backgroundColor).toBe('rgb(255, 255, 255)');
     });
 });
