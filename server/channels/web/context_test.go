@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -112,8 +112,12 @@ func TestTermsOfServiceRequired(t *testing.T) {
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockTermsOfServiceStore := mocks.TermsOfServiceStore{}
 	mockUserTermsOfServiceStore := mocks.UserTermsOfServiceStore{}
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("Count", mock.Anything).Return(int64(1), nil)
+	mockTermsOfServiceStore.On("GetLatest", mock.Anything).Return(nil, model.NewAppError("", "app.terms_of_service.get_latest.app_error", nil, "", http.StatusNotFound))
 	mockStore.On("TermsOfService").Return(&mockTermsOfServiceStore)
 	mockStore.On("UserTermsOfService").Return(&mockUserTermsOfServiceStore)
+	mockStore.On("User").Return(&mockUserStore)
 
 	userId := "testuser123"
 	session := &model.Session{Id: "abc", UserId: userId}
