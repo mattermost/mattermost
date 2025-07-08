@@ -586,7 +586,7 @@ const defaultServerConfig: AdminConfig = {
         AdvertiseAddress: '',
         UseIPAddress: true,
         EnableGossipCompression: true,
-        EnableExperimentalGossipEncryption: false,
+        EnableGossipEncryption: false,
         ReadOnlyConfig: true,
         GossipPort: 8074,
     },

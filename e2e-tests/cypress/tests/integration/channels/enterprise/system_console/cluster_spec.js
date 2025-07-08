@@ -21,7 +21,7 @@ describe('Cluster', () => {
         cy.apiUpdateConfig({
             ClusterSettings: {
                 Enable: null,
-                EnableExperimentalGossipEncryption: null,
+                EnableGossipEncryption: null,
             },
         });
 
@@ -30,7 +30,7 @@ describe('Cluster', () => {
     });
 
     it('SC25050 - Can change Experimental Gossip Encryption', () => {
-        cy.findByTestId('EnableExperimentalGossipEncryption').scrollIntoView().should('be.visible').within(() => {
+        cy.findByTestId('EnableGossipEncryption').scrollIntoView().should('be.visible').within(() => {
             // * Verify that setting is visible and matches text content
             cy.get('.control-label').should('be.visible').and('have.text', 'Enable Experimental Gossip encryption:');
 
@@ -39,21 +39,21 @@ describe('Cluster', () => {
             cy.get('.help-text').should('be.visible').and('have.text', contents);
 
             // * Verify that Experimental Gossip Encryption is set to false by default
-            cy.get('#EnableExperimentalGossipEncryptionfalse').should('have.attr', 'checked');
+            cy.get('#EnableGossipEncryptionfalse').should('have.attr', 'checked');
         });
 
         // # Enable Experimental Gossip Encryption
         cy.apiUpdateConfig({
             ClusterSettings: {
                 Enable: true,
-                EnableExperimentalGossipEncryption: true,
+                EnableGossipEncryption: true,
             },
         });
         cy.reload();
 
-        cy.findByTestId('EnableExperimentalGossipEncryption').scrollIntoView().should('be.visible').within(() => {
+        cy.findByTestId('EnableGossipEncryption').scrollIntoView().should('be.visible').within(() => {
             // * Verify that Experimental Gossip Encryption is set to true
-            cy.get('#EnableExperimentalGossipEncryptiontrue').should('have.attr', 'checked');
+            cy.get('#EnableGossipEncryptiontrue').should('have.attr', 'checked');
         });
     });
 
