@@ -534,6 +534,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/client_perf`;
     }
 
+    getContentFlaggingRoute() {
+        return `${this.getBaseRoute()}/content_flagging`;
+    }
+
     getCSRFFromCookie() {
         if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
             const cookies = document.cookie.split(';');
@@ -4565,6 +4569,13 @@ export default class Client4 {
     getChannelAccessControlAttributes = (channelId: string) => {
         return this.doFetch<AccessControlAttributes>(
             `${this.getChannelRoute(channelId)}/access_control/attributes`,
+            {method: 'get'},
+        );
+    };
+
+    getTeamContentFlaggingStatus = (teamId: string) => {
+        return this.doFetch<{[enabled: string]: boolean}>(
+            `${this.getContentFlaggingRoute()}/team/${teamId}/status`,
             {method: 'get'},
         );
     };

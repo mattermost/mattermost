@@ -3,11 +3,13 @@
 
 import iNoBounce from 'inobounce';
 import React, {lazy, memo, useEffect, useRef, useState} from 'react';
+import {useDispatch} from 'react-redux';
 import {Route, Switch, useHistory, useParams} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 
+import {getTeamContentFlaggingStatus} from 'mattermost-redux/actions/content_flagging';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {reconnect} from 'actions/websocket_actions.jsx';
@@ -42,6 +44,7 @@ declare global {
 type Props = PropsFromRedux & OwnProps;
 
 function TeamController(props: Props) {
+    const dispatch = useDispatch();
     const history = useHistory();
     const {team: teamNameParam} = useParams<Props['match']['params']>();
 
@@ -130,6 +133,11 @@ function TeamController(props: Props) {
             window.removeEventListener('keydown', handleKeydown);
         };
     }, [props.currentTeamId]);
+
+    // Load team content flagging status on team switch
+    useEffect(() => {
+        dispatch(getTeamContentFlaggingStatus(props.currentTeamId));
+    }, [dispatch, props.currentTeamId]);
 
     // Effect runs on mount, adds active state to window
     useEffect(() => {
