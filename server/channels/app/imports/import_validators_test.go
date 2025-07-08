@@ -1652,6 +1652,19 @@ func TestIsValidGuestRoles(t *testing.T) {
 			},
 			expected: true,
 		},
+		{
+			name: "Valid case: User with team but nil channels array",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemUserRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles:    model.NewPointer(model.TeamUserRoleId),
+						Channels: nil,
+					},
+				},
+			},
+			expected: true,
+		},
 	}
 
 	for _, tc := range testCases {
