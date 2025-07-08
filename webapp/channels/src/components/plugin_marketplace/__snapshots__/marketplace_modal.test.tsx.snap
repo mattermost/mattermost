@@ -37,7 +37,6 @@ exports[`components/marketplace/ doesn't show web marketplace banner in FeatureF
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
@@ -150,7 +149,6 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
@@ -264,7 +262,6 @@ exports[`components/marketplace/ should render default 1`] = `
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
@@ -429,7 +426,6 @@ exports[`components/marketplace/ should render with error banner 1`] = `
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
@@ -611,7 +607,6 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
@@ -784,7 +779,6 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
@@ -975,7 +969,6 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"

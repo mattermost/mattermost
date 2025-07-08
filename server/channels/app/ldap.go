@@ -40,16 +40,38 @@ func (a *App) SyncLdap(c request.CTX, reAddRemovedMembers *bool) {
 func (a *App) TestLdap(rctx request.CTX) *model.AppError {
 	license := a.Srv().License()
 	if ldapI := a.LdapDiagnostic(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
-		if err := ldapI.RunTest(rctx); err != nil {
-			err.StatusCode = 500
-			return err
-		}
-	} else {
-		err := model.NewAppError("TestLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
-		return err
+		return ldapI.RunTest(rctx)
 	}
 
-	return nil
+	return model.NewAppError("TestLdap",
+		"ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+}
+
+func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) *model.AppError {
+	license := a.Srv().License()
+	ldapI := a.LdapDiagnostic()
+
+	// NOTE: normally we would test (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync),
+	// but we want to allow sysadmins to test the connection without enabling and saving the config first.
+	if ldapI != nil && license != nil && model.SafeDereference(license.Features.LDAP) {
+		return ldapI.RunTestConnection(rctx, settings)
+	}
+
+	return model.NewAppError("TestLdapConnection",
+		"ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+}
+
+func (a *App) TestLdapDiagnostics(rctx request.CTX, testType model.LdapDiagnosticTestType, settings model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
+	license := a.Srv().License()
+	ldapI := a.LdapDiagnostic()
+
+	// NOTE: normally we would test (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync),
+	// but we want to allow sysadmins to test the connection without enabling and saving the config first.
+	if ldapI != nil && license != nil && *license.Features.LDAP {
+		return ldapI.RunTestDiagnostics(rctx, testType, settings)
+	}
+
+	return nil, model.NewAppError("TestLdapDiagnostics", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }
 
 // GetLdapGroup retrieves a single LDAP group by the given LDAP group id.

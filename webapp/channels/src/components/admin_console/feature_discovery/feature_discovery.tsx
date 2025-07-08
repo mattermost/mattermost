@@ -123,6 +123,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             <div className='purchase-card'>
                 <>
                     <PurchaseLink
+                        className='btn btn-primary btn-lg'
                         eventID='post_trial_purchase_license'
                         buttonTextElement={
                             <FormattedMessage

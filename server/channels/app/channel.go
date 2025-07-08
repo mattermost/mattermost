@@ -534,7 +534,11 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	users, err := a.Srv().Store().User().GetProfileByIds(context.Background(), userIDs, nil, true)
+	// we skip cache and use master when fetching profiles to avoid
+	// issues in shared channels and HA, when users are created from a
+	// shared channels GM invite right before creating the GM
+	ctx := sqlstore.RequestContextWithMaster(c).Context()
+	users, err := a.Srv().Store().User().GetProfileByIds(ctx, userIDs, nil, false)
 	if err != nil {
 		return nil, model.NewAppError("createGroupChannel", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -650,7 +654,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 		} else {
 			// if we could successfully share the channel, we invite
 			// the remotes involved to it
-			if sc, _ := a.getSharedChannelsService(); sc != nil {
+			if sc, _ := a.getSharedChannelsService(false); sc != nil {
 				for remoteID := range remoteIDs {
 					rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
 					if err != nil {
@@ -1320,6 +1324,10 @@ func (a *App) UpdateChannelMemberSchemeRoles(c request.CTX, channelID string, us
 		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.user_and_guest.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if !isSchemeUser {
+		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.unset_user_scheme.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	member.SchemeAdmin = isSchemeAdmin
 	member.SchemeUser = isSchemeUser
 	member.SchemeGuest = isSchemeGuest
@@ -1710,6 +1718,13 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 
 	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
+
+	// Synchronize membership change for shared channels
+	if channel.IsShared() {
+		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+			scs.HandleMembershipChange(channel.Id, user.Id, true, user.GetRemoteID())
+		}
+	}
 
 	return newMember, nil
 }
@@ -2236,7 +2251,12 @@ func (s *Server) getChannelMemberLastViewedAt(c request.CTX, channelID string, u
 }
 
 func (a *App) GetChannelMembersPage(c request.CTX, channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
-	channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, page*perPage, perPage)
+	opts := model.ChannelMembersGetOptions{
+		ChannelID: channelID,
+		Offset:    page * perPage,
+		Limit:     perPage,
+	}
+	channelMembers, err := a.Srv().Store().Channel().GetMembers(opts)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelMembersPage", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2739,6 +2759,14 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	userMsg.Add("channel_id", channel.Id)
 	userMsg.Add("remover_id", removerUserId)
 	a.Publish(userMsg)
+
+	// Synchronize membership change for shared channels
+	if channel.IsShared() {
+		// isAdd=false, empty remoteId means locally initiated
+		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+			scs.HandleMembershipChange(channel.Id, userIDToRemove, false, "")
+		}
+	}
 
 	return nil
 }
@@ -3639,7 +3667,12 @@ func (a *App) forEachChannelMember(c request.CTX, channelID string, f func(model
 	page := 0
 
 	for {
-		channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, page*perPage, perPage)
+		opts := model.ChannelMembersGetOptions{
+			ChannelID: channelID,
+			Offset:    page * perPage,
+			Limit:     perPage,
+		}
+		channelMembers, err := a.Srv().Store().Channel().GetMembers(opts)
 		if err != nil {
 			return err
 		}
@@ -3790,10 +3823,7 @@ func (a *App) setSidebarCategoriesForConvertedGroupMessage(c request.CTX, gmConv
 	// Now that we've deleted existing entries, we can set the channel in default "Channels" category
 	// for all GM members
 	for _, user := range channelUsers {
-		categories, appErr := a.GetSidebarCategories(c, user.Id, &store.SidebarCategorySearchOpts{
-			TeamID: gmConversionRequest.TeamID,
-			Type:   model.SidebarCategoryChannels,
-		})
+		categories, appErr := a.GetSidebarCategories(c, user.Id, gmConversionRequest.TeamID)
 
 		if appErr != nil {
 			c.Logger().Error("Failed to search sidebar categories for user for adding converted GM")
@@ -3943,7 +3973,7 @@ func (a *App) ChannelAccessControlled(c request.CTX, channelID string) (bool, *m
 		return false, nil
 	}
 
-	_, err := a.Srv().Store().AccessControlPolicy().Get(c, channelID)
+	channel, err := a.Srv().Store().Channel().Get(channelID, true)
 	var nfErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &nfErr) {
 		return false, model.NewAppError("ChannelIsAccessControlled", "app.channel.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -3951,7 +3981,7 @@ func (a *App) ChannelAccessControlled(c request.CTX, channelID string) (bool, *m
 		return false, nil
 	}
 
-	return true, nil
+	return channel.PolicyEnforced, nil
 }
 
 func (a *App) handleChannelCategoryName(channel *model.Channel) {

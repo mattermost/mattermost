@@ -417,6 +417,7 @@ func sharedChannelRemoteFields(prefix string) []string {
 		"COALESCE(" + prefix + "LastPostCreateID,'') AS LastPostCreateID",
 		prefix + "LastPostUpdateAt",
 		"COALESCE(" + prefix + "LastPostId,'') AS LastPostUpdateID",
+		prefix + "LastMembersSyncAt",
 	}
 }
 
@@ -522,7 +523,7 @@ func (s SqlSharedChannelStore) GetRemotes(offset, limit int, opts model.SharedCh
 		return nil, errors.Wrapf(err, "get_shared_channel_remotes_tosql")
 	}
 
-	if err := s.GetReplica().Select(&remotes, squery, args...); err != nil {
+	if err := s.GetMaster().Select(&remotes, squery, args...); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, errors.Wrapf(err, "failed to get shared channel remotes for channel_id=%s; remote_id=%s",
 				opts.ChannelId, opts.RemoteId)
@@ -708,6 +709,7 @@ func sharedChannelUserFields(prefix string) []string {
 		prefix + "RemoteId",
 		prefix + "CreateAt",
 		prefix + "LastSyncAt",
+		prefix + "LastMembershipSyncAt",
 	}
 }
 
@@ -720,7 +722,7 @@ func (s SqlSharedChannelStore) SaveUser(scUser *model.SharedChannelUser) (*model
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannelUsers").
 		Columns(sharedChannelUserFields("")...).
-		Values(scUser.Id, scUser.UserId, scUser.ChannelId, scUser.RemoteId, scUser.CreateAt, scUser.LastSyncAt).
+		Values(scUser.Id, scUser.UserId, scUser.ChannelId, scUser.RemoteId, scUser.CreateAt, scUser.LastSyncAt, scUser.LastMembershipSyncAt).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "savesharedchanneluser_tosql")
@@ -848,6 +850,25 @@ func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID str
 	_, err = s.GetMaster().ExecBuilder(query)
 	if err != nil {
 		return fmt.Errorf("failed to update LastSyncAt for SharedChannelUser with userId=%s, channelId=%s, remoteId=%s: %w",
+			userID, channelID, remoteID, err)
+	}
+	return nil
+}
+
+// UpdateUserLastMembershipSyncAt updates the LastMembershipSyncAt timestamp for the specified SharedChannelUser using the provided sync time.
+func (s SqlSharedChannelStore) UpdateUserLastMembershipSyncAt(userID string, channelID string, remoteID string, syncTime int64) error {
+	query := s.getQueryBuilder().
+		Update("SharedChannelUsers AS scu").
+		Set("LastMembershipSyncAt", sq.Expr("GREATEST(scu.LastMembershipSyncAt, ?)", syncTime)).
+		Where(sq.Eq{
+			"scu.UserId":    userID,
+			"scu.ChannelId": channelID,
+			"scu.RemoteId":  remoteID,
+		})
+
+	_, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return fmt.Errorf("failed to update LastMembershipSyncAt for SharedChannelUser with userId=%s, channelId=%s, remoteId=%s: %w",
 			userID, channelID, remoteID, err)
 	}
 	return nil

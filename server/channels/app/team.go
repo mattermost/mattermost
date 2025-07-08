@@ -490,6 +490,10 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.user_and_guest.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if !isSchemeUser {
+		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.unset_user_scheme.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	member.SchemeAdmin = isSchemeAdmin
 	member.SchemeUser = isSchemeUser
 	member.SchemeGuest = isSchemeGuest
@@ -767,11 +771,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		return nil, model.NewAppError("JoinUserToTeam", "app.user.update_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	opts := &store.SidebarCategorySearchOpts{
-		TeamID:      team.Id,
-		ExcludeTeam: false,
-	}
-	if _, err := a.createInitialSidebarCategories(c, user.Id, opts); err != nil {
+	if _, err := a.createInitialSidebarCategories(c, user.Id, team.Id); err != nil {
 		c.Logger().Warn(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
@@ -1503,7 +1503,13 @@ func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.G
 		if channel.TeamId != teamID {
 			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
 		}
+
+		// Check if the channel has access control policy enforcement
+		if channel.PolicyEnforced {
+			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.policy_enforced_channel.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
+
 	return user, team, channels, nil
 }
 
