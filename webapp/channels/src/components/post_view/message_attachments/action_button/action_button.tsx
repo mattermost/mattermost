@@ -26,7 +26,6 @@ const getStatusColors = (theme: Theme) => {
 const markdownOptions = {
     mentionHighlight: false,
     markdown: false,
-    autolinkedUrlSchemes: [],
 };
 
 type Props = {
