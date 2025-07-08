@@ -306,7 +306,7 @@ else
 	$(GOBIN)/golangci-lint run ./... ./public/...
 endif
 
-modernize: ## Run modernize linter on code base
+modernize: ## Run modernize linter on codebase
 ## https://pkg.go.dev/golang.org/x/tools/gopls/internal/analysis/modernize is not support in golangci-lint.
 ## We need to invoke it directly.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
