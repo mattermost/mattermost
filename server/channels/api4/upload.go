@@ -9,6 +9,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -39,6 +40,8 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	// these are not supported for client uploads; shared channels only.
 	us.RemoteId = ""
 	us.ReqFileId = ""
+
+	us.Filename = filepath.Base(us.Filename)
 
 	auditRec := c.MakeAuditRecord("createUpload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
