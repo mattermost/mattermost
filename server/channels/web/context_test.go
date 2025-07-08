@@ -113,11 +113,22 @@ func TestTermsOfServiceRequired(t *testing.T) {
 	mockTermsOfServiceStore := mocks.TermsOfServiceStore{}
 	mockUserTermsOfServiceStore := mocks.UserTermsOfServiceStore{}
 	mockUserStore := mocks.UserStore{}
+	mockPostStore := mocks.PostStore{}
+	mockSystemStore := mocks.SystemStore{}
+
 	mockUserStore.On("Count", mock.Anything).Return(int64(1), nil)
+	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	// Default GetLatest mock that returns error (no ToS exists) - will be overridden by individual tests
 	mockTermsOfServiceStore.On("GetLatest", mock.Anything).Return(nil, model.NewAppError("", "app.terms_of_service.get_latest.app_error", nil, "", http.StatusNotFound))
+
 	mockStore.On("TermsOfService").Return(&mockTermsOfServiceStore)
 	mockStore.On("UserTermsOfService").Return(&mockUserTermsOfServiceStore)
 	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	userId := "testuser123"
 	session := &model.Session{Id: "abc", UserId: userId}
@@ -189,6 +200,8 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		th.App.Srv().SetLicense(license)
 
 		latestToS := &model.TermsOfService{Id: "latest_tos_id"}
+		// Override the default GetLatest mock for this specific test
+		mockTermsOfServiceStore.ExpectedCalls = nil
 		mockTermsOfServiceStore.On("GetLatest", true).Return(latestToS, nil)
 		mockUserTermsOfServiceStore.On("GetByUser", userId).Return(nil, model.NewAppError("GetByUser", "app.user_terms_of_service.get_by_user.app_error", nil, "", http.StatusNotFound))
 
@@ -243,6 +256,9 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		latestToS := &model.TermsOfService{Id: "latest_tos_id"}
 		currentUserToS := &model.UserTermsOfService{UserId: userId, TermsOfServiceId: "latest_tos_id"}
 
+		// Clear mock expectations for this test
+		mockTermsOfServiceStore.ExpectedCalls = nil
+		mockUserTermsOfServiceStore.ExpectedCalls = nil
 		mockTermsOfServiceStore.On("GetLatest", true).Return(latestToS, nil)
 		mockUserTermsOfServiceStore.On("GetByUser", userId).Return(currentUserToS, nil)
 
