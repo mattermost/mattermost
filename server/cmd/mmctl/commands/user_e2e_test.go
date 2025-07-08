@@ -1488,7 +1488,6 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for single user", func() {
-		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
@@ -1506,9 +1505,11 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 3)
-		s.Require().Equal(preferenceUpdated, actualPreferencesUser1[0])
-		s.Require().Equal(preference2, actualPreferencesUser1[1])
-		s.Require().Equal(preference3, actualPreferencesUser1[2])
+
+		// We can't guarantee the order of preferences returned by the database since they are not sorted at SQL query level.
+		s.Require().Contains(actualPreferencesUser1, preferenceUpdated)
+		s.Require().Contains(actualPreferencesUser1, preference2)
+		s.Require().Contains(actualPreferencesUser1, preference3)
 
 		// Second user unaffected
 		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
@@ -1518,7 +1519,6 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for multiple users as admin", func() {
-		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
@@ -1537,9 +1537,11 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 3)
-		s.Require().Equal(preferenceUpdated, actualPreferencesUser1[0])
-		s.Require().Equal(preference2, actualPreferencesUser1[1])
-		s.Require().Equal(preference3, actualPreferencesUser1[2])
+
+		// We can't guarantee the order of preferences returned by the database since they are not sorted at SQL query level.
+		s.Require().Contains(actualPreferencesUser1, preferenceUpdated)
+		s.Require().Contains(actualPreferencesUser1, preference2)
+		s.Require().Contains(actualPreferencesUser1, preference3)
 
 		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
