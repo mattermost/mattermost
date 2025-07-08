@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"net/http"
 )
@@ -18,7 +19,25 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/status", api.APISessionRequired(getTeamPostReportingFeatureStatus)).Methods(http.MethodGet)
 }
 
+func requireContentFlaggingEnabled(c *Context) {
+	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		c.Err = model.NewAppError("requireContentFlaggingEnabled", "api.content_flagging.error.license", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	contentFlaggingEnabled := c.App.Config().ContentFlaggingSettings.EnableContentFlagging
+	if contentFlaggingEnabled == nil || !*contentFlaggingEnabled {
+		c.Err = model.NewAppError("requireContentFlaggingEnabled", "api.content_flagging.error.disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+}
+
 func getReportingConfiguration(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireContentFlaggingEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	reportingConfig := c.App.GetReportingConfiguration()
 
 	w.WriteHeader(http.StatusOK)
@@ -29,6 +48,11 @@ func getReportingConfiguration(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func getTeamPostReportingFeatureStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireContentFlaggingEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return

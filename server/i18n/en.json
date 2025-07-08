@@ -260,6 +260,14 @@
     "translation": "Your license does not support channel bookmarks."
   },
   {
+    "id": "api.content_flagging.error.license",
+    "translation": "Your license does not support content flagging."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Content flagging feature is disabled."
+  },
+  {
     "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
     "translation": "Failed to create the channel bookmark."
   },
