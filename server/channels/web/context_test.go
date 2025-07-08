@@ -87,3 +87,175 @@ func TestMfaRequired(t *testing.T) {
 
 	assert.Equal(t, c.Err.Id, "api.context.get_user.app_error")
 }
+
+func TestTermsOfServiceRequired(t *testing.T) {
+	th := SetupWithStoreMock(t)
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockTermsOfServiceStore := mocks.TermsOfServiceStore{}
+	mockUserTermsOfServiceStore := mocks.UserTermsOfServiceStore{}
+	mockStore.On("TermsOfService").Return(&mockTermsOfServiceStore)
+	mockStore.On("UserTermsOfService").Return(&mockUserTermsOfServiceStore)
+
+	userId := "testuser123"
+	session := &model.Session{Id: "abc", UserId: userId}
+	th.Context = th.Context.WithSession(session)
+
+	t.Run("when custom ToS is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SupportSettings.CustomTermsOfServiceEnabled = false
+		})
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+		}
+
+		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
+		err := c.TermsOfServiceRequired(req)
+		assert.Nil(t, err)
+	})
+
+	t.Run("when license feature is not available", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SupportSettings.CustomTermsOfServiceEnabled = true
+		})
+
+		// Set license without CustomTermsOfService feature
+		license := model.NewTestLicense()
+		license.Features.CustomTermsOfService = model.NewPointer(false)
+		th.App.Srv().SetLicense(license)
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+		}
+
+		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
+		err := c.TermsOfServiceRequired(req)
+		assert.Nil(t, err)
+	})
+
+	t.Run("when no ToS exists", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SupportSettings.CustomTermsOfServiceEnabled = true
+		})
+
+		license := model.NewTestLicense()
+		license.Features.CustomTermsOfService = model.NewPointer(true)
+		th.App.Srv().SetLicense(license)
+
+		mockTermsOfServiceStore.On("GetLatest", true).Return(nil, model.NewAppError("GetLatest", "app.terms_of_service.get.app_error", nil, "", http.StatusNotFound))
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+		}
+
+		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
+		err := c.TermsOfServiceRequired(req)
+		assert.Nil(t, err)
+	})
+
+	t.Run("when user has not accepted ToS", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SupportSettings.CustomTermsOfServiceEnabled = true
+		})
+
+		license := model.NewTestLicense()
+		license.Features.CustomTermsOfService = model.NewPointer(true)
+		th.App.Srv().SetLicense(license)
+
+		latestToS := &model.TermsOfService{Id: "latest_tos_id"}
+		mockTermsOfServiceStore.On("GetLatest", true).Return(latestToS, nil)
+		mockUserTermsOfServiceStore.On("GetByUser", userId).Return(nil, model.NewAppError("GetByUser", "app.user_terms_of_service.get_by_user.app_error", nil, "", http.StatusNotFound))
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+		}
+
+		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
+		err := c.TermsOfServiceRequired(req)
+		assert.NotNil(t, err)
+		assert.Equal(t, "api.context.terms_of_service_required.app_error", err.Id)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("when user has accepted old ToS version", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SupportSettings.CustomTermsOfServiceEnabled = true
+		})
+
+		license := model.NewTestLicense()
+		license.Features.CustomTermsOfService = model.NewPointer(true)
+		th.App.Srv().SetLicense(license)
+
+		latestToS := &model.TermsOfService{Id: "latest_tos_id"}
+		oldUserToS := &model.UserTermsOfService{UserId: userId, TermsOfServiceId: "old_tos_id"}
+
+		mockTermsOfServiceStore.On("GetLatest", true).Return(latestToS, nil)
+		mockUserTermsOfServiceStore.On("GetByUser", userId).Return(oldUserToS, nil)
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+		}
+
+		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
+		err := c.TermsOfServiceRequired(req)
+		assert.NotNil(t, err)
+		assert.Equal(t, "api.context.terms_of_service_required.app_error", err.Id)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("when user has accepted latest ToS", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SupportSettings.CustomTermsOfServiceEnabled = true
+		})
+
+		license := model.NewTestLicense()
+		license.Features.CustomTermsOfService = model.NewPointer(true)
+		th.App.Srv().SetLicense(license)
+
+		latestToS := &model.TermsOfService{Id: "latest_tos_id"}
+		currentUserToS := &model.UserTermsOfService{UserId: userId, TermsOfServiceId: "latest_tos_id"}
+
+		mockTermsOfServiceStore.On("GetLatest", true).Return(latestToS, nil)
+		mockUserTermsOfServiceStore.On("GetByUser", userId).Return(currentUserToS, nil)
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+		}
+
+		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
+		err := c.TermsOfServiceRequired(req)
+		assert.Nil(t, err)
+	})
+
+	t.Run("when accessing ToS endpoints should be exempt", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SupportSettings.CustomTermsOfServiceEnabled = true
+		})
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+		}
+
+		// Test various ToS endpoint paths
+		paths := []string{
+			"/api/v4/terms_of_service",
+			"/api/v4/users/12345/terms_of_service",
+		}
+
+		for _, path := range paths {
+			req, _ := http.NewRequest("GET", path, nil)
+			err := c.TermsOfServiceRequired(req)
+			assert.Nil(t, err, "ToS endpoint %s should be exempt", path)
+		}
+	})
+}

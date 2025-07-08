@@ -316,7 +316,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
 
 	if c.Err == nil && h.RequireSession {
-		c.SessionRequired()
+		c.SessionRequired(r)
 	}
 
 	if c.Err == nil && h.RequireMfa {

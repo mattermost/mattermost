@@ -127,7 +127,7 @@ func (c *Context) IsSystemAdmin() bool {
 	return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 }
 
-func (c *Context) SessionRequired() {
+func (c *Context) SessionRequired(r *http.Request) {
 	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens &&
 		c.AppContext.Session().Props[model.SessionPropType] == model.SessionTypeUserAccessToken &&
 		c.AppContext.Session().Props[model.SessionPropIsBot] != model.SessionPropIsBotValue {
@@ -139,6 +139,67 @@ func (c *Context) SessionRequired() {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
+
+	// Terms of Service validation
+	if appErr := c.TermsOfServiceRequired(r); appErr != nil {
+		c.Err = appErr
+		return
+	}
+}
+
+func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
+	// Exempt ToS-related endpoints
+	path := r.URL.Path
+	if strings.HasSuffix(path, "/terms_of_service") ||
+		strings.Contains(path, "/terms_of_service/") {
+		return nil
+	}
+
+	// Check if custom ToS is enabled
+	if c.App.Config().SupportSettings.CustomTermsOfServiceEnabled == nil ||
+		!*c.App.Config().SupportSettings.CustomTermsOfServiceEnabled {
+		return nil
+	}
+
+	// Check license feature
+	if license := c.App.Channels().License(); license == nil ||
+		!*license.Features.CustomTermsOfService {
+		return nil
+	}
+
+	// Get latest ToS using cached store layer
+	latestToS, err := c.App.Srv().Store().TermsOfService().GetLatest(true)
+	if err != nil {
+		return nil // No ToS exists, allow access
+	}
+
+	// Check session cache for user's ToS acceptance
+	session := c.AppContext.Session()
+	if acceptedToSId, exists := session.Props[model.SessionPropTermsOfServiceId]; exists {
+		if acceptedToSId == latestToS.Id {
+			return nil // User already accepted latest ToS
+		}
+	}
+
+	// Cache miss - check database for user's ToS acceptance
+	userToS, appErr := c.App.GetUserTermsOfService(session.UserId)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			// User hasn't accepted ToS yet
+			return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
+		}
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, appErr.Error(), http.StatusForbidden)
+	}
+
+	// Check if user accepted latest ToS
+	if userToS.TermsOfServiceId != latestToS.Id {
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// Cache the acceptance in session for future requests
+	session.AddProp(model.SessionPropTermsOfServiceId, userToS.TermsOfServiceId)
+
+	return nil
 }
 
 func (c *Context) CloudKeyRequired() {
