@@ -8,7 +8,7 @@ exports[`components/user_settings/display/ColorChooser should match, init 1`] = 
   >
     Choose color
   </label>
-  <ColorInput
+  <Memo(ColorInput)
     id="choose-color"
     onChange={[Function]}
     value="#ffeec0"
