@@ -73,15 +73,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Version 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9804,7 +9804,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Can't activate user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Can't activate user. Server exceeds safe user limit. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "api.channel.create_channel.missing_display_name.error",
@@ -10619,5 +10619,273 @@
   {
     "id": "api.custom_profile_attributes.invalid_field_patch",
     "translation": "invalid custom profile attribute field patch"
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Failed to validate attachment import data. Invalid path: '\\{{.Path}}'\\"
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Failed to validate post attachment data."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Failed to validate direct post attachment data."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Import emoji image field has an invalid path: '\\{{.Path}}'\\"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Failed to validate reply attachment data."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "User profile image path is invalid: '\\{{.Path}}'\\"
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Failed to extract data from previous job."
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "This licence does not support MySQL."
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "Trial licences are not supported for MySQL databases. Please use PostgreSQL to access trial features."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "An attribute is missing from the expression."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Leading or trailing whitespace detected for {{.Setting}}. Found '\\{{.Value}}'\\."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} feature is not available for the current licence"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Invalid report a problem link. Must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Report a problem link is required."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Invalid report a problem mail. Must be a valid email address."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Cannot update value for a synced Custom Profile Attribute field"
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Can't create user. Server exceeds maximum licensed users. Contact your administrator with: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Failed to save the batch of acknowledgement objects"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Invalid channel ID."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Get fields limit is not valid."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "User does not have required attributes to join the channel."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Get channels limit is not valid."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Policy enforced channels cannot be updated."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "An error occurred in the OnSamlLogin hook. Please contact your System Administrator."
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Could not get channel."
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Error updating group. User with username '\\{{.Username}}'\\ could not be found."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Unable to assign access control policy to channels."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "Could not check expression."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Could not create access control policy."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Could not search access control policies."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Could not unassign access control policy from channels."
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "Could not change active status of access control policy."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Failed evaluate access control policy."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "Could not normalise policy expression."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "Could not query for expression."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Unable to save access control policy."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Could not inherit access control policy."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Report a problem mail is required."
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Unable to create group syncable memberships."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Unable to delete invalid group syncable memberships."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Unable to retrieve the access control policy."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "Could not get attributes for policy."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Unable to initialise access control service."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "Access control service is not ready."
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Invalid test type: {{.TestType}}"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Cannot delete acknowledgement for missing post"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Cannot save acknowledgement for missing post"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Remote cluster import is not allowed"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Could not delete access control policy."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Unable to delete access control policy."
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "Could not genereate visual AST from expression."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Could not get access control auto complete."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Could not get access control policies."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Could not get attributes for channel."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Could not get channel members to remove."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Max File Age of audit logs config must not be negative."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Maximum File Backups of audit logs config must not be negative."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "When audit file logging is enabled, a file name must be specified."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "The file name must not be a directory."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Maximum File Queue of audit logs config must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Maximum File Size of audit logs config must be greater than zero."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Can't activate user. Server exceeds maximum licensed users. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Failed to run access control sync job."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Channel banner colour must be a valid hex colour (e.g. #FF0000 or #F00)"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Cannot invite guests users to this channel because it has access restrictions based on user attributes."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
   }
 ]
