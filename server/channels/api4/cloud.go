@@ -46,6 +46,9 @@ func (api *API) InitCloud() {
 
 	// GET /api/v4/cloud/cws-health-check
 	api.BaseRoutes.Cloud.Handle("/check-cws-connection", api.APIHandler(handleCheckCWSConnection)).Methods(http.MethodGet)
+
+	// GET /api/v4/cloud/preview/modal_data
+	api.BaseRoutes.Cloud.Handle("/preview/modal_data", api.APISessionRequired(getPreviewModalData)).Methods(http.MethodGet)
 }
 
 func ensureCloudInterface(c *Context, where string) bool {
@@ -608,4 +611,22 @@ func handleCheckCWSConnection(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getPreviewModalData(c *Context, w http.ResponseWriter, r *http.Request) {
+	modalData, err := c.App.GetPreviewModalData()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	json, jsonErr := json.Marshal(modalData)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.getPreviewModalData", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return
+	}
+
+	if _, writeErr := w.Write(json); writeErr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(writeErr))
+	}
 }

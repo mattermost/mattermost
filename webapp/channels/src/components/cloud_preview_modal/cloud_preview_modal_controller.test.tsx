@@ -5,12 +5,22 @@ import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
-import type {Subscription} from '@mattermost/types/cloud';
+import type {Subscription, PreviewModalContentData} from '@mattermost/types/cloud';
 import type {TeamType} from '@mattermost/types/teams';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import CloudPreviewModal from './cloud_preview_modal_controller';
+
+// Mock the useGetCloudPreviewModalContent hook
+const mockUseGetCloudPreviewModalContent = jest.fn();
+
+jest.mock('hooks/useGetCloudPreviewModalContent', () => ({
+    useGetCloudPreviewModalContent: () => mockUseGetCloudPreviewModalContent(),
+}));
+
+// Variable to track contentData passed to PreviewModalController
+let lastContentData: PreviewModalContentData[] = [];
 
 // Mock the async_load module to return components synchronously
 jest.mock('components/async_load', () => ({
@@ -19,9 +29,12 @@ jest.mock('components/async_load', () => ({
         const Component = (props: any) => {
             // Mock the preview modal controller
             if (displayName === 'PreviewModalController') {
+                // Capture contentData for testing
+                lastContentData = props.contentData || [];
                 return props.show ? (
                     <div data-testid='preview-modal-controller'>
                         <button onClick={props.onClose}>{'Close'}</button>
+                        <div data-testid='content-data-length'>{props.contentData?.length || 0}</div>
                     </div>
                 ) : null;
             }
@@ -50,6 +63,12 @@ describe('CloudPreviewModal', () => {
 
     beforeEach(() => {
         useDispatchMock.mockClear();
+        lastContentData = [];
+        mockUseGetCloudPreviewModalContent.mockReturnValue({
+            data: null,
+            loading: false,
+            error: false,
+        });
     });
 
     const baseSubscription: Subscription = {
@@ -307,5 +326,124 @@ describe('CloudPreviewModal', () => {
         const fabButton = screen.getByTestId('cloud-preview-fab').querySelector('button');
         expect(fabButton).toHaveAttribute('aria-label', 'Open cloud preview overview');
         expect(fabButton).toHaveClass('cloud-preview-modal-fab__button');
+    });
+
+    it('should use dynamic content when available', () => {
+        const dynamicContent: PreviewModalContentData[] = [
+            {
+                skuLabel: {
+                    id: 'dynamic.sku.label',
+                    defaultMessage: 'Dynamic SKU',
+                },
+                title: {
+                    id: 'dynamic.title',
+                    defaultMessage: 'Dynamic Title',
+                },
+                subtitle: {
+                    id: 'dynamic.subtitle',
+                    defaultMessage: 'Dynamic Subtitle',
+                },
+                videoUrl: 'https://example.com/dynamic-video.mp4',
+                videoPoster: 'https://example.com/dynamic-poster.jpg',
+                useCase: 'mission-ops',
+            },
+        ];
+
+        mockUseGetCloudPreviewModalContent.mockReturnValue({
+            data: dynamicContent,
+            loading: false,
+            error: false,
+        });
+
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            initialState,
+        );
+
+        expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
+        expect(lastContentData).toHaveLength(1);
+        expect(lastContentData[0]).toEqual(dynamicContent[0]);
+        expect(lastContentData[0].title.defaultMessage).toBe('Dynamic Title');
+    });
+
+    it('should fallback to hardcoded content when dynamic content is not available', () => {
+        mockUseGetCloudPreviewModalContent.mockReturnValue({
+            data: null,
+            loading: false,
+            error: false,
+        });
+
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            initialState,
+        );
+
+        expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
+        expect(lastContentData).toHaveLength(6);
+        expect(lastContentData[0].title.defaultMessage).toBe('Welcome to your Mattermost preview');
+    });
+
+    it('should fallback to hardcoded content when dynamic content is empty', () => {
+        mockUseGetCloudPreviewModalContent.mockReturnValue({
+            data: [],
+            loading: false,
+            error: false,
+        });
+
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            initialState,
+        );
+
+        expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
+        expect(lastContentData).toHaveLength(6);
+        expect(lastContentData[0].title.defaultMessage).toBe('Welcome to your Mattermost preview');
+    });
+
+    it('should not show modal when content is loading', () => {
+        mockUseGetCloudPreviewModalContent.mockReturnValue({
+            data: null,
+            loading: true,
+            error: false,
+        });
+
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            initialState,
+        );
+
+        expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
+    });
+
+    it('should fallback to hardcoded content when there is an error fetching dynamic content', () => {
+        mockUseGetCloudPreviewModalContent.mockReturnValue({
+            data: null,
+            loading: false,
+            error: true,
+        });
+
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            initialState,
+        );
+
+        expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
+        expect(lastContentData).toHaveLength(6);
+        expect(lastContentData[0].title.defaultMessage).toBe('Welcome to your Mattermost preview');
     });
 });
