@@ -620,13 +620,13 @@ func getPreviewModalData(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json, jsonErr := json.Marshal(modalData)
+	responseData, jsonErr := json.Marshal(modalData)
 	if jsonErr != nil {
 		c.Err = model.NewAppError("Api4.getPreviewModalData", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 
-	if _, writeErr := w.Write(json); writeErr != nil {
+	if _, writeErr := w.Write(responseData); writeErr != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(writeErr))
 	}
 }
