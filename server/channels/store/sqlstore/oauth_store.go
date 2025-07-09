@@ -163,6 +163,35 @@ func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) ([]*
 	return apps, nil
 }
 
+func (as SqlOAuthStore) GetOAuthAppsByRedirectURIs(redirectURIs []string) ([]*model.OAuthApp, error) {
+	if len(redirectURIs) == 0 {
+		return []*model.OAuthApp{}, nil
+	}
+
+	apps := []*model.OAuthApp{}
+
+	// Build a query that searches for any OAuth app whose CallbackUrls JSON column
+	// contains any of the provided redirect URIs using LIKE queries
+	query := as.oAuthAppsSelectQuery
+
+	// Build OR conditions for each redirect URI
+	orConditions := sq.Or{}
+	for _, uri := range redirectURIs {
+		// Use LIKE to search within the JSON array stored as text
+		// This will find URIs that are contained within the CallbackUrls JSON column
+		likePattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(uri, "\\"))
+		orConditions = append(orConditions, sq.Like{"o.CallbackUrls": likePattern})
+	}
+
+	query = query.Where(orConditions)
+
+	if err := as.GetReplica().SelectBuilder(&apps, query); err != nil {
+		return nil, errors.Wrap(err, "failed to find OAuthApps by redirect URIs")
+	}
+
+	return apps, nil
+}
+
 func (as SqlOAuthStore) DeleteApp(id string) (err error) {
 	// wrap in a transaction so that if one fails, everything fails
 	transaction, err := as.GetMaster().Beginx()

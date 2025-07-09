@@ -1044,7 +1044,7 @@ func (a *App) GetAuthorizationServerMetadata(c request.CTX) (*model.Authorizatio
 
 	// Add registration endpoint if dynamic client registration is enabled
 	if a.Config().ServiceSettings.EnableDynamicClientRegistration != nil && *a.Config().ServiceSettings.EnableDynamicClientRegistration {
-		metadata.RegistrationEndpoint = siteURL + "/api/v4/oauth/register"
+		metadata.RegistrationEndpoint = siteURL + "/api/v4/oauth/apps/register"
 	}
 
 	// Note: Revocation endpoint not currently implemented
@@ -1055,6 +1055,11 @@ func (a *App) GetAuthorizationServerMetadata(c request.CTX) (*model.Authorizatio
 // DCR (Dynamic Client Registration) business logic methods
 
 func (a *App) RegisterOAuthClient(c request.CTX, req *model.ClientRegistrationRequest, userID string) (*model.OAuthApp, *model.AppError) {
+	// Check for duplicate registrations based on redirect URIs (RFC 7591 guidance)
+	if err := a.checkForDuplicateOAuthRegistration(req.RedirectURIs); err != nil {
+		return nil, err
+	}
+
 	// Create OAuth app from request
 	app := model.NewOAuthAppFromClientRegistration(req, userID)
 
@@ -1065,4 +1070,47 @@ func (a *App) RegisterOAuthClient(c request.CTX, req *model.ClientRegistrationRe
 	}
 
 	return rapp, nil
+}
+
+// checkForDuplicateOAuthRegistration checks if any existing OAuth app has identical redirect URIs
+// This implements RFC 7591 guidance to detect and reject suspected duplicate registrations
+func (a *App) checkForDuplicateOAuthRegistration(redirectURIs []string) *model.AppError {
+	// Find OAuth apps that contain any of the redirect URIs we're trying to register
+	candidateApps, err := a.Srv().Store().OAuth().GetOAuthAppsByRedirectURIs(redirectURIs)
+	if err != nil {
+		return model.NewAppError("RegisterOAuthClient", "app.oauth.get_apps_by_redirect_uris.app_error",
+			nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Now do precise comparison in Go to check for exact matches
+	for _, app := range candidateApps {
+		if a.areRedirectURIsSame(app.CallbackUrls, redirectURIs) {
+			return model.NewAppError("RegisterOAuthClient", "app.oauth.duplicate_registration.app_error",
+				nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
+// areRedirectURIsSame checks if two sets of redirect URIs are identical
+func (a *App) areRedirectURIsSame(existing, new []string) bool {
+	if len(existing) != len(new) {
+		return false
+	}
+
+	// Create maps for O(n) comparison
+	existingMap := make(map[string]bool)
+	for _, uri := range existing {
+		existingMap[uri] = true
+	}
+
+	// Check if all new URIs exist in existing
+	for _, uri := range new {
+		if !existingMap[uri] {
+			return false
+		}
+	}
+
+	return true
 }

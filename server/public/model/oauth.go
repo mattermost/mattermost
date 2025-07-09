@@ -172,7 +172,7 @@ func (a *OAuthApp) PreSave() {
 	}
 
 	if a.TokenEndpointAuthMethod == nil {
-		a.TokenEndpointAuthMethod = NewString(ClientAuthMethodClientSecretPost)
+		a.TokenEndpointAuthMethod = NewPointer(ClientAuthMethodClientSecretPost)
 	}
 
 	// Set timestamps for DCR
@@ -262,7 +262,6 @@ func (a *OAuthApp) ToClientRegistrationResponse(siteURL string) *ClientRegistrat
 	if a.TokenEndpointAuthMethod != nil {
 		authMethod = *a.TokenEndpointAuthMethod
 	}
-	
 	resp := &ClientRegistrationResponse{
 		ClientID:                a.Id,
 		ClientIDIssuedAt:        a.ClientIDIssuedAt,

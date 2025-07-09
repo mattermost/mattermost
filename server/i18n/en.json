@@ -2429,6 +2429,14 @@
     "translation": "Authentication complete"
   },
   {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "OAuth service provider is disabled."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "Site URL must be configured to provide authorization server metadata."
+  },
+  {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
     "translation": "The system admin has turned off OAuth2 Service Provider."
   },
@@ -6283,6 +6291,10 @@
     "translation": "An error occurred while deleting the OAuth2 App."
   },
   {
+    "id": "app.oauth.duplicate_registration.app_error",
+    "translation": "Client registration rejected due to suspected duplicate registration with identical redirect URIs."
+  },
+  {
     "id": "app.oauth.get_access_data_by_user_for_app.app_error",
     "translation": "We encountered an error finding all the access tokens."
   },
@@ -6301,6 +6313,10 @@
   {
     "id": "app.oauth.get_apps.find.app_error",
     "translation": "An error occurred while finding the OAuth2 Apps."
+  },
+  {
+    "id": "app.oauth.get_apps_by_redirect_uris.app_error",
+    "translation": "We encountered an error finding OAuth2 apps by redirect URIs."
   },
   {
     "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
@@ -9737,6 +9753,42 @@
     "translation": "Invalid value for write timeout."
   },
   {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "Client name must be 64 characters or less."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri.app_error",
+    "translation": "Invalid client URI format."
+  },
+  {
+    "id": "model.dcr.is_valid.grant_type.app_error",
+    "translation": "Unsupported grant type. Only 'authorization_code' and 'refresh_token' are supported."
+  },
+  {
+    "id": "model.dcr.is_valid.logo_uri.app_error",
+    "translation": "Invalid logo URI format."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Invalid redirect URI format."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "At least one redirect URI is required."
+  },
+  {
+    "id": "model.dcr.is_valid.response_type.app_error",
+    "translation": "Unsupported response type. Only 'code' is supported."
+  },
+  {
+    "id": "model.dcr.is_valid.token_endpoint_auth_method.app_error",
+    "translation": "Unsupported token endpoint authentication method. Only 'client_secret_post' is supported."
+  },
+  {
+    "id": "model.dcr.validate.incompatible_grant_response.app_error",
+    "translation": "Incompatible grant type and response type combination."
+  },
+  {
     "id": "model.draft.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },
@@ -10009,6 +10061,10 @@
     "translation": "Invalid client secret."
   },
   {
+    "id": "model.oauth.is_valid.client_uri.app_error",
+    "translation": "Invalid client URI format."
+  },
+  {
     "id": "model.oauth.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
@@ -10029,6 +10085,10 @@
     "translation": "Icon URL must be a valid URL and start with http:// or https://."
   },
   {
+    "id": "model.oauth.is_valid.logo_uri.app_error",
+    "translation": "Invalid logo URI format."
+  },
+  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "The maximum length of MattermostAppID is 32 characters."
   },
@@ -10037,8 +10097,40 @@
     "translation": "Invalid name."
   },
   {
+    "id": "model.oauth.is_valid.token_endpoint_auth_method.app_error",
+    "translation": "Unsupported token endpoint authentication method. Only 'client_secret_post' is supported."
+  },
+  {
     "id": "model.oauth.is_valid.update_at.app_error",
     "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.oauth_metadata.is_valid.authorization_endpoint.app_error",
+    "translation": "Invalid authorization endpoint URL."
+  },
+  {
+    "id": "model.oauth_metadata.is_valid.issuer.app_error",
+    "translation": "Invalid issuer identifier."
+  },
+  {
+    "id": "model.oauth_metadata.is_valid.issuer_url.app_error",
+    "translation": "Invalid issuer URL format."
+  },
+  {
+    "id": "model.oauth_metadata.is_valid.jwks_uri.app_error",
+    "translation": "Invalid JWKS URI format."
+  },
+  {
+    "id": "model.oauth_metadata.is_valid.registration_endpoint.app_error",
+    "translation": "Invalid registration endpoint URL."
+  },
+  {
+    "id": "model.oauth_metadata.is_valid.response_types.app_error",
+    "translation": "Invalid response types configuration."
+  },
+  {
+    "id": "model.oauth_metadata.is_valid.token_endpoint.app_error",
+    "translation": "Invalid token endpoint URL."
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
