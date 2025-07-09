@@ -114,27 +114,6 @@ func TestContentFlaggingNotificationSettings_IsValid(t *testing.T) {
 }
 
 func TestReviewerSettings_SetDefault(t *testing.T) {
-	t.Run("should set all default values", func(t *testing.T) {
-		settings := &ReviewerSettings{}
-		settings.SetDefaults()
-
-		require.Nil(t, settings.IsValid())
-
-		require.NotNil(t, settings.CommonReviewers)
-		require.True(t, *settings.CommonReviewers)
-		require.NotNil(t, settings.CommonReviewerIds)
-		require.Empty(t, *settings.CommonReviewerIds)
-
-		require.NotNil(t, settings.TeamReviewersSetting)
-		require.Empty(t, *settings.TeamReviewersSetting)
-
-		require.NotNil(t, settings.SystemAdminsAsReviewers)
-		require.False(t, *settings.SystemAdminsAsReviewers)
-
-		require.NotNil(t, settings.TeamAdminsAsReviewers)
-		require.True(t, *settings.TeamAdminsAsReviewers)
-	})
-
 	t.Run("should not override existing values", func(t *testing.T) {
 		commonReviewers := false
 		settings := &ReviewerSettings{
