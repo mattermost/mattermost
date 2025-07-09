@@ -4003,7 +4003,7 @@ func (o *Config) SetDefaults() {
 	o.WranglerSettings.SetDefaults()
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
-	o.ContentFlaggingSettings.SetDefault()
+	o.ContentFlaggingSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
