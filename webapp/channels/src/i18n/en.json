@@ -6449,5 +6449,8 @@
   "workspace_limits.teams_limit_reached.view_upgrade_options": "View upgrade options",
   "workspace_limits.upgrade": "Upgrade to avoid {planName} data limits",
   "workspace_limits.upgrade_reasons.free": "{planName} is restricted to {messagesLimit} message history and {storageLimit} file storage. You can delete items to free up space or upgrade to a paid plan.",
-  "yourcomputer": "Your computer"
+  "yourcomputer": "Your computer",
+  "youtube_video.play_button.aria_label": "Play video",
+  "youtube_video.play.aria_label": "Play {videoTitle} on YouTube",
+  "youtube_video.thumbnail.alt_text": "Thumbnail for {videoTitle} on YouTube"
 }
