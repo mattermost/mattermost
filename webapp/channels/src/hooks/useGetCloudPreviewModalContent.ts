@@ -27,8 +27,8 @@ export const useGetCloudPreviewModalContent = (): UseGetCloudPreviewModalContent
 
             try {
                 const result = await dispatch(getCloudPreviewModalData());
-                if (result.data) {
-                    setData(result.data);
+                if (result && typeof result === 'object' && 'data' in result) {
+                    setData(result.data as PreviewModalContentData[]);
                 } else {
                     setError(true);
                 }

@@ -11,6 +11,7 @@ import type {TeamType} from '@mattermost/types/teams';
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import CloudPreviewModal from './cloud_preview_modal_controller';
+import {modalContent} from './preview_modal_content_data';
 
 // Mock the useGetCloudPreviewModalContent hook
 const mockUseGetCloudPreviewModalContent = jest.fn();
@@ -385,7 +386,8 @@ describe('CloudPreviewModal', () => {
         );
 
         expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
-        expect(lastContentData).toHaveLength(6);
+        const missionOpsContent = modalContent.filter((content) => content.useCase === 'mission-ops');
+        expect(lastContentData).toHaveLength(missionOpsContent.length);
         expect(lastContentData[0].title.defaultMessage).toBe('Welcome to your Mattermost preview');
     });
 
@@ -405,7 +407,8 @@ describe('CloudPreviewModal', () => {
         );
 
         expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
-        expect(lastContentData).toHaveLength(6);
+        const missionOpsContent = modalContent.filter((content) => content.useCase === 'mission-ops');
+        expect(lastContentData).toHaveLength(missionOpsContent.length);
         expect(lastContentData[0].title.defaultMessage).toBe('Welcome to your Mattermost preview');
     });
 
@@ -443,7 +446,8 @@ describe('CloudPreviewModal', () => {
         );
 
         expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
-        expect(lastContentData).toHaveLength(6);
+        const missionOpsContent = modalContent.filter((content) => content.useCase === 'mission-ops');
+        expect(lastContentData).toHaveLength(missionOpsContent.length);
         expect(lastContentData[0].title.defaultMessage).toBe('Welcome to your Mattermost preview');
     });
 });

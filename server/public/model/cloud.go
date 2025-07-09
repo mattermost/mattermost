@@ -346,19 +346,19 @@ type WorkspaceDeletionRequest struct {
 
 // MessageDescriptor represents an i18n message descriptor
 type MessageDescriptor struct {
-	ID            string                 `json:"id"`
-	DefaultMessage string                `json:"defaultMessage"`
-	Values        map[string]interface{} `json:"values,omitempty"`
+	ID             string                 `json:"id"`
+	DefaultMessage string                 `json:"defaultMessage"`
+	Values         map[string]interface{} `json:"values,omitempty"`
 }
 
 // PreviewModalContentData represents the structure of modal content data from S3
 type PreviewModalContentData struct {
-	SKULabel     MessageDescriptor `json:"skuLabel"`
-	Title        MessageDescriptor `json:"title"`
-	Subtitle     MessageDescriptor `json:"subtitle"`
-	VideoURL     string            `json:"videoUrl"`
-	VideoPoster  string            `json:"videoPoster,omitempty"`
-	UseCase      string            `json:"useCase"`
+	SKULabel    MessageDescriptor `json:"skuLabel"`
+	Title       MessageDescriptor `json:"title"`
+	Subtitle    MessageDescriptor `json:"subtitle"`
+	VideoURL    string            `json:"videoUrl"`
+	VideoPoster string            `json:"videoPoster,omitempty"`
+	UseCase     string            `json:"useCase"`
 }
 
 func (p *Product) IsYearly() bool {
