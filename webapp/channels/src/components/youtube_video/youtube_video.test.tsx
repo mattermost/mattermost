@@ -3,12 +3,14 @@
 
 import {mount, shallow} from 'enzyme';
 import React from 'react';
+import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import ExternalImage from 'components/external_image';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import type {GlobalState} from 'types/store';
@@ -51,9 +53,11 @@ describe('YoutubeVideo', () => {
     test('should match init snapshot', () => {
         const store = mockStore(initialState);
         const wrapper = mount(
-            <Provider store={store}>
-                <YoutubeVideo {...baseProps}/>
-            </Provider>,
+            <IntlProvider locale='en'>
+                <Provider store={store}>
+                    <YoutubeVideo {...baseProps}/>
+                </Provider>
+            </IntlProvider>,
         );
         expect(wrapper).toMatchSnapshot();
         expect(wrapper.find(ExternalImage).prop('src')).toEqual('linkForThumbnail');
@@ -90,5 +94,51 @@ describe('YoutubeVideo', () => {
         const wrapper = shallow(<YoutubeVideo {...props}/>);
 
         expect(wrapper.find(ExternalImage).prop('src')).toEqual('linkUrl');
+    });
+
+    test('should match init snapshot (Shorts)', () => {
+        const store = mockStore(initialState);
+        const props = {
+            ...baseProps,
+            link: 'https://www.youtube.com/shorts/2oa5WCUpwD8',
+        };
+        const wrapper = mount(
+            <IntlProvider locale='en'>
+                <Provider store={store}>
+                    <YoutubeVideo {...props}/>
+                </Provider>
+            </IntlProvider>,
+        );
+        expect(wrapper).toMatchSnapshot();
+        expect(wrapper.find(ExternalImage).prop('src')).toEqual('linkForThumbnail');
+        expect(wrapper.find('a').text()).toEqual('Youtube title');
+        expect(wrapper.find('.video-shorts').exists()).toBe(true);
+        expect(wrapper.find('.video-shorts-expanded').exists()).toBe(false);
+    });
+
+    test('should match snapshot for playing state (Shorts)', () => {
+        renderWithContext(
+            <YoutubeVideo
+                {...baseProps}
+                link={'https://www.youtube.com/shorts/2oa5WCUpwD8'}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByTestId('youtube-video')).toHaveClass('video-shorts');
+    });
+
+    test('should match snapshot for playing state and shortsExpanded state (Shorts)', () => {
+        renderWithContext(
+            <YoutubeVideo
+                {...baseProps}
+                link={'https://www.youtube.com/shorts/2oa5WCUpwD8'}
+            />,
+            initialState,
+        );
+
+        screen.getByTestId('youtube-expand-shorts').click();
+
+        expect(screen.getByTestId('youtube-video')).toHaveClass('video-shorts-expanded');
     });
 });
