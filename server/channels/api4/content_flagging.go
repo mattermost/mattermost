@@ -62,7 +62,7 @@ func getTeamPostReportingFeatureStatus(c *Context, w http.ResponseWriter, r *htt
 	teamID := c.Params.TeamId
 	enabled := c.App.GetTeamPostReportingFeatureStatus(teamID)
 
-	payload := map[string]interface{}{
+	payload := map[string]bool{
 		"enabled": enabled,
 	}
 	w.WriteHeader(http.StatusOK)
