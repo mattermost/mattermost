@@ -161,7 +161,6 @@ export default class EmbeddedBinding extends React.PureComponent<Props, State> {
                         options={{
                             mentionHighlight: false,
                             renderer: new LinkOnlyRenderer(),
-                            autolinkedUrlSchemes: [],
                         }}
                         postId={this.props.post.id}
                     />
