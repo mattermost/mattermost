@@ -44,7 +44,15 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
                 }
               }
             >
-              Test
+              <div
+                className="AdminPanelTogglableContent"
+              >
+                <div
+                  className="AdminPanelTogglableContentInner"
+                >
+                  Test
+                </div>
+              </div>
             </AdminPanel>
         `);
     });
@@ -77,7 +85,15 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
                 }
               }
             >
-              Test
+              <div
+                className="AdminPanelTogglableContent"
+              >
+                <div
+                  className="AdminPanelTogglableContentInner"
+                >
+                  Test
+                </div>
+              </div>
             </AdminPanel>
         `);
     });

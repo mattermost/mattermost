@@ -147,7 +147,6 @@ type ChannelPatch struct {
 	Header           *string            `json:"header"`
 	Purpose          *string            `json:"purpose"`
 	GroupConstrained *bool              `json:"group_constrained"`
-	Type             ChannelType        `json:"type"`
 	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
 }
 
@@ -506,4 +505,16 @@ type GroupMessageConversionRequestBody struct {
 	TeamID      string `json:"team_id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
+}
+
+// ChannelMembersGetOptions provides parameters for getting channel members
+type ChannelMembersGetOptions struct {
+	// ChannelID specifies which channel to get members for
+	ChannelID string
+	// Offset for pagination
+	Offset int
+	// Limit for pagination (maximum number of results to return)
+	Limit int
+	// UpdatedAfter filters members updated after the given timestamp (cursor-based pagination)
+	UpdatedAfter int64
 }

@@ -342,9 +342,9 @@ func (_m *ChannelStore) CreateDirectChannel(ctx request.CTX, userID *model.User,
 	return r0, r1
 }
 
-// CreateInitialSidebarCategories provides a mock function with given fields: c, userID, opts
-func (_m *ChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
-	ret := _m.Called(c, userID, opts)
+// CreateInitialSidebarCategories provides a mock function with given fields: c, userID, teamID
+func (_m *ChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+	ret := _m.Called(c, userID, teamID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateInitialSidebarCategories")
@@ -352,19 +352,19 @@ func (_m *ChannelStore) CreateInitialSidebarCategories(c request.CTX, userID str
 
 	var r0 *model.OrderedSidebarCategories
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)); ok {
-		return rf(c, userID, opts)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.OrderedSidebarCategories, error)); ok {
+		return rf(c, userID, teamID)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, *store.SidebarCategorySearchOpts) *model.OrderedSidebarCategories); ok {
-		r0 = rf(c, userID, opts)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.OrderedSidebarCategories); ok {
+		r0 = rf(c, userID, teamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, *store.SidebarCategorySearchOpts) error); ok {
-		r1 = rf(c, userID, opts)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
+		r1 = rf(c, userID, teamID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1580,9 +1580,9 @@ func (_m *ChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID str
 	return r0, r1
 }
 
-// GetMembers provides a mock function with given fields: channelID, offset, limit
-func (_m *ChannelStore) GetMembers(channelID string, offset int, limit int) (model.ChannelMembers, error) {
-	ret := _m.Called(channelID, offset, limit)
+// GetMembers provides a mock function with given fields: opts
+func (_m *ChannelStore) GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error) {
+	ret := _m.Called(opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMembers")
@@ -1590,19 +1590,19 @@ func (_m *ChannelStore) GetMembers(channelID string, offset int, limit int) (mod
 
 	var r0 model.ChannelMembers
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, int, int) (model.ChannelMembers, error)); ok {
-		return rf(channelID, offset, limit)
+	if rf, ok := ret.Get(0).(func(model.ChannelMembersGetOptions) (model.ChannelMembers, error)); ok {
+		return rf(opts)
 	}
-	if rf, ok := ret.Get(0).(func(string, int, int) model.ChannelMembers); ok {
-		r0 = rf(channelID, offset, limit)
+	if rf, ok := ret.Get(0).(func(model.ChannelMembersGetOptions) model.ChannelMembers); ok {
+		r0 = rf(opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelMembers)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(channelID, offset, limit)
+	if rf, ok := ret.Get(1).(func(model.ChannelMembersGetOptions) error); ok {
+		r1 = rf(opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1968,9 +1968,9 @@ func (_m *ChannelStore) GetPublicChannelsForTeam(teamID string, offset int, limi
 	return r0, r1
 }
 
-// GetSidebarCategories provides a mock function with given fields: userID, opts
-func (_m *ChannelStore) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
-	ret := _m.Called(userID, opts)
+// GetSidebarCategories provides a mock function with given fields: userID, teamID
+func (_m *ChannelStore) GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+	ret := _m.Called(userID, teamID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSidebarCategories")
@@ -1978,19 +1978,19 @@ func (_m *ChannelStore) GetSidebarCategories(userID string, opts *store.SidebarC
 
 	var r0 *model.OrderedSidebarCategories
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)); ok {
-		return rf(userID, opts)
+	if rf, ok := ret.Get(0).(func(string, string) (*model.OrderedSidebarCategories, error)); ok {
+		return rf(userID, teamID)
 	}
-	if rf, ok := ret.Get(0).(func(string, *store.SidebarCategorySearchOpts) *model.OrderedSidebarCategories); ok {
-		r0 = rf(userID, opts)
+	if rf, ok := ret.Get(0).(func(string, string) *model.OrderedSidebarCategories); ok {
+		r0 = rf(userID, teamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, *store.SidebarCategorySearchOpts) error); ok {
-		r1 = rf(userID, opts)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, teamID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2537,9 +2537,16 @@ func (_m *ChannelStore) Restore(channelID string, timestamp int64) error {
 	return r0
 }
 
-// Save provides a mock function with given fields: rctx, channel, maxChannelsPerTeam
-func (_m *ChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
-	ret := _m.Called(rctx, channel, maxChannelsPerTeam)
+// Save provides a mock function with given fields: rctx, channel, maxChannelsPerTeam, channelOptions
+func (_m *ChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	_va := make([]interface{}, len(channelOptions))
+	for _i := range channelOptions {
+		_va[_i] = channelOptions[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, rctx, channel, maxChannelsPerTeam)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Save")
@@ -2547,19 +2554,19 @@ func (_m *ChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChanne
 
 	var r0 *model.Channel
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, int64) (*model.Channel, error)); ok {
-		return rf(rctx, channel, maxChannelsPerTeam)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, int64, ...model.ChannelOption) (*model.Channel, error)); ok {
+		return rf(rctx, channel, maxChannelsPerTeam, channelOptions...)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, int64) *model.Channel); ok {
-		r0 = rf(rctx, channel, maxChannelsPerTeam)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, int64, ...model.ChannelOption) *model.Channel); ok {
+		r0 = rf(rctx, channel, maxChannelsPerTeam, channelOptions...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.Channel, int64) error); ok {
-		r1 = rf(rctx, channel, maxChannelsPerTeam)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Channel, int64, ...model.ChannelOption) error); ok {
+		r1 = rf(rctx, channel, maxChannelsPerTeam, channelOptions...)
 	} else {
 		r1 = ret.Error(1)
 	}

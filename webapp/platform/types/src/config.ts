@@ -222,6 +222,7 @@ export type ClientConfig = {
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: string;
     YoutubeReferrerPolicy: 'true' | 'false';
     ScheduledPosts: string;
+    DeleteAccountLink: string;
 };
 
 export type License = {
@@ -410,6 +411,7 @@ export type ServiceSettings = {
     ScheduledPosts: boolean;
     EnableWebHubChannelIteration: boolean;
     FrameAncestors: string;
+    DeleteAccountLink: string;
 };
 
 export type TeamSettings = {
@@ -527,7 +529,10 @@ export type ConnectedWorkspacesSettings = {
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
     DisableSharedChannelsStatusSync: boolean;
+    SyncUsersOnConnectionOpen: boolean;
+    GlobalUserSyncBatchSize: number;
     MaxPostsPerSync: number;
+    MemberSyncBatchSize: number;
 }
 
 export type FileSettings = {
@@ -713,6 +718,7 @@ export type LdapSettings = {
     LoginIdAttribute: string;
     PictureAttribute: string;
     SyncIntervalMinutes: number;
+    ReAddRemovedMembers: boolean;
     SkipCertificateVerification: boolean;
     PublicCertificateFile: string;
     PrivateKeyFile: string;
@@ -785,6 +791,8 @@ export type NativeAppSettings = {
     MobileEnableBiometrics: boolean;
     MobilePreventScreenCapture: boolean;
     MobileJailbreakProtection: boolean;
+    MobileEnableSecureFilePreview: boolean;
+    MobileAllowPdfLinkNavigation: boolean;
 };
 
 export type ClusterSettings = {
@@ -890,6 +898,7 @@ export type DataRetentionSettings = {
     BoardsRetentionDays: number;
     TimeBetweenBatchesMilliseconds: number;
     RetentionIdsBatchSize: number;
+    PreservePinnedPosts: boolean;
 };
 
 export type MessageExportSettings = {

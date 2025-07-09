@@ -14,7 +14,7 @@ export default class ScheduleMessageModal {
 
     constructor(container: Locator) {
         this.container = container;
-        this.dateButton = container.locator('#customStatus__calendar-input');
+        this.dateButton = container.getByRole('button', {name: /Date/});
         this.timeButton = container.getByTestId('time_button');
         this.timeOptionDropdown = container.getByLabel('Choose a time');
         this.closeButton = container.getByRole('button', {name: 'Close'});
@@ -80,7 +80,7 @@ export default class ScheduleMessageModal {
 
     async selectTime(optionIndex: number = 0) {
         await this.timeButton.click();
-        const timeButton = this.timeOptionDropdown.getByTestId(`time_option_${optionIndex}-button`);
+        const timeButton = this.container.page().getByTestId(`time_option_${optionIndex}`);
         await expect(timeButton).toBeVisible();
         await timeButton.click();
 
@@ -91,7 +91,7 @@ export default class ScheduleMessageModal {
         await this.toBeVisible();
 
         const selectedDate = await this.selectDate(dayFromToday);
-        const fromDateButton = await this.dateButton.inputValue();
+        const fromDateButton = await this.dateButton.textContent();
 
         const selectedTime = await this.selectTime(timeOptionIndex);
         await this.scheduleButton.click();

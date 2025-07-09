@@ -87,7 +87,7 @@ func (scs *Service) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedC
 	return scUpdated, nil
 }
 
-// UnshareChannel unshared the channel by deleting the SharedChannels record and unsets the Channel `shared` flag.
+// UnshareChannel unshares the channel by deleting the SharedChannels record and unsets the Channel `shared` flag.
 // Returns true if a shared channel existed and was deleted.
 func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	channel, err := scs.server.GetStore().Channel().Get(channelID, true)
@@ -276,4 +276,42 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 		return model.ErrChannelHomedOnRemote
 	}
 	return nil
+}
+
+// updateMembershipSyncCursor updates the LastMembersSyncAt value for the shared channel remote
+// This provides centralized and consistent cursor management
+func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string, newTimestamp int64) error {
+	// Get the remote record
+	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to get shared channel remote for cursor update",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.Int("timestamp", int(newTimestamp)),
+			mlog.Err(err),
+		)
+		return fmt.Errorf("failed to get shared channel remote for cursor update: %w", err)
+	}
+
+	if scr == nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Shared channel remote not found for cursor update",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+		)
+		return fmt.Errorf("shared channel remote not found for channel %s and remote %s", channelID, remoteID)
+	}
+
+	// Update the cursor - the store will handle ensuring it only moves forward
+	err = scs.server.GetStore().SharedChannel().UpdateRemoteMembershipCursor(scr.Id, newTimestamp)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership cursor",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.String("remote_record_id", scr.Id),
+			mlog.Int("timestamp", int(newTimestamp)),
+			mlog.Err(err),
+		)
+	}
+
+	return err
 }
