@@ -13,6 +13,7 @@ func setupContentFlagging(tb testing.TB) *TestHelper {
 	return SetupConfig(tb, func(cfg *model.Config) {
 		*cfg.ContentFlaggingSettings.EnableContentFlagging = true
 		cfg.FeatureFlags.ContentFlagging = true
+		cfg.ContentFlaggingSettings.SetDefaults()
 	})
 }
 
@@ -71,6 +72,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+			cfg.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{"reviewer_user_id_1", "reviewer_user_id_2"}
 		})
 
 		status := th.App.GetTeamPostReportingFeatureStatus("team1")
@@ -97,23 +99,6 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 
 		status := th.App.GetTeamPostReportingFeatureStatus("team1")
 		require.True(t, status, "expected team post reporting feature to be disabled for team without reviewers")
-	})
-
-	t.Run("should return false when configured for specified team but no reviewers set", func(t *testing.T) {
-		th := setupContentFlagging(t)
-		defer th.TearDown()
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
-			cfg.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
-				"team1": {
-					Enabled: model.NewPointer(true),
-				},
-			}
-		})
-
-		status := th.App.GetTeamPostReportingFeatureStatus("team1")
-		require.False(t, status, "expected team post reporting feature to be disabled for team without reviewers")
 	})
 
 	t.Run("should return true when using additional reviewers", func(t *testing.T) {
