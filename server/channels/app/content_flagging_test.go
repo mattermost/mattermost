@@ -14,7 +14,3 @@ func setupContentFlagging(tb testing.TB) *TestHelper {
 		cfg.FeatureFlags.ContentFlagging = true
 	})
 }
-
-func TestGetReportingConfiguration(t *testing.T) {
-
-}

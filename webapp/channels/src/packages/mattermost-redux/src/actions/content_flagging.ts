@@ -4,8 +4,8 @@
 import {TeamTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
-import type {ActionFuncAsync} from 'mattermost-redux/client';
 import {Client4} from 'mattermost-redux/client';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 export function getTeamContentFlaggingStatus(teamId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {

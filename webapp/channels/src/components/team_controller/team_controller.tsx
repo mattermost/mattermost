@@ -3,13 +3,16 @@
 
 import iNoBounce from 'inobounce';
 import React, {lazy, memo, useEffect, useRef, useState} from 'react';
-import { useDispatch, useSelector } from "react-redux";
+import {useDispatch, useSelector} from 'react-redux';
 import {Route, Switch, useHistory, useParams} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 
 import {getTeamContentFlaggingStatus} from 'mattermost-redux/actions/content_flagging';
+import {
+    contentFlaggingFeatureEnabled,
+} from 'mattermost-redux/selectors/entities/content_flagging';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {reconnect} from 'actions/websocket_actions.jsx';
@@ -27,12 +30,6 @@ import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {isIosSafari} from 'utils/user_agent';
 
 import type {OwnProps, PropsFromRedux} from './index';
-import { GlobalState } from "types/store";
-import { getFeatureFlagValue } from "mattermost-redux/selectors/entities/general";
-import {
-    contentFlaggingEnabled,
-    contentFlaggingFeatureEnabled
-} from "mattermost-redux/selectors/entities/content_flagging";
 
 const BackstageController = makeAsyncComponent('BackstageController', lazy(() => import('components/backstage')));
 const Pluggable = makeAsyncPluggableComponent();
@@ -144,7 +141,7 @@ function TeamController(props: Props) {
 
     // Load team content flagging status on team switch
     useEffect(() => {
-        if (contentFlaggingEnabled) {
+        if (contentFlaggingEnabled && props.currentTeamId) {
             dispatch(getTeamContentFlaggingStatus(props.currentTeamId));
         }
     }, [contentFlaggingEnabled, dispatch, props.currentTeamId]);
