@@ -27,7 +27,7 @@ func (a *App) GetTeamPostReportingFeatureStatus(teamId string) bool {
 		return false
 	}
 
-	if len(*teamSettings.ReviewerIds) > 0 {
+	if teamSettings.ReviewerIds != nil && len(*teamSettings.ReviewerIds) > 0 {
 		return true
 	}
 
