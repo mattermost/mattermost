@@ -18,7 +18,6 @@ import {
     ShieldAlertOutlineIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
-import {ServiceEnvironment} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
@@ -64,10 +63,10 @@ interface AttributeSelectorProps {
     buttonId: string;
     autoOpen?: boolean;
     onMenuOpened?: () => void;
-    serviceEnvironment: ServiceEnvironment;
+    enableUserManagedAttributes: boolean;
 }
 
-const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled, onChange, menuId, buttonId, autoOpen = false, onMenuOpened, serviceEnvironment}: AttributeSelectorProps) => {
+const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled, onChange, menuId, buttonId, autoOpen = false, onMenuOpened, enableUserManagedAttributes}: AttributeSelectorProps) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
     const prevAutoOpen = useRef(false);
@@ -137,7 +136,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 const {name} = option;
                 const hasSpaces = name.includes(' ');
                 const isSynced = option.attrs?.ldap || option.attrs?.saml;
-                const isSafe = isSynced || (serviceEnvironment === ServiceEnvironment.DEV || serviceEnvironment === ServiceEnvironment.TEST);
+                const isSafe = isSynced || enableUserManagedAttributes;
 
                 const menuItem = (
                     <Menu.Item

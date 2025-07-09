@@ -5,7 +5,6 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
-import type {ServiceEnvironment} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
@@ -28,7 +27,7 @@ interface TableEditorProps {
     onValidate?: (isValid: boolean) => void;
     disabled?: boolean;
     userAttributes: UserPropertyField[];
-    serviceEnvironment: ServiceEnvironment;
+    enableUserManagedAttributes: boolean;
     onParseError: (error: string) => void;
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
@@ -88,7 +87,7 @@ function TableEditor({
     onValidate,
     disabled = false,
     userAttributes,
-    serviceEnvironment,
+    enableUserManagedAttributes,
     onParseError,
     actions,
 }: TableEditorProps): JSX.Element {
@@ -298,7 +297,7 @@ function TableEditor({
                                         buttonId={`attribute-selector-button-${index}`}
                                         autoOpen={index === autoOpenAttributeMenuForRow}
                                         onMenuOpened={() => setAutoOpenAttributeMenuForRow(null)}
-                                        serviceEnvironment={serviceEnvironment}
+                                        enableUserManagedAttributes={enableUserManagedAttributes}
                                     />
                                 </td>
                                 <td className='table-editor__cell'>

@@ -8,7 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
-import type {ServiceEnvironment} from '@mattermost/types/config';
+import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -54,7 +54,7 @@ interface PolicyActions {
 export interface PolicyDetailsProps {
     policy?: AccessControlPolicy;
     policyId?: string;
-    serviceEnvironment: ServiceEnvironment;
+    accessControlSettings: AccessControlSettings;
     actions: PolicyActions;
 }
 
@@ -67,8 +67,8 @@ interface ChannelChanges {
 function PolicyDetails({
     policy,
     policyId,
-    serviceEnvironment,
     actions,
+    accessControlSettings,
 }: PolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
     const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
@@ -460,10 +460,17 @@ function PolicyDetails({
                                         setSaveNeeded(true);
                                     }}
                                     onValidate={() => {}}
-                                    userAttributes={autocompleteResult.map((attr) => ({
-                                        attribute: attr.name,
-                                        values: [],
-                                    }))}
+                                    userAttributes={autocompleteResult.
+                                        filter((attr) => {
+                                            if (accessControlSettings.EnableUserManagedAttributes) {
+                                                return true;
+                                            }
+                                            return attr.attrs?.ldap || attr.attrs?.saml;
+                                        }).
+                                        map((attr) => ({
+                                            attribute: attr.name,
+                                            values: [],
+                                        }))}
                                 />
                             ) : (
                                 <TableEditor
@@ -477,7 +484,7 @@ function PolicyDetails({
                                     onParseError={() => {
                                         setEditorMode('cel');
                                     }}
-                                    serviceEnvironment={serviceEnvironment}
+                                    enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
                                     actions={{
                                         getVisualAST: actions.getVisualAST,
                                     }}
