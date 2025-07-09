@@ -385,7 +385,7 @@ describe('CloudPreviewModal', () => {
         );
 
         expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
-        expect(lastContentData).toHaveLength(6);
+        expect(lastContentData).toHaveLength(modalContent.length);
         expect(lastContentData[0].title.defaultMessage).toBe('Welcome to your Mattermost preview');
     });
 
