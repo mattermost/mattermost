@@ -7,11 +7,13 @@ import styled from 'styled-components';
 
 import type {Team} from '@mattermost/types/teams';
 
+import {resultHasItems} from 'components/suggestion/provider';
+
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {escapeRegex} from 'utils/text_formatting';
 
-import useSearchSuggestions from './hooks';
+import {useSearchSuggestions, useSearchSuggestionSelection} from './hooks';
 import SearchBoxHints from './search_box_hints';
 import SearchInput from './search_box_input';
 import SearchSuggestions from './search_box_suggestions';
@@ -84,7 +86,6 @@ const SearchBox = forwardRef(
         const [searchTerms, setSearchTerms] = useState<string>(initialSearchTerms);
         const [searchTeam, setSearchTeam] = useState<string>(initialSearchTeam);
         const [searchType, setSearchType] = useState<string>(initialSearchType || 'messages');
-        const [selectedOption, setSelectedOption] = useState<number>(-1);
 
         const hasMoreThanOneTeam = myTeams.length > 1;
 
@@ -143,14 +144,21 @@ const SearchBox = forwardRef(
             };
         }, [inputRef.current]);
 
-        const [providerResults, suggestionsHeader] = useSearchSuggestions(
+        const [providerResults] = useSearchSuggestions(
             searchType,
             searchTerms,
             searchTeam,
             caretPosition,
             getCaretPosition,
-            setSelectedOption,
         );
+
+        const {
+            selectedTerm,
+
+            clearSelection,
+            setSelectedTerm,
+            setSelectionByDelta,
+        } = useSearchSuggestionSelection(providerResults);
 
         const focus = useCallback((newposition: number) => {
             if (inputRef.current) {
@@ -187,47 +195,42 @@ const SearchBox = forwardRef(
 
         const handleKeyDown = useCallback(
             (e: React.KeyboardEvent<Element>): void => {
-                if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
+                if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
+                    if (!providerResults || !resultHasItems(providerResults) || selectedTerm === '') {
                         onClose();
                     } else {
-                        setSelectedOption(-1);
+                        clearSelection();
                     }
                 }
 
-                if (Keyboard.isKeyPressed(e as any, KeyCodes.DOWN)) {
+                if (Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    const totalItems = providerResults?.items.length || 0;
-                    if (selectedOption + 1 < totalItems) {
-                        setSelectedOption(selectedOption + 1);
-                    }
+                    setSelectionByDelta(+1);
                 }
 
-                if (Keyboard.isKeyPressed(e as any, KeyCodes.UP)) {
+                if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (selectedOption > 0) {
-                        setSelectedOption(selectedOption - 1);
-                    }
+                    setSelectionByDelta(-1);
                 }
 
-                if (Keyboard.isKeyPressed(e as any, KeyCodes.ENTER)) {
+                if (Keyboard.isKeyPressed(e, KeyCodes.ENTER)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
+                    if (!providerResults || !resultHasItems(providerResults) || selectedTerm === '') {
                         onSearch(searchType, searchTeam, searchTerms);
                     } else {
                         const matchedPretext = providerResults?.matchedPretext;
-                        const value = providerResults?.terms[selectedOption];
+                        const value = selectedTerm;
                         updateSearchValue(value, matchedPretext);
-                        setSelectedOption(-1);
+                        clearSelection();
                     }
                 }
             },
-            [providerResults, onClose, selectedOption, onSearch, searchType, searchTeam, searchTerms, updateSearchValue],
+            [providerResults, onClose, selectedTerm, clearSelection, setSelectionByDelta, onSearch, searchType, searchTeam, searchTerms, updateSearchValue],
         );
 
         const changeSearchTeam = (selectedTeam: string) => {
@@ -301,15 +304,18 @@ const SearchBox = forwardRef(
                     setSearchTerms={setSearchTerms}
                     onKeyDown={handleKeyDown}
                     focus={focus}
+                    aria-activedescendant={selectedTerm ? `searchBoxSuggestions_item_${selectedTerm}` : undefined}
+                    aria-controls='searchBoxSuggestions'
+                    aria-expanded={Boolean(providerResults && resultHasItems(providerResults))}
                 />
                 <SearchSuggestions
+                    id='searchBoxSuggestions'
                     searchType={searchType}
                     searchTeam={searchTeam}
                     searchTerms={searchTerms}
-                    suggestionsHeader={suggestionsHeader}
                     providerResults={providerResults}
-                    selectedOption={selectedOption}
-                    setSelectedOption={setSelectedOption}
+                    selectedTerm={selectedTerm}
+                    setSelectedTerm={setSelectedTerm}
                     onSearch={onSearch}
                     onSuggestionSelected={updateSearchValue}
                 />
@@ -319,7 +325,7 @@ const SearchBox = forwardRef(
                     setSearchTerms={addSearchHint}
                     searchType={searchType}
                     providerResults={providerResults}
-                    selectedOption={selectedOption}
+                    selectedTerm={selectedTerm}
                     showFilterHaveBeenReset={showFilterHaveBeenReset}
                     focus={focus}
                 />

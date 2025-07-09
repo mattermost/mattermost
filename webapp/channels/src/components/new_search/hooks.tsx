@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef, useEffect, useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {useState, useRef, useEffect, useMemo, useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -19,11 +18,10 @@ import SearchUserProvider from 'components/suggestion/search_user_provider';
 
 import {SearchFileExtensionProvider} from './extension_suggestions_provider';
 
-const useSearchSuggestions = (searchType: string, searchTerms: string, searchTeam: string, caretPosition: number, getCaretPosition: () => number, setSelectedOption: (idx: number) => void): [ProviderResult<unknown>|null, React.ReactNode] => {
+export const useSearchSuggestions = (searchType: string, searchTerms: string, searchTeam: string, caretPosition: number, getCaretPosition: () => number): [ProviderResult<unknown>|null] => {
     const dispatch = useDispatch();
 
     const [providerResults, setProviderResults] = useState<ProviderResult<unknown>|null>(null);
-    const [suggestionsHeader, setSuggestionsHeader] = useState<React.ReactNode>(<span/>);
 
     const suggestionProviders = useRef<Provider[]>([
         new SearchDateProvider(),
@@ -32,24 +30,24 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, searchTea
         new SearchFileExtensionProvider(),
     ]);
 
-    const headers = useMemo<React.ReactNode[]>(() => [
-        <span key={1}/>,
-        <FormattedMessage
-            id='search_bar.channels'
-            defaultMessage='Channels'
-            key={2}
-        />,
-        <FormattedMessage
-            id='search_bar.users'
-            defaultMessage='Users'
-            key={3}
-        />,
-        <FormattedMessage
-            id='search_bar.file_types'
-            defaultMessage='File types'
-            key={4}
-        />,
-    ], []);
+    // const headers = useMemo<React.ReactNode[]>(() => [
+    //     <span key={1}/>,
+    //     <FormattedMessage
+    //         id='search_bar.channels'
+    //         defaultMessage='Channels'
+    //         key={2}
+    //     />,
+    //     <FormattedMessage
+    //         id='search_bar.users'
+    //         defaultMessage='Users'
+    //         key={3}
+    //     />,
+    //     <FormattedMessage
+    //         id='search_bar.file_types'
+    //         defaultMessage='File types'
+    //         key={4}
+    //     />,
+    // ], []);
 
     useEffect(() => {
         setProviderResults(null);
@@ -74,16 +72,69 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, searchTea
                 if (caretPosition !== getCaretPosition()) {
                     return;
                 }
-                res.items = res.items.slice(0, 10);
-                res.terms = res.terms.slice(0, 10);
+                for (const group of res.groups) {
+                    if ('loading' in group) {
+                        continue;
+                    }
+                    group.items = group.items.slice(0, 10);
+                    group.terms = group.terms.slice(0, 10);
+                }
                 setProviderResults(res);
-                setSelectedOption(0);
-                setSuggestionsHeader(headers[idx]);
             }, searchTeam);
         });
     }, [searchTerms, searchTeam, searchType, caretPosition]);
 
-    return [providerResults, suggestionsHeader];
+    return [providerResults];
 };
 
-export default useSearchSuggestions;
+export function useSearchSuggestionSelection(providerResults: ProviderResult<unknown> | null) {
+    // State
+
+    const [selectedTerm, setSelectedTerm] = useState('');
+
+    const flattenedTerms = useMemo(() => {
+        if (!providerResults) {
+            return [];
+        }
+
+        const groups = providerResults.groups.filter((group) => 'items' in group);
+        return groups.flatMap((group) => group.terms);
+    }, [providerResults]);
+
+    // Logic
+
+    useEffect(() => {
+        // Unlike the SuggestionBox, this always resets the selection when suggestions changes. This is probably
+        // much more reliable than the SuggestionBox's behaviour.
+        setSelectedTerm(flattenedTerms.length > 0 ? flattenedTerms[0] : '');
+    }, [flattenedTerms]);
+
+    // Callbacks
+
+    const clearSelection = useCallback(() => {
+        setSelectedTerm('');
+    }, []);
+
+    const setSelectionByDelta = useCallback((delta: number) => {
+        const selectionIndex = flattenedTerms.indexOf(selectedTerm);
+        if (selectionIndex === -1) {
+            setSelectedTerm('');
+        } else {
+            let nextSelectionIndex = selectionIndex + delta;
+
+            // Keyboard selection doesn't wrap around
+            nextSelectionIndex = Math.min(Math.max(nextSelectionIndex, 0), flattenedTerms.length - 1);
+
+            setSelectedTerm(flattenedTerms[nextSelectionIndex]);
+        }
+    }, [selectedTerm, flattenedTerms]);
+
+    return {
+        selectedTerm,
+
+        clearSelection,
+        setSelectedTerm,
+        setSelectionByDelta,
+    };
+}
+

@@ -38,16 +38,20 @@ const TestPluginProviderComponent = ({searchTerms, onChangeSearch, onRunSearch}:
 
 describe('components/new_search/SearchBoxSuggestions', () => {
     const baseProps = {
+        id: 'test-search',
         searchType: 'messages',
         searchTerms: '',
         searchTeam: 'teamId',
-        selectedOption: -1,
-        setSelectedOption: jest.fn(),
-        suggestionsHeader: <p>{'Test Header'}</p>,
+        selectedTerm: '',
+        setSelectedTerm: jest.fn(),
         providerResults: {
             matchedPretext: '',
-            terms: ['user1', 'user2'],
-            items: [{username: 'test-username1'}, {username: 'test-username2'}],
+            groups: [{
+                key: 'test-suggestions',
+                label: {id: 'test-header', defaultMessage: 'Test Header'},
+                terms: ['user1', 'user2'],
+                items: [{username: 'test-username1'}, {username: 'test-username2'}],
+            }],
             component: TestProviderResultComponent,
         },
         onSearch: jest.fn(),
@@ -80,9 +84,9 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         const props = {...baseProps};
         renderWithContext(<SearchBoxSuggestions {...props}/>);
         fireEvent.mouseMove(screen.getByText('test-username2'));
-        expect(baseProps.setSelectedOption).toHaveBeenCalledWith(1);
+        expect(baseProps.setSelectedTerm).toHaveBeenCalledWith('user2');
         fireEvent.mouseMove(screen.getByText('test-username1'));
-        expect(baseProps.setSelectedOption).toHaveBeenCalledWith(0);
+        expect(baseProps.setSelectedTerm).toHaveBeenCalledWith('user1');
     });
 
     test('should not show the plugin suggestions without license', () => {

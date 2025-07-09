@@ -6,7 +6,7 @@ import {useSelector} from 'react-redux';
 
 import {getSearchBoxHints} from 'selectors/plugins';
 
-import type {ProviderResult} from 'components/suggestion/provider';
+import {resultHasItems, type ProviderResult} from 'components/suggestion/provider';
 import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
@@ -18,13 +18,13 @@ type Props = {
     searchTeam: string;
     setSearchTerms: (searchTerms: string) => void;
     searchType: string;
-    selectedOption: number;
+    selectedTerm: string;
     providerResults: ProviderResult<unknown>|null;
     focus: (pos: number) => void;
     showFilterHaveBeenReset: boolean;
 }
 
-const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, providerResults, selectedOption, focus, showFilterHaveBeenReset}: Props) => {
+const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, providerResults, selectedTerm, focus, showFilterHaveBeenReset}: Props) => {
     const filterSelectedCallback = useCallback((filter: string) => {
         if (searchTerms.endsWith(' ') || searchTerms.length === 0) {
             setSearchTerms(searchTerms + filter);
@@ -44,13 +44,15 @@ const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, pr
     const searchPluginHints = useSelector(getSearchBoxHints);
 
     if (searchType === '' || searchType === 'messages' || searchType === 'files') {
+        const hasOptions = Boolean(providerResults && resultHasItems(providerResults));
+
         return (
             <SearchHints
                 onSelectFilter={filterSelectedCallback}
                 searchType={searchType}
                 searchTerms={searchTerms}
                 searchTeam={searchTeam}
-                hasSelectedOption={Boolean(providerResults && providerResults.items.length > 0 && selectedOption !== -1)}
+                hasSelectedOption={Boolean(hasOptions && selectedTerm !== '')}
                 showFilterHaveBeenReset={showFilterHaveBeenReset}
                 isDate={providerResults?.component === SearchDateSuggestion}
             />

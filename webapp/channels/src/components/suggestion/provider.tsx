@@ -35,9 +35,13 @@ export type ProviderResult<Item> = {
     matchedPretext: string;
     groups: Array<SuggestionGroup<Item>>;
 } & RequireOnlyOne<{
-    component: React.ReactNode;
-    components: React.ReactNode[];
+    component: React.ComponentType<any>;
+    components: Array<React.ComponentType<any>>;
 }>;
+
+export function resultHasItems(result: ProviderResult<unknown>): boolean {
+    return result.groups.some((group) => 'items' in group && group.items.length > 0);
+}
 
 export type Loading = {
     type: string;
