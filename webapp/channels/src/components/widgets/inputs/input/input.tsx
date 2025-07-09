@@ -42,6 +42,7 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
     clearable?: boolean;
     clearableTooltipText?: string;
     onClear?: () => void;
+    rows?: number;
     validate?: (value: React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>['value']) => CustomMessageInputType | undefined;
 }
 
@@ -74,6 +75,7 @@ const Input = React.forwardRef((
         onBlur,
         onChange,
         onClear,
+        rows,
         validate,
         ...otherProps
     }: InputProps,
@@ -223,7 +225,7 @@ const Input = React.forwardRef((
                     aria-label={ariaLabel}
                     aria-describedby={customInputLabel ? errorId : undefined}
                     aria-invalid={error || hasError}
-                    rows={3}
+                    rows={rows || 3}
                     name={name}
                     disabled={disabled}
                     {...otherProps}
@@ -264,8 +266,10 @@ const Input = React.forwardRef((
                 data-testid='input-wrapper'
             >
                 {useLegend && (
-                    <label className={classNames('Input_legend', {Input_legend___focus: showLegend})}>
-                        {showLegend ? formatAsString(formatMessage, label || placeholder) : null}
+                    <label
+                        htmlFor={inputId}
+                        className={classNames('Input_legend', {Input_legend___focus: showLegend})}
+                    >                        {showLegend ? formatAsString(formatMessage, label || placeholder) : null}
                     </label>
                 )}
                 <div className={classNames('Input_wrapper', wrapperClassName)}>
@@ -291,8 +295,9 @@ const Input = React.forwardRef((
                             'icon-information-outline': (customInputLabel?.type || 'error') === ItemStatus.INFO,
                             'icon-check': (customInputLabel?.type || 'error') === ItemStatus.SUCCESS,
                         })}
-                        aria-hidden={Boolean(customInputLabel.value)}
+                        role='img'
                         aria-label={customInputLabel.value ? '' : customInputLabel.type || 'error'}
+                        aria-hidden={Boolean(customInputLabel.value)}
                     />
                     <span>{customInputLabel?.value}</span>
                 </div>

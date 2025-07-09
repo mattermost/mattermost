@@ -147,13 +147,6 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, rctx, ss, s) })
 	t.Run("GetChannelsBatchForIndexing", func(t *testing.T) { testChannelStoreGetChannelsBatchForIndexing(t, rctx, ss) })
 	t.Run("GroupSyncedChannelCount", func(t *testing.T) { testGroupSyncedChannelCount(t, rctx, ss) })
-	t.Run("CreateInitialSidebarCategories", func(t *testing.T) { testCreateInitialSidebarCategories(t, rctx, ss) })
-	t.Run("CreateSidebarCategory", func(t *testing.T) { testCreateSidebarCategory(t, rctx, ss) })
-	t.Run("GetSidebarCategory", func(t *testing.T) { testGetSidebarCategory(t, rctx, ss, s) })
-	t.Run("GetSidebarCategories", func(t *testing.T) { testGetSidebarCategories(t, rctx, ss) })
-	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, rctx, ss) })
-	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, rctx, ss, s) })
-	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, rctx, ss) })
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, rctx, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, rctx, ss) })
 	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, rctx, ss) })
@@ -7083,7 +7076,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, rctx request.CTX, ss stor
 	require.NoError(t, nErr)
 
 	for _, userID := range userIds {
-		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   gc2.Id,
 			UserId:      userID,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -7098,6 +7091,20 @@ func testChannelStoreSearchGroupChannels(t *testing.T, rctx request.CTX, ss stor
 	gc3.Type = model.ChannelTypeGroup
 	_, nErr = ss.Channel().Save(rctx, &gc3, -1)
 	require.NoError(t, nErr)
+
+	// Make gc3 policy enforced
+	_, err = ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
+		ID:      gc3.Id,
+		Version: model.AccessControlPolicyVersionV0_1,
+		Type:    model.AccessControlPolicyTypeChannel,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{},
+				Expression: "",
+			},
+		},
+	})
+	require.NoError(t, err)
 
 	for _, userID := range userIds {
 		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
@@ -7114,6 +7121,16 @@ func testChannelStoreSearchGroupChannels(t *testing.T, rctx request.CTX, ss stor
 			ss.Channel().PermanentDelete(rctx, gc.Id)
 		}
 	}()
+
+	// assertChannelListPopulated verifies that the channel objects in the given channel list
+	// are fully populated.
+	assertChannelListPopulated := func(t *testing.T, channelList model.ChannelList) {
+		for _, actualChannel := range channelList {
+			expectedChannel, err := ss.Channel().Get(actualChannel.Id, false)
+			require.NoError(t, err)
+			assert.Equal(t, expectedChannel, actualChannel, "channel %q in channel list missing metadata", actualChannel.Id)
+		}
+	}
 
 	testCases := []struct {
 		Name           string
@@ -7176,6 +7193,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, rctx request.CTX, ss stor
 			}
 
 			require.ElementsMatch(t, tc.ExpectedResult, resultIds)
+			assertChannelListPopulated(t, result)
 		})
 	}
 }

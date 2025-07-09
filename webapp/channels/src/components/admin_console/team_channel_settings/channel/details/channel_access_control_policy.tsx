@@ -76,7 +76,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                                 <td className='policy-name'>{policy.name}</td>
                                 <td className='text-right'>
                                     <Link
-                                        to={'/admin_console/user_management/attribute_based_access_control/edit_policy/' + policy.id}
+                                        to={'/admin_console/system_attributes/attribute_based_access_control/edit_policy/' + policy.id}
                                         className='policy-edit-icon'
                                         aria-label={intl.formatMessage({
                                             id: 'admin.channel_settings.channel_detail.go_to_policy.aria_label',
