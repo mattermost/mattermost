@@ -5,9 +5,10 @@ package api4
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"net/http"
 )
 
 func (api *API) InitContentFlagging() {
@@ -61,11 +62,11 @@ func getTeamPostReportingFeatureStatus(c *Context, w http.ResponseWriter, r *htt
 	teamID := c.Params.TeamId
 	enabled := c.App.GetTeamPostReportingFeatureStatus(teamID)
 
-	paylaod := map[string]interface{}{
+	payload := map[string]interface{}{
 		"enabled": enabled,
 	}
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(paylaod); err != nil {
+	if err := json.NewEncoder(w).Encode(payload); err != nil {
 		mlog.Error("failed to encode content flagging reporting configuration to return API response", mlog.Err(err))
 		return
 	}

@@ -17,7 +17,7 @@ func (a *App) GetReportingConfiguration() *model.ContentFlaggingReportingConfig 
 func (a *App) GetTeamPostReportingFeatureStatus(teamId string) bool {
 	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
 
-	hasCommonReviewers := reviewerSettings.CommonReviewers != nil && *reviewerSettings.CommonReviewers == true
+	hasCommonReviewers := reviewerSettings.CommonReviewers != nil && *reviewerSettings.CommonReviewers
 	if hasCommonReviewers {
 		return true
 	}
@@ -31,8 +31,8 @@ func (a *App) GetTeamPostReportingFeatureStatus(teamId string) bool {
 		return true
 	}
 
-	hasAdditionalReviewers := (reviewerSettings.TeamAdminsAsReviewers != nil && *reviewerSettings.TeamAdminsAsReviewers == true) ||
-		(reviewerSettings.SystemAdminsAsReviewers != nil && *reviewerSettings.SystemAdminsAsReviewers == true)
+	hasAdditionalReviewers := (reviewerSettings.TeamAdminsAsReviewers != nil && *reviewerSettings.TeamAdminsAsReviewers) ||
+		(reviewerSettings.SystemAdminsAsReviewers != nil && *reviewerSettings.SystemAdminsAsReviewers)
 
 	return hasAdditionalReviewers
 }

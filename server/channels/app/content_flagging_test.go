@@ -4,9 +4,10 @@
 package app
 
 import (
+	"testing"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func setupContentFlagging(tb testing.TB) *TestHelper {
@@ -23,17 +24,11 @@ func TestGetReportingConfiguration(t *testing.T) {
 		defer th.TearDown()
 
 		config := th.App.GetReportingConfiguration()
-		if config == nil {
-			t.Fatal("expected non-nil reporting configuration")
-		}
+		require.NotNil(t, config, "expected non-nil reporting configuration")
 
-		if len(*config.Reasons) == 0 {
-			t.Error("expected non-empty reasons in reporting configuration")
-		}
+		require.Greater(t, len(*config.Reasons), 0, "expected non-empty reasons in reporting configuration")
 
-		if !*config.ReporterCommentRequired {
-			t.Error("expected reporter comment to be required by default")
-		}
+		require.True(t, *config.ReporterCommentRequired, "expected reporter comment to be required by default")
 	})
 
 	t.Run("should return set config", func(t *testing.T) {
@@ -46,17 +41,13 @@ func TestGetReportingConfiguration(t *testing.T) {
 		})
 
 		config := th.App.GetReportingConfiguration()
-		if config == nil {
-			t.Fatal("expected non-nil reporting configuration")
-		}
+		require.NotNil(t, config, "expected non-nil reporting configuration")
 
 		if len(*config.Reasons) != 2 || (*config.Reasons)[0] != "Spam" || (*config.Reasons)[1] != "Abuse" {
 			t.Error("expected reasons to be set to ['Spam', 'Abuse']")
 		}
 
-		if *config.ReporterCommentRequired {
-			t.Error("expected reporter comment to not be required")
-		}
+		require.False(t, *config.ReporterCommentRequired, "expected reporter comment to not be required")
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ContentFlaggingSettings.AdditionalSettings.Reasons = nil
