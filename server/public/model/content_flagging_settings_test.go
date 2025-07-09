@@ -3,31 +3,34 @@ package model
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestContentFlaggingNotificationSettings_SetDefault(t *testing.T) {
 	t.Run("should set default event target mappings", func(t *testing.T) {
 		settings := &ContentFlaggingNotificationSettings{}
-		settings.SetDefault()
+		settings.SetDefaults()
 
-		assert.NotNil(t, settings.EventTargetMapping)
-		assert.Equal(t, []NotificationTarget{TargetReviewers}, settings.EventTargetMapping[EventFlagged])
-		assert.Equal(t, []NotificationTarget{TargetReviewers}, settings.EventTargetMapping[EventAssigned])
-		assert.Equal(t, []NotificationTarget{TargetReviewers, TargetAuthor, TargetReporter}, settings.EventTargetMapping[EventContentRemoved])
-		assert.Equal(t, []NotificationTarget{TargetReviewers, TargetReporter}, settings.EventTargetMapping[EventContentDismissed])
+		require.Nil(t, settings.IsValid())
+
+		require.NotNil(t, settings.EventTargetMapping)
+		require.Equal(t, []NotificationTarget{TargetReviewers}, settings.EventTargetMapping[EventFlagged])
+		require.Equal(t, []NotificationTarget{TargetReviewers}, settings.EventTargetMapping[EventAssigned])
+		require.Equal(t, []NotificationTarget{TargetReviewers, TargetAuthor, TargetReporter}, settings.EventTargetMapping[EventContentRemoved])
+		require.Equal(t, []NotificationTarget{TargetReviewers, TargetReporter}, settings.EventTargetMapping[EventContentDismissed])
 	})
 
 	t.Run("should not override existing mappings", func(t *testing.T) {
 		settings := &ContentFlaggingNotificationSettings{
 			EventTargetMapping: map[ContentFlaggingEvent][]NotificationTarget{
-				EventFlagged: {TargetAuthor},
+				EventFlagged: {TargetReviewers},
 			},
 		}
-		settings.SetDefault()
+		settings.SetDefaults()
 
-		assert.Equal(t, []NotificationTarget{TargetAuthor}, settings.EventTargetMapping[EventFlagged])
-		assert.Equal(t, []NotificationTarget{TargetReviewers}, settings.EventTargetMapping[EventAssigned])
+		require.Nil(t, settings.IsValid())
+		require.Equal(t, []NotificationTarget{TargetReviewers}, settings.EventTargetMapping[EventFlagged])
+		require.Equal(t, []NotificationTarget{TargetReviewers}, settings.EventTargetMapping[EventAssigned])
 	})
 }
 
@@ -40,7 +43,7 @@ func TestContentFlaggingNotificationSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.Nil(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("should be invalid when no targets for flagged events", func(t *testing.T) {
@@ -51,8 +54,8 @@ func TestContentFlaggingNotificationSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Equal(t, "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled", err.Id)
+		require.NotNil(t, err)
+		require.Equal(t, "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled", err.Id)
 	})
 
 	t.Run("should be invalid when flagged event mapping is nil", func(t *testing.T) {
@@ -61,8 +64,8 @@ func TestContentFlaggingNotificationSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Equal(t, "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled", err.Id)
+		require.NotNil(t, err)
+		require.Equal(t, "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled", err.Id)
 	})
 
 	t.Run("should be invalid when reviewers not included in flagged event targets", func(t *testing.T) {
@@ -73,8 +76,8 @@ func TestContentFlaggingNotificationSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Equal(t, "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled", err.Id)
+		require.NotNil(t, err)
+		require.Equal(t, "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled", err.Id)
 	})
 
 	t.Run("should be invalid when invalid events and targets are specified", func(t *testing.T) {
@@ -85,8 +88,8 @@ func TestContentFlaggingNotificationSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Equal(t, "model.config.is_valid.notification_settings.invalid_event", err.Id)
+		require.NotNil(t, err)
+		require.Equal(t, "model.config.is_valid.notification_settings.invalid_event", err.Id)
 
 		settings = &ContentFlaggingNotificationSettings{
 			EventTargetMapping: map[ContentFlaggingEvent][]NotificationTarget{
@@ -95,8 +98,8 @@ func TestContentFlaggingNotificationSettings_IsValid(t *testing.T) {
 		}
 
 		err = settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Equal(t, "model.config.is_valid.notification_settings.invalid_target", err.Id)
+		require.NotNil(t, err)
+		require.Equal(t, "model.config.is_valid.notification_settings.invalid_target", err.Id)
 
 		settings = &ContentFlaggingNotificationSettings{
 			EventTargetMapping: map[ContentFlaggingEvent][]NotificationTarget{
@@ -105,29 +108,31 @@ func TestContentFlaggingNotificationSettings_IsValid(t *testing.T) {
 		}
 
 		err = settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Equal(t, "model.config.is_valid.notification_settings.invalid_event", err.Id)
+		require.NotNil(t, err)
+		require.Equal(t, "model.config.is_valid.notification_settings.invalid_event", err.Id)
 	})
 }
 
 func TestReviewerSettings_SetDefault(t *testing.T) {
 	t.Run("should set all default values", func(t *testing.T) {
 		settings := &ReviewerSettings{}
-		settings.SetDefault()
+		settings.SetDefaults()
 
-		assert.NotNil(t, settings.CommonReviewers)
-		assert.True(t, *settings.CommonReviewers)
-		assert.NotNil(t, settings.CommonReviewerIds)
-		assert.Empty(t, *settings.CommonReviewerIds)
+		require.Nil(t, settings.IsValid())
 
-		assert.NotNil(t, settings.TeamReviewersSetting)
-		assert.Empty(t, *settings.TeamReviewersSetting)
+		require.NotNil(t, settings.CommonReviewers)
+		require.True(t, *settings.CommonReviewers)
+		require.NotNil(t, settings.CommonReviewerIds)
+		require.Empty(t, *settings.CommonReviewerIds)
 
-		assert.NotNil(t, settings.SystemAdminsAsReviewers)
-		assert.False(t, *settings.SystemAdminsAsReviewers)
+		require.NotNil(t, settings.TeamReviewersSetting)
+		require.Empty(t, *settings.TeamReviewersSetting)
 
-		assert.NotNil(t, settings.TeamAdminsAsReviewers)
-		assert.True(t, *settings.TeamAdminsAsReviewers)
+		require.NotNil(t, settings.SystemAdminsAsReviewers)
+		require.False(t, *settings.SystemAdminsAsReviewers)
+
+		require.NotNil(t, settings.TeamAdminsAsReviewers)
+		require.True(t, *settings.TeamAdminsAsReviewers)
 	})
 
 	t.Run("should not override existing values", func(t *testing.T) {
@@ -135,9 +140,10 @@ func TestReviewerSettings_SetDefault(t *testing.T) {
 		settings := &ReviewerSettings{
 			CommonReviewers: &commonReviewers,
 		}
-		settings.SetDefault()
+		settings.SetDefaults()
 
-		assert.False(t, *settings.CommonReviewers)
+		require.Nil(t, settings.IsValid())
+		require.False(t, *settings.CommonReviewers)
 	})
 }
 
@@ -152,7 +158,7 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.Nil(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("should be valid when common reviewers enabled with additional reviewers", func(t *testing.T) {
@@ -165,7 +171,7 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.Nil(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("should be invalid when common reviewers enabled but no reviewers specified", func(t *testing.T) {
@@ -178,8 +184,8 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Equal(t, "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error", err.Id)
+		require.NotNil(t, err)
+		require.Equal(t, "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error", err.Id)
 	})
 
 	t.Run("should be valid when team reviewers enabled with reviewer IDs", func(t *testing.T) {
@@ -197,7 +203,7 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.Nil(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("should be invalid when team reviewers enabled but no reviewer IDs", func(t *testing.T) {
@@ -215,8 +221,8 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Equal(t, "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error", err.Id)
+		require.NotNil(t, err)
+		require.Equal(t, "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error", err.Id)
 	})
 
 	t.Run("should be valid when team reviewers enabled but no reviewer IDs with additional reviewers", func(t *testing.T) {
@@ -234,16 +240,17 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.Nil(t, err)
+		require.Nil(t, err)
 	})
 }
 
 func TestAdditionalContentFlaggingSettings_SetDefault(t *testing.T) {
 	t.Run("should set all default values", func(t *testing.T) {
 		settings := &AdditionalContentFlaggingSettings{}
-		settings.SetDefault()
+		settings.SetDefaults()
 
-		assert.NotNil(t, settings.Reasons)
+		require.Nil(t, settings.IsValid())
+		require.NotNil(t, settings.Reasons)
 		expectedReasons := []string{
 			"Inappropriate content",
 			"Sensitive data",
@@ -251,13 +258,13 @@ func TestAdditionalContentFlaggingSettings_SetDefault(t *testing.T) {
 			"Harassment or abuse",
 			"Spam or phishing",
 		}
-		assert.Equal(t, expectedReasons, *settings.Reasons)
-		assert.NotNil(t, settings.ReporterCommentRequired)
-		assert.True(t, *settings.ReporterCommentRequired)
-		assert.NotNil(t, settings.ReviewerCommentRequired)
-		assert.True(t, *settings.ReviewerCommentRequired)
-		assert.NotNil(t, settings.HideFlaggedContent)
-		assert.True(t, *settings.HideFlaggedContent)
+		require.Equal(t, expectedReasons, *settings.Reasons)
+		require.NotNil(t, settings.ReporterCommentRequired)
+		require.True(t, *settings.ReporterCommentRequired)
+		require.NotNil(t, settings.ReviewerCommentRequired)
+		require.True(t, *settings.ReviewerCommentRequired)
+		require.NotNil(t, settings.HideFlaggedContent)
+		require.True(t, *settings.HideFlaggedContent)
 	})
 
 	t.Run("should not override existing values", func(t *testing.T) {
@@ -265,9 +272,10 @@ func TestAdditionalContentFlaggingSettings_SetDefault(t *testing.T) {
 		settings := &AdditionalContentFlaggingSettings{
 			Reasons: &customReasons,
 		}
-		settings.SetDefault()
+		settings.SetDefaults()
 
-		assert.Equal(t, customReasons, *settings.Reasons)
+		require.Nil(t, settings.IsValid())
+		require.Equal(t, customReasons, *settings.Reasons)
 	})
 }
 
@@ -278,7 +286,7 @@ func TestAdditionalContentFlaggingSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.Nil(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("should be invalid when reasons are nil", func(t *testing.T) {
@@ -287,8 +295,8 @@ func TestAdditionalContentFlaggingSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Equal(t, "model.config.is_valid.content_flagging.reasons_not_set.app_error", err.Id)
+		require.NotNil(t, err)
+		require.Equal(t, "model.config.is_valid.content_flagging.reasons_not_set.app_error", err.Id)
 	})
 
 	t.Run("should be invalid when reasons are empty", func(t *testing.T) {
@@ -297,26 +305,27 @@ func TestAdditionalContentFlaggingSettings_IsValid(t *testing.T) {
 		}
 
 		err := settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Equal(t, "model.config.is_valid.content_flagging.reasons_not_set.app_error", err.Id)
+		require.NotNil(t, err)
+		require.Equal(t, "model.config.is_valid.content_flagging.reasons_not_set.app_error", err.Id)
 	})
 }
 
 func TestContentFlaggingSettings_SetDefault(t *testing.T) {
-	t.Run("should set all default values and call nested SetDefault methods", func(t *testing.T) {
+	t.Run("should set all default values and call nested SetDefaults methods", func(t *testing.T) {
 		settings := &ContentFlaggingSettings{}
-		settings.SetDefault()
+		settings.SetDefaults()
 
-		assert.NotNil(t, settings.EnableContentFlagging)
-		assert.False(t, *settings.EnableContentFlagging)
-		assert.NotNil(t, settings.NotificationSettings)
-		assert.NotNil(t, settings.ReviewerSettings)
-		assert.NotNil(t, settings.AdditionalSettings)
+		require.Nil(t, settings.IsValid())
+		require.NotNil(t, settings.EnableContentFlagging)
+		require.False(t, *settings.EnableContentFlagging)
+		require.NotNil(t, settings.NotificationSettings)
+		require.NotNil(t, settings.ReviewerSettings)
+		require.NotNil(t, settings.AdditionalSettings)
 
 		// Verify nested defaults were set
-		assert.NotNil(t, settings.NotificationSettings.EventTargetMapping)
-		assert.NotNil(t, settings.ReviewerSettings.CommonReviewers)
-		assert.NotNil(t, settings.AdditionalSettings.Reasons)
+		require.NotNil(t, settings.NotificationSettings.EventTargetMapping)
+		require.NotNil(t, settings.ReviewerSettings.CommonReviewers)
+		require.NotNil(t, settings.AdditionalSettings.Reasons)
 	})
 
 	t.Run("should not override existing values", func(t *testing.T) {
@@ -324,19 +333,20 @@ func TestContentFlaggingSettings_SetDefault(t *testing.T) {
 		settings := &ContentFlaggingSettings{
 			EnableContentFlagging: &enabled,
 		}
-		settings.SetDefault()
+		settings.SetDefaults()
 
-		assert.True(t, *settings.EnableContentFlagging)
+		require.Nil(t, settings.IsValid())
+		require.True(t, *settings.EnableContentFlagging)
 	})
 }
 
 func TestContentFlaggingSettings_IsValid(t *testing.T) {
 	t.Run("should be valid when all nested settings are valid", func(t *testing.T) {
 		settings := &ContentFlaggingSettings{}
-		settings.SetDefault()
+		settings.SetDefaults()
 
 		err := settings.IsValid()
-		assert.Nil(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("should be invalid when notification settings are invalid", func(t *testing.T) {
@@ -349,12 +359,12 @@ func TestContentFlaggingSettings_IsValid(t *testing.T) {
 			ReviewerSettings:   &ReviewerSettings{},
 			AdditionalSettings: &AdditionalContentFlaggingSettings{},
 		}
-		settings.ReviewerSettings.SetDefault()
-		settings.AdditionalSettings.SetDefault()
+		settings.ReviewerSettings.SetDefaults()
+		settings.AdditionalSettings.SetDefaults()
 
 		err := settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Id, "notification_settings")
+		require.NotNil(t, err)
+		require.Contains(t, err.Id, "notification_settings")
 	})
 
 	t.Run("should be invalid when reviewer settings are invalid", func(t *testing.T) {
@@ -369,12 +379,12 @@ func TestContentFlaggingSettings_IsValid(t *testing.T) {
 			},
 			AdditionalSettings: &AdditionalContentFlaggingSettings{},
 		}
-		settings.NotificationSettings.SetDefault()
-		settings.AdditionalSettings.SetDefault()
+		settings.NotificationSettings.SetDefaults()
+		settings.AdditionalSettings.SetDefaults()
 
 		err := settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Id, "common_reviewers_not_set")
+		require.NotNil(t, err)
+		require.Contains(t, err.Id, "common_reviewers_not_set")
 	})
 
 	t.Run("should be invalid when additional settings are invalid", func(t *testing.T) {
@@ -385,12 +395,12 @@ func TestContentFlaggingSettings_IsValid(t *testing.T) {
 				Reasons: &[]string{},
 			},
 		}
-		settings.NotificationSettings.SetDefault()
-		settings.ReviewerSettings.SetDefault()
+		settings.NotificationSettings.SetDefaults()
+		settings.ReviewerSettings.SetDefaults()
 
 		err := settings.IsValid()
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Id, "reasons_not_set")
+		require.NotNil(t, err)
+		require.Contains(t, err.Id, "reasons_not_set")
 	})
 }
 
@@ -399,8 +409,8 @@ func TestTeamReviewerSetting(t *testing.T) {
 		setting := TeamReviewerSetting{}
 
 		// Should not panic when accessing nil pointers in validation logic
-		assert.Nil(t, setting.Enabled)
-		assert.Nil(t, setting.ReviewerIds)
+		require.Nil(t, setting.Enabled)
+		require.Nil(t, setting.ReviewerIds)
 	})
 
 	t.Run("should work with proper values", func(t *testing.T) {
@@ -409,22 +419,22 @@ func TestTeamReviewerSetting(t *testing.T) {
 			ReviewerIds: &[]string{"user1", "user2"},
 		}
 
-		assert.True(t, *setting.Enabled)
-		assert.Equal(t, []string{"user1", "user2"}, *setting.ReviewerIds)
+		require.True(t, *setting.Enabled)
+		require.Equal(t, []string{"user1", "user2"}, *setting.ReviewerIds)
 	})
 }
 
 func TestContentFlaggingConstants(t *testing.T) {
 	t.Run("should have correct event constants", func(t *testing.T) {
-		assert.Equal(t, ContentFlaggingEvent("flagged"), EventFlagged)
-		assert.Equal(t, ContentFlaggingEvent("assigned"), EventAssigned)
-		assert.Equal(t, ContentFlaggingEvent("removed"), EventContentRemoved)
-		assert.Equal(t, ContentFlaggingEvent("dismissed"), EventContentDismissed)
+		require.Equal(t, ContentFlaggingEvent("flagged"), EventFlagged)
+		require.Equal(t, ContentFlaggingEvent("assigned"), EventAssigned)
+		require.Equal(t, ContentFlaggingEvent("removed"), EventContentRemoved)
+		require.Equal(t, ContentFlaggingEvent("dismissed"), EventContentDismissed)
 	})
 
 	t.Run("should have correct target constants", func(t *testing.T) {
-		assert.Equal(t, NotificationTarget("reviewers"), TargetReviewers)
-		assert.Equal(t, NotificationTarget("author"), TargetAuthor)
-		assert.Equal(t, NotificationTarget("reporter"), TargetReporter)
+		require.Equal(t, NotificationTarget("reviewers"), TargetReviewers)
+		require.Equal(t, NotificationTarget("author"), TargetAuthor)
+		require.Equal(t, NotificationTarget("reporter"), TargetReporter)
 	})
 }

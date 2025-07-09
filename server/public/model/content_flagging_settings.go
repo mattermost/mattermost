@@ -26,7 +26,7 @@ type ContentFlaggingNotificationSettings struct {
 	EventTargetMapping map[ContentFlaggingEvent][]NotificationTarget
 }
 
-func (cfs *ContentFlaggingNotificationSettings) SetDefault() {
+func (cfs *ContentFlaggingNotificationSettings) SetDefaults() {
 	if cfs.EventTargetMapping == nil {
 		cfs.EventTargetMapping = make(map[ContentFlaggingEvent][]NotificationTarget)
 	}
@@ -98,7 +98,7 @@ type ReviewerSettings struct {
 	TeamAdminsAsReviewers   *bool
 }
 
-func (rs *ReviewerSettings) SetDefault() {
+func (rs *ReviewerSettings) SetDefaults() {
 	if rs.CommonReviewers == nil {
 		rs.CommonReviewers = NewPointer(true)
 	}
@@ -149,7 +149,7 @@ type AdditionalContentFlaggingSettings struct {
 	HideFlaggedContent      *bool
 }
 
-func (acfs *AdditionalContentFlaggingSettings) SetDefault() {
+func (acfs *AdditionalContentFlaggingSettings) SetDefaults() {
 	if acfs.Reasons == nil {
 		acfs.Reasons = &[]string{
 			"Inappropriate content",
@@ -188,7 +188,7 @@ type ContentFlaggingSettings struct {
 	AdditionalSettings    *AdditionalContentFlaggingSettings
 }
 
-func (cfs *ContentFlaggingSettings) SetDefault() {
+func (cfs *ContentFlaggingSettings) SetDefaults() {
 	if cfs.EnableContentFlagging == nil {
 		cfs.EnableContentFlagging = NewPointer(false)
 	}
@@ -207,9 +207,9 @@ func (cfs *ContentFlaggingSettings) SetDefault() {
 		cfs.AdditionalSettings = &AdditionalContentFlaggingSettings{}
 	}
 
-	cfs.NotificationSettings.SetDefault()
-	cfs.ReviewerSettings.SetDefault()
-	cfs.AdditionalSettings.SetDefault()
+	cfs.NotificationSettings.SetDefaults()
+	cfs.ReviewerSettings.SetDefaults()
+	cfs.AdditionalSettings.SetDefaults()
 }
 
 func (cfs *ContentFlaggingSettings) IsValid() *AppError {

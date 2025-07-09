@@ -92,7 +92,6 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                 updatedTeamSettings[teamId] = {Enabled: false, ReviewerIds: []};
             }
 
-            // updatedTeamSettings[teamId].ReviewerIds = reviewerIDs;
             updatedTeamSettings[teamId] = {
                 ...updatedTeamSettings[teamId],
                 ReviewerIds: reviewerIDs,
