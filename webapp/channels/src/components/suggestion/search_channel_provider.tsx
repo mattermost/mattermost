@@ -23,8 +23,6 @@ import SearchChannelSuggestion from './search_channel_suggestion';
 const getState = store.getState;
 const dispatch = store.dispatch;
 
-console.log('hhh SCP', getState, dispatch);
-
 type SearchChannelAutocomplete = (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
 
 export default class SearchChannelProvider extends Provider {
@@ -45,17 +43,14 @@ export default class SearchChannelProvider extends Provider {
         const isAtSearch = captured[1].startsWith('@');
 
         this.startNewRequest(prefix);
-                console.log('SCP aaa');
 
         this.autocompleteChannelsForSearch(
             prefix,
             teamId,
             async (data: Channel[]) => {
-                console.log('SCP bbb');
                 if (this.shouldCancelDispatch(prefix)) {
                     return;
                 }
-                console.log('SCP ccc');
 
                 let channels = data;
                 if (isAtSearch) {
@@ -63,14 +58,12 @@ export default class SearchChannelProvider extends Provider {
                         isDirectChannel(ch) || isGroupChannel(ch),
                     );
                 }
-                console.log('SCP ddd');
 
                 // Load profiles for group channels if needed
                 const groupChannels = channels.filter(isGroupChannel);
                 if (groupChannels.length > 0) {
                     await dispatch(loadProfilesForGroupChannels(groupChannels));
                 }
-                console.log('SCP eee');
 
                 // Sort channels
                 const locale = getCurrentLocale(getState());
@@ -80,17 +73,14 @@ export default class SearchChannelProvider extends Provider {
                     Constants.DM_CHANNEL,
                     Constants.GM_CHANNEL,
                 ]));
-                console.log('SCP fff');
 
                 resultsCallback({
                     matchedPretext: prefix,
                     groups: groupChannelSuggestions(channels, isAtSearch),
                     component: SearchChannelSuggestion,
                 });
-                console.log('SCP ggg');
             },
         );
-                console.log('SCP aaa1');
 
         return true;
     }
