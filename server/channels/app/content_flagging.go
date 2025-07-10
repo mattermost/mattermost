@@ -5,7 +5,7 @@ package app
 
 import "github.com/mattermost/mattermost/server/public/model"
 
-func (a *App) GetReportingConfiguration() *model.ContentFlaggingReportingConfig {
+func (a *App) GetFlaggingConfiguration() *model.ContentFlaggingReportingConfig {
 	contentFlaggingSettings := a.Config().ContentFlaggingSettings
 
 	return &model.ContentFlaggingReportingConfig{
@@ -14,7 +14,7 @@ func (a *App) GetReportingConfiguration() *model.ContentFlaggingReportingConfig 
 	}
 }
 
-func (a *App) GetTeamPostReportingFeatureStatus(teamId string) bool {
+func (a *App) GetTeamPostFlaggingFeatureStatus(teamId string) bool {
 	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
 
 	hasCommonReviewers := reviewerSettings.CommonReviewers != nil && *reviewerSettings.CommonReviewers

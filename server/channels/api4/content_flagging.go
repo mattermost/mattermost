@@ -16,8 +16,8 @@ func (api *API) InitContentFlagging() {
 		return
 	}
 
-	api.BaseRoutes.ContentFlagging.Handle("/report/config", api.APISessionRequired(getReportingConfiguration)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/status", api.APISessionRequired(getTeamPostReportingFeatureStatus)).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/flag/config", api.APISessionRequired(getFlaggingConfiguration)).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/status", api.APISessionRequired(getTeamPostFlaggingFeatureStatus)).Methods(http.MethodGet)
 }
 
 func requireContentFlaggingEnabled(c *Context) {
@@ -33,22 +33,22 @@ func requireContentFlaggingEnabled(c *Context) {
 	}
 }
 
-func getReportingConfiguration(c *Context, w http.ResponseWriter, r *http.Request) {
+func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request) {
 	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
 
-	reportingConfig := c.App.GetReportingConfiguration()
+	flaggingConfig := c.App.GetFlaggingConfiguration()
 
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(reportingConfig); err != nil {
-		mlog.Error("failed to encode content flagging reporting configuration to return API response", mlog.Err(err))
+	if err := json.NewEncoder(w).Encode(flaggingConfig); err != nil {
+		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
 		return
 	}
 }
 
-func getTeamPostReportingFeatureStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
@@ -65,14 +65,14 @@ func getTeamPostReportingFeatureStatus(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
-	enabled := c.App.GetTeamPostReportingFeatureStatus(teamID)
+	enabled := c.App.GetTeamPostFlaggingFeatureStatus(teamID)
 
 	payload := map[string]bool{
 		"enabled": enabled,
 	}
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(payload); err != nil {
-		mlog.Error("failed to encode content flagging reporting configuration to return API response", mlog.Err(err))
+		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
 		return
 	}
 }

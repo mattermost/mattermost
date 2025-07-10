@@ -725,7 +725,7 @@ func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId strin
 	return &deletedScheduledPost, BuildResponse(r), nil
 }
 
-func (c *Client4) GetReportingConfiguration(ctx context.Context) (*ContentFlaggingReportingConfig, *Response, error) {
+func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggingReportingConfig, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/report/config", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -733,12 +733,12 @@ func (c *Client4) GetReportingConfiguration(ctx context.Context) (*ContentFlaggi
 	defer closeBody(r)
 	var config ContentFlaggingReportingConfig
 	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
-		return nil, nil, NewAppError("GetReportingConfiguration", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("GetFlaggingConfiguration", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &config, BuildResponse(r), nil
 }
 
-func (c *Client4) GetTeamPostReportingFeatureStatus(ctx context.Context, teamId string) (map[string]bool, *Response, error) {
+func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId string) (map[string]bool, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/team/"+teamId+"/status", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -746,7 +746,7 @@ func (c *Client4) GetTeamPostReportingFeatureStatus(ctx context.Context, teamId 
 	defer closeBody(r)
 	var status map[string]bool
 	if err := json.NewDecoder(r.Body).Decode(&status); err != nil {
-		return nil, nil, NewAppError("GetReportingConfiguration", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("GetFlaggingConfiguration", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return status, BuildResponse(r), nil
 }

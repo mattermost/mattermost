@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetReportingConfiguration(t *testing.T) {
+func TestGetFlaggingConfiguration(t *testing.T) {
 	mainHelper.Parallel(t)
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
@@ -21,6 +21,10 @@ func TestGetReportingConfiguration(t *testing.T) {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
 	}()
+
+	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+		t.Skip("Content flagging tests are not supported on MySQL")
+	}
 
 	setupContentFlagging := func() {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -33,10 +37,10 @@ func TestGetReportingConfiguration(t *testing.T) {
 
 	client := th.Client
 
-	t.Run("should return reporting configuration", func(t *testing.T) {
+	t.Run("should return flagging configuration", func(t *testing.T) {
 		setupContentFlagging()
 
-		config, resp, err := client.GetReportingConfiguration(context.Background())
+		config, resp, err := client.GetFlaggingConfiguration(context.Background())
 		require.NotNil(t, config)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -51,7 +55,7 @@ func TestGetReportingConfiguration(t *testing.T) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
 		})
 
-		_, resp, err := client.GetReportingConfiguration(context.Background())
+		_, resp, err := client.GetFlaggingConfiguration(context.Background())
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
@@ -63,7 +67,7 @@ func TestGetReportingConfiguration(t *testing.T) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 		})
 
-		_, resp, err := client.GetReportingConfiguration(context.Background())
+		_, resp, err := client.GetFlaggingConfiguration(context.Background())
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
@@ -76,7 +80,7 @@ func TestGetReportingConfiguration(t *testing.T) {
 		})
 
 		_, guestClient := th.CreateGuestAndClient(t)
-		config, resp, err := guestClient.GetReportingConfiguration(context.Background())
+		config, resp, err := guestClient.GetFlaggingConfiguration(context.Background())
 		require.NotNil(t, config)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -87,8 +91,16 @@ func TestGetReportingConfiguration(t *testing.T) {
 
 func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 	mainHelper.Parallel(t)
+	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	defer func() {
+		th.TearDown()
+		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
+	}()
+
+	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+		t.Skip("Content flagging tests are not supported on MySQL")
+	}
 
 	setupContentFlagging := func() {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -110,7 +122,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
 		})
 
-		status, resp, err := client.GetTeamPostReportingFeatureStatus(context.Background(), th.BasicTeam.Id)
+		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), th.BasicTeam.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.True(t, status["enabled"])
@@ -129,12 +141,12 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 			}
 		})
 
-		status, resp, err := client.GetTeamPostReportingFeatureStatus(context.Background(), th.BasicTeam.Id)
+		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), th.BasicTeam.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.True(t, status["enabled"])
 
-		status, resp, err = client.GetTeamPostReportingFeatureStatus(context.Background(), basicTeam2.Id)
+		status, resp, err = client.GetTeamPostFlaggingFeatureStatus(context.Background(), basicTeam2.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.False(t, status["enabled"])
@@ -153,7 +165,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 			}
 		})
 
-		status, resp, err := client.GetTeamPostReportingFeatureStatus(context.Background(), th.BasicTeam.Id)
+		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), th.BasicTeam.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.False(t, status["enabled"])
@@ -173,7 +185,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 			config.ContentFlaggingSettings.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(true)
 		})
 
-		status, resp, err := client.GetTeamPostReportingFeatureStatus(context.Background(), th.BasicTeam.Id)
+		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), th.BasicTeam.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.True(t, status["enabled"])
@@ -183,7 +195,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 			config.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
 		})
 
-		status, resp, err = client.GetTeamPostReportingFeatureStatus(context.Background(), th.BasicTeam.Id)
+		status, resp, err = client.GetTeamPostFlaggingFeatureStatus(context.Background(), th.BasicTeam.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.True(t, status["enabled"])
@@ -193,7 +205,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 			config.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
 		})
 
-		status, resp, err = client.GetTeamPostReportingFeatureStatus(context.Background(), th.BasicTeam.Id)
+		status, resp, err = client.GetTeamPostFlaggingFeatureStatus(context.Background(), th.BasicTeam.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.True(t, status["enabled"])

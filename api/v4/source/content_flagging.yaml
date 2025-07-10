@@ -1,8 +1,8 @@
-  /api/v4/content_flagging/report/config:
+  /api/v4/content_flagging/flag/config:
     get:
       summary: Get content flagging configuration
       description: |
-        Returns the configuration for content flagging, including the list of available reasons for flagging content. This data is used to gather details from the user when they report content.
+        Returns the configuration for content flagging, including the list of available reasons for flagging content. This data is used to gather details from the user when they flag content.
       tags:
         - Content Flagging
       responses:
