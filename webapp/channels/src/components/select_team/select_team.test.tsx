@@ -161,7 +161,7 @@ describe('components/select_team/SelectTeam', () => {
         );
 
         // Should only show teams that are not group-constrained
-        const teamItems = wrapper.find('SelectTeamItem');
+        const teamItems = wrapper.find('Memo(SelectTeamItem)');
         expect(teamItems).toHaveLength(2);
 
         // Check that only non-group-constrained teams are rendered

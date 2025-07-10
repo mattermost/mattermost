@@ -85,7 +85,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
     static getDerivedStateFromProps(props: Props, state: State) {
         if (props.listableTeams.length !== state.currentListableTeams.length) {
             return {
-                currentListableTeams: props.listableTeams.slice(0, TEAMS_PER_PAGE * state.currentPage),
+                currentListableTeams: props.listableTeams.slice(0, TEAMS_PER_PAGE * (state.currentPage + 1)),
             };
         }
         return null;
