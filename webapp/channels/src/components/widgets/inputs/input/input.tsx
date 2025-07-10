@@ -130,7 +130,11 @@ const Input = React.forwardRef((
 
     const handleOnBlur = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFocused(false);
-        validateInput();
+        const relatedTarget = event?.relatedTarget as HTMLElement;
+        const isCancelAction = (relatedTarget && relatedTarget?.id === "cancelSetting") ?? false;
+        if (!isCancelAction) {
+            validateInput();
+        }
 
         if (onBlur) {
             onBlur(event);
