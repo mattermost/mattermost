@@ -4,6 +4,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"regexp"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -127,7 +129,7 @@ func (c *Context) IsSystemAdmin() bool {
 	return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 }
 
-func (c *Context) SessionRequired() {
+func (c *Context) SessionRequired(r *http.Request) {
 	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens &&
 		c.AppContext.Session().Props[model.SessionPropType] == model.SessionTypeUserAccessToken &&
 		c.AppContext.Session().Props[model.SessionPropIsBot] != model.SessionPropIsBotValue {
@@ -139,6 +141,151 @@ func (c *Context) SessionRequired() {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
+
+	// Terms of Service validation
+	if appErr := c.TermsOfServiceRequired(r); appErr != nil {
+		c.Err = appErr
+		return
+	}
+}
+
+func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
+	// Exempt ToS-related endpoints using exact path matching to prevent bypasses
+	path := r.URL.Path
+	if c.isTermsOfServiceExemptEndpoint(path) {
+		return nil
+	}
+
+	// Check if custom ToS is enabled
+	if c.App.Config().SupportSettings.CustomTermsOfServiceEnabled == nil ||
+		!*c.App.Config().SupportSettings.CustomTermsOfServiceEnabled {
+		return nil
+	}
+
+	// Check license feature
+	if license := c.App.Channels().License(); license == nil ||
+		!*license.Features.CustomTermsOfService {
+		return nil
+	}
+
+	// Get latest ToS using cached store layer - FAIL CLOSED on errors
+	latestToS, err := c.App.Srv().Store().TermsOfService().GetLatest(true)
+	if err != nil {
+		// Check if this is specifically "no ToS exists" vs database error
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil // No ToS exists, allow access
+		}
+		// Database error - fail closed for security
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "Database error retrieving terms of service: "+err.Error(), http.StatusForbidden)
+	}
+
+	// Check session cache for user's ToS acceptance
+	session := c.AppContext.Session()
+	if acceptedToSId, exists := session.Props[model.SessionPropTermsOfServiceId]; exists {
+		if acceptedToSId == latestToS.Id {
+			return nil // User already accepted latest ToS
+		}
+	}
+
+	// Cache miss - check database for user's ToS acceptance
+	userToS, appErr := c.App.GetUserTermsOfService(session.UserId)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			// User hasn't accepted ToS yet
+			return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
+		}
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, appErr.Error(), http.StatusForbidden)
+	}
+
+	// Check if user accepted latest ToS
+	if userToS.TermsOfServiceId != latestToS.Id {
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// Cache the acceptance in session for future requests
+	session.AddProp(model.SessionPropTermsOfServiceId, userToS.TermsOfServiceId)
+
+	return nil
+}
+
+// isExactPathMatch checks if path exactly matches any of the provided exempt paths
+func isExactPathMatch(path string, exemptPaths []string) bool {
+	for _, exemptPath := range exemptPaths {
+		if path == exemptPath {
+			return true
+		}
+	}
+	return false
+}
+
+// matchesUserResourcePattern checks if path matches the pattern /prefix/{user_id}/suffix
+// and returns the user_id and whether it matches. Uses exact pattern validation to prevent bypass attacks.
+func matchesUserResourcePattern(path, prefix, suffix string) (string, bool) {
+	if !strings.HasPrefix(path, prefix) || !strings.HasSuffix(path, suffix) {
+		return "", false
+	}
+
+	// Ensure exact pattern with valid structure
+	parts := strings.Split(path, "/")
+	expectedParts := strings.Count(prefix, "/") + strings.Count(suffix, "/") + 1 // +1 for user_id segment
+
+	if len(parts) != expectedParts {
+		return "", false
+	}
+
+	// Validate prefix parts match exactly
+	prefixParts := strings.Split(strings.Trim(prefix, "/"), "/")
+	for i, expectedPart := range prefixParts {
+		if i+1 >= len(parts) || parts[i+1] != expectedPart {
+			return "", false
+		}
+	}
+
+	// Validate suffix parts match exactly
+	suffixParts := strings.Split(strings.Trim(suffix, "/"), "/")
+	suffixStartIndex := len(parts) - len(suffixParts)
+	for i, expectedPart := range suffixParts {
+		if suffixStartIndex+i >= len(parts) || parts[suffixStartIndex+i] != expectedPart {
+			return "", false
+		}
+	}
+
+	// Extract user_id (should be the segment between prefix and suffix)
+	userIdIndex := len(prefixParts) + 1
+	if userIdIndex >= len(parts) {
+		return "", false
+	}
+
+	userId := parts[userIdIndex]
+	// Reject empty user IDs (caused by double slashes or malformed paths)
+	if userId == "" {
+		return "", false
+	}
+
+	return userId, true
+}
+
+// isTermsOfServiceExemptEndpoint uses exact path matching to prevent bypass attacks
+func (c *Context) isTermsOfServiceExemptEndpoint(path string) bool {
+	// Exact path matches for ToS endpoints to prevent path traversal attacks
+	exemptPaths := []string{
+		"/api/v4/terms_of_service",
+	}
+
+	// Check exact matches
+	if isExactPathMatch(path, exemptPaths) {
+		return true
+	}
+
+	// Check user-specific ToS endpoints with exact pattern matching
+	// Pattern: /api/v4/users/{user_id}/terms_of_service
+	if userId, matches := matchesUserResourcePattern(path, "/api/v4/users/", "/terms_of_service"); matches {
+		// Validate that user_id part is a valid ID (prevents injection)
+		return userId != "" && model.IsValidId(userId)
+	}
+
+	return false
 }
 
 func (c *Context) CloudKeyRequired() {
