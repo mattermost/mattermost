@@ -6,6 +6,7 @@ package api4
 import (
 	"context"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -14,8 +15,12 @@ import (
 
 func TestGetReportingConfiguration(t *testing.T) {
 	mainHelper.Parallel(t)
+	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	defer func() {
+		th.TearDown()
+		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
+	}()
 
 	setupContentFlagging := func() {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
