@@ -22,6 +22,7 @@ func setupSharedChannels(tb testing.TB) *TestHelper {
 		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
 		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
 		cfg.FeatureFlags.EnableSharedChannelsMemberSync = true
+		cfg.ClusterSettings.ClusterName = model.NewPointer("test-remote")
 	})
 }
 
@@ -555,4 +556,300 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 		}
 	}
 	require.NotNil(t, systemPost, "System message should be posted when channel becomes unshared")
+}
+
+// TestTransformMentionsOnReceive provides comprehensive unit testing for the mention transformation logic
+// using explicit mentionTransforms. This tests ONLY the receiver-side transformation logic
+// without requiring complex end-to-end cross-cluster setup.
+func TestTransformMentionsOnReceive(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSharedChannels(t).InitBasic()
+
+	// Setup shared channel
+	sharedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+	sc := &model.SharedChannel{
+		ChannelId: sharedChannel.Id,
+		TeamId:    th.BasicTeam.Id,
+		Home:      true,
+		ShareName: "testchannel",
+		CreatorId: th.BasicUser.Id,
+	}
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	// Setup remote cluster representing the sender
+	remoteCluster := &model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		Name:        "remote1",
+		DisplayName: "Remote 1",
+		SiteURL:     "http://remote1.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.BasicUser.Id,
+		CreateAt:    model.GetMillis(),
+		LastPingAt:  model.GetMillis(),
+	}
+	savedRemoteCluster, appErr := th.App.AddRemoteCluster(remoteCluster)
+	require.Nil(t, appErr)
+
+	// Get shared channel service
+	scs := th.App.Srv().Platform().GetSharedChannelService()
+	require.NotNil(t, scs)
+	concreteScs, ok := scs.(*sharedchannel.Service)
+	require.True(t, ok)
+
+	// Helper to create test users
+	createUser := func(username string, remoteId *string) *model.User {
+		user := th.CreateUser()
+		user.Username = username
+		if remoteId != nil {
+			user.RemoteId = remoteId
+		}
+		user, updateErr := th.App.UpdateUser(th.Context, user, false)
+		require.Nil(t, updateErr)
+		th.LinkUserToTeam(user, th.BasicTeam)
+		th.AddUserToChannel(user, sharedChannel)
+		return user
+	}
+
+	// Helper to test transformation
+	testTransformation := func(originalMessage string, mentionTransforms map[string]string, expectedMessage string, description string) {
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: sharedChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   originalMessage,
+		}
+
+		t.Logf("Testing: %s", description)
+		t.Logf("  Original: %s", originalMessage)
+		t.Logf("  Transforms: %v", mentionTransforms)
+
+		// Call the transformation function directly
+		concreteScs.TransformMentionsOnReceiveForTesting(th.Context, post, sharedChannel, savedRemoteCluster, mentionTransforms)
+
+		t.Logf("  Result: %s", post.Message)
+		t.Logf("  Expected: %s", expectedMessage)
+
+		require.Equal(t, expectedMessage, post.Message, description)
+	}
+
+	t.Run("Scenario 1.1: Remote mentions local user (simple mention)", func(t *testing.T) {
+		// Create remote user that was synced to receiver
+		remoteUser := createUser("admin:remote1", &savedRemoteCluster.RemoteId)
+
+		// Scenario: remote1 mentions "@admin" (their local user) → sent to receiver
+		// mentionTransforms["admin"] = remote1AdminUserId
+		mentionTransforms := map[string]string{
+			"admin": remoteUser.Id,
+		}
+
+		testTransformation(
+			"Hello @admin, can you help?",
+			mentionTransforms,
+			"Hello @admin:remote1, can you help?", // Use synced username
+			"Simple mention of synced remote user should use synced username",
+		)
+	})
+
+	t.Run("Scenario 1.2: Remote mentions local user (different username)", func(t *testing.T) {
+		// Create remote user that was synced to receiver
+		remoteUser := createUser("user:remote1", &savedRemoteCluster.RemoteId)
+
+		mentionTransforms := map[string]string{
+			"user": remoteUser.Id,
+		}
+
+		testTransformation(
+			"Hello @user, can you help?",
+			mentionTransforms,
+			"Hello @user:remote1, can you help?",
+			"Simple mention of different synced remote user should use synced username",
+		)
+	})
+
+	t.Run("Scenario 2.1: Remote mentions with colon (local user)", func(t *testing.T) {
+		// Create local user on receiver
+		localUser := createUser("admin", nil)
+
+		// Scenario: remote2 mentions "@admin:remote1" → sent to remote1
+		// mentionTransforms["admin:remote1"] = remote1AdminUserId
+		mentionTransforms := map[string]string{
+			"admin:remote1": localUser.Id,
+		}
+
+		testTransformation(
+			"Hello @admin:remote1, can you help?",
+			mentionTransforms,
+			"Hello @admin, can you help?", // Strip suffix for local user
+			"Colon mention of local user should strip cluster suffix",
+		)
+	})
+
+	t.Run("Scenario 2.2: Remote mentions with colon (different local user)", func(t *testing.T) {
+		// Create local user on receiver
+		localUser := createUser("user", nil)
+
+		mentionTransforms := map[string]string{
+			"user:remote1": localUser.Id,
+		}
+
+		testTransformation(
+			"Hello @user:remote1, can you help?",
+			mentionTransforms,
+			"Hello @user, can you help?",
+			"Colon mention of different local user should strip cluster suffix",
+		)
+	})
+
+	t.Run("Scenario A1: Name clash - remote user mention, local user exists", func(t *testing.T) {
+		// Create local user with same name
+		_ = createUser("alice", nil) // Create name clash scenario
+		// Create remote user that was synced
+		remoteUser := createUser("alice:remote1", &savedRemoteCluster.RemoteId)
+
+		// When remote1 mentions "@alice" (their local user), receiver gets explicit transform
+		mentionTransforms := map[string]string{
+			"alice": remoteUser.Id, // Points to synced remote user, not local user
+		}
+
+		testTransformation(
+			"Hello @alice, can you help?",
+			mentionTransforms,
+			"Hello @alice:remote1, can you help?",
+			"Matrix A1: Remote user mention with local name clash should add cluster suffix",
+		)
+	})
+
+	t.Run("Scenario A2: Same user - previously synced", func(t *testing.T) {
+		// Create user that was synced from sender
+		syncedUser := createUser("bob:remote1", &savedRemoteCluster.RemoteId)
+
+		mentionTransforms := map[string]string{
+			"bob": syncedUser.Id,
+		}
+
+		testTransformation(
+			"Hello @bob, can you help?",
+			mentionTransforms,
+			"Hello @bob:remote1, can you help?",
+			"Matrix A2: Previously synced user should display synced username",
+		)
+	})
+
+	t.Run("Scenario A3: No user exists on receiver", func(t *testing.T) {
+		// Use non-existent user ID
+		nonExistentUserId := model.NewId()
+
+		mentionTransforms := map[string]string{
+			"charlie": nonExistentUserId,
+		}
+
+		testTransformation(
+			"Hello @charlie, can you help?",
+			mentionTransforms,
+			"Hello @charlie:remote1, can you help?",
+			"Matrix A3: Unknown user should get cluster suffix",
+		)
+	})
+
+	t.Run("Scenario B1: User exists on origin with same ID", func(t *testing.T) {
+		// Create local user (representing user on their home cluster)
+		localUser := createUser("dave", nil)
+
+		// Remote mentions "@dave:remote1" pointing to local user ID
+		mentionTransforms := map[string]string{
+			"dave:remote1": localUser.Id,
+		}
+
+		testTransformation(
+			"Hello @dave:remote1, can you help?",
+			mentionTransforms,
+			"Hello @dave, can you help?",
+			"Matrix B1: Remote mention of local user should strip cluster suffix",
+		)
+	})
+
+	t.Run("Scenario B2: User does not exist on origin", func(t *testing.T) {
+		// Use non-existent user ID
+		nonExistentUserId := model.NewId()
+
+		mentionTransforms := map[string]string{
+			"eve:remote1": nonExistentUserId,
+		}
+
+		testTransformation(
+			"Hello @eve:remote1, can you help?",
+			mentionTransforms,
+			"Hello @eve:remote1, can you help?",
+			"Matrix B2: Unknown colon mention should remain unchanged",
+		)
+	})
+
+	t.Run("Empty mentionTransforms", func(t *testing.T) {
+		// No transforms provided
+		mentionTransforms := map[string]string{}
+
+		testTransformation(
+			"Hello @anyone, can you help?",
+			mentionTransforms,
+			"Hello @anyone, can you help?",
+			"Message without transforms should remain unchanged",
+		)
+	})
+
+	t.Run("Mixed scenarios in single message", func(t *testing.T) {
+		// Setup users
+		localUser := createUser("frank", nil)
+		remoteUser := createUser("george:remote1", &savedRemoteCluster.RemoteId)
+
+		// Multiple transforms in one message
+		mentionTransforms := map[string]string{
+			"frank:remote1": localUser.Id,  // Colon mention → strip suffix
+			"george":        remoteUser.Id, // Simple mention → use synced username
+		}
+
+		testTransformation(
+			"Hello @frank:remote1 and @george, let's collaborate!",
+			mentionTransforms,
+			"Hello @frank and @george:remote1, let's collaborate!",
+			"Mixed mention types should transform correctly",
+		)
+	})
+
+	t.Run("Colon mention of remote user", func(t *testing.T) {
+		// Create remote user that was synced
+		remoteUser := createUser("guest:remote1", &savedRemoteCluster.RemoteId)
+
+		// Colon mention pointing to remote user (edge case)
+		mentionTransforms := map[string]string{
+			"guest:remote1": remoteUser.Id,
+		}
+
+		testTransformation(
+			"Hello @guest:remote1, welcome!",
+			mentionTransforms,
+			"Hello @guest:remote1, welcome!",
+			"Colon mention of remote user should use synced username",
+		)
+	})
+
+	t.Run("Performance: Large message with many mentions", func(t *testing.T) {
+		// Create users for performance test
+		user1 := createUser("user1:remote1", &savedRemoteCluster.RemoteId)
+		user2 := createUser("user2:remote1", &savedRemoteCluster.RemoteId)
+		user3 := createUser("user3:remote1", &savedRemoteCluster.RemoteId)
+
+		mentionTransforms := map[string]string{
+			"user1": user1.Id,
+			"user2": user2.Id,
+			"user3": user3.Id,
+		}
+
+		testTransformation(
+			"Meeting with @user1, @user2, and @user3 about @user1's proposal. @user2 will present, @user3 will take notes.",
+			mentionTransforms,
+			"Meeting with @user1:remote1, @user2:remote1, and @user3:remote1 about @user1:remote1's proposal. @user2:remote1 will present, @user3:remote1 will take notes.",
+			"Multiple mentions should transform efficiently",
+		)
+	})
 }
