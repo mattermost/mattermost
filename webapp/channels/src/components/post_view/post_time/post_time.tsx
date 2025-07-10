@@ -13,7 +13,6 @@ import WithTooltip from 'components/with_tooltip';
 import {Locations} from 'utils/constants';
 import {isMobile} from 'utils/user_agent';
 
-
 const getTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute, second}) => ({hour, minute, second});
 
 type Props = {
