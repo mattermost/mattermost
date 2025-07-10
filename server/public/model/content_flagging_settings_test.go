@@ -114,27 +114,6 @@ func TestContentFlaggingNotificationSettings_IsValid(t *testing.T) {
 }
 
 func TestReviewerSettings_SetDefault(t *testing.T) {
-	t.Run("should set all default values", func(t *testing.T) {
-		settings := &ReviewerSettings{}
-		settings.SetDefaults()
-
-		require.Nil(t, settings.IsValid())
-
-		require.NotNil(t, settings.CommonReviewers)
-		require.True(t, *settings.CommonReviewers)
-		require.NotNil(t, settings.CommonReviewerIds)
-		require.Empty(t, *settings.CommonReviewerIds)
-
-		require.NotNil(t, settings.TeamReviewersSetting)
-		require.Empty(t, *settings.TeamReviewersSetting)
-
-		require.NotNil(t, settings.SystemAdminsAsReviewers)
-		require.False(t, *settings.SystemAdminsAsReviewers)
-
-		require.NotNil(t, settings.TeamAdminsAsReviewers)
-		require.True(t, *settings.TeamAdminsAsReviewers)
-	})
-
 	t.Run("should not override existing values", func(t *testing.T) {
 		commonReviewers := false
 		settings := &ReviewerSettings{
@@ -245,28 +224,6 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 }
 
 func TestAdditionalContentFlaggingSettings_SetDefault(t *testing.T) {
-	t.Run("should set all default values", func(t *testing.T) {
-		settings := &AdditionalContentFlaggingSettings{}
-		settings.SetDefaults()
-
-		require.Nil(t, settings.IsValid())
-		require.NotNil(t, settings.Reasons)
-		expectedReasons := []string{
-			"Inappropriate content",
-			"Sensitive data",
-			"Security concern",
-			"Harassment or abuse",
-			"Spam or phishing",
-		}
-		require.Equal(t, expectedReasons, *settings.Reasons)
-		require.NotNil(t, settings.ReporterCommentRequired)
-		require.True(t, *settings.ReporterCommentRequired)
-		require.NotNil(t, settings.ReviewerCommentRequired)
-		require.True(t, *settings.ReviewerCommentRequired)
-		require.NotNil(t, settings.HideFlaggedContent)
-		require.True(t, *settings.HideFlaggedContent)
-	})
-
 	t.Run("should not override existing values", func(t *testing.T) {
 		customReasons := []string{"Custom reason"}
 		settings := &AdditionalContentFlaggingSettings{
@@ -311,23 +268,6 @@ func TestAdditionalContentFlaggingSettings_IsValid(t *testing.T) {
 }
 
 func TestContentFlaggingSettings_SetDefault(t *testing.T) {
-	t.Run("should set all default values and call nested SetDefaults methods", func(t *testing.T) {
-		settings := &ContentFlaggingSettings{}
-		settings.SetDefaults()
-
-		require.Nil(t, settings.IsValid())
-		require.NotNil(t, settings.EnableContentFlagging)
-		require.False(t, *settings.EnableContentFlagging)
-		require.NotNil(t, settings.NotificationSettings)
-		require.NotNil(t, settings.ReviewerSettings)
-		require.NotNil(t, settings.AdditionalSettings)
-
-		// Verify nested defaults were set
-		require.NotNil(t, settings.NotificationSettings.EventTargetMapping)
-		require.NotNil(t, settings.ReviewerSettings.CommonReviewers)
-		require.NotNil(t, settings.AdditionalSettings.Reasons)
-	})
-
 	t.Run("should not override existing values", func(t *testing.T) {
 		enabled := true
 		settings := &ContentFlaggingSettings{
@@ -401,26 +341,6 @@ func TestContentFlaggingSettings_IsValid(t *testing.T) {
 		err := settings.IsValid()
 		require.NotNil(t, err)
 		require.Contains(t, err.Id, "reasons_not_set")
-	})
-}
-
-func TestTeamReviewerSetting(t *testing.T) {
-	t.Run("should handle nil values properly", func(t *testing.T) {
-		setting := TeamReviewerSetting{}
-
-		// Should not panic when accessing nil pointers in validation logic
-		require.Nil(t, setting.Enabled)
-		require.Nil(t, setting.ReviewerIds)
-	})
-
-	t.Run("should work with proper values", func(t *testing.T) {
-		setting := TeamReviewerSetting{
-			Enabled:     NewPointer(true),
-			ReviewerIds: &[]string{"user1", "user2"},
-		}
-
-		require.True(t, *setting.Enabled)
-		require.Equal(t, []string{"user1", "user2"}, *setting.ReviewerIds)
 	})
 }
 

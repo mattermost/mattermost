@@ -49,8 +49,8 @@ func (cfs *ContentFlaggingNotificationSettings) SetDefaults() {
 }
 
 func (cfs *ContentFlaggingNotificationSettings) IsValid() *AppError {
-	// Reviewers must always be notified when content is flagged
-	// Disabling this option is disallowed in the UI, so this check is for safety and consistency.
+	// Reviewers must be notified when content is flagged
+	// Disabling this option is not allowed in the UI, so this check is for safety and consistency.
 
 	// Only valid events and targets are allowed
 	for event, targets := range cfs.EventTargetMapping {
