@@ -145,4 +145,29 @@ describe('components/select_team/SelectTeam', () => {
 
         expect(wrapper).toMatchSnapshot();
     });
+
+    test('should filter out group-constrained teams from joinable teams list', () => {
+        const props = {
+            ...baseProps,
+            listableTeams: [
+                {id: 'team_id_1', delete_at: 0, name: 'team-a', display_name: 'Team A', allow_open_invite: true, group_constrained: false} as Team,
+                {id: 'team_id_2', delete_at: 0, name: 'team-b', display_name: 'Team B', allow_open_invite: true, group_constrained: true} as Team,
+                {id: 'team_id_3', delete_at: 0, name: 'team-c', display_name: 'Team C', allow_open_invite: true, group_constrained: false} as Team,
+            ],
+        };
+
+        const wrapper = shallow<SelectTeam>(
+            <SelectTeam {...props}/>,
+        );
+
+        // Should only show teams that are not group-constrained
+        const teamItems = wrapper.find('SelectTeamItem');
+        expect(teamItems).toHaveLength(2);
+
+        // Check that only non-group-constrained teams are rendered
+        const renderedTeamIds = teamItems.map((item) => (item.prop('team') as Team).id);
+        expect(renderedTeamIds).toContain('team_id_1');
+        expect(renderedTeamIds).toContain('team_id_3');
+        expect(renderedTeamIds).not.toContain('team_id_2');
+    });
 });

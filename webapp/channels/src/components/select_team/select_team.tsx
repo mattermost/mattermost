@@ -223,7 +223,11 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
         } else {
             let joinableTeamContents: any = [];
             currentListableTeams.forEach((listableTeam) => {
-                if ((listableTeam.allow_open_invite && canJoinPublicTeams) || (!listableTeam.allow_open_invite && canJoinPrivateTeams)) {
+                const canJoinBasedOnType = (listableTeam.allow_open_invite && canJoinPublicTeams) || (!listableTeam.allow_open_invite && canJoinPrivateTeams);
+
+                // Skip group-constrained teams as they will fail to join and show error
+                const isGroupConstrained = listableTeam.group_constrained;
+                if (canJoinBasedOnType && !isGroupConstrained) {
                     joinableTeamContents.push(
                         <SelectTeamItem
                             key={'team_' + listableTeam.name}
