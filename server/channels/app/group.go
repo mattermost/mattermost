@@ -844,12 +844,9 @@ func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
 	members, err := a.Srv().Store().Group().DeleteMembers(groupID, userIDs)
 	if err != nil {
-		var nfErr *store.ErrNotFound
 		var appErr *model.AppError
 		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetGroupByRemoteID", "app.group.no_rows", nil, "", http.StatusNotFound).Wrap(err)
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
