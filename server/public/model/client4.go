@@ -726,7 +726,7 @@ func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId strin
 }
 
 func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggingReportingConfig, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/report/config", "")
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/flag/config", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
