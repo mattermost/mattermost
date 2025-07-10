@@ -300,6 +300,17 @@ func (c *Context) RequireUserId() *Context {
 	return c
 }
 
+func (c *Context) RequireOtherUserId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.OtherUserId) {
+		c.SetInvalidURLParam("other_user_id")
+	}
+	return c
+}
+
 func (c *Context) RequireTeamId() *Context {
 	if c.Err != nil {
 		return c

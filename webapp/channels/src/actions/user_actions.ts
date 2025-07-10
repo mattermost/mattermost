@@ -428,6 +428,13 @@ export function autocompleteUsers(username: string): ThunkActionFunc<Promise<Use
     };
 }
 
+export function canUserDirectMessage(userId: string, otherUserId: string): ActionFuncAsync<{can_dm: boolean}> {
+    return async (doDispatch) => {
+        const {data} = await doDispatch(UserActions.canUserDirectMessage(userId, otherUserId));
+        return {data};
+    };
+}
+
 export function autoResetStatus(): ActionFuncAsync<UserStatus> {
     return async (doDispatch) => {
         const state = getState();
