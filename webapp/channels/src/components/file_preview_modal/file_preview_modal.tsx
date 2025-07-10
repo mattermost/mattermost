@@ -78,6 +78,8 @@ type State = {
     showZoomControls: boolean;
     scale: Record<number, number>;
     content: string;
+    isInitialLoad: boolean;
+    isClosing: boolean;
 }
 
 export default class FilePreviewModal extends React.PureComponent<Props, State> {
@@ -101,6 +103,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             showZoomControls: false,
             scale: Utils.fillRecord(ZoomSettings.DEFAULT_SCALE, this.props.fileInfos.length),
             content: '',
+            isInitialLoad: true,
+            isClosing: false,
         };
     }
 
@@ -131,7 +135,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     componentDidMount() {
         document.addEventListener('keyup', this.handleKeyPress);
 
-        this.showImage(this.props.startIndex);
+        // Initial load should have animation
+        this.showImage(this.props.startIndex, true);
     }
 
     componentWillUnmount() {
@@ -153,9 +158,12 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         return Object.keys(updatedState).length ? updatedState : null;
     }
 
-    showImage = (id: number) => {
-        this.setState({imageIndex: id});
-
+    showImage = (id: number, isInitialLoad = false) => {
+        // Simply switch to new image without animation for navigation
+        this.setState({
+            imageIndex: id,
+            isInitialLoad,
+        });
         const imageHeight = window.innerHeight - 100;
         this.setState({imageHeight});
 
@@ -280,7 +288,13 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     };
 
     handleModalClose = () => {
-        this.setState({show: false});
+        // Start closing animation using React state
+        this.setState({isClosing: true});
+
+        // Delay the actual modal close to allow for animation
+        setTimeout(() => {
+            this.setState({show: false});
+        }, 150); // Match animation duration
     };
 
     getContent = (content: string) => {
@@ -438,14 +452,20 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 dialogClassName={dialogClassName}
                 animation={true}
                 backdrop={false}
-                role='none'
+                role='dialog'
                 style={{paddingLeft: 0}}
                 aria-labelledby='viewImageModalLabel'
             >
                 <Modal.Body className='file-preview-modal__body'>
                     <div
-                        className={'modal-image__wrapper'}
+                        className={classNames('modal-image__wrapper', {
+                            'initial-load': this.state.isInitialLoad,
+                            closing: this.state.isClosing,
+                        })}
                         onClick={this.handleModalClose}
+                        role='button'
+                        tabIndex={0}
+                        aria-label='Close preview'
                     >
                         <div
                             className='file-preview-modal__main-ctr'
@@ -486,6 +506,9 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     },
                                 )}
                                 onClick={this.handleBgClose}
+                                role='button'
+                                tabIndex={0}
+                                aria-label='Close preview'
                             >
                                 {content}
                             </div>

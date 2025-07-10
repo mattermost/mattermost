@@ -5,8 +5,10 @@ import classNames from 'classnames';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent} from 'react';
 
+import {MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilePreviewModal from 'components/file_preview_modal';
@@ -20,17 +22,27 @@ import {
 import type {PropsFromRedux} from './index';
 
 const PREVIEW_IMAGE_MIN_DIMENSION = 50;
+const SMALL_IMAGE_THRESHOLD = 216;
 const DISPROPORTIONATE_HEIGHT_RATIO = 20;
+const MAX_HEIGHT = 350;
 
 export interface Props extends PropsFromRedux {
     postId: string;
     fileInfo: FileInfo;
+    fileInfos?: FileInfo[];
     isRhsOpen: boolean;
     enablePublicLink: boolean;
     compactDisplay?: boolean;
     isEmbedVisible?: boolean;
     isInPermalink?: boolean;
     disableActions?: boolean;
+    smallImageThreshold?: number;
+    isGallery?: boolean;
+    actions: {
+        toggleEmbedVisibility: (postId: string) => void;
+        getFilePublicLink: (fileId: string) => Promise<ActionResult<{link: string}>>;
+        openModal: PropsFromRedux['actions']['openModal'];
+    };
 }
 
 type State = {
@@ -78,10 +90,38 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         this.mounted = false;
     }
 
-    imageLoaded = () => {
-        if (this.mounted) {
-            this.setState({loaded: true});
+    handleImageLoaded = () => {
+        this.setState({loaded: true});
+    };
+
+    computeDimensions = () => {
+        const {fileInfo} = this.props;
+        const viewPortWidth = window.innerWidth;
+        const imageHeight = fileInfo?.height ?? 0;
+        const imageWidth = fileInfo?.width ?? 0;
+        const dimensions = {
+            width: imageWidth,
+            height: imageHeight,
+        };
+
+        if (imageWidth > 0 && imageHeight > 0) {
+            // First check if we need to scale based on height for tall images
+            if (imageHeight > MAX_HEIGHT) {
+                const heightRatio = MAX_HEIGHT / imageHeight;
+                dimensions.height = MAX_HEIGHT;
+                dimensions.width = Math.round(imageWidth * heightRatio);
+            }
+
+            // Then check if we still need to scale based on width
+            const maxWidth = Math.min(1024, viewPortWidth - 50);
+            if (dimensions.width > maxWidth) {
+                const widthRatio = maxWidth / dimensions.width;
+                dimensions.width = maxWidth;
+                dimensions.height = Math.round(dimensions.height * widthRatio);
+            }
         }
+
+        return dimensions;
     };
 
     handleImageClick = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLDivElement | HTMLImageElement>)) => {
@@ -91,9 +131,10 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
             dialogType: FilePreviewModal,
             dialogProps: {
-                fileInfos: [this.props.fileInfo],
+                fileInfos: this.props.fileInfos || [this.props.fileInfo],
+                startIndex: this.props.fileInfos ? this.props.fileInfos.findIndex((f) => f.id === this.props.fileInfo.id) : 0,
+                onExited: () => {},
                 postId: this.props.postId,
-                startIndex: 0,
             },
         });
     };
@@ -110,7 +151,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {fileInfo, compactDisplay, isInPermalink} = this.props;
+        const {fileInfo, compactDisplay, isInPermalink, isGallery = false} = this.props;
         const {
             loaded,
         } = this.state;
@@ -144,6 +185,11 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
             minPreviewClass += ' compact-display';
         }
 
+        // Add disproportionate class for very tall images
+        if (hasDisproportionateHeight) {
+            minPreviewClass += ' disproportionate';
+        }
+
         const toggle = (
             <button
                 key='toggle'
@@ -152,12 +198,17 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 aria-label='Toggle Embed Visibility'
                 onClick={this.toggleEmbedVisibility}
             >
-                <span
-                    className={classNames('icon', {
-                        'icon-menu-down': this.props.isEmbedVisible,
-                        'icon-menu-right': !this.props.isEmbedVisible,
-                    })}
-                />
+                {this.props.isEmbedVisible ? (
+                    <MenuDownIcon
+                        size={16}
+                        color='currentColor'
+                    />
+                ) : (
+                    <MenuRightIcon
+                        size={16}
+                        color='currentColor'
+                    />
+                )}
             </button>
         );
 
@@ -191,7 +242,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
 
         const fileType = getFileType(fileInfo.extension);
         let styleIfSvgWithDimensions = {};
-        let imageContainerStyle = {};
+        let imageContainerStyle: React.CSSProperties = {};
         let svgClass = '';
         if (fileType === FileTypes.SVG) {
             svgClass = 'svg';
@@ -201,11 +252,18 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 };
             } else {
                 imageContainerStyle = {
-                    height: 350,
+                    height: this.state.dimensions.height > this.state.dimensions.width ? MAX_HEIGHT : undefined,
                     maxWidth: '100%',
                 };
             }
         }
+
+        // Always enforce min width/height for the image container
+        imageContainerStyle = {
+            ...imageContainerStyle,
+            minWidth: PREVIEW_IMAGE_MIN_DIMENSION,
+            minHeight: PREVIEW_IMAGE_MIN_DIMENSION,
+        };
 
         if (loaded) {
             fadeInClass = 'image-fade-in';
@@ -215,6 +273,17 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
             permalinkClass = 'image-permalink';
         }
 
+        const dimensions = this.computeDimensions();
+
+        // For non-gallery images that are very tall, constrain the container width
+        // to prevent it from taking up the image's intrinsic width.
+        if (!isGallery && fileType !== FileTypes.SVG && fileInfo.height / fileInfo.width > 3) {
+            imageContainerStyle.width = dimensions.width;
+        }
+
+        const isSmallNonGallery = !isGallery && (fileInfo.width < SMALL_IMAGE_THRESHOLD || fileInfo.height < SMALL_IMAGE_THRESHOLD);
+        const shouldHideControls = fileInfo.width < PREVIEW_IMAGE_MIN_DIMENSION;
+
         return (
             <div
                 className={classNames('file-view--single', permalinkClass)}
@@ -223,34 +292,34 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                     className='file__image'
                 >
                     {fileHeader}
-                    {this.props.isEmbedVisible &&
                     <div
-                        className={classNames('image-container', permalinkClass)}
+                        className={classNames('image-container', permalinkClass, {'image-container--small': isSmallNonGallery, 'hide-controls': shouldHideControls})}
                         style={imageContainerStyle}
+                        data-expanded={this.props.isEmbedVisible}
                     >
-                        <div
-                            className={classNames('image-loaded', fadeInClass, svgClass)}
-                            style={styleIfSvgWithDimensions}
-                        >
-                            <div className={classNames(permalinkClass)}>
+                        {this.props.isEmbedVisible && (
+                            <div
+                                className={classNames('image-loaded', permalinkClass, fadeInClass, svgClass)}
+                                style={styleIfSvgWithDimensions}
+                            >
                                 <SizeAwareImage
                                     onClick={this.handleImageClick}
-                                    className={classNames(minPreviewClass, permalinkClass)}
+                                    className={`${minPreviewClass} single-image-view__image`}
                                     src={previewURL}
-                                    dimensions={this.state.dimensions}
-                                    fileInfo={this.props.fileInfo}
+                                    dimensions={dimensions}
+                                    fileInfo={fileInfo}
                                     fileURL={fileURL}
-                                    onImageLoaded={this.imageLoaded}
-                                    showLoader={this.props.isEmbedVisible}
                                     handleSmallImageContainer={true}
+                                    smallImageThreshold={SMALL_IMAGE_THRESHOLD}
+                                    minContainerSize={PREVIEW_IMAGE_MIN_DIMENSION}
+                                    showLoader={true}
                                     enablePublicLink={this.props.enablePublicLink}
                                     getFilePublicLink={this.getFilePublicLink}
-                                    hideUtilities={this.props.disableActions}
+                                    onImageLoaded={this.handleImageLoaded}
                                 />
                             </div>
-                        </div>
+                        )}
                     </div>
-                    }
                 </div>
             </div>
         );
