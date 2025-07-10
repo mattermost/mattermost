@@ -37,7 +37,7 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
         <button
           className="btn btn-tertiary"
           id="cancelSetting"
-          onMouseDown={[Function]}
+          onClick={[Function]}
         >
           <MemoizedFormattedMessage
             defaultMessage="Cancel"
@@ -87,7 +87,7 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
         <button
           className="btn btn-tertiary"
           id="cancelSetting"
-          onMouseDown={[Function]}
+          onClick={[Function]}
         >
           <MemoizedFormattedMessage
             defaultMessage="Cancel"
@@ -163,7 +163,7 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
         <button
           className="btn btn-tertiary"
           id="cancelSetting"
-          onMouseDown={[Function]}
+          onClick={[Function]}
         >
           <MemoizedFormattedMessage
             defaultMessage="Cancel"
@@ -214,7 +214,7 @@ exports[`components/SettingItemMax should match snapshot, with new saveTextButto
         <button
           className="btn btn-tertiary"
           id="cancelSetting"
-          onMouseDown={[Function]}
+          onClick={[Function]}
         >
           <MemoizedFormattedMessage
             defaultMessage="Cancel"
@@ -259,7 +259,7 @@ exports[`components/SettingItemMax should match snapshot, without submit 1`] = `
         <button
           className="btn btn-tertiary"
           id="cancelSetting"
-          onMouseDown={[Function]}
+          onClick={[Function]}
         >
           <MemoizedFormattedMessage
             defaultMessage="Cancel"

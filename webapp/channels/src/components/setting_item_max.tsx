@@ -243,7 +243,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                             <button
                                 id={'cancelSetting'}
                                 className='btn btn-tertiary'
-                                onMouseDown={this.handleUpdateSection}
+                                onClick={this.handleUpdateSection}
                             >
                                 {cancelButtonText}
                             </button>
