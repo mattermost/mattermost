@@ -7,6 +7,7 @@ import (
 	"archive/zip"
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -45,20 +46,32 @@ func processAttachmentPaths(c request.CTX, files *[]imports.AttachmentImportData
 	if files == nil {
 		return nil
 	}
+
 	var ok bool
+	var errs []error
 	for i, f := range *files {
 		if f.Path != nil {
-			path := filepath.Join(basePath, *f.Path)
+			originalPath := *f.Path
+
+			path, valid := imports.ValidateAttachmentPathForImport(originalPath, basePath)
+
 			*f.Path = path
+
+			if !valid {
+				errs = append(errs, fmt.Errorf("invalid attachment path %q", originalPath))
+				continue
+			}
+
 			if len(filesMap) > 0 {
-				if (*files)[i].Data, ok = filesMap[path]; !ok {
-					return fmt.Errorf("attachment %q not found in map", path)
+				if (*files)[i].Data, ok = filesMap[*f.Path]; !ok {
+					errs = append(errs, fmt.Errorf("attachment %q not found in map", originalPath))
+					continue
 				}
 			}
 		}
 	}
 
-	return nil
+	return errors.Join(errs...)
 }
 
 func processAttachments(c request.CTX, line *imports.LineImportData, basePath string, filesMap map[string]*zip.File) error {
@@ -88,7 +101,11 @@ func processAttachments(c request.CTX, line *imports.LineImportData, basePath st
 		}
 	case "user":
 		if line.User.ProfileImage != nil {
-			path := filepath.Join(basePath, *line.User.ProfileImage)
+			path, valid := imports.ValidateAttachmentPathForImport(*line.User.ProfileImage, basePath)
+			if !valid {
+				return fmt.Errorf("invalid profile image path %q", *line.User.ProfileImage)
+			}
+
 			*line.User.ProfileImage = path
 			if len(filesMap) > 0 {
 				if line.User.ProfileImageData, ok = filesMap[path]; !ok {
@@ -98,7 +115,11 @@ func processAttachments(c request.CTX, line *imports.LineImportData, basePath st
 		}
 	case "bot":
 		if line.Bot.ProfileImage != nil {
-			path := filepath.Join(basePath, *line.Bot.ProfileImage)
+			path, valid := imports.ValidateAttachmentPathForImport(*line.Bot.ProfileImage, basePath)
+			if !valid {
+				return fmt.Errorf("invalid bot profile image path %q", *line.Bot.ProfileImage)
+			}
+
 			*line.Bot.ProfileImage = path
 			if len(filesMap) > 0 {
 				if line.Bot.ProfileImageData, ok = filesMap[path]; !ok {
@@ -108,7 +129,11 @@ func processAttachments(c request.CTX, line *imports.LineImportData, basePath st
 		}
 	case "emoji":
 		if line.Emoji.Image != nil {
-			path := filepath.Join(basePath, *line.Emoji.Image)
+			path, valid := imports.ValidateAttachmentPathForImport(*line.Emoji.Image, basePath)
+			if !valid {
+				return fmt.Errorf("invalid emoji image path %q", *line.Emoji.Image)
+			}
+
 			*line.Emoji.Image = path
 			if len(filesMap) > 0 {
 				if line.Emoji.Data, ok = filesMap[path]; !ok {
@@ -181,11 +206,11 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun, extractContent bool, wg *s
 	}
 }
 
-func (a *App) BulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
+func (a *App) BulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (int, *model.AppError) {
 	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, true, workers, "")
 }
 
-func (a *App) BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (*model.AppError, int) {
+func (a *App) BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError) {
 	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath)
 }
 
@@ -193,7 +218,7 @@ func (a *App) BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmen
 // not nil. If it is nil, it will look for attachments on the
 // filesystem in the locations specified by the JSONL file according
 // to the older behavior
-func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (*model.AppError, int) {
+func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError) {
 	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -224,7 +249,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 
 		var line imports.LineImportData
 		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
-			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest).Wrap(err), lineNumber
+			return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		if err := processAttachments(c, &line, importPath, attachedFiles); err != nil {
@@ -234,11 +259,11 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 		if lineNumber == 1 {
 			importDataFileVersion, appErr := processImportDataFileVersionLine(line)
 			if appErr != nil {
-				return appErr, lineNumber
+				return lineNumber, appErr
 			}
 
 			if importDataFileVersion != 1 {
-				return model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest), lineNumber
+				return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest)
 			}
 			lastLineType = line.Type
 			continue
@@ -261,7 +286,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 				if len(errorsChan) != 0 {
 					err := <-errorsChan
 					if stopOnError(c, err) {
-						return err.Error, err.LineNumber
+						return err.LineNumber, err.Error
 					}
 				}
 			}
@@ -288,7 +313,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 			if stopOnError(c, err) {
 				close(linesChan)
 				wg.Wait()
-				return err.Error, err.LineNumber
+				return err.LineNumber, err.Error
 			}
 		}
 	}
@@ -303,15 +328,15 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 	if len(errorsChan) != 0 {
 		err := <-errorsChan
 		if stopOnError(c, err) {
-			return err.Error, err.LineNumber
+			return err.LineNumber, err.Error
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, "", http.StatusInternalServerError).Wrap(err), 0
+		return 0, model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return nil, 0
+	return 0, nil
 }
 
 func processImportDataFileVersionLine(line imports.LineImportData) (int, *model.AppError) {
@@ -384,4 +409,16 @@ func (a *App) ListImports() ([]string, *model.AppError) {
 	}
 
 	return results, nil
+}
+
+func (a *App) DeleteImport(name string) *model.AppError {
+	filePath := filepath.Join(*a.Config().ImportSettings.Directory, name)
+
+	if ok, err := a.FileExists(filePath); err != nil {
+		return err
+	} else if !ok {
+		return nil
+	}
+
+	return a.RemoveFile(filePath)
 }

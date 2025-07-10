@@ -208,10 +208,6 @@
     "translation": "无法退出私信频道。"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "你是本组最后一人，请删除私有组而不是离开。"
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v 已退出该频道。"
   },
@@ -5651,15 +5647,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "版本 119+"
+    "translation": "版本 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 130+"
+    "translation": "版本 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 130+"
+    "translation": "版本 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7963,7 +7959,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "无法应用新的试用授权。您已经给这个 Mattermost 实例应用过试用授权了。如果您想延长试用期，请[联系我们的销售团队](https://mattermost.com/contact-us/)。"
+    "translation": "由于您的工作区已申请了试用版许可证，无法应用新的试用版许可证。如果您想延长试用期，请[联系我们的销售团队](https://mattermost.com/contact-us/)。"
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9763,7 +9759,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "无法激活用户。服务器超过安全用户限制。联系您的管理员，并附上：ERROR_SAFETY_LIMITS_EXCEEDED。"
+    "translation": "无法激活用户。服务器超出安全用户限制。错误：超出安全限制。"
   },
   {
     "id": "api.channel.create_channel.missing_display_name.error",
@@ -10398,10 +10394,6 @@
     "translation": "删除频道书签失败。"
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "尝试更新一个不存在的字段"
-  },
-  {
     "id": "app.file_info.get_storage_usage.app_error",
     "translation": "获取文件总存储占用失败。"
   },
@@ -10428,5 +10420,465 @@
   {
     "id": "app.custom_profile_attributes.property_value_upsert.app_error",
     "translation": "无法更新或插入自定义个人资料属性字段"
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "频道横幅只能在公共频道和私有频道上设置。"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "频道横幅启用时，频道横幅颜色不能为空"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "频道横幅只能在公共频道和私有频道上设置"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "频道横幅信息文本过长。最大允许长度为 {{.maxLength}} 个字符。"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "用户认证服务必须为 LDAP 或 Email。"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "您没有更新此资源的权限。"
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "无法为用户删除草稿。"
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "需要 LDAP 授权。"
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "获取用户失败。"
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "此功能在当前授权中不可用"
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "ldap 设置中的最大登录尝试次数无效。必须为正数。"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "由于过多的错误密码尝试，您的账号已被锁定。请联系您的系统管理员。"
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "重置登录尝试失败。"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "频道横幅启用时，频道横幅信息文本不能为空"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "添加证书失败。"
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "无法删除用户的自定义个人资料属性值"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "验证属性值失败"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "无效的属性值属性：{{.AttributeName}} ({{.Reason}})。"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "获取 CPA 字段失败"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "空的 LDAP 属性值"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "修补 CPA 值时出错"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "更新 CPA 值时出错"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "规则无效。"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAML 断言属性声明无效"
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "无法解析 webhook {{.hook_id}} 的表单。"
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "无法解析 webhook {{.hook_id}} 的 multipart 表单。"
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "请求中 'certificate' 下的文件过多。"
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "移除证书失败。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "无法将属性字段转换为自定义个人资料属性字段"
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "无法打开个人头像文件：{{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "无法读取个人头像数据。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "解码提交的 JSON 响应时发生错误。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "读取提交的响应正文时发生错误。"
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "无效的 AD/LDAP ID"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "无效的 AD/LDAP ID"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "无法检索 CPA 字段"
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "无效的策略 ID。"
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "无效的策略导入。"
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "无效的策略名称。"
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "无效的策略版本。"
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "无效的自定义个人资料属性字段更新"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "策略必须导入或定义规则。"
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "无效的策略类型。"
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "此访问控制策略的版本无效。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "如果设置了 GlobalSearchPrefix，则 IndexPrefix 不能为空。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} 必须是 IndexPrefix {{.IndexPrefix}} 的前缀。"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "计算月活用户失败。"
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "没有匹配该 SAML 用户的 AD/LDAP 服务器上的已注册用户。"
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} 功能在当前许可证下不可用"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "报告问题链接无效。必须为有效的 URL 且开始于 http:// 或 https://。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "报告问题链接为必填项。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "报告问题邮箱无效。必须为有效的邮箱地址。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "报告问题邮箱为必填项。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "无法更新一个同步的自定义个人资料字段的值"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "获取频道限制无效。"
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "获取字段限制无效。"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "用户没有加入该频道必需的属性。"
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "策略已强制的频道无法被更新。"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "OnSamlLogin 钩子中遇到错误。请联系您的系统管理员。"
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "无法获取频道。"
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "更新群组时出错。未找到用户名为“{{.Username}}”的用户。"
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "无法分配访问控制策略至频道。"
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "无法检查表达式。"
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "无法创建访问控制策略。"
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "无法删除访问控制策略。"
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "无法删除访问控制策略。"
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "无法从表达式生成可视 AST。"
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "无法获取访问控制自动补全。"
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "无法获取访问控制策略。"
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "无法获取频道的属性。"
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "无法获取要移除的频道成员。"
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "无法获取访问控制策略。"
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "无法获取策略的属性。"
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "无法初始化访问控制服务。"
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "访问控制服务未就绪。"
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "表达式中缺少一个属性。"
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "无法标准化策略表达式。"
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "无法查询表达式。"
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "无法保存访问控制策略。"
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "无法从频道取消分配访问控制策略。"
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "无法更改访问控制策略的活跃状态。"
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "评估访问控制策略失败。"
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "访问控制同步任务运行失败。"
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "无法继承访问控制策略。"
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "无法搜索访问控制策略。"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "频道横幅颜色必须为有效的十六进制颜色（例如：#FF0000 或 #F00）"
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "此许可证不支持 MySQL。"
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "无法创建群组同步成员资格。"
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "试用许可证不支持 MySQL 数据库。请使用 PostgreSQL 以访问试用功能。"
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "无法删除无效的群组同步成员资格。"
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "{{.Setting}} 中检测到前导或尾随空格。发现 \"{{.Value}}\"。"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "验证私信附件数据失败。"
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "验证附件导入数据失败。路径无效：\"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "导入表情图片字段路径无效：\"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "验证消息附件数据失败。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "验证回复附件数据失败。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "用户个人资料图片路径无效：\"{{.Path}}\""
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "无法从上一个任务中提取数据。"
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "无法创建用户。服务器超出了最大许可用户数。请联系您的管理员，错误代码：ERROR_LICENSED_USERS_LIMIT_EXCEEDED。"
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "批保存确认对象失败"
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "无效的测试类型：{{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "不允许导入远程集群"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "无效的频道 ID。"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "由于此频道有基于用户属性的访问限制，因此无法邀请访客用户加入。"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "无法删除缺失的消息的确认标记"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "无法保存缺失的消息的确认标记"
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "无法激活用户。服务器超出最大许可用户数。错误：已超出许可用户数限制。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "审计日志配置的最大文件队列必须大于零。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "审计日志配置的最大文件大小必须大于零。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "启用审计文件日志记录时，必须指定文件名。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "文件名不能是目录。"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "访问控制服务不可用。无法为启用 ABAC 的频道过滤用户。"
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP 连接测试失败。服务器：{{.Server}}:{{.Port}}，连接安全性：{{.ConnectionType}}，私钥文件名：{{.PrivateKeyFilename}}，公共证书文件名：{{.PublicCertFilename}}，绑定用户名：{{.BindUsername}}。错误：{{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "审计日志配置的最大文件保留期限不能为负数。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "审计日志配置的最大文件备份数不能为负数。"
   }
 ]

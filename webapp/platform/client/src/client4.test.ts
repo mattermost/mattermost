@@ -4,6 +4,7 @@
 import nock from 'nock';
 
 import Client4, {ClientError, HEADER_X_VERSION_ID} from './client4';
+import {buildQueryString} from './helpers';
 import type {TelemetryHandler} from './telemetry';
 
 describe('Client4', () => {
@@ -39,6 +40,34 @@ describe('Client4', () => {
             await client.getMe();
 
             expect(client.serverVersion).toEqual('5.3.0.5.3.0.abc123');
+        });
+
+        test('should parse NDJSON responses correctly', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            const userId = 'dummy-user-id';
+            const page = -1; // Special value to trigger NDJSON response
+
+            // Sample NDJSON data with multiple channel memberships on separate lines
+            const ndjsonData = '{"user_id":"dummy-user-id","channel_id":"channel1","roles":"channel_user"}\n' +
+                '{"user_id":"dummy-user-id","channel_id":"channel2","roles":"channel_user channel_admin"}\n' +
+                '{"user_id":"dummy-user-id","channel_id":"channel3","roles":"channel_user"}';
+
+            // Create a mock endpoint for getAllChannelsMembers that returns NDJSON data
+            nock(client.getBaseRoute()).
+                get(`/users/${userId}/channel_members${buildQueryString({page, per_page: 60})}`).
+                reply(200, ndjsonData, {'Content-Type': 'application/x-ndjson'});
+
+            // Call the getAllChannelsMembers method which will use our implementation for NDJSON
+            const result = await client.getAllChannelsMembers(userId, page);
+
+            // Verify the response was parsed as an array of objects
+            expect(Array.isArray(result)).toBe(true);
+            expect(result).toHaveLength(3);
+            expect(result[0]).toEqual({user_id: 'dummy-user-id', channel_id: 'channel1', roles: 'channel_user'});
+            expect(result[1]).toEqual({user_id: 'dummy-user-id', channel_id: 'channel2', roles: 'channel_user channel_admin'});
+            expect(result[2]).toEqual({user_id: 'dummy-user-id', channel_id: 'channel3', roles: 'channel_user'});
         });
     });
 });

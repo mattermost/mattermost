@@ -56,8 +56,12 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 	return value, nil
 }
 
-func (s *SqlPropertyValueStore) Get(id string) (*model.PropertyValue, error) {
+func (s *SqlPropertyValueStore) Get(groupID, id string) (*model.PropertyValue, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": id})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
 
 	var value model.PropertyValue
 	if err := s.GetReplica().GetBuilder(&value, builder); err != nil {
@@ -67,8 +71,12 @@ func (s *SqlPropertyValueStore) Get(id string) (*model.PropertyValue, error) {
 	return &value, nil
 }
 
-func (s *SqlPropertyValueStore) GetMany(ids []string) ([]*model.PropertyValue, error) {
+func (s *SqlPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.PropertyValue, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
 
 	var values []*model.PropertyValue
 	if err := s.GetReplica().SelectBuilder(&values, builder); err != nil {
@@ -133,7 +141,7 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 	return values, nil
 }
 
-func (s *SqlPropertyValueStore) Update(values []*model.PropertyValue) (_ []*model.PropertyValue, err error) {
+func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyValue) (_ []*model.PropertyValue, err error) {
 	if len(values) == 0 {
 		return nil, nil
 	}
@@ -177,6 +185,10 @@ func (s *SqlPropertyValueStore) Update(values []*model.PropertyValue) (_ []*mode
 		Set("DeleteAt", deleteAtCase).
 		Set("UpdateAt", updateTime).
 		Where(sq.Eq{"id": ids})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
 
 	result, err := transaction.ExecBuilder(builder)
 	if err != nil {
@@ -289,11 +301,15 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 	return updatedValues, nil
 }
 
-func (s *SqlPropertyValueStore) Delete(id string) error {
+func (s *SqlPropertyValueStore) Delete(groupID string, id string) error {
 	builder := s.getQueryBuilder().
 		Update("PropertyValues").
 		Set("DeleteAt", model.GetMillis()).
 		Where(sq.Eq{"id": id})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
 
 	result, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
@@ -311,14 +327,41 @@ func (s *SqlPropertyValueStore) Delete(id string) error {
 	return nil
 }
 
-func (s *SqlPropertyValueStore) DeleteForField(fieldID string) error {
+func (s *SqlPropertyValueStore) DeleteForField(groupID, fieldID string) error {
 	builder := s.getQueryBuilder().
 		Update("PropertyValues").
 		Set("DeleteAt", model.GetMillis()).
 		Where(sq.Eq{"FieldID": fieldID})
 
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
+
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return errors.Wrap(err, "property_value_delete_for_field_exec")
+	}
+
+	return nil
+}
+
+func (s *SqlPropertyValueStore) DeleteForTarget(groupID string, targetType string, targetID string) error {
+	if targetType == "" || targetID == "" {
+		return store.NewErrInvalidInput("PropertyValue", "target", "type or id empty")
+	}
+
+	builder := s.getQueryBuilder().
+		Delete("PropertyValues").
+		Where(sq.Eq{
+			"TargetType": targetType,
+			"TargetID":   targetID,
+		})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
+
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+		return errors.Wrap(err, "property_value_delete_for_target_exec")
 	}
 
 	return nil

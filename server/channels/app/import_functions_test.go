@@ -27,6 +27,7 @@ import (
 )
 
 func TestImportImportScheme(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -223,6 +224,7 @@ func TestImportImportScheme(t *testing.T) {
 }
 
 func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -411,6 +413,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 }
 
 func TestImportImportRole(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -502,6 +505,7 @@ func TestImportImportRole(t *testing.T) {
 }
 
 func TestImportImportTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -522,7 +526,8 @@ func TestImportImportTeam(t *testing.T) {
 	require.NoError(t, err, "Failed to get team count.")
 
 	// we also assert that the team name can be upper case
-	teamName := "A" + model.NewId()
+	// Note there are no reserved team names starting with `Z`, making this flake-free.
+	teamName := "Z" + model.NewId()
 	sanitizedTeamName := strings.ToLower(teamName)
 
 	data := imports.TeamImportData{
@@ -598,6 +603,7 @@ func TestImportImportTeam(t *testing.T) {
 }
 
 func TestImportImportChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -744,6 +750,7 @@ func TestImportImportChannel(t *testing.T) {
 }
 
 func TestImportImportUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1740,6 +1747,7 @@ func TestImportImportUser(t *testing.T) {
 }
 
 func TestImportUserTeams(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	team2 := th.CreateTeam()
@@ -1962,6 +1970,7 @@ func TestImportUserTeams(t *testing.T) {
 }
 
 func TestImportUserChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
@@ -2096,6 +2105,7 @@ func TestImportUserChannels(t *testing.T) {
 }
 
 func TestImportUserDefaultNotifyProps(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -2135,6 +2145,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 }
 
 func TestImportimportMultiplePostLines(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -3194,6 +3205,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 }
 
 func TestImportImportPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -3801,6 +3813,7 @@ func TestImportImportPost(t *testing.T) {
 }
 
 func TestImportImportDirectChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user3 := th.CreateUser()
@@ -4037,7 +4050,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 					th.BasicUser2.Id,
 					user3.Id,
 				}
-				channel, appErr := th.App.createGroupChannel(th.Context, userIDs)
+				channel, appErr := th.App.createGroupChannel(th.Context, userIDs, th.BasicUser.Id)
 				require.Equal(t, appErr.Id, store.ChannelExistsError)
 				require.Equal(t, channel.Header, *data.Header)
 			})
@@ -4172,6 +4185,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 }
 
 func TestImportImportDirectPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -4663,7 +4677,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr = th.App.createGroupChannel(th.Context, userIDs)
+	channel, appErr = th.App.createGroupChannel(th.Context, userIDs, th.BasicUser.Id)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	groupChannel = channel
 
@@ -5119,6 +5133,7 @@ func TestImportImportDirectPost(t *testing.T) {
 }
 
 func TestImportImportEmoji(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -5170,6 +5185,7 @@ func TestImportImportEmoji(t *testing.T) {
 }
 
 func TestImportAttachment(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -5192,6 +5208,7 @@ func TestImportAttachment(t *testing.T) {
 }
 
 func TestImportPostAndRepliesWithAttachments(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -5433,6 +5450,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 }
 
 func TestImportDirectPostWithAttachments(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -5560,6 +5578,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 }
 
 func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -5761,6 +5780,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 }
 
 func TestCompareFilesContent(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("empty", func(t *testing.T) {
 		ok, err := compareFilesContent(strings.NewReader(""), strings.NewReader(""), 0)
 		require.NoError(t, err)

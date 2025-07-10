@@ -86,24 +86,6 @@
 
         .modal-header {
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-
-            .adminModeBadge {
-                display: flex;
-                width: 86px;
-                min-width: 86px;
-                height: 22px;
-                align-items: center;
-                padding: 2px var(--spacing-xxxs, 6px);
-                border-radius: 4px;
-                margin-top: 10px;
-                margin-bottom: auto;
-                margin-left: 24px;
-                background: var(--error-text);
-                color: white;
-                font-size: 12px;
-                font-weight: 600;
-                gap: 6px;
-            }
         }
 
         li {
@@ -228,9 +210,15 @@
 
             .security-links {
                 margin-right: 20px;
+                text-decoration: none;
 
-                .fa {
+                .icon {
                     margin-right: 6px;
+                    font-size: inherit;
+                }
+
+                &.danger {
+                    color: variables.$red;
                 }
             }
 
@@ -314,6 +302,19 @@
                             margin-block-start: 24px;
                         }
                     }
+
+                    .Input_fieldset {
+                        background: var(--center-channel-bg);
+
+                        .Input_wrapper {
+                            padding: 0 12px;
+
+                            .Input {
+                                height: 28px;
+                                border: none;
+                            }
+                        }
+                    }
                 }
 
                 .timezone-container {
@@ -371,6 +372,13 @@
                             white-space: nowrap;
                         }
 
+                        .premadeThemeButton {
+                            padding: 0;
+                            border: none;
+                            background: none;
+                            text-align: start;
+                        }
+
                         label {
                             width: 100%;
                         }
@@ -407,12 +415,21 @@
                     }
 
                     .theme-elements__header {
-                        padding: 1px 0 10px;
                         border-bottom: 1px solid;
                         margin: 10px 20px 0 0;
                         cursor: pointer;
                         font-size: functions.em(13.5px);
                         font-weight: 600;
+
+                        button {
+                            display: flex;
+                            width: 100%;
+                            align-items: center;
+                            justify-content: space-between;
+                            padding: 10px 1px;
+                            border: none;
+                            background: none;
+                        }
 
                         .fa-minus {
                             display: none;
@@ -631,6 +648,12 @@
                     }
                 }
             }
+
+            // Remove this when MM-62778 is completed
+            &:focus-visible {
+                border-radius: 4px;
+                box-shadow: 0 0 1px 3px rgba(var(--link-color-rgb), 0.5), 0 0 0 1px var(--link-color);
+            }
         }
     }
 
@@ -706,6 +729,11 @@
 
 .no-resize {
     resize: none;
+}
+
+.user-settings__radio-group-inline {
+    // Counteract the margin-left added by Bootstrap's radio-inline class
+    margin-left: -20px;
 }
 
 .user-settings__submit-checkbox {

@@ -18,7 +18,7 @@ import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act, renderWithContext, screen} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, fireEvent, waitFor} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -272,6 +272,67 @@ describe('components/signup/Signup', () => {
         expect(wrapper.find(Input).first().props().disabled).toEqual(true);
         expect(wrapper.find('#input_name').first().props().disabled).toEqual(true);
         expect(wrapper.find(PasswordInput).first().props().disabled).toEqual(true);
+    });
+
+    it('should focus email input when email validation fails', async () => {
+        renderWithContext(<Signup/>, mockState);
+
+        const emailInput = screen.getByTestId('signup-body-card-form-email-input');
+        const submitButton = screen.getByText('Create account');
+
+        // Submit with invalid email
+        fireEvent.change(emailInput, {target: {value: 'invalid-email'}});
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+            expect(emailInput).toHaveFocus();
+        });
+    });
+
+    it('should focus password input when password validation fails', async () => {
+        renderWithContext(<Signup/>, mockState);
+
+        const emailInput = screen.getByTestId('signup-body-card-form-email-input');
+        const usernameInput = screen.getByTestId('signup-body-card-form-name-input');
+        const passwordInput = screen.getByTestId('signup-body-card-form-password-input');
+        const submitButton = screen.getByText('Create account');
+
+        // Submit with valid email and username but invalid password
+        fireEvent.change(emailInput, {target: {value: 'test@example.com'}});
+        fireEvent.change(usernameInput, {target: {value: 'testuser'}});
+        fireEvent.change(passwordInput, {target: {value: '123'}});
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+            expect(passwordInput).toHaveFocus();
+        });
+    });
+
+    it('should focus username input when server returns username exists error', async () => {
+        mockDispatch = jest.fn().mockImplementation(() => Promise.resolve({
+            data: {},
+            error: {
+                server_error_id: 'app.user.save.username_exists.app_error',
+                message: 'Username already exists',
+            },
+        }));
+
+        renderWithContext(<Signup/>, mockState);
+
+        const emailInput = screen.getByTestId('signup-body-card-form-email-input');
+        const usernameInput = screen.getByTestId('signup-body-card-form-name-input');
+        const passwordInput = screen.getByTestId('signup-body-card-form-password-input');
+        const submitButton = screen.getByText('Create account');
+
+        // Submit with valid data that will trigger server error
+        fireEvent.change(emailInput, {target: {value: 'test@example.com'}});
+        fireEvent.change(usernameInput, {target: {value: 'existinguser'}});
+        fireEvent.change(passwordInput, {target: {value: 'password123'}});
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+            expect(usernameInput).toHaveFocus();
+        });
     });
 
     it('should add user to team and redirect when team invite valid and logged in', async () => {

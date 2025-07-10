@@ -31,6 +31,14 @@ const ErrorTitle: React.FC<Props> = ({type, title}: Props) => {
                 />
             );
             break;
+        case ErrorPageTypes.POST_NOT_FOUND:
+            errorTitle = (
+                <FormattedMessage
+                    id='post.error.title'
+                    defaultMessage='Post Not Found'
+                />
+            );
+            break;
         case ErrorPageTypes.CLOUD_ARCHIVED:
             errorTitle = (
                 <FormattedMessage

@@ -208,10 +208,6 @@
     "translation": "Nu pot lăsa un mesaj direct pe canal."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Tu ești singurul membru ramas, încerca eliminarea Canalului Privat în loc de a pleca."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v a plecat de pe canal."
   },

@@ -247,7 +247,7 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(c request.CTX, userID string, a
 
 	oauthApp, err := a.GetOAuthApp(authRequest.ClientId)
 	if err != nil {
-		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusNotFound)
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	user, err := a.GetUser(userID)
@@ -263,7 +263,7 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(c request.CTX, userID string, a
 	accessData := &model.AccessData{ClientId: authRequest.ClientId, UserId: user.Id, Token: session.Token, RefreshToken: "", RedirectUri: authRequest.RedirectURI, ExpiresAt: session.ExpiresAt, Scope: authRequest.Scope}
 
 	if _, err := a.Srv().Store().OAuth().SaveAccessData(accessData); err != nil {
-		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return session, nil
@@ -276,7 +276,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 
 	oauthApp, nErr := a.Srv().Store().OAuth().GetApp(clientId)
 	if nErr != nil {
-		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusNotFound)
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
 
 	if oauthApp.ClientSecret != secret {
@@ -290,7 +290,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 		var authData *model.AuthData
 		authData, nErr = a.Srv().Store().OAuth().GetAuthData(code)
 		if nErr != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		}
 
 		if authData.IsExpired() {
@@ -306,7 +306,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 
 		user, nErr = a.Srv().Store().User().Get(context.Background(), authData.UserId)
 		if nErr != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 		}
 
 		if user.DeleteAt != 0 {
@@ -315,7 +315,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 
 		accessData, nErr = a.Srv().Store().OAuth().GetPreviousAccessData(user.Id, clientId)
 		if nErr != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		}
 
 		if accessData != nil {
@@ -346,7 +346,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 			accessData = &model.AccessData{ClientId: clientId, UserId: user.Id, Token: session.Token, RefreshToken: model.NewId(), RedirectUri: redirectURI, ExpiresAt: session.ExpiresAt, Scope: authData.Scope}
 
 			if _, nErr = a.Srv().Store().OAuth().SaveAccessData(accessData); nErr != nil {
-				return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
+				return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 
 			accessRsp = &model.AccessResponse{
@@ -364,12 +364,12 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 		// When grantType is refresh_token
 		accessData, nErr = a.Srv().Store().OAuth().GetAccessDataByRefreshToken(refreshToken)
 		if nErr != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound)
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 		}
 
 		user, nErr := a.Srv().Store().User().Get(context.Background(), accessData.UserId)
 		if nErr != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 		}
 
 		access, err := a.newSessionUpdateToken(c, oauthApp, accessData, user)
@@ -400,10 +400,12 @@ func (a *App) newSession(c request.CTX, app *model.OAuthApp, user *model.User) (
 
 	session, err := a.Srv().Store().Session().Save(c, session)
 	if err != nil {
-		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.ch.srv.platform.AddSessionToCache(session)
+	if err := a.ch.srv.platform.AddSessionToCache(session); err != nil {
+		c.Logger().Warn("Failed to add session to cache", mlog.Err(err))
+	}
 
 	return session, nil
 }
@@ -424,7 +426,7 @@ func (a *App) newSessionUpdateToken(c request.CTX, app *model.OAuthApp, accessDa
 	accessData.ExpiresAt = session.ExpiresAt
 
 	if _, err := a.Srv().Store().OAuth().UpdateAccessData(accessData); err != nil {
-		return nil, model.NewAppError("newSessionUpdateToken", "web.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("newSessionUpdateToken", "web.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	accessRsp := &model.AccessResponse{
 		AccessToken:      session.Token,

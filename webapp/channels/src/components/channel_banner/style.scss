@@ -1,0 +1,54 @@
+@use "utils/variables";
+
+.channel_banner {
+    display: flex;
+    width: 100%;
+    min-height: variables.$announcement-bar-height;
+    max-height: variables.$announcement-bar-height;
+    justify-content: center;
+    padding-block: 6px;
+    padding-inline: 24px;
+    white-space: nowrap;
+
+    .channel_banner_text {
+        display: block;
+        overflow: hidden;
+        max-width: 100%;
+        text-align: center;
+        text-overflow: ellipsis;
+
+        &:has(p:first-child) {
+            margin-top: 3px;
+        }
+
+        a {
+            color: var(--channel-banner-text-color);
+            text-decoration: underline;
+        }
+
+        .markdown__heading {
+            overflow: hidden;
+            margin: 2px;
+            font-size: 18px;
+            text-overflow: ellipsis;
+        }
+
+        :first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .markdown__table {
+            background: unset;
+        }
+    }
+}
+
+.channelBannerTooltip {
+    top: -2px !important;
+    overflow: auto;
+    min-width: 400px;
+    max-width: min(1000px, 70vw);
+    max-height: 80vh;
+    pointer-events: auto;
+}

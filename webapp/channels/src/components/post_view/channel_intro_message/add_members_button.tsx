@@ -72,6 +72,7 @@ const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode})
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
                     onClick={() => trackEvent('channel_intro_message', 'click_invite_button')}
+                    dialogProps={{focusOriginElement: 'browseOrAddChannelMenuButton'}}
                 >
                     <i
                         className='icon-email-plus-outline'

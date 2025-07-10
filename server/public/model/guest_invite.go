@@ -13,8 +13,8 @@ type GuestsInvite struct {
 	Message  string   `json:"message"`
 }
 
-func (i *GuestsInvite) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (i *GuestsInvite) Auditable() map[string]any {
+	return map[string]any{
 		"emails":   i.Emails,
 		"channels": i.Channels,
 	}

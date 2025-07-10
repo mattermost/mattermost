@@ -37,15 +37,23 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
     <div
       id="modalPreferenceContainer"
     >
+      <div
+        aria-atomic="true"
+        className="sr-only"
+        role="status"
+      >
+        Channel type filter set to {filterType}
+      </div>
       <Menu
         menu={
           Object {
-            "aria-label": "Browse channels",
+            "aria-label": "Channel type filter",
             "id": "browseChannelsDropdown",
           }
         }
         menuButton={
           Object {
+            "aria-label": "Channel type filter",
             "children": <React.Fragment>
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Channel Type: All"
@@ -121,11 +129,15 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
         />
       </Menu>
       <div
+        aria-checked={false}
+        aria-label="Hide joined channels"
         id="hideJoinedPreferenceCheckbox"
         onClick={[Function]}
+        onKeyDown={[Function]}
+        role="checkbox"
+        tabIndex={0}
       >
-        <button
-          aria-label="Hide joined channels checkbox, not checked"
+        <div
           className="get-app__checkbox"
         />
         <MemoizedFormattedMessage

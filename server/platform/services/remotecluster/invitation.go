@@ -13,13 +13,21 @@ import (
 
 // AcceptInvitation is called when accepting an invitation to connect with a remote cluster.
 func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, error) {
+	// Generate new token for RemoteToken only if invite version is 2 or greater
+	var remoteToken string
+	if invite.Version >= 2 {
+		remoteToken = model.NewId() // Generate new token for v2+ protocol
+	} else {
+		remoteToken = invite.Token // Use the token from the invite for backwards compatibility
+	}
+
 	rc := &model.RemoteCluster{
 		RemoteId:      invite.RemoteId,
 		Name:          name,
 		DisplayName:   displayName,
 		DefaultTeamId: defaultTeamId,
 		Token:         model.NewId(),
-		RemoteToken:   invite.Token,
+		RemoteToken:   remoteToken,
 		SiteURL:       invite.SiteURL,
 		CreatorId:     creatorId,
 	}
@@ -36,6 +44,11 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 	}
 
 	url := fmt.Sprintf("%s/%s", rcSaved.SiteURL, ConfirmInviteURL)
+
+	// for the invite confirm message, we need to use the token that
+	// the originating server sent in the invite instead of the one
+	// we're storing as a refresh
+	rc.RemoteToken = invite.Token
 
 	resp, err := rcs.sendFrameToRemote(PingTimeout, rc, frame, url)
 	if err != nil {
@@ -63,9 +76,11 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 
 func makeConfirmFrame(rc *model.RemoteCluster, siteURL string) (*model.RemoteClusterFrame, error) {
 	confirm := model.RemoteClusterInvite{
-		RemoteId: rc.RemoteId,
-		SiteURL:  siteURL,
-		Token:    rc.Token,
+		RemoteId:       rc.RemoteId,
+		SiteURL:        siteURL,
+		Token:          rc.Token,
+		RefreshedToken: rc.RemoteToken,
+		Version:        2,
 	}
 	confirmRaw, err := json.Marshal(confirm)
 	if err != nil {

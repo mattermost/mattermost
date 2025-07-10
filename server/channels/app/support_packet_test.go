@@ -22,10 +22,12 @@ import (
 )
 
 func TestGenerateSupportPacket(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
@@ -73,6 +75,11 @@ func TestGenerateSupportPacket(t *testing.T) {
 		"cpu.prof",
 		"heap.prof",
 		"goroutines",
+	}
+
+	// database_schema.yaml is only generated for Postgres
+	if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverPostgres {
+		expectedFileNames = append(expectedFileNames, "database_schema.yaml")
 	}
 
 	expectedFileNamesWithLogs := append(expectedFileNames, []string{
@@ -141,6 +148,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("TotalMasterDbConnections").Return(30)
 		mockStore.On("TotalReadDbConnections").Return(20)
 		mockStore.On("TotalSearchDbConnections").Return(10)
+		mockStore.On("GetSchemaDefinition").Return(&model.SupportPacketDatabaseSchema{
+			Tables: []model.DatabaseTable{},
+		}, nil)
 
 		oldStore := th.App.Srv().Store()
 		t.Cleanup(func() {
@@ -269,6 +279,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 }
 
 func TestGetPluginsFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -295,7 +306,8 @@ func TestGetPluginsFile(t *testing.T) {
 	})
 
 	t.Run("two plugins are installed", func(t *testing.T) {
-		path, _ := fileutils.FindDir("tests")
+		path, found := fileutils.FindDir("tests")
+		require.True(t, found, "tests directory not found")
 
 		bundle1, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 		require.NoError(t, err)
@@ -332,6 +344,7 @@ func TestGetPluginsFile(t *testing.T) {
 }
 
 func TestGetSupportPacketStats(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 
 	generateStats := func(t *testing.T) *model.SupportPacketStats {
@@ -461,6 +474,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 }
 
 func TestGetSupportPacketJobList(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -574,10 +588,12 @@ func TestGetSupportPacketJobList(t *testing.T) {
 }
 
 func TestGetSupportPacketPermissionsInfo(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	generatePermissionInfo := func(t *testing.T) *model.SupportPacketPermissionInfo {
 		t.Helper()
@@ -659,6 +675,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 }
 
 func TestGetSupportPacketMetadata(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -677,4 +694,99 @@ func TestGetSupportPacketMetadata(t *testing.T) {
 		assert.NotEmpty(t, metadate.ServerID)
 		assert.NotEmpty(t, metadate.GeneratedAt)
 	})
+}
+
+func TestGetSupportPacketDatabaseSchema(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Mock store for testing
+	mockStore := &smocks.Store{}
+	originalStore := th.App.Srv().Store()
+	th.App.Srv().SetStore(mockStore)
+	defer th.App.Srv().SetStore(originalStore)
+	// Set up mock return for schema definition
+	mockStore.On("GetSchemaDefinition").Return(&model.SupportPacketDatabaseSchema{
+		Tables: []model.DatabaseTable{
+			{
+				Name: "users",
+				Columns: []model.DatabaseColumn{
+					{Name: "id", DataType: "varchar", IsNullable: false},
+					{Name: "username", DataType: "varchar", IsNullable: false},
+					{Name: "email", DataType: "varchar", IsNullable: false},
+				},
+			},
+			{
+				Name: "channels",
+				Columns: []model.DatabaseColumn{
+					{Name: "id", DataType: "varchar", IsNullable: false},
+					{Name: "name", DataType: "varchar", IsNullable: false},
+				},
+			},
+			{
+				Name: "teams",
+				Columns: []model.DatabaseColumn{
+					{Name: "id", DataType: "varchar", IsNullable: false},
+					{Name: "name", DataType: "varchar", IsNullable: false},
+				},
+			},
+			{
+				Name: "posts",
+				Columns: []model.DatabaseColumn{
+					{Name: "id", DataType: "varchar", IsNullable: false},
+					{Name: "message", DataType: "text", IsNullable: false},
+				},
+			},
+		},
+	}, nil)
+
+	// Test with Postgres
+	oldDriverName := *th.App.Config().SqlSettings.DriverName
+	*th.App.Config().SqlSettings.DriverName = model.DatabaseDriverPostgres
+	defer func() {
+		*th.App.Config().SqlSettings.DriverName = oldDriverName
+	}()
+
+	fileData, err := th.App.getSupportPacketDatabaseSchema(th.Context)
+	require.NoError(t, err)
+	require.NotNil(t, fileData)
+	assert.Equal(t, "database_schema.yaml", fileData.Filename)
+	assert.Positive(t, len(fileData.Body))
+
+	var schema model.SupportPacketDatabaseSchema
+	err = yaml.Unmarshal(fileData.Body, &schema)
+	require.NoError(t, err)
+
+	// Verify schema structure
+	assert.NotEmpty(t, schema.Tables)
+
+	// Verify that common tables are present
+	tableNames := make([]string, 0, len(schema.Tables))
+	for _, table := range schema.Tables {
+		tableNames = append(tableNames, table.Name)
+	}
+
+	// Verify some core tables
+	expectedTables := []string{"users", "channels", "teams", "posts"}
+	for _, expected := range expectedTables {
+		assert.Contains(t, tableNames, expected)
+	}
+
+	// Verify table structure
+	for _, table := range schema.Tables {
+		if table.Name == "users" {
+			// Check user table has key columns
+			columnNames := make([]string, 0, len(table.Columns))
+			for _, column := range table.Columns {
+				columnNames = append(columnNames, column.Name)
+			}
+
+			expectedColumns := []string{"id", "username", "email"}
+			for _, expected := range expectedColumns {
+				assert.Contains(t, columnNames, expected)
+			}
+
+			break
+		}
+	}
 }

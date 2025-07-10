@@ -343,7 +343,7 @@ func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.
 
 	resp, httpErr := httpClient.Do(req)
 	if httpErr != nil {
-		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+httpErr.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(httpErr)
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -384,7 +384,7 @@ func (ch *Channels) doPluginRequest(c request.CTX, method, rawURL string, values
 	rawURL = strings.TrimPrefix(rawURL, "/")
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
-		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	result := strings.Split(inURL.Path, "/")
 	if len(result) < 2 {
@@ -399,7 +399,7 @@ func (ch *Channels) doPluginRequest(c request.CTX, method, rawURL string, values
 
 	base, err := url.Parse(path)
 	if err != nil {
-		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	// merge the rawQuery params (if any) with the function's provided values
@@ -421,7 +421,7 @@ func (ch *Channels) doPluginRequest(c request.CTX, method, rawURL string, values
 	w := &LocalResponseWriter{}
 	r, err := http.NewRequest(method, base.String(), bytes.NewReader(body))
 	if err != nil {
-		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	r.Header.Set("Mattermost-User-Id", c.Session().UserId)
 	r.Header.Set(model.HeaderAuth, "Bearer "+c.Session().Token)
@@ -514,8 +514,21 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.read_body_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	var response model.SubmitDialogResponse
-	json.NewDecoder(resp.Body).Decode(&response) // Don't fail, an empty response is acceptable
+	if len(body) == 0 {
+		// Don't fail, an empty response is acceptable
+		return &response, nil
+	}
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.decode_json_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	return &response, nil
 }

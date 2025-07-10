@@ -123,11 +123,38 @@ func TestPropertyField_IsValid(t *testing.T) {
 	})
 }
 
-func TestPropertyField_SanitizeInput(t *testing.T) {
-	t.Run("trims spaces from name", func(t *testing.T) {
-		pf := &PropertyField{Name: "  test field  "}
-		pf.SanitizeInput()
-		assert.Equal(t, "test field", pf.Name)
+func TestPropertyFieldPatch_IsValid(t *testing.T) {
+	t.Run("valid patch", func(t *testing.T) {
+		patch := &PropertyFieldPatch{
+			Name: NewPointer("test field"),
+			Type: NewPointer(PropertyFieldTypeText),
+		}
+		require.NoError(t, patch.IsValid())
+	})
+
+	t.Run("empty name", func(t *testing.T) {
+		patch := &PropertyFieldPatch{
+			Name: NewPointer(""),
+			Type: NewPointer(PropertyFieldTypeText),
+		}
+		require.Error(t, patch.IsValid())
+	})
+
+	t.Run("invalid type", func(t *testing.T) {
+		invalidType := PropertyFieldType("invalid")
+		patch := &PropertyFieldPatch{
+			Name: NewPointer("test field"),
+			Type: &invalidType,
+		}
+		require.Error(t, patch.IsValid())
+	})
+
+	t.Run("nil values are valid", func(t *testing.T) {
+		patch := &PropertyFieldPatch{
+			Name: nil,
+			Type: nil,
+		}
+		require.NoError(t, patch.IsValid())
 	})
 }
 
@@ -214,5 +241,140 @@ func TestPropertyFieldSearchCursor_IsValid(t *testing.T) {
 			CreateAt:        -1,
 		}
 		assert.Error(t, cursor.IsValid())
+	})
+}
+
+func TestPluginPropertyOption(t *testing.T) {
+	t.Run("NewPluginPropertyOption", func(t *testing.T) {
+		id := NewId()
+		option := NewPluginPropertyOption(id, "test-name")
+
+		assert.Equal(t, id, option.GetID())
+		assert.Equal(t, "test-name", option.GetName())
+		assert.NoError(t, option.IsValid())
+	})
+
+	t.Run("SetID", func(t *testing.T) {
+		option := &PluginPropertyOption{}
+		newId := NewId()
+		option.SetID(newId)
+
+		assert.Equal(t, newId, option.GetID())
+	})
+
+	t.Run("GetValue and SetValue", func(t *testing.T) {
+		option := NewPluginPropertyOption(NewId(), "test-name")
+
+		option.SetValue("color", "red")
+		option.SetValue("description", "test description")
+
+		assert.Equal(t, "red", option.GetValue("color"))
+		assert.Equal(t, "test description", option.GetValue("description"))
+		assert.Equal(t, "", option.GetValue("nonexistent"))
+	})
+
+	t.Run("IsValid", func(t *testing.T) {
+		tests := []struct {
+			name    string
+			option  *PluginPropertyOption
+			wantErr bool
+		}{
+			{
+				name:   "valid option",
+				option: NewPluginPropertyOption(NewId(), "test-name"),
+			},
+			{
+				name:    "nil data",
+				option:  &PluginPropertyOption{},
+				wantErr: true,
+			},
+			{
+				name: "empty id",
+				option: &PluginPropertyOption{
+					Data: map[string]string{"name": "test"},
+				},
+				wantErr: true,
+			},
+			{
+				name: "empty name",
+				option: &PluginPropertyOption{
+					Data: map[string]string{"id": NewId()},
+				},
+				wantErr: true,
+			},
+			{
+				name: "invalid id",
+				option: &PluginPropertyOption{
+					Data: map[string]string{
+						"id":   "invalid-id-format",
+						"name": "test",
+					},
+				},
+				wantErr: true,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				err := tt.option.IsValid()
+				if tt.wantErr {
+					assert.Error(t, err)
+				} else {
+					assert.NoError(t, err)
+				}
+			})
+		}
+	})
+
+	t.Run("PropertyOptions with PluginPropertyOption", func(t *testing.T) {
+		options := PropertyOptions[*PluginPropertyOption]{
+			NewPluginPropertyOption(NewId(), "Option 1"),
+			NewPluginPropertyOption(NewId(), "Option 2"),
+		}
+
+		// Add custom data
+		options[0].SetValue("color", "blue")
+		options[1].SetValue("description", "Second option")
+
+		assert.NoError(t, options.IsValid())
+		assert.Equal(t, "blue", options[0].GetValue("color"))
+		assert.Equal(t, "Second option", options[1].GetValue("description"))
+	})
+
+	t.Run("PropertyField with PluginPropertyOptions", func(t *testing.T) {
+		fieldID := NewId()
+		groupID := NewId()
+		fieldName := "Test Field"
+		fieldType := PropertyFieldTypeSelect
+
+		field := &PropertyField{
+			ID:      fieldID,
+			GroupID: groupID,
+			Name:    fieldName,
+			Type:    fieldType,
+			Attrs:   make(StringInterface),
+		}
+
+		options := PropertyOptions[*PluginPropertyOption]{
+			NewPluginPropertyOption(NewId(), "Option 1"),
+			NewPluginPropertyOption(NewId(), "Option 2"),
+		}
+
+		field.Attrs[PropertyFieldAttributeOptions] = options
+
+		// Verify the field properties are set correctly
+		assert.Equal(t, fieldID, field.ID)
+		assert.Equal(t, groupID, field.GroupID)
+		assert.Equal(t, fieldName, field.Name)
+		assert.Equal(t, fieldType, field.Type)
+
+		// Test that we can retrieve the options
+		if optionsFromField, err := NewPropertyOptionsFromFieldAttrs[*PluginPropertyOption](field.Attrs[PropertyFieldAttributeOptions]); err == nil {
+			require.Len(t, optionsFromField, 2)
+			assert.Equal(t, "Option 1", optionsFromField[0].GetName())
+			assert.Equal(t, "Option 2", optionsFromField[1].GetName())
+		} else {
+			t.Fatalf("Failed to retrieve options from field: %v", err)
+		}
 	})
 }

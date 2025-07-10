@@ -7,7 +7,8 @@ import React from 'react';
 import type {ChangeEvent} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
-import type {OnChangeValue, StylesConfig} from 'react-select';
+import type {InputProps, OnChangeValue, StylesConfig} from 'react-select';
+import {components} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
@@ -226,6 +227,18 @@ function getDefaultStateFromProps(props: Props): State {
         desktopAndMobileSettingsDifferent,
     };
 }
+
+const Input = (props: InputProps<MultiInputValue, true>) => {
+    const ariaProps = {
+        'aria-labelledby': 'settingTitle',
+    };
+
+    return (
+        <components.Input
+            {...props}
+            {...ariaProps}
+        />);
+};
 
 class NotificationsTab extends React.PureComponent<Props, State> {
     static defaultProps = {
@@ -596,8 +609,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             DropdownIndicator: () => null,
                             Menu: () => null,
                             MenuList: () => null,
+                            Input,
                         }}
-                        aria-labelledby='notificationTriggerCustom'
                         onChange={this.handleChangeForCustomKeysWithNotificationInput}
                         value={this.state.customKeysWithNotification}
                         inputValue={this.state.customKeysWithNotificationInputValue}

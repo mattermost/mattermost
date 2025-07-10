@@ -30,8 +30,8 @@ type OutgoingWebhook struct {
 	IconURL      string      `json:"icon_url"`
 }
 
-func (o *OutgoingWebhook) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *OutgoingWebhook) Auditable() map[string]any {
+	return map[string]any{
 		"id":            o.Id,
 		"create_at":     o.CreateAt,
 		"update_at":     o.UpdateAt,

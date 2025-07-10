@@ -25,7 +25,7 @@ func NewBoolSetting(id, title, description, dependsOn string, store SettingStore
 	}
 }
 
-func (s *boolSetting) Set(userID string, value interface{}) error {
+func (s *boolSetting) Set(userID string, value any) error {
 	boolValue := false
 	if value == TrueString {
 		boolValue = true
@@ -39,7 +39,7 @@ func (s *boolSetting) Set(userID string, value interface{}) error {
 	return nil
 }
 
-func (s *boolSetting) Get(userID string) (interface{}, error) {
+func (s *boolSetting) Get(userID string) (any, error) {
 	value, err := s.store.GetSetting(userID, s.id)
 	if err != nil {
 		return "", err
@@ -75,10 +75,11 @@ func (s *boolSetting) GetSlackAttachments(userID, settingHandler string, disable
 		currentValueMessage = fmt.Sprintf("Current value: %s", currentTextValue)
 
 		actionTrue := model.PostAction{
+			Type: model.PostActionTypeButton,
 			Name: "Yes",
 			Integration: &model.PostActionIntegration{
 				URL: settingHandler,
-				Context: map[string]interface{}{
+				Context: map[string]any{
 					ContextIDKey:          s.id,
 					ContextButtonValueKey: TrueString,
 				},
@@ -86,10 +87,11 @@ func (s *boolSetting) GetSlackAttachments(userID, settingHandler string, disable
 		}
 
 		actionFalse := model.PostAction{
+			Type: model.PostActionTypeButton,
 			Name: "No",
 			Integration: &model.PostActionIntegration{
 				URL: settingHandler,
-				Context: map[string]interface{}{
+				Context: map[string]any{
 					ContextIDKey:          s.id,
 					ContextButtonValueKey: FalseString,
 				},
@@ -109,6 +111,6 @@ func (s *boolSetting) GetSlackAttachments(userID, settingHandler string, disable
 	return &sa, nil
 }
 
-func (s *boolSetting) IsDisabled(foreignValue interface{}) bool {
+func (s *boolSetting) IsDisabled(foreignValue any) bool {
 	return foreignValue == FalseString
 }

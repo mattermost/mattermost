@@ -13,8 +13,7 @@ import (
 )
 
 func TestJoinCommandNoChannel(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()
@@ -32,8 +31,7 @@ func TestJoinCommandNoChannel(t *testing.T) {
 }
 
 func TestJoinCommandForExistingChannel(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()
@@ -60,8 +58,7 @@ func TestJoinCommandForExistingChannel(t *testing.T) {
 }
 
 func TestJoinCommandWithTilde(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()
@@ -88,8 +85,7 @@ func TestJoinCommandWithTilde(t *testing.T) {
 }
 
 func TestJoinCommandPermissions(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	channel2, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
@@ -101,7 +97,7 @@ func TestJoinCommandPermissions(t *testing.T) {
 
 	cmd := &JoinProvider{}
 
-	user3 := th.createUser()
+	user3 := th.createUser(t)
 
 	// Try a public channel *without* permission.
 	args := &model.CommandArgs{

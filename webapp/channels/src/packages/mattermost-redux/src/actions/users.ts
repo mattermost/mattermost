@@ -11,7 +11,7 @@ import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, Use
 
 import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
-import {setServerVersion, getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
+import {setServerVersion, getClientConfig, getLicenseConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {getMyPreferences} from 'mattermost-redux/actions/preferences';
@@ -20,7 +20,7 @@ import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/a
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
+import {getServerVersion, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUser as selectUser, getUsers, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
@@ -80,6 +80,10 @@ export function loadMe(): ActionFuncAsync<boolean> {
                 dispatch(getMyTeams()),
                 dispatch(getMyTeamMembers()),
             ]);
+
+            if (getFeatureFlagValue(getState(), 'CustomProfileAttributes') === 'true') {
+                dispatch(getCustomProfileAttributeFields());
+            }
 
             const isCollapsedThreads = isCollapsedThreadsEnabled(getState());
             await dispatch(getMyTeamUnreads(isCollapsedThreads));
@@ -428,12 +432,12 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFuncAsy
     };
 }
 
-export function getProfilesNotInChannel(teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFuncAsync<UserProfile[]> {
+export function getProfilesNotInChannel(teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage: number = General.PROFILE_CHUNK_SIZE, cursorId = ''): ActionFuncAsync<UserProfile[]> {
     return async (dispatch, getState) => {
         let profiles;
 
         try {
-            profiles = await Client4.getProfilesNotInChannel(teamId, channelId, groupConstrained, page, perPage);
+            profiles = await Client4.getProfilesNotInChannel(teamId, channelId, groupConstrained, page, perPage, cursorId);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -988,10 +992,10 @@ export function updateMe(user: Partial<UserProfile>): ActionFuncAsync<UserProfil
     };
 }
 
-export function saveCustomProfileAttribute(userID: string, attributeID: string, attributeValue: string): ActionFuncAsync<Record<string, string>> {
+export function saveCustomProfileAttribute(userID: string, attributeID: string, attributeValue: string | string[]): ActionFuncAsync<Record<string, string | string[]>> {
     return async (dispatch) => {
         try {
-            const values = {[attributeID]: attributeValue.trim()};
+            const values = {[attributeID]: attributeValue || ''};
             const data = await Client4.updateCustomProfileAttributeValues(values);
             return {data};
         } catch (error) {
@@ -1064,6 +1068,24 @@ export function updateUserPassword(userId: string, currentPassword: string, newP
         const profile = getState().entities.users.profiles[userId];
         if (profile) {
             dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, last_password_update: new Date().getTime()}});
+        }
+
+        return {data: true};
+    };
+}
+
+export function resetFailedAttempts(userId: string): ActionFuncAsync<true> {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.resetFailedAttempts(userId);
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
+
+        const profile = getState().entities.users.profiles[userId];
+        if (profile) {
+            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, failed_attempts: 0}});
         }
 
         return {data: true};

@@ -69,8 +69,8 @@ type ChannelMember struct {
 	ExplicitRoles      string    `json:"explicit_roles"`
 }
 
-func (o *ChannelMember) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *ChannelMember) Auditable() map[string]any {
+	return map[string]any{
 		"channel_id":           o.ChannelId,
 		"user_id":              o.UserId,
 		"roles":                o.Roles,
@@ -106,6 +106,12 @@ type ChannelMemberForExport struct {
 	ChannelMember
 	ChannelName string
 	Username    string
+}
+
+type ChannelMemberCursor struct {
+	Page          int // If page is -1, then FromChannelID is used as a cursor.
+	PerPage       int
+	FromChannelID string
 }
 
 func (o *ChannelMember) IsValid() *AppError {

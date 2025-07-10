@@ -91,6 +91,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
 exports[`components/admin_console/SchemaAdminSettings should match snapshot with settings and plugin 1`] = `
 <div
   className="wrapper--fixed "
+  data-testid="sysconsole_section_Config"
 >
   <AdminHeader>
     config

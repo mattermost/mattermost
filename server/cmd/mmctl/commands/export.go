@@ -225,15 +225,36 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 
 	retries, _ := command.Flags().GetInt("num-retries")
 
+	downloadFn := func(outFile *os.File) (string, error) {
+		off, err := outFile.Seek(0, io.SeekEnd)
+		if err != nil {
+			return "", fmt.Errorf("failed to seek file: %w", err)
+		}
+
+		_, _, err = c.DownloadExport(context.TODO(), name, outFile, off)
+		return "", err
+	}
+
+	_, err := downloadFile(path, downloadFn, retries, "export")
+	if err != nil {
+		return err
+	}
+
+	printer.Print(fmt.Sprintf("Export file downloaded to %q", path))
+	return nil
+}
+
+// downloadFile handles the common logic for downloading files in export and compliance-export commands
+func downloadFile(path string, downloadFn func(*os.File) (string, error), retries int, fileType string) (string, error) {
 	var outFile *os.File
 	info, err := os.Stat(path)
 	switch {
 	case err != nil && !os.IsNotExist(err):
 		// some error occurred and not because file doesn't exist
-		return fmt.Errorf("failed to stat export file: %w", err)
+		return "", fmt.Errorf("failed to stat %s file: %w", fileType, err)
 	case err == nil && info.Size() > 0:
 		// we exit to avoid overwriting an existing non-empty file
-		return fmt.Errorf("export file already exists")
+		return "", fmt.Errorf("%s file already exists", fileType)
 	case err != nil:
 		// file does not exist, we create it
 		outFile, err = os.Create(path)
@@ -243,30 +264,24 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	}
 
 	if err != nil {
-		return fmt.Errorf("failed to create/open export file: %w", err)
+		return "", fmt.Errorf("failed to create/open %s file: %w", fileType, err)
 	}
 	defer outFile.Close()
 
-	i := 0
-	for i < retries+1 {
-		off, err := outFile.Seek(0, io.SeekEnd)
+	var suggestedFilename string
+	for i := range retries + 1 { // need to include the first attempt
+		suggestedFilename, err = downloadFn(outFile)
 		if err != nil {
-			return fmt.Errorf("failed to seek export file: %w", err)
-		}
-
-		if _, _, err := c.DownloadExport(context.TODO(), name, outFile, off); err != nil {
-			printer.PrintWarning(fmt.Sprintf("failed to download export file: %v. Retrying...", err))
-			i++
+			if i >= retries {
+				return "", fmt.Errorf("failed to download %s after %d retries: %w", fileType, retries, err)
+			}
+			printer.PrintWarning(fmt.Sprintf("Download attempt %d/%d failed. Retrying...", i+1, retries+1))
 			continue
 		}
 		break
 	}
 
-	if retries != 0 && i == retries+1 {
-		return fmt.Errorf("failed to download export after %d retries", retries)
-	}
-
-	return nil
+	return suggestedFilename, nil
 }
 
 func exportJobListCmdF(c client.Client, command *cobra.Command, args []string) error {

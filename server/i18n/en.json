@@ -48,6 +48,14 @@
     "translation": "September"
   },
   {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Get channels limit is not valid."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Get fields limit is not valid."
+  },
+  {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "You cannot remove an acknowledgment in an archived channel."
   },
@@ -60,8 +68,16 @@
     "translation": "You cannot save an acknowledgment in an archived channel."
   },
   {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Failed to add certificate."
+  },
+  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "No file under 'certificate' in request."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Too many files under 'certificate' in request."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -94,6 +110,10 @@
   {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP is not available."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Failed to remove certificate."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -226,6 +246,10 @@
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
     "translation": "Failed to add user to channel because they have been removed from the team."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "User does not have required attributes to join the channel."
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
@@ -408,10 +432,6 @@
     "translation": "Unable to leave a direct message channel."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "You're the only member left, try removing the Private Channel instead of leaving."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v left the channel."
   },
@@ -524,6 +544,10 @@
     "translation": "The channel has been archived or deleted."
   },
   {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Policy enforced channels cannot be updated."
+  },
+  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}."
   },
@@ -550,6 +574,10 @@
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Invalid channel member update: A channel member always has a user scheme."
   },
   {
     "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
@@ -1598,6 +1626,10 @@
     "translation": "Shared Channels Service is disabled."
   },
   {
+    "id": "api.command_share.service_inactive",
+    "translation": "Shared Channels Service is enabled but not active."
+  },
+  {
     "id": "api.command_share.share_channel.error",
     "translation": "Cannot share this channel: {{.Error}}"
   },
@@ -1866,8 +1898,8 @@
     "translation": "remote_id must be blank for custom group"
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "trying to patch a field that does not exist"
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "invalid custom profile attribute field patch"
   },
   {
     "id": "api.custom_profile_attributes.license_error",
@@ -2253,6 +2285,10 @@
     "translation": "You do not have permission to manage this job type"
   },
   {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Invalid test type: {{.TestType}}"
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
@@ -2293,6 +2329,10 @@
     "translation": "Unable to count total unique users."
   },
   {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "This license does not support MySQL."
+  },
+  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "No file under 'license' in request."
   },
@@ -2317,6 +2357,10 @@
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Failed to compute monthly active users."
+  },
+  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Failed to send the disable license email successfully."
   },
@@ -2338,7 +2382,11 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Failed to apply new trial license. You have previously applied a trial license to this Mattermost instance.. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+    "translation": "Failed to apply new trial license as your workspace has already applied a trial license. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "Trial licenses are not supported for MySQL databases. Please use PostgreSQL to access trial features."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -2586,15 +2634,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@all notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@channel notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@here notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -2837,6 +2885,10 @@
   {
     "id": "api.remote_cluster.get.not_found",
     "translation": "Remote Cluster not found"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Remote cluster import is not allowed"
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
@@ -3187,6 +3239,10 @@
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Cannot invite guests users to this channel because it has access restrictions based on user attributes."
+  },
+  {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Guest accounts are disabled"
   },
@@ -3337,6 +3393,10 @@
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Invalid team member update: A user must be a guest or a user but not both."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Invalid team member update: A team member always has a user scheme."
   },
   {
     "id": "api.team.update_team_member_roles.user_and_guest.app_error",
@@ -3855,6 +3915,10 @@
     "translation": "Failed to get upload."
   },
   {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Failed to upload file. Upload channel is not shared with remote."
+  },
+  {
     "id": "api.upload.upload_data.invalid_content_length",
     "translation": "Invalid Content-Length."
   },
@@ -3907,6 +3971,10 @@
     "translation": "Received invalid response from OAuth service provider."
   },
   {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "An error occurred in the OnSamlLogin hook. Please contact your System Administrator."
+  },
+  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML response is too long"
   },
@@ -3929,6 +3997,10 @@
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Your account is locked because of too many failed password attempts. Please contact your System Administrator."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
@@ -3999,6 +4071,10 @@
     "translation": "Unable to create the user, invalid invitation."
   },
   {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Can't create user. Server exceeds maximum licensed users. Contact your administrator with: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
     "id": "api.user.create_user.no_open_server",
     "translation": "This server does not allow open signups.  Please speak with your Administrator to receive an invitation."
   },
@@ -4061,6 +4137,10 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Error fetching roles during validation."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -4217,6 +4297,14 @@
   {
     "id": "api.user.reset_password.token_parse.error",
     "translation": "Unable to parse the reset password token"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "User auth service must be LDAP or Email."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "You do not have permission to update this resource."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -4451,8 +4539,16 @@
     "translation": "Failed to parse request"
   },
   {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Failed to save the batch of acknowledgement objects"
+  },
+  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Unable to delete acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Cannot delete acknowledgement for missing post"
   },
   {
     "id": "app.acknowledgement.get.app_error",
@@ -4461,6 +4557,10 @@
   {
     "id": "app.acknowledgement.getforpost.get.app_error",
     "translation": "Unable to get acknowledgement for post."
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Cannot save acknowledgement for missing post"
   },
   {
     "id": "app.acknowledgement.save.save.app_error",
@@ -4617,6 +4717,10 @@
   {
     "id": "app.channel.delete.app_error",
     "translation": "Unable to delete the channel."
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Could not get channel."
   },
   {
     "id": "app.channel.get.existing.app_error",
@@ -5027,6 +5131,10 @@
     "translation": "Unable to create Custom Profile Attribute field"
   },
   {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Unable to delete Custom Profile Attribute Values for user"
+  },
+  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Unable to get Custom Profile Attribute field"
   },
@@ -5039,8 +5147,16 @@
     "translation": "Unable to get custom profile attribute values"
   },
   {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Unable to convert the property field to a custom profile attribute field"
+  },
+  {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
     "translation": "Unable to delete Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Cannot update value for a synced Custom Profile Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
@@ -5055,8 +5171,16 @@
     "translation": "Unable to upsert Custom Profile Attribute fields"
   },
   {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Invalid property value attributes : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Unable to search Custom Profile Attribute fields"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Failed to validate property value"
   },
   {
     "id": "app.delete_scheduled_post.delete_error",
@@ -5109,6 +5233,10 @@
   {
     "id": "app.draft.save.app_error",
     "translation": "Unable to save the Draft."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete drafts for user."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -5287,8 +5415,16 @@
     "translation": "Error occurred fetching scheduled posts."
   },
   {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Unable to create group syncable memberships."
+  },
+  {
     "id": "app.group.crud_permission",
     "translation": "Unable to perform operation for that source type."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Unable to delete invalid group syncable memberships."
   },
   {
     "id": "app.group.group_syncable_already_deleted",
@@ -5297,6 +5433,10 @@
   {
     "id": "app.group.id.app_error",
     "translation": "invalid id property for group."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAP license required."
   },
   {
     "id": "app.group.no_rows",
@@ -5309,6 +5449,10 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "Group member with UserID \"{{.UserId}}\" already exists"
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Error updating group. User with username \"{{.Username}}\" could not be found."
   },
   {
     "id": "app.group.username_conflict",
@@ -5511,6 +5655,18 @@
     "translation": "Unable to read the version of the data import file."
   },
   {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Failed to open the profile image file: {{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Failed to read profile image data."
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Failed to validate attachment import data. Invalid path: \"{{.Path}}\""
+  },
+  {
     "id": "app.import.validate_bot_import_data.owner_missing.error",
     "translation": "Bot owner is missing"
   },
@@ -5575,6 +5731,10 @@
     "translation": "Direct channel can only be favorited by members. \"{{.Username}}\" is not a member."
   },
   {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Failed to validate direct post attachment data."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "Missing required direct post property: channel_members"
   },
@@ -5603,6 +5763,10 @@
     "translation": "Missing required direct post property: message"
   },
   {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Failed to validate direct post thread follower data."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
     "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
   },
@@ -5619,8 +5783,16 @@
     "translation": "Import emoji image field missing or blank."
   },
   {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Import emoji image field has an invalid path: \"{{.Path}}\""
+  },
+  {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
     "translation": "Import emoji name field missing or blank."
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Failed to validate post attachment data."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -5651,6 +5823,10 @@
     "translation": "Missing required Post property: Team."
   },
   {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Failed to validate post thread follower data."
+  },
+  {
     "id": "app.import.validate_post_import_data.user_missing.error",
     "translation": "Missing required Post property: User."
   },
@@ -5677,6 +5853,10 @@
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Missing required Reaction property: User."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Failed to validate reply attachment data."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -5779,6 +5959,14 @@
     "translation": "Missing required team property: type."
   },
   {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Import follower data empty."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Missing required follower property: user."
+  },
+  {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
     "translation": "Channel name missing from User's Channel Membership."
   },
@@ -5841,6 +6029,10 @@
   {
     "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
     "translation": "User roles are not consistent with guest status."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "User profile image path is invalid: \"{{.Path}}\""
   },
   {
     "id": "app.import.validate_user_import_data.last_name_length.error",
@@ -6137,6 +6329,94 @@
   {
     "id": "app.oauth.update_app.updating.app_error",
     "translation": "We encountered an error updating the app."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Unable to assign access control policy to channels."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "Could not check expression."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Could not create access control policy."
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Could not delete access control policy."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Unable to delete access control policy."
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "Could not genereate visual AST from expression."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Could not get access control auto complete."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Could not get access control policies."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Could not get attributes for channel."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Could not get channel members to remove."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Unable to retrieve the access control policy."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "Could not get attributes for policy."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Unable to initialize access control service."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "Access control service is not ready."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "An attribute is missing from the expression."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "Could not normalize policy expression."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "Could not query for expression."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Unable to save access control policy."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Could not search access control policies."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Could not unassign access control policy from channels."
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "Could not change active status of access control policy."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Failed evaluate access control policy."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -6841,8 +7121,16 @@
     "translation": "No entry for that status exists."
   },
   {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Encountered an error decoding JSON response from interactive dialog submission."
+  },
+  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Encountered an error reading response body from interactive dialog submission."
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
@@ -7265,6 +7553,10 @@
     "translation": "Failed to update the user."
   },
   {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Failed to reset login attempts."
+  },
+  {
     "id": "app.user.save.app_error",
     "translation": "Unable to save the account."
   },
@@ -7313,8 +7605,12 @@
     "translation": "Cannot demote last System Admin."
   },
   {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Can't activate user. Server exceeds maximum licensed users. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Can't activate user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Can't activate user. Server exceeds safe user limit. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "app.user.update_active_for_multiple_users.updating.app_error",
@@ -7693,6 +7989,14 @@
     "translation": "Failed to parse the value:{{.Value}} to int64"
   },
   {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Failed to extract data from previous job."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Failed to run access control sync job."
+  },
+  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Unable to get users."
   },
@@ -7997,6 +8301,14 @@
     "translation": "ldap interface was nil."
   },
   {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "Failed to retrieve CPA fields"
+  },
+  {
     "id": "ent.ldap.create_fail",
     "translation": "Unable to create LDAP user."
   },
@@ -8011,6 +8323,10 @@
   {
     "id": "ent.ldap.do_login.certificate.app_error",
     "translation": "Error loading LDAP TLS Certificate file."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Invalid AD/LDAP Id"
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -8049,6 +8365,10 @@
     "translation": "Error creating key pair"
   },
   {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Failed to get user."
+  },
+  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "No LDAP users found, check your user filter and certificates."
   },
@@ -8081,6 +8401,14 @@
     "translation": "Size Limit Exceeded. Try increasing your Maximum page size setting. Check out https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded for more details."
   },
   {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Empty LDAP attribute value"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "Error(s) patching CPA value"
+  },
+  {
     "id": "ent.ldap.validate_admin_filter.app_error",
     "translation": "Invalid AD/LDAP Admin Filter."
   },
@@ -8099,6 +8427,10 @@
   {
     "id": "ent.ldap_groups.groups_search_error",
     "translation": "error retrieving ldap groups"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Invalid AD/LDAP id"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
@@ -8249,6 +8581,10 @@
     "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
   },
   {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "Failed to retrieve CPA field(s)"
+  },
+  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "We received an empty response from the Identity Provider."
   },
@@ -8269,6 +8605,10 @@
     "translation": "Your license does not support SAML authentication."
   },
   {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "No user registered on AD/LDAP server that matches the SAML user."
+  },
+  {
     "id": "ent.saml.metadata.app_error",
     "translation": "An error occurred while building Service Provider Metadata."
   },
@@ -8283,6 +8623,14 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server."
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAML assertion attribute statement is invalid"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "Error(s) updating CPA values"
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
@@ -8357,6 +8705,14 @@
     "translation": "Failed to set job status to error"
   },
   {
+    "id": "license_error.feature_unavailable",
+    "translation": "Feature is not available for the current license"
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} feature is not available for the current license"
+  },
+  {
     "id": "manaultesting.manual_test.parse.app_error",
     "translation": "Unable to parse URL."
   },
@@ -8423,6 +8779,46 @@
   {
     "id": "model.access.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Could not inherit access control policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Invalid policy id."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Invalid imports for the policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Invalid name for the policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Invalid policy revision."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Rule(s) is not valid."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Policy must either import or define rules."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Invalid policy type."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Version is not valid for this access control policy."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
   },
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
@@ -8499,6 +8895,10 @@
   {
     "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
     "translation": "Channel banner color cannot be empty when channel banner is enabled"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Channel banner color must be a valid hex color (e.g., #FF0000 or #F00)"
   },
   {
     "id": "model.channel.is_valid.banner_info.channel_type.app_error",
@@ -8857,6 +9257,10 @@
     "translation": "Invalid Local Storage Directory. Must be a non-empty string."
   },
   {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Leading or trailing whitespace detected for {{.Setting}}. Found \"{{.Value}}\"."
+  },
+  {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
     "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.) and hyphen (-)."
   },
@@ -8873,6 +9277,10 @@
     "translation": "Search ConnectionUrl setting must be provided when indexing is enabled."
   },
   {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix cannot be empty if GlobalSearchPrefix is set."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
     "translation": "{{.EnableIndexing}} setting must be set to true when {{.Autocomplete}} is set to true"
   },
@@ -8883,6 +9291,10 @@
   {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
     "translation": "Ignored indexes for purge should not start with dash."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} should be a prefix of IndexPrefix {{.IndexPrefix}}."
   },
   {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
@@ -8923,6 +9335,30 @@
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
     "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Max File Age of audit logs config must not be negative."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Maximum File Backups of audit logs config must not be negative."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Maximum File Queue of audit logs config must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Maximum File Size of audit logs config must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "When audit file logging is enabled, a file name must be specified."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "The file name must not be a directory."
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",
@@ -8979,6 +9415,10 @@
   {
     "id": "model.config.is_valid.ldap_login_id",
     "translation": "AD/LDAP field \"Login ID Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Invalid maximum login attempts for ldap settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -9143,6 +9583,22 @@
   {
     "id": "model.config.is_valid.read_timeout.app_error",
     "translation": "Invalid value for read timeout."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Invalid report a problem link. Must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Report a problem link is required."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Invalid report a problem mail. Must be a valid email address."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Report a problem mail is required."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -10362,15 +10818,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Version 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -10439,6 +10895,14 @@
   {
     "id": "web.incoming_webhook.parse.app_error",
     "translation": "Unable to parse incoming data."
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Failed to parse form for webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Failed to parse multipart form for webhook {{.hook_id}}."
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",

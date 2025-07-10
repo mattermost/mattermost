@@ -218,7 +218,7 @@ func validateArgsWithClient(fn validateArgsFn) func(cmd *cobra.Command, args []s
 		ctx, cancel := context.WithTimeout(context.Background(), shellCompleteTimeout)
 		defer cancel()
 
-		c, _, _, err := getClient(ctx)
+		c, _, _, err := getClient(ctx, cmd)
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}

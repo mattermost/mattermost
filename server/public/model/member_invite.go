@@ -14,8 +14,8 @@ type MemberInvite struct {
 	Message    string   `json:"message"`
 }
 
-func (i *MemberInvite) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (i *MemberInvite) Auditable() map[string]any {
+	return map[string]any{
 		"emails":      i.Emails,
 		"channel_ids": i.ChannelIds,
 	}

@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Modal} from 'react-bootstrap';
 import {defineMessages} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -15,6 +15,8 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {trackEvent} from 'actions/telemetry_actions';
+
+import {focusElement} from 'utils/a11y_utils';
 
 import {InviteType} from './invite_as';
 import InviteView, {initializeInviteState} from './invite_view';
@@ -81,6 +83,7 @@ export type Props = {
     initialValue?: string;
     inviteAsGuest?: boolean;
     roleForTrackFlow: {started_by_role: string};
+    focusOriginElement?: string;
 }
 
 export const View = {
@@ -126,6 +129,13 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
 
     handleHide = () => {
         this.setState({show: false});
+    };
+
+    handleExit = () => {
+        if (this.props.focusOriginElement) {
+            focusElement(this.props.focusOriginElement, true);
+        }
+        this.props.onExited?.();
     };
 
     toggleCustomMessage = () => {
@@ -252,15 +262,39 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
 
     debouncedSearchChannels = debounce((term) => this.props.currentTeam && this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
 
+    // Filter channels based on the current invite type and search term
+    filterChannels = (channels: Channel[], isGuestInvite: boolean, searchTerm: string = '') => {
+        return channels.filter((channel) => {
+            // For guest invites, filter out policy_enforced channels
+            if (isGuestInvite && channel.policy_enforced) {
+                return false;
+            }
+
+            // If there's a search term, filter by name match
+            if (searchTerm) {
+                const lowerSearchTerm = searchTerm.toLowerCase();
+                return channel.display_name.toLowerCase().includes(lowerSearchTerm) ||
+                       channel.name.toLowerCase().includes(lowerSearchTerm);
+            }
+
+            return true;
+        });
+    };
+
     channelsLoader = async (value: string) => {
-        if (!value) {
-            return this.props.invitableChannels;
+        const isGuestInvite = this.state.invite.inviteType === InviteType.GUEST;
+
+        // If there's a search term, search the channels from the server
+        if (value) {
+            this.debouncedSearchChannels(value);
         }
 
-        this.debouncedSearchChannels(value);
-        return this.props.invitableChannels.filter((channel) => {
-            return channel.display_name.toLowerCase().startsWith(value.toLowerCase()) || channel.name.toLowerCase().startsWith(value.toLowerCase());
-        });
+        // Apply filtering to the channels
+        return this.filterChannels(
+            this.props.invitableChannels,
+            isGuestInvite,
+            value,
+        );
     };
 
     onChannelsChange = (channels: Channel[]) => {
@@ -416,21 +450,21 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         }
 
         return (
-            <Modal
+            <GenericModal
                 id='invitationModal'
-                data-testid='invitationModal'
-                dialogClassName='a11y__modal modal--overflow'
-                className='InvitationModal'
+                dataTestId='invitationModal'
+                className='InvitationModal a11y__modal modal--overflow'
                 show={this.state.show}
                 onHide={this.handleHide}
-                onExited={this.props.onExited}
-                role='none'
+                onExited={this.handleExit}
                 backdrop={this.getBackdrop()}
-                aria-modal='true'
-                aria-labelledby='invitation_modal_title'
+                ariaLabelledby='invitation_modal_title'
+                compassDesign={true}
+                showCloseButton={false}
+                showHeader={false}
             >
                 {view}
-            </Modal>
+            </GenericModal>
         );
     }
 }

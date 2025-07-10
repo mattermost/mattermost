@@ -24,8 +24,7 @@ import (
 )
 
 func TestOAuthComplete_AccessDenied(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	c := &Context{
 		App: th.App,
@@ -35,7 +34,8 @@ func TestOAuthComplete_AccessDenied(t *testing.T) {
 		AppContext: request.EmptyContext(th.TestLogger),
 	}
 	responseWriter := httptest.NewRecorder()
-	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/TestService/complete?error=access_denied", nil)
+	request, err := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/TestService/complete?error=access_denied", nil)
+	require.NoError(t, err)
 
 	completeOAuth(c, responseWriter, request)
 
@@ -43,15 +43,15 @@ func TestOAuthComplete_AccessDenied(t *testing.T) {
 
 	assert.Equal(t, http.StatusTemporaryRedirect, response.StatusCode)
 
-	location, _ := url.Parse(response.Header.Get("Location"))
+	location, err := url.Parse(response.Header.Get("Location"))
+	require.NoError(t, err)
 	assert.Equal(t, "oauth_access_denied", location.Query().Get("type"))
 	assert.Equal(t, "TestService", location.Query().Get("service"))
 }
 
 func TestAuthorizeOAuthApp(t *testing.T) {
-	th := Setup(t).InitBasic()
-	th.Login(apiClient, th.SystemAdminUser)
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	th.Login(t, apiClient, th.SystemAdminUser)
 
 	enableOAuth := *th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
@@ -85,7 +85,8 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 
 	require.NotEmpty(t, ruri, "redirect url should be set")
 
-	ru, _ := url.Parse(ruri)
+	ru, err := url.Parse(ruri)
+	require.NoError(t, err)
 	require.NotNil(t, ru, "redirect url unparseable")
 	require.NotEmpty(t, ru.Query().Get("code"), "authorization code not returned")
 	require.Equal(t, ru.Query().Get("state"), authRequest.State, "returned state doesn't match")
@@ -96,7 +97,8 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, ruri == "", "redirect url should be set")
 
-	ru, _ = url.Parse(ruri)
+	ru, err = url.Parse(ruri)
+	require.NoError(t, err)
 	require.NotNil(t, ru, "redirect url unparseable")
 	values, err := url.ParseQuery(ru.Fragment)
 	require.NoError(t, err)
@@ -159,7 +161,8 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	}
 	uriResponse, _, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
-	ru, _ = url.Parse(uriResponse)
+	ru, err = url.Parse(uriResponse)
+	require.NoError(t, err)
 	require.NotEmpty(t, uriResponse, "redirect url should be set")
 	require.NotNil(t, ru, "redirect url unparseable")
 	// require no query parameter to have "?"
@@ -173,9 +176,8 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 }
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
-	th := Setup(t).InitBasic()
-	th.Login(apiClient, th.SystemAdminUser)
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	th.Login(t, apiClient, th.SystemAdminUser)
 
 	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
@@ -226,9 +228,8 @@ func TestOAuthAccessToken(t *testing.T) {
 		t.SkipNow()
 	}
 
-	th := Setup(t).InitBasic()
-	th.Login(apiClient, th.SystemAdminUser)
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	th.Login(t, apiClient, th.SystemAdminUser)
 
 	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
@@ -270,14 +271,13 @@ func TestOAuthAccessToken(t *testing.T) {
 
 	redirect, _, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
-	rurl, _ := url.Parse(redirect)
-
-	apiClient.Logout(context.Background())
+	rurl, err := url.Parse(redirect)
+	require.NoError(t, err)
 
 	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{oauthApp.Id}, "client_secret": []string{oauthApp.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
-
-	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
+	_, resp, err := apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "should have failed - bad grant type")
+	CheckBadRequestStatus(t, resp)
 
 	data.Set("grant_type", model.AccessTokenGrantType)
 	data.Set("client_id", "")
@@ -395,8 +395,8 @@ func TestOAuthAccessToken(t *testing.T) {
 }
 
 func TestMobileLoginWithOAuth(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	c := &Context{
 		App:        th.App,
 		AppContext: th.Context,
@@ -417,7 +417,8 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 
 	t.Run("Should redirect to the SSO login page when valid URL Scheme is passed as redirect_to parameter", func(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("mmauth://"), nil)
+		request, err := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("mmauth://"), nil)
+		require.NoError(t, err)
 		mobileLoginWithOAuth(c, responseWriter, request)
 		assert.Equal(t, responseWriter.Code, 302)
 		assert.NotContains(t, responseWriter.Body.String(), siteURL)
@@ -426,7 +427,8 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	t.Run("Should include SiteURL in the output when invalid URL Scheme is passed", func(t *testing.T) {
 		einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 		responseWriter := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("randomScheme://"), nil)
+		request, err := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("randomScheme://"), nil)
+		require.NoError(t, err)
 		mobileLoginWithOAuth(c, responseWriter, request)
 		body := responseWriter.Body.String()
 		assert.NotContains(t, body, "randomScheme://")
@@ -435,7 +437,8 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 
 	t.Run("Should not include the redirect URL consisting of javascript protocol", func(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("javascript:alert('hello')"), nil)
+		request, err := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("javascript:alert('hello')"), nil)
+		require.NoError(t, err)
 		mobileLoginWithOAuth(c, responseWriter, request)
 		body := responseWriter.Body.String()
 		assert.NotContains(t, body, "javascript:alert('hello')")
@@ -444,7 +447,8 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 
 	t.Run("Should not include the redirect URL consisting of javascript protocol in mixed case", func(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("JaVasCript:alert('hello')"), nil)
+		request, err := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("JaVasCript:alert('hello')"), nil)
+		require.NoError(t, err)
 		mobileLoginWithOAuth(c, responseWriter, request)
 		body := responseWriter.Body.String()
 		assert.NotContains(t, body, "JaVasCript:alert('hello')")
@@ -457,9 +461,8 @@ func TestOAuthComplete(t *testing.T) {
 		t.SkipNow()
 	}
 
-	th := Setup(t).InitBasic()
-	th.Login(apiClient, th.SystemAdminUser)
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	th.Login(t, apiClient, th.SystemAdminUser)
 
 	gitLabSettingsEnable := th.App.Config().GitLabSettings.Enable
 	gitLabSettingsAuthEndpoint := th.App.Config().GitLabSettings.AuthEndpoint
@@ -548,7 +551,8 @@ func TestOAuthComplete(t *testing.T) {
 
 	redirect, _, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
-	rurl, _ := url.Parse(redirect)
+	rurl, err := url.Parse(redirect)
+	require.NoError(t, err)
 
 	code := rurl.Query().Get("code")
 	stateProps["action"] = model.OAuthActionEmailToSSO
@@ -613,8 +617,8 @@ func TestOAuthComplete(t *testing.T) {
 }
 
 func TestOAuthComplete_ErrorMessages(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	c := &Context{
 		App:        th.App,
 		AppContext: th.Context,
@@ -632,7 +636,8 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	responseWriter := httptest.NewRecorder()
 
 	// Renders for web & mobile app with webview
-	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234", nil)
+	request, err := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234", nil)
+	require.NoError(t, err)
 
 	completeOAuth(c, responseWriter, request)
 	assert.Contains(t, responseWriter.Body.String(), "<!-- web error message -->")
@@ -642,14 +647,18 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	stateProps["action"] = model.OAuthActionMobile
 	stateProps["redirect_to"] = th.App.Config().NativeAppSettings.AppCustomURLSchemes[0]
 	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
-	request2, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234&state="+url.QueryEscape(state), nil)
+	request2, err := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234&state="+url.QueryEscape(state), nil)
+	require.NoError(t, err)
 
 	completeOAuth(c, responseWriter, request2)
 	assert.Contains(t, responseWriter.Body.String(), "<!-- mobile app message -->")
 }
 
 func HTTPGet(url string, httpClient *http.Client, authToken string, followRedirect bool) (*http.Response, error) {
-	rq, _ := http.NewRequest("GET", url, nil)
+	rq, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
 	rq.Close = true
 
 	if authToken != "" {
@@ -678,7 +687,7 @@ func HTTPGet(url string, httpClient *http.Client, authToken string, followRedire
 
 func closeBody(r *http.Response) {
 	if r != nil && r.Body != nil {
-		io.ReadAll(r.Body)
+		_, _ = io.ReadAll(r.Body) // Discard and ignore errors - just draining the body
 		r.Body.Close()
 	}
 }
@@ -739,13 +748,16 @@ func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 	checkHTTPStatus(t, resp, http.StatusBadRequest)
 }
 
-func (th *TestHelper) Login(client *model.Client4, user *model.User) {
+func (th *TestHelper) Login(tb testing.TB, client *model.Client4, user *model.User) {
+	tb.Helper()
+
 	session := &model.Session{
 		UserId:  user.Id,
 		Roles:   user.GetRawRoles(),
 		IsOAuth: false,
 	}
-	session, _ = th.App.CreateSession(th.Context, session)
+	session, appErr := th.App.CreateSession(th.Context, session)
+	require.Nil(tb, appErr)
 	client.AuthToken = session.Token
 	client.AuthType = model.HeaderBearer
 }

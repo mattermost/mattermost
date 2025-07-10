@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -54,7 +55,7 @@ func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[str
 // finalizeTransactionX ensures a transaction is closed after use, rolling back if not already committed.
 func finalizeTransactionX(transaction *sqlxTxWrapper, perr *error) {
 	// Rollback returns sql.ErrTxDone if the transaction was already closed.
-	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
+	if err := transaction.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
 		*perr = merror.Append(*perr, err)
 	}
 }
@@ -155,7 +156,7 @@ func wrapBinaryParamStringMap(ok bool, props model.StringMap) model.StringMap {
 type morphWriter struct{}
 
 func (l *morphWriter) Write(in []byte) (int, error) {
-	mlog.Debug(string(in))
+	mlog.Debug(strings.TrimSpace(string(in)))
 	return len(in), nil
 }
 
@@ -194,4 +195,28 @@ func quoteColumnName(driver string, columnName string) string {
 	}
 
 	return columnName
+}
+
+// scanRowsIntoMap scans SQL rows into a map, using a provided scanner function to extract key-value pairs
+func scanRowsIntoMap[K comparable, V any](rows *sql.Rows, scanner func(rows *sql.Rows) (K, V, error), defaults map[K]V) (map[K]V, error) {
+	results := make(map[K]V, len(defaults))
+
+	// Initialize with default values if provided
+	for k, v := range defaults {
+		results[k] = v
+	}
+
+	for rows.Next() {
+		key, value, err := scanner(rows)
+		if err != nil {
+			return nil, err
+		}
+		results[key] = value
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error while iterating rows: %w", err)
+	}
+
+	return results, nil
 }

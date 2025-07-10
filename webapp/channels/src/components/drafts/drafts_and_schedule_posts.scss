@@ -1,0 +1,110 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.Drafts {
+    &__header {
+        border-bottom: var(--border-default);
+        grid-area: header;
+    }
+
+    .channel-header__icon,
+    .search__form {
+        margin-top: 1px;
+    }
+
+    &__main {
+        position: absolute;
+        top: 56px;
+        display: flex;
+        overflow: auto;
+        width: 100%;
+        height: calc(100% - 56px);
+        flex-flow: column nowrap;
+    }
+
+    display: grid;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    grid-template-areas:
+        'header'
+        'list';
+
+    // 2-column
+    grid-template-columns: var(--list);
+    grid-template-rows: 56px 1fr;
+
+    .no-results__wrapper > svg {
+        margin-bottom: 20px;
+    }
+
+    #draft_tabs {
+        grid-area: list;
+
+        .nav.nav-tabs {
+            .drafts_tab {
+                .badge {
+                    position: relative;
+                    top: -2px;
+                    display: inline-block;
+                    height: 14px;
+                    margin-left: 6px;
+                    background: rgba(var(--center-channel-color-rgb), 0.2);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
+                    font-size: 11px;
+                }
+
+                &.active {
+                    .badge {
+                        background: rgba(var(--button-bg-rgb), 0.08);
+                        color: var(--button-bg);
+                    }
+                }
+            }
+        }
+
+        .tab-content {
+            height: 100%;
+
+            div[role="tabpanel"] {
+                position: relative;
+                height: 100%;
+            }
+
+            .DraftList.Drafts__main {
+                top: 0;
+                height: calc(100%);
+            }
+        }
+    }
+
+    span.MuiBadge-badge {
+        position: relative;
+        top: -2px;
+    }
+
+    .virtualizedVariableListRowWrapper {
+        padding: 0 24px 16px 24px;
+
+        &.firstRow {
+            padding-top: 24px;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        grid-template-rows: 0 1fr;
+
+        > .Header {
+            display: none;
+        }
+
+        .Header {
+            border-top: var(--border-default);
+        }
+    }
+
+    .Panel {
+        .post--editing__wrapper {
+            margin: 16px;
+        }
+    }
+
+}

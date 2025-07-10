@@ -80,6 +80,7 @@ export type Props = {
 
 type State = {
     pickerExtended: boolean;
+    pickerMounted: boolean;
 }
 
 export class EmojiPickerSkin extends React.PureComponent<Props, State> {
@@ -88,6 +89,7 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
 
         this.state = {
             pickerExtended: false,
+            pickerMounted: false,
         };
     }
 
@@ -109,15 +111,74 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
     };
 
     showSkinTonePicker = () => {
-        this.setState({pickerExtended: true});
+        this.setState({
+            pickerExtended: true,
+            pickerMounted: true,
+        });
     };
 
-    extended() {
+    handleSkinToneHidden = () => {
+        this.setState({
+            pickerMounted: false,
+        });
+    };
+
+    skinTonePickerButton() {
+        const {pickerExtended} = this.state;
+
+        const expandButtonLabel = this.props.intl.formatMessage({
+            id: 'emoji_picker.skin_tone',
+            defaultMessage: 'Skin tone',
+        });
         const closeButtonLabel = this.props.intl.formatMessage({
             id: 'emoji_skin.close',
             defaultMessage: 'Close skin tones',
         });
-        const choices = skinTones.map((skinTone) => {
+
+        const emoji = skinTones.find(({value}) => value === this.props.userSkinTone)!.emoji;
+
+        const buttonClassName = classNames('style--none', {'skin-tones__close-icon': pickerExtended, 'skin-tones__icon skin-tones__expand-icon': !pickerExtended});
+        const spriteClassName = classNames('emojisprite', `emoji-category-${emoji?.category}`, `emoji-${emoji?.unified.toLowerCase()}`);
+
+        const handleOnClick = () => {
+            if (pickerExtended) {
+                this.hideSkinTonePicker(this.props.userSkinTone);
+            } else {
+                this.showSkinTonePicker();
+            }
+        };
+
+        return (
+            <button
+                className={buttonClassName}
+                onClick={handleOnClick}
+                aria-expanded={pickerExtended}
+                aria-label={pickerExtended ? closeButtonLabel : expandButtonLabel}
+                aria-controls='skin-tones-icons'
+                data-testid={pickerExtended === false ? `skin-picked-${this.props.userSkinTone}` : undefined}
+            >
+                {pickerExtended ? (
+                    <CloseIcon
+                        size={16}
+                        color={'rgba(var(--center-channel-color-rgb), 0.75)'}
+                    />
+                ) : (
+                    <WithTooltip
+                        title={expandButtonLabel}
+                    >
+                        <img
+                            alt={'emoji skin tone picker'}
+                            src={imgTrans}
+                            className={spriteClassName}
+                        />
+                    </WithTooltip>
+                )}
+            </button>
+        );
+    }
+
+    choices() {
+        return skinTones.map((skinTone) => {
             const skin = skinTone.value;
             const emoji = skinTone.emoji;
             const spriteClassName = classNames('emojisprite', `emoji-category-${emoji.category}`, `emoji-${emoji.unified.toLowerCase()}`);
@@ -138,83 +199,41 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                 </button>
             );
         });
-        return (
-            <>
-                <div className='skin-tones__close'>
-                    <button
-                        className='skin-tones__close-icon style--none'
-                        onClick={() => this.hideSkinTonePicker(this.props.userSkinTone)}
-                        aria-label={closeButtonLabel}
-                        aria-expanded={this.state.pickerExtended}
-                        tabIndex={0}
-                        aria-controls='skin-tones-icons'
-                    >
-                        <CloseIcon
-                            size={16}
-                            color={'rgba(var(--center-channel-color-rgb), 0.75)'}
-                        />
-                    </button>
-                    <div className='skin-tones__close-text'>
-                        <FormattedMessage
-                            {...skinTones[skinTones.length - 1].label}
-                        />
-                    </div>
-                </div>
-                <div
-                    className='skin-tones__icons'
-                    id='skin-tones-icons'
-                    aria-label='Skin tone icons'
-                    role='region'
-                >
-                    {choices}
-                </div>
-            </>
-        );
-    }
-
-    collapsed() {
-        const emoji = skinTones.find(({value}) => value === this.props.userSkinTone)!.emoji;
-        const spriteClassName = classNames('emojisprite', `emoji-category-${emoji?.category}`, `emoji-${emoji?.unified.toLowerCase()}`);
-        const expandButtonLabel = this.props.intl.formatMessage({
-            id: 'emoji_picker.skin_tone',
-            defaultMessage: 'Skin tone',
-        });
-
-        return (
-            <WithTooltip
-                title={expandButtonLabel}
-            >
-                <button
-                    data-testid={`skin-picked-${this.props.userSkinTone}`}
-                    className='style--none skin-tones__icon skin-tones__expand-icon'
-                    onClick={this.showSkinTonePicker}
-                    aria-label={expandButtonLabel}
-                    aria-controls='skin-tones-icons'
-                    aria-expanded={this.state.pickerExtended}
-                >
-                    <img
-                        alt={'emoji skin tone picker'}
-                        src={imgTrans}
-                        className={spriteClassName}
-                    />
-                </button>
-            </WithTooltip>
-        );
     }
 
     render() {
         return (
             <CSSTransition
                 in={this.state.pickerExtended}
+                onExited={this.handleSkinToneHidden}
                 classNames='skin-tones-animation'
                 timeout={200}
             >
-                <div className={classNames('skin-tones', {'skin-tones--active': this.state.pickerExtended})}>
+                <div className={classNames('skin-tones', {'skin-tones--active': this.state.pickerMounted})}>
                     <div
-                        className={classNames('skin-tones__content', {'skin-tones__content__single': !this.state.pickerExtended})}
+                        className={classNames('skin-tones__content', {'skin-tones__content__single': !this.state.pickerMounted}, {'skin-tones__close': this.state.pickerMounted})}
                         aria-orientation='horizontal'
                     >
-                        {this.state.pickerExtended ? this.extended() : this.collapsed() }
+                        {this.skinTonePickerButton()}
+                        {this.state.pickerMounted &&
+                        <>
+                            <div className='skin-tones__close-text'>
+                                <FormattedMessage
+                                    {...skinTones[skinTones.length - 1].label}
+                                />
+                            </div>
+                            <div
+                                className='skin-tones__icons'
+                                id='skin-tones-icons'
+                                aria-label={this.props.intl.formatMessage({
+                                    id: 'emoji_picker.skin_tone_icons',
+                                    defaultMessage: 'Skin tone icons',
+                                })}
+                                role='region'
+                            >
+                                {this.choices()}
+                            </div>
+                        </>}
                     </div>
                 </div>
             </CSSTransition>

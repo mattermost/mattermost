@@ -10,7 +10,11 @@ import type {Role} from '@mattermost/types/roles';
 import GeneralConstants from 'mattermost-redux/constants/general';
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {isEnterpriseLicense, isNonEnterpriseLicense} from 'utils/license_utils';
+import {
+    isEnterpriseLicense,
+    isMinimumEnterpriseAdvancedLicense,
+    isNonEnterpriseLicense,
+} from 'utils/license_utils';
 
 import type {AdditionalValues, Group} from './types';
 
@@ -240,7 +244,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (scope === 'team_scope' && this.groups[0].id !== 'teams_team_scope') {
             this.groups[0].id = 'teams_team_scope';
         }
-        if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && !postsGroup.permissions.includes(Permissions.USE_GROUP_MENTIONS)) {
+        if (license?.IsLicensed === 'true' && (license?.LDAPGroups === 'true' || config.EnableCustomGroups === 'true') && !postsGroup.permissions.includes(Permissions.USE_GROUP_MENTIONS)) {
             postsGroup.permissions.push(Permissions.USE_GROUP_MENTIONS);
         }
         postsGroup.permissions.push({
@@ -284,6 +288,11 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                     Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
                 ],
             });
+        }
+
+        if (isMinimumEnterpriseAdvancedLicense(license)) {
+            publicChannelsGroup.permissions.push(Permissions.MANAGE_PUBLIC_CHANNEL_BANNER);
+            privateChannelsGroup.permissions.push(Permissions.MANAGE_PRIVATE_CHANNEL_BANNER);
         }
 
         this.groups = this.groups.filter((group) => {

@@ -24,7 +24,6 @@ export default function EditPost() {
 
     const channelId = editingPostDetailsAndPost.post.channel_id;
     const location = editingPostDetailsAndPost.isRHS ? Locations.RHS_COMMENT : Locations.CENTER;
-    const rootId = editingPostDetailsAndPost.post.root_id || editingPostDetailsAndPost.post.id || '';
     const storageKey = `${StoragePrefixes.EDIT_DRAFT}${editingPostDetailsAndPost.post.id}`;
 
     return (
@@ -32,7 +31,8 @@ export default function EditPost() {
             <AdvancedTextEditor
                 location={location}
                 channelId={channelId}
-                postId={rootId}
+                rootId={editingPostDetailsAndPost.post.root_id}
+                postId={editingPostDetailsAndPost.post.id}
                 isInEditMode={true}
                 storageKey={storageKey}
                 placeholder={formatMessage({id: 'edit_post.editPost', defaultMessage: 'Edit the post...'})}

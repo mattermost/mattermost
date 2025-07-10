@@ -46,7 +46,7 @@ describe('components/drafts/draft_actions/delete_draft_modal', () => {
             <DeleteDraftModal {...baseProps}/>,
         );
 
-        wrapper.find(GenericModal).first().props().onExited();
+        wrapper.find(GenericModal).first().props().onExited?.();
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
         expect(wrapper).toMatchSnapshot();
     });

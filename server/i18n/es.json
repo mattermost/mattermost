@@ -208,10 +208,6 @@
     "translation": "No puedes abandonar un canal de mensaje directo."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Eres el último miembro que queda, intenta eliminar el Canal Privado en vez de salirte."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v abandonó el canal."
   },
@@ -598,7 +594,7 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "many": "No se puede encontrar los usuarios: {{.Users}}",
+      "many": "No se pueden encontrar los usuarios: {{.Users}}",
       "one": "No se puede encontrar el usuario: {{.Users}}",
       "other": ""
     }
@@ -649,7 +645,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[usuario] ~[canal]"
+    "translation": "@[username] ~[channel]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
@@ -657,7 +653,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "No se pudo encontrar el usuario. Puede que haya sido desactivado por el Administrador del Sistema."
+    "translation": "No se pudo encontrar al usuario {{.User}}. Puede que haya sido desactivado por el Administrador del Sistema."
   },
   {
     "id": "api.command_invite.name",
@@ -677,7 +673,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} ya está en el canal."
+    "translation": {
+      "many": "{{.User}} ya están en el canal.",
+      "one": "{{.User}} ya está en el canal.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -982,8 +982,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "many": "[{{.SiteName}}] Nuevas Notificaciones {{.Day}} {{.Month}}, {{.Year}}",
-      "one": "[{{.SiteName}}] Nueva Notificación {{.Day}} {{.Month}}, {{.Year}}",
+      "many": "[{{.SiteName}}] Nuevas Notificaciones del {{.Day}} {{.Month}}, {{.Year}}",
+      "one": "[{{.SiteName}}] Nueva Notificación del {{.Day}} {{.Month}}, {{.Year}}",
       "other": ""
     }
   },
@@ -1729,7 +1729,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "La restricción del equipo a {{.Domain}} no está permitido por la configuración del sistema. Por favor contacta a un administrador del sistema."
+    "translation": "La configuración del sistema no permite limitar el equipo a {{ .Domain }}. Por favor, contacta con el administrador."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -1885,7 +1885,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Un token de acceso personal ha sido agregado a tu cuenta en {{ .SiteURL}}. El mismo puede ser utilizado para acceder a {{.SiteName}} con tu cuenta."
+    "translation": "Un token de acceso personal ha sido agregado a tu cuenta en {{ .SiteURL }}. El mismo puede ser utilizado para acceder a {{.SiteName}} con tu cuenta."
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -2105,7 +2105,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Servicio}} SSO a través de OAuth 2.0 no está disponible en este servidor."
+    "translation": "{{.Service}} SSO a través de OAuth 2.0 no está disponible en este servidor."
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -2261,7 +2261,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Falla al actualizar la conexión del websocket."
+    "translation": "URL bloqueada por restricción de CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -2849,11 +2849,11 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] Nuevo Mensaje de Grupo en {{ .TeamName}} el {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nuevo Mensaje de Grupo en {{ .ChannelName}} el {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Nuevo Mensaje de Grupo el {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nuevo Mensaje de Grupo el {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3009,31 +3009,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "El agregador trabajos de Elasticsearch no pudo crear el trabajo de indexación"
+    "translation": "El agregador trabajos de {{.Backend}} no pudo crear el trabajo de indexación"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "El agregador trabajos de Elasticsearch no pudo eliminar los índices"
+    "translation": "El agregador trabajos de {{.Backend}} no pudo eliminar los índices"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "El agregador trabajos de Elasticsearch no pudo obtener los índices"
+    "translation": "El agregador trabajos de {{.Backend}} no pudo obtener los índices"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "El agregador trabajos de Elasticsearch falló debido a que hay un trabajo indexación fallando"
+    "translation": "El agregador trabajos de {{.Backend}} falló debido a que hay un trabajo indexación fallando"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "La configuración del cliente de Elasticsearch falló"
+    "translation": "La configuración del cliente de {{.Backend}} falló"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "No se pudo borrar el índice de ElasticSearch"
+    "translation": "No se pudo borrar el índice de {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "No se pudo obtener los índices de Elasticsearch"
+    "translation": "No se pudo obtener los índices de {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3041,7 +3041,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "La búsqueda con Elasticsearch está deshabilitada en este servidor"
+    "translation": "La búsqueda con {{.Backend}} está deshabilitada en este servidor"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3049,19 +3049,19 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "El trabajo de Elasticsearch falló al analizar la hora de finalización"
+    "translation": "El trabajo de indexación en {{.Backend}} falló al analizar la hora de finalización"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "El trabajo de Elasticsearch falló al analizar la hora de inicio"
+    "translation": "El trabajo de indexación en {{.Backend}} falló al analizar la hora de inicio"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch no se ha iniciado"
+    "translation": "{{.Backend}} no se ha iniciado"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "La búsqueda con Elasticsearch está deshabilitada en este servidor"
+    "translation": "La búsqueda con {{.Backend}} está deshabilitada en este servidor"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3077,11 +3077,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch ya fue detenido."
+    "translation": "{{.Backend}} ya fue detenido."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch está deshabilitado."
+    "translation": "{{.Backend}} está deshabilitado."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3241,7 +3241,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "El trigger ID para el diálogo interactivo ha expirado. Los trigger IDs tienen una duración máxima de {{.Seconds}} segundos."
+    "translation": "El trigger ID para el diálogo interactivo ha expirado. Los trigger IDs tienen una duración máxima de {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -3605,7 +3605,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "El valor de Elasticsearch IndexingEnabled debe ser verdadero cuando el valor de Elasticsearch SearchEnabled es verdadero"
+    "translation": "La configuración {{.EnableIndexing}} debe estar establecida en verdadero cuando {{.Searching}} está configurado como verdadero"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -3993,7 +3993,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Id inválido."
+    "translation": "Id inválido: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4513,7 +4513,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Este webhook no tiene autorización para publicar en el canal solicitado."
+    "translation": "Este webhook no tiene autorización para publicar en el canal {{.channel_id}} solicitado"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4529,7 +4529,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Permisos del canal inapropiados."
+    "translation": "El usuario {{.user}} no tiene los permisos apropiados para el canal {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4541,7 +4541,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "No se encontró el usuario."
+    "translation": "No se encontró el usuario {{.user}}"
   },
   {
     "id": "api.license.request-trial.bad-request",
@@ -4781,7 +4781,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "El valor de Elasticsearch EnabledIndexing debe ser verdadero cuando el valor de Elasticsearch EnabledAutocomplete es verdadero"
+    "translation": "La configuración {{.EnableIndexing}} debe estar establecida en verdadero cuando {{.Autocomplete}} está configurado como verdadero"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4837,15 +4837,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "No se pudo crear la plantilla Elasticsearch para los usuarios"
+    "translation": "No se pudo crear la plantilla {{.Backend}} para los usuarios"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "No se pudo crear la plantilla Elasticsearch para los mensajes"
+    "translation": "No se pudo crear la plantilla {{.Backend}} para los mensajes"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "No se pudo crear la plantilla Elasticsearch para los canales"
+    "translation": "No se pudo crear la plantilla {{.Backend}} para los canales"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5441,7 +5441,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} y @{.LastUsername}} no fueron notificados por esta mención porque no se encuentran en este canal. Ellos no pueden ser agregados a este canal porque no son miembros de los grupos asociados. Para agregarlos a este canal, deben ser agregados a los grupos asociados."
+    "translation": "@{{.Usernames}} y @{{.LastUsername}} no fueron notificados por esta mención porque no se encuentran en este canal. Ellos no pueden ser agregados a este canal porque no son miembros de los grupos asociados. Para agregarlos a este canal, deben ser agregados a los grupos asociados."
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
@@ -5493,7 +5493,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} no es un miembro de este canal."
+    "translation": "Solo se puede agregar {{.Users}} a este canal una vez que sean miembros del equipo **{{.Team}}**."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -5625,11 +5625,11 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Fallo al interpretar la versión del servidor de Elasticsearch."
+    "translation": "Fallo al interpretar la versión del servidor de {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Fallo al intentar recuperar la versión del servidor de Elasticsearch."
+    "translation": "Fallo al intentar recuperar la versión del servidor de {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -5649,7 +5649,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "La búsqueda con Elasticsearch está deshabilitada en este servidor"
+    "translation": "La búsqueda con {{.Backend}} está deshabilitada en este servidor"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -7801,7 +7801,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Error al comprobar si el canal compartido existe: {{.Error}}"
+    "translation": "Error al comprobar si el canal compartido {{.ChannelID}} existe: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
@@ -7841,7 +7841,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Conexión segura | Nombre a mostrar | ID de la conexión | URL del Sitio | Invitación aceptada | En Linea | Último ping  |"
+    "translation": "| Conexión segura | Nombre a mostrar | ID de la conexión | URL del Sitio | Equipo predeterminado | Invitación aceptada | En Linea | Último ping | Eliminado |"
   },
   {
     "id": "api.command_remote.name.hint",
@@ -8029,7 +8029,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "La búsqueda de archivos en Elasticsearch está desactivada en este servidor"
+    "translation": "La búsqueda de archivos en {{.Backend}} está desactivada en este servidor"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -8053,7 +8053,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Fallo al crear la plantilla de Elasticsearch para los archivos"
+    "translation": "Fallo al crear la plantilla de {{.Backend}} para los archivos"
   },
   {
     "id": "ent.data_retention.run_failed.error",
@@ -8393,7 +8393,7 @@
   },
   {
     "id": "common.parse_error_int64",
-    "translation": " "
+    "translation": "Error al convertir el valor: {{.Value}} a int64"
   },
   {
     "id": "app.post.cloud.get.app_error",
@@ -8489,7 +8489,7 @@
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
-    "translation": " "
+    "translation": "{{ .SenderName }} te invitó a unirte a {{ .ChannelsLen }} canales del Equipo {{ .TeamDisplayName }}"
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
@@ -8541,11 +8541,11 @@
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
-    "translation": " "
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} te ha invitado a participar en {{ .ChannelsLen }} canales del equipo {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} te invitó a unirte al Canal {{ .ChannelName }} en el Equipo {{ .TeamDisplayName}}"
+    "translation": "{{ .SenderName }} te invitó a unirte al Canal {{ .ChannelName }} en el Equipo {{ .TeamDisplayName }}"
   },
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
@@ -8585,7 +8585,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost es una plataforma de código abierto para comunicación segura, colaboración, y orquestación de trabajo entre herramientas y equipos.\nMattermost contiene tres herramientas clave:\n\n**Channels** - Mantente conectado con tu equipo vía 1:1 y en por mensajes grupales.\n**[Playbooks](/playbooks)** - Construye y configura procesos repetibles para lograr resultados específicos y predecibles.\n**[Tableros](/boards)** - Administra proyectos y tareas en una estructura de tablero Kanban para ayudar a que tú equipo logre los hitos clave.\n\n[Ver documentación y guías]({{.HelpLink}})"
+    "translation": "Mattermost es una plataforma de código abierto para comunicación segura, colaboración, y orquestación de trabajo entre herramientas y equipos.\nMattermost contiene tres herramientas clave:\n\n**Canales** - Mantente conectado con tu equipo vía 1:1 y en por mensajes grupales.\n**[Playbooks](/playbooks)** - Construye y configura procesos repetibles para lograr resultados específicos y predecibles.\n\n[Ver documentación y guías]({{.HelpLink}})"
   },
   {
     "id": "app.cloud.trial_plan_bot_message",
@@ -8737,7 +8737,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "No puedes reconocer en un canal archivado."
+    "translation": "No puedes guardar un acuse de recibo en un canal archivado."
   },
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",
@@ -8757,7 +8757,7 @@
   },
   {
     "id": "api.config.update_config.translations.app_error",
-    "translation": "Falla al actualizar traducciones del servidor."
+    "translation": "No se pudo actualizar traducciones del servidor."
   },
   {
     "id": "api.context.ip_filtering.apply_ip_filters.app_error",
@@ -8765,7 +8765,7 @@
   },
   {
     "id": "api.context.ip_filtering.get_ip_filters.app_error",
-    "translation": "Ha ocurrido un error mientras se buscaron los Filtros IP"
+    "translation": "Se ha producido un error al obtener los Filtros de IP"
   },
   {
     "id": "api.context.ip_filtering.get_my_ip.failed",
@@ -8858,5 +8858,309 @@
   {
     "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
     "translation": "Error al eliminar el marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "No se pudo crear el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "No se pudo eliminar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "No se pudo eliminar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "No se pudo eliminar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "No se pudo actualizar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "No se pudo actualizar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "No se pudo actualizar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "No se pudo actualizar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "No se pudo actualizar el orden de clasificación del marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "No se pudo actualizar el orden de clasificación del marcador del canal."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Ocurrió un error al actualizar la conexión OAuth saliente."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "No se pudo actualizar el orden de clasificación del marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "No se pudo actualizar el orden de clasificación del marcador del canal."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Solicitud errónea."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Sesiones no encontradas."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "No se pudo filtrar la configuración."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Dirección de correo electrónico empresarial inválida para la prueba"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Se produjo un error al crear la conexión OAuth saliente."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Parámetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Las conexiones OAuth salientes no están disponibles en este servidor."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Ocurrió un error al listar las conexiones OAuth salientes."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Parámetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Ocurrió un error al validar las credenciales de conexión OAuth saliente."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Parámetros de entrada inválidos."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "No se pudo actualizar el estado personalizado. El emoji con el nombre especificado no existe."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "No fue posible ubicar el principio del archivo."
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Falta team_id en el cuerpo de la solicitud"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Falta display_name en el cuerpo de la solicitud"
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "No se puede procesar la solicitud. El cuerpo de la solicitud es demasiado grande."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "No se pudo obtener un lector de archivos zip."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "La licencia actual no permite Atributos de Perfil Personalizados."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Error: no se ha indicado el nombre de la organización para la puesta en marcha en servidor propio."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "No se pudo obtener la URL del sitio de la instancia"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "No se puede crear un canal directo con un usuario remoto"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "No se puede crear una canal de grupo con usuarios remotos"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Actualización de miembro de canal inválida: Un invitado no puede ser promovido a miembro del equipo o administrador del equipo, primero debe ser promovido a usuario."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Actualización de miembro de canal no válida: Un invitado no puede ser establecido para un solo canal, un Administrador del Sistema debe promover o degradar usuarios a/desde invitados."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "El autocompletado de canales no se puede habilitar porque el esquema del índice de canales está desactualizado. Se recomienda regenerar el índice de canales. Consulta el registro de cambios de Mattermost para más información"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Se produjo un error al eliminar la conexión OAuth saliente."
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "No se pudo copiar el contenido del archivo de licencia al búfer"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Estado establecido no válido"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "No tienes permiso para gestionar este tipo de tarea"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "El tamaño del plugin cargado excede el límite establecido. Este límite puede cambiarse en la Consola del Sistema en Almacenamiento de Archivos > Tamaño Máximo de Archivo"
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "No es posible ejecutar comandos en un canal eliminado."
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "No se pudo crear la invitación al clúster remoto"
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "No es posible obtener tantos roles por nombre. Solo se pueden solicitar {{.MaxNames}} roles a la vez."
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "No se pudieron escribir los registros en el búfer"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "No se pudo aceptar la invitación del clúster remoto"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "la función de publicaciones programadas está desactivada"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "La función de publicaciones programadas requiere una licencia"
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "No se puede generar el código de invitación para un clúster confirmado"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "No se pudo decodificar la cadena base64"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "El clúster remoto no ha sido eliminado"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "No se pudo encriptar la invitación al clúster remoto utilizando la contraseña proporcionada"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Clúster remoto no encontrado"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "No fue posible desencriptar la invitación al clúster remoto con la contraseña suministrada"
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "El movimiento de hilos de conversación está deshabilitado"
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "La validación de la notificación persistente ha fallado."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} y @{{.LastUsername}} no fueron notificados por esta mención debido a que no pertenecen a este equipo."
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "No es posible borrar la publicación, ya que ServiceSettings.EnableAPIPostDeletion no está activado."
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "No tienes permiso para mover este hilo de conversación."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "La publicación de notificación persistente permite un máximo de {{.MaxRecipients}} destinatarios."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "La publicación de notificación persistente debe tener al menos 1 destinatario."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal no disponible para registro de autoalojamiento."
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Filtro de registros inválido"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Actualización de miembro de equipo inválida: Un usuario invitado no puede ser designado como miembro o administrador de equipo, es necesario promoverlo a usuario primero."
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} modificó la configuración de filtrado de IP para tu espacio de trabajo en la URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Revisar cambios"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Error al guardar en caché la publicación después de eliminar duplicados de una solicitud de cliente repetida."
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "No es posible encontrar el usuario."
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Actualización de miembro de equipo no válida: Un invitado no puede ser asignado a un único equipo, un Administrador del Sistema debe promover o degradar usuarios a/desde invitados."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} no fue notificado por esta mención porque no es miembro de este equipo."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "No se pudieron obtener los remotos del canal compartido"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "No se pudo determinar si el canal está compartido con el remoto"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "No se pudo invitar remoto al canal"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "No se pudo anular la invitación de remoto al canal"
   }
 ]

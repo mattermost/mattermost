@@ -15,6 +15,11 @@ import './react-intl_mock';
 import './react-router-dom_mock';
 import './react-tippy_mock';
 
+module.exports = async () => {
+    // eslint-disable-next-line no-process-env
+    process.env.TZ = 'UTC';
+};
+
 configure({adapter: new (Adapter as any)()});
 
 global.window = Object.create(window);
@@ -63,9 +68,7 @@ function isDependencyWarning(params: string[]) {
         paramsHasComponent('Overlay') ||
         paramsHasComponent('Position') ||
         paramsHasComponent('Dropdown') ||
-
-        // React-Select
-        paramsHasComponent('Select')
+        paramsHasComponent('Tabs')
     );
 }
 

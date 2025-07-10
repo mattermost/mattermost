@@ -32,6 +32,7 @@ jobs:
         run: |
           cd server/build
           docker compose --no-ansi run --rm start_dependencies
+          cat ../tests/custom-schema-cpa.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
           cat ../tests/test-data.ldif | docker compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --no-ansi ps
@@ -89,7 +90,7 @@ jobs:
           # We skip the very last line, which simply contains the date of the dump
           head -n -1 ${DUMP_SERVER_NAME} | gzip > ${DUMP_SERVER_NAME}.gz
       - name: Upload dump
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: upgraded-dump-server
           path: ${{ env.DUMP_SERVER_NAME }}.gz
@@ -103,6 +104,7 @@ jobs:
         run: |
           cd server/build
           docker compose --no-ansi run --rm start_dependencies
+          cat ../tests/custom-schema-cpa.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
           cat ../tests/test-data.ldif | docker compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --no-ansi ps
@@ -134,7 +136,7 @@ jobs:
           # We skip the very last line, which simply contains the date of the dump
           head -n -1 ${DUMP_SCRIPT_NAME} | gzip > ${DUMP_SCRIPT_NAME}.gz
       - name: Upload dump
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: upgraded-dump-script
           path: ${{ env.DUMP_SCRIPT_NAME }}.gz
@@ -145,7 +147,7 @@ jobs:
       - esr-upgrade-script
     steps:
       - name: Retrieve dumps
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       - name: Diff dumps
         run: |
           gzip -d upgraded-dump-server/${DUMP_SERVER_NAME}.gz
@@ -153,7 +155,7 @@ jobs:
           diff upgraded-dump-server/$DUMP_SERVER_NAME upgraded-dump-script/$DUMP_SCRIPT_NAME > $DIFF_NAME
       - name: Upload diff
         if: failure() # Upload the diff only if the previous step failed; i.e., if the diff is non-empty
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dumps-diff
           path: ${{ env.DIFF_NAME }}

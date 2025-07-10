@@ -23,7 +23,7 @@ import Search from 'components/search/index';
 
 import RhsPlugin from 'plugins/rhs_plugin';
 import a11yController from 'utils/a11y_controller_instance';
-import {focusElement} from 'utils/a11y_utils';
+import {focusElement, getFirstFocusableChild} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {isMac} from 'utils/user_agent';
@@ -163,7 +163,16 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             // Focus the sidebar after a tick
             setTimeout(() => {
                 if (this.sidebarRight.current) {
-                    focusElement(this.sidebarRight, false);
+                    const rhsContainer = this.sidebarRight.current.querySelector('#rhsContainer') as HTMLElement;
+                    const searchContainer = this.sidebarRight.current.querySelector('#searchContainer') as HTMLElement;
+                    if (rhsContainer || searchContainer) {
+                        const firstFocusable = getFirstFocusableChild(rhsContainer || searchContainer);
+                        focusElement(firstFocusable || rhsContainer, true);
+                    } else {
+                        // Fallback: if rhsContainer isn't found, use sidebarRight.current directly.
+                        const firstFocusable = getFirstFocusableChild(this.sidebarRight.current);
+                        focusElement(firstFocusable || this.sidebarRight.current, true);
+                    }
                 }
             }, 0);
         } else if (!this.props.isOpen && wasOpen) {
@@ -173,7 +182,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             } else {
                 setTimeout(() => {
                     if (this.previousActiveElement) {
-                        focusElement(this.previousActiveElement, false);
+                        focusElement(this.previousActiveElement, true);
                         this.previousActiveElement = null;
                     }
                 }, 0);

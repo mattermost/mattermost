@@ -99,7 +99,7 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
             </Provider>,
         );
 
-        wrapper.find(GenericModal).props().onExited();
+        wrapper.find(GenericModal).props().onExited?.();
 
         expect(mockOnClose).toHaveBeenCalled();
     });
@@ -116,7 +116,7 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
             </Provider>,
         );
 
-        wrapper.find(GenericModal).props().onExited();
+        wrapper.find(GenericModal).props().onExited?.();
 
         expect(mockOnExited).toHaveBeenCalled();
     });

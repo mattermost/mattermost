@@ -100,6 +100,7 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "closeCallback": null,
         "closeListeners": Set {},
         "config": Object {
+          "clientPingInterval": 30000,
           "maxWebSocketFails": 7,
           "maxWebSocketRetryTime": 300000,
           "minWebSocketRetryTime": 3000,
@@ -109,15 +110,18 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "conn": null,
         "connectFailCount": 0,
         "connectionId": "",
-        "connectionUrl": null,
         "errorCallback": null,
         "errorListeners": Set {},
         "eventCallback": null,
         "firstConnectCallback": null,
         "firstConnectListeners": Set {},
+        "lastErrCode": null,
         "messageListeners": Set {},
         "missedEventCallback": null,
         "missedMessageListeners": Set {},
+        "offlineHandler": null,
+        "onlineHandler": null,
+        "pingInterval": null,
         "postedAck": false,
         "reconnectCallback": null,
         "reconnectListeners": Set {},
@@ -126,6 +130,7 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "responseSequence": 1,
         "serverHostname": "",
         "serverSequence": 0,
+        "waitingForPong": false,
       }
     }
   />
@@ -156,6 +161,7 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "closeCallback": null,
         "closeListeners": Set {},
         "config": Object {
+          "clientPingInterval": 30000,
           "maxWebSocketFails": 7,
           "maxWebSocketRetryTime": 300000,
           "minWebSocketRetryTime": 3000,
@@ -165,15 +171,18 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "conn": null,
         "connectFailCount": 0,
         "connectionId": "",
-        "connectionUrl": null,
         "errorCallback": null,
         "errorListeners": Set {},
         "eventCallback": null,
         "firstConnectCallback": null,
         "firstConnectListeners": Set {},
+        "lastErrCode": null,
         "messageListeners": Set {},
         "missedEventCallback": null,
         "missedMessageListeners": Set {},
+        "offlineHandler": null,
+        "onlineHandler": null,
+        "pingInterval": null,
         "postedAck": false,
         "reconnectCallback": null,
         "reconnectListeners": Set {},
@@ -182,6 +191,7 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "responseSequence": 1,
         "serverHostname": "",
         "serverSequence": 0,
+        "waitingForPong": false,
       }
     }
   />

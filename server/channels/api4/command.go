@@ -11,7 +11,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitCommand() {
@@ -36,8 +35,8 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createCommand", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
+	auditRec := c.MakeAuditRecord("createCommand", model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -77,14 +76,14 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCommand", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
+	auditRec := c.MakeAuditRecord("updateCommand", model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
+		model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 		c.SetCommandNotFoundError()
 		return
 	}
@@ -137,8 +136,8 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("moveCommand", audit.Fail)
-	audit.AddEventParameter(auditRec, "command_move_request", cmr.TeamId)
+	auditRec := c.MakeAuditRecord("moveCommand", model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "command_move_request", cmr.TeamId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -147,7 +146,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	audit.AddEventParameterAuditable(auditRec, "team", newTeam)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "team", newTeam)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), newTeam.Id, model.PermissionManageSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
@@ -189,8 +188,8 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteCommand", audit.Fail)
-	audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
+	auditRec := c.MakeAuditRecord("deleteCommand", model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -319,9 +318,9 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("executeCommand", audit.Fail)
+	auditRec := c.MakeAuditRecord("executeCommand", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "command_args", &commandArgs)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "command_args", &commandArgs)
 
 	// Checks that user is a member of the specified channel, and that they have permission to create a post in it.
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), commandArgs.ChannelId, model.PermissionCreatePost) {
@@ -439,7 +438,9 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 		c.Err = model.NewAppError("listCommandAutocompleteSuggestions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -448,18 +449,18 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("regenCommandToken", audit.Fail)
+	auditRec := c.MakeAuditRecord("regenCommandToken", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
+		model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 		c.SetCommandNotFoundError()
 		return
 	}
 	auditRec.AddEventPriorState(cmd)
-	audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
+	model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
@@ -487,5 +488,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp := make(map[string]string)
 	resp["token"] = rcmd.Token
 
-	w.Write([]byte(model.MapToJSON(resp)))
+	if _, err := w.Write([]byte(model.MapToJSON(resp))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

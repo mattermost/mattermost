@@ -12,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -106,10 +105,12 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 	logger.Debug("Worker: Received a new candidate job.")
 	defer worker.jobServer.HandleJobPanic(logger, job)
 
-	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		logger.Warn("S3PathMigrationWorker experienced an error while trying to claim job", mlog.Err(err))
+	var appErr *model.AppError
+	job, appErr = worker.jobServer.ClaimJob(job)
+	if appErr != nil {
+		logger.Warn("S3PathMigrationWorker experienced an error while trying to claim job", mlog.Err(appErr))
 		return
-	} else if !claimed {
+	} else if job == nil {
 		return
 	}
 
@@ -117,17 +118,6 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 		err := errors.New("no S3 file backend found")
 		logger.Error("S3PathMigrationWorker: ", mlog.Err(err))
 		worker.setJobError(logger, job, model.NewAppError("DoJob", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
-		return
-	}
-
-	c := request.EmptyContext(worker.logger)
-
-	var appErr *model.AppError
-	// We get the job again because ClaimJob changes the job status.
-	job, appErr = worker.jobServer.GetJob(c, job.Id)
-	if appErr != nil {
-		logger.Error("S3PathMigrationWorker: job execution error", mlog.Err(appErr))
-		worker.setJobError(logger, job, appErr)
 		return
 	}
 

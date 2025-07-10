@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {Team} from '@mattermost/types/teams';
+
 import {
     renderWithContext,
     screen,
@@ -19,6 +21,7 @@ describe('components/new_search/SearchBox', () => {
         initialSearchType: 'messages',
         initialSearchTeam: 'teamId',
         crossTeamSearchEnabled: true,
+        myTeams: [{id: 'team1', name: 'team1', display_name: 'Team 1', description: ''}] as Team[],
     };
 
     test('should have the focus on the input field', () => {
@@ -71,5 +74,45 @@ describe('components/new_search/SearchBox', () => {
         fireEvent.keyDown(screen.getByPlaceholderText('Search files'), {key: 'ArrowUp', code: 'ArrowUp'});
         expect(screen.getByText('Text file')).toHaveClass('selected');
         expect(screen.getByText('Word Document')).not.toHaveClass('selected');
+    });
+
+    test('should show team selector when there is more than one team', () => {
+        const props = {
+            ...baseProps,
+            myTeams: [
+                {id: 'team1', name: 'team1', display_name: 'Team 1', description: ''} as Team,
+                {id: 'team2', name: 'team2', display_name: 'Team 2', description: ''} as Team,
+            ],
+        };
+        renderWithContext(<SearchBox {...props}/>);
+
+        // The select team dropdown should be visible
+        const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
+        expect(teamSelector).toBeInTheDocument();
+    });
+
+    test('should not show team selector when there is only one team', () => {
+        // Base props already has one team
+        renderWithContext(<SearchBox {...baseProps}/>);
+
+        // The select team dropdown should not be visible
+        const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
+        expect(teamSelector).not.toBeInTheDocument();
+    });
+
+    test('should not show team selector when cross-team search is disabled', () => {
+        const props = {
+            ...baseProps,
+            crossTeamSearchEnabled: false,
+            myTeams: [
+                {id: 'team1', name: 'team1', display_name: 'Team 1', description: ''} as Team,
+                {id: 'team2', name: 'team2', display_name: 'Team 2', description: ''} as Team,
+            ],
+        };
+        renderWithContext(<SearchBox {...props}/>);
+
+        // The select team dropdown should not be visible
+        const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
+        expect(teamSelector).not.toBeInTheDocument();
     });
 });

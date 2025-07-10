@@ -167,6 +167,12 @@
         border: none;
     }
 
+    .textarea-wrapper-preview {
+        hr {
+            border-top: solid 1px rgba(var(--center-channel-color-rgb), 0.24)
+        }
+    }
+
     .post-create__container {
         width: 100%;
 

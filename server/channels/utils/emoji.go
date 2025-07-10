@@ -15,16 +15,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func CreateTestGif(t testing.TB, width int, height int) []byte {
+func CreateTestGif(tb testing.TB, width int, height int) []byte {
 	var buffer bytes.Buffer
 
 	err := gif.Encode(&buffer, image.NewRGBA(image.Rect(0, 0, width, height)), nil)
-	require.NoErrorf(t, err, "failed to create gif: %v", err)
+	require.NoErrorf(tb, err, "failed to create gif: %v", err)
 
 	return buffer.Bytes()
 }
 
-func CreateTestAnimatedGif(t *testing.T, width int, height int, frames int) []byte {
+func CreateTestAnimatedGif(tb testing.TB, width int, height int, frames int) []byte {
 	var buffer bytes.Buffer
 
 	img := gif.GIF{
@@ -36,25 +36,25 @@ func CreateTestAnimatedGif(t *testing.T, width int, height int, frames int) []by
 		img.Delay[i] = 0
 	}
 	err := gif.EncodeAll(&buffer, &img)
-	require.NoErrorf(t, err, "failed to create animated gif: %v", err)
+	require.NoErrorf(tb, err, "failed to create animated gif: %v", err)
 
 	return buffer.Bytes()
 }
 
-func CreateTestJpeg(t *testing.T, width int, height int) []byte {
+func CreateTestJpeg(tb testing.TB, width int, height int) []byte {
 	var buffer bytes.Buffer
 
 	err := jpeg.Encode(&buffer, image.NewRGBA(image.Rect(0, 0, width, height)), nil)
-	require.NoErrorf(t, err, "failed to create jpeg: %v", err)
+	require.NoErrorf(tb, err, "failed to create jpeg: %v", err)
 
 	return buffer.Bytes()
 }
 
-func CreateTestPng(t testing.TB, width int, height int) []byte {
+func CreateTestPng(tb testing.TB, width int, height int) []byte {
 	var buffer bytes.Buffer
 
 	err := png.Encode(&buffer, image.NewRGBA(image.Rect(0, 0, width, height)))
-	require.NoErrorf(t, err, "failed to create png: %v", err)
+	require.NoErrorf(tb, err, "failed to create png: %v", err)
 
 	return buffer.Bytes()
 }

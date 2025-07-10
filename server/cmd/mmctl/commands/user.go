@@ -468,7 +468,7 @@ func changeUserActiveStatus(c client.Client, user *model.User, activate bool) er
 		printer.Print("You must also deactivate user " + user.Id + " in the SSO provider or they will be reactivated on next login or sync.")
 	}
 	if _, err := c.UpdateUserActive(context.TODO(), user.Id, activate); err != nil {
-		return fmt.Errorf("unable to change activation status of user: %v", user.Id)
+		return fmt.Errorf("unable to change activation status of user %v: %w", user.Id, err)
 	}
 
 	return nil
@@ -738,24 +738,30 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	users, err := getUsersFromArgs(c, args)
 	if err != nil {
-		printer.PrintError(err.Error())
+		return err
 	}
+
+	var errs *multierror.Error
 	for i, user := range users {
 		if user == nil {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
 		if res, err := c.PermanentDeleteUser(context.TODO(), user.Id); err != nil {
-			printer.PrintError("Unable to delete user '" + user.Username + "' error: " + err.Error())
+			errs = multierror.Append(errs,
+				fmt.Errorf("unable to delete user %s error: %w", user.Username, err))
 		} else {
 			// res.StatusCode is checked for 202 to identify issues with file deletion.
 			if res.StatusCode == http.StatusAccepted {
-				printer.PrintError("There were issues with deleting profile image of the user. Please delete it manually. Id: " + user.Id)
+				errs = multierror.Append(errs,
+					fmt.Errorf("unable to delete the profile image of the user, please delete it manually, id:%s", user.Username))
+				continue
 			}
 			printer.PrintT("Deleted user '{{.Username}}'", user)
 		}
 	}
-	return nil
+
+	return errs.ErrorOrNil()
 }
 
 func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -775,6 +781,13 @@ func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	return nil
 }
 
+// userOut is the output format for users.
+type userOut struct {
+	*model.User
+	Deactivated bool
+	AuthData    string
+}
+
 func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
@@ -789,19 +802,29 @@ func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	for i, user := range users {
+		uout := userOut{
+			User:        user,
+			Deactivated: !(user.DeleteAt == 0),
+		}
+		if user.AuthData != nil {
+			uout.AuthData = *user.AuthData
+		}
+
 		tpl := `id: {{.Id}}
+deactivated: {{.Deactivated}}
 username: {{.Username}}
 nickname: {{.Nickname}}
 position: {{.Position}}
 first_name: {{.FirstName}}
 last_name: {{.LastName}}
 email: {{.Email}}
-auth_service: {{.AuthService}}`
+auth_service: {{.AuthService}}
+auth_data: {{.AuthData}}`
 		if i > 0 {
 			tpl = "------------------------------\n" + tpl
 		}
 
-		printer.PrintT(tpl, user)
+		printer.PrintT(tpl, uout)
 	}
 
 	return nil

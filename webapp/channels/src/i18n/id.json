@@ -186,7 +186,6 @@
   "audit_table.failedInvalidLicenseAdd": "Gagal untuk menambahkan lisensi yang tidak sah",
   "audit_table.failedLogin": "GAGAL melakukan login",
   "center_panel.archived.closeChannel": "Tutup Saluran",
-  "channel_header.manageMembers": "Kelola Anggota",
   "channel_header.viewMembers": "Lihat Anggota",
   "channel_loader.someone": "Seseorang",
   "channel_modal.cancel": "Batalkan",

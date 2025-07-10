@@ -58,6 +58,7 @@ interface Props {
     isEmojiLarge?: boolean;
     hint?: string | ReactNode | MessageDescriptor;
     shortcut?: ShortcutDefinition;
+    id?: string;
 
     /**
      * Whether the tooltip should be vertical or horizontal, by default it is vertical
@@ -83,6 +84,8 @@ interface Props {
    */
     onOpen?: () => void;
     children: ReactElement;
+
+    forcedPlacement?: Placement;
 }
 
 export default function WithTooltip({
@@ -97,6 +100,8 @@ export default function WithTooltip({
     className,
     onOpen,
     disabled,
+    forcedPlacement,
+    id,
 }: Props) {
     const [open, setOpen] = useState(false);
 
@@ -111,6 +116,11 @@ export default function WithTooltip({
     }
 
     const placements = useMemo<{initial: Placement; fallback: Placement[]}>(() => {
+        // if an explicit placement is provided, use it exclusively
+        if (forcedPlacement) {
+            return {initial: forcedPlacement, fallback: [forcedPlacement]};
+        }
+
         let initial: Placement;
         let fallback: Placement[];
         if (isVertical) {
@@ -180,6 +190,7 @@ export default function WithTooltip({
                         className={classNames('tooltipContainer', className)}
                         style={{...floatingStyles, ...transitionStyles}}
                         {...getFloatingProps()}
+                        id={id}
                     >
                         <TooltipContent
                             title={title}
