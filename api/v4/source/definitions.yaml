@@ -1280,6 +1280,131 @@ components:
           type: string
         session_id:
           type: string
+    LdapSettings:
+      type: object
+      properties:
+        Enable:
+          type: boolean
+        EnableSync:
+          type: boolean
+        LdapServer:
+          type: string
+        LdapPort:
+          type: integer
+        ConnectionSecurity:
+          type: string
+        BaseDN:
+          type: string
+        BindUsername:
+          type: string
+        BindPassword:
+          type: string
+        MaximumLoginAttempts:
+          type: integer
+        UserFilter:
+          type: string
+        GroupFilter:
+          type: string
+        GuestFilter:
+          type: string
+        EnableAdminFilter:
+          type: boolean
+        AdminFilter:
+          type: string
+        GroupDisplayNameAttribute:
+          type: string
+        GroupIdAttribute:
+          type: string
+        FirstNameAttribute:
+          type: string
+        LastNameAttribute:
+          type: string
+        EmailAttribute:
+          type: string
+        UsernameAttribute:
+          type: string
+        NicknameAttribute:
+          type: string
+        IdAttribute:
+          type: string
+        PositionAttribute:
+          type: string
+        LoginIdAttribute:
+          type: string
+        PictureAttribute:
+          type: string
+        SyncIntervalMinutes:
+          type: integer
+        ReAddRemovedMembers:
+          type: boolean
+        SkipCertificateVerification:
+          type: boolean
+        PublicCertificateFile:
+          type: string
+        PrivateKeyFile:
+          type: string
+        QueryTimeout:
+          type: integer
+        MaxPageSize:
+          type: integer
+        LoginFieldName:
+          type: string
+        LoginButtonColor:
+          type: string
+        LoginButtonBorderColor:
+          type: string
+        LoginButtonTextColor:
+          type: string
+    LdapDiagnosticResult:
+      type: object
+      properties:
+        test_name:
+          type: string
+          description: Name/type of the diagnostic test being performed
+        test_value:
+          type: string
+          description: The actual test value (filter string or attribute name)
+        total_count:
+          type: integer
+          description: Number of entries found by the filter
+        message:
+          type: string
+          description: Optional success/info message
+        error:
+          type: string
+          description: Optional error message if test failed
+        sample_results:
+          type: array
+          description: Array of sample LDAP entries found
+          items:
+            type: object
+            properties:
+              dn:
+                type: string
+                description: Distinguished Name
+              username:
+                type: string
+                description: Username
+              email:
+                type: string
+                description: Email
+              first_name:
+                type: string
+                description: First name
+              last_name:
+                type: string
+                description: Last name
+              id:
+                type: string
+                description: ID attribute
+              display_name:
+                type: string
+                description: Display name for groups
+              available_attributes:
+                type: object
+                description: Map of all available LDAP attributes
+                additionalProperties:
+                  type: string
     Config:
       type: object
       properties:
@@ -4108,6 +4233,18 @@ components:
         value_type:
           type: string
           description: The value type.
+    ChannelBanner:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: enabled indicates whether the channel banner is enabled or not
+        text:
+          type: string
+          description: text is the actual text that renders in the channel banner. Markdown is supported.
+        background_color:
+          type: string
+          description: background_color is the HEX color code for the banner's backgroubd
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

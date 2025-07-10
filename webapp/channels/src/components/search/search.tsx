@@ -466,16 +466,18 @@ const Search = ({
     const renderSearchBar = (): JSX.Element => (
         <>
             <div className='sidebar-collapse__container'>
-                <div
+                <button
                     id={isSideBarRight ? 'sbrSidebarCollapse' : 'sidebarCollapse'}
                     className='sidebar-collapse'
                     onClick={handleClose}
+                    aria-label={intl.formatMessage({id: 'channel_header.back', defaultMessage: 'Back to channel'})}
                 >
                     <span
                         className='fa fa-2x fa-angle-left'
                         title={intl.formatMessage({id: 'generic_icons.back', defaultMessage: 'Back Icon'})}
+                        aria-hidden='true'
                     />
-                </div>
+                </button>
             </div>
             <SearchBar
                 updateHighlightedSearchHint={updateHighlightedSearchHint}

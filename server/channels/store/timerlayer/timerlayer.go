@@ -1041,10 +1041,10 @@ func (s *TimerLayerChannelStore) CreateDirectChannel(ctx request.CTX, userID *mo
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.CreateInitialSidebarCategories(c, userID, opts)
+	result, err := s.ChannelStore.CreateInitialSidebarCategories(c, userID, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1729,10 +1729,10 @@ func (s *TimerLayerChannelStore) GetMemberLastViewedAt(ctx context.Context, chan
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetMembers(channelID string, offset int, limit int) (model.ChannelMembers, error) {
+func (s *TimerLayerChannelStore) GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetMembers(channelID, offset, limit)
+	result, err := s.ChannelStore.GetMembers(opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1937,10 +1937,10 @@ func (s *TimerLayerChannelStore) GetPublicChannelsForTeam(teamID string, offset 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+func (s *TimerLayerChannelStore) GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetSidebarCategories(userID, opts)
+	result, err := s.ChannelStore.GetSidebarCategories(userID, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5127,22 +5127,6 @@ func (s *TimerLayerJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, offset int, limit int) ([]*model.Job, error) {
-	start := time.Now()
-
-	result, err := s.JobStore.GetAllByTypeAndStatusPage(c, jobType, status, offset, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetAllByTypeAndStatusPage", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerJobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
 	start := time.Now()
 
@@ -5155,6 +5139,22 @@ func (s *TimerLayerJobStore) GetAllByTypePage(c request.CTX, jobType string, off
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetAllByTypePage", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerJobStore) GetAllByTypesAndStatusesPage(c request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error) {
+	start := time.Now()
+
+	result, err := s.JobStore.GetAllByTypesAndStatusesPage(c, jobType, status, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetAllByTypesAndStatusesPage", success, elapsed)
 	}
 	return result, err
 }
@@ -6821,6 +6821,38 @@ func (s *TimerLayerPostStore) Update(rctx request.CTX, newPost *model.Post, oldP
 	return result, err
 }
 
+func (s *TimerLayerPostAcknowledgementStore) BatchDelete(acknowledgements []*model.PostAcknowledgement) error {
+	start := time.Now()
+
+	err := s.PostAcknowledgementStore.BatchDelete(acknowledgements)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.BatchDelete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error) {
+	start := time.Now()
+
+	result, err := s.PostAcknowledgementStore.BatchSave(acknowledgements)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.BatchSave", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
 	start := time.Now()
 
@@ -6869,6 +6901,22 @@ func (s *TimerLayerPostAcknowledgementStore) GetForPost(postID string) ([]*model
 	return result, err
 }
 
+func (s *TimerLayerPostAcknowledgementStore) GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.PostAcknowledgement, error) {
+	start := time.Now()
+
+	result, err := s.PostAcknowledgementStore.GetForPostSince(postID, since, excludeRemoteID, inclDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.GetForPostSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error) {
 	start := time.Now()
 
@@ -6885,10 +6933,10 @@ func (s *TimerLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*m
 	return result, err
 }
 
-func (s *TimerLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+func (s *TimerLayerPostAcknowledgementStore) GetSingle(userID string, postID string, remoteID string) (*model.PostAcknowledgement, error) {
 	start := time.Now()
 
-	result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt)
+	result, err := s.PostAcknowledgementStore.GetSingle(userID, postID, remoteID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6896,7 +6944,23 @@ func (s *TimerLayerPostAcknowledgementStore) Save(postID string, userID string, 
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.Save", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.GetSingle", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error) {
+	start := time.Now()
+
+	result, err := s.PostAcknowledgementStore.SaveWithModel(acknowledgement)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.SaveWithModel", success, elapsed)
 	}
 	return result, err
 }
@@ -7013,6 +7077,22 @@ func (s *TimerLayerPostPersistentNotificationStore) UpdateLastActivity(postIds [
 	return err
 }
 
+func (s *TimerLayerPostPriorityStore) Delete(postID string) error {
+	start := time.Now()
+
+	err := s.PostPriorityStore.Delete(postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPriorityStore.Delete", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostPriorityStore) GetForPost(postID string) (*model.PostPriority, error) {
 	start := time.Now()
 
@@ -7041,6 +7121,22 @@ func (s *TimerLayerPostPriorityStore) GetForPosts(ids []string) ([]*model.PostPr
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostPriorityStore.GetForPosts", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPriority, error) {
+	start := time.Now()
+
+	result, err := s.PostPriorityStore.Save(priority)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPriorityStore.Save", success, elapsed)
 	}
 	return result, err
 }
@@ -9173,6 +9269,22 @@ func (s *TimerLayerSharedChannelStore) GetSingleUser(userID string, channelID st
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) GetUserChanges(userID string, channelID string, afterTime int64) ([]*model.SharedChannelUser, error) {
+	start := time.Now()
+
+	result, err := s.SharedChannelStore.GetUserChanges(userID, channelID, afterTime)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetUserChanges", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
 	start := time.Now()
 
@@ -9365,6 +9477,38 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor mode
 	return err
 }
 
+func (s *TimerLayerSharedChannelStore) UpdateRemoteMembershipCursor(id string, syncTime int64) error {
+	start := time.Now()
+
+	err := s.SharedChannelStore.UpdateRemoteMembershipCursor(id, syncTime)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteMembershipCursor", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerSharedChannelStore) UpdateUserLastMembershipSyncAt(userID string, channelID string, remoteID string, syncTime int64) error {
+	start := time.Now()
+
+	err := s.SharedChannelStore.UpdateUserLastMembershipSyncAt(userID, channelID, remoteID, syncTime)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateUserLastMembershipSyncAt", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
 	start := time.Now()
 
@@ -9473,6 +9617,22 @@ func (s *TimerLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.SaveOrUpdate", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) error {
+	start := time.Now()
+
+	err := s.StatusStore.SaveOrUpdateMany(statuses)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.SaveOrUpdateMany", success, elapsed)
 	}
 	return err
 }

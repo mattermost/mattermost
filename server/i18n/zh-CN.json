@@ -9759,7 +9759,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "无法激活用户。服务器超过安全用户限制。联系您的管理员，并附上：ERROR_SAFETY_LIMITS_EXCEEDED。"
+    "translation": "无法激活用户。服务器超出安全用户限制。错误：超出安全限制。"
   },
   {
     "id": "api.channel.create_channel.missing_display_name.error",
@@ -10784,5 +10784,101 @@
   {
     "id": "model.config.is_valid.directory_whitespace.app_error",
     "translation": "{{.Setting}} 中检测到前导或尾随空格。发现 \"{{.Value}}\"。"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "验证私信附件数据失败。"
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "验证附件导入数据失败。路径无效：\"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "导入表情图片字段路径无效：\"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "验证消息附件数据失败。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "验证回复附件数据失败。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "用户个人资料图片路径无效：\"{{.Path}}\""
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "无法从上一个任务中提取数据。"
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "无法创建用户。服务器超出了最大许可用户数。请联系您的管理员，错误代码：ERROR_LICENSED_USERS_LIMIT_EXCEEDED。"
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "批保存确认对象失败"
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "无效的测试类型：{{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "不允许导入远程集群"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "无效的频道 ID。"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "由于此频道有基于用户属性的访问限制，因此无法邀请访客用户加入。"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "无法删除缺失的消息的确认标记"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "无法保存缺失的消息的确认标记"
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "无法激活用户。服务器超出最大许可用户数。错误：已超出许可用户数限制。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "审计日志配置的最大文件队列必须大于零。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "审计日志配置的最大文件大小必须大于零。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "启用审计文件日志记录时，必须指定文件名。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "文件名不能是目录。"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "访问控制服务不可用。无法为启用 ABAC 的频道过滤用户。"
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP 连接测试失败。服务器：{{.Server}}:{{.Port}}，连接安全性：{{.ConnectionType}}，私钥文件名：{{.PrivateKeyFilename}}，公共证书文件名：{{.PublicCertFilename}}，绑定用户名：{{.BindUsername}}。错误：{{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "审计日志配置的最大文件保留期限不能为负数。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "审计日志配置的最大文件备份数不能为负数。"
   }
 ]

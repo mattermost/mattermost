@@ -42,6 +42,7 @@ type SelfReferentialSyncHandler struct {
 	service          *sharedchannel.Service
 	selfCluster      *model.RemoteCluster
 	syncMessageCount *int32
+	SimulateUnshared bool // When true, always return ErrChannelIsNotShared for sync messages
 
 	// Callbacks for capturing sync data
 	OnIndividualSync func(userId string, messageNumber int32)
@@ -78,6 +79,14 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 
 		err := json.Unmarshal(body, &frame)
 		if err == nil {
+			// Simulate the remote having unshared if configured to do so
+			if h.SimulateUnshared && frame.Msg.Topic == "sharedchannel_sync" {
+				// Return HTTP error instead of JSON error response
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = w.Write([]byte("channel is no longer shared"))
+				return
+			}
+
 			// Process the message to update cursor
 			response := &remotecluster.Response{}
 			processErr := h.service.OnReceiveSyncMessageForTesting(frame.Msg, h.selfCluster, response)
@@ -102,6 +111,27 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 						}
 						if h.OnGlobalUserSync != nil {
 							h.OnGlobalUserSync(userIds, currentCall)
+						}
+					}
+
+					// Handle membership sync using unified field
+					if len(syncMsg.MembershipChanges) > 0 {
+						batch := make([]string, 0)
+						for _, change := range syncMsg.MembershipChanges {
+							if change.IsAdd {
+								syncResp.UsersSyncd = append(syncResp.UsersSyncd, change.UserId)
+								batch = append(batch, change.UserId)
+							}
+						}
+
+						// Call appropriate callback
+						if len(batch) > 0 {
+							if h.OnBatchSync != nil {
+								h.OnBatchSync(batch, currentCall)
+							}
+							if len(batch) == 1 && h.OnIndividualSync != nil {
+								h.OnIndividualSync(batch[0], currentCall)
+							}
 						}
 					}
 
@@ -135,28 +165,36 @@ func (h *SelfReferentialSyncHandler) GetSyncMessageCount() int32 {
 	return atomic.LoadInt32(h.syncMessageCount)
 }
 
-// GetUsersFromSyncMsg extracts user IDs from a sync message
-func GetUsersFromSyncMsg(msg model.SyncMsg) []string {
-	var userIds []string
-
-	// Extract from users field
-	for userId := range msg.Users {
-		userIds = append(userIds, userId)
-	}
-
-	return userIds
-}
-
 // EnsureCleanState ensures a clean test state by removing all shared channels, remote clusters,
 // and extra team/channel members. This helps prevent state pollution between tests.
 func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 	t.Helper()
 
+	// First, wait for any pending async tasks to complete, then shutdown services
+	scsInterface := th.App.Srv().GetSharedChannelSyncService()
+	if scsInterface != nil && scsInterface.Active() {
+		// Cast to concrete type to access testing methods
+		if service, ok := scsInterface.(*sharedchannel.Service); ok {
+			// Wait for any pending tasks from previous tests to complete
+			require.Eventually(t, func() bool {
+				return !service.HasPendingTasksForTesting()
+			}, 10*time.Second, 100*time.Millisecond, "All pending sync tasks should complete before cleanup")
+		}
+
+		// Shutdown the shared channel service to stop any async operations
+		_ = scsInterface.Shutdown()
+
+		// Wait for shutdown to complete with more time
+		require.Eventually(t, func() bool {
+			return !scsInterface.Active()
+		}, 5*time.Second, 100*time.Millisecond, "Shared channel service should be inactive after shutdown")
+	}
+
 	// Clear all shared channels and remotes from previous tests
 	allSharedChannels, _ := ss.SharedChannel().GetAll(0, 1000, model.SharedChannelFilterOpts{})
 	for _, sc := range allSharedChannels {
 		// Delete all remotes for this channel
-		remotes, _ := ss.SharedChannel().GetRemotes(0, 100, model.SharedChannelRemoteFilterOpts{ChannelId: sc.ChannelId})
+		remotes, _ := ss.SharedChannel().GetRemotes(0, 999999, model.SharedChannelRemoteFilterOpts{ChannelId: sc.ChannelId})
 		for _, remote := range remotes {
 			_, _ = ss.SharedChannel().DeleteRemote(remote.Id)
 		}
@@ -170,13 +208,32 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 		_, _ = ss.RemoteCluster().Delete(rc.RemoteId)
 	}
 
+	// Clear all SharedChannelUsers sync state - this is critical for test isolation
+	// The SharedChannelUsers table tracks per-user sync timestamps that can interfere between tests
+	_, _ = th.SQLStore.GetMaster().Exec("DELETE FROM SharedChannelUsers WHERE 1=1")
+
+	// Clear all SharedChannelAttachments sync state
+	_, _ = th.SQLStore.GetMaster().Exec("DELETE FROM SharedChannelAttachments WHERE 1=1")
+
+	// Reset sync cursors in any remaining SharedChannelRemotes (before they get deleted)
+	// This ensures cursors don't persist if deletion fails
+	_, _ = th.SQLStore.GetMaster().Exec(`UPDATE SharedChannelRemotes SET 
+		LastPostCreateAt = 0, 
+		LastPostCreateId = '', 
+		LastPostUpdateAt = 0, 
+		LastPostId = '', 
+		LastMembersSyncAt = 0 
+		WHERE 1=1`)
+
 	// Remove all channel members from test channels (except the basic team/channel setup)
 	channels, _ := ss.Channel().GetAll(th.BasicTeam.Id)
 	for _, channel := range channels {
 		// Skip direct message and group channels, and skip the default channels
 		if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup &&
 			channel.Id != th.BasicChannel.Id {
-			members, _ := ss.Channel().GetMembers(channel.Id, 0, 10000)
+			members, _ := ss.Channel().GetMembers(model.ChannelMembersGetOptions{
+				ChannelID: channel.Id,
+			})
 			for _, member := range members {
 				_ = ss.Channel().RemoveMember(th.Context, channel.Id, member.UserId)
 			}
@@ -228,12 +285,16 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 		cfg.ConnectedWorkspacesSettings.GlobalUserSyncBatchSize = &defaultBatchSize
 	})
 
-	// Ensure services are running and ready
-	scsInterface := th.App.Srv().GetSharedChannelSyncService()
-	if scs, ok := scsInterface.(*sharedchannel.Service); ok {
-		require.Eventually(t, func() bool {
-			return scs.Active()
-		}, 2*time.Second, 100*time.Millisecond, "Shared channel service should be active")
+	// Restart services and ensure they are running and ready
+	if scsInterface != nil {
+		// Restart the shared channel service
+		_ = scsInterface.Start()
+
+		if scs, ok := scsInterface.(*sharedchannel.Service); ok {
+			require.Eventually(t, func() bool {
+				return scs.Active()
+			}, 5*time.Second, 100*time.Millisecond, "Shared channel service should be active after restart")
+		}
 	}
 
 	rcService := th.App.Srv().GetRemoteClusterService()
@@ -243,6 +304,6 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 		}
 		require.Eventually(t, func() bool {
 			return rcService.Active()
-		}, 2*time.Second, 100*time.Millisecond, "Remote cluster service should be active")
+		}, 5*time.Second, 100*time.Millisecond, "Remote cluster service should be active")
 	}
 }

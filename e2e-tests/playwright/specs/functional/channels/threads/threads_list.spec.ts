@@ -42,14 +42,14 @@ test('Should be able to change threads with arrow keys', async ({pw}, testInfo) 
 
     // * Ensure the latest thread was selected
     await threadsPage.toHaveThreadSelected();
-    (await threadsPage.getLastPost()).toContainText('ccc reply');
+    await (await threadsPage.getLastPost()).toContainText('ccc reply');
 
     // # Press the down arrow again
     await page.keyboard.press('ArrowDown');
 
     // * Ensure the latest thread was selected
     await threadsPage.toHaveThreadSelected();
-    (await threadsPage.getLastPost()).toContainText('bbb reply');
+    await (await threadsPage.getLastPost()).toContainText('bbb reply');
 
     await threadsPage.threadsList.focus();
 
@@ -58,19 +58,19 @@ test('Should be able to change threads with arrow keys', async ({pw}, testInfo) 
 
     // * Ensure the latest thread was selected
     await threadsPage.toHaveThreadSelected();
-    (await threadsPage.getLastPost()).toContainText('aaa reply');
+    await (await threadsPage.getLastPost()).toContainText('aaa reply');
 
     // # Press the up arrow
     await page.keyboard.press('ArrowUp');
 
     // * Ensure the latest thread was selected
     await threadsPage.toHaveThreadSelected();
-    (await threadsPage.getLastPost()).toContainText('bbb reply');
+    await (await threadsPage.getLastPost()).toContainText('bbb reply');
 
     // # Press the up arrow
     await page.keyboard.press('ArrowUp');
 
     // * Ensure the latest thread was selected
     await threadsPage.toHaveThreadSelected();
-    (await threadsPage.getLastPost()).toContainText('ccc reply');
+    await (await threadsPage.getLastPost()).toContainText('ccc reply');
 });

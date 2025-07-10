@@ -89,7 +89,7 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.uiGetSearchBox().type('from:').wait(TIMEOUTS.ONE_SEC);
 
         // # Trigger the user autocomplete again
-        cy.uiGetSearchBox().first().clear().type('from:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().clear().type('from:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2);
@@ -103,10 +103,10 @@ describe('Verify Accessibility Support in different input fields', () => {
         verifySearchAutocomplete(3);
 
         // # Type the in: filter and ensure channel list is cached once
-        cy.uiGetSearchBox().first().clear().type('in:').wait(TIMEOUTS.ONE_SEC);
+        cy.uiGetSearchBox().clear().type('in:').wait(TIMEOUTS.ONE_SEC);
 
         // # Trigger the channel autocomplete again
-        cy.uiGetSearchBox().first().clear().type('in:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().clear().type('in:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2, 'channel');
@@ -296,12 +296,12 @@ function verifySearchAutocomplete(index, type = 'user') {
                 const usernameLength = 12;
                 const displayName = text.substring(1, usernameLength) + ' ' + text.substring(usernameLength, text.length);
                 const userAriaLabel = getUserMentionAriaLabel(displayName);
-                cy.wrap(el).parents('#searchFormContainer').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('have.text', userAriaLabel);
+                cy.wrap(el).parents('#searchBox').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('contain.text', userAriaLabel);
             });
         } else if (type === 'channel') {
             cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
                 const channel = text.split('~')[1].toLowerCase().trim();
-                cy.wrap(el).parents('#searchFormContainer').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('have.text', channel);
+                cy.wrap(el).parents('#searchBox').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('contain.text', channel);
             });
         }
     });

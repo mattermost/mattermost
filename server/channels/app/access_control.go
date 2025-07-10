@@ -183,6 +183,7 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 	cps, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 		Type:     model.AccessControlPolicyTypeChannel,
 		ParentID: policyID,
+		Limit:    1000,
 	})
 	if err != nil {
 		return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
