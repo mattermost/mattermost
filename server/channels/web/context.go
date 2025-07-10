@@ -4,6 +4,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"regexp"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -148,10 +150,9 @@ func (c *Context) SessionRequired(r *http.Request) {
 }
 
 func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
-	// Exempt ToS-related endpoints
+	// Exempt ToS-related endpoints using exact path matching to prevent bypasses
 	path := r.URL.Path
-	if strings.HasSuffix(path, "/terms_of_service") ||
-		strings.Contains(path, "/terms_of_service/") {
+	if c.isTermsOfServiceExemptEndpoint(path) {
 		return nil
 	}
 
@@ -167,10 +168,16 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 		return nil
 	}
 
-	// Get latest ToS using cached store layer
+	// Get latest ToS using cached store layer - FAIL CLOSED on errors
 	latestToS, err := c.App.Srv().Store().TermsOfService().GetLatest(true)
 	if err != nil {
-		return nil // No ToS exists, allow access
+		// Check if this is specifically "no ToS exists" vs database error
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil // No ToS exists, allow access
+		}
+		// Database error - fail closed for security
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "Database error retrieving terms of service: "+err.Error(), http.StatusForbidden)
 	}
 
 	// Check session cache for user's ToS acceptance
@@ -200,6 +207,50 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 	session.AddProp(model.SessionPropTermsOfServiceId, userToS.TermsOfServiceId)
 
 	return nil
+}
+
+// isTermsOfServiceExemptEndpoint uses exact path matching to prevent bypass attacks
+func (c *Context) isTermsOfServiceExemptEndpoint(path string) bool {
+	// Exact path matches for ToS endpoints to prevent path traversal attacks
+	exemptPaths := []string{
+		"/api/v4/terms_of_service",
+	}
+
+	// Check exact matches
+	for _, exemptPath := range exemptPaths {
+		if path == exemptPath {
+			return true
+		}
+	}
+
+	// Check user-specific ToS endpoints with exact pattern matching
+	// Pattern: /api/v4/users/{user_id}/terms_of_service
+	if strings.HasPrefix(path, "/api/v4/users/") && strings.HasSuffix(path, "/terms_of_service") {
+		// Ensure it follows the exact pattern with valid user ID
+		parts := strings.Split(path, "/")
+		if len(parts) == 6 && parts[1] == "api" && parts[2] == "v4" && parts[3] == "users" && parts[5] == "terms_of_service" {
+			// Basic validation that user_id part is alphanumeric (prevents injection)
+			userId := parts[4]
+			if userId != "" && isValidUserId(userId) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// isValidUserId validates that a user ID contains only allowed characters
+func isValidUserId(userId string) bool {
+	if userId == "" || len(userId) > 26 {
+		return false
+	}
+	for _, char := range userId {
+		if !((char >= 'A' && char <= 'Z') || (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9')) {
+			return false
+		}
+	}
+	return true
 }
 
 func (c *Context) CloudKeyRequired() {

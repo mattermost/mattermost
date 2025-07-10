@@ -5,6 +5,7 @@ package web
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"testing"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -94,15 +96,36 @@ func TestTermsOfServiceExemption(t *testing.T) {
 	c := &Context{}
 
 	// Test various ToS endpoint paths - these should be exempt regardless of other settings
-	paths := []string{
+	validPaths := []string{
 		"/api/v4/terms_of_service",
-		"/api/v4/users/12345/terms_of_service",
+		"/api/v4/users/abc123/terms_of_service",
+		"/api/v4/users/USER123/terms_of_service",
 	}
 
-	for _, path := range paths {
+	for _, path := range validPaths {
 		req, _ := http.NewRequest("GET", path, nil)
 		err := c.TermsOfServiceRequired(req)
 		assert.Nil(t, err, "ToS endpoint %s should be exempt", path)
+	}
+
+	// Test path bypass attempts - these should NOT be exempt
+	bypassAttempts := []string{
+		"/api/v4/endpoint/../terms_of_service",
+		"/api/v4/TERMS_OF_SERVICE",
+		"/api/v4/users/../terms_of_service",
+		"/api/v4/users//terms_of_service",
+		"/api/v4/users/user@example.com/terms_of_service",
+		"/api/v4/users/user with spaces/terms_of_service",
+		"/api/v4/users/../../terms_of_service",
+		"/api/v4/some_terms_of_service_endpoint",
+		"/api/v4/terms_of_service_but_not_really",
+		"/api/v4/users/abc/extra/terms_of_service",
+		"/api/v4/users",
+	}
+
+	for _, path := range bypassAttempts {
+		exempt := c.isTermsOfServiceExemptEndpoint(path)
+		assert.False(t, exempt, "Path %s should NOT be exempt (potential bypass attempt)", path)
 	}
 }
 
@@ -178,7 +201,11 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		license.Features.CustomTermsOfService = model.NewPointer(true)
 		th.App.Srv().SetLicense(license)
 
-		mockTermsOfServiceStore.On("GetLatest", true).Return(nil, model.NewAppError("GetLatest", "app.terms_of_service.get.app_error", nil, "", http.StatusNotFound))
+		// Clear mock expectations for this test
+		mockTermsOfServiceStore.ExpectedCalls = nil
+		// Use proper store.ErrNotFound instead of AppError
+		notFoundErr := store.NewErrNotFound("terms_of_service", "latest")
+		mockTermsOfServiceStore.On("GetLatest", true).Return(nil, notFoundErr)
 
 		c := &Context{
 			App:        th.App,
@@ -270,5 +297,33 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
 		err := c.TermsOfServiceRequired(req)
 		assert.Nil(t, err)
+	})
+
+	t.Run("when database error occurs (fail-closed security)", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SupportSettings.CustomTermsOfServiceEnabled = true
+		})
+
+		license := model.NewTestLicense()
+		license.Features.CustomTermsOfService = model.NewPointer(true)
+		th.App.Srv().SetLicense(license)
+
+		// Simulate database error (not NotFound)
+		mockTermsOfServiceStore.ExpectedCalls = nil
+		dbError := errors.New("database connection failed")
+		mockTermsOfServiceStore.On("GetLatest", true).Return(nil, dbError)
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+		}
+
+		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
+		err := c.TermsOfServiceRequired(req)
+		// Should fail closed on database error
+		assert.NotNil(t, err)
+		assert.Equal(t, "api.context.terms_of_service_required.app_error", err.Id)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+		assert.Contains(t, err.DetailedError, "Database error retrieving terms of service")
 	})
 }
