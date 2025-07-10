@@ -125,7 +125,7 @@ describe('components/AboutBuildModal', () => {
         );
 
         expect(screen.getByText('Mattermost Cloud')).toBeInTheDocument();
-        expect(screen.getByText('High trust messaging for the enterprise')).toBeInTheDocument();
+        expect(screen.getByText('Sovereign collaboration and workflow')).toBeInTheDocument();
         expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: 3.6.0');
         expect(screen.getByText('0123456789abcdef', {exact: false})).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'server'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-server/blob/master/NOTICE.txt');
