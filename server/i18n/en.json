@@ -5004,15 +5004,15 @@
   },
   {
     "id": "app.cloud.preview_modal_bucket_url_not_configured",
-    "translation": ""
+    "translation": "Preview bucket URL is not configured"
   },
   {
     "id": "app.cloud.preview_modal_data_fetch_error",
-    "translation": ""
+    "translation": "Failed to fetch preview modal data"
   },
   {
     "id": "app.cloud.preview_modal_data_parse_error",
-    "translation": ""
+    "translation": "Failed to parse preview modal data"
   },
   {
     "id": "app.cloud.trial_plan_bot_message",
