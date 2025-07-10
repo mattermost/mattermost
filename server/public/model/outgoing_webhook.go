@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -130,10 +131,8 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 	}
 
 	if len(o.TriggerWords) != 0 {
-		for _, triggerWord := range o.TriggerWords {
-			if triggerWord == "" {
-				return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.trigger_words.app_error", nil, "", http.StatusBadRequest)
-			}
+		if slices.Contains(o.TriggerWords, "") {
+			return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.trigger_words.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -196,13 +195,7 @@ func (o *OutgoingWebhook) TriggerWordExactMatch(word string) bool {
 		return false
 	}
 
-	for _, trigger := range o.TriggerWords {
-		if trigger == word {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(o.TriggerWords, word)
 }
 
 func (o *OutgoingWebhook) TriggerWordStartsWith(word string) bool {

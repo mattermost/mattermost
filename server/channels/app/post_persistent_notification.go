@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"maps"
 	"net/http"
 	"time"
 
@@ -213,9 +214,7 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
 			}
 			channelGroupMap[c.Id] = make(map[string]*model.Group, len(groups))
-			for groupID, group := range groups {
-				channelGroupMap[c.Id][groupID] = group
-			}
+			maps.Copy(channelGroupMap[c.Id], groups)
 			props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(c.Id, true)
 			if err != nil {
 				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)

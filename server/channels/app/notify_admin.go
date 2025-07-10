@@ -270,8 +270,8 @@ func (a *App) groupNotifyAdminByPlugin(data []*model.NotifyAdminData) map[string
 	myMap := make(map[string][]*model.NotifyAdminData)
 	for _, d := range data {
 		if strings.HasPrefix(string(d.RequiredFeature), string(model.PluginFeature)) {
-			plugins := strings.Split(d.RequiredPlan, ",")
-			for _, plugin := range plugins {
+			plugins := strings.SplitSeq(d.RequiredPlan, ",")
+			for plugin := range plugins {
 				myMap[plugin] = append(myMap[plugin], d)
 			}
 		}

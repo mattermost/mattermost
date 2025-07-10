@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -605,7 +606,7 @@ func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 func (u *User) GetMentionKeys() []string {
 	var keys []string
 
-	for _, key := range strings.Split(u.NotifyProps[MentionKeysNotifyProp], ",") {
+	for key := range strings.SplitSeq(u.NotifyProps[MentionKeysNotifyProp], ",") {
 		trimmedKey := strings.TrimSpace(key)
 
 		if trimmedKey == "" {
@@ -886,13 +887,7 @@ func (u *User) IsInRole(inRole string) bool {
 func IsInRole(userRoles string, inRole string) bool {
 	roles := strings.Split(userRoles, " ")
 
-	for _, r := range roles {
-		if r == inRole {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(roles, inRole)
 }
 
 func (u *User) IsSSOUser() bool {

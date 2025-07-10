@@ -424,7 +424,7 @@ func TestGetLogs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		th.TestLogger.Info(strconv.Itoa(i))
 	}
 
@@ -473,7 +473,7 @@ func TestDownloadLogs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		th.TestLogger.Info(strconv.Itoa(i))
 	}
 	err := th.TestLogger.Flush()
@@ -487,7 +487,7 @@ func TestDownloadLogs(t *testing.T) {
 		require.Contains(t, resp.Header.Get("Content-Disposition"), "attachment;filename=\"mattermost.log\"")
 
 		bodyString := string(resData)
-		for i := 0; i < 20; i++ {
+		for i := range 20 {
 			assert.Contains(t, bodyString, fmt.Sprintf(`"msg":"%d"`, i))
 		}
 	})

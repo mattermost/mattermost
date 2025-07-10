@@ -32,7 +32,7 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	email := ""
 
 	if subject != "" {
-		for _, v := range strings.Split(subject, "/") {
+		for v := range strings.SplitSeq(subject, "/") {
 			kv := strings.Split(v, "=")
 			if len(kv) == 2 && kv[0] == "emailAddress" {
 				email = kv[1]

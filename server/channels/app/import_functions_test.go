@@ -1924,7 +1924,7 @@ func TestImportUserTeams(t *testing.T) {
 			user := th.CreateUser()
 
 			// Two times import must end with the same results
-			for x := 0; x < 2; x++ {
+			for range 2 {
 				appErr := th.App.importUserTeams(th.Context, user, tc.data)
 				if tc.expectedError {
 					require.NotNil(t, appErr)
@@ -2079,7 +2079,7 @@ func TestImportUserChannels(t *testing.T) {
 			require.NoError(t, err)
 
 			// Two times import must end with the same results
-			for x := 0; x < 2; x++ {
+			for range 2 {
 				appErr := th.App.importUserChannels(th.Context, user, th.BasicTeam, tc.data)
 				if tc.expectedError {
 					require.NotNil(t, appErr)
@@ -5856,10 +5856,9 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 	b.Run("plain", func(b *testing.B) {
 		b.Run("local", func(b *testing.B) {
 			b.ReportAllocs()
-			b.ResetTimer()
-			b.StopTimer()
 
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
+				b.StopTimer()
 				_, err := fileA.Seek(0, io.SeekStart)
 				require.NoError(b, err)
 				_, err = fileB.Seek(0, io.SeekStart)
@@ -5867,13 +5866,14 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 
 				b.StartTimer()
 				ok, err := compareFilesContent(fileA, fileB, 0)
-				b.StopTimer()
 				require.NoError(b, err)
 				require.True(b, ok)
 			}
 		})
 
 		b.Run("s3", func(b *testing.B) {
+			b.ReportAllocs()
+
 			th := SetupConfig(b, func(cfg *model.Config) {
 				cfg.FileSettings = model.FileSettings{
 					DriverName:                         model.NewPointer(model.ImageDriverS3),
@@ -5925,16 +5925,13 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 				require.NoError(b, err)
 			}()
 
-			b.ResetTimer()
-
 			for _, fileSizeLabel := range fileSizeLabels {
 				fileSize := fileSizesMap[fileSizeLabel]
 				for _, bufSizeLabel := range bufSizeLabels {
 					bufSize := bufSizesMap[bufSizeLabel]
 					b.Run("bufSize-fileSize"+fileSizeLabel+"-bufSize"+bufSizeLabel, func(b *testing.B) {
-						b.ReportAllocs()
-						b.StopTimer()
-						for i := 0; i < b.N; i++ {
+						for b.Loop() {
+							b.StopTimer()
 							_, err := rdA.Seek(0, io.SeekStart)
 							require.NoError(b, err)
 							_, err = rdB.Seek(0, io.SeekStart)
@@ -5948,7 +5945,6 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 								R: rdB,
 								N: fileSize,
 							}, bufSize)
-							b.StopTimer()
 							require.NoError(b, err)
 							require.True(b, ok)
 						}
@@ -5959,6 +5955,8 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 	})
 
 	b.Run("zip", func(b *testing.B) {
+		b.ReportAllocs()
+
 		zipFilePath := filepath.Join(tmpDir, "compareFiles.zip")
 		zipFile, err := os.Create(zipFilePath)
 		require.NoError(b, err)
@@ -5997,14 +5995,11 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 		zipFileSize := info.Size()
 
 		b.Run("local", func(b *testing.B) {
-			b.ResetTimer()
-
 			for _, label := range bufSizeLabels {
 				bufSize := bufSizesMap[label]
 				b.Run("bufSize-"+label, func(b *testing.B) {
-					b.ReportAllocs()
-					b.StopTimer()
-					for i := 0; i < b.N; i++ {
+					for b.Loop() {
+						b.StopTimer()
 						_, err := zipFile.Seek(0, io.SeekStart)
 						require.NoError(b, err)
 						zipRd, err := zip.NewReader(zipFile, zipFileSize)
@@ -6018,7 +6013,6 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 
 						b.StartTimer()
 						ok, err := compareFilesContent(zipFileA, zipFileB, bufSize)
-						b.StopTimer()
 						require.NoError(b, err)
 						require.True(b, ok)
 					}
@@ -6059,16 +6053,13 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 				require.NoError(b, err)
 			}()
 
-			b.ResetTimer()
-
 			for _, fileSizeLabel := range fileSizeLabels {
 				fileSize := fileSizesMap[fileSizeLabel]
 				for _, bufSizeLabel := range bufSizeLabels {
 					bufSize := bufSizesMap[bufSizeLabel]
 					b.Run("bufSize-fileSize"+fileSizeLabel+"-bufSize"+bufSizeLabel, func(b *testing.B) {
-						b.ReportAllocs()
-						b.StopTimer()
-						for i := 0; i < b.N; i++ {
+						for b.Loop() {
+							b.StopTimer()
 							_, err := zipFileRd.Seek(0, io.SeekStart)
 							require.NoError(b, err)
 							zipRd, err := zip.NewReader(zipFileRd.(io.ReaderAt), zipFileSize)
@@ -6088,7 +6079,6 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 								R: zipFileB,
 								N: fileSize,
 							}, bufSize)
-							b.StopTimer()
 							require.NoError(b, err)
 							require.True(b, ok)
 						}

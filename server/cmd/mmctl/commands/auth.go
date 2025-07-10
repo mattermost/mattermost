@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 	"syscall"
 
@@ -322,9 +322,7 @@ func listCmdF(cmd *cobra.Command, args []string) error {
 			maxInstanceURLLen = len(c.InstanceURL)
 		}
 	}
-	sort.Slice(serverNames, func(i, j int) bool {
-		return serverNames[i] < serverNames[j]
-	})
+	slices.Sort(serverNames)
 
 	printer.Print(fmt.Sprintf("\n    | Active | %*s | %*s | %*s |", maxNameLen, nameTitle, maxUsernameLen, usernameTitle, maxInstanceURLLen, instanceURLTitle))
 	printer.Print(fmt.Sprintf("    |%s|%s|%s|%s|", strings.Repeat("-", 8), strings.Repeat("-", maxNameLen+2), strings.Repeat("-", maxUsernameLen+2), strings.Repeat("-", maxInstanceURLLen+2)))

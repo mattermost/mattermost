@@ -629,12 +629,10 @@ func BenchmarkBulkImport(b *testing.B) {
 	require.NoError(b, err)
 	defer jsonFile.Close()
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		err, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, runtime.NumCPU(), dir)
 		require.Nil(b, err)
 	}
-	b.StopTimer()
 }
 
 func TestImportBulkImportWithAttachments(t *testing.T) {

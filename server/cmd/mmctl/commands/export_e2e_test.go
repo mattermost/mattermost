@@ -50,7 +50,7 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 		cmd := &cobra.Command{}
 
 		numExports := 3
-		for i := 0; i < numExports; i++ {
+		for i := range numExports {
 			exportName := fmt.Sprintf("export_%d.zip", i)
 			err := utils.CopyFile(importFilePath, filepath.Join(exportPath, exportName))
 			s.Require().Nil(err)
