@@ -229,28 +229,15 @@ func (c *Context) isTermsOfServiceExemptEndpoint(path string) bool {
 		// Ensure it follows the exact pattern with valid user ID
 		parts := strings.Split(path, "/")
 		if len(parts) == 6 && parts[1] == "api" && parts[2] == "v4" && parts[3] == "users" && parts[5] == "terms_of_service" {
-			// Basic validation that user_id part is alphanumeric (prevents injection)
+			// Basic validation that user_id part is a valid ID (prevents injection)
 			userId := parts[4]
-			if userId != "" && isValidUserId(userId) {
+			if userId != "" && model.IsValidId(userId) {
 				return true
 			}
 		}
 	}
 
 	return false
-}
-
-// isValidUserId validates that a user ID contains only allowed characters
-func isValidUserId(userId string) bool {
-	if userId == "" || len(userId) > 26 {
-		return false
-	}
-	for _, char := range userId {
-		if !((char >= 'A' && char <= 'Z') || (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9')) {
-			return false
-		}
-	}
-	return true
 }
 
 func (c *Context) CloudKeyRequired() {

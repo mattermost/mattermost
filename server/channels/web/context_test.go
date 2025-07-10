@@ -91,21 +91,19 @@ func TestMfaRequired(t *testing.T) {
 }
 
 func TestTermsOfServiceExemption(t *testing.T) {
-	// Create a minimal context just for path checking - this should work without any setup
-	// since the method returns early for ToS endpoints
+	// Create a minimal context just for path checking
 	c := &Context{}
 
 	// Test various ToS endpoint paths - these should be exempt regardless of other settings
 	validPaths := []string{
 		"/api/v4/terms_of_service",
-		"/api/v4/users/abc123/terms_of_service",
-		"/api/v4/users/USER123/terms_of_service",
+		"/api/v4/users/abcdefghijklmnopqrstuvwxyz/terms_of_service",
+		"/api/v4/users/USER123ABCDEFGHIJKLMNOPQRS/terms_of_service",
 	}
 
 	for _, path := range validPaths {
-		req, _ := http.NewRequest("GET", path, nil)
-		err := c.TermsOfServiceRequired(req)
-		assert.Nil(t, err, "ToS endpoint %s should be exempt", path)
+		exempt := c.isTermsOfServiceExemptEndpoint(path)
+		assert.True(t, exempt, "ToS endpoint %s should be exempt", path)
 	}
 
 	// Test path bypass attempts - these should NOT be exempt
