@@ -118,14 +118,14 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, all communication through the gossip protocol will be encrypted."
-            id="admin.cluster.EnableExperimentalGossipEncryptionDesc"
+            id="admin.cluster.EnableGossipEncryptionDesc"
           />
         }
-        id="EnableExperimentalGossipEncryption"
+        id="EnableGossipEncryption"
         label={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Enable Experimental Gossip encryption:"
-            id="admin.cluster.EnableExperimentalGossipEncryption"
+            defaultMessage="Enable Gossip encryption:"
+            id="admin.cluster.EnableGossipEncryption"
           />
         }
         onChange={[Function]}
@@ -323,14 +323,14 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, all communication through the gossip protocol will be encrypted."
-            id="admin.cluster.EnableExperimentalGossipEncryptionDesc"
+            id="admin.cluster.EnableGossipEncryptionDesc"
           />
         }
-        id="EnableExperimentalGossipEncryption"
+        id="EnableGossipEncryption"
         label={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Enable Experimental Gossip encryption:"
-            id="admin.cluster.EnableExperimentalGossipEncryption"
+            defaultMessage="Enable Gossip encryption:"
+            id="admin.cluster.EnableGossipEncryption"
           />
         }
         onChange={[Function]}
@@ -528,14 +528,14 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, all communication through the gossip protocol will be encrypted."
-            id="admin.cluster.EnableExperimentalGossipEncryptionDesc"
+            id="admin.cluster.EnableGossipEncryptionDesc"
           />
         }
-        id="EnableExperimentalGossipEncryption"
+        id="EnableGossipEncryption"
         label={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Enable Experimental Gossip encryption:"
-            id="admin.cluster.EnableExperimentalGossipEncryption"
+            defaultMessage="Enable Gossip encryption:"
+            id="admin.cluster.EnableGossipEncryption"
           />
         }
         onChange={[Function]}
@@ -733,14 +733,14 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, all communication through the gossip protocol will be encrypted."
-            id="admin.cluster.EnableExperimentalGossipEncryptionDesc"
+            id="admin.cluster.EnableGossipEncryptionDesc"
           />
         }
-        id="EnableExperimentalGossipEncryption"
+        id="EnableGossipEncryption"
         label={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Enable Experimental Gossip encryption:"
-            id="admin.cluster.EnableExperimentalGossipEncryption"
+            defaultMessage="Enable Gossip encryption:"
+            id="admin.cluster.EnableGossipEncryption"
           />
         }
         onChange={[Function]}
