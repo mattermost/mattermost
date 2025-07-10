@@ -8,7 +8,7 @@ import styled from 'styled-components';
 import {getSearchPluginSuggestions} from 'selectors/plugins';
 
 import {resultHasItems, type ProviderResult} from 'components/suggestion/provider';
-import {SuggestionListGroup, SuggestionListList} from 'components/suggestion/suggestion_list';
+import {SuggestionListGroup, SuggestionListList, SuggestionListStatus} from 'components/suggestion/suggestion_list';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
 
@@ -94,7 +94,7 @@ const SearchSuggestions = ({
                 const items = [];
 
                 for (let i = 0; i < group.items.length; i++) {
-                    const Component = providerResults.component!; // TODO?
+                    const Component = providerResults.component!;
 
                     const item = group.items[i];
                     const term = group.terms[i];
@@ -104,7 +104,6 @@ const SearchSuggestions = ({
                         <Component
                             key={term}
 
-                            // ref={(ref: any) => this.itemRefs.set(term, ref)}
                             id={`searchBoxSuggestions_item_${term}`}
                             item={item}
                             term={term}
@@ -136,28 +135,10 @@ const SearchSuggestions = ({
 
         return (
             <SuggestionsBody>
-                {/* {providerResults.component && providerResults.items[selectedOption] && (
-                    <div
-                        aria-live='polite'
-                        role='alert'
-                        className='sr-only'
-                        key={providerResults.terms[selectedOption]}
-                    >
-                        <FormattedMessage
-                            id='search_box_suggestions.suggestions_readout'
-                            defaultMessage='{label} ({idx} of {total} results available)'
-                            values={{
-                                label: generateLabel(providerResults.items[selectedOption]),
-                                idx: selectedOption + 1,
-                                total: providerResults.items.length,
-                            }}
-                        />
-                    </div>
-                )} */}
                 <SuggestionListList id={id}>
                     {contents}
                 </SuggestionListList>
-                {/* SuggestionsListStatus? */}
+                <SuggestionListStatus groups={providerResults.groups}/>
             </SuggestionsBody>
         );
     }
