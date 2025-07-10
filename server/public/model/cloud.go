@@ -346,9 +346,9 @@ type WorkspaceDeletionRequest struct {
 
 // MessageDescriptor represents an i18n message descriptor
 type MessageDescriptor struct {
-	ID             string                 `json:"id"`
-	DefaultMessage string                 `json:"defaultMessage"`
-	Values         map[string]interface{} `json:"values,omitempty"`
+	ID             string         `json:"id"`
+	DefaultMessage string         `json:"defaultMessage"`
+	Values         map[string]any `json:"values,omitempty"`
 }
 
 // PreviewModalContentData represents the structure of modal content data from S3
