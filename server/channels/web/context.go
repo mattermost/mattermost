@@ -209,6 +209,63 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 	return nil
 }
 
+// isExactPathMatch checks if path exactly matches any of the provided exempt paths
+func isExactPathMatch(path string, exemptPaths []string) bool {
+	for _, exemptPath := range exemptPaths {
+		if path == exemptPath {
+			return true
+		}
+	}
+	return false
+}
+
+// matchesUserResourcePattern checks if path matches the pattern /prefix/{user_id}/suffix
+// and returns the user_id and whether it matches. Uses exact pattern validation to prevent bypass attacks.
+func matchesUserResourcePattern(path, prefix, suffix string) (string, bool) {
+	if !strings.HasPrefix(path, prefix) || !strings.HasSuffix(path, suffix) {
+		return "", false
+	}
+
+	// Ensure exact pattern with valid structure
+	parts := strings.Split(path, "/")
+	expectedParts := strings.Count(prefix, "/") + strings.Count(suffix, "/") + 1 // +1 for user_id segment
+
+	if len(parts) != expectedParts {
+		return "", false
+	}
+
+	// Validate prefix parts match exactly
+	prefixParts := strings.Split(strings.Trim(prefix, "/"), "/")
+	for i, expectedPart := range prefixParts {
+		if i+1 >= len(parts) || parts[i+1] != expectedPart {
+			return "", false
+		}
+	}
+
+	// Validate suffix parts match exactly
+	suffixParts := strings.Split(strings.Trim(suffix, "/"), "/")
+	suffixStartIndex := len(parts) - len(suffixParts)
+	for i, expectedPart := range suffixParts {
+		if suffixStartIndex+i >= len(parts) || parts[suffixStartIndex+i] != expectedPart {
+			return "", false
+		}
+	}
+
+	// Extract user_id (should be the segment between prefix and suffix)
+	userIdIndex := len(prefixParts) + 1
+	if userIdIndex >= len(parts) {
+		return "", false
+	}
+
+	userId := parts[userIdIndex]
+	// Reject empty user IDs (caused by double slashes or malformed paths)
+	if userId == "" {
+		return "", false
+	}
+
+	return userId, true
+}
+
 // isTermsOfServiceExemptEndpoint uses exact path matching to prevent bypass attacks
 func (c *Context) isTermsOfServiceExemptEndpoint(path string) bool {
 	// Exact path matches for ToS endpoints to prevent path traversal attacks
@@ -217,24 +274,15 @@ func (c *Context) isTermsOfServiceExemptEndpoint(path string) bool {
 	}
 
 	// Check exact matches
-	for _, exemptPath := range exemptPaths {
-		if path == exemptPath {
-			return true
-		}
+	if isExactPathMatch(path, exemptPaths) {
+		return true
 	}
 
 	// Check user-specific ToS endpoints with exact pattern matching
 	// Pattern: /api/v4/users/{user_id}/terms_of_service
-	if strings.HasPrefix(path, "/api/v4/users/") && strings.HasSuffix(path, "/terms_of_service") {
-		// Ensure it follows the exact pattern with valid user ID
-		parts := strings.Split(path, "/")
-		if len(parts) == 6 && parts[1] == "api" && parts[2] == "v4" && parts[3] == "users" && parts[5] == "terms_of_service" {
-			// Basic validation that user_id part is a valid ID (prevents injection)
-			userId := parts[4]
-			if userId != "" && model.IsValidId(userId) {
-				return true
-			}
-		}
+	if userId, matches := matchesUserResourcePattern(path, "/api/v4/users/", "/terms_of_service"); matches {
+		// Validate that user_id part is a valid ID (prevents injection)
+		return userId != "" && model.IsValidId(userId)
 	}
 
 	return false

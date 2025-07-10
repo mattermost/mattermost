@@ -90,6 +90,109 @@ func TestMfaRequired(t *testing.T) {
 	assert.Equal(t, c.Err.Id, "api.context.get_user.app_error")
 }
 
+func TestIsExactPathMatch(t *testing.T) {
+	exemptPaths := []string{
+		"/api/v4/terms_of_service",
+		"/api/v4/config",
+	}
+
+	tests := []struct {
+		name     string
+		path     string
+		expected bool
+	}{
+		{"exact match", "/api/v4/terms_of_service", true},
+		{"exact match config", "/api/v4/config", true},
+		{"no match", "/api/v4/users", false},
+		{"partial match", "/api/v4/terms_of_service/extra", false},
+		{"prefix match", "prefix/api/v4/terms_of_service", false},
+		{"empty path", "", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := isExactPathMatch(tt.path, exemptPaths)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestMatchesUserResourcePattern(t *testing.T) {
+	tests := []struct {
+		name       string
+		path       string
+		prefix     string
+		suffix     string
+		expectedId string
+		expectedOk bool
+	}{
+		{
+			name:       "valid user resource",
+			path:       "/api/v4/users/abcdefghijklmnopqrstuvwxyz/terms_of_service",
+			prefix:     "/api/v4/users/",
+			suffix:     "/terms_of_service",
+			expectedId: "abcdefghijklmnopqrstuvwxyz",
+			expectedOk: true,
+		},
+		{
+			name:       "valid user preferences",
+			path:       "/api/v4/users/USER123ABCDEFGHIJKLMNOPQRS/preferences",
+			prefix:     "/api/v4/users/",
+			suffix:     "/preferences",
+			expectedId: "USER123ABCDEFGHIJKLMNOPQRS",
+			expectedOk: true,
+		},
+		{
+			name:       "wrong prefix",
+			path:       "/api/v5/users/abcdefghijklmnopqrstuvwxyz/terms_of_service",
+			prefix:     "/api/v4/users/",
+			suffix:     "/terms_of_service",
+			expectedId: "",
+			expectedOk: false,
+		},
+		{
+			name:       "wrong suffix",
+			path:       "/api/v4/users/abcdefghijklmnopqrstuvwxyz/preferences",
+			prefix:     "/api/v4/users/",
+			suffix:     "/terms_of_service",
+			expectedId: "",
+			expectedOk: false,
+		},
+		{
+			name:       "extra path segments",
+			path:       "/api/v4/users/abcdefghijklmnopqrstuvwxyz/extra/terms_of_service",
+			prefix:     "/api/v4/users/",
+			suffix:     "/terms_of_service",
+			expectedId: "",
+			expectedOk: false,
+		},
+		{
+			name:       "bypass attempt with dots",
+			path:       "/api/v4/users/../admin/terms_of_service",
+			prefix:     "/api/v4/users/",
+			suffix:     "/terms_of_service",
+			expectedId: "",
+			expectedOk: false,
+		},
+		{
+			name:       "empty user id",
+			path:       "/api/v4/users//terms_of_service",
+			prefix:     "/api/v4/users/",
+			suffix:     "/terms_of_service",
+			expectedId: "",
+			expectedOk: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userId, ok := matchesUserResourcePattern(tt.path, tt.prefix, tt.suffix)
+			assert.Equal(t, tt.expectedOk, ok)
+			assert.Equal(t, tt.expectedId, userId)
+		})
+	}
+}
+
 func TestTermsOfServiceExemption(t *testing.T) {
 	// Create a minimal context just for path checking
 	c := &Context{}
