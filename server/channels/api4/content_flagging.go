@@ -60,6 +60,11 @@ func getTeamPostReportingFeatureStatus(c *Context, w http.ResponseWriter, r *htt
 	}
 
 	teamID := c.Params.TeamId
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
 	enabled := c.App.GetTeamPostReportingFeatureStatus(teamID)
 
 	payload := map[string]bool{
