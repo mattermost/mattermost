@@ -279,6 +279,8 @@ channels/db/migrations/mysql/000140_add_lastmemberssyncat_to_sharedchannelremote
 channels/db/migrations/mysql/000140_add_lastmemberssyncat_to_sharedchannelremotes.up.sql
 channels/db/migrations/mysql/000141_add_remoteid_channelid_to_post_acknowledgements.down.sql
 channels/db/migrations/mysql/000141_add_remoteid_channelid_to_post_acknowledgements.up.sql
+channels/db/migrations/mysql/000142_add_syncoutbound_to_sharedchannelremotes.down.sql
+channels/db/migrations/mysql/000142_add_syncoutbound_to_sharedchannelremotes.up.sql
 channels/db/migrations/postgres/000001_create_teams.down.sql
 channels/db/migrations/postgres/000001_create_teams.up.sql
 channels/db/migrations/postgres/000002_create_team_members.down.sql
@@ -559,3 +561,5 @@ channels/db/migrations/postgres/000140_add_lastmemberssyncat_to_sharedchannelrem
 channels/db/migrations/postgres/000140_add_lastmemberssyncat_to_sharedchannelremotes.up.sql
 channels/db/migrations/postgres/000141_add_remoteid_channelid_to_post_acknowledgements.down.sql
 channels/db/migrations/postgres/000141_add_remoteid_channelid_to_post_acknowledgements.up.sql
+channels/db/migrations/postgres/000142_add_syncoutbound_to_sharedchannelremotes.down.sql
+channels/db/migrations/postgres/000142_add_syncoutbound_to_sharedchannelremotes.up.sql

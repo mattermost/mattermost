@@ -1558,6 +1558,10 @@
     "translation": "[action]"
   },
   {
+    "id": "api.command_share.invalid_sync_direction",
+    "translation": "Invalid sync direction '{{.Direction}}'. Must be 'bidirectional', 'outbound', or 'inbound'."
+  },
+  {
     "id": "api.command_share.invalid_value.error",
     "translation": "Invalid value for '{{.Arg}}': {{.Error}}"
   },
@@ -1576,6 +1580,10 @@
   {
     "id": "api.command_share.missing_action",
     "translation": "Missing action. Available actions: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.must_specify_sync_direction",
+    "translation": "You must specify a sync direction (bidirectional, or inbound)."
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
@@ -1610,12 +1618,16 @@
     "translation": "Secure connection ID is invalid: {{.Error}}"
   },
   {
+    "id": "api.command_share.remote_not_found_in_channel",
+    "translation": "Remote '{{.RemoteId}}' is not connected to this channel."
+  },
+  {
     "id": "api.command_share.remote_not_valid",
     "translation": "Must specify a valid secure connection ID to uninvite"
   },
   {
-    "id": "api.command_share.remote_table_header",
-    "translation": "| Secure connection | Site URL | Read only | Invite accepted | Online | Last sync |"
+    "id": "api.command_share.remote_table_header_with_sync",
+    "translation": "| Secure Connection | SiteURL | ReadOnly | InviteAccepted | Online | Sync Direction | Last Sync |"
   },
   {
     "id": "api.command_share.remote_uninvited",
@@ -1650,6 +1662,26 @@
     "translation": "Cannot unshare this channel: {{.Error}}."
   },
   {
+    "id": "api.command_share.sync_direction.help",
+    "translation": "Configure sync direction for a shared channel remote"
+  },
+  {
+    "id": "api.command_share.sync_direction_bidirectional",
+    "translation": "Bidirectional"
+  },
+  {
+    "id": "api.command_share.sync_direction_inbound_only",
+    "translation": "Inbound Only"
+  },
+  {
+    "id": "api.command_share.sync_direction_updated",
+    "translation": "Sync direction updated for remote '{{.RemoteName}}' to {{.Direction}}."
+  },
+  {
+    "id": "api.command_share.sync_direction_value.help",
+    "translation": "Sync direction: bidirectional, or inbound"
+  },
+  {
     "id": "api.command_share.uninvite_remote.help",
     "translation": "Uninvites a secure connection from this shared channel"
   },
@@ -1664,6 +1696,10 @@
   {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Unshares the current channel"
+  },
+  {
+    "id": "api.command_share.update_sync_direction.error",
+    "translation": "Failed to update sync direction: {{.Error}}"
   },
   {
     "id": "api.command_shortcuts.desc",

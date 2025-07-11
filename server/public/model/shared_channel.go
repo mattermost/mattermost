@@ -119,6 +119,7 @@ type SharedChannelRemote struct {
 	LastPostCreateAt  int64  `json:"last_post_create_at"`
 	LastPostCreateID  string `json:"last_post_create_id"`
 	LastMembersSyncAt int64  `json:"last_members_sync_at"`
+	SyncOutbound      bool   `json:"sync_outbound"`
 }
 
 func (sc *SharedChannelRemote) IsValid() *AppError {
@@ -150,6 +151,8 @@ func (sc *SharedChannelRemote) PreSave() {
 	}
 	sc.CreateAt = GetMillis()
 	sc.UpdateAt = sc.CreateAt
+	// Default SyncOutbound to true for new records
+	sc.SyncOutbound = true
 }
 
 func (sc *SharedChannelRemote) PreUpdate() {
@@ -165,6 +168,7 @@ type SharedChannelRemoteStatus struct {
 	ReadOnly         bool   `json:"readonly"`
 	IsInviteAccepted bool   `json:"is_invite_accepted"`
 	Token            string `json:"token"`
+	SyncOutbound     bool   `json:"sync_outbound"`
 }
 
 // SharedChannelUser stores a lastSyncAt timestamp on behalf of a remote cluster for

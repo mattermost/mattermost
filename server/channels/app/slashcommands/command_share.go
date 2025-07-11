@@ -22,7 +22,7 @@ var _ app.AutocompleteDynamicArgProvider = (*ShareProvider)(nil)
 
 const (
 	CommandTriggerShare   = "share-channel"
-	AvailableShareActions = "invite, uninvite, unshare, status"
+	AvailableShareActions = "invite, uninvite, unshare, status, sync"
 )
 
 func init() {
@@ -47,10 +47,15 @@ func (sp *ShareProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 
 	status := model.NewAutocompleteData("status", "", T("api.command_share.channel_status.help"))
 
+	syncDirection := model.NewAutocompleteData("sync", "", T("api.command_share.sync_direction.help"))
+	syncDirection.AddNamedDynamicListArgument("connectionID", T("api.command_share.remote_id.help"), "builtin:"+CommandTriggerShare, true)
+	syncDirection.AddNamedDynamicListArgument("direction", T("api.command_share.sync_direction_value.help"), "builtin:"+CommandTriggerShare, true)
+
 	share.AddCommand(inviteRemote)
 	share.AddCommand(unInviteRemote)
 	share.AddCommand(unshareChannel)
 	share.AddCommand(status)
+	share.AddCommand(syncDirection)
 
 	return &model.Command{
 		Trigger:          CommandTriggerShare,
@@ -75,6 +80,10 @@ func (sp *ShareProvider) GetAutoCompleteListItems(c request.CTX, a *app.App, com
 	case strings.Contains(parsed, " uninvite "):
 
 		return sp.getAutoCompleteUnInviteRemote(a, commandArgs, arg)
+
+	case strings.Contains(parsed, " sync "):
+
+		return sp.getAutoCompleteSyncDirection(a, commandArgs, arg)
 	}
 	return nil, errors.New("invalid action")
 }
@@ -122,6 +131,26 @@ func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, _ *model.Comm
 	}
 }
 
+func (sp *ShareProvider) getAutoCompleteSyncDirection(a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg) ([]model.AutocompleteListItem, error) {
+	switch arg.Name {
+	case "connectionID":
+		return getRemoteClusterAutocompleteListItemsInChannel(a, commandArgs.ChannelId, true)
+	case "direction":
+		return []model.AutocompleteListItem{
+			{
+				Item:     "bidirectional",
+				HelpText: "Send and receive messages (default)",
+			},
+			{
+				Item:     "inbound",
+				HelpText: "Only receive messages from remote",
+			},
+		}, nil
+	default:
+		return nil, fmt.Errorf("%s not a dynamic argument", arg.Name)
+	}
+}
+
 func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionTo(args.UserId, model.PermissionManageSharedChannels) {
 		return response(args.T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}))
@@ -154,6 +183,8 @@ func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 		return sp.doUninviteRemote(a, args, margs)
 	case "status":
 		return sp.doStatus(a, args, margs)
+	case "sync":
+		return sp.doSyncDirection(a, args, margs)
 	}
 	return response(args.T("api.command_share.unknown_action", map[string]any{"Action": action, "Actions": AvailableShareActions}))
 }
@@ -287,19 +318,79 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[str
 
 	fmt.Fprintf(&sb, "%s\n\n", args.T("api.command_share.channel_status_id", map[string]any{"ChannelId": statuses[0].ChannelId}))
 
-	fmt.Fprintf(&sb, "%s \n", args.T("api.command_share.remote_table_header"))
-	// "| Secure Connection | SiteURL | ReadOnly | InviteAccepted | Online | Last Sync |"
-	fmt.Fprintf(&sb, "| ---- | ---- | ---- | ---- | ---- | ---- | \n")
+	fmt.Fprintf(&sb, "%s \n", args.T("api.command_share.remote_table_header_with_sync"))
+	// "| Secure Connection | SiteURL | ReadOnly | InviteAccepted | Online | Sync Direction | Last Sync |"
+	fmt.Fprintf(&sb, "| ---- | ---- | ---- | ---- | ---- | ---- | ---- | \n")
 
 	for _, status := range statuses {
 		readonly := formatBool(args.T, status.ReadOnly)
 		accepted := formatBool(args.T, status.IsInviteAccepted)
 		online := formatBool(args.T, isOnline(status.LastPingAt))
 
+		var syncDirection string
+		if status.SyncOutbound {
+			syncDirection = args.T("api.command_share.sync_direction_bidirectional")
+		} else {
+			syncDirection = args.T("api.command_share.sync_direction_inbound_only")
+		}
+
 		lastSync := formatTimestamp(status.NextSyncAt)
 
-		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s |\n",
-			status.DisplayName, status.SiteURL, readonly, accepted, online, lastSync)
+		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s | %s |\n",
+			status.DisplayName, status.SiteURL, readonly, accepted, online, syncDirection, lastSync)
 	}
 	return response(sb.String())
+}
+
+func (sp *ShareProvider) doSyncDirection(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+	remoteID, ok := margs["connectionID"]
+	if !ok || remoteID == "" {
+		return response(args.T("api.command_share.must_specify_valid_remote"))
+	}
+
+	direction, ok := margs["direction"]
+	if !ok || direction == "" {
+		return response(args.T("api.command_share.must_specify_sync_direction"))
+	}
+
+	// Validate direction value
+	var syncOutbound bool
+	switch direction {
+	case "bidirectional":
+		syncOutbound = true
+	case "inbound":
+		syncOutbound = false
+	default:
+		return response(args.T("api.command_share.invalid_sync_direction", map[string]any{"Direction": direction}))
+	}
+
+	// Check if the remote exists and is connected to this channel
+	scr, err := a.Srv().GetStore().SharedChannel().GetRemoteByIds(args.ChannelId, remoteID)
+	if err != nil {
+		return response(args.T("api.command_share.remote_not_found_in_channel", map[string]any{"RemoteId": remoteID}))
+	}
+
+	// Update the SyncOutbound flag
+	scr.SyncOutbound = syncOutbound
+	if _, err = a.Srv().GetStore().SharedChannel().UpdateRemote(scr); err != nil {
+		return response(args.T("api.command_share.update_sync_direction.error", map[string]any{"Error": err.Error()}))
+	}
+
+	// Get remote cluster info for display
+	rc, appErr := a.GetRemoteCluster(remoteID, false)
+	if appErr != nil {
+		return response(args.T("api.command_share.remote_id_invalid.error", map[string]any{"Error": appErr.Error()}))
+	}
+
+	var directionText string
+	if syncOutbound {
+		directionText = args.T("api.command_share.sync_direction_bidirectional")
+	} else {
+		directionText = args.T("api.command_share.sync_direction_inbound_only")
+	}
+
+	return response("##### " + args.T("api.command_share.sync_direction_updated", map[string]any{
+		"RemoteName": rc.DisplayName,
+		"Direction":  directionText,
+	}))
 }
