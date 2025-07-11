@@ -4,8 +4,6 @@
 import {useCallback, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {AdminConfig} from '@mattermost/types/config';
-
 import {patchConfig} from 'mattermost-redux/actions/admin';
 import {getConfig, getEnvironmentConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -30,7 +28,7 @@ export const useAdminSettingState = <T extends Record<string, any>>(
     const dispatch = useDispatch();
 
     const license = useSelector(getLicense);
-    const config = useSelector(getConfig) as AdminConfig;
+    const config = useSelector(getConfig);
 
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -65,11 +63,13 @@ export const useAdminSettingState = <T extends Record<string, any>>(
 
         if (data) {
             setSettingValues(getStateFromConfig(data, license));
-            setSaveNeeded(false);
             setSaving(false);
 
-            dispatch(setNavigationBlocked(false));
             handleSaved?.(configToPatch, handleChange);
+
+            // We set the save needed at the end in case handleSaved changes the state
+            setSaveNeeded(false);
+            dispatch(setNavigationBlocked(false));
         } else if (error) {
             setSaving(false);
             setServerError(error.message);
