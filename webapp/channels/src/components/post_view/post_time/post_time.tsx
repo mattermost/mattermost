@@ -94,6 +94,7 @@ export default class PostTime extends React.PureComponent<Props> {
                     <Timestamp
                         value={eventTime}
                         useSemanticOutput={false}
+                        useDate={{weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'}}
                         useTime={getTimeFormat}
                     />
                 }
