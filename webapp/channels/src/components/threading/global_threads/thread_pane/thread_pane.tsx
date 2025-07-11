@@ -6,7 +6,6 @@ import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
@@ -14,7 +13,6 @@ import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
 import Header from 'components/widgets/header';
-import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
@@ -118,18 +116,7 @@ const ThreadPane = ({
                             isFollowing={isFollowing}
                             hasUnreads={Boolean(thread.unread_replies || thread.unread_mentions)}
                             unreadTimestamp={unreadTimestamp}
-                        >
-                            <WithTooltip
-                                title={formatMessage({
-                                    id: 'threading.threadHeader.menu',
-                                    defaultMessage: 'More Actions',
-                                })}
-                            >
-                                <Button className='Button___icon Button___large'>
-                                    <DotsVerticalIcon size={18}/>
-                                </Button>
-                            </WithTooltip>
-                        </ThreadMenu>
+                        />
                     </>
                 )}
             />

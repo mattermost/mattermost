@@ -51,26 +51,7 @@ exports[`components/threading/global_threads/thread_item should report total num
         isFollowing={true}
         threadId="1y8hpek81byspd4enyk9mp1ncw"
         unreadTimestamp={1611786714912}
-      >
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Actions"
-              id="threading.threadItem.menu"
-            />
-          }
-        >
-          <Memo(Button)
-            aria-label="Actions"
-            className="Button___icon"
-            marginTop={true}
-          >
-            <DotsVerticalIcon
-              size={18}
-            />
-          </Memo(Button)>
-        </WithTooltip>
-      </MockThreadMenu>
+      />
     </div>
     <div
       className="preview"
@@ -205,26 +186,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
         isFollowing={true}
         threadId="1y8hpek81byspd4enyk9mp1ncw"
         unreadTimestamp={1611786714912}
-      >
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Actions"
-              id="threading.threadItem.menu"
-            />
-          }
-        >
-          <Memo(Button)
-            aria-label="Actions"
-            className="Button___icon"
-            marginTop={true}
-          >
-            <DotsVerticalIcon
-              size={18}
-            />
-          </Memo(Button)>
-        </WithTooltip>
-      </MockThreadMenu>
+      />
     </div>
     <div
       className="preview"
@@ -357,26 +319,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
         isFollowing={true}
         threadId="1y8hpek81byspd4enyk9mp1ncw"
         unreadTimestamp={1611786714912}
-      >
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Actions"
-              id="threading.threadItem.menu"
-            />
-          }
-        >
-          <Memo(Button)
-            aria-label="Actions"
-            className="Button___icon"
-            marginTop={true}
-          >
-            <DotsVerticalIcon
-              size={18}
-            />
-          </Memo(Button)>
-        </WithTooltip>
-      </MockThreadMenu>
+      />
     </div>
     <div
       className="preview"

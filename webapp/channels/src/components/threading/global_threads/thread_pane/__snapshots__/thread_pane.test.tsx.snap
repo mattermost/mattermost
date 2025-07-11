@@ -45,19 +45,7 @@ exports[`components/threading/global_threads/thread_pane should match snapshot 1
           isFollowing={true}
           threadId="1y8hpek81byspd4enyk9mp1ncw"
           unreadTimestamp={1611786714912}
-        >
-          <WithTooltip
-            title="More Actions"
-          >
-            <Memo(Button)
-              className="Button___icon Button___large"
-            >
-              <DotsVerticalIcon
-                size={18}
-              />
-            </Memo(Button)>
-          </WithTooltip>
-        </Memo(ThreadMenu)>
+        />
       </React.Fragment>
     }
   />
