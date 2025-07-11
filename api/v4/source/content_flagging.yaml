@@ -29,7 +29,7 @@
     get:
       summary: Get content flagging status for a team
       description: |
-        Returns the content flagging status for a specific team, indicating whether content flagging is enabled on the specified team or not..
+        Returns the content flagging status for a specific team, indicating whether content flagging is enabled on the specified team or not.
       tags:
         - Content Flagging
       parameters:

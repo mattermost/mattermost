@@ -7,7 +7,7 @@ import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-export function getTeamContentFlaggingStatus(teamId: string): ActionFuncAsync<boolean> {
+export function getTeamContentFlaggingStatus(teamId: string): ActionFuncAsync<{enabled: boolean}> {
     return async (dispatch, getState) => {
         let response;
 
@@ -27,6 +27,6 @@ export function getTeamContentFlaggingStatus(teamId: string): ActionFuncAsync<bo
             return {error};
         }
 
-        return response;
+        return {data: response};
     };
 }

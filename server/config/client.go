@@ -241,7 +241,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 		}
 
 		if model.MinimumEnterpriseAdvancedLicense(license) {
-			props["ContentFlaggingEnabled"] = strconv.FormatBool(*c.ContentFlaggingSettings.EnableContentFlagging)
+			props["ContentFlaggingEnabled"] = strconv.FormatBool(c.FeatureFlags.ContentFlagging && *c.ContentFlaggingSettings.EnableContentFlagging)
 		}
 	}
 
