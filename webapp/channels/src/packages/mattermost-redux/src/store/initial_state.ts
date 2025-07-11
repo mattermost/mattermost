@@ -50,6 +50,7 @@ const state: GlobalState = {
             stats: {},
             groupsAssociatedToTeam: {},
             totalCount: 0,
+            contentFlaggingStatus: {},
         },
         channels: {
             currentChannelId: '',

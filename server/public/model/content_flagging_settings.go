@@ -227,3 +227,8 @@ func (cfs *ContentFlaggingSettings) IsValid() *AppError {
 
 	return nil
 }
+
+type ContentFlaggingReportingConfig struct {
+	Reasons                 *[]string `json:"reasons"`
+	ReporterCommentRequired *bool     `json:"reporter_comment_required"`
+}
