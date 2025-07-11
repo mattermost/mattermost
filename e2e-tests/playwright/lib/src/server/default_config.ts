@@ -803,6 +803,7 @@ const defaultServerConfig: AdminConfig = {
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
         EnableChannelScopeAccessControl: false,
+        EnableUserManagedAttributes: false,
     },
     ContentFlaggingSettings: {
         NotificationSettings: {

@@ -36,6 +36,11 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     const mockGetVisualAST = jest.fn();
     const defaultProps = {
         policyId: 'policy1',
+        accessControlSettings: {
+            EnableAttributeBasedAccessControl: true,
+            EnableChannelScopeAccessControl: true,
+            EnableUserManagedAttributes: false,
+        },
         channels: [
             {id: 'channel1', name: 'Channel 1', display_name: 'Channel 1', team_display_name: 'Team 1', type: 'O'} as ChannelWithTeamData,
             {id: 'channel2', name: 'channel2', display_name: 'Channel 2', team_display_name: 'Team 2', type: 'P'} as ChannelWithTeamData,

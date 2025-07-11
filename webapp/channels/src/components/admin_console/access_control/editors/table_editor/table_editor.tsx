@@ -27,6 +27,7 @@ interface TableEditorProps {
     onValidate?: (isValid: boolean) => void;
     disabled?: boolean;
     userAttributes: UserPropertyField[];
+    enableUserManagedAttributes: boolean;
     onParseError: (error: string) => void;
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
@@ -86,6 +87,7 @@ function TableEditor({
     onValidate,
     disabled = false,
     userAttributes,
+    enableUserManagedAttributes,
     onParseError,
     actions,
 }: TableEditorProps): JSX.Element {
@@ -295,6 +297,7 @@ function TableEditor({
                                         buttonId={`attribute-selector-button-${index}`}
                                         autoOpen={index === autoOpenAttributeMenuForRow}
                                         onMenuOpened={() => setAutoOpenAttributeMenuForRow(null)}
+                                        enableUserManagedAttributes={enableUserManagedAttributes}
                                     />
                                 </td>
                                 <td className='table-editor__cell'>
