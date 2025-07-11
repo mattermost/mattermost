@@ -4,18 +4,15 @@
 package app
 
 import (
+	"sync/atomic"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
-	"sync"
-	"sync/atomic"
 )
 
-const (
-	ContentFlaggingPropertyStausName = "status"
-)
+const contentFlaggingSetupDoneKey = "content_flagging_setup_done"
 
 var contentFlaggingGroupID string
-var contentFlaggingSetupMutex = sync.RWMutex{}
 var contentFlaggingSetupDone int32
 
 func (a *App) GetContentFlaggingGroupID() (string, error) {
@@ -43,11 +40,17 @@ func (a *App) SetupContentFlaggingProperties() error {
 		return errors.Wrap(err, "failed to get Content Flagging group ID when setting up content flagging properties")
 	}
 
+	if system, err := a.Srv().Store().System().GetByName(contentFlaggingSetupDoneKey); err == nil && system.Value == "true" {
+		// If the setup is already done, we skip the property creation
+		atomic.StoreInt32(&contentFlaggingSetupDone, 1)
+		return nil
+	}
+
 	// register status property
 	properties := []*model.PropertyField{
 		{
 			GroupID: groupId,
-			Name:    ContentFlaggingPropertyStausName,
+			Name:    "status",
 			Type:    model.PropertyFieldTypeText,
 		},
 		{
@@ -92,24 +95,14 @@ func (a *App) SetupContentFlaggingProperties() error {
 		},
 	}
 
-	existingContentFlaggingProperties, err := a.Srv().propertyService.SearchPropertyFields(groupId, "", model.PropertyFieldSearchOpts{PerPage: 100, IncludeDeleted: false})
-	if err != nil {
-		return errors.Wrap(err, "failed to search existing content flagging properties")
-	}
-
-	propertyNames := make(map[string]bool)
-	for _, property := range existingContentFlaggingProperties {
-		propertyNames[property.Name] = true
-	}
-
 	for _, property := range properties {
-		if _, exists := propertyNames[property.Name]; exists {
-			continue // skip if property already exists
-		}
-
 		if _, err := a.Srv().propertyService.CreatePropertyField(property); err != nil {
 			return errors.Wrapf(err, "failed to create content flagging property %q", property.Name)
 		}
+	}
+
+	if err := a.Srv().Store().System().Save(&model.System{Name: contentFlaggingSetupDoneKey, Value: "true"}); err != nil {
+		return errors.Wrap(err, "failed to save content flagging setup done flag in system store")
 	}
 
 	atomic.StoreInt32(&contentFlaggingSetupDone, 1)
