@@ -73,7 +73,6 @@ export default function UserAccountAwayMenuItem(props: Props) {
                 />
             }
             trailingElements={trailingElement}
-            aria-checked={props.isStatusAway}
             onClick={handleClick}
         />
     );
