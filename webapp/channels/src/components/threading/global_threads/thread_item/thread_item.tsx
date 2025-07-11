@@ -130,6 +130,13 @@ function ThreadItem({
                 return;
             }
         }
+
+        // Don't select the thread when a menu is focused
+        if (e.target instanceof HTMLElement &&
+            (e.target.hasAttribute('aria-haspopup') || e.target.role === 'menuitem')) {
+            return;
+        }
+
         if (e.altKey) {
             const hasUnreads = thread ? Boolean(thread.unread_replies) : false;
             const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;

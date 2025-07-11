@@ -126,7 +126,9 @@ function ThreadMenu({
                         />
                     </>)
                 }
-                onClick={useCallback(() => {
+                onClick={useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+                    e.stopPropagation();
+
                     dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
                     readAloud(isFollowing ? formatMessage({
                         id: 'threading.threadMenu.unfollowed',
@@ -144,7 +146,9 @@ function ThreadMenu({
                         defaultMessage='Open in channel'
                     />
                 }
-                onClick={useCallback(() => {
+                onClick={useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+                    e.stopPropagation();
+
                     goToInChannel(threadId);
                     readAloud(formatMessage({
                         id: 'threading.threadMenu.openingChannel',
@@ -178,7 +182,9 @@ function ThreadMenu({
                         defaultMessage='Save'
                     />
                 )}
-                onClick={useCallback(() => {
+                onClick={useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+                    e.stopPropagation();
+
                     dispatch(isSaved ? unsavePost(threadId) : savePost(threadId));
                     readAloud(isSaved ? formatMessage({
                         id: 'threading.threadMenu.unsaved',
@@ -196,7 +202,9 @@ function ThreadMenu({
                         defaultMessage='Copy link'
                     />
                 }
-                onClick={useCallback(() => {
+                onClick={useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+                    e.stopPropagation();
+
                     copyToClipboard(`${getSiteURL()}/${team}/pl/${threadId}`);
                     readAloud(formatMessage({
                         id: 'threading.threadMenu.linkCopied',
