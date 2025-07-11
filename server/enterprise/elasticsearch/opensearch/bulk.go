@@ -38,7 +38,6 @@ func NewBulk(settings model.ElasticsearchSettings,
 	logger mlog.LoggerIFace,
 	client *opensearchapi.Client,
 	sync bool) *Bulk {
-
 	b := &Bulk{
 		settings:    settings,
 		logger:      logger,

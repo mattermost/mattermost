@@ -91,9 +91,7 @@ func (c *SearchChannelStore) bulkIndexChannels(rctx request.CTX, channels []*mod
 				return
 			}
 		})
-
 	}
-
 }
 
 func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannels int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
