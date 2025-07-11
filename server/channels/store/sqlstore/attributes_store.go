@@ -186,7 +186,7 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 		OrderBy("ChannelMembers.UserId ASC")
 
 	if opts.Query != "" {
-		query = query.Where(sq.Expr(fmt.Sprintf("(NOT (%s) OR AttributeView.TargetID IS NULL)", opts.Query), opts.Args...))
+		query = query.Where(sq.Expr(fmt.Sprintf("(NOT COALESCE((%s), FALSE) OR AttributeView.TargetID IS NULL)", opts.Query), opts.Args...))
 	}
 
 	argCount := len(opts.Args)
