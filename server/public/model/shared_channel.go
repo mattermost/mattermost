@@ -60,8 +60,10 @@ func (sc *SharedChannel) IsValid() *AppError {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.update_at.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(sc.ShareDisplayName) > ChannelDisplayNameMaxRunes {
-		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.display_name.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
+	if actualRunes := utf8.RuneCountInString(sc.ShareDisplayName); actualRunes > ChannelDisplayNameMaxRunes {
+		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.display_name.app_error",
+			map[string]any{"MaxRunes": ChannelDisplayNameMaxRunes, "ActualRunes": actualRunes},
+			"id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
 	if !IsValidChannelIdentifier(sc.ShareName) {

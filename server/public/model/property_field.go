@@ -166,11 +166,11 @@ func (p PropertyFieldSearchCursor) IsValid() error {
 	}
 
 	if p.CreateAt <= 0 {
-		return errors.New("create at cannot be negative or zero")
+		return fmt.Errorf("create_at value %d cannot be negative or zero", p.CreateAt)
 	}
 
 	if !IsValidId(p.PropertyFieldID) {
-		return errors.New("property field id is invalid")
+		return fmt.Errorf("property field id %q is invalid", p.PropertyFieldID)
 	}
 	return nil
 }
