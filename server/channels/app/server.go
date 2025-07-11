@@ -505,7 +505,6 @@ func NewServer(options ...Option) (*Server, error) {
 	if app.Config().FeatureFlags.ContentFlagging {
 		if err := app.SetupContentFlaggingProperties(); err != nil {
 			mlog.Error("Failed to setup content flagging properties", mlog.Err(err))
-			return nil, errors.Wrap(err, "failed to setup content flagging properties")
 		}
 	}
 
