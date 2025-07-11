@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // AssertLog asserts that a JSON-encoded buffer of logs contains one with the given level and message.
@@ -36,20 +37,55 @@ func CheckLog(t *testing.T, logs io.Reader, level, message string) bool {
 func hasMsg(t *testing.T, logs io.Reader, level, message string) bool {
 	dec := json.NewDecoder(logs)
 	for {
-		var log struct {
+		var entry struct {
 			Level string
 			Msg   string
 		}
-		if err := dec.Decode(&log); err == io.EOF {
+		err := dec.Decode(&entry)
+		if err == io.EOF {
 			break
-		} else if err != nil {
-			t.Logf("Error decoding log entry: %s", err)
+		}
+		require.NoError(t, err, "Error decoding log entry")
+
+		if entry.Level == "" || entry.Msg == "" {
+			t.Logf("Invalid log entry: %s", entry)
 			continue
 		}
 
-		if log.Level == level && log.Msg == message {
+		//if log.Level == level && log.Msg == message {
+		if entry.Msg == message {
 			return true
 		}
 	}
 	return false
+}
+
+type LogEntry struct {
+	Level string `json:"level"`
+	Msg   string `json:"msg"`
+}
+
+// ParseLogEntries parses a JSON-encoded buffer of logs and returns a list of log entries.
+func ParseLogEntries(t *testing.T, logs io.Reader) []LogEntry {
+	t.Helper()
+	var entries []LogEntry
+
+	dec := json.NewDecoder(logs)
+	for {
+		var entry LogEntry
+		err := dec.Decode(&entry)
+		if err == io.EOF {
+			break
+		}
+		require.NoError(t, err, "Error decoding log entry")
+
+		if entry.Level == "" || entry.Msg == "" {
+			t.Logf("Invalid log entry: %s", entry)
+			continue
+		}
+
+		entries = append(entries, entry)
+	}
+
+	return entries
 }
