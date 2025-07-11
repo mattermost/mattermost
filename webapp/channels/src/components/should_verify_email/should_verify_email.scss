@@ -27,20 +27,7 @@
                 justify-content: center;
 
                 .should-verify-body-content-button-resend {
-                    @include mixins.tertiary-button;
-                    
-                    &:not(:disabled) {
-                        background: var(--button-bg);
-                        color: var(--button-color);
-                        
-                        &:hover {
-                            background: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), var(--button-bg);
-                        }
-                        
-                        &:active {
-                            background: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)), var(--button-bg);
-                        }
-                    }
+                    @include mixins.secondary-button;
                 }
 
                 .should-verify-body-content-button-return {
