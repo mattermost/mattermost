@@ -1568,6 +1568,47 @@ type ExperimentalAuditSettings struct {
 	Certificate         *string         `access:"experimental_features"` // telemetry: none
 }
 
+func (s *ExperimentalAuditSettings) isValid() *AppError {
+	if *s.FileEnabled {
+		if *s.FileName == "" {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_name_empty", nil, "", http.StatusBadRequest)
+		}
+
+		if strings.HasSuffix(*s.FileName, `\`) {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_name_is_directory", nil, "", http.StatusBadRequest)
+		}
+
+		if *s.FileMaxSizeMB <= 0 {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_size_invalid", nil, "", http.StatusBadRequest)
+		}
+
+		if *s.FileMaxAgeDays < 0 {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_age_invalid", nil, "", http.StatusBadRequest)
+		}
+
+		if *s.FileMaxBackups < 0 {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid", nil, "", http.StatusBadRequest)
+		}
+
+		if *s.FileMaxQueueSize <= 0 {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	cfg := make(mlog.LoggerConfiguration)
+	err := json.Unmarshal(s.AdvancedLoggingJSON, &cfg)
+	if err != nil {
+		return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	err = cfg.IsValid()
+	if err != nil {
+		return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return nil
+}
+
 func (s *ExperimentalAuditSettings) SetDefaults() {
 	if s.FileEnabled == nil {
 		s.FileEnabled = NewPointer(false)
@@ -2906,14 +2947,16 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppCustomURLSchemes        []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
-	AppDownloadLink            *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	AndroidAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	IosAppDownloadLink         *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	MobileExternalBrowser      *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
-	MobileEnableBiometrics     *bool    `access:"site_customization,write_restrictable"`
-	MobilePreventScreenCapture *bool    `access:"site_customization,write_restrictable"`
-	MobileJailbreakProtection  *bool    `access:"site_customization,write_restrictable"`
+	AppCustomURLSchemes           []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
+	AppDownloadLink               *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	AndroidAppDownloadLink        *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	IosAppDownloadLink            *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileExternalBrowser         *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileEnableBiometrics        *bool    `access:"site_customization,write_restrictable"`
+	MobilePreventScreenCapture    *bool    `access:"site_customization,write_restrictable"`
+	MobileJailbreakProtection     *bool    `access:"site_customization,write_restrictable"`
+	MobileEnableSecureFilePreview *bool    `access:"site_customization,write_restrictable"`
+	MobileAllowPdfLinkNavigation  *bool    `access:"site_customization,write_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2947,6 +2990,14 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.MobileJailbreakProtection == nil {
 		s.MobileJailbreakProtection = NewPointer(false)
+	}
+
+	if s.MobileEnableSecureFilePreview == nil {
+		s.MobileEnableSecureFilePreview = NewPointer(false)
+	}
+
+	if s.MobileAllowPdfLinkNavigation == nil {
+		s.MobileAllowPdfLinkNavigation = NewPointer(false)
 	}
 }
 
@@ -3833,6 +3884,7 @@ type Config struct {
 	WranglerSettings            WranglerSettings
 	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
 	AccessControlSettings       AccessControlSettings
+	ContentFlaggingSettings     ContentFlaggingSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -3951,6 +4003,7 @@ func (o *Config) SetDefaults() {
 	o.WranglerSettings.SetDefaults()
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
+	o.ContentFlaggingSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -4030,6 +4083,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.ExperimentalAuditSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
 	if appErr := o.LocalizationSettings.isValid(); appErr != nil {
 		return appErr
 	}
@@ -4072,6 +4129,10 @@ func (o *Config) IsValid() *AppError {
 				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.invalid.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
+	}
+
+	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
 	}
 
 	return nil

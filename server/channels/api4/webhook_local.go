@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitWebhookLocal() {
@@ -49,10 +48,10 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localCreateIncomingHook", audit.Fail)
+	auditRec := c.MakeAuditRecord("localCreateIncomingHook", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "hook", &hook)
-	audit.AddEventParameterAuditable(auditRec, "channel", channel)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "hook", &hook)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", channel)
 	c.LogAudit("attempt")
 
 	incomingHook, err := c.App.CreateIncomingWebhookForChannel(hook.UserId, channel, &hook)
@@ -79,9 +78,9 @@ func localCreateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createOutgoingHook", audit.Fail)
+	auditRec := c.MakeAuditRecord("createOutgoingHook", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "hook", &hook)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "hook", &hook)
 	c.LogAudit("attempt")
 
 	if hook.CreatorId == "" {

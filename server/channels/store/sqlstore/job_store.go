@@ -378,12 +378,11 @@ func (jss SqlJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Jo
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, page int, perPage int) ([]*model.Job, error) {
-	offset := page * perPage
+func (jss SqlJobStore) GetAllByTypesAndStatusesPage(c request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error) {
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType, "Status": status}).
 		OrderBy("CreateAt DESC").
-		Limit(uint64(perPage)).
+		Limit(uint64(limit)).
 		Offset(uint64(offset)).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
@@ -391,7 +390,7 @@ func (jss SqlJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string
 
 	jobs := []*model.Job{}
 	if err = jss.GetReplica().Select(&jobs, query, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s and status=%s", strings.Join(jobType, ","), status)
+		return nil, errors.Wrapf(err, "failed to find Jobs with types=%s and statuses=%s", strings.Join(jobType, ","), strings.Join(status, ","))
 	}
 
 	return jobs, nil

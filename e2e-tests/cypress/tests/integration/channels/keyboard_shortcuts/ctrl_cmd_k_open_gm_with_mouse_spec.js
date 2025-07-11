@@ -44,6 +44,8 @@ describe('Keyboard Shortcuts', () => {
             // # Press Cmd/Ctrl-K to open "Switch Channels" modal
             cy.uiGetPostTextBox().cmdOrCtrlShortcut('K');
 
+            cy.waitUntil(() => cy.findAllByTestId('suggestionList').should('be.visible'));
+
             // # Click on the GM link to go to channel
             cy.get('.status--group').click();
 
