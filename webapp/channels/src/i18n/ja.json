@@ -3625,7 +3625,6 @@
   "channel_settings.error_display_name_required": "チャンネル名は必須です",
   "channel_settings.error_purpose_length": "入力されたテキストが文字数制限を超えています。チャンネルの目的は {maxLength} 文字までです。",
   "channel_settings.header.label": "チャンネルヘッダー",
-  "channel_settings.label.name": "チャンネル名",
   "channel_settings.modal.archiveTitle": "チャンネルをアーカイブしますか?",
   "channel_settings.modal.confirmArchive": "確認",
   "channel_settings.modal.title": "チャンネル設定",
