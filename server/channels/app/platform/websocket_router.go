@@ -106,7 +106,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
-	if !conn.IsAuthenticated() {
+	if !conn.IsFullyAuthenticated() {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "", http.StatusUnauthorized)
 		returnWebSocketError(conn.Platform, conn, r, err)
 		return
