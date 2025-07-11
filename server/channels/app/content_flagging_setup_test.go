@@ -4,6 +4,7 @@
 package app
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -11,7 +12,6 @@ import (
 )
 
 func TestGetContentFlaggingGroupID(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -38,13 +38,11 @@ func TestGetContentFlaggingGroupID(t *testing.T) {
 }
 
 func TestSetupContentFlaggingProperties(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cleanup := func() {
-		// Reset the content flagging setup done variable
-		contentFlaggingSetupDone = 0
+		contentFlaggingSetupOnce = sync.Once{} // Reset the once variable to allow re-running the setup
 
 		// Remove the system variable if it exists
 		_, err := th.App.Srv().Store().System().PermanentDeleteByName(contentFlaggingSetupDoneKey)
@@ -83,8 +81,9 @@ func TestSetupContentFlaggingProperties(t *testing.T) {
 	t.Run("should not setup properties if already done as per variable", func(t *testing.T) {
 		cleanup()
 
-		// Simulate that the setup is already done
-		contentFlaggingSetupDone = 1
+		contentFlaggingSetupOnce.Do(func() {
+			// no-op
+		})
 
 		err := th.App.SetupContentFlaggingProperties()
 		require.NoError(t, err)
