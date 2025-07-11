@@ -65,6 +65,10 @@ func (ms *mockSuite) HasPermissionToReadChannel(c request.CTX, userID string, ch
 	return true
 }
 
+func (ms *mockSuite) MFARequired(c request.CTX) *model.AppError {
+	return nil
+}
+
 func setupDBStore(tb testing.TB) (store.Store, *model.SqlSettings) {
 	var dbStore store.Store
 	var dbSettings *model.SqlSettings
