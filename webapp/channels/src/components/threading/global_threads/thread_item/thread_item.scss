@@ -15,7 +15,8 @@
 
     &:hover,
     &:focus,
-    &:focus-within {
+    &:focus-within,
+    &:has([aria-expanded="true"]) {
         background: rgba(var(--center-channel-color-rgb), 0.04);
 
         .alt-visible {

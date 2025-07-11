@@ -7,7 +7,6 @@ import type {MouseEvent, KeyboardEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
@@ -27,12 +26,10 @@ import {getIsMobileView} from 'selectors/views/browser';
 import Markdown from 'components/markdown';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
-import Button from 'components/threading/common/button';
 import Timestamp from 'components/timestamp';
 import CRTListTutorialTip from 'components/tours/crt_tour/crt_list_tutorial_tip';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
-import WithTooltip from 'components/with_tooltip';
 
 import {CrtTutorialSteps, Preferences} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -256,27 +253,7 @@ function ThreadItem({
                         isFollowing={isFollowing ?? false}
                         hasUnreads={Boolean(newReplies)}
                         unreadTimestamp={unreadTimestamp}
-                    >
-                        <WithTooltip
-                            title={(
-                                <FormattedMessage
-                                    id='threading.threadItem.menu'
-                                    defaultMessage='Actions'
-                                />
-                            )}
-                        >
-                            <Button
-                                marginTop={true}
-                                className='Button___icon'
-                                aria-label={formatMessage({
-                                    id: 'threading.threadItem.menu',
-                                    defaultMessage: 'Actions',
-                                })}
-                            >
-                                <DotsVerticalIcon size={18}/>
-                            </Button>
-                        </WithTooltip>
-                    </ThreadMenu>
+                    />
                 </div>
 
                 {/* The strange interaction here where we need a click/keydown handler messes with the ESLint rules, so we just disable it */}

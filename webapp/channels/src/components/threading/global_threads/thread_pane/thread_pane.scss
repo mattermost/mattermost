@@ -13,6 +13,7 @@
         justify-content: space-between;
         padding: 12px 16px;
         border-bottom: var(--border-default);
+        gap: 4px;
         grid-area: header;
 
         --button-separator-height: 24px;
@@ -53,14 +54,6 @@
             .Button {
                 color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-weight: 400;
-            }
-        }
-
-        .MenuWrapper {
-            margin-left: 4px;
-
-            .dropdown-menu {
-                min-width: 250px;
             }
         }
     }

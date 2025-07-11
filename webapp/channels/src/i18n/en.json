@@ -5762,7 +5762,6 @@
   "threading.numReplies": "{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}",
   "threading.threadHeader.menu": "More Actions",
   "threading.threadItem.ariaLabel": "Thread by {author}",
-  "threading.threadItem.menu": "Actions",
   "threading.threadItem.timestamp": "Last reply ",
   "threading.threadList.markRead": "Mark all threads as read",
   "threading.threadList.tabsLabel": "Filter visible threads",
