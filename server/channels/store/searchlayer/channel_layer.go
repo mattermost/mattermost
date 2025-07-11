@@ -37,7 +37,17 @@ func (c *SearchChannelStore) deleteChannelIndex(rctx request.CTX, channel *model
 }
 
 func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Channel) {
-	var userIDs, teamMemberIDs []string
+	teamMemberIDs, err := c.GetTeamMembersForChannel(rctx, channel.Id)
+	if err != nil {
+		rctx.Logger().Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+		return
+	}
+
+	c.indexChannelWithTeamMembers(rctx, channel, teamMemberIDs)
+}
+
+func (c *SearchChannelStore) indexChannelWithTeamMembers(rctx request.CTX, channel *model.Channel, teamMemberIDs []string) {
+	var userIDs []string
 	var err error
 	if channel.Type == model.ChannelTypePrivate {
 		userIDs, err = c.GetAllChannelMemberIdsByChannelId(channel.Id)
@@ -45,12 +55,6 @@ func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Chann
 			rctx.Logger().Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 			return
 		}
-	}
-
-	teamMemberIDs, err = c.GetTeamMembersForChannel(channel.Id)
-	if err != nil {
-		rctx.Logger().Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
-		return
 	}
 
 	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
@@ -63,6 +67,30 @@ func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Chann
 				rctx.Logger().Debug("Indexed channel in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("channel_id", channel.Id))
 			})
 		}
+	}
+}
+
+func (c *SearchChannelStore) bulkIndexChannels(rctx request.CTX, channels []*model.Channel, teamMemberIDs []string) {
+	// Util function to get userIDs, only for private channels
+	getUserIDsForChannel := func(channel *model.Channel) ([]string, error) {
+		if channel.Type != model.ChannelTypePrivate {
+			return []string{}, nil
+		}
+		return c.GetAllChannelMemberIdsByChannelId(channel.Id)
+	}
+
+	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
+		if !engine.IsIndexingEnabled() {
+			continue
+		}
+
+		runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
+			appErr := engineCopy.SyncBulkIndexChannels(rctx, channels, getUserIDsForChannel, teamMemberIDs)
+			if appErr != nil {
+				rctx.Logger().Error("Failed to synchronously bulk-index channels.", mlog.String("search_engine", engineCopy.GetName()))
+				return
+			}
+		})
 	}
 }
 

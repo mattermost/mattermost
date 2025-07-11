@@ -28,21 +28,28 @@ type Bulk struct {
 	quitFlusherWg sync.WaitGroup
 
 	pendingRequests int
+
+	// Sync mode lets the caller use the logic in this bulker without relying on the async nature of the pending requests
+	sync bool
 }
 
 func NewBulk(settings model.ElasticsearchSettings,
 	logger mlog.LoggerIFace,
-	client *elastic.TypedClient) *Bulk {
+	client *elastic.TypedClient,
+	sync bool) *Bulk {
 	b := &Bulk{
 		settings:    settings,
 		logger:      logger,
 		client:      client,
 		bulkClient:  client.Bulk(),
 		quitFlusher: make(chan struct{}),
+		sync:        sync,
 	}
 
-	b.quitFlusherWg.Add(1)
-	go b.periodicFlusher()
+	if !sync {
+		b.quitFlusherWg.Add(1)
+		go b.periodicFlusher()
+	}
 
 	return b
 }
@@ -57,7 +64,10 @@ func (r *Bulk) IndexOp(op types.IndexOperation, doc any) error {
 		return err
 	}
 
-	return r.flushIfNecessary()
+	if !r.sync {
+		return r.flushIfNecessary()
+	}
+	return nil
 }
 
 // DeleteOp is a helper function to add a DeleteOperation to the current bulk request.
@@ -69,12 +79,20 @@ func (r *Bulk) DeleteOp(op types.DeleteOperation) error {
 		return err
 	}
 
-	return r.flushIfNecessary()
+	if !r.sync {
+		return r.flushIfNecessary()
+	}
+	return nil
 }
 
 // flushIfNecessary flushes the pending buffer if needed.
 // It MUST be called with an already acquired mutex.
 func (r *Bulk) flushIfNecessary() error {
+	// Flush always if in sync mode
+	if r.sync {
+		return r._flush()
+	}
+
 	r.pendingRequests++
 
 	if r.pendingRequests > *r.settings.LiveIndexingBatchSize {
@@ -100,6 +118,10 @@ func (r *Bulk) Stop() error {
 }
 
 func (r *Bulk) periodicFlusher() {
+	if r.sync {
+		return
+	}
+
 	defer r.quitFlusherWg.Done()
 
 	for {
@@ -130,4 +152,11 @@ func (r *Bulk) _flush() error {
 	r.pendingRequests = 0
 
 	return nil
+}
+
+func (r *Bulk) flush() error {
+	r.mut.Lock()
+	defer r.mut.Unlock()
+
+	return r._flush()
 }
