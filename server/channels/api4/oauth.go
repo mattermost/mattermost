@@ -321,8 +321,8 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 // DCR (Dynamic Client Registration) endpoint handlers as per RFC 7591
 
 func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Check permissions for OAuth management
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
+	// Check permissions for OAuth management if session exists
+	if c.AppContext.Session() != nil && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
 		c.SetPermissionError(model.PermissionManageOAuth)
 		return
 	}
@@ -350,7 +350,7 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if DCR is enabled
-	if !*c.App.Config().ServiceSettings.EnableDynamicClientRegistration {
+	if c.App.Config().ServiceSettings.EnableDynamicClientRegistration == nil || !*c.App.Config().ServiceSettings.EnableDynamicClientRegistration {
 		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Dynamic client registration is disabled")
 
 		w.WriteHeader(http.StatusBadRequest)
@@ -388,7 +388,7 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 	clientRequest.Scope = &userScope
 
 	// Check for initial access token if required
-	if *c.App.Config().ServiceSettings.DCRRequireInitialAccessToken {
+	if c.App.Config().ServiceSettings.DCRRequireInitialAccessToken != nil && *c.App.Config().ServiceSettings.DCRRequireInitialAccessToken {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Initial access token required")
@@ -434,7 +434,12 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	app, appErr := c.App.RegisterOAuthClient(c.AppContext, &clientRequest, c.AppContext.Session().UserId)
+	var userID string
+	if c.AppContext.Session() != nil {
+		userID = c.AppContext.Session().UserId
+	}
+
+	app, appErr := c.App.RegisterOAuthClient(c.AppContext, &clientRequest, userID)
 	if appErr != nil {
 		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, appErr.Message)
 

@@ -170,15 +170,14 @@ func (as SqlOAuthStore) GetOAuthAppsByRedirectURIs(redirectURIs []string) ([]*mo
 
 	apps := []*model.OAuthApp{}
 
-	// Build a query that searches for any OAuth app whose CallbackUrls JSON column
-	// contains any of the provided redirect URIs using LIKE queries
+	// Use LIKE queries to find potential matches - app layer will do exact matching
 	query := as.oAuthAppsSelectQuery
 
-	// Build OR conditions for each redirect URI
+	// Build OR conditions for each redirect URI using LIKE for candidate matching
 	orConditions := sq.Or{}
 	for _, uri := range redirectURIs {
 		// Use LIKE to search within the JSON array stored as text
-		// This will find URIs that are contained within the CallbackUrls JSON column
+		// This will find potential matches - the app layer handles exact matching logic
 		likePattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(uri, "\\"))
 		orConditions = append(orConditions, sq.Like{"o.CallbackUrls": likePattern})
 	}

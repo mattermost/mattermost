@@ -1,8 +1,8 @@
 -- Add DCR (Dynamic Client Registration) fields to OAuthApps table
 
 -- Required DCR metadata fields
-ALTER TABLE OAuthApps ADD COLUMN GrantTypes TEXT DEFAULT '["authorization_code"]';
-ALTER TABLE OAuthApps ADD COLUMN ResponseTypes TEXT DEFAULT '["code"]';
+ALTER TABLE OAuthApps ADD COLUMN GrantTypes TEXT;
+ALTER TABLE OAuthApps ADD COLUMN ResponseTypes TEXT;
 ALTER TABLE OAuthApps ADD COLUMN TokenEndpointAuthMethod VARCHAR(32) DEFAULT 'client_secret_post';
 
 -- Optional DCR metadata fields

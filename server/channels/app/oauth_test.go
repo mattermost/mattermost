@@ -695,3 +695,276 @@ func TestDeactivatedUserOAuthApp(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	assert.Equal(t, "api.oauth.get_access_token.expired_code.app_error", appErr.Id)
 }
+
+func TestRegisterOAuthClient(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { 
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true 
+	})
+
+	// Test basic registration functionality
+	t.Run("Valid DCR request with client_uri", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
+			ClientName:   model.NewPointer("Test Client"),
+			ClientURI:    model.NewPointer("https://example.com"),
+			LogoURI:      model.NewPointer("https://example.com/logo.png"),
+			Scope:        model.NewPointer("user"),
+		}
+
+		app, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, app)
+		assert.Equal(t, request.RedirectURIs, []string(app.CallbackUrls))
+		assert.True(t, app.IsDynamicallyRegistered)
+		assert.Equal(t, th.BasicUser.Id, app.CreatorId)
+		assert.NotEmpty(t, app.Id)
+		assert.NotEmpty(t, app.ClientSecret)
+		assert.Equal(t, "https://example.com", app.Homepage) // Should use client_uri
+	})
+
+	// Test DCR without client_uri (optional per RFC 7591)
+	t.Run("Valid DCR request without client_uri", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://minimal.com/callback/" + model.NewId()},
+			ClientName:   model.NewPointer("Minimal Client"),
+		}
+
+		app, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, app)
+		assert.Equal(t, request.RedirectURIs, []string(app.CallbackUrls))
+		assert.True(t, app.IsDynamicallyRegistered)
+		assert.Equal(t, th.BasicUser.Id, app.CreatorId)
+		assert.NotEmpty(t, app.Id)
+		assert.NotEmpty(t, app.ClientSecret)
+		assert.Empty(t, app.Homepage) // Should be empty since no client_uri provided
+	})
+
+	// Test duplicate detection
+	t.Run("Duplicate registration prevention", func(t *testing.T) {
+		uniqueURI := "https://test-duplicate.com/callback/" + model.NewId()
+		
+		// Create first app
+		request1 := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{uniqueURI},
+			ClientName:   model.NewPointer("First Client"),
+		}
+		
+		app1, appErr1 := th.App.RegisterOAuthClient(th.Context, request1, th.BasicUser.Id)
+		require.Nil(t, appErr1)
+		require.NotNil(t, app1)
+		
+		// Try to create second app with same redirect URI - should fail
+		request2 := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{uniqueURI},
+			ClientName:   model.NewPointer("Duplicate Client"),
+		}
+		
+		app2, appErr2 := th.App.RegisterOAuthClient(th.Context, request2, th.BasicUser.Id)
+		require.NotNil(t, appErr2)
+		require.Nil(t, app2)
+		assert.Equal(t, "app.oauth.duplicate_registration.app_error", appErr2.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr2.StatusCode)
+	})
+
+}
+
+func TestCheckForDuplicateOAuthRegistration(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { 
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true 
+	})
+
+	// Create existing app
+	existingApp := &model.OAuthApp{
+		Name:         "Existing App",
+		CreatorId:    th.BasicUser.Id,
+		Homepage:     "https://existing.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://existing.com/callback1", "https://existing.com/callback2"},
+	}
+	existingApp, err := th.App.CreateOAuthApp(existingApp)
+	require.Nil(t, err)
+
+	testCases := []struct {
+		name          string
+		redirectURIs  []string
+		expectError   bool
+		expectedError string
+	}{
+		{
+			name:          "No duplicate - different URIs",
+			redirectURIs:  []string{"https://different.com/callback"},
+			expectError:   false,
+			expectedError: "",
+		},
+		{
+			name:          "No duplicate - partial overlap",
+			redirectURIs:  []string{"https://existing.com/callback1", "https://different.com/callback"},
+			expectError:   false,
+			expectedError: "",
+		},
+		{
+			name:          "Duplicate - exact match",
+			redirectURIs:  []string{"https://existing.com/callback1", "https://existing.com/callback2"},
+			expectError:   true,
+			expectedError: "app.oauth.duplicate_registration.app_error",
+		},
+		{
+			name:          "Duplicate - same URIs different order",
+			redirectURIs:  []string{"https://existing.com/callback2", "https://existing.com/callback1"},
+			expectError:   true,
+			expectedError: "app.oauth.duplicate_registration.app_error",
+		},
+		{
+			name:          "No duplicate - subset",
+			redirectURIs:  []string{"https://existing.com/callback1"},
+			expectError:   false,
+			expectedError: "",
+		},
+		{
+			name:          "No duplicate - superset",
+			redirectURIs:  []string{"https://existing.com/callback1", "https://existing.com/callback2", "https://existing.com/callback3"},
+			expectError:   false,
+			expectedError: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			appErr := th.App.checkForDuplicateOAuthRegistration(tc.redirectURIs)
+
+			if tc.expectError {
+				require.NotNil(t, appErr)
+				assert.Equal(t, tc.expectedError, appErr.Id)
+				assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+			} else {
+				require.Nil(t, appErr)
+			}
+		})
+	}
+}
+
+func TestAreRedirectURIsSame(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	testCases := []struct {
+		name     string
+		existing []string
+		new      []string
+		expected bool
+	}{
+		{
+			name:     "Identical URIs",
+			existing: []string{"https://example.com/callback1", "https://example.com/callback2"},
+			new:      []string{"https://example.com/callback1", "https://example.com/callback2"},
+			expected: true,
+		},
+		{
+			name:     "Same URIs different order",
+			existing: []string{"https://example.com/callback1", "https://example.com/callback2"},
+			new:      []string{"https://example.com/callback2", "https://example.com/callback1"},
+			expected: true,
+		},
+		{
+			name:     "Different URIs",
+			existing: []string{"https://example.com/callback1", "https://example.com/callback2"},
+			new:      []string{"https://example.com/callback1", "https://example.com/callback3"},
+			expected: false,
+		},
+		{
+			name:     "Different lengths - existing longer",
+			existing: []string{"https://example.com/callback1", "https://example.com/callback2"},
+			new:      []string{"https://example.com/callback1"},
+			expected: false,
+		},
+		{
+			name:     "Different lengths - new longer",
+			existing: []string{"https://example.com/callback1"},
+			new:      []string{"https://example.com/callback1", "https://example.com/callback2"},
+			expected: false,
+		},
+		{
+			name:     "Empty arrays",
+			existing: []string{},
+			new:      []string{},
+			expected: true,
+		},
+		{
+			name:     "One empty array",
+			existing: []string{"https://example.com/callback1"},
+			new:      []string{},
+			expected: false,
+		},
+		{
+			name:     "Single URI match",
+			existing: []string{"https://example.com/callback1"},
+			new:      []string{"https://example.com/callback1"},
+			expected: true,
+		},
+		{
+			name:     "Single URI no match",
+			existing: []string{"https://example.com/callback1"},
+			new:      []string{"https://example.com/callback2"},
+			expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := th.App.areRedirectURIsSame(tc.existing, tc.new)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestGetAuthorizationServerMetadata_NilDCRConfig(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Enable OAuth service provider and set SiteURL
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
+		cfg.ServiceSettings.SiteURL = model.NewPointer("https://example.com")
+	})
+
+	// Test with nil DCR config (should not include registration endpoint)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableDynamicClientRegistration = nil
+	})
+
+	metadata, err := th.App.GetAuthorizationServerMetadata(th.Context)
+	require.Nil(t, err)
+	require.NotNil(t, metadata)
+	
+	// Should not include registration endpoint when DCR is nil/disabled
+	assert.Empty(t, metadata.RegistrationEndpoint)
+	
+	// Should include basic OAuth endpoints
+	assert.Equal(t, "https://example.com", metadata.Issuer)
+	assert.Equal(t, "https://example.com/oauth/authorize", metadata.AuthorizationEndpoint)
+	assert.Equal(t, "https://example.com/oauth/access_token", metadata.TokenEndpoint)
+	
+	// Test with DCR explicitly enabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	metadata, err = th.App.GetAuthorizationServerMetadata(th.Context)
+	require.Nil(t, err)
+	require.NotNil(t, metadata)
+	
+	// Should include registration endpoint when DCR is enabled
+	assert.Equal(t, "https://example.com/api/v4/oauth/apps/register", metadata.RegistrationEndpoint)
+}

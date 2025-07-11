@@ -104,7 +104,12 @@ func (a *OAuthApp) IsValid() *AppError {
 		}
 	}
 
-	if a.Homepage == "" || len(a.Homepage) > 256 || !IsValidHTTPURL(a.Homepage) {
+	// Homepage is required for traditional OAuth apps, but optional for DCR apps
+	if a.Homepage == "" && !a.IsDynamicallyRegistered {
+		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
+	}
+	
+	if a.Homepage != "" && (len(a.Homepage) > 256 || !IsValidHTTPURL(a.Homepage)) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
@@ -230,6 +235,7 @@ func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId
 		app.ClientURI = req.ClientURI
 		app.Homepage = *req.ClientURI // Use client_uri as homepage for compatibility
 	}
+	// Note: Homepage is optional for DCR apps per RFC 7591
 
 	// Set DCR-specific fields
 	if req.TokenEndpointAuthMethod != nil {

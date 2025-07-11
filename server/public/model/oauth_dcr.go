@@ -178,18 +178,16 @@ func GetDefaultResponseTypes() []string {
 }
 
 // IsGrantTypeCompatibleWithResponseType checks if grant type is compatible with response type
+// Only validates supported grant types and response types
 func IsGrantTypeCompatibleWithResponseType(grantType, responseType string) bool {
 	compatibilityMatrix := map[string][]string{
-		GrantTypeAuthorizationCode: {ResponseTypeCode, ResponseTypeCodeToken},
-		GrantTypeImplicit:          {ResponseTypeToken, ResponseTypeCodeToken},
-		GrantTypeClientCredentials: {}, // No response type needed
-		GrantTypePassword:          {}, // No response type needed
-		GrantTypeRefreshToken:      {}, // No response type needed
+		GrantTypeAuthorizationCode: {ResponseTypeCode}, // Only supported response type
+		GrantTypeRefreshToken:      {},                 // No response type needed
 	}
 
 	if responseType == "" {
-		// Some grant types don't require response types
-		return grantType == GrantTypeClientCredentials || grantType == GrantTypePassword || grantType == GrantTypeRefreshToken
+		// Refresh tokens don't require response types
+		return grantType == GrantTypeRefreshToken
 	}
 
 	compatibleResponseTypes, exists := compatibilityMatrix[grantType]
@@ -225,11 +223,8 @@ func ValidateGrantTypesAndResponseTypes(grantTypes, responseTypes []string) *App
 			}
 		}
 
-		// Special case: some grant types don't use response types
-		if !hasCompatibleResponseType && 
-		   grantType != GrantTypeClientCredentials && 
-		   grantType != GrantTypePassword && 
-		   grantType != GrantTypeRefreshToken {
+		// Special case: refresh token grant type doesn't use response types
+		if !hasCompatibleResponseType && grantType != GrantTypeRefreshToken {
 			return NewAppError("ValidateGrantTypesAndResponseTypes", "model.dcr.validate.incompatible_grant_response.app_error", 
 				nil, "grant_type="+grantType+" response_types="+strings.Join(responseTypes, ","), http.StatusBadRequest)
 		}
