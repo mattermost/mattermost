@@ -48,6 +48,7 @@ import {trackDotMenuEvent} from './utils';
 import type {ChangeEvent} from './utils';
 
 import './dot_menu.scss';
+import FlagPostModal from "components/flag_message_modal/flag_post_model";
 
 type ShortcutKeyProps = {
     shortcutKey: string;
@@ -79,6 +80,7 @@ type Props = {
     timezone?: string;
     isMilitaryTime: boolean;
     canMove: boolean;
+    canFlagContent: boolean;
 
     actions: {
 
@@ -252,6 +254,15 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.actions.openModal(deletePostModalData);
 
         trackDotMenuEvent(e, TELEMETRY_LABELS.DELETE);
+    };
+
+    handleFlagPostMenuItemClicked = () => {
+        const flagPostModalData = {
+            modalId: ModalIdentifiers.FLAG_POST,
+            dialogType: FlagPostModal,
+        };
+
+        this.props.actions.openModal(flagPostModalData);
     };
 
     handleMoveThreadMenuItemActivated = (e: ChangeEvent): void => {
@@ -690,6 +701,21 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                             />}
                         onClick={this.handleDeleteMenuItemActivated}
                         isDestructive={true}
+                    />
+                }
+                {
+                    this.props.canFlagContent &&
+                    <Menu.Item
+                        id={`flag_post_${this.props.post.id}`}
+                        data-testid={`flag_post_${this.props.post.id}`}
+                        leadingElement={<i className='icon icon-flag-outline'/>}
+                        labels={
+                            <FormattedMessage
+                                id='post_info.flag'
+                                defaultMessage='Flag message'
+                            />
+                        }
+                        onClick={this.handleFlagPostMenuItemClicked}
                     />
                 }
             </Menu.Container>

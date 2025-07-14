@@ -16,6 +16,7 @@ import {sortTeamsWithLocale, filterTeamsStartingWithTerm} from 'mattermost-redux
 import {isTeamAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {isCollapsedThreadsEnabled} from './preferences';
+import { contentFlaggingFeatureEnabled } from "mattermost-redux/selectors/entities/content_flagging";
 
 export function getCurrentTeamId(state: GlobalState) {
     return state.entities.teams.currentTeamId;
@@ -380,4 +381,13 @@ export function getTeamIdByChannelId(state: GlobalState, channelId: string): str
     }
     const channel = channels[channelId];
     return channel ? channel.team_id : undefined;
+}
+
+export function contentFlaggingEnabledInTeam(state: GlobalState, teamId: string): boolean {
+    const featureEnabled = contentFlaggingFeatureEnabled(state);
+    if (!featureEnabled) {
+        return false;
+    }
+
+    return Boolean(state.entities.teams.contentFlaggingStatus[teamId]);
 }
