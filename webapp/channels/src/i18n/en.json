@@ -5279,7 +5279,6 @@
   "search_bar.usage.title": "Search options",
   "search_bar.usage.title_files": "File search options",
   "search_bar.usage.title_messages": "Message search options",
-  "search_bar.users": "Users",
   "search_file_extension_suggestion.aria_label": "{fileType} (.{extension})",
   "search_files_list_option.after": "Files after a date",
   "search_files_list_option.before": "Files before a date",
