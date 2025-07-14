@@ -717,7 +717,7 @@ func (api *PluginAPI) DeleteGroupMember(groupID string, userID string) (*model.G
 	if err := api.checkLDAPLicense(); err != nil {
 		return nil, model.NewAppError("DeleteGroupMember", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
-	return api.app.DeleteGroupMember(groupID, userID)
+	return nil, model.NewAppError("DeleteGroupMember", "app.group.license_error", nil, "", http.StatusForbidden)
 }
 
 func (api *PluginAPI) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
