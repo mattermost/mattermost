@@ -103,7 +103,7 @@ function isFakeDirectChannel(item?: ChannelItem): item is FakeDirectChannel {
     return Boolean(item && 'userId' in item);
 }
 
-interface WrappedChannel {
+export interface WrappedChannel {
     channel: ChannelItem;
     name: string;
     deactivated: boolean;

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {components} from 'react-select';
@@ -25,6 +25,7 @@ import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import type {ProviderResult} from 'components/suggestion/provider';
+import type {WrappedChannel} from 'components/suggestion/switch_channel_provider';
 import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
@@ -233,19 +234,52 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChan
 
     const baseStyles = getBaseStyles(currentBodyHeight);
 
-    const isValidChannelType = (channel: Channel) => validChannelTypes.includes(channel.type) && !channel.delete_at;
+    const isValidChannel = useCallback((item: WrappedChannel) => {
+        if (!item.channel) {
+            // This is a non-Channel item which appears in the Switch Channel modal
+            return false;
+        }
+
+        if (!validChannelTypes.includes(item.channel.type)) {
+            return false;
+        }
+
+        if (item.channel.delete_at > 0) {
+            // Don't show archived channels
+            return false;
+        }
+
+        if (item.deactivated) {
+            // Don't show DMs with deactivated users as an option
+            return false;
+        }
+
+        return true;
+    }, [validChannelTypes]);
 
     const getDefaultResults = () => {
         let options: OptionsOrGroups<ChannelOption, GroupBase<ChannelOption>> = [];
 
-        const handleDefaultResults = (res: ProviderResult<any>) => {
+        const handleDefaultResults = (res: ProviderResult<WrappedChannel>) => {
+            const recentChannels: ChannelOption[] = [];
+            for (const group of res.groups) {
+                if (!('items' in group)) {
+                    continue;
+                }
+
+                for (const item of group.items) {
+                    if (!isValidChannel(item)) {
+                        continue;
+                    }
+
+                    recentChannels.push(makeSelectedChannelOption(item.channel as Channel));
+                }
+            }
+
             options = [
                 {
                     label: formatMessage({id: 'suggestion.mention.recent.channels', defaultMessage: 'Recent'}),
-                    options: res.items.filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated).map((item) => {
-                        const {channel} = item;
-                        return makeSelectedChannelOption(channel);
-                    }),
+                    options: recentChannels,
                 },
             ];
         };
@@ -267,15 +301,24 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChan
              *
              * @see {@link components/suggestion/switch_channel_provider.jsx}
              */
-            const handleResults = async (res: ProviderResult<any>) => {
+            const handleResults = (res: ProviderResult<WrappedChannel>) => {
                 callCount++;
-                await res.items.filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated).forEach((item) => {
-                    const {channel} = item;
 
-                    if (options.findIndex((option) => option.value === channel.id) === -1) {
-                        options.push(makeSelectedChannelOption(channel));
+                for (const group of res.groups) {
+                    if (!('items' in group)) {
+                        continue;
                     }
-                });
+
+                    for (const item of group.items) {
+                        if (!isValidChannel(item)) {
+                            continue;
+                        }
+
+                        if (options.findIndex((option) => option.value === item.channel.id) === -1) {
+                            options.push(makeSelectedChannelOption(item.channel as Channel));
+                        }
+                    }
+                }
 
                 if (callCount === 2) {
                     resolve(options);
