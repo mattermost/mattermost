@@ -457,7 +457,7 @@ const PostComponent = (props: Props): JSX.Element => {
                 options={{
                     searchTerm: props.term,
                     searchMatches: props.matches,
-                    mentionHighlight: props.isMentionSearch,
+                    mentionHighlight: true,
                 }}
                 isRHS={isRHS}
             />

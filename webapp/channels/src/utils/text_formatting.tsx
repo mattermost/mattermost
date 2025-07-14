@@ -18,6 +18,8 @@ import * as Markdown from './markdown';
 
 const punctuationRegex = /[^\p{L}\d]/u;
 const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;
+// フルネーム形式のメンション（正確に2つの単語のみ）を認識するパターン
+const AT_MENTION_FULLNAME_PATTERN = /(?:\B|\b_+)@([a-zA-Z0-9.\-_]+\s+[a-zA-Z0-9.\-_]+)(?=\s|$|[^\w\s])/gi;
 const UNICODE_EMOJI_REGEX = emojiRegex();
 const htmlEmojiPattern = /^<p>\s*(?:<img class="emoticon"[^>]*>|<span data-emoticon[^>]*>[^<]*<\/span>\s*|<span class="emoticon emoticon--unicode">[^<]*<\/span>\s*)+<\/p>$/;
 
@@ -539,14 +541,24 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
     let output = text;
 
     // handle @channel, @all, @here mentions first (supports trailing punctuation)
+    const beforeSpecial = output;
     output = output.replace(
         Constants.SPECIAL_MENTIONS_REGEX,
         replaceAtMentionWithToken,
     );
 
+    // handle fullname mentions FIRST (supports trailing punctuation)
+    let fullnameMatch = output.match(AT_MENTION_FULLNAME_PATTERN);
+    while (fullnameMatch && fullnameMatch.length > 0) {
+        const beforeReplace = output;
+        output = output.replace(AT_MENTION_FULLNAME_PATTERN, replaceAtMentionWithToken);
+¥        fullnameMatch = output.match(AT_MENTION_FULLNAME_PATTERN);
+    }
+
     // handle all other mentions (supports trailing punctuation)
     let match = output.match(AT_MENTION_PATTERN);
     while (match && match.length > 0) {
+        const beforeReplace = output;
         output = output.replace(AT_MENTION_PATTERN, replaceAtMentionWithToken);
         match = output.match(AT_MENTION_PATTERN);
     }
@@ -701,7 +713,7 @@ export function highlightCurrentMentions(
     text: string,
     tokens: Tokens,
     mentionKeys: MentionKey[] = [],
-) {
+) {    
     let output = text;
 
     // look for any existing tokens which are self mentions and should be highlighted
