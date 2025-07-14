@@ -63,6 +63,7 @@ const (
 	OnSharedChannelsProfileImageSyncMsgID     = 44
 	GenerateSupportDataID                     = 45
 	OnSAMLLoginID                             = 46
+	EmailNotificationWillBeSentID             = 47
 	TotalHooksID                              = iota
 )
 
@@ -313,6 +314,21 @@ type Hooks interface {
 	// config object can be returned to be stored in place of the provided one.
 	// Minimum server version: 8.0
 	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
+
+	// EmailNotificationWillBeSent is invoked before an email notification is sent to a user.
+	// This allows plugins to customize the email notification content including subject,
+	// title, subtitle, message content, buttons, and other email properties.
+	//
+	// To reject an email notification, return an non-empty string describing why the notification was rejected.
+	// To modify the notification, return the replacement, non-nil *model.EmailNotification and an empty string.
+	// To allow the notification without modification, return a nil *model.EmailNotification and an empty string.
+	//
+	// Note that core identifiers (PostId, ChannelId, TeamId, SenderId, RecipientId, RootId) and
+	// context fields (ChannelType, IsDirectMessage, etc.) are immutable and changes to them will be ignored.
+	// Only customizable content fields can be modified.
+	//
+	// Minimum server version: 10.8
+	EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotification, string)
 
 	// NotificationWillBePushed is invoked before a push notification is sent to the push
 	// notification server.
