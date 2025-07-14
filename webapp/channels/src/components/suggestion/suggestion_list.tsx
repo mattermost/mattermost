@@ -290,7 +290,7 @@ export const SuggestionListList = React.forwardRef<HTMLDivElement, React.HTMLAtt
     );
 });
 
-function SuggestionListStatus({groups}: Pick<Props, 'groups'>) {
+export function SuggestionListStatus({groups}: Pick<Props, 'groups'>) {
     const {formatMessage} = useIntl();
 
     const suggestionCount = groups.reduce((totalCount, group) => {
