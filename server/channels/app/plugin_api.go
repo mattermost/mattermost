@@ -173,7 +173,7 @@ func (api *PluginAPI) GetTeams() ([]*model.Team, *model.AppError) {
 }
 
 func (api *PluginAPI) GetTeam(teamID string) (*model.Team, *model.AppError) {
-	return api.app.GetTeam(teamID)
+	return nil, model.NewAppError("GetTeam", "app.group.license_error", nil, "", http.StatusForbidden)
 }
 
 func (api *PluginAPI) SearchTeams(term string) ([]*model.Team, *model.AppError) {
