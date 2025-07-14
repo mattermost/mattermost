@@ -101,10 +101,6 @@ export default abstract class Provider {
         return false;
     }
 
-    allowDividers() {
-        return true;
-    }
-
     presentationType() {
         return 'text';
     }

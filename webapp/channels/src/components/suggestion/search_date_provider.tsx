@@ -55,10 +55,6 @@ export default class SearchDateProvider extends Provider {
         return Boolean(captured);
     }
 
-    allowDividers() {
-        return false;
-    }
-
     presentationType() {
         return 'date';
     }

@@ -117,8 +117,4 @@ export default class SearchUserProvider extends Provider {
             component: SearchUserSuggestion,
         });
     }
-
-    allowDividers() {
-        return true;
-    }
 }

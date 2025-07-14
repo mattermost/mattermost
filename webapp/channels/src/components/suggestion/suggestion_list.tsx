@@ -16,7 +16,6 @@ export interface Props {
     inputRef?: React.RefObject<Element>;
     open: boolean;
     position?: 'top' | 'bottom';
-    renderDividers?: string[];
     renderNoResults?: boolean;
     onCompleteWord: (term: string, matchedPretext: string, e?: Event) => boolean;
     preventClose?: () => void;
@@ -39,7 +38,6 @@ export interface Props {
 
 export default class SuggestionList extends React.PureComponent<Props> {
     static defaultProps = {
-        renderDividers: [],
         renderNoResults: false,
     };
     contentRef: React.RefObject<HTMLDivElement>;
@@ -188,8 +186,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
     }
 
     render() {
-        // const {renderDividers} = this.props; // TODO
-
         if (!this.props.open || this.props.cleared) {
             return null;
         }

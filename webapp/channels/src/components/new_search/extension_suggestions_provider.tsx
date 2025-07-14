@@ -71,10 +71,6 @@ export class SearchFileExtensionProvider extends Provider {
         return Boolean(captured);
     }
 
-    allowDividers() {
-        return false;
-    }
-
     presentationType() {
         return 'text';
     }
