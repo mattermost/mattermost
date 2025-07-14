@@ -3884,6 +3884,7 @@ type Config struct {
 	WranglerSettings            WranglerSettings
 	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
 	AccessControlSettings       AccessControlSettings
+	ContentFlaggingSettings     ContentFlaggingSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -4002,6 +4003,7 @@ func (o *Config) SetDefaults() {
 	o.WranglerSettings.SetDefaults()
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
+	o.ContentFlaggingSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -4127,6 +4129,10 @@ func (o *Config) IsValid() *AppError {
 				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.invalid.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
+	}
+
+	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
 	}
 
 	return nil
