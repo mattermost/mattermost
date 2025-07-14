@@ -150,6 +150,7 @@ import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/typ
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
 import type {TelemetryHandler} from './telemetry';
+import type {ContentFlaggingConfig} from "@mattermost/types/lib/content_flagging";
 
 export enum LdapDiagnosticTestType {
     FILTERS = 'filters',
@@ -4576,6 +4577,13 @@ export default class Client4 {
     getTeamContentFlaggingStatus = (teamId: string) => {
         return this.doFetch<{enabled: boolean}>(
             `${this.getContentFlaggingRoute()}/team/${teamId}/status`,
+            {method: 'get'},
+        );
+    };
+
+    getContentFlaggingConfig = () => {
+        return this.doFetch<ContentFlaggingConfig>(
+            `${this.getContentFlaggingRoute()}/flag/config`,
             {method: 'get'},
         );
     };
