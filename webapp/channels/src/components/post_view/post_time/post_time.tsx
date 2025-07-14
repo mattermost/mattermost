@@ -14,6 +14,7 @@ import {Locations} from 'utils/constants';
 import {isMobile} from 'utils/user_agent';
 
 const getTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute, second}) => ({hour, minute, second});
+const getDateFormat: ComponentProps<typeof Timestamp>['useDate'] = {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'};
 
 type Props = {
 
@@ -94,7 +95,7 @@ export default class PostTime extends React.PureComponent<Props> {
                     <Timestamp
                         value={eventTime}
                         useSemanticOutput={false}
-                        useDate={{weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'}}
+                        useDate={getDateFormat}
                         useTime={getTimeFormat}
                     />
                 }
