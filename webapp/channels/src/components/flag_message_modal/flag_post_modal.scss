@@ -1,0 +1,16 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.FlagPostModal {
+    &__section_title {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--center-channel-color);
+    }
+
+    &__post_preview {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+}

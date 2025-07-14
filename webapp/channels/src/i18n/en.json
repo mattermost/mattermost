@@ -4371,6 +4371,7 @@
   "generic.next": "Next",
   "generic.okay": "Okay",
   "generic.previous": "Previous",
+  "generic.submit": "Submit",
   "get_app.continueToBrowser": "View in Browser",
   "get_app.dontHaveTheDesktopApp": "Don't have the Desktop App?",
   "get_app.dontHaveTheMobileApp": "Don't have the Mobile App?",
@@ -6489,5 +6490,7 @@
   "youtube_video.play.aria_label": "Play {videoTitle} on YouTube",
   "youtube_video.thumbnail.alt_text": "Thumbnail for {videoTitle} on YouTube",
   "post_info.flag": "Flag message",
-  "flag_message_modal.title": "Flag message"
+  "flag_message_modal.heading": "Flag message",
+  "flag_message_modal.subheading": "Flagged messages will be sent to Content Reviewers for review.",
+  "flag_message_modal.post_preview.title": "Message to be flagged"
 }

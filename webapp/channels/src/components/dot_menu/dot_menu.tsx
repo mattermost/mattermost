@@ -260,6 +260,9 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const flagPostModalData = {
             modalId: ModalIdentifiers.FLAG_POST,
             dialogType: FlagPostModal,
+            dialogProps: {
+                postId: this.props.post.id,
+            },
         };
 
         this.props.actions.openModal(flagPostModalData);
