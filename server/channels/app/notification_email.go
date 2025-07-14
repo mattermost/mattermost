@@ -13,12 +13,129 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	email "github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
+
+func (a *App) buildEmailNotification(
+	ctx request.CTX,
+	notification *PostNotification,
+	user *model.User,
+	team *model.Team,
+) *model.EmailNotification {
+	channel := notification.Channel
+	post := notification.Post
+	sender := notification.Sender
+
+	translateFunc := i18n.GetUserTranslations(user.Locale)
+	nameFormat := a.GetNotificationNameFormat(user)
+
+	var useMilitaryTime bool
+	if data, err := a.Srv().Store().Preference().Get(
+		user.Id, model.PreferenceCategoryDisplaySettings,
+		model.PreferenceNameUseMilitaryTime); err != nil {
+		useMilitaryTime = false
+	} else {
+		useMilitaryTime = data.Value == "true"
+	}
+
+	channelName := notification.GetChannelName(nameFormat, "")
+	senderName := notification.GetSenderName(nameFormat,
+		*a.Config().ServiceSettings.EnablePostUsernameOverride)
+
+	emailNotificationContentsType := model.EmailNotificationContentsFull
+	if license := a.Srv().License(); license != nil && *license.Features.EmailNotificationContents {
+		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
+	}
+
+	var subject string
+	if channel.Type == model.ChannelTypeDirect {
+		subject = getDirectMessageNotificationEmailSubject(
+			user, post, translateFunc, *a.Config().TeamSettings.SiteName, senderName, useMilitaryTime)
+	} else if channel.Type == model.ChannelTypeGroup {
+		subject = getGroupMessageNotificationEmailSubject(
+			user, post, translateFunc, *a.Config().TeamSettings.SiteName, channelName, emailNotificationContentsType, useMilitaryTime)
+	} else if *a.Config().EmailSettings.UseChannelInEmailNotifications {
+		subject = getNotificationEmailSubject(
+			user, post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName+" ("+channelName+")", useMilitaryTime)
+	} else {
+		subject = getNotificationEmailSubject(
+			user, post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName, useMilitaryTime)
+	}
+
+	var title, subtitle string
+	if channel.Type == model.ChannelTypeDirect {
+		title = translateFunc("app.notification.body.dm.title", map[string]any{"SenderName": senderName})
+		subtitle = translateFunc("app.notification.body.dm.subTitle", map[string]any{"SenderName": senderName})
+	} else if channel.Type == model.ChannelTypeGroup {
+		title = translateFunc("app.notification.body.group.title", map[string]any{"SenderName": senderName})
+		subtitle = translateFunc("app.notification.body.group.subTitle", map[string]any{"SenderName": senderName})
+	} else {
+		title = translateFunc("app.notification.body.mention.title", map[string]any{"SenderName": senderName})
+		subtitle = translateFunc("app.notification.body.mention.subTitle", map[string]any{"SenderName": senderName, "ChannelName": channelName})
+	}
+
+	if a.IsCRTEnabledForUser(ctx, user.Id) && post.RootId != "" {
+		title = translateFunc("app.notification.body.thread.title", map[string]any{"SenderName": senderName})
+		if channel.Type == model.ChannelTypeDirect {
+			subtitle = translateFunc("app.notification.body.thread_dm.subTitle", map[string]any{"SenderName": senderName})
+		} else if channel.Type == model.ChannelTypeGroup {
+			subtitle = translateFunc("app.notification.body.thread_gm.subTitle", map[string]any{"SenderName": senderName})
+		} else if emailNotificationContentsType == model.EmailNotificationContentsFull {
+			subtitle = translateFunc("app.notification.body.thread_channel_full.subTitle", map[string]any{"SenderName": senderName, "ChannelName": channelName})
+		} else {
+			subtitle = translateFunc("app.notification.body.thread_channel.subTitle", map[string]any{"SenderName": senderName})
+		}
+	}
+
+	var messageHTML, messageText string
+	if emailNotificationContentsType == model.EmailNotificationContentsFull {
+		messageHTML = a.GetMessageForNotification(post, team.Name, a.GetSiteURL(), translateFunc)
+		messageText = post.Message
+	}
+
+	landingURL := a.GetSiteURL() + "/landing#/" + team.Name
+	buttonURL := landingURL
+	if team.Name != "select_team" {
+		buttonURL = landingURL + "/pl/" + post.Id
+	}
+
+	return &model.EmailNotification{
+		// Core identifiers (immutable)
+		PostId:            post.Id,
+		ChannelId:         channel.Id,
+		TeamId:            team.Id,
+		SenderId:          sender.Id,
+		SenderDisplayName: senderName,
+		RecipientId:       user.Id,
+		RootId:            post.RootId,
+
+		// Context for plugin decision-making (immutable)
+		ChannelType:     string(channel.Type),
+		ChannelName:     channelName,
+		TeamName:        team.DisplayName,
+		SenderUsername:  sender.Username,
+		IsDirectMessage: channel.Type == model.ChannelTypeDirect,
+		IsGroupMessage:  channel.Type == model.ChannelTypeGroup,
+		IsThreadReply:   post.RootId != "",
+		IsCRTEnabled:    a.IsCRTEnabledForUser(ctx, user.Id),
+		UseMilitaryTime: useMilitaryTime,
+
+		// Customizable content fields
+		Subject:     subject,
+		Title:       title,
+		SubTitle:    subtitle,
+		MessageHTML: messageHTML,
+		MessageText: messageText,
+		ButtonText:  translateFunc("api.templates.post_body.button"),
+		ButtonURL:   buttonURL,
+		FooterText:  translateFunc("app.notification.footer.title"),
+	}
+}
 
 func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotification, user *model.User, team *model.Team, senderProfileImage []byte) error {
 	channel := notification.Channel
@@ -48,6 +165,46 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 		}
 	}
 
+	// Create EmailNotification object for plugin customization
+	emailNotification := a.buildEmailNotification(c, notification, user, team)
+
+	// Call plugin hook to allow customization of emailNotification
+	rejectionReason := ""
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		var replacementNotification *model.EmailNotification
+		replacementNotification, rejectionReason = hooks.EmailNotificationWillBeSent(emailNotification)
+		if rejectionReason != "" {
+			c.Logger().Info("Email notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
+			return false
+		}
+		if replacementNotification != nil {
+			// Only update mutable fields from plugins
+			emailNotification.Subject = replacementNotification.Subject
+			emailNotification.Title = replacementNotification.Title
+			emailNotification.SubTitle = replacementNotification.SubTitle
+			emailNotification.MessageHTML = replacementNotification.MessageHTML
+			emailNotification.MessageText = replacementNotification.MessageText
+			emailNotification.ButtonText = replacementNotification.ButtonText
+			emailNotification.ButtonURL = replacementNotification.ButtonURL
+			emailNotification.FooterText = replacementNotification.FooterText
+		}
+		return true
+	}, plugin.EmailNotificationWillBeSentID)
+
+	if rejectionReason != "" {
+		// Email notification rejected by plugin
+		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeEmail, model.NotificationReasonRejectedByPlugin, model.NotificationNoPlatform)
+		a.NotificationsLog().Debug("Email notification rejected by plugin",
+			mlog.String("type", model.NotificationTypeEmail),
+			mlog.String("status", model.NotificationStatusNotSent),
+			mlog.String("reason", model.NotificationReasonRejectedByPlugin),
+			mlog.String("rejection_reason", rejectionReason),
+			mlog.String("user_id", user.Id),
+			mlog.String("post_id", post.Id),
+		)
+		return nil
+	}
+
 	if *a.Config().EmailSettings.EnableEmailBatching {
 		var sendBatched bool
 		if data, err := a.Srv().Store().Preference().Get(user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval); err != nil {
@@ -67,48 +224,18 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 		// fall back to sending a single email if we can't batch it for some reason
 	}
 
-	translateFunc := i18n.GetUserTranslations(user.Locale)
-
-	var useMilitaryTime bool
-	if data, err := a.Srv().Store().Preference().Get(user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime); err != nil {
-		useMilitaryTime = false
-	} else {
-		useMilitaryTime = data.Value == "true"
-	}
-
-	nameFormat := a.GetNotificationNameFormat(user)
-
-	channelName := notification.GetChannelName(nameFormat, "")
-	senderName := notification.GetSenderName(nameFormat, *a.Config().ServiceSettings.EnablePostUsernameOverride)
-
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	if license := a.Srv().License(); license != nil && *license.Features.EmailNotificationContents {
-		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
-	}
-
-	var subjectText string
-	if channel.Type == model.ChannelTypeDirect {
-		subjectText = getDirectMessageNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, senderName, useMilitaryTime)
-	} else if channel.Type == model.ChannelTypeGroup {
-		subjectText = getGroupMessageNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, channelName, emailNotificationContentsType, useMilitaryTime)
-	} else if *a.Config().EmailSettings.UseChannelInEmailNotifications {
-		subjectText = getNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName+" ("+channelName+")", useMilitaryTime)
-	} else {
-		subjectText = getNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName, useMilitaryTime)
-	}
-
+	// Handle sender photo
 	senderPhoto := ""
 	embeddedFiles := make(map[string]io.Reader)
-	if emailNotificationContentsType == model.EmailNotificationContentsFull && senderProfileImage != nil {
+	if emailNotification.MessageHTML != "" && senderProfileImage != nil {
 		senderPhoto = "user-avatar.png"
 		embeddedFiles = map[string]io.Reader{
 			senderPhoto: bytes.NewReader(senderProfileImage),
 		}
 	}
 
-	landingURL := a.GetSiteURL() + "/landing#/" + team.Name
-
-	var bodyText, err = a.getNotificationEmailBody(c, user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc, senderPhoto)
+	// Build email body using EmailNotification data
+	var bodyText, err = a.getNotificationEmailBodyFromEmailNotification(c, user, emailNotification, post, senderPhoto)
 	if err != nil {
 		return errors.Wrap(err, "unable to render the email notification template")
 	}
@@ -118,18 +245,18 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	inReplyTo := ""
 	references := ""
 
-	if post.Id != "" {
-		messageID = fmt.Sprintf(templateString, post.Id)
+	if emailNotification.PostId != "" {
+		messageID = fmt.Sprintf(templateString, emailNotification.PostId)
 	}
 
-	if post.RootId != "" {
-		referencesVal := fmt.Sprintf(templateString, post.RootId)
+	if emailNotification.RootId != "" {
+		referencesVal := fmt.Sprintf(templateString, emailNotification.RootId)
 		inReplyTo = referencesVal
 		references = referencesVal
 	}
 
 	a.Srv().Go(func() {
-		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(subjectText), bodyText, embeddedFiles, messageID, inReplyTo, references, "Notification"); nErr != nil {
+		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(emailNotification.Subject), bodyText, embeddedFiles, messageID, inReplyTo, references, "Notification"); nErr != nil {
 			c.Logger().Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 		}
 	})
@@ -214,88 +341,57 @@ type postData struct {
 	MessageAttachments       []*email.EmailMessageAttachment
 }
 
-/**
- * Computes the email body for notification messages
- */
-func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc, senderPhoto string) (string, error) {
+func (a *App) GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string {
+	return a.Srv().EmailService.GetMessageForNotification(post, teamName, siteUrl, translateFunc)
+}
+
+func (a *App) getNotificationEmailBodyFromEmailNotification(c request.CTX, recipient *model.User, emailNotification *model.EmailNotification, post *model.Post, senderPhoto string) (string, error) {
+	translateFunc := i18n.GetUserTranslations(recipient.Locale)
+
 	pData := postData{
-		SenderName:  truncateUserNames(senderName, 22),
+		SenderName:  truncateUserNames(emailNotification.SenderDisplayName, 22),
 		SenderPhoto: senderPhoto,
 	}
 
-	t := utils.GetFormattedPostTime(recipient, post, useMilitaryTime, translateFunc)
-	messageTime := map[string]any{
-		"Hour":     t.Hour,
-		"Minute":   t.Minute,
-		"TimeZone": t.TimeZone,
-	}
+	if emailNotification.MessageHTML != "" {
+		pData.Message = template.HTML(emailNotification.MessageHTML)
 
-	if emailNotificationContentsType == model.EmailNotificationContentsFull {
-		postMessage := a.GetMessageForNotification(post, teamName, a.GetSiteURL(), translateFunc)
-		pData.Message = template.HTML(postMessage)
+		// Get formatted time for message using the UseMilitaryTime field
+		t := utils.GetFormattedPostTime(recipient, post, emailNotification.UseMilitaryTime, translateFunc)
+		messageTime := map[string]any{
+			"Hour":     t.Hour,
+			"Minute":   t.Minute,
+			"TimeZone": t.TimeZone,
+		}
 		pData.Time = translateFunc("app.notification.body.dm.time", messageTime)
+
+		// Process message attachments
 		pData.MessageAttachments = email.ProcessMessageAttachments(post, a.GetSiteURL())
 	}
 
 	data := a.Srv().EmailService.NewEmailTemplateData(recipient.Locale)
 	data.Props["SiteURL"] = a.GetSiteURL()
-	if teamName != "select_team" {
-		data.Props["ButtonURL"] = landingURL + "/pl/" + post.Id
-	} else {
-		data.Props["ButtonURL"] = landingURL
-	}
-
-	data.Props["SenderName"] = senderName
-	data.Props["Button"] = translateFunc("api.templates.post_body.button")
-	data.Props["NotificationFooterTitle"] = translateFunc("app.notification.footer.title")
+	data.Props["ButtonURL"] = emailNotification.ButtonURL
+	data.Props["SenderName"] = emailNotification.SenderDisplayName
+	data.Props["Button"] = emailNotification.ButtonText
+	data.Props["NotificationFooterTitle"] = emailNotification.FooterText
 	data.Props["NotificationFooterInfoLogin"] = translateFunc("app.notification.footer.infoLogin")
 	data.Props["NotificationFooterInfo"] = translateFunc("app.notification.footer.info")
+	data.Props["Title"] = emailNotification.Title
+	data.Props["SubTitle"] = emailNotification.SubTitle
 
-	if channel.Type == model.ChannelTypeDirect {
-		// Direct Messages
-		data.Props["Title"] = translateFunc("app.notification.body.dm.title", map[string]any{"SenderName": senderName})
-		data.Props["SubTitle"] = translateFunc("app.notification.body.dm.subTitle", map[string]any{"SenderName": senderName})
-	} else if channel.Type == model.ChannelTypeGroup {
-		// Group Messages
-		data.Props["Title"] = translateFunc("app.notification.body.group.title", map[string]any{"SenderName": senderName})
-		data.Props["SubTitle"] = translateFunc("app.notification.body.group.subTitle", map[string]any{"SenderName": senderName})
+	if emailNotification.IsDirectMessage || emailNotification.IsGroupMessage {
+		// No channel name for DM/GM
 	} else {
-		// mentions
-		data.Props["Title"] = translateFunc("app.notification.body.mention.title", map[string]any{"SenderName": senderName})
-		data.Props["SubTitle"] = translateFunc("app.notification.body.mention.subTitle", map[string]any{"SenderName": senderName, "ChannelName": channelName})
-		pData.ChannelName = channelName
+		pData.ChannelName = emailNotification.ChannelName
 	}
 
-	// Override title and subtile for replies with CRT enabled
-	if a.IsCRTEnabledForUser(c, recipient.Id) && post.RootId != "" {
-		// Title is the same in all cases
-		data.Props["Title"] = translateFunc("app.notification.body.thread.title", map[string]any{"SenderName": senderName})
-
-		if channel.Type == model.ChannelTypeDirect {
-			// Direct Reply
-			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_dm.subTitle", map[string]any{"SenderName": senderName})
-		} else if channel.Type == model.ChannelTypeGroup {
-			// Group Reply
-			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_gm.subTitle", map[string]any{"SenderName": senderName})
-		} else if emailNotificationContentsType == model.EmailNotificationContentsFull {
-			// Channel Reply with full content
-			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel_full.subTitle", map[string]any{"SenderName": senderName, "ChannelName": channelName})
-		} else {
-			// Channel Reply with generic content
-			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel.subTitle", map[string]any{"SenderName": senderName})
-		}
-	}
-
-	// only include posts in notification email if email notification contents type is set to full
-	if emailNotificationContentsType == model.EmailNotificationContentsFull {
+	// Only include posts in notification email if message content is available
+	if emailNotification.MessageHTML != "" {
 		data.Props["Posts"] = []postData{pData}
 	} else {
 		data.Props["Posts"] = []postData{}
 	}
 
 	return a.Srv().TemplatesContainer().RenderToString("messages_notification", data)
-}
-
-func (a *App) GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string {
-	return a.Srv().EmailService.GetMessageForNotification(post, teamName, siteUrl, translateFunc)
 }
