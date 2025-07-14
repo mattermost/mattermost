@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type PluginAPI struct {
@@ -222,7 +223,7 @@ func (api *PluginAPI) GetTeamMembers(teamID string, page, perPage int) ([]*model
 }
 
 func (api *PluginAPI) GetTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
-	return api.app.GetTeamMember(api.ctx, teamID, userID)
+	return nil, model.NewAppError("GetTeamMember", "plugin.api.get_team_member.not_implemented", nil, "", http.StatusInternalServerError).Wrap(store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamID, userID)))
 }
 
 func (api *PluginAPI) GetTeamMembersForUser(userID string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
