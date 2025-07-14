@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type PluginAPI struct {
@@ -682,7 +683,7 @@ func (api *PluginAPI) GetGroupByRemoteID(remoteID string, groupSource model.Grou
 	if err := api.checkLDAPLicense(); err != nil {
 		return nil, model.NewAppError("GetGroupByRemoteID", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
-	return api.app.GetGroupByRemoteID(remoteID, groupSource)
+	return nil, model.NewAppError("GetTeamMember", "app.team.get_member.missing.app_error", nil, "", http.StatusNotFound).Wrap(store.NewErrNotFound("Group", fmt.Sprintf("groupID=%s", remoteID)))
 }
 
 func (api *PluginAPI) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
