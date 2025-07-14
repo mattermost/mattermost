@@ -215,6 +215,19 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 		return
 	}
 
+	// Get the bot to check if it's the system bot
+	bot, getErr := c.App.GetBot(c.AppContext, botUserId, false)
+	if getErr != nil {
+		c.Err = getErr
+		return
+	}
+
+	// Prevent disabling the system bot
+	if bot.Username == model.BotSystemBotUsername && !active {
+		c.Err = model.NewAppError("updateBotActive", "api.bot.system_bot_disable_forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	bot, err := c.App.UpdateBotActive(c.AppContext, botUserId, active)
 	if err != nil {
 		c.Err = err
