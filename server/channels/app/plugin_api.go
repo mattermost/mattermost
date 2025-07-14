@@ -223,7 +223,7 @@ func (api *PluginAPI) GetTeamMembers(teamID string, page, perPage int) ([]*model
 }
 
 func (api *PluginAPI) GetTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
-	return nil, model.NewAppError("GetTeamMember", "plugin.api.get_team_member.not_implemented", nil, "", http.StatusInternalServerError).Wrap(store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamID, userID)))
+	return nil, model.NewAppError("GetTeamMember", "app.team.get_member.missing.app_error", nil, "", http.StatusNotFound).Wrap(store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamID, userID)))
 }
 
 func (api *PluginAPI) GetTeamMembersForUser(userID string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
