@@ -608,7 +608,7 @@ func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*mod
 }
 
 func (api *PluginAPI) GetChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	return api.app.GetChannelMember(api.ctx, channelID, userID)
+	return nil, model.NewAppError("GetChannelMember", "app.group.license_error", nil, "", http.StatusForbidden)
 }
 
 func (api *PluginAPI) GetChannelMembers(channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
