@@ -639,7 +639,7 @@ func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelM
 }
 
 func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppError {
-	return api.app.LeaveChannel(api.ctx, channelID, userID)
+	return model.NewAppError("DeleteChannelMember", "app.group.license_error", nil, "", http.StatusForbidden)
 }
 
 func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
