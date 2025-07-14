@@ -1,6 +1,6 @@
 {
   "name": "mattermost-redux",
-  "version": "10.6.0",
+  "version": "10.11.0",
   "description": "Common code (API client, Redux stores, logic, utility functions) for building a Mattermost client",
   "keywords": [
     "mattermost"
