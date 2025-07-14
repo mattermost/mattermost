@@ -731,7 +731,7 @@ func (api *PluginAPI) GetGroupSyncables(groupID string, syncableType model.Group
 	if err := api.checkLDAPLicense(); err != nil {
 		return nil, model.NewAppError("GetGroupSyncables", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
-	return api.app.GetGroupSyncables(groupID, syncableType)
+	return nil, model.NewAppError("GetGroupSyncables", "app.group.license_error", nil, "", http.StatusForbidden)
 }
 
 func (api *PluginAPI) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
