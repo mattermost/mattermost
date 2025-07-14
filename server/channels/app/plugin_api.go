@@ -1455,10 +1455,7 @@ func (api *PluginAPI) GetPluginID() string {
 }
 
 func (api *PluginAPI) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError) {
-	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("GetGroups", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
-	}
-	return api.app.GetGroups(page, perPage, opts, viewRestrictions)
+	return nil, model.NewAppError("GetGroups", "app.group.license_error", nil, "", http.StatusForbidden)
 }
 
 func (api *PluginAPI) CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) *model.AppError {
