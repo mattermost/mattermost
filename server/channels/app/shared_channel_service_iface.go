@@ -6,6 +6,7 @@ package app
 // TODO: platform: remove this and use from platform package
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
@@ -28,6 +29,7 @@ type SharedChannelServiceIFace interface {
 	CheckCanInviteToSharedChannel(channelId string) error
 	HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string)
 	IsRemoteClusterDirectlyConnected(remoteId string) bool
+	TransformMentionsOnReceiveForTesting(ctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string)
 }
 
 func NewMockSharedChannelService(service SharedChannelServiceIFace) *mockSharedChannelService {

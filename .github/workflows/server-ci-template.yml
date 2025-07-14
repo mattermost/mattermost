@@ -265,6 +265,8 @@ jobs:
       drivername: mysql
       logsartifact: mysql-server-test-logs
   test-coverage:
+    # Skip coverage generation for cherry-pick PRs into release branches.
+    if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
     name: Generate Test Coverage
     needs: check-mattermost-vet
     uses: ./.github/workflows/server-test-template.yml

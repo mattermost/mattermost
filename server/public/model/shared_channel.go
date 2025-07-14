@@ -294,6 +294,7 @@ type SyncMsg struct {
 	Statuses          []*Status              `json:"statuses,omitempty"`
 	MembershipChanges []*MembershipChangeMsg `json:"membership_changes,omitempty"`
 	Acknowledgements  []*PostAcknowledgement `json:"acknowledgements,omitempty"`
+	MentionTransforms map[string]string      `json:"mention_transforms,omitempty"`
 }
 
 func NewSyncMsg(channelID string) *SyncMsg {
