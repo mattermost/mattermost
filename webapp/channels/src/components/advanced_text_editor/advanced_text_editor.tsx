@@ -13,9 +13,14 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getMyGroupMentionKeysForChannel,
+    getMyGroupMentionKeys,
+} from 'mattermost-redux/selectors/entities/groups';
+import {get, getBool, getInt, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getCurrentUser, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName, getUsersByUsername, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
@@ -201,6 +206,52 @@ const AdvancedTextEditor = ({
         const tourStep = isGuestUser ? OnboardingTourStepsForGuestUsers.SEND_MESSAGE : OnboardingTourSteps.SEND_MESSAGE;
 
         return enableTutorial && (tutorialStep === tourStep);
+    });
+
+    // ユーザー情報とメンションキーを取得
+    const usersByUsername = useSelector((state: GlobalState) => getUsersByUsername(state));
+    const teammateNameDisplay = useSelector((state: GlobalState) => getTeammateNameDisplaySetting(state));
+    const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
+
+    // メンションキーを生成（フルネーム形式を含む）
+    const mentionKeys = useSelector((state: GlobalState) => {
+        const mentionKeysWithoutGroups = getCurrentUserMentionKeys(state);
+        const groupMentionKeys = channel ? getMyGroupMentionKeysForChannel(state, channel.team_id, channelId) : getMyGroupMentionKeys(state, false);
+        const baseMentionKeys = mentionKeysWithoutGroups.concat(groupMentionKeys);
+        
+        // フルネーム形式のメンションキーを追加
+        const fullnameMentionKeys = [];
+        const users = getUsersByUsername(state);
+        const nameDisplaySetting = getTeammateNameDisplaySetting(state);
+        
+        // 現在のユーザー自身のフルネーム形式のメンションキーを追加
+        const currentUserInfo = getCurrentUser(state);
+        if (currentUserInfo) {
+            const currentUserDisplayName = displayUsername(currentUserInfo, nameDisplaySetting, false);
+            if (currentUserDisplayName !== currentUserInfo.username) {
+                fullnameMentionKeys.push({
+                    key: `@${currentUserDisplayName}`,
+                    caseSensitive: false,
+                });
+            }
+        }
+        
+        // 他のユーザーのフルネーム形式のメンションキーを追加
+        for (const [username, user] of Object.entries(users)) {
+            if (currentUserInfo && user.id === currentUserInfo.id) {
+                continue;
+            }
+            
+            const displayName = displayUsername(user, nameDisplaySetting, false);
+            if (displayName !== username) {
+                fullnameMentionKeys.push({
+                    key: `@${displayName}`,
+                    caseSensitive: false,
+                });
+            }
+        }
+        
+        return baseMentionKeys.concat(fullnameMentionKeys);
     });
 
     const editorActionsRef = useRef<HTMLDivElement>(null);
@@ -803,6 +854,9 @@ const AdvancedTextEditor = ({
                             rootId={rootId}
                             onWidthChange={handleWidthChange}
                             isInEditMode={isInEditMode}
+                            usersByUsername={usersByUsername}
+                            teammateNameDisplay={teammateNameDisplay}
+                            mentionKeys={mentionKeys}
                         />
                         {attachmentPreview}
                         {!isDisabled && (showFormattingBar || showPreview) && (
