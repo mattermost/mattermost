@@ -114,11 +114,6 @@ func (r *Bulk) DeleteOp(op *types.DeleteOperation) error {
 // flushIfNecessary flushes the pending buffer if needed.
 // It MUST be called with an already acquired mutex.
 func (r *Bulk) flushIfNecessary() error {
-	// Flush always if in sync mode
-	if r.sync {
-		return r._flush()
-	}
-
 	r.pendingRequests++
 
 	if r.pendingRequests > *r.settings.LiveIndexingBatchSize {
@@ -144,10 +139,6 @@ func (r *Bulk) Stop() error {
 }
 
 func (r *Bulk) periodicFlusher() {
-	if r.sync {
-		return
-	}
-
 	defer r.quitFlusherWg.Done()
 
 	for {
