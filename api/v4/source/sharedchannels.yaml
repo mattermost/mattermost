@@ -235,7 +235,7 @@
       description: |
         Gets the remote clusters information for a shared channel.
         
-        __Minimum server version__: 10.10
+        __Minimum server version__: 10.11
         
         ##### Permissions
         Must be authenticated and have the `read_channel` permission for the channel.
@@ -274,7 +274,7 @@
         Checks if a user can send direct messages to another user, considering shared channel restrictions.
         This is specifically for shared channels where DMs require direct connections between clusters.
         
-        __Minimum server version__: 10.10
+        __Minimum server version__: 10.11
         
         ##### Permissions
         Must be authenticated and have permission to view the user.
