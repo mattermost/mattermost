@@ -418,7 +418,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					c.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
 				}
 				a.Srv().Go(func() {
-					if err := a.sendNotificationEmail(c, notification, profileMap[id], team, senderProfileImage); err != nil {
+					if _, err := a.sendNotificationEmail(c, notification, profileMap[id], team, senderProfileImage); err != nil {
 						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonEmailSendError, model.NotificationNoPlatform)
 						a.NotificationsLog().Error("Error sending email notification",
 							mlog.String("type", model.NotificationTypeEmail),

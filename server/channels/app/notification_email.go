@@ -137,14 +137,14 @@ func (a *App) buildEmailNotification(
 	}
 }
 
-func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotification, user *model.User, team *model.Team, senderProfileImage []byte) error {
+func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotification, user *model.User, team *model.Team, senderProfileImage []byte) (*model.EmailNotification, error) {
 	channel := notification.Channel
 	post := notification.Post
 
 	if channel.IsGroupOrDirect() {
 		teams, err := a.Srv().Store().Team().GetTeamsByUserId(user.Id)
 		if err != nil {
-			return errors.Wrap(err, "unable to get user teams")
+			return nil, errors.Wrap(err, "unable to get user teams")
 		}
 
 		// if the recipient isn't in the current user's team, just pick one
@@ -202,7 +202,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 			mlog.String("user_id", user.Id),
 			mlog.String("post_id", post.Id),
 		)
-		return nil
+		return nil, nil
 	}
 
 	if *a.Config().EmailSettings.EnableEmailBatching {
@@ -217,7 +217,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 
 		if sendBatched {
 			if err := a.Srv().EmailService.AddNotificationEmailToBatch(user, post, team); err == nil {
-				return nil
+				return emailNotification, nil
 			}
 		}
 
@@ -237,7 +237,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	// Build email body using EmailNotification data
 	var bodyText, err = a.getNotificationEmailBodyFromEmailNotification(c, user, emailNotification, post, senderPhoto)
 	if err != nil {
-		return errors.Wrap(err, "unable to render the email notification template")
+		return nil, errors.Wrap(err, "unable to render the email notification template")
 	}
 
 	templateString := "<%s@" + utils.GetHostnameFromSiteURL(a.GetSiteURL()) + ">"
@@ -265,7 +265,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 		a.Metrics().IncrementPostSentEmail()
 	}
 
-	return nil
+	return emailNotification, nil
 }
 
 /**

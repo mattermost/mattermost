@@ -1617,6 +1617,125 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 	}
 }
 
+//go:embed test_templates/hook_email_notification_will_be_sent.tmpl
+var hookEmailNotificationWillBeSentTmpl string
+
+func TestHookEmailNotificationWillBeSent(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	tests := []struct {
+		name                        string
+		testCode                    string
+		expectedNotificationSubject string
+		expectedNotificationTitle   string
+		expectedButtonText          string
+		expectedFooterText          string
+	}{
+		{
+			name:     "successfully sent",
+			testCode: `return nil, ""`,
+		},
+		{
+			name:     "email notification rejected",
+			testCode: `return nil, "rejected"`,
+		},
+		{
+			name: "email notification modified",
+			testCode: `emailNotification.Subject = "Modified Subject by Plugin"
+	emailNotification.Title = "Modified Title by Plugin"
+	emailNotification.ButtonText = "Modified Button by Plugin"
+	emailNotification.FooterText = "Modified Footer by Plugin"
+	return emailNotification, ""`,
+			expectedNotificationSubject: "Modified Subject by Plugin",
+			expectedNotificationTitle:   "Modified Title by Plugin",
+			expectedButtonText:          "Modified Button by Plugin",
+			expectedFooterText:          "Modified Footer by Plugin",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mainHelper.Parallel(t)
+
+			th := Setup(t).InitBasic()
+			defer th.TearDown()
+
+			// Create a test user for email notifications
+			user := th.CreateUser()
+			th.LinkUserToTeam(user, th.BasicTeam)
+			th.AddUserToChannel(user, th.BasicChannel)
+
+			// Set up email notification preferences to disable batching
+			th.App.UpdatePreferences(th.Context, user.Id, model.Preferences{
+				{
+					UserId:   user.Id,
+					Category: model.PreferenceCategoryNotifications,
+					Name:     model.PreferenceNameEmailInterval,
+					Value:    model.PreferenceEmailIntervalNoBatchingSeconds,
+				},
+			})
+
+			// Disable email batching in config
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.EnableEmailBatching = false
+			})
+
+			// Create and set up plugin
+			templatedPlugin := fmt.Sprintf(hookEmailNotificationWillBeSentTmpl, tt.testCode)
+			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
+			defer tearDown()
+
+			// For the modification test, create a simple test that verifies the hook is called
+			// The detailed verification would require more complex mocking which is beyond this test's scope
+
+			// Create a post that will trigger email notification
+			post := &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "@" + user.Username + " test message",
+				CreateAt:  model.GetMillis(),
+			}
+
+			// Create notification
+			notification := &PostNotification{
+				Post:    post,
+				Channel: th.BasicChannel,
+				ProfileMap: map[string]*model.User{
+					user.Id: user,
+				},
+				Sender: th.BasicUser,
+			}
+
+			// Send email notification (this will trigger the hook)
+			modifiedNotification, err := th.App.sendNotificationEmail(th.Context, notification, user, th.BasicTeam, nil)
+
+			// For the rejected test case, we expect the notification to be rejected
+			if tt.name == "email notification rejected" {
+				// When rejected, sendNotificationEmail returns nil for the notification
+				require.Nil(t, modifiedNotification)
+				require.Nil(t, err)
+			} else {
+				require.Nil(t, err)
+				require.NotNil(t, modifiedNotification)
+				
+				// Verify the modified notification fields
+				if tt.expectedNotificationSubject != "" {
+					assert.Equal(t, tt.expectedNotificationSubject, modifiedNotification.Subject)
+				}
+				if tt.expectedNotificationTitle != "" {
+					assert.Equal(t, tt.expectedNotificationTitle, modifiedNotification.Title)
+				}
+				if tt.expectedButtonText != "" {
+					assert.Equal(t, tt.expectedButtonText, modifiedNotification.ButtonText)
+				}
+				if tt.expectedFooterText != "" {
+					assert.Equal(t, tt.expectedFooterText, modifiedNotification.FooterText)
+				}
+			}
+		})
+	}
+}
+
 func TestHookMessagesWillBeConsumed(t *testing.T) {
 	mainHelper.Parallel(t)
 
