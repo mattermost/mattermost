@@ -5,8 +5,6 @@ import React, {memo} from 'react';
 
 import Popover from 'components/widgets/popover';
 
-import type {SuggestionGroup} from './provider';
-
 type SuggestionItem = {
     date: string;
     label: string;
@@ -26,26 +24,28 @@ type SuggestionItemProps = {
 type Props = {
     onCompleteWord: (term: string, matchedPretext: string, e?: Event) => boolean;
     matchedPretext: string[];
-    suggestionGroups: Array<SuggestionGroup<any>>;
+    items: SuggestionItem[];
+    terms: string[];
     preventClose: () => void;
     handleEscape: () => void;
     components: Array<React.ComponentType<SuggestionItemProps>>;
 }
 
 const SuggestionDate = ({
-    suggestionGroups,
+    items,
+    terms,
     components,
     matchedPretext,
     onCompleteWord,
     preventClose,
     handleEscape,
 }: Props) => {
-    if (suggestionGroups.length === 0 || 'loading' in suggestionGroups[0]) {
+    if (items.length === 0) {
         return null;
     }
 
-    const item = suggestionGroups[0].items[0];
-    const term = suggestionGroups[0].terms[0];
+    const item = items[0];
+    const term = terms[0];
 
     // ReactComponent names need to be upper case when used in JSX
     const Component = components[0];
