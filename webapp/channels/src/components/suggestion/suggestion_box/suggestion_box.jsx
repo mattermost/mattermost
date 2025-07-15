@@ -212,7 +212,7 @@ export default class SuggestionBox extends React.PureComponent {
         this.state = {
             focused: false,
             cleared: true,
-            matchedPretext: [],
+            matchedPretext: '',
             items: [],
             terms: [],
             components: [],
@@ -559,7 +559,7 @@ export default class SuggestionBox extends React.PureComponent {
         if (!this.state.cleared) {
             this.setState({
                 cleared: true,
-                matchedPretext: [],
+                matchedPretext: '',
                 terms: [],
                 items: [],
                 components: [],
@@ -584,12 +584,7 @@ export default class SuggestionBox extends React.PureComponent {
                 e.preventDefault();
             } else if ((Keyboard.isKeyPressed(e, KeyCodes.ENTER) && !ctrlOrMetaKeyPressed) || (this.props.completeOnTab && Keyboard.isKeyPressed(e, KeyCodes.TAB))) {
                 e.stopPropagation();
-                let matchedPretext = '';
-                for (let i = 0; i < this.state.terms.length; i++) {
-                    if (this.state.terms[i] === this.state.selection) {
-                        matchedPretext = this.state.matchedPretext[i];
-                    }
-                }
+                const matchedPretext = this.state.matchedPretext;
 
                 // If these don't match, the user typed quickly and pressed enter before we could
                 // update the pretext, so update the pretext before completing
@@ -633,14 +628,12 @@ export default class SuggestionBox extends React.PureComponent {
 
     handleReceivedSuggestions = (suggestions) => {
         let newComponents = [];
-        const newPretext = [];
         if (this.props.onSuggestionsReceived) {
             this.props.onSuggestionsReceived(suggestions);
         }
 
         for (let i = 0; i < suggestions.terms.length; i++) {
             newComponents.push(suggestions.component);
-            newPretext.push(suggestions.matchedPretext);
         }
 
         if (suggestions.components) {
@@ -665,7 +658,7 @@ export default class SuggestionBox extends React.PureComponent {
             terms,
             items,
             components: newComponents,
-            matchedPretext: newPretext,
+            matchedPretext: suggestions.matchedPretext,
         });
 
         return {selection, matchedPretext: suggestions.matchedPretext};

@@ -20,7 +20,7 @@ export interface Props {
     onItemHover: (term: string) => void;
     pretext: string;
     cleared: boolean;
-    matchedPretext: string[];
+    matchedPretext: string;
     items: any[];
     terms: string[];
     selection: string;
@@ -228,7 +228,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     id={`suggestionList_item_${term}`}
                     item={this.props.items[i]}
                     term={term}
-                    matchedPretext={this.props.matchedPretext[i]}
+                    matchedPretext={this.props.matchedPretext}
                     isSelection={isSelection}
                     onClick={this.props.onCompleteWord}
                     onMouseMove={this.props.onItemHover}

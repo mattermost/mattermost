@@ -99,7 +99,7 @@ export default class SearchSuggestionList extends SuggestionList {
                     id={`sbrSearchBox_item_${term}`}
                     item={item}
                     term={term}
-                    matchedPretext={this.props.matchedPretext[i]}
+                    matchedPretext={this.props.matchedPretext}
                     isSelection={isSelection}
                     onClick={this.props.onCompleteWord}
                     onMouseMove={this.props.onItemHover}

@@ -23,7 +23,7 @@ type SuggestionItemProps = {
 
 type Props = {
     onCompleteWord: (term: string, matchedPretext: string[], e?: React.MouseEvent<HTMLDivElement>) => boolean;
-    matchedPretext: string[];
+    matchedPretext: string;
     items: SuggestionItem[];
     terms: string[];
     preventClose: () => void;
@@ -60,7 +60,7 @@ const SuggestionDate = ({
                 key={term}
                 item={item}
                 term={term}
-                matchedPretext={matchedPretext[0]}
+                matchedPretext={matchedPretext}
                 isSelection={false}
                 onClick={onCompleteWord}
                 preventClose={preventClose}
