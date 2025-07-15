@@ -33,7 +33,6 @@ function ChannelSettingsAccessRulesTab({
     const [userAttributes, setUserAttributes] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
 
-    // Use our hook for ABAC actions (channel context will be added in future)
     const actions = useChannelAccessControlActions();
 
     // Load user attributes on component mount
@@ -46,9 +45,7 @@ function ChannelSettingsAccessRulesTab({
                 }
                 setAttributesLoaded(true);
             } catch (error) {
-                // eslint-disable-next-line no-console
-                console.error('Failed to load access control fields:', error);
-                setAttributesLoaded(true);
+                // do nothing for now, we might want to show an error message in the future
             }
         };
 
