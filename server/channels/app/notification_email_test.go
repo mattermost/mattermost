@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -1052,7 +1053,13 @@ func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 
 func TestLandingLink(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupWithStoreMock(t)
+
+	// Create a minimal helper that sets the site URL
+	mockStore := testlib.GetMockStoreForSetupFunctions()
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false,
+		func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065")
+		}, nil, t)
 	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
@@ -1086,7 +1093,13 @@ func TestLandingLink(t *testing.T) {
 
 func TestLandingLinkPermalink(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupWithStoreMock(t)
+
+	// Create a minimal helper that sets the site URL
+	mockStore := testlib.GetMockStoreForSetupFunctions()
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false,
+		func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065")
+		}, nil, t)
 	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
