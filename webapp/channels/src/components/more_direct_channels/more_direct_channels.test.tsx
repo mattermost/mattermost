@@ -73,6 +73,7 @@ describe('components/MoreDirectChannels', () => {
                     process.nextTick(() => resolve());
                 });
             }),
+            canUserDirectMessage: jest.fn().mockResolvedValue({data: {can_dm: true}}),
         },
     };
 
