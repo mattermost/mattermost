@@ -43,6 +43,14 @@ jest.mock('mattermost-redux/selectors/entities/channels', () => ({
     }),
 }));
 
+// Mock the channel banner selector
+jest.mock('mattermost-redux/selectors/entities/channel_banner', () => ({
+    selectChannelBannerEnabled: jest.fn().mockImplementation((state) => {
+        // Return true only for advanced license, false for all others
+        return state?.entities?.general?.license?.SkuShortName === 'advanced';
+    }),
+}));
+
 // Mock the roles selector which is used for permission checks
 jest.mock('mattermost-redux/selectors/entities/roles', () => ({
     haveIChannelPermission: jest.fn().mockImplementation((state, teamId, channelId, permission) => {
@@ -52,6 +60,9 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
         }
         if (permission === 'delete_public_channel') {
             return mockPublicChannelPermission;
+        }
+        if (permission === 'manage_channel_access_rules') {
+            return false; // Default to false for access rules permission
         }
         return true;
     }),
@@ -73,6 +84,12 @@ jest.mock('./channel_settings_configuration_tab', () => {
 jest.mock('./channel_settings_archive_tab', () => {
     return function MockArchiveTab(): JSX.Element {
         return <div data-testid='archive-tab'>{'Archive Tab Content'}</div>;
+    };
+});
+
+jest.mock('./channel_settings_access_rules_tab', () => {
+    return function MockAccessRulesTab(): JSX.Element {
+        return <div data-testid='access-rules-tab'>{'Access Rules Tab Content'}</div>;
     };
 });
 
