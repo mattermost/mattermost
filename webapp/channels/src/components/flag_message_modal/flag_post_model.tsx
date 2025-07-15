@@ -1,31 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import ReactSelect, {type StylesConfig} from 'react-select';
 
 import {GenericModal} from '@mattermost/components';
 import type {PostPreviewMetadata} from '@mattermost/types/posts';
 
 import {getContentFlaggingConfig} from 'mattermost-redux/actions/content_flagging';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {contentFlaggingConfig} from 'mattermost-redux/selectors/entities/content_flagging';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import PostMessagePreview from 'components/post_view/post_message_preview';
 
 import type {GlobalState} from 'types/store';
-import {contentFlaggingConfig} from "mattermost-redux/selectors/entities/content_flagging";
-import ReactSelect from "react-select";
+
+import './flag_post_modal.scss';
+import AdvancedTextbox from "components/widgets/advanced_textbox/advanced_textbox";
+import type {TextboxElement} from "components/textbox";
 
 const noop = () => {};
 
-type Props = {
-    postId: string;
+type SelectedOption = {
+    value: string;
+    label: string;
 }
 
-export default function FlagPostModal({postId}: Props) {
+type Props = {
+    postId: string;
+    onExited: () => void;
+}
+
+export default function FlagPostModal({postId, onExited}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -33,9 +43,15 @@ export default function FlagPostModal({postId}: Props) {
         dispatch(getContentFlaggingConfig());
     }, [dispatch]);
 
+    const [comment, setComment] = React.useState<string>('');
+    const [commentError, setCommentError] = React.useState<string>('');
+    const [showCommentPreview, setShowCommentPreview] = React.useState<boolean>(false);
+
     const label = formatMessage({id: 'flag_message_modal.heading', defaultMessage: 'Flag message'});
     const subHeading = formatMessage({id: 'flag_message_modal.subheading', defaultMessage: 'Flagged messages will be sent to Content Reviewers for review'});
     const submitButtonText = formatMessage({id: 'generic.submit', defaultMessage: 'Submit'});
+    const requiredCommentSectionTitle = formatMessage({id: 'flag_message_modal.required_comment.title', defaultMessage: 'Comment (required)'});
+    const optionalCommentSectionTitle = formatMessage({id: 'flag_message_modal.optional_comment.title', defaultMessage: 'Comment (optional)'});
 
     const post = useSelector((state: GlobalState) => getPost(state, postId));
     const channel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
@@ -64,6 +80,25 @@ export default function FlagPostModal({postId}: Props) {
         channel_id: channel?.id || '',
     };
 
+    const reactStyles = {
+        menuPortal: (provided) => ({
+            ...provided,
+            zIndex: 9999,
+        }),
+    } satisfies StylesConfig<SelectedOption, boolean>;
+
+    const handleCommentChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
+        setComment(e.target.value);
+
+        if (contentFlaggingSettings.reporter_comment_required && e.target.value.trim() === '') {
+            setCommentError('Comment is required when flagging a post.');
+        }
+    }, [contentFlaggingSettings.reporter_comment_required]);
+
+    const handleToggleCommentPreview = useCallback(() => {
+        setShowCommentPreview((prev) => !prev);
+    }, []);
+
     return (
         <GenericModal
             id='FlagPostModal'
@@ -76,8 +111,10 @@ export default function FlagPostModal({postId}: Props) {
             handleConfirm={noop}
             handleCancel={noop}
             confirmButtonText={submitButtonText}
+            onExited={onExited}
+            autoCloseOnConfirmButton={false}
         >
-            <div className='FlagPostModal__body'>
+            <div className='FlagPostModal FlagPostModal__body'>
                 <div className='FlagPostModal__section FlagPostModal__post_preview'>
                     <div className='FlagPostModal__section_title'>
                         <FormattedMessage
@@ -99,18 +136,39 @@ export default function FlagPostModal({postId}: Props) {
                 <div className='FlagPostModal__section FlagPostModal__flagging_reason'>
                     <div className='FlagPostModal__section_title'>
                         <FormattedMessage
-                            id='flag_message_modal.flag_reason'
+                            id='flag_message_modal.flag_reason.title'
                             defaultMessage='Reason for flagging this message'
                         />
                     </div>
                     <ReactSelect
-                        className='FlagPostModal__reason'
-                        classNamePrefix='FlagPostModal__reason'
+                        className='FlagPostModal__reason react-select react-select-top'
+                        classNamePrefix='react-select'
                         id='FlagPostModal__reason'
-                        // menuPortalTarget={document.body}
+                        menuPortalTarget={document.body}
                         isClearable={false}
                         options={reasons}
-                        menuIsOpen={true}
+                        styles={reactStyles}
+                    />
+                </div>
+
+                <div className='FlagPostModal__section FlagPostModal__comment'>
+                    <div className='FlagPostModal__section_title'>
+                        {contentFlaggingSettings.reporter_comment_required ? requiredCommentSectionTitle : optionalCommentSectionTitle}
+                    </div>
+
+                    <AdvancedTextbox
+                        id='FlagPostModal__comment'
+                        channelId={post.channel_id}
+                        value={comment}
+                        onChange={handleCommentChange}
+                        createMessage={'TODO'}
+                        preview={showCommentPreview}
+                        togglePreview={handleToggleCommentPreview}
+                        useChannelMentions={false}
+                        onKeyPress={() => {}}
+                        hasError={false}
+                        errorMessage={''}
+                        maxLength={1000}
                     />
                 </div>
             </div>

@@ -102,7 +102,7 @@ function makeMapStateToProps() {
             }
         }
 
-        const canFlagContent = contentFlaggingEnabledInTeam(state, channel.team_id);
+        const canFlagContent = channel && !post.type.startsWith('system') && contentFlaggingEnabledInTeam(state, channel.team_id);
 
         return {
             channelIsArchived: isArchivedChannel(channel),

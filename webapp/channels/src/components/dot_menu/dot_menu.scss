@@ -17,8 +17,10 @@
         display: flex;
         margin-right: -4px;
     }
+}
 
-    i.icon.icon-flag-outline::before {
+.flag_post_menu_item {
+    i.icon.icon-flag-outline:before {
         margin: 0;
     }
 }

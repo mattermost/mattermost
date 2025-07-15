@@ -245,6 +245,7 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
                     value={this.state.selectedOption}
                     aria-labelledby='changeInterfaceTimezoneLabel'
                     isDisabled={useAutomaticTimezone}
+                    menuIsOpen={true}
                 />
                 {serverError}
             </div>

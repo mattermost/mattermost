@@ -49,6 +49,7 @@ import type {ChangeEvent} from './utils';
 
 import './dot_menu.scss';
 import FlagPostModal from "components/flag_message_modal/flag_post_model";
+import { closeModal } from "actions/views/modals";
 
 type ShortcutKeyProps = {
     shortcutKey: string;
@@ -262,6 +263,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             dialogType: FlagPostModal,
             dialogProps: {
                 postId: this.props.post.id,
+                onExited: () => closeModal(ModalIdentifiers.FLAG_POST),
             },
         };
 
@@ -710,6 +712,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     this.props.canFlagContent &&
                     <Menu.Item
                         id={`flag_post_${this.props.post.id}`}
+                        className='flag_post_menu_item'
                         data-testid={`flag_post_${this.props.post.id}`}
                         leadingElement={<i className='icon icon-flag-outline'/>}
                         labels={

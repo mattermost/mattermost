@@ -13,4 +13,36 @@
         flex-direction: column;
         gap: 8px;
     }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    &__section {
+        gap: 8px;
+        display: flex;
+        flex-direction: column;
+
+        .post.forward-post__post-preview--override {
+            padding: 0;
+        }
+    }
+
+    .FlagPostModal__comment {
+        #PreviewInputTextButton {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+
+        textarea#FlagPostModal__comment, .textbox-preview-area {
+            height: 110px !important;
+        }
+
+        #PreviewInputTextButton {
+            z-index: 2;
+        }
+    }
 }
