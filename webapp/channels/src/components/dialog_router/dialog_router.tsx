@@ -1,15 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
-import {useSelector} from 'react-redux';
+import React from 'react';
 
 import {interactiveDialogAppsFormEnabled} from 'mattermost-redux/selectors/entities/interactive_dialog';
 
+import InteractiveDialog from 'components/interactive_dialog';
 import type {PropsFromRedux} from 'components/interactive_dialog/index';
-import InteractiveDialog from 'components/interactive_dialog/interactive_dialog';
-
-import type {GlobalState} from 'types/store';
 
 import InteractiveDialogAdapter from './interactive_dialog_adapter';
 
@@ -18,14 +15,14 @@ type Props = PropsFromRedux & {
 };
 
 const DialogRouter: React.FC<Props> = (props) => {
-    const isAppsFormEnabled = useSelector((state: GlobalState) => interactiveDialogAppsFormEnabled(state));
+    const isAppsFormEnabled = interactiveDialogAppsFormEnabled(props as any);
     const hasUrl = Boolean(props.url);
 
-    const Component = useMemo(() => {
-        return (isAppsFormEnabled && hasUrl) ? InteractiveDialogAdapter : InteractiveDialog;
-    }, [isAppsFormEnabled, hasUrl]);
+    if (isAppsFormEnabled && hasUrl) {
+        return <InteractiveDialogAdapter {...props as any}/>;
+    }
 
-    return <Component {...props}/>;
+    return <InteractiveDialog {...props as any}/>;
 };
 
 export default DialogRouter;

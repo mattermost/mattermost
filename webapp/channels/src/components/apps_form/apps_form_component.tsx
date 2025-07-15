@@ -290,9 +290,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
     };
 
     onHide = () => {
-        if (this.props.onHide) {
-            this.props.onHide();
-        }
+        this.props.onHide?.();
         this.handleHide(false);
     };
 

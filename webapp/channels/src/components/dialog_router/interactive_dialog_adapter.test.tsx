@@ -268,25 +268,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             expect(valueText).toContain('value with alert(\\"xss\\")');
             expect(valueText).not.toContain('onclick=');
         });
-
-        test('should disable sanitization when sanitizeStrings is false', async () => {
-            const maliciousTitle = 'Test <script>alert("xss")</script> Dialog';
-            const props = {
-                ...baseProps,
-                title: maliciousTitle,
-                conversionOptions: {
-                    sanitizeStrings: false,
-                },
-            };
-
-            const {getByTestId} = renderWithContext(
-                <InteractiveDialogAdapter {...props}/>,
-            );
-
-            await waitFor(() => {
-                expect(getByTestId('form-title')).toHaveTextContent(maliciousTitle);
-            });
-        });
     });
 
     describe('Validation Functionality', () => {
@@ -343,7 +324,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 title: 'This title is way too long for the server limit of 24 characters',
                 elements: [invalidElement],
                 conversionOptions: {
-                    validateInputs: true,
+                    enhanced: true,
                 },
             };
 
@@ -381,8 +362,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [invalidElement],
                 conversionOptions: {
-                    validateInputs: true,
-                    strictMode: true,
+                    enhanced: true,
                 },
             };
 
@@ -413,7 +393,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [longNameElement],
                 conversionOptions: {
-                    validateInputs: true,
+                    enhanced: true,
                 },
             };
 
@@ -476,7 +456,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [invalidSelectElement],
                 conversionOptions: {
-                    validateInputs: true,
+                    enhanced: true,
                 },
             };
 
@@ -526,7 +506,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [conflictingSelectElement],
                 conversionOptions: {
-                    validateInputs: true,
+                    enhanced: true,
                 },
             };
 
@@ -557,7 +537,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const props = {
                 ...baseProps,
                 conversionOptions: {
-                    enableDebugLogging: false,
+                    enhanced: false,
                 },
             };
 
@@ -572,8 +552,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const props = {
                 ...baseProps,
                 conversionOptions: {
-                    enableDebugLogging: true,
-                    validateInputs: true,
+                    enhanced: true,
                 },
             };
 
@@ -606,7 +585,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [unknownElement],
                 conversionOptions: {
-                    validateInputs: true,
+                    enhanced: true,
                 },
             };
 
@@ -791,7 +770,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [selectElement],
                 conversionOptions: {
-                    validateInputs: true,
+                    enhanced: true,
                 },
             };
 
@@ -1241,7 +1220,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [textElement],
                 conversionOptions: {
-                    validateInputs: true,
+                    enhanced: true,
                 },
                 actions: {
                     submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
@@ -1315,7 +1294,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [requiredElement],
                 conversionOptions: {
-                    validateInputs: true,
+                    enhanced: true,
                 },
                 actions: {
                     submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
@@ -1399,7 +1378,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const props = {
                 ...baseProps,
                 conversionOptions: {
-                    validateInputs: true,
+                    enhanced: true,
                 },
             };
 
@@ -1543,8 +1522,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: elementsWithInvalidLengths,
                 conversionOptions: {
-                    validateInputs: true,
-                    strictMode: false,
+                    enhanced: false,
                 },
             };
 
@@ -1590,7 +1568,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [elementWithInvalidRange],
                 conversionOptions: {
-                    validateInputs: true,
+                    enhanced: true,
                 },
             };
 
@@ -1634,7 +1612,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [conflictingSelectElement],
                 conversionOptions: {
-                    validateInputs: true,
+                    enhanced: true,
                 },
             };
 
@@ -1812,8 +1790,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [problematicElement],
                 conversionOptions: {
-                    validateInputs: true,
-                    strictMode: false, // Should continue processing
+                    enhanced: false, // Should continue processing
                 },
             };
 
@@ -1854,8 +1831,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 elements: [invalidElement],
                 conversionOptions: {
-                    validateInputs: true,
-                    strictMode: true,
+                    enhanced: true,
                 },
             };
 
@@ -1871,8 +1847,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 title: '', // Invalid: empty title
                 conversionOptions: {
-                    validateInputs: true,
-                    strictMode: true,
+                    enhanced: true,
                 },
             };
 
@@ -1924,7 +1899,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 submitLabel: '<script>alert("xss")</script>Submit Test',
                 conversionOptions: {
-                    sanitizeStrings: true,
                 },
             };
 
