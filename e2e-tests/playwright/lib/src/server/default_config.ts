@@ -587,7 +587,7 @@ const defaultServerConfig: AdminConfig = {
         AdvertiseAddress: '',
         UseIPAddress: true,
         EnableGossipCompression: true,
-        EnableExperimentalGossipEncryption: false,
+        EnableGossipEncryption: false,
         ReadOnlyConfig: true,
         GossipPort: 8074,
     },
@@ -803,5 +803,28 @@ const defaultServerConfig: AdminConfig = {
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
         EnableChannelScopeAccessControl: false,
+    },
+    ContentFlaggingSettings: {
+        NotificationSettings: {
+            ReviewerSettings: {
+                CommonReviewers: false,
+                CommonReviewerIds: [],
+                TeamReviewersSetting: {},
+                SystemAdminsAsReviewers: false,
+                TeamAdminsAsReviewers: false,
+            },
+            EventTargetMapping: {
+                flagged: ['reviewers', 'author'],
+                assigned: ['reviewers'],
+                removed: ['reviewers'],
+                dismissed: ['reviewers', 'author'],
+            },
+            AdditionalSettings: {
+                Reasons: ['Reason 1', 'Reason 2'],
+                ReporterCommentRequired: false,
+                ReviewerCommentRequired: false,
+                HideFlaggedContent: false,
+            },
+        },
     },
 };

@@ -791,16 +791,17 @@ func isValidGuestRoles(data UserImportData) bool {
 				gtc++
 			}
 
-			if *team.Channels != nil {
-				for _, channel := range *team.Channels {
-					if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
-						ctc++
-					}
+			if team.Channels == nil {
+				continue
+			}
+			for _, channel := range *team.Channels {
+				if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
+					ctc++
 				}
+			}
 
-				if ctc == len(*team.Channels) {
-					isChannelGuest = true
-				}
+			if ctc == len(*team.Channels) {
+				isChannelGuest = true
 			}
 		}
 		if gtc == len(*data.Teams) {
