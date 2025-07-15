@@ -9,6 +9,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -26,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
 func TestCreateOAuthUser(t *testing.T) {
@@ -1248,12 +1250,12 @@ func TestPermanentDeleteUser(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	bots1 := []*model.Bot{}
-	bots2 := []*model.Bot{}
+	var botCount1 int
+	var botCount2 int
 
-	err1 := th.SQLStore.GetMaster().Select(&bots1, "SELECT * FROM Bots")
+	err1 := th.SQLStore.GetMaster().Get(&botCount1, "SELECT COUNT(*) FROM Bots")
 	assert.NoError(t, err1)
-	assert.Equal(t, 1, len(bots1))
+	assert.Equal(t, 1, botCount1)
 
 	// test that bot is deleted from bots table
 	retUser1, err := th.App.GetUser(bot.UserId)
@@ -1262,9 +1264,9 @@ func TestPermanentDeleteUser(t *testing.T) {
 	err = th.App.PermanentDeleteUser(th.Context, retUser1)
 	assert.Nil(t, err)
 
-	err1 = th.SQLStore.GetMaster().Select(&bots2, "SELECT * FROM Bots")
+	err1 = th.SQLStore.GetMaster().Get(&botCount2, "SELECT COUNT(*) FROM Bots")
 	assert.NoError(t, err1)
-	assert.Equal(t, 0, len(bots2))
+	assert.Equal(t, 0, botCount2)
 
 	scheduledPost1 := &model.ScheduledPost{
 		Draft: model.Draft{
@@ -2409,5 +2411,76 @@ func TestGetUsersForReporting(t *testing.T) {
 		})
 		require.Nil(t, err)
 		require.NotNil(t, userReports)
+	})
+}
+
+// Helper functions for remote user testing
+func setupRemoteClusterTest(t *testing.T) (*TestHelper, store.Store) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS", "true")
+	t.Cleanup(func() { os.Unsetenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS") })
+	th := setupSharedChannels(t).InitBasic()
+	t.Cleanup(th.TearDown)
+	return th, th.App.Srv().Store()
+}
+
+func createTestRemoteCluster(t *testing.T, th *TestHelper, ss store.Store, name, siteURL string, confirmed bool) *model.RemoteCluster {
+	cluster := &model.RemoteCluster{
+		RemoteId:   model.NewId(),
+		Name:       name,
+		SiteURL:    siteURL,
+		CreateAt:   model.GetMillis(),
+		LastPingAt: model.GetMillis(),
+		Token:      model.NewId(),
+		CreatorId:  th.BasicUser.Id,
+	}
+	if confirmed {
+		cluster.RemoteToken = model.NewId()
+	}
+	savedCluster, err := ss.RemoteCluster().Save(cluster)
+	require.NoError(t, err)
+	return savedCluster
+}
+
+func createRemoteUser(t *testing.T, th *TestHelper, remoteCluster *model.RemoteCluster) *model.User {
+	user := th.CreateUser()
+	user.RemoteId = &remoteCluster.RemoteId
+	updatedUser, appErr := th.App.UpdateUser(th.Context, user, false)
+	require.Nil(t, appErr)
+	return updatedUser
+}
+
+func ensureRemoteClusterConnected(t *testing.T, ss store.Store, cluster *model.RemoteCluster, connected bool) {
+	if connected {
+		cluster.SiteURL = "https://example.com"
+		cluster.RemoteToken = model.NewId()
+		cluster.LastPingAt = model.GetMillis()
+	} else {
+		cluster.SiteURL = model.SiteURLPending + "example.com"
+		cluster.RemoteToken = ""
+	}
+	_, err := ss.RemoteCluster().Update(cluster)
+	require.NoError(t, err)
+}
+
+// TestRemoteUserDirectChannelCreation tests direct channel creation with remote users
+func TestRemoteUserDirectChannelCreation(t *testing.T) {
+	th, ss := setupRemoteClusterTest(t)
+
+	connectedRC := createTestRemoteCluster(t, th, ss, "connected-cluster", "https://example-connected.com", true)
+
+	user1 := createRemoteUser(t, th, connectedRC)
+
+	t.Run("Can create DM with user from connected remote", func(t *testing.T) {
+		ensureRemoteClusterConnected(t, ss, connectedRC, true)
+
+		scs := th.App.Srv().GetSharedChannelSyncService()
+		service, ok := scs.(*sharedchannel.Service)
+		require.True(t, ok)
+		require.True(t, service.IsRemoteClusterDirectlyConnected(connectedRC.RemoteId))
+
+		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user1.Id)
+		assert.NotNil(t, channel)
+		assert.Nil(t, appErr)
+		assert.Equal(t, model.ChannelTypeDirect, channel.Type)
 	})
 }

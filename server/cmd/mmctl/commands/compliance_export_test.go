@@ -5,7 +5,11 @@ package commands
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"testing"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/spf13/cobra"
@@ -222,6 +226,192 @@ func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
+}
+
+func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
+	mockJob := &model.Job{
+		Id:       model.NewId(),
+		CreateAt: model.GetMillis(),
+		Type:     model.JobTypeMessageExport,
+	}
+
+	s.Run("download job file successfully", func() {
+		printer.Clean()
+		defer func() {
+			_ = os.Remove("suggested-filename.zip")
+		}()
+
+		s.client.
+			EXPECT().
+			DownloadComplianceExport(gomock.Any(), mockJob.Id, gomock.Any()).
+			Return("suggested-filename.zip", nil).
+			Times(1)
+
+		cmd := makeCmd()
+		cmd.Flags().Int("num-retries", 5, "")
+		err := complianceExportDownloadCmdF(s.client, cmd, []string{mockJob.Id})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Equal(fmt.Sprintf("Compliance export file downloaded to %q", "suggested-filename.zip"), printer.GetLines()[0])
+	})
+
+	s.Run("download job file with explicit path", func() {
+		printer.Clean()
+		defer func() {
+			_ = os.Remove("custom-path.zip")
+		}()
+
+		s.client.
+			EXPECT().
+			DownloadComplianceExport(context.TODO(), mockJob.Id, gomock.Any()).
+			Return("", nil).
+			Times(1)
+
+		cmd := makeCmd()
+		cmd.Flags().Int("num-retries", 5, "")
+		err := complianceExportDownloadCmdF(s.client, cmd, []string{mockJob.Id, "custom-path.zip"})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Equal(fmt.Sprintf("Compliance export file downloaded to %q", "custom-path.zip"), printer.GetLines()[0])
+	})
+
+	s.Run("download job with error", func() {
+		printer.Clean()
+		mockError := &model.AppError{
+			Message: "failed to download file",
+		}
+
+		s.client.
+			EXPECT().
+			DownloadComplianceExport(context.TODO(), mockJob.Id, gomock.Any()).
+			Return("", mockError).
+			Times(6) // Initial attempt + 5 retries
+
+		cmd := makeCmd()
+		cmd.Flags().Int("num-retries", 5, "")
+		err := complianceExportDownloadCmdF(s.client, cmd, []string{mockJob.Id})
+		s.Require().NotNil(err)
+		s.EqualError(err, "failed to download compliance export after 5 retries: failed to download file")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func TestGetStartAndEnd(t *testing.T) {
+	type args struct {
+		dateStr string
+		start   int
+		end     int
+	}
+	tests := []struct {
+		name          string
+		args          args
+		expectedStart int64
+		expectedEnd   int64
+		wantErr       bool
+	}{
+		// check with: https://www.epochconverter.com/
+		{
+			name: "parse a date in EDT (-0400)",
+			args: args{
+				dateStr: "2024-10-21 -0400",
+			},
+			expectedStart: 1729483200000,
+			expectedEnd:   1729569599999,
+		},
+		{
+			name: "parse a date in UTC (+0)",
+			args: args{
+				dateStr: "2024-10-21 +0000",
+			},
+			expectedStart: 1729468800000,
+			expectedEnd:   1729555199999,
+		},
+		{
+			name: "parse a date in CDT (-0500)",
+			args: args{
+				dateStr: "2024-10-21 -0500",
+			},
+			expectedStart: 1729486800000,
+			expectedEnd:   1729573199999,
+		},
+		{
+			name: "bad format",
+			args: args{
+				dateStr: "2024-10-21 CT",
+			},
+			wantErr: true,
+		},
+		{
+			name: "bad format",
+			args: args{
+				dateStr: "2024-1-2 CDT",
+			},
+			wantErr: true,
+		},
+		{
+			name:    "it's ok to not have date, start, or end",
+			args:    args{},
+			wantErr: false,
+		},
+		{
+			name: "needs both start and end pt1",
+			args: args{
+				start: 12345,
+			},
+			wantErr: true,
+		},
+		{
+			name: "needs both start and end pt2",
+			args: args{
+				end: 12345,
+			},
+			wantErr: true,
+		},
+		{
+			name: "start and end",
+			args: args{
+				start: 12345,
+				end:   678912,
+			},
+			expectedStart: 12345,
+			expectedEnd:   678912,
+			wantErr:       false,
+		},
+		{
+			name: "date and start",
+			args: args{
+				dateStr: "2024-10-21 -0400",
+				start:   12345,
+			},
+			wantErr: true,
+		},
+		{
+			name: "date and end",
+			args: args{
+				dateStr: "2024-10-21 -0400",
+				end:     678912,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotStart, gotEnd, err := getStartAndEnd(tt.args.dateStr, tt.args.start, tt.args.end)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getStartAndEnd() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotStart != tt.expectedStart {
+				t.Errorf("getStartAndEnd() got = %v, want %v", gotStart, tt.expectedStart)
+			}
+			if gotEnd != tt.expectedEnd {
+				t.Errorf("getStartAndEnd() got1 = %v, want %v", gotEnd, tt.expectedEnd)
+			}
+		})
+	}
 }
 
 func makeCmd() *cobra.Command {
