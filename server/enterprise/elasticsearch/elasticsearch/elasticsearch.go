@@ -42,9 +42,8 @@ type ElasticsearchInterfaceImpl struct {
 	fullVersion string
 	plugins     []string
 
-	asyncBulkProcessor *Bulk
-	syncBulkProcessor  *Bulk
-	Platform           *platform.PlatformService
+	bulkProcessor *Bulk
+	Platform      *platform.PlatformService
 }
 
 func getJSONOrErrorStr(obj any) string {
@@ -129,15 +128,10 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 	ctx := context.Background()
 
 	if *es.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize > 1 {
-		es.asyncBulkProcessor = NewBulk(es.Platform.Config().ElasticsearchSettings,
+		es.bulkProcessor = NewBulk(es.Platform.Config().ElasticsearchSettings,
 			es.Platform.Log(),
-			es.client,
-			false)
+			es.client)
 	}
-	es.syncBulkProcessor = NewBulk(es.Platform.Config().ElasticsearchSettings,
-		es.Platform.Log(),
-		es.client,
-		true)
 
 	// Set up posts index template.
 	_, err = es.client.API.Indices.PutIndexTemplate(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts).
@@ -186,11 +180,11 @@ func (es *ElasticsearchInterfaceImpl) Stop() *model.AppError {
 
 	es.client = nil
 	// Flushing any pending requests
-	if es.asyncBulkProcessor != nil {
-		if err := es.asyncBulkProcessor.Stop(); err != nil {
+	if es.bulkProcessor != nil {
+		if err := es.bulkProcessor.Stop(); err != nil {
 			es.Platform.Log().Warn("Error stopping bulk processor", mlog.Err(err))
 		}
-		es.asyncBulkProcessor = nil
+		es.bulkProcessor = nil
 	}
 
 	atomic.StoreInt32(&es.ready, 0)
@@ -226,8 +220,8 @@ func (es *ElasticsearchInterfaceImpl) IndexPost(post *model.Post, teamId string)
 		return model.NewAppError("Elasticsearch.IndexPost", "ent.elasticsearch.index_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if es.asyncBulkProcessor != nil {
-		err = es.asyncBulkProcessor.IndexOp(types.IndexOperation{
+	if es.bulkProcessor != nil {
+		err = es.bulkProcessor.IndexOp(types.IndexOperation{
 			Index_: model.NewPointer(indexName),
 			Id_:    model.NewPointer(searchPost.Id),
 		}, searchPost)
@@ -694,8 +688,8 @@ func (es *ElasticsearchInterfaceImpl) DeleteUserPosts(rctx request.CTX, userID s
 
 func (es *ElasticsearchInterfaceImpl) deletePost(indexName, postID string) *model.AppError {
 	var err error
-	if es.asyncBulkProcessor != nil {
-		err = es.asyncBulkProcessor.DeleteOp(types.DeleteOperation{
+	if es.bulkProcessor != nil {
+		err = es.bulkProcessor.DeleteOp(types.DeleteOperation{
 			Index_: model.NewPointer(indexName),
 			Id_:    model.NewPointer(postID),
 		})
@@ -726,8 +720,8 @@ func (es *ElasticsearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *mo
 	searchChannel := common.ESChannelFromChannel(channel, userIDs, teamMemberIDs)
 
 	var err error
-	if es.asyncBulkProcessor != nil {
-		err = es.asyncBulkProcessor.IndexOp(types.IndexOperation{
+	if es.bulkProcessor != nil {
+		err = es.bulkProcessor.IndexOp(types.IndexOperation{
 			Index_: model.NewPointer(indexName),
 			Id_:    model.NewPointer(searchChannel.Id),
 		}, searchChannel)
@@ -909,8 +903,8 @@ func (es *ElasticsearchInterfaceImpl) DeleteChannel(channel *model.Channel) *mod
 	}
 
 	var err error
-	if es.asyncBulkProcessor != nil {
-		err = es.asyncBulkProcessor.DeleteOp(types.DeleteOperation{
+	if es.bulkProcessor != nil {
+		err = es.bulkProcessor.DeleteOp(types.DeleteOperation{
 			Index_: model.NewPointer(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels),
 			Id_:    model.NewPointer(channel.Id),
 		})
@@ -944,8 +938,8 @@ func (es *ElasticsearchInterfaceImpl) IndexUser(rctx request.CTX, user *model.Us
 	searchUser := common.ESUserFromUserAndTeams(user, teamsIds, channelsIds)
 
 	var err error
-	if es.asyncBulkProcessor != nil {
-		err = es.asyncBulkProcessor.IndexOp(types.IndexOperation{
+	if es.bulkProcessor != nil {
+		err = es.bulkProcessor.IndexOp(types.IndexOperation{
 			Index_: model.NewPointer(indexName),
 			Id_:    model.NewPointer(searchUser.Id),
 		}, searchUser)
@@ -1258,8 +1252,8 @@ func (es *ElasticsearchInterfaceImpl) DeleteUser(user *model.User) *model.AppErr
 	}
 
 	var err error
-	if es.asyncBulkProcessor != nil {
-		err = es.asyncBulkProcessor.DeleteOp(types.DeleteOperation{
+	if es.bulkProcessor != nil {
+		err = es.bulkProcessor.DeleteOp(types.DeleteOperation{
 			Index_: model.NewPointer(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers),
 			Id_:    model.NewPointer(user.Id),
 		})
@@ -1476,8 +1470,8 @@ func (es *ElasticsearchInterfaceImpl) IndexFile(file *model.FileInfo, channelId 
 	searchFile := common.ESFileFromFileInfo(file, channelId)
 
 	var err error
-	if es.asyncBulkProcessor != nil {
-		err = es.asyncBulkProcessor.IndexOp(types.IndexOperation{
+	if es.bulkProcessor != nil {
+		err = es.bulkProcessor.IndexOp(types.IndexOperation{
 			Index_: model.NewPointer(indexName),
 			Id_:    model.NewPointer(searchFile.Id),
 		}, searchFile)
@@ -1754,8 +1748,8 @@ func (es *ElasticsearchInterfaceImpl) DeleteFile(fileID string) *model.AppError 
 	}
 
 	var err error
-	if es.asyncBulkProcessor != nil {
-		err = es.asyncBulkProcessor.DeleteOp(types.DeleteOperation{
+	if es.bulkProcessor != nil {
+		err = es.bulkProcessor.DeleteOp(types.DeleteOperation{
 			Index_: model.NewPointer(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles),
 			Id_:    model.NewPointer(fileID),
 		})
