@@ -1,0 +1,62 @@
+.textbox-overlay-highlight {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: hidden;
+    pointer-events: none;
+    
+    .textbox-overlay-content {
+        position: absolute;
+        top: 2px;  // 下に少しずらす
+        left: 2px; // 右に少しずらす
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border: 1px solid transparent;
+        margin: 0;
+        color: transparent;
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        
+        .mention-highlight {
+            padding: 0 2px;
+            border-radius: 3px;
+            background-color: var(--mention-highlight-bg, rgba(255, 188, 0, 0.3));
+            color: transparent;
+        }
+    }
+}
+
+.textarea-wrapper {
+    position: relative;
+    
+    .textbox-overlay-highlight {
+        .textbox-overlay-content {
+            // テキストエリアと同じスタイリングを適用
+            border: none;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 14px;
+            line-height: 20px;
+            outline: none;
+            resize: none;
+        }
+    }
+    
+    .form-control.custom-textarea {
+        position: relative;
+        z-index: 2;
+        background: transparent;
+    }
+}
+
+// プレビューモード時はオーバーレイを非表示
+.textarea-wrapper-preview {
+    .textbox-overlay-highlight {
+        display: none;
+    }
+}

@@ -209,19 +209,18 @@ const AdvancedTextEditor = ({
     // ユーザー情報とメンションキーを取得
     const usersByUsername = useSelector((state: GlobalState) => getUsersByUsername(state));
     const teammateNameDisplay = useSelector((state: GlobalState) => getTeammateNameDisplaySetting(state));
-    const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
 
     // メンションキーを生成（フルネーム形式を含む）
     const mentionKeys = useSelector((state: GlobalState) => {
         const mentionKeysWithoutGroups = getCurrentUserMentionKeys(state);
         const groupMentionKeys = channel ? getMyGroupMentionKeysForChannel(state, channel.team_id, channelId) : getMyGroupMentionKeys(state, false);
         const baseMentionKeys = mentionKeysWithoutGroups.concat(groupMentionKeys);
-        
+
         // フルネーム形式のメンションキーを追加
         const fullnameMentionKeys = [];
         const users = getUsersByUsername(state);
         const nameDisplaySetting = getTeammateNameDisplaySetting(state);
-        
+
         // 現在のユーザー自身のフルネーム形式のメンションキーを追加
         const currentUserInfo = getCurrentUser(state);
         if (currentUserInfo) {
@@ -233,13 +232,13 @@ const AdvancedTextEditor = ({
                 });
             }
         }
-        
+
         // 他のユーザーのフルネーム形式のメンションキーを追加
         for (const [username, user] of Object.entries(users)) {
             if (currentUserInfo && user.id === currentUserInfo.id) {
                 continue;
             }
-            
+
             const displayName = displayUsername(user, nameDisplaySetting, false);
             if (displayName !== username) {
                 fullnameMentionKeys.push({
@@ -248,7 +247,7 @@ const AdvancedTextEditor = ({
                 });
             }
         }
-        
+
         return baseMentionKeys.concat(fullnameMentionKeys);
     });
 
