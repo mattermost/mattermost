@@ -29,7 +29,6 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 	setupContentFlagging := func() {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.FeatureFlags.ContentFlagging = true
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
 		})
@@ -44,14 +43,13 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 		require.NotNil(t, config)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		require.Equal(t, 5, len(*config.Reasons), "Expected 5 default reasons in the reporting configuration")
+		require.Equalf(t, len(model.ContentFlaggingDefaultReasons), len(*config.Reasons), "Expected %d default reasons in the reporting configuration", len(model.ContentFlaggingDefaultReasons))
 		require.True(t, *config.ReporterCommentRequired)
 	})
 
 	t.Run("should return 501 when content flagging is not enabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.FeatureFlags.ContentFlagging = false
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
 		})
 
@@ -63,7 +61,6 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 	t.Run("should return 501 when license is not enterprise advanced", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.FeatureFlags.ContentFlagging = true
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 		})
 
@@ -84,7 +81,7 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 		require.NotNil(t, config)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		require.Equal(t, 5, len(*config.Reasons), "Expected 5 default reasons in the reporting configuration")
+		require.Equalf(t, len(model.ContentFlaggingDefaultReasons), len(*config.Reasons), "Expected %d default reasons in the reporting configuration", len(model.ContentFlaggingDefaultReasons))
 		require.True(t, *config.ReporterCommentRequired)
 	})
 }
@@ -105,7 +102,6 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 	setupContentFlagging := func() {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.FeatureFlags.ContentFlagging = true
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
 		})
@@ -171,7 +167,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 		require.False(t, status["enabled"])
 	})
 
-	t.Run("should return enabled status with additional reviewers", func(t *testing.T) {
+	t.Run("should return enabled status with Additional Reviewers", func(t *testing.T) {
 		setupContentFlagging()
 
 		th.App.UpdateConfig(func(config *model.Config) {

@@ -18,44 +18,6 @@ func setupContentFlagging(tb testing.TB) *TestHelper {
 	})
 }
 
-func TestGetReportingConfiguration(t *testing.T) {
-	t.Run("default config", func(t *testing.T) {
-		th := setupContentFlagging(t)
-		defer th.TearDown()
-
-		config := th.App.GetFlaggingConfiguration()
-		require.NotNil(t, config, "expected non-nil reporting configuration")
-
-		require.Greater(t, len(*config.Reasons), 0, "expected non-empty reasons in reporting configuration")
-
-		require.True(t, *config.ReporterCommentRequired, "expected reporter comment to be required by default")
-	})
-
-	t.Run("should return set config", func(t *testing.T) {
-		th := setupContentFlagging(t)
-		defer th.TearDown()
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ContentFlaggingSettings.AdditionalSettings.Reasons = &[]string{"Spam", "Abuse"}
-			cfg.ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
-		})
-
-		config := th.App.GetFlaggingConfiguration()
-		require.NotNil(t, config, "expected non-nil reporting configuration")
-
-		if len(*config.Reasons) != 2 || (*config.Reasons)[0] != "Spam" || (*config.Reasons)[1] != "Abuse" {
-			t.Error("expected reasons to be set to ['Spam', 'Abuse']")
-		}
-
-		require.False(t, *config.ReporterCommentRequired, "expected reporter comment to not be required")
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ContentFlaggingSettings.AdditionalSettings.Reasons = nil
-			cfg.ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired = nil
-		})
-	})
-}
-
 func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 	t.Run("should return true for common reviewers", func(t *testing.T) {
 		th := setupContentFlagging(t)
@@ -92,7 +54,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 		require.True(t, status, "expected team post reporting feature to be disabled for team without reviewers")
 	})
 
-	t.Run("should return true when using additional reviewers", func(t *testing.T) {
+	t.Run("should return true when using Additional Reviewers", func(t *testing.T) {
 		th := setupContentFlagging(t)
 		defer th.TearDown()
 
