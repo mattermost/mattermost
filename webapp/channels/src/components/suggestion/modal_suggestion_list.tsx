@@ -5,8 +5,7 @@ import React from 'react';
 
 import SuggestionList from 'components/suggestion/suggestion_list';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface SuggestionItem {}
+import type {SuggestionResults} from './suggestion_results';
 
 type SuggestionListProps = {
     ariaLiveRef?: React.RefObject<HTMLDivElement>;
@@ -16,11 +15,8 @@ type SuggestionListProps = {
     onItemHover: (term: string) => void;
     onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
     pretext: string;
-    matchedPretext: string[];
-    items: SuggestionItem[];
-    terms: string[];
+    results: SuggestionResults<unknown>;
     selection: string;
-    components: Array<React.FunctionComponent<any>>;
     wrapperHeight?: number;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret

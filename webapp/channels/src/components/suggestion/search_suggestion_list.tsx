@@ -11,6 +11,7 @@ import Constants from 'utils/constants';
 
 import type {Props} from './suggestion_list';
 import SuggestionList from './suggestion_list';
+import {hasResults} from './suggestion_results';
 
 export default class SearchSuggestionList extends SuggestionList {
     popoverRef: React.RefObject<BSPopover>;
@@ -63,23 +64,23 @@ export default class SearchSuggestionList extends SuggestionList {
     }
 
     render() {
-        if (this.props.items.length === 0) {
+        if (!hasResults(this.props.results)) {
             return null;
         }
 
         const items: JSX.Element[] = [];
         let haveDMDivider = false;
-        for (let i = 0; i < this.props.items.length; i++) {
-            const item: any = this.props.items[i];
-            const term = this.props.terms[i];
+        for (let i = 0; i < this.props.results.items.length; i++) {
+            const item: any = this.props.results.items[i];
+            const term = this.props.results.terms[i];
             const isSelection = term === this.props.selection;
 
             // ReactComponent names need to be upper case when used in JSX
-            const Component = this.props.components[i];
+            const Component = this.props.results.components[i];
 
             // temporary hack to add dividers between public and private channels in the search suggestion list
             if (this.props.renderDividers) {
-                if (i === 0 || item.type !== this.props.items[i - 1].type) {
+                if (i === 0 || item.type !== this.props.results.items[i - 1].type) {
                     if (item.type === Constants.DM_CHANNEL || item.type === Constants.GM_CHANNEL) {
                         if (!haveDMDivider) {
                             items.push(this.renderChannelDivider(Constants.DM_CHANNEL));
@@ -99,7 +100,7 @@ export default class SearchSuggestionList extends SuggestionList {
                     id={`sbrSearchBox_item_${term}`}
                     item={item}
                     term={term}
-                    matchedPretext={this.props.matchedPretext}
+                    matchedPretext={this.props.results.matchedPretext}
                     isSelection={isSelection}
                     onClick={this.props.onCompleteWord}
                     onMouseMove={this.props.onItemHover}

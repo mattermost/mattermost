@@ -5,50 +5,38 @@ import React, {memo} from 'react';
 
 import Popover from 'components/widgets/popover';
 
+import type {SuggestionResults} from './suggestion_results';
+import {hasResults} from './suggestion_results';
+
 type SuggestionItem = {
     date: string;
     label: string;
 }
 
-type SuggestionItemProps = {
-    key: string;
-    item: SuggestionItem;
-    term: string;
-    matchedPretext: string;
-    preventClose: () => void;
-    handleEscape: () => void;
-    isSelection: boolean;
-    onClick: (term: string, matchedPretext: string[], e?: React.MouseEvent<HTMLDivElement>) => boolean;
-}
-
 type Props = {
     onCompleteWord: (term: string, matchedPretext: string[], e?: React.MouseEvent<HTMLDivElement>) => boolean;
     matchedPretext: string;
-    items: SuggestionItem[];
-    terms: string[];
+    results: SuggestionResults<SuggestionItem>;
     preventClose: () => void;
     handleEscape: () => void;
-    components: Array<React.ComponentType<SuggestionItemProps>>;
 }
 
 const SuggestionDate = ({
-    items,
-    terms,
-    components,
+    results,
     matchedPretext,
     onCompleteWord,
     preventClose,
     handleEscape,
 }: Props) => {
-    if (items.length === 0) {
+    if (!hasResults(results)) {
         return null;
     }
 
-    const item = items[0];
-    const term = terms[0];
+    const item = results.items[0];
+    const term = results.terms[0];
 
     // ReactComponent names need to be upper case when used in JSX
-    const Component = components[0];
+    const Component = results.components[0];
 
     return (
         <Popover
@@ -58,7 +46,7 @@ const SuggestionDate = ({
         >
             <Component
                 key={term}
-                item={item}
+                item={item as SuggestionItem}
                 term={term}
                 matchedPretext={matchedPretext}
                 isSelection={false}
