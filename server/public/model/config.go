@@ -1054,17 +1054,19 @@ func (s *CacheSettings) isValid() *AppError {
 }
 
 type ClusterSettings struct {
-	Enable                             *bool   `access:"environment_high_availability,write_restrictable"`
-	ClusterName                        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	OverrideHostname                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	NetworkInterface                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	BindAddress                        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	AdvertiseAddress                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	UseIPAddress                       *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	EnableGossipCompression            *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	EnableExperimentalGossipEncryption *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	ReadOnlyConfig                     *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	GossipPort                         *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	Enable                  *bool   `access:"environment_high_availability,write_restrictable"`
+	ClusterName             *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	OverrideHostname        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	NetworkInterface        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	BindAddress             *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	AdvertiseAddress        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	UseIPAddress            *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	EnableGossipCompression *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	// Deprecated: use EnableGossipEncryption
+	EnableExperimentalGossipEncryption *bool `json:",omitempty"`
+	EnableGossipEncryption             *bool `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	ReadOnlyConfig                     *bool `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	GossipPort                         *int  `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -1096,8 +1098,12 @@ func (s *ClusterSettings) SetDefaults() {
 		s.UseIPAddress = NewPointer(true)
 	}
 
-	if s.EnableExperimentalGossipEncryption == nil {
-		s.EnableExperimentalGossipEncryption = NewPointer(false)
+	if s.EnableGossipEncryption == nil {
+		if s.EnableExperimentalGossipEncryption != nil {
+			s.EnableGossipEncryption = NewPointer(*s.EnableExperimentalGossipEncryption)
+		} else {
+			s.EnableGossipEncryption = NewPointer(true)
+		}
 	}
 
 	if s.EnableGossipCompression == nil {
@@ -3884,6 +3890,7 @@ type Config struct {
 	WranglerSettings            WranglerSettings
 	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
 	AccessControlSettings       AccessControlSettings
+	ContentFlaggingSettings     ContentFlaggingSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -4002,6 +4009,7 @@ func (o *Config) SetDefaults() {
 	o.WranglerSettings.SetDefaults()
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
+	o.ContentFlaggingSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -4127,6 +4135,10 @@ func (o *Config) IsValid() *AppError {
 				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.invalid.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
+	}
+
+	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
 	}
 
 	return nil

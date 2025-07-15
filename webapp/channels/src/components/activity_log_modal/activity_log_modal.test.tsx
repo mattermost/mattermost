@@ -1,13 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 import type {MouseEvent} from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
 import ActivityLogModal from 'components/activity_log_modal/activity_log_modal';
+
+import {renderWithContext} from 'tests/react_testing_utils';
+
+jest.mock('components/activity_log_modal/components/activity_log', () => {
+    return jest.fn().mockImplementation(({submitRevoke, currentSession}) => {
+        return (
+            <div
+                data-testid='activity-log'
+                data-session-id={currentSession.id}
+                onClick={(e) => submitRevoke(currentSession.id, e as MouseEvent)}
+            >
+                {'Activity Log Item'}
+            </div>
+        );
+    });
+});
 
 describe('components/ActivityLogModal', () => {
     const baseProps = {
@@ -21,14 +37,58 @@ describe('components/ActivityLogModal', () => {
         locale: General.DEFAULT_LOCALE,
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow<ActivityLogModal>(
-            <ActivityLogModal {...baseProps}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+    test('should render empty state when no sessions exist', () => {
+        renderWithContext(<ActivityLogModal {...baseProps}/>);
+
+        expect(screen.getByText('Active Sessions')).toBeInTheDocument();
+        expect(screen.queryByTestId('activity-log')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot when submitRevoke is called', () => {
+    test('should render sessions when they exist', () => {
+        const sessions = [
+            {id: 'session1', props: {type: 'Web'}},
+            {id: 'session2', props: {type: 'Web'}},
+        ] as any;
+
+        renderWithContext(
+            <ActivityLogModal
+                {...baseProps}
+                sessions={sessions}
+            />,
+        );
+
+        expect(screen.getAllByTestId('activity-log')).toHaveLength(2);
+    });
+
+    test('should filter out UserAccessToken sessions', () => {
+        const sessions = [
+            {id: 'session1', props: {type: 'Web'}},
+            {id: 'session2', props: {type: 'UserAccessToken'}},
+        ] as any;
+
+        renderWithContext(
+            <ActivityLogModal
+                {...baseProps}
+                sessions={sessions}
+            />,
+        );
+
+        expect(screen.getAllByTestId('activity-log')).toHaveLength(1);
+    });
+
+    test('should call getSessions on mount', () => {
+        const actions = {
+            getSessions: jest.fn(),
+            revokeSession: jest.fn(),
+        };
+        const props = {...baseProps, actions};
+
+        renderWithContext(<ActivityLogModal {...props}/>);
+        expect(actions.getSessions).toHaveBeenCalledTimes(1);
+        expect(actions.getSessions).toHaveBeenCalledWith('');
+    });
+
+    test('should call revokeSession when session is revoked', async () => {
         const revokeSession = jest.fn().mockImplementation(
             () => {
                 return new Promise<void>((resolve) => {
@@ -36,43 +96,49 @@ describe('components/ActivityLogModal', () => {
                 });
             },
         );
+        const getSessions = jest.fn();
         const actions = {
-            getSessions: jest.fn(),
+            getSessions,
             revokeSession,
         };
 
-        const props = {...baseProps, actions};
-        const wrapper = shallow<ActivityLogModal>(
-            <ActivityLogModal {...props}/>,
+        const sessions = [
+            {id: 'session1', props: {type: 'Web'}},
+        ] as any;
+
+        renderWithContext(
+            <ActivityLogModal
+                {...baseProps}
+                sessions={sessions}
+                actions={actions}
+                currentUserId='user1'
+            />,
         );
 
-        wrapper.instance().submitRevoke('altId', {preventDefault: jest.fn()} as unknown as MouseEvent);
-        expect(wrapper).toMatchSnapshot();
+        fireEvent.click(screen.getByTestId('activity-log'));
+
         expect(revokeSession).toHaveBeenCalledTimes(1);
-        expect(revokeSession).toHaveBeenCalledWith('', 'altId');
+        expect(revokeSession).toHaveBeenCalledWith('user1', 'session1');
+
+        // Wait for the promise to resolve
+        await waitFor(() => {
+            expect(getSessions).toHaveBeenCalledTimes(2); // Once on mount, once after revoke
+            expect(getSessions).toHaveBeenLastCalledWith('user1');
+        });
     });
 
-    test('should have called actions.getUserAudits when onShow is called', () => {
-        const actions = {
-            getSessions: jest.fn(),
-            revokeSession: jest.fn(),
-        };
-        const props = {...baseProps, actions};
-        const wrapper = shallow<ActivityLogModal>(
-            <ActivityLogModal {...props}/>,
+    test('should call onHide when modal is closed', async () => {
+        const onHide = jest.fn();
+        renderWithContext(
+            <ActivityLogModal
+                {...baseProps}
+                onHide={onHide}
+            />,
         );
 
-        wrapper.instance().onShow();
-        expect(actions.getSessions).toHaveBeenCalledTimes(2);
-    });
+        await waitFor(() => screen.getByText('Active Sessions'));
+        fireEvent.click(screen.getByLabelText('Close'));
 
-    test('should match state when onHide is called', () => {
-        const wrapper = shallow<ActivityLogModal>(
-            <ActivityLogModal {...baseProps}/>,
-        );
-
-        wrapper.setState({show: true});
-        wrapper.instance().onHide();
-        expect(wrapper.state('show')).toEqual(false);
+        expect(onHide).toHaveBeenCalledTimes(1);
     });
 });

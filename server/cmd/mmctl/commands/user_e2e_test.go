@@ -789,6 +789,9 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		printer.Clean()
 		emailArg := "nonexistentUser@example.com"
 
+		var expectedErr *multierror.Error
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("user %s not found", emailArg))
+
 		previousVal := s.th.App.Config().ServiceSettings.EnableAPIUserDeletion
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
 		defer func() {
@@ -800,10 +803,8 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		err := deleteUsersCmdF(c, cmd, []string{emailArg})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArg), printer.GetErrorLines()[0])
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expectedErr.Error())
 	})
 
 	s.Run("Delete user without permission", func() {
@@ -820,11 +821,14 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		newUser := s.th.CreateUser()
+
+		var expectedErr *multierror.Error
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
+			fmt.Errorf("You do not have the appropriate permissions.")))
+
 		err := deleteUsersCmdF(s.th.Client, cmd, []string{newUser.Email})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to delete user '%s' error: You do not have the appropriate permissions.", newUser.Username), printer.GetErrorLines()[0])
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expectedErr.Error())
 
 		// expect user not deleted
 		user, err := s.th.App.GetUser(newUser.Id)
@@ -846,11 +850,14 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		newUser := s.th.CreateUser()
+
+		var expectedErr *multierror.Error
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
+			fmt.Errorf("Permanent user deletion feature is not enabled. Please contact your System Administrator.")))
+
 		err := deleteUsersCmdF(s.th.SystemAdminClient, cmd, []string{newUser.Email})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to delete user '%s' error: Permanent user deletion feature is not enabled. Please contact your System Administrator.", newUser.Username), printer.GetErrorLines()[0])
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expectedErr.Error())
 
 		// expect user not deleted
 		user, err := s.th.App.GetUser(newUser.Id)
@@ -1488,7 +1495,6 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for single user", func() {
-		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
@@ -1506,9 +1512,11 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 3)
-		s.Require().Equal(preferenceUpdated, actualPreferencesUser1[0])
-		s.Require().Equal(preference2, actualPreferencesUser1[1])
-		s.Require().Equal(preference3, actualPreferencesUser1[2])
+
+		// We can't guarantee the order of preferences returned by the database since they are not sorted at SQL query level.
+		s.Require().Contains(actualPreferencesUser1, preferenceUpdated)
+		s.Require().Contains(actualPreferencesUser1, preference2)
+		s.Require().Contains(actualPreferencesUser1, preference3)
 
 		// Second user unaffected
 		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
@@ -1518,7 +1526,6 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for multiple users as admin", func() {
-		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
@@ -1537,9 +1544,11 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 3)
-		s.Require().Equal(preferenceUpdated, actualPreferencesUser1[0])
-		s.Require().Equal(preference2, actualPreferencesUser1[1])
-		s.Require().Equal(preference3, actualPreferencesUser1[2])
+
+		// We can't guarantee the order of preferences returned by the database since they are not sorted at SQL query level.
+		s.Require().Contains(actualPreferencesUser1, preferenceUpdated)
+		s.Require().Contains(actualPreferencesUser1, preference2)
+		s.Require().Contains(actualPreferencesUser1, preference3)
 
 		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
