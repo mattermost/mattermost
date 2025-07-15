@@ -69,6 +69,8 @@ type FeatureFlags struct {
 
 	AttributeBasedAccessControl bool
 
+	ContentFlagging bool
+
 	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
 	InteractiveDialogAppsForm bool
 }
@@ -99,6 +101,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
+	f.ContentFlagging = false
 	f.InteractiveDialogAppsForm = true
 }
 
