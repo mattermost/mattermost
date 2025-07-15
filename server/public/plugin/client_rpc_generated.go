@@ -7389,6 +7389,37 @@ func (s *apiRPCServer) SearchPropertyFields(args *Z_SearchPropertyFieldsArgs, re
 	return nil
 }
 
+type Z_CountPropertyFieldsArgs struct {
+	A string
+	B bool
+}
+
+type Z_CountPropertyFieldsReturns struct {
+	A int64
+	B error
+}
+
+func (g *apiRPCClient) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
+	_args := &Z_CountPropertyFieldsArgs{groupID, includeDeleted}
+	_returns := &Z_CountPropertyFieldsReturns{}
+	if err := g.client.Call("Plugin.CountPropertyFields", _args, _returns); err != nil {
+		log.Printf("RPC call to CountPropertyFields API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CountPropertyFields(args *Z_CountPropertyFieldsArgs, returns *Z_CountPropertyFieldsReturns) error {
+	if hook, ok := s.impl.(interface {
+		CountPropertyFields(groupID string, includeDeleted bool) (int64, error)
+	}); ok {
+		returns.A, returns.B = hook.CountPropertyFields(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API CountPropertyFields called but not implemented."))
+	}
+	return nil
+}
+
 type Z_CreatePropertyValueArgs struct {
 	A *model.PropertyValue
 }

@@ -285,4 +285,139 @@ func TestPluginProperties(t *testing.T) {
 		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
 		require.Nil(t, appErr)
 	})
+
+	t.Run("test property field limit enforcement", func(t *testing.T) {
+		groupName := model.NewId()
+		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				// Register a property group
+				group, err := p.API.RegisterPropertyGroup("` + groupName + `")
+				if err != nil {
+					return fmt.Errorf("failed to register property group: %w", err)
+				}
+
+				// Create 20 property fields successfully
+				for i := 1; i <= 20; i++ {
+					field := &model.PropertyField{
+						GroupID:     group.ID,
+						Name:        fmt.Sprintf("Field %d", i),
+						Type:        model.PropertyFieldTypeText,
+						TargetType:  "user",
+					}
+
+					_, err := p.API.CreatePropertyField(field)
+					if err != nil {
+						return fmt.Errorf("failed to create property field %d: %w", i, err)
+					}
+				}
+
+				// Count active fields - should be 20
+				count, err := p.API.CountPropertyFields(group.ID, false)
+				if err != nil {
+					return fmt.Errorf("failed to count property fields: %w", err)
+				}
+				if count != 20 {
+					return fmt.Errorf("expected 20 active fields, got %d", count)
+				}
+
+				// Try to create the 21st field - should fail
+				field21 := &model.PropertyField{
+					GroupID:     group.ID,
+					Name:        "Field 21",
+					Type:        model.PropertyFieldTypeText,
+					TargetType:  "user",
+				}
+
+				_, err = p.API.CreatePropertyField(field21)
+				if err == nil {
+					return fmt.Errorf("expected error when creating 21st field, but got none")
+				}
+				if err.Error() != "maximum number of property fields (20) reached for group" {
+					return fmt.Errorf("unexpected error message: %s", err.Error())
+				}
+
+				// Search for fields to get one to delete
+				fields, err := p.API.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 1})
+				if err != nil {
+					return fmt.Errorf("failed to search property fields: %w", err)
+				}
+				if len(fields) == 0 {
+					return fmt.Errorf("no fields found to delete")
+				}
+
+				// Delete one field
+				err = p.API.DeletePropertyField(group.ID, fields[0].ID)
+				if err != nil {
+					return fmt.Errorf("failed to delete property field: %w", err)
+				}
+
+				// Count active fields - should be 19
+				count, err = p.API.CountPropertyFields(group.ID, false)
+				if err != nil {
+					return fmt.Errorf("failed to count property fields after deletion: %w", err)
+				}
+				if count != 19 {
+					return fmt.Errorf("expected 19 active fields after deletion, got %d", count)
+				}
+
+				// Count all fields including deleted - should be 20
+				totalCount, err := p.API.CountPropertyFields(group.ID, true)
+				if err != nil {
+					return fmt.Errorf("failed to count all property fields: %w", err)
+				}
+				if totalCount != 20 {
+					return fmt.Errorf("expected 20 total fields including deleted, got %d", totalCount)
+				}
+
+				// Now creating a new field should work again
+				newField := &model.PropertyField{
+					GroupID:     group.ID,
+					Name:        "New Field",
+					Type:        model.PropertyFieldTypeText,
+					TargetType:  "user",
+				}
+
+				_, err = p.API.CreatePropertyField(newField)
+				if err != nil {
+					return fmt.Errorf("failed to create new field after deletion: %w", err)
+				}
+
+				// Count should be back to 20
+				count, err = p.API.CountPropertyFields(group.ID, false)
+				if err != nil {
+					return fmt.Errorf("failed to count property fields after new creation: %w", err)
+				}
+				if count != 20 {
+					return fmt.Errorf("expected 20 active fields after new creation, got %d", count)
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 1)
+		require.Nil(t, nil, activationErrors[0])
+
+		// Clean up
+		err2 := th.App.DisablePlugin(pluginIDs[0])
+		require.Nil(t, err2)
+		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
+		require.Nil(t, appErr)
+	})
 }

@@ -29,6 +29,10 @@ func (ps *PropertyService) CountActivePropertyFieldsForGroup(groupID string) (in
 	return ps.fieldStore.CountForGroup(groupID, false)
 }
 
+func (ps *PropertyService) CountAllPropertyFieldsForGroup(groupID string) (int64, error) {
+	return ps.fieldStore.CountForGroup(groupID, false)
+}
+
 func (ps *PropertyService) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	// groupID and targetID are part of the search method signature to
 	// incentivize the use of the database indexes in searches
