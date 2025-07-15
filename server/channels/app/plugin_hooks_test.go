@@ -1666,7 +1666,7 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 			th.AddUserToChannel(user, th.BasicChannel)
 
 			// Set up email notification preferences to disable batching
-			th.App.UpdatePreferences(th.Context, user.Id, model.Preferences{
+			appErr := th.App.UpdatePreferences(th.Context, user.Id, model.Preferences{
 				{
 					UserId:   user.Id,
 					Category: model.PreferenceCategoryNotifications,
@@ -1674,6 +1674,7 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 					Value:    model.PreferenceEmailIntervalNoBatchingSeconds,
 				},
 			})
+			require.Nil(t, appErr)
 
 			// Disable email batching in config
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1713,11 +1714,10 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 			if tt.name == "email notification rejected" {
 				// When rejected, sendNotificationEmail returns nil for the notification
 				require.Nil(t, modifiedNotification)
-				require.Nil(t, err)
+				require.NoError(t, err)
 			} else {
-				require.Nil(t, err)
+				require.NoError(t, err)
 				require.NotNil(t, modifiedNotification)
-				
 				// Verify the modified notification fields
 				if tt.expectedNotificationSubject != "" {
 					assert.Equal(t, tt.expectedNotificationSubject, modifiedNotification.Subject)
