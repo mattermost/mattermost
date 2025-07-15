@@ -92,7 +92,7 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 				mlog.String("channel_id", change.ChannelId),
 				mlog.String("remote_id", rc.RemoteId),
 			)
-			processErr = scs.processMemberAdd(change, channel, rc, maxChangeTime)
+			processErr = scs.processMemberAdd(change, channel, rc, maxChangeTime, syncMsg)
 		} else {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Removing user from channel from remote cluster",
 				mlog.String("user_id", change.UserId),
@@ -121,27 +121,36 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 }
 
 // processMemberAdd handles adding a user to a channel as part of batch processing
-func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel *model.Channel, rc *model.RemoteCluster, maxChangeTime int64) error {
-	// Get the user if they exist
-	user, err := scs.server.GetStore().User().Get(request.EmptyContext(scs.server.Log()).Context(), change.UserId)
-	if err != nil {
-		return fmt.Errorf("cannot get user for channel add: %w", err)
+func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel *model.Channel, rc *model.RemoteCluster, maxChangeTime int64, syncMsg *model.SyncMsg) error {
+	rctx := request.EmptyContext(scs.server.Log())
+	var user *model.User
+	var err error
+
+	// First try to upsert user from sync message (mirrors mention scenario)
+	if userProfile, exists := syncMsg.Users[change.UserId]; exists {
+		user, err = scs.upsertSyncUser(rctx, userProfile, channel, rc)
+		if err != nil {
+			return fmt.Errorf("cannot upsert user for channel add: %w", err)
+		}
+	} else {
+		// Fallback to existing lookup for users not in sync message
+		user, err = scs.server.GetStore().User().Get(rctx.Context(), change.UserId)
+		if err != nil {
+			return fmt.Errorf("cannot get user for channel add: %w", err)
+		}
 	}
 
 	// Check user permissions for private channels
 	if channel.Type == model.ChannelTypePrivate {
 		// Add user to team if needed for private channel
-		rctx := request.EmptyContext(scs.server.Log())
-		appErr := scs.app.AddUserToTeamByTeamId(rctx, channel.TeamId, user)
-		if appErr != nil {
+		if appErr := scs.app.AddUserToTeamByTeamId(rctx, channel.TeamId, user); appErr != nil {
 			return fmt.Errorf("cannot add user to team for private channel: %w", appErr)
 		}
 	}
 
 	// Use the app layer to add the user to the channel
-	// This ensures proper processing of all side effects
-	rctx := request.EmptyContext(scs.server.Log())
-	_, appErr := scs.app.AddUserToChannel(rctx, user, channel, false)
+	// Skip team member check (true) since we already handled team membership above
+	_, appErr := scs.app.AddUserToChannel(rctx, user, channel, true)
 	if appErr != nil {
 		// Skip "already added" errors
 		if appErr.Error() != "api.channel.add_user.to_channel.failed.app_error" &&
