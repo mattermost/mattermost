@@ -10,9 +10,9 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Preferences} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
-import {Preferences} from 'mattermost-redux/constants';
 
 import AutosizeTextarea from 'components/autosize_textarea';
 import PostMarkdown from 'components/post_markdown';
@@ -26,8 +26,10 @@ import SuggestionBox from 'components/suggestion/suggestion_box';
 import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
-import * as Utils from 'utils/utils';
 import type {MentionKey} from 'utils/text_formatting';
+import * as Utils from 'utils/utils';
+
+import TextboxOverlayHighlight from './textbox_overlay_highlight';
 
 import type {TextboxElement} from './index';
 
@@ -90,10 +92,11 @@ export default class Textbox extends React.PureComponent<Props> {
     private readonly wrapper: React.RefObject<HTMLDivElement>;
     private readonly message: React.RefObject<SuggestionBoxComponent>;
     private readonly preview: React.RefObject<HTMLDivElement>;
+    private readonly textareaRef: React.RefObject<HTMLTextAreaElement>;
 
     state = {
         displayValue: '', // UI表示用の値（username→fullname変換済み）
-        rawValue: '',     // サーバー送信用の値（username形式のまま）
+        rawValue: '', // サーバー送信用の値（username形式のまま）
     };
 
     static defaultProps = {
@@ -141,6 +144,7 @@ export default class Textbox extends React.PureComponent<Props> {
         this.wrapper = React.createRef();
         this.message = React.createRef();
         this.preview = React.createRef();
+        this.textareaRef = React.createRef();
 
         // state初期化 - propsのvalueからdisplayValueとrawValueを設定
         this.state = {
@@ -154,7 +158,7 @@ export default class Textbox extends React.PureComponent<Props> {
      */
     convertToDisplayName = (text: string): string => {
         const {usersByUsername = {}, teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME} = this.props;
-        
+
         return text.replace(/@([a-zA-Z0-9.\-_]+)/g, (match, username) => {
             const user = usersByUsername[username];
             if (user) {
@@ -170,13 +174,13 @@ export default class Textbox extends React.PureComponent<Props> {
      */
     convertToRawValue = (text: string): string => {
         const {usersByUsername = {}} = this.props;
-        
+
         // usersByUsernameを逆引き用のマップに変換
         const displayNameToUsername: Record<string, string> = {};
         Object.entries(usersByUsername).forEach(([username, user]) => {
             const fullName = `${user.first_name} ${user.last_name}`.trim();
             const nickname = user.nickname;
-            
+
             if (fullName) {
                 displayNameToUsername[fullName] = username;
             }
@@ -218,13 +222,13 @@ export default class Textbox extends React.PureComponent<Props> {
 
     handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const inputValue = e.target.value;
-        
+
         // 生の値（username形式）を更新
         const newRawValue = this.convertToRawValue(inputValue);
-        
+
         // 表示用の値（fullname形式）を更新
         const newDisplayValue = this.convertToDisplayName(newRawValue);
-        
+
         this.setState({
             rawValue: newRawValue,
             displayValue: newDisplayValue,
@@ -238,7 +242,7 @@ export default class Textbox extends React.PureComponent<Props> {
                 value: newRawValue,
             },
         } as React.ChangeEvent<HTMLInputElement>;
-        
+
         this.props.onChange(syntheticEvent);
     };
 
@@ -299,7 +303,7 @@ export default class Textbox extends React.PureComponent<Props> {
 
         if (prevProps.value !== this.props.value) {
             this.checkMessageLength(this.props.value);
-            
+
             // props.valueが変更された場合、stateを更新
             this.setState({
                 rawValue: this.props.value,
@@ -359,7 +363,12 @@ export default class Textbox extends React.PureComponent<Props> {
     };
 
     getInputBox = () => {
-        return this.message.current?.getTextbox();
+        const textbox = this.message.current?.getTextbox();
+        if (textbox && this.textareaRef.current !== textbox) {
+            // textareaRefを更新
+            (this.textareaRef as any).current = textbox;
+        }
+        return textbox;
     };
 
     focus = () => {
@@ -424,6 +433,16 @@ export default class Textbox extends React.PureComponent<Props> {
                         imageProps={{hideUtilities: true}}
                     />
                 </div>
+                {/* オーバーレイハイライト - プレビューモード以外で表示 */}
+                {!this.props.preview && this.props.usersByUsername && this.props.teammateNameDisplay && (
+                    <TextboxOverlayHighlight
+                        text={this.state.displayValue}
+                        usersByUsername={this.props.usersByUsername}
+                        teammateNameDisplay={this.props.teammateNameDisplay}
+                        textareaRef={this.textareaRef}
+                        className='textbox-mention-overlay'
+                    />
+                )}
                 <SuggestionBox
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
