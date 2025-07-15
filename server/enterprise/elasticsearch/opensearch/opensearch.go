@@ -44,9 +44,8 @@ type OpensearchInterfaceImpl struct {
 	fullVersion string
 	plugins     []string
 
-	asyncBulkProcessor *Bulk
-	syncBulkProcessor  *Bulk
-	Platform           *platform.PlatformService
+	bulkProcessor *Bulk
+	Platform      *platform.PlatformService
 }
 
 func getJSONOrErrorStr(obj any) string {
@@ -131,15 +130,10 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 	ctx := context.Background()
 
 	if *os.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize > 1 {
-		os.asyncBulkProcessor = NewBulk(os.Platform.Config().ElasticsearchSettings,
+		os.bulkProcessor = NewBulk(os.Platform.Config().ElasticsearchSettings,
 			os.Platform.Log(),
-			os.client,
-			false)
+			os.client)
 	}
-	os.syncBulkProcessor = NewBulk(os.Platform.Config().ElasticsearchSettings,
-		os.Platform.Log(),
-		os.client,
-		true)
 
 	// Set up posts index template.
 	templateBuf, err := json.Marshal(common.GetPostTemplate(os.Platform.Config()))
@@ -207,11 +201,11 @@ func (os *OpensearchInterfaceImpl) Stop() *model.AppError {
 	}
 
 	// Flushing any pending requests
-	if os.asyncBulkProcessor != nil {
-		if err := os.asyncBulkProcessor.Stop(); err != nil {
+	if os.bulkProcessor != nil {
+		if err := os.bulkProcessor.Stop(); err != nil {
 			os.Platform.Log().Warn("Error stopping bulk processor", mlog.Err(err))
 		}
-		os.asyncBulkProcessor = nil
+		os.bulkProcessor = nil
 	}
 
 	os.client = nil
@@ -249,8 +243,8 @@ func (os *OpensearchInterfaceImpl) IndexPost(post *model.Post, teamId string) *m
 	}
 
 	var postBuf []byte
-	if os.asyncBulkProcessor != nil {
-		err = os.asyncBulkProcessor.IndexOp(&types.IndexOperation{
+	if os.bulkProcessor != nil {
+		err = os.bulkProcessor.IndexOp(&types.IndexOperation{
 			Index_: model.NewPointer(indexName),
 			Id_:    model.NewPointer(searchPost.Id),
 		}, searchPost)
@@ -767,8 +761,8 @@ func (os *OpensearchInterfaceImpl) DeleteUserPosts(rctx request.CTX, userID stri
 
 func (os *OpensearchInterfaceImpl) deletePost(indexName, postID string) *model.AppError {
 	var err error
-	if os.asyncBulkProcessor != nil {
-		err = os.asyncBulkProcessor.DeleteOp(&types.DeleteOperation{
+	if os.bulkProcessor != nil {
+		err = os.bulkProcessor.DeleteOp(&types.DeleteOperation{
 			Index_: model.NewPointer(indexName),
 			Id_:    model.NewPointer(postID),
 		})
@@ -803,8 +797,8 @@ func (os *OpensearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *model
 
 	var err error
 	var buf []byte
-	if os.asyncBulkProcessor != nil {
-		err = os.asyncBulkProcessor.IndexOp(&types.IndexOperation{
+	if os.bulkProcessor != nil {
+		err = os.bulkProcessor.IndexOp(&types.IndexOperation{
 			Index_: model.NewPointer(indexName),
 			Id_:    model.NewPointer(searchChannel.Id),
 		}, searchChannel)
@@ -995,8 +989,8 @@ func (os *OpensearchInterfaceImpl) DeleteChannel(channel *model.Channel) *model.
 	}
 
 	var err error
-	if os.asyncBulkProcessor != nil {
-		err = os.asyncBulkProcessor.DeleteOp(&types.DeleteOperation{
+	if os.bulkProcessor != nil {
+		err = os.bulkProcessor.DeleteOp(&types.DeleteOperation{
 			Index_: model.NewPointer(*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels),
 			Id_:    model.NewPointer(channel.Id),
 		})
@@ -1033,8 +1027,8 @@ func (os *OpensearchInterfaceImpl) IndexUser(rctx request.CTX, user *model.User,
 
 	var err error
 	var buf []byte
-	if os.asyncBulkProcessor != nil {
-		err = os.asyncBulkProcessor.IndexOp(&types.IndexOperation{
+	if os.bulkProcessor != nil {
+		err = os.bulkProcessor.IndexOp(&types.IndexOperation{
 			Index_: model.NewPointer(indexName),
 			Id_:    model.NewPointer(searchUser.Id),
 		}, searchUser)
@@ -1364,8 +1358,8 @@ func (os *OpensearchInterfaceImpl) DeleteUser(user *model.User) *model.AppError 
 	}
 
 	var err error
-	if os.asyncBulkProcessor != nil {
-		err = os.asyncBulkProcessor.DeleteOp(&types.DeleteOperation{
+	if os.bulkProcessor != nil {
+		err = os.bulkProcessor.DeleteOp(&types.DeleteOperation{
 			Index_: model.NewPointer(*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers),
 			Id_:    model.NewPointer(user.Id),
 		})
@@ -1595,8 +1589,8 @@ func (os *OpensearchInterfaceImpl) IndexFile(file *model.FileInfo, channelId str
 
 	var err error
 	var fileBuf []byte
-	if os.asyncBulkProcessor != nil {
-		err = os.asyncBulkProcessor.IndexOp(&types.IndexOperation{
+	if os.bulkProcessor != nil {
+		err = os.bulkProcessor.IndexOp(&types.IndexOperation{
 			Index_: model.NewPointer(indexName),
 			Id_:    model.NewPointer(searchFile.Id),
 		}, searchFile)
@@ -1884,8 +1878,8 @@ func (os *OpensearchInterfaceImpl) DeleteFile(fileID string) *model.AppError {
 	}
 
 	var err error
-	if os.asyncBulkProcessor != nil {
-		err = os.asyncBulkProcessor.DeleteOp(&types.DeleteOperation{
+	if os.bulkProcessor != nil {
+		err = os.bulkProcessor.DeleteOp(&types.DeleteOperation{
 			Index_: model.NewPointer(*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles),
 			Id_:    model.NewPointer(fileID),
 		})

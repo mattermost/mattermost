@@ -29,28 +29,21 @@ type Bulk struct {
 	quitFlusherWg sync.WaitGroup
 
 	pendingRequests int
-
-	// Sync mode lets the caller use the logic in this bulker without relying on the async nature of the pending requests
-	sync bool
 }
 
 func NewBulk(settings model.ElasticsearchSettings,
 	logger mlog.LoggerIFace,
-	client *opensearchapi.Client,
-	sync bool) *Bulk {
+	client *opensearchapi.Client) *Bulk {
 	b := &Bulk{
 		settings:    settings,
 		logger:      logger,
 		client:      client,
 		quitFlusher: make(chan struct{}),
 		buf:         &bytes.Buffer{},
-		sync:        sync,
 	}
 
-	if !sync {
-		b.quitFlusherWg.Add(1)
-		go b.periodicFlusher()
-	}
+	b.quitFlusherWg.Add(1)
+	go b.periodicFlusher()
 
 	return b
 }
@@ -85,10 +78,7 @@ func (r *Bulk) IndexOp(op *types.IndexOperation, doc any) error {
 
 	r.buf.Write([]byte("\n"))
 
-	if !r.sync {
-		return r.flushIfNecessary()
-	}
-	return nil
+	return r.flushIfNecessary()
 }
 
 // DeleteOp is a helper function to add a DeleteOperation to the current bulk request.
@@ -105,10 +95,7 @@ func (r *Bulk) DeleteOp(op *types.DeleteOperation) error {
 	r.buf.Write(header)
 	r.buf.Write([]byte("\n"))
 
-	if !r.sync {
-		return r.flushIfNecessary()
-	}
-	return nil
+	return r.flushIfNecessary()
 }
 
 // flushIfNecessary flushes the pending buffer if needed.
@@ -172,11 +159,4 @@ func (r *Bulk) _flush() error {
 	r.pendingRequests = 0
 
 	return nil
-}
-
-func (r *Bulk) flush() error {
-	r.mut.Lock()
-	defer r.mut.Unlock()
-
-	return r._flush()
 }
