@@ -11,18 +11,19 @@ import type {ServerError} from '@mattermost/types/errors';
 import {autocompleteChannelsForSearchInTeam} from 'actions/channel_actions';
 import {autocompleteUsersInTeam} from 'actions/user_actions';
 
-import type {ProviderResult} from 'components/suggestion/provider';
 import type Provider from 'components/suggestion/provider';
 import SearchChannelProvider from 'components/suggestion/search_channel_provider';
 import SearchDateProvider from 'components/suggestion/search_date_provider';
 import SearchUserProvider from 'components/suggestion/search_user_provider';
+import type {ProviderResults, SuggestionResults} from 'components/suggestion/suggestion_results';
+import {normalizeResultsFromProvider} from 'components/suggestion/suggestion_results';
 
 import {SearchFileExtensionProvider} from './extension_suggestions_provider';
 
-const useSearchSuggestions = (searchType: string, searchTerms: string, searchTeam: string, caretPosition: number, getCaretPosition: () => number, setSelectedOption: (idx: number) => void): [ProviderResult<unknown>|null, React.ReactNode] => {
+const useSearchSuggestions = (searchType: string, searchTerms: string, searchTeam: string, caretPosition: number, getCaretPosition: () => number, setSelectedOption: (idx: number) => void): [SuggestionResults<unknown>|null, React.ReactNode] => {
     const dispatch = useDispatch();
 
-    const [providerResults, setProviderResults] = useState<ProviderResult<unknown>|null>(null);
+    const [results, setResults] = useState<SuggestionResults<unknown>|null>(null);
     const [suggestionsHeader, setSuggestionsHeader] = useState<React.ReactNode>(<span/>);
 
     const suggestionProviders = useRef<Provider[]>([
@@ -52,7 +53,7 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, searchTea
     ], []);
 
     useEffect(() => {
-        setProviderResults(null);
+        setResults(null);
         if (searchType !== '' && searchType !== 'messages' && searchType !== 'files') {
             return;
         }
@@ -67,7 +68,7 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, searchTea
         }
 
         suggestionProviders.current.forEach((provider, idx) => {
-            provider.handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
+            provider.handlePretextChanged(partialSearchTerms, (res: ProviderResults<unknown>) => {
                 if (idx === 3 && searchType !== 'files') {
                     return;
                 }
@@ -76,14 +77,14 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, searchTea
                 }
                 res.items = res.items.slice(0, 10);
                 res.terms = res.terms.slice(0, 10);
-                setProviderResults(res);
+                setResults(normalizeResultsFromProvider(res));
                 setSelectedOption(0);
                 setSuggestionsHeader(headers[idx]);
             }, searchTeam);
         });
     }, [searchTerms, searchTeam, searchType, caretPosition]);
 
-    return [providerResults, suggestionsHeader];
+    return [results, suggestionsHeader];
 };
 
 export default useSearchSuggestions;

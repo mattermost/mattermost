@@ -44,11 +44,11 @@ describe('components/new_search/SearchBoxHints', () => {
         setSearchTerms: jest.fn(),
         focus: jest.fn(),
         selectedOption: -1,
-        providerResults: {
+        results: {
             matchedPretext: '',
             terms: ['user1', 'user2'],
             items: [{username: 'test-username1'}, {username: 'test-username2'}],
-            component: TestProviderResultComponent,
+            components: [TestProviderResultComponent, TestProviderResultComponent],
         },
     };
 

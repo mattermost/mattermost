@@ -20,6 +20,7 @@ import type {GlobalState} from 'types/store';
 
 import AtMentionSuggestion from './at_mention_suggestion';
 
+import type {ResultsCallback} from '../provider';
 import Provider from '../provider';
 
 const profilesInChannelOptions = {active: true};
@@ -34,15 +35,6 @@ type CreatedProfile = UserProfile & {
 };
 
 type CreatedGroup = Group & {type: string};
-
-type Results = {
-    matchedPretext: string;
-    terms: string[];
-    items: any;
-    component: React.ElementType;
-};
-
-type ResultsCallback = (results: Results) => void;
 
 export type Props = {
     currentUserId: string;
@@ -356,7 +348,7 @@ export default class AtMentionProvider extends Provider {
     }
 
     // updateMatches invokes the resultCallback with the metadata for rendering at mentions
-    updateMatches(resultCallback: ResultsCallback, items: any[]) {
+    updateMatches(resultCallback: ResultsCallback<unknown>, items: any[]) {
         if (items.length === 0) {
             this.lastPrefixWithNoResults = this.latestPrefix;
         } else if (this.lastPrefixWithNoResults === this.latestPrefix) {
@@ -379,7 +371,7 @@ export default class AtMentionProvider extends Provider {
         });
     }
 
-    handlePretextChanged(pretext: string, resultCallback: ResultsCallback) {
+    handlePretextChanged(pretext: string, resultCallback: ResultsCallback<unknown>) {
         const captured = regexForAtMention.exec(pretext.toLowerCase());
         if (!captured) {
             return false;

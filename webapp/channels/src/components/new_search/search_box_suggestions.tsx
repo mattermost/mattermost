@@ -10,8 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getSearchPluginSuggestions} from 'selectors/plugins';
 
-import type {ProviderResult} from 'components/suggestion/provider';
-import type {SuggestionProps} from 'components/suggestion/suggestion';
+import type {SuggestionResults} from 'components/suggestion/suggestion_results';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
 
@@ -42,12 +41,12 @@ type Props = {
     selectedOption: number;
     setSelectedOption: (idx: number) => void;
     suggestionsHeader: React.ReactNode;
-    providerResults: ProviderResult<unknown> | null;
+    results: SuggestionResults<unknown> | null;
     onSearch: (searchType: string, searchTeam: string, searchTerms: string) => void;
     onSuggestionSelected: (value: string, matchedPretext: string) => void;
 }
 
-const SearchSuggestions = ({searchType, searchTeam, searchTerms, suggestionsHeader, providerResults, selectedOption, setSelectedOption, onSearch, onSuggestionSelected}: Props) => {
+const SearchSuggestions = ({searchType, searchTeam, searchTerms, suggestionsHeader, results, selectedOption, setSelectedOption, onSearch, onSuggestionSelected}: Props) => {
     const runSearch = useCallback((searchTerms: string) => {
         onSearch(searchType, searchTeam, searchTerms);
     }, [onSearch, searchTeam, searchType]);
@@ -80,42 +79,42 @@ const SearchSuggestions = ({searchType, searchTeam, searchTerms, suggestionsHead
     };
 
     if (searchType === '' || searchType === 'messages' || searchType === 'files') {
-        if (!providerResults) {
+        if (!results) {
             return null;
         }
 
         return (
             <SuggestionsBody>
                 <SuggestionsHeader>{suggestionsHeader}</SuggestionsHeader>
-                {providerResults.component && providerResults.items[selectedOption] && (
+                {results.components[selectedOption] && results.items[selectedOption] && (
                     <div
                         aria-live='polite'
                         role='alert'
                         className='sr-only'
-                        key={providerResults.terms[selectedOption]}
+                        key={results.terms[selectedOption]}
                     >
                         <FormattedMessage
                             id='search_box_suggestions.suggestions_readout'
                             defaultMessage='{label} ({idx} of {total} results available)'
                             values={{
-                                label: generateLabel(providerResults.items[selectedOption]),
+                                label: generateLabel(results.items[selectedOption]),
                                 idx: selectedOption + 1,
-                                total: providerResults.items.length,
+                                total: results.items.length,
                             }}
                         />
                     </div>
                 )}
-                {providerResults.items.map((item, idx) => {
-                    if (!providerResults.component) {
+                {results.items.map((item, idx) => {
+                    if (!results.components[idx]) {
                         return null;
                     }
-                    const Component = providerResults.component as React.ComponentType<SuggestionProps<any>>;
+                    const Component = results.components[idx];
                     return (
                         <Component
-                            key={providerResults.terms[idx]}
+                            key={results.terms[idx]}
                             item={item as UserProfile}
-                            term={providerResults.terms[idx]}
-                            matchedPretext={providerResults.matchedPretext}
+                            term={results.terms[idx]}
+                            matchedPretext={results.matchedPretext}
                             isSelection={idx === selectedOption}
                             onClick={onSuggestionSelected}
                             onMouseMove={() => {

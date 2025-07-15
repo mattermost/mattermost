@@ -143,7 +143,7 @@ const SearchBox = forwardRef(
             };
         }, [inputRef.current]);
 
-        const [providerResults, suggestionsHeader] = useSearchSuggestions(
+        const [results, suggestionsHeader] = useSearchSuggestions(
             searchType,
             searchTerms,
             searchTeam,
@@ -190,7 +190,7 @@ const SearchBox = forwardRef(
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
+                    if (!results || results?.items.length === 0 || selectedOption === -1) {
                         onClose();
                     } else {
                         setSelectedOption(-1);
@@ -200,7 +200,7 @@ const SearchBox = forwardRef(
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.DOWN)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    const totalItems = providerResults?.items.length || 0;
+                    const totalItems = results?.items.length || 0;
                     if (selectedOption + 1 < totalItems) {
                         setSelectedOption(selectedOption + 1);
                     }
@@ -217,17 +217,17 @@ const SearchBox = forwardRef(
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.ENTER)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
+                    if (!results || results?.items.length === 0 || selectedOption === -1) {
                         onSearch(searchType, searchTeam, searchTerms);
                     } else {
-                        const matchedPretext = providerResults?.matchedPretext;
-                        const value = providerResults?.terms[selectedOption];
+                        const matchedPretext = results?.matchedPretext;
+                        const value = results?.terms[selectedOption];
                         updateSearchValue(value, matchedPretext);
                         setSelectedOption(-1);
                     }
                 }
             },
-            [providerResults, onClose, selectedOption, onSearch, searchType, searchTeam, searchTerms, updateSearchValue],
+            [results, onClose, selectedOption, onSearch, searchType, searchTeam, searchTerms, updateSearchValue],
         );
 
         const changeSearchTeam = (selectedTeam: string) => {
@@ -307,7 +307,7 @@ const SearchBox = forwardRef(
                     searchTeam={searchTeam}
                     searchTerms={searchTerms}
                     suggestionsHeader={suggestionsHeader}
-                    providerResults={providerResults}
+                    results={results}
                     selectedOption={selectedOption}
                     setSelectedOption={setSelectedOption}
                     onSearch={onSearch}
@@ -318,7 +318,7 @@ const SearchBox = forwardRef(
                     searchTeam={searchTeam}
                     setSearchTerms={addSearchHint}
                     searchType={searchType}
-                    providerResults={providerResults}
+                    results={results}
                     selectedOption={selectedOption}
                     showFilterHaveBeenReset={showFilterHaveBeenReset}
                     focus={focus}

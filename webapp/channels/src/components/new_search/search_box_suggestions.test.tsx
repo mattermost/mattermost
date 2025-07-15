@@ -44,11 +44,11 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         selectedOption: -1,
         setSelectedOption: jest.fn(),
         suggestionsHeader: <p>{'Test Header'}</p>,
-        providerResults: {
+        results: {
             matchedPretext: '',
             terms: ['user1', 'user2'],
             items: [{username: 'test-username1'}, {username: 'test-username2'}],
-            component: TestProviderResultComponent,
+            components: [TestProviderResultComponent, TestProviderResultComponent],
         },
         onSearch: jest.fn(),
         onSuggestionSelected: jest.fn(),
@@ -70,7 +70,7 @@ describe('components/new_search/SearchBoxSuggestions', () => {
     });
 
     test('should call the onSuggestionSelected on click with matchedPretext and previous text', () => {
-        const props = {...baseProps, searchTerms: 'something from:test-user', providerResults: {...baseProps.providerResults, matchedPretext: 'test-user'}};
+        const props = {...baseProps, searchTerms: 'something from:test-user', results: {...baseProps.results, matchedPretext: 'test-user'}};
         renderWithContext(<SearchBoxSuggestions {...props}/>);
         fireEvent.click(screen.getByText('test-username1'));
         expect(baseProps.onSuggestionSelected).toHaveBeenCalledWith('test-username1', 'test-user');
