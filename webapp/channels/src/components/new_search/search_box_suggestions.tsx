@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
@@ -10,6 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getSearchPluginSuggestions} from 'selectors/plugins';
 
+import {SuggestionListStatus} from 'components/suggestion/suggestion_list';
 import type {SuggestionResults} from 'components/suggestion/suggestion_results';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
@@ -123,6 +123,7 @@ const SearchSuggestions = ({searchType, searchTeam, searchTerms, suggestionsHead
                         />
                     );
                 })}
+                <SuggestionListStatus results={results}/>
             </SuggestionsBody>
         );
     }

@@ -278,7 +278,7 @@ const SuggestionListList = React.forwardRef<HTMLUListElement, React.HTMLAttribut
     );
 });
 
-function SuggestionListStatus({results}: Pick<Props, 'results'>) {
+export function SuggestionListStatus({results}: Pick<Props, 'results'>) {
     const {formatMessage} = useIntl();
 
     const statusText = formatMessage(
