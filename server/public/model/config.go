@@ -3264,10 +3264,11 @@ func (s *JobSettings) SetDefaults() {
 }
 
 type CloudSettings struct {
-	CWSURL    *string `access:"write_restrictable"`
-	CWSAPIURL *string `access:"write_restrictable"`
-	CWSMock   *bool   `access:"write_restrictable"`
-	Disable   *bool   `access:"write_restrictable,cloud_restrictable"`
+	CWSURL                *string `access:"write_restrictable"`
+	CWSAPIURL             *string `access:"write_restrictable"`
+	CWSMock               *bool   `access:"write_restrictable"`
+	Disable               *bool   `access:"write_restrictable,cloud_restrictable"`
+	PreviewModalBucketURL *string `access:"write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
@@ -3296,6 +3297,10 @@ func (s *CloudSettings) SetDefaults() {
 
 	if s.Disable == nil {
 		s.Disable = NewPointer(false)
+	}
+
+	if s.PreviewModalBucketURL == nil {
+		s.PreviewModalBucketURL = NewPointer("")
 	}
 }
 
