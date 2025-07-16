@@ -3289,7 +3289,7 @@
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here byl deaktivován, protože kanál má více než {{.Users}} uživatelů."
+    "translation": "Oznámení @here jsou zakázána v kanálech s více než {{.Users}} uživateli. Pro více informací kontaktujte svého systémového administrátora."
   },
   {
     "id": "api.post.disabled_channel",
@@ -9837,7 +9837,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Nelze aktivovat uživatele. Server překračuje bezpečný limit uživatelů. Kontaktujte svého administrátora s kódem: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Nelze aktivovat uživatele. Server překročil bezpečný limit uživatelů. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
