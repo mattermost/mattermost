@@ -4526,7 +4526,6 @@
   "integrations.outgoingWebhook.title": "Outgoing Webhooks",
   "integrations.successful": "Setup Successful",
   "interactive_dialog.cancel": "Cancel",
-  "interactive_dialog.element_validation_failed": "Element validation failed: {errors}",
   "interactive_dialog.element.optional": "(optional)",
   "interactive_dialog.submission_failed": "Submission failed",
   "interactive_dialog.submission_failed_validation": "Submission failed with validation errors",
