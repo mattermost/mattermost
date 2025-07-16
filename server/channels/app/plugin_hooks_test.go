@@ -1716,26 +1716,25 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 				if tt.name == "email notification rejected" {
 					// When rejected, sendNotificationEmail returns nil for the notification
 					return modifiedNotification == nil && err == nil
-				} else {
-					if err != nil || modifiedNotification == nil {
-						return false
-					}
-
-					// Verify the modified notification fields
-					if tt.expectedNotificationSubject != "" && modifiedNotification.Subject != tt.expectedNotificationSubject {
-						return false
-					}
-					if tt.expectedNotificationTitle != "" && modifiedNotification.Title != tt.expectedNotificationTitle {
-						return false
-					}
-					if tt.expectedButtonText != "" && modifiedNotification.ButtonText != tt.expectedButtonText {
-						return false
-					}
-					if tt.expectedFooterText != "" && modifiedNotification.FooterText != tt.expectedFooterText {
-						return false
-					}
-					return true
 				}
+				if err != nil || modifiedNotification == nil {
+					return false
+				}
+
+				// Verify the modified notification fields
+				if tt.expectedNotificationSubject != "" && modifiedNotification.Subject != tt.expectedNotificationSubject {
+					return false
+				}
+				if tt.expectedNotificationTitle != "" && modifiedNotification.Title != tt.expectedNotificationTitle {
+					return false
+				}
+				if tt.expectedButtonText != "" && modifiedNotification.ButtonText != tt.expectedButtonText {
+					return false
+				}
+				if tt.expectedFooterText != "" && modifiedNotification.FooterText != tt.expectedFooterText {
+					return false
+				}
+				return true
 			}, 2*time.Second, 100*time.Millisecond)
 		})
 	}
