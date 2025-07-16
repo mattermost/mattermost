@@ -87,6 +87,7 @@ function ChannelSettingsArchiveTab({
                     confirmButtonClass='btn btn-danger'
                     modalClass='archiveChannelConfirmModal'
                     focusOriginElement='channelSettingsArchiveChannelButton'
+                    isStacked={true}
                 />
             )}
         </div>
