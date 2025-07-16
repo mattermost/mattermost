@@ -24,7 +24,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
-import type {ProviderResults} from 'components/suggestion/suggestion_results';
+import {flattenItems, type ProviderResults} from 'components/suggestion/suggestion_results';
 import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
@@ -242,7 +242,7 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChan
             options = [
                 {
                     label: formatMessage({id: 'suggestion.mention.recent.channels', defaultMessage: 'Recent'}),
-                    options: res.items.filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated).map((item) => {
+                    options: flattenItems(res).filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated).map((item) => {
                         const {channel} = item;
                         return makeSelectedChannelOption(channel);
                     }),
@@ -269,7 +269,7 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChan
              */
             const handleResults = async (res: ProviderResults<any>) => {
                 callCount++;
-                await res.items.filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated).forEach((item) => {
+                await flattenItems(res).filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated).forEach((item) => {
                     const {channel} = item;
 
                     if (options.findIndex((option) => option.value === channel.id) === -1) {

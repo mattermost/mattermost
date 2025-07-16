@@ -16,14 +16,14 @@ import SearchChannelProvider from 'components/suggestion/search_channel_provider
 import SearchDateProvider from 'components/suggestion/search_date_provider';
 import SearchUserProvider from 'components/suggestion/search_user_provider';
 import type {ProviderResults, SuggestionResults} from 'components/suggestion/suggestion_results';
-import {normalizeResultsFromProvider} from 'components/suggestion/suggestion_results';
+import {emptyResults, normalizeResultsFromProvider, trimResults} from 'components/suggestion/suggestion_results';
 
 import {SearchFileExtensionProvider} from './extension_suggestions_provider';
 
-const useSearchSuggestions = (searchType: string, searchTerms: string, searchTeam: string, caretPosition: number, getCaretPosition: () => number, setSelectedOption: (idx: number) => void): [SuggestionResults<unknown>|null, React.ReactNode] => {
+const useSearchSuggestions = (searchType: string, searchTerms: string, searchTeam: string, caretPosition: number, getCaretPosition: () => number, setSelectedOption: (idx: number) => void): [SuggestionResults<unknown>, React.ReactNode] => {
     const dispatch = useDispatch();
 
-    const [results, setResults] = useState<SuggestionResults<unknown>|null>(null);
+    const [results, setResults] = useState<SuggestionResults<unknown>>(emptyResults());
     const [suggestionsHeader, setSuggestionsHeader] = useState<React.ReactNode>(<span/>);
 
     const suggestionProviders = useRef<Provider[]>([
@@ -53,7 +53,7 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, searchTea
     ], []);
 
     useEffect(() => {
-        setResults(null);
+        setResults(emptyResults());
         if (searchType !== '' && searchType !== 'messages' && searchType !== 'files') {
             return;
         }
@@ -75,9 +75,11 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, searchTea
                 if (caretPosition !== getCaretPosition()) {
                     return;
                 }
-                res.items = res.items.slice(0, 10);
-                res.terms = res.terms.slice(0, 10);
-                setResults(normalizeResultsFromProvider(res));
+
+                let trimmedResults = normalizeResultsFromProvider(res);
+                trimmedResults = trimResults(trimmedResults, 10);
+
+                setResults(trimmedResults);
                 setSelectedOption(0);
                 setSuggestionsHeader(headers[idx]);
             }, searchTeam);

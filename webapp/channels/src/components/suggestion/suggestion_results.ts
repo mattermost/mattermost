@@ -61,8 +61,18 @@ export function getItemForTerm<Item>(results: SuggestionResults<Item>, term: str
     return index === -1 ? undefined : results.items[index] as Item;
 }
 
-export function flattenTerms<Item>(results: SuggestionResults<Item>): string[] {
+export function flattenTerms<Item>(results: SuggestionResults<Item> | ProviderResults<Item>): string[] {
     return results.terms;
+}
+
+export function flattenItems<Item>(results: SuggestionResults<Item> | ProviderResults<Item>): Item[] {
+    // This isn't technically true, but the way that loading items are handled makes typing difficult. We should
+    // find a better way to represent that in the future
+    return results.items as Item[];
+}
+
+export function hasSuggestionWithComponent<Item>(results: SuggestionResults<Item>, componentType: React.ElementType) {
+    return results.components.includes(componentType);
 }
 
 /**
@@ -89,3 +99,15 @@ export function normalizeResultsFromProvider<Item>(providerResults: ProviderResu
     };
 }
 
+/**
+ * Trims a list of results so that there are at most a maximum number of suggestions in it.
+ *
+ * This function modifies the provided results.
+ */
+export function trimResults(results: SuggestionResults<unknown>, max: number) {
+    results.items = results.items.slice(0, max);
+    results.terms = results.terms.slice(0, max);
+    results.components = results.components.slice(0, max);
+
+    return results;
+}

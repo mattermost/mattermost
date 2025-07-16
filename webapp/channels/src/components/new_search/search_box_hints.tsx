@@ -7,7 +7,7 @@ import {useSelector} from 'react-redux';
 import {getSearchBoxHints} from 'selectors/plugins';
 
 import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
-import type {SuggestionResults} from 'components/suggestion/suggestion_results';
+import {hasResults, hasSuggestionWithComponent, type SuggestionResults} from 'components/suggestion/suggestion_results';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
 
@@ -19,7 +19,7 @@ type Props = {
     setSearchTerms: (searchTerms: string) => void;
     searchType: string;
     selectedOption: number;
-    results: SuggestionResults<unknown>|null;
+    results: SuggestionResults<unknown>;
     focus: (pos: number) => void;
     showFilterHaveBeenReset: boolean;
 }
@@ -50,9 +50,9 @@ const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, re
                 searchType={searchType}
                 searchTerms={searchTerms}
                 searchTeam={searchTeam}
-                hasSelectedOption={Boolean(results && results.items.length > 0 && selectedOption !== -1)}
+                hasSelectedOption={hasResults(results) && selectedOption !== -1}
                 showFilterHaveBeenReset={showFilterHaveBeenReset}
-                isDate={Boolean(results?.components.some((component) => component === SearchDateSuggestion))}
+                isDate={hasSuggestionWithComponent(results, SearchDateSuggestion)}
             />
         );
     }

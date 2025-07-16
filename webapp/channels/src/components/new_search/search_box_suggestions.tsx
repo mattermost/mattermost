@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
@@ -11,6 +12,7 @@ import {getSearchPluginSuggestions} from 'selectors/plugins';
 
 import {SuggestionListStatus} from 'components/suggestion/suggestion_list';
 import type {SuggestionResults} from 'components/suggestion/suggestion_results';
+import {hasResults} from 'components/suggestion/suggestion_results';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
 
@@ -41,7 +43,7 @@ type Props = {
     selectedOption: number;
     setSelectedOption: (idx: number) => void;
     suggestionsHeader: React.ReactNode;
-    results: SuggestionResults<unknown> | null;
+    results: SuggestionResults<unknown>;
     onSearch: (searchType: string, searchTeam: string, searchTerms: string) => void;
     onSuggestionSelected: (value: string, matchedPretext: string) => void;
 }
@@ -79,7 +81,7 @@ const SearchSuggestions = ({searchType, searchTeam, searchTerms, suggestionsHead
     };
 
     if (searchType === '' || searchType === 'messages' || searchType === 'files') {
-        if (!results) {
+        if (!hasResults(results)) {
             return null;
         }
 

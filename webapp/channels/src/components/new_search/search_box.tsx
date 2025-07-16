@@ -7,6 +7,8 @@ import styled from 'styled-components';
 
 import type {Team} from '@mattermost/types/teams';
 
+import {countResults, flattenTerms, hasResults} from 'components/suggestion/suggestion_results';
+
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {escapeRegex} from 'utils/text_formatting';
@@ -190,7 +192,7 @@ const SearchBox = forwardRef(
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (!results || results?.items.length === 0 || selectedOption === -1) {
+                    if (!hasResults(results) || selectedOption === -1) {
                         onClose();
                     } else {
                         setSelectedOption(-1);
@@ -200,7 +202,7 @@ const SearchBox = forwardRef(
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.DOWN)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    const totalItems = results?.items.length || 0;
+                    const totalItems = countResults(results);
                     if (selectedOption + 1 < totalItems) {
                         setSelectedOption(selectedOption + 1);
                     }
@@ -217,11 +219,11 @@ const SearchBox = forwardRef(
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.ENTER)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (!results || results?.items.length === 0 || selectedOption === -1) {
+                    if (!hasResults(results) || selectedOption === -1) {
                         onSearch(searchType, searchTeam, searchTerms);
                     } else {
-                        const matchedPretext = results?.matchedPretext;
-                        const value = results?.terms[selectedOption];
+                        const matchedPretext = results.matchedPretext;
+                        const value = flattenTerms(results)[selectedOption];
                         updateSearchValue(value, matchedPretext);
                         setSelectedOption(-1);
                     }
