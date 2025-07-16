@@ -95,20 +95,6 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	ctx := sqlstore.WithMaster(context.Background())
 	role, _ := th.App.GetRoleByName(ctx, model.SystemReadOnlyAdminRoleId)
 
-	// role.Permissions = append(role.Permissions, model.PermissionCreatePostBleveIndexesJob.Id)
-
-	// _, err := th.App.UpdateRole(role)
-	// require.Nil(t, err)
-
-	// Now system read only admin should have ability to create a Belve Post Index job but not the others
-	// for _, testCase := range testCases {
-	// 	hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
-	// 	expectedHasPermission := testCase.Job.Type == model.JobTypeBlevePostIndexing
-	// 	assert.Equal(t, expectedHasPermission, hasPermission)
-	// 	require.NotNil(t, permissionRequired)
-	// 	assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
-	// }
-
 	role.Permissions = append(role.Permissions, model.PermissionCreateDataRetentionJob.Id)
 	role.Permissions = append(role.Permissions, model.PermissionCreateComplianceExportJob.Id)
 

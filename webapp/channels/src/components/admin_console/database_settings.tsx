@@ -419,7 +419,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                         <div className='help-text'>
                             <FormattedMessage
                                 id='admin.database.search_backend.help_text'
-                                defaultMessage='Shows the currently active backend used for search. Values can be none, database, elasticsearch etc.'
+                                defaultMessage='Shows the currently active backend used for search. Values can be none, database, elasticsearch.'
                             />
                         </div>
                     </div>
