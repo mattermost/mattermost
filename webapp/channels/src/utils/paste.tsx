@@ -137,6 +137,7 @@ type FormatMarkdownLinkMessage = {
  * @returns The resulting markdown link from the clipboard data.
  */
 export function formatMarkdownLinkMessage({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownLinkMessage) {
+    console.log('formatMarkdownLinkMessage');
     const selectedText = message.slice(selectionStart, selectionEnd);
     const clipboardUrl = clipboardData.getData('text/plain');
 
@@ -163,9 +164,21 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
 export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste: boolean, caretPosition?: number) {
     const {clipboardData, target} = event;
 
-    const textboxId = location === Locations.RHS_COMMENT ? 'reply_textbox' : 'post_textbox';
+    // const textboxId = location === Locations.RHS_COMMENT ? 'reply_textbox' : 'post_textbox';
+    let isKnownTarget = false;
+    switch (location) {
+    case Locations.RHS_COMMENT:
+        isKnownTarget = (target as TextboxElement)?.id === 'reply_textbox';
+        break;
+    case Locations.CENTER:
+        isKnownTarget = (target as TextboxElement)?.id === 'post_textbox' || (target as TextboxElement)?.id === 'edit_textbox';
+        break;
+    default:
+        isKnownTarget = (target as TextboxElement)?.id === 'post_textbox';
+        break;
+    }
 
-    if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== textboxId) {
+    if (!clipboardData || !clipboardData.items || !target || !isKnownTarget) {
         return;
     }
 

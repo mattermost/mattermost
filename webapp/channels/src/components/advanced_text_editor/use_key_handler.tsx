@@ -30,6 +30,8 @@ import type {PostDraft} from 'types/store/draft';
 
 const KeyCodes = Constants.KeyCodes;
 
+let a = 1;
+
 const useKeyHandler = (
     draft: PostDraft,
     channelId: string,
@@ -366,17 +368,20 @@ const useKeyHandler = (
         toggleShowPreview,
     ]);
 
+
     // Register paste events
     useEffect(() => {
         function onPaste(event: ClipboardEvent) {
+            console.log({message: draft.message, draft, location});
             pasteHandler(event, location, draft.message, isNonFormattedPaste.current, caretPosition);
         }
 
+        console.log({location});
         document.addEventListener('paste', onPaste);
         return () => {
             document.removeEventListener('paste', onPaste);
         };
-    }, [location, draft.message, caretPosition]);
+    }, [location, draft.message, caretPosition, draft]);
 
     const reactToLastMessage = useCallback((e: KeyboardEvent) => {
         e.preventDefault();
@@ -421,7 +426,7 @@ const useKeyHandler = (
         if (draft.message !== messageHistory[messageHistoryIndex.current]) {
             messageHistoryIndex.current = messageHistory.length;
         }
-    }, [draft.message]);
+    }, [draft.message, messageHistory]);
 
     useEffect(() => {
         messageHistoryIndex.current = messageHistory.length;

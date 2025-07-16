@@ -651,6 +651,8 @@ const AdvancedTextEditor = ({
 
     const messageValue = isDisabled ? '' : draft.message_source || draft.message;
 
+    // console.log({messageValue, draft});
+
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
     let loginSuccessfulLabel;
