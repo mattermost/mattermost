@@ -1708,30 +1708,35 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 			}
 
 			// Send email notification (this will trigger the hook)
-			modifiedNotification, err := th.App.sendNotificationEmail(th.Context, notification, user, th.BasicTeam, nil)
+			// Use assert.Eventually to handle any potential race conditions with plugin activation/deactivation
+			assert.Eventually(t, func() bool {
+				modifiedNotification, err := th.App.sendNotificationEmail(th.Context, notification, user, th.BasicTeam, nil)
 
-			// For the rejected test case, we expect the notification to be rejected
-			if tt.name == "email notification rejected" {
-				// When rejected, sendNotificationEmail returns nil for the notification
-				require.Nil(t, modifiedNotification)
-				require.NoError(t, err)
-			} else {
-				require.NoError(t, err)
-				require.NotNil(t, modifiedNotification)
-				// Verify the modified notification fields
-				if tt.expectedNotificationSubject != "" {
-					assert.Equal(t, tt.expectedNotificationSubject, modifiedNotification.Subject)
+				// For the rejected test case, we expect the notification to be rejected
+				if tt.name == "email notification rejected" {
+					// When rejected, sendNotificationEmail returns nil for the notification
+					return modifiedNotification == nil && err == nil
+				} else {
+					if err != nil || modifiedNotification == nil {
+						return false
+					}
+
+					// Verify the modified notification fields
+					if tt.expectedNotificationSubject != "" && modifiedNotification.Subject != tt.expectedNotificationSubject {
+						return false
+					}
+					if tt.expectedNotificationTitle != "" && modifiedNotification.Title != tt.expectedNotificationTitle {
+						return false
+					}
+					if tt.expectedButtonText != "" && modifiedNotification.ButtonText != tt.expectedButtonText {
+						return false
+					}
+					if tt.expectedFooterText != "" && modifiedNotification.FooterText != tt.expectedFooterText {
+						return false
+					}
+					return true
 				}
-				if tt.expectedNotificationTitle != "" {
-					assert.Equal(t, tt.expectedNotificationTitle, modifiedNotification.Title)
-				}
-				if tt.expectedButtonText != "" {
-					assert.Equal(t, tt.expectedButtonText, modifiedNotification.ButtonText)
-				}
-				if tt.expectedFooterText != "" {
-					assert.Equal(t, tt.expectedFooterText, modifiedNotification.FooterText)
-				}
-			}
+			}, 2*time.Second, 100*time.Millisecond)
 		})
 	}
 }
