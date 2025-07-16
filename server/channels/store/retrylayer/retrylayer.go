@@ -2039,11 +2039,11 @@ func (s *RetryLayerChannelStore) GetMemberCountsByGroup(ctx context.Context, cha
 
 }
 
-func (s *RetryLayerChannelStore) GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error) {
+func (s *RetryLayerChannelStore) GetMemberForPost(postID string, userID string) (*model.ChannelMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMemberForPost(postID, userID, includeArchivedChannels)
+		result, err := s.ChannelStore.GetMemberForPost(postID, userID)
 		if err == nil {
 			return result, nil
 		}
