@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import InteractiveDialog from 'components/interactive_dialog';
+import InteractiveDialog from 'components/interactive_dialog/interactive_dialog';
 
 import InteractiveDialogAdapter from './interactive_dialog_adapter';
 

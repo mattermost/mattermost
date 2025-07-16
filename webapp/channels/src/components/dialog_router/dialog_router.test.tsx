@@ -9,7 +9,7 @@ import DialogRouter from './dialog_router';
 import type {PropsFromRedux} from './index';
 
 // Mock the components
-jest.mock('components/interactive_dialog', () => {
+jest.mock('components/interactive_dialog/interactive_dialog', () => {
     return function MockInteractiveDialog(props: any) {
         return (
             <div data-testid='interactive-dialog'>

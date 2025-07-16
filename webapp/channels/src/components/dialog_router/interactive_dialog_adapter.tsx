@@ -10,8 +10,6 @@ import type {DialogElement, DialogSubmission, SubmitDialogResponse} from '@matte
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import AppsFormContainer from 'components/apps_form/apps_form_container';
-
 import {createCallContext} from 'utils/apps';
 import {
     convertDialogToAppForm,
@@ -337,7 +335,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         );
 
         return (
-            <AppsFormContainer
+            <DynamicAppsFormContainer
                 form={form}
                 context={context}
                 onExited={this.props.onExited || (() => {})}
@@ -352,5 +350,24 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         );
     }
 }
+
+// Dynamic wrapper component for AppsFormContainer to avoid circular dependency
+const DynamicAppsFormContainer: React.FC<any> = (props) => {
+    const [AppsFormContainer, setAppsFormContainer] = React.useState<React.ComponentType<any> | null>(null);
+
+    React.useEffect(() => {
+        const loadComponent = async () => {
+            const {default: Component} = await import('components/apps_form/apps_form_container');
+            setAppsFormContainer(() => Component);
+        };
+        loadComponent();
+    }, []);
+
+    if (!AppsFormContainer) {
+        return null; // Loading state
+    }
+
+    return <AppsFormContainer {...props}/>;
+};
 
 export default injectIntl(InteractiveDialogAdapter);
