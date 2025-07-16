@@ -5011,6 +5011,18 @@
     "translation": "Failed to record channel member history. Failed to update existing join record"
   },
   {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Preview bucket URL is not configured"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Failed to fetch preview modal data"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Failed to parse preview modal data"
+  },
+  {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested starting the Enterprise trial for access to: "
   },
@@ -6453,10 +6465,6 @@
   {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Encountered filesystem error."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",

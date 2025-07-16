@@ -296,7 +296,7 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("getAudits", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetAudits, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadAudits) {
@@ -325,7 +325,7 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("databaseRecycle", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDatabaseRecycle, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	c.App.RecycleDatabaseConnection(c.AppContext)
@@ -340,7 +340,7 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("invalidateCaches", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventInvalidateCaches, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	appErr := c.App.Srv().InvalidateAllCaches()
@@ -356,7 +356,7 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("queryLogs", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventQueryLogs, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
@@ -399,7 +399,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("getLogs", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetLogs, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
@@ -422,7 +422,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("downloadLogs", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDownloadLogs, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
@@ -789,7 +789,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("setServerBusy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventSetServerBusy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "seconds", i)
 
@@ -806,7 +806,7 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("clearServerBusy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventClearServerBusy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	c.App.Srv().Platform().Busy.Clear()
@@ -835,7 +835,7 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("upgradeToEnterprise", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpgradeToEnterprise, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -924,7 +924,7 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func restart(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("restartServer", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRestartServer, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -968,7 +968,7 @@ func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("updateViewedProductNotices", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateViewedProductNotices, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -988,7 +988,7 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func getOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("getOnboarding", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetOnboarding, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -1015,7 +1015,7 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("completeOnboarding", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCompleteOnboarding, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	onboardingRequest, err := model.CompleteOnboardingRequestFromReader(r.Body)
@@ -1042,7 +1042,7 @@ func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("getAppliedSchemaMigrations", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetAppliedSchemaMigrations, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	migrations, appErr := c.App.GetAppliedSchemaMigrations()

@@ -39,6 +39,7 @@ import type {
     ValidBusinessEmail,
     NewsletterRequestBody,
     Installation,
+    PreviewModalContentData,
 } from '@mattermost/types/cloud';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {
@@ -4139,6 +4140,13 @@ export default class Client4 {
     getInstallation = () => {
         return this.doFetch<Installation>(
             `${this.getCloudRoute()}/installation`,
+            {method: 'get'},
+        );
+    };
+
+    getCloudPreviewModalData = () => {
+        return this.doFetch<PreviewModalContentData[]>(
+            `${this.getCloudRoute()}/preview/modal_data`,
             {method: 'get'},
         );
     };
