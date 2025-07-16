@@ -42,7 +42,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	us.Filename = filepath.Base(us.Filename)
 
-	auditRec := c.MakeAuditRecord("createUpload", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateUpload, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "upload", &us)
 
@@ -121,7 +121,7 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("uploadData", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUploadData, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "upload_id", c.Params.UploadId)
 
