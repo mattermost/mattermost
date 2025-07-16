@@ -327,7 +327,7 @@ type Hooks interface {
 	// context fields (ChannelType, IsDirectMessage, etc.) are immutable and changes to them will be ignored.
 	// Only customizable content fields can be modified.
 	//
-	// Minimum server version: 10.8
+	// Minimum server version: 10.12
 	EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotification, string)
 
 	// NotificationWillBePushed is invoked before a push notification is sent to the push
