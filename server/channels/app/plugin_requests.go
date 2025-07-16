@@ -247,7 +247,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 }
 
 // validateCSRFForPluginRequest validates CSRF token for plugin requests
-func validateCSRFForPluginRequest(rctx request.CTX, r *http.Request, session *model.Session, cookieAuth bool, StrictCSRFEnforcement bool) bool {
+func validateCSRFForPluginRequest(rctx request.CTX, r *http.Request, session *model.Session, cookieAuth bool, strictCSRFEnforcement bool) bool {
 	// Skip CSRF check for non-cookie auth or GET requests
 	if !cookieAuth || r.Method == http.MethodGet {
 		return true
@@ -276,7 +276,7 @@ func validateCSRFForPluginRequest(rctx request.CTX, r *http.Request, session *mo
 	// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
 	if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML {
 		csrfErrorMessage := "CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated"
-		if StrictCSRFEnforcement {
+		if strictCSRFEnforcement {
 			rctx.Logger().Warn(csrfErrorMessage, mlog.String("session_id", session.Id))
 			return false
 		}
