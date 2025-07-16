@@ -3,26 +3,34 @@
 
 import React from 'react';
 
-import {interactiveDialogAppsFormEnabled} from 'mattermost-redux/selectors/entities/interactive_dialog';
-
 import InteractiveDialog from 'components/interactive_dialog';
-import type {PropsFromRedux} from 'components/interactive_dialog/index';
 
 import InteractiveDialogAdapter from './interactive_dialog_adapter';
 
-type Props = PropsFromRedux & {
+import type {PropsFromRedux} from './index';
+
+// Make props optional like the original InteractiveDialog, but keep required props
+type OptionalPropsFromRedux = Partial<PropsFromRedux> & Pick<PropsFromRedux, 'emojiMap' | 'isAppsFormEnabled' | 'hasUrl' | 'actions'>;
+
+type Props = OptionalPropsFromRedux & {
     onExited?: () => void;
 };
 
 const DialogRouter: React.FC<Props> = (props) => {
-    const isAppsFormEnabled = interactiveDialogAppsFormEnabled(props as any);
-    const hasUrl = Boolean(props.url);
+    const {isAppsFormEnabled, hasUrl} = props;
 
-    if (isAppsFormEnabled && hasUrl) {
-        return <InteractiveDialogAdapter {...props as any}/>;
+    // URL-less dialog = configuration error
+    if (!hasUrl) {
+        // eslint-disable-next-line no-console
+        console.error('Interactive dialog missing URL - this is a configuration error');
+        return null; // Let calling code show ephemeral error
     }
 
-    return <InteractiveDialog {...props as any}/>;
+    if (isAppsFormEnabled) {
+        return <InteractiveDialogAdapter {...props}/>;
+    }
+
+    return <InteractiveDialog {...props}/>;
 };
 
 export default DialogRouter;

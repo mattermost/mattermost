@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AppFormValues} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
 import {
@@ -42,75 +43,75 @@ describe('dialog_conversion', () => {
 
     describe('validateDialogElement', () => {
         it('should validate required fields', () => {
-            const element: DialogElement = {
+            const element = {
                 name: 'test_field',
                 type: 'text',
                 display_name: 'Test Field',
                 optional: false,
-            };
+            } as DialogElement;
 
-            const errors = validateDialogElement(element, 0);
+            const errors = validateDialogElement(element, 0, {enhanced: false});
             expect(errors).toHaveLength(0);
         });
 
         it('should return error for missing name', () => {
-            const element: DialogElement = {
+            const element = {
                 name: '',
                 type: 'text',
                 display_name: 'Test Field',
                 optional: false,
-            };
+            } as DialogElement;
 
-            const errors = validateDialogElement(element, 0);
+            const errors = validateDialogElement(element, 0, {enhanced: false});
             expect(errors).toHaveLength(1);
             expect(errors[0].field).toBe('elements[0].name');
             expect(errors[0].code).toBe(ValidationErrorCode.REQUIRED);
         });
 
         it('should return error for missing display_name', () => {
-            const element: DialogElement = {
+            const element = {
                 name: 'test_field',
                 type: 'text',
                 display_name: '',
                 optional: false,
-            };
+            } as DialogElement;
 
-            const errors = validateDialogElement(element, 0);
+            const errors = validateDialogElement(element, 0, {enhanced: false});
             expect(errors).toHaveLength(1);
             expect(errors[0].field).toBe('elements[0].display_name');
             expect(errors[0].code).toBe(ValidationErrorCode.REQUIRED);
         });
 
         it('should return error for missing type', () => {
-            const element: DialogElement = {
+            const element = {
                 name: 'test_field',
                 type: '',
                 display_name: 'Test Field',
                 optional: false,
-            };
+            } as DialogElement;
 
-            const errors = validateDialogElement(element, 0);
+            const errors = validateDialogElement(element, 0, {enhanced: false});
             expect(errors).toHaveLength(1);
             expect(errors[0].field).toBe('elements[0].type');
             expect(errors[0].code).toBe(ValidationErrorCode.REQUIRED);
         });
 
         it('should validate field length constraints', () => {
-            const element: DialogElement = {
+            const element = {
                 name: 'a'.repeat(301), // Exceeds 300 char limit
                 type: 'text',
                 display_name: 'b'.repeat(25), // Exceeds 24 char limit
                 optional: false,
-            };
+            } as DialogElement;
 
-            const errors = validateDialogElement(element, 0);
+            const errors = validateDialogElement(element, 0, {enhanced: false});
             expect(errors).toHaveLength(2);
             expect(errors[0].code).toBe(ValidationErrorCode.TOO_LONG);
             expect(errors[1].code).toBe(ValidationErrorCode.TOO_LONG);
         });
 
         it('should validate select field options', () => {
-            const element: DialogElement = {
+            const element = {
                 name: 'test_select',
                 type: 'select',
                 display_name: 'Test Select',
@@ -120,9 +121,9 @@ describe('dialog_conversion', () => {
                     {text: '', value: 'opt2'}, // Missing text
                     {text: 'Option 3', value: ''}, // Missing value
                 ],
-            };
+            } as DialogElement;
 
-            const errors = validateDialogElement(element, 0);
+            const errors = validateDialogElement(element, 0, {enhanced: false});
             expect(errors).toHaveLength(2);
             expect(errors[0].field).toBe('elements[0].options[1].text');
             expect(errors[0].code).toBe(ValidationErrorCode.REQUIRED);
@@ -131,32 +132,32 @@ describe('dialog_conversion', () => {
         });
 
         it('should validate text field constraints', () => {
-            const element: DialogElement = {
+            const element = {
                 name: 'test_text',
                 type: 'text',
                 display_name: 'Test Text',
                 optional: false,
                 min_length: 10,
                 max_length: 5, // Invalid: min > max
-            };
+            } as DialogElement;
 
-            const errors = validateDialogElement(element, 0);
+            const errors = validateDialogElement(element, 0, {enhanced: false});
             expect(errors).toHaveLength(1);
             expect(errors[0].field).toBe('elements[0].min_length');
             expect(errors[0].code).toBe(ValidationErrorCode.INVALID_FORMAT);
         });
 
         it('should validate select field with both options and data_source', () => {
-            const element: DialogElement = {
+            const element = {
                 name: 'test_select',
                 type: 'select',
                 display_name: 'Test Select',
                 optional: false,
                 options: [{text: 'Option 1', value: 'opt1'}],
                 data_source: 'users', // Invalid: can't have both
-            };
+            } as DialogElement;
 
-            const errors = validateDialogElement(element, 0);
+            const errors = validateDialogElement(element, 0, {enhanced: false});
             expect(errors).toHaveLength(1);
             expect(errors[0].field).toBe('elements[0].options');
             expect(errors[0].code).toBe(ValidationErrorCode.INVALID_FORMAT);
@@ -190,9 +191,9 @@ describe('dialog_conversion', () => {
 
     describe('getDefaultValue', () => {
         it('should return null for null/undefined defaults', () => {
-            expect(getDefaultValue({default: null} as DialogElement)).toBeNull();
-            expect(getDefaultValue({default: undefined} as DialogElement)).toBeNull();
-            expect(getDefaultValue({} as DialogElement)).toBeNull();
+            expect(getDefaultValue({default: null} as unknown as DialogElement)).toBeNull();
+            expect(getDefaultValue({default: undefined} as unknown as DialogElement)).toBeNull();
+            expect(getDefaultValue({} as unknown as DialogElement)).toBeNull();
         });
 
         it('should handle boolean defaults', () => {
@@ -202,7 +203,7 @@ describe('dialog_conversion', () => {
             expect(getDefaultValue({type: DialogElementTypes.BOOL, default: 'FALSE'} as DialogElement)).toBe(false);
             expect(getDefaultValue({type: DialogElementTypes.BOOL, default: '1'} as DialogElement)).toBe(true);
             expect(getDefaultValue({type: DialogElementTypes.BOOL, default: 'yes'} as DialogElement)).toBe(true);
-            expect(getDefaultValue({type: DialogElementTypes.BOOL, default: true} as DialogElement)).toBe(true);
+            expect(getDefaultValue({type: DialogElementTypes.BOOL, default: true} as unknown as DialogElement)).toBe(true);
         });
 
         it('should handle text defaults', () => {
@@ -211,14 +212,14 @@ describe('dialog_conversion', () => {
         });
 
         it('should handle select defaults', () => {
-            const element: DialogElement = {
+            const element = {
                 type: 'select',
                 default: 'option1',
                 options: [
                     {text: 'Option 1', value: 'option1'},
                     {text: 'Option 2', value: 'option2'},
                 ],
-            };
+            } as DialogElement;
 
             const result = getDefaultValue(element);
             expect(result).toEqual({
@@ -228,27 +229,27 @@ describe('dialog_conversion', () => {
         });
 
         it('should handle select defaults with missing option', () => {
-            const element: DialogElement = {
+            const element = {
                 type: 'select',
                 default: 'nonexistent',
                 options: [
                     {text: 'Option 1', value: 'option1'},
                 ],
-            };
+            } as DialogElement;
 
             const result = getDefaultValue(element);
             expect(result).toBeNull();
         });
 
         it('should handle radio defaults', () => {
-            const element: DialogElement = {
+            const element = {
                 type: 'radio',
                 default: 'option1',
                 options: [
                     {text: 'Option 1', value: 'option1'},
                     {text: 'Option 2', value: 'option2'},
                 ],
-            };
+            } as DialogElement;
 
             const result = getDefaultValue(element);
             expect(result).toEqual({
@@ -260,13 +261,13 @@ describe('dialog_conversion', () => {
 
     describe('getOptions', () => {
         it('should convert dialog options to app options', () => {
-            const element: DialogElement = {
+            const element = {
                 type: 'select',
                 options: [
                     {text: 'Option 1', value: 'opt1'},
                     {text: 'Option 2', value: 'opt2'},
                 ],
-            };
+            } as DialogElement;
 
             const result = getOptions(element);
             expect(result).toEqual([
@@ -276,30 +277,30 @@ describe('dialog_conversion', () => {
         });
 
         it('should handle undefined options', () => {
-            const element: DialogElement = {
+            const element = {
                 type: 'select',
-            };
+            } as unknown as DialogElement;
 
             expect(getOptions(element)).toBeUndefined();
         });
 
         it('should handle empty options array', () => {
-            const element: DialogElement = {
+            const element = {
                 type: 'select',
                 options: [],
-            };
+            } as unknown as DialogElement;
 
             expect(getOptions(element)).toEqual([]);
         });
 
         it('should handle options with empty text/value', () => {
-            const element: DialogElement = {
+            const element = {
                 type: 'select',
                 options: [
                     {text: '', value: ''},
                     {text: 'Valid', value: 'valid'},
                 ],
-            };
+            } as unknown as DialogElement;
 
             const result = getOptions(element);
             expect(result).toEqual([
@@ -320,7 +321,7 @@ describe('dialog_conversion', () => {
                     type: 'text',
                     display_name: 'Text Field',
                     optional: false,
-                },
+                } as DialogElement,
             ];
 
             const {form, errors} = convertDialogToAppForm(
@@ -337,10 +338,10 @@ describe('dialog_conversion', () => {
             expect(form.title).toBe('Test Dialog');
             expect(form.header).toBe('Test description');
             expect(form.fields).toHaveLength(1);
-            expect(form.fields[0].name).toBe('text_field');
-            expect(form.fields[0].type).toBe('text');
-            expect(form.fields[0].label).toBe('Text Field');
-            expect(form.fields[0].is_required).toBe(true);
+            expect(form.fields?.[0].name).toBe('text_field');
+            expect(form.fields?.[0].type).toBe('text');
+            expect(form.fields?.[0].label).toBe('Text Field');
+            expect(form.fields?.[0].is_required).toBe(true);
         });
 
         it('should sanitize introduction text', () => {
@@ -393,13 +394,13 @@ describe('dialog_conversion', () => {
                     type: 'unknown' as any,
                     display_name: 'Unknown Field',
                     optional: false,
-                },
+                } as DialogElement,
                 {
                     name: 'text_field',
                     type: 'text',
                     display_name: 'Text Field',
                     optional: false,
-                },
+                } as DialogElement,
             ];
 
             const {form, errors} = convertDialogToAppForm(
@@ -414,9 +415,9 @@ describe('dialog_conversion', () => {
             expect(errors).toHaveLength(1);
             expect(errors[0].code).toBe(ValidationErrorCode.INVALID_TYPE);
             expect(form.fields).toHaveLength(2); // Both fields included in legacy mode
-            expect(form.fields[0].name).toBe('unknown_field');
-            expect(form.fields[0].type).toBe('text'); // Converted to text as fallback
-            expect(form.fields[1].name).toBe('text_field');
+            expect(form.fields?.[0].name).toBe('unknown_field');
+            expect(form.fields?.[0].type).toBe('text'); // Converted to text as fallback
+            expect(form.fields?.[1].name).toBe('text_field');
         });
 
         it('should validate in enhanced mode', () => {
@@ -426,8 +427,12 @@ describe('dialog_conversion', () => {
                     type: 'text',
                     display_name: 'Text Field',
                     optional: false,
-                },
+                } as DialogElement,
             ];
+
+            // Suppress console warnings for this test
+            const originalWarn = console.warn;
+            console.warn = jest.fn();
 
             const {form, errors} = convertDialogToAppForm(
                 elements,
@@ -438,10 +443,12 @@ describe('dialog_conversion', () => {
                 enhancedOptions,
             );
 
+            console.warn = originalWarn;
+
             expect(errors).toHaveLength(1);
             expect(errors[0].field).toBe('elements[0].name');
             expect(errors[0].code).toBe(ValidationErrorCode.REQUIRED);
-            expect(form.fields).toHaveLength(0); // No fields in enhanced mode with errors
+            expect(form.fields).toHaveLength(1); // Fields are still included - validation is non-blocking
         });
 
         it('should validate title in enhanced mode', () => {
@@ -467,19 +474,19 @@ describe('dialog_conversion', () => {
                     type: 'text',
                     display_name: 'Text Field',
                     optional: false,
-                },
+                } as DialogElement,
                 {
                     name: 'textarea_field',
                     type: 'textarea',
                     display_name: 'Textarea Field',
                     optional: true,
-                },
+                } as DialogElement,
                 {
                     name: 'bool_field',
                     type: 'bool',
                     display_name: 'Boolean Field',
                     optional: false,
-                },
+                } as DialogElement,
                 {
                     name: 'select_field',
                     type: 'select',
@@ -489,7 +496,7 @@ describe('dialog_conversion', () => {
                         {text: 'Option 1', value: 'opt1'},
                         {text: 'Option 2', value: 'opt2'},
                     ],
-                },
+                } as DialogElement,
                 {
                     name: 'radio_field',
                     type: 'radio',
@@ -499,7 +506,7 @@ describe('dialog_conversion', () => {
                         {text: 'Option A', value: 'optA'},
                         {text: 'Option B', value: 'optB'},
                     ],
-                },
+                } as DialogElement,
             ];
 
             const {form, errors} = convertDialogToAppForm(
@@ -513,12 +520,12 @@ describe('dialog_conversion', () => {
 
             expect(errors).toHaveLength(0);
             expect(form.fields).toHaveLength(5);
-            expect(form.fields[0].type).toBe('text');
-            expect(form.fields[1].type).toBe('text');
-            expect(form.fields[1].subtype).toBe('textarea');
-            expect(form.fields[2].type).toBe('bool');
-            expect(form.fields[3].type).toBe('static_select');
-            expect(form.fields[4].type).toBe('radio');
+            expect(form.fields?.[0].type).toBe('text');
+            expect(form.fields?.[1].type).toBe('text');
+            expect(form.fields?.[1].subtype).toBe('textarea');
+            expect(form.fields?.[2].type).toBe('bool');
+            expect(form.fields?.[3].type).toBe('static_select');
+            expect(form.fields?.[4].type).toBe('radio');
         });
 
         it('should handle unknown field types gracefully in legacy mode', () => {
@@ -528,13 +535,13 @@ describe('dialog_conversion', () => {
                     type: 'unknown_type' as any,
                     display_name: 'Unknown Field',
                     optional: false,
-                },
+                } as DialogElement,
                 {
                     name: 'valid_field',
                     type: 'text',
                     display_name: 'Valid Field',
                     optional: false,
-                },
+                } as DialogElement,
             ];
 
             const {form, errors} = convertDialogToAppForm(
@@ -549,10 +556,10 @@ describe('dialog_conversion', () => {
             expect(errors).toHaveLength(1);
             expect(errors[0].code).toBe(ValidationErrorCode.INVALID_TYPE);
             expect(form.fields).toHaveLength(2); // Both fields included in legacy mode
-            expect(form.fields[0].name).toBe('unknown_field');
-            expect(form.fields[0].type).toBe('text'); // Converted to text as fallback
-            expect(form.fields[0].description).toBe('This field could not be converted properly');
-            expect(form.fields[1].name).toBe('valid_field');
+            expect(form.fields?.[0].name).toBe('unknown_field');
+            expect(form.fields?.[0].type).toBe('text'); // Converted to text as fallback
+            expect(form.fields?.[0].description).toBe('This field could not be converted properly');
+            expect(form.fields?.[1].name).toBe('valid_field');
         });
     });
 
@@ -564,13 +571,13 @@ describe('dialog_conversion', () => {
             const values = {
                 text_field: 'Hello World',
                 bool_field: true,
-                number_field: 42,
+                number_field: '42',
             };
 
             const elements: DialogElement[] = [
-                {name: 'text_field', type: 'text', display_name: 'Text Field', optional: false},
-                {name: 'bool_field', type: 'bool', display_name: 'Bool Field', optional: false},
-                {name: 'number_field', type: 'text', subtype: 'number', display_name: 'Number Field', optional: false},
+                {name: 'text_field', type: 'text', display_name: 'Text Field', optional: false} as DialogElement,
+                {name: 'bool_field', type: 'bool', display_name: 'Bool Field', optional: false} as DialogElement,
+                {name: 'number_field', type: 'text', subtype: 'number', display_name: 'Number Field', optional: false} as DialogElement,
             ];
 
             const {submission, errors} = convertAppFormValuesToDialogSubmission(
@@ -590,7 +597,7 @@ describe('dialog_conversion', () => {
         it('should handle select field values', () => {
             const values = {
                 select_field: {label: 'Option 1', value: 'opt1'},
-            };
+            } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
                 {
@@ -602,7 +609,7 @@ describe('dialog_conversion', () => {
                         {text: 'Option 1', value: 'opt1'},
                         {text: 'Option 2', value: 'opt2'},
                     ],
-                },
+                } as DialogElement,
             ];
 
             const {submission, errors} = convertAppFormValuesToDialogSubmission(
@@ -620,7 +627,7 @@ describe('dialog_conversion', () => {
         it('should handle radio field values', () => {
             const values = {
                 radio_field: 'optA',
-            };
+            } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
                 {
@@ -632,7 +639,7 @@ describe('dialog_conversion', () => {
                         {text: 'Option A', value: 'optA'},
                         {text: 'Option B', value: 'optB'},
                     ],
-                },
+                } as DialogElement,
             ];
 
             const {submission, errors} = convertAppFormValuesToDialogSubmission(
@@ -650,7 +657,7 @@ describe('dialog_conversion', () => {
         it('should handle textarea field values', () => {
             const values = {
                 textarea_field: 'Long text content',
-            };
+            } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
                 {
@@ -658,7 +665,7 @@ describe('dialog_conversion', () => {
                     type: 'textarea',
                     display_name: 'Textarea Field',
                     optional: false,
-                },
+                } as DialogElement,
             ];
 
             const {submission, errors} = convertAppFormValuesToDialogSubmission(
@@ -677,11 +684,11 @@ describe('dialog_conversion', () => {
             const values = {
                 number_field: '123',
                 invalid_number: 'not-a-number',
-            };
+            } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
-                {name: 'number_field', type: 'text', subtype: 'number', display_name: 'Number Field', optional: false},
-                {name: 'invalid_number', type: 'text', subtype: 'number', display_name: 'Invalid Number', optional: false},
+                {name: 'number_field', type: 'text', subtype: 'number', display_name: 'Number Field', optional: false} as DialogElement,
+                {name: 'invalid_number', type: 'text', subtype: 'number', display_name: 'Invalid Number', optional: false} as DialogElement,
             ];
 
             const {submission, errors} = convertAppFormValuesToDialogSubmission(
@@ -701,7 +708,7 @@ describe('dialog_conversion', () => {
             const values = {
                 text_field: 'a', // Too short
                 long_field: 'a'.repeat(200), // Too long
-            };
+            } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
                 {
@@ -710,14 +717,14 @@ describe('dialog_conversion', () => {
                     display_name: 'Text Field',
                     optional: false,
                     min_length: 5,
-                },
+                } as DialogElement,
                 {
                     name: 'long_field',
                     type: 'text',
                     display_name: 'Long Field',
                     optional: false,
                     max_length: 10,
-                },
+                } as DialogElement,
             ];
 
             const {submission, errors} = convertAppFormValuesToDialogSubmission(
@@ -740,12 +747,12 @@ describe('dialog_conversion', () => {
         it('should validate required fields in enhanced mode', () => {
             const values = {
                 present_field: 'value',
-            };
+            } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
-                {name: 'present_field', type: 'text', display_name: 'Present Field', optional: false},
-                {name: 'missing_field', type: 'text', display_name: 'Missing Field', optional: false},
-                {name: 'optional_field', type: 'text', display_name: 'Optional Field', optional: true},
+                {name: 'present_field', type: 'text', display_name: 'Present Field', optional: false} as DialogElement,
+                {name: 'missing_field', type: 'text', display_name: 'Missing Field', optional: false} as DialogElement,
+                {name: 'optional_field', type: 'text', display_name: 'Optional Field', optional: true} as DialogElement,
             ];
 
             const {submission, errors} = convertAppFormValuesToDialogSubmission(
@@ -765,7 +772,7 @@ describe('dialog_conversion', () => {
         it('should validate select field options in enhanced mode', () => {
             const values = {
                 select_field: {label: 'Invalid Option', value: 'invalid'},
-            };
+            } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
                 {
@@ -777,7 +784,7 @@ describe('dialog_conversion', () => {
                         {text: 'Option 1', value: 'opt1'},
                         {text: 'Option 2', value: 'opt2'},
                     ],
-                },
+                } as DialogElement,
             ];
 
             const {submission, errors} = convertAppFormValuesToDialogSubmission(
@@ -797,7 +804,7 @@ describe('dialog_conversion', () => {
         it('should handle missing elements gracefully', () => {
             const values = {
                 text_field: 'Hello World',
-            };
+            } as unknown as AppFormValues;
 
             const {submission, errors} = convertAppFormValuesToDialogSubmission(
                 values,
@@ -813,10 +820,10 @@ describe('dialog_conversion', () => {
             const values = {
                 text_field: 'Hello World',
                 extra_field: 'Extra Value',
-            };
+            } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
-                {name: 'text_field', type: 'text', display_name: 'Text Field', optional: false},
+                {name: 'text_field', type: 'text', display_name: 'Text Field', optional: false} as DialogElement,
             ];
 
             const {submission, errors} = convertAppFormValuesToDialogSubmission(
@@ -836,7 +843,7 @@ describe('dialog_conversion', () => {
         it('should handle select field with non-object value', () => {
             const values = {
                 select_field: 'direct_value',
-            };
+            } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
                 {
@@ -848,7 +855,7 @@ describe('dialog_conversion', () => {
                         {text: 'Option 1', value: 'opt1'},
                         {text: 'Option 2', value: 'opt2'},
                     ],
-                },
+                } as DialogElement,
             ];
 
             const {submission, errors} = convertAppFormValuesToDialogSubmission(

@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MessageDescriptor} from 'react-intl';
-import {defineMessage} from 'react-intl';
-
 import type {AppForm, AppField, AppFormValue, AppSelectOption, AppFormValues} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
@@ -38,8 +35,7 @@ export const enum ValidationErrorCode {
 
 export type ValidationError = {
     field: string;
-    message: MessageDescriptor;
-    values?: Record<string, any>;
+    message: string;
     code: ValidationErrorCode;
 };
 
@@ -65,20 +61,18 @@ export function sanitizeString(input: unknown): string {
 }
 
 /**
- * Validate individual dialog element
+ * Validate individual dialog element (logs warnings but doesn't block)
  */
-export function validateDialogElement(element: DialogElement, index: number): ValidationError[] {
+export function validateDialogElement(element: DialogElement, index: number, options: ConversionOptions): ValidationError[] {
     const errors: ValidationError[] = [];
     const fieldPrefix = `elements[${index}]`;
+    const elementName = element.name || `element_${index}`;
 
     // Required field validation
     if (!element.name?.trim()) {
         errors.push({
             field: `${fieldPrefix}.name`,
-            message: defineMessage({
-                id: 'interactive_dialog.validation.name_required',
-                defaultMessage: 'Element name is required',
-            }),
+            message: `"${elementName}" field is not valid: Name cannot be empty`,
             code: ValidationErrorCode.REQUIRED,
         });
     }
@@ -86,10 +80,7 @@ export function validateDialogElement(element: DialogElement, index: number): Va
     if (!element.display_name?.trim()) {
         errors.push({
             field: `${fieldPrefix}.display_name`,
-            message: defineMessage({
-                id: 'interactive_dialog.validation.display_name_required',
-                defaultMessage: 'Element display_name is required',
-            }),
+            message: `"${elementName}" field is not valid: DisplayName cannot be empty`,
             code: ValidationErrorCode.REQUIRED,
         });
     }
@@ -97,10 +88,7 @@ export function validateDialogElement(element: DialogElement, index: number): Va
     if (!element.type?.trim()) {
         errors.push({
             field: `${fieldPrefix}.type`,
-            message: defineMessage({
-                id: 'interactive_dialog.validation.type_required',
-                defaultMessage: 'Element type is required',
-            }),
+            message: `"${elementName}" field is not valid: Type cannot be empty`,
             code: ValidationErrorCode.REQUIRED,
         });
     }
@@ -109,11 +97,7 @@ export function validateDialogElement(element: DialogElement, index: number): Va
     if (element.name && element.name.length > ELEMENT_NAME_MAX_LENGTH) {
         errors.push({
             field: `${fieldPrefix}.name`,
-            message: defineMessage({
-                id: 'interactive_dialog.validation.name_too_long',
-                defaultMessage: 'Element name too long: {length} > {maxLength} characters',
-            }),
-            values: {length: element.name.length, maxLength: ELEMENT_NAME_MAX_LENGTH},
+            message: `"${elementName}" field is not valid: Name too long (${element.name.length} > ${ELEMENT_NAME_MAX_LENGTH})`,
             code: ValidationErrorCode.TOO_LONG,
         });
     }
@@ -121,11 +105,7 @@ export function validateDialogElement(element: DialogElement, index: number): Va
     if (element.display_name && element.display_name.length > ELEMENT_DISPLAY_NAME_MAX_LENGTH) {
         errors.push({
             field: `${fieldPrefix}.display_name`,
-            message: defineMessage({
-                id: 'interactive_dialog.validation.display_name_too_long',
-                defaultMessage: 'Element display_name too long: {length} > {maxLength} characters',
-            }),
-            values: {length: element.display_name.length, maxLength: ELEMENT_DISPLAY_NAME_MAX_LENGTH},
+            message: `"${elementName}" field is not valid: DisplayName too long (${element.display_name.length} > ${ELEMENT_DISPLAY_NAME_MAX_LENGTH})`,
             code: ValidationErrorCode.TOO_LONG,
         });
     }
@@ -133,42 +113,28 @@ export function validateDialogElement(element: DialogElement, index: number): Va
     if (element.help_text && element.help_text.length > ELEMENT_HELP_TEXT_MAX_LENGTH) {
         errors.push({
             field: `${fieldPrefix}.help_text`,
-            message: defineMessage({
-                id: 'interactive_dialog.validation.help_text_too_long',
-                defaultMessage: 'Element help_text too long: {length} > {maxLength} characters',
-            }),
-            values: {length: element.help_text.length, maxLength: ELEMENT_HELP_TEXT_MAX_LENGTH},
+            message: `"${elementName}" field is not valid: HelpText too long (${element.help_text.length} > ${ELEMENT_HELP_TEXT_MAX_LENGTH})`,
             code: ValidationErrorCode.TOO_LONG,
         });
     }
 
     // Validation for select/radio options
     if ((element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO) && element.options) {
-        const optionType = element.type === DialogElementTypes.RADIO ? 'Radio option' : 'Option';
-
         for (let optIndex = 0; optIndex < element.options.length; optIndex++) {
             const option = element.options[optIndex];
 
             if (!option.text?.trim()) {
                 errors.push({
                     field: `${fieldPrefix}.options[${optIndex}].text`,
-                    message: defineMessage({
-                        id: 'interactive_dialog.validation.option_text_required',
-                        defaultMessage: '{optionType} text is required',
-                    }),
+                    message: `"${elementName}" field is not valid: Option[${optIndex}] text cannot be empty`,
                     code: ValidationErrorCode.REQUIRED,
-                    values: {optionType},
                 });
             }
             if (option.value === null || option.value === undefined || String(option.value).trim() === '') {
                 errors.push({
                     field: `${fieldPrefix}.options[${optIndex}].value`,
-                    message: defineMessage({
-                        id: 'interactive_dialog.validation.option_value_required',
-                        defaultMessage: '{optionType} value is required',
-                    }),
+                    message: `"${elementName}" field is not valid: Option[${optIndex}] value cannot be empty`,
                     code: ValidationErrorCode.REQUIRED,
-                    values: {optionType},
                 });
             }
         }
@@ -180,10 +146,7 @@ export function validateDialogElement(element: DialogElement, index: number): Va
             if (element.min_length > element.max_length) {
                 errors.push({
                     field: `${fieldPrefix}.min_length`,
-                    message: defineMessage({
-                        id: 'interactive_dialog.validation.min_length_invalid',
-                        defaultMessage: 'min_length cannot be greater than max_length',
-                    }),
+                    message: `"${elementName}" field is not valid: MinLength (${element.min_length}) cannot be greater than MaxLength (${element.max_length})`,
                     code: ValidationErrorCode.INVALID_FORMAT,
                 });
             }
@@ -193,11 +156,7 @@ export function validateDialogElement(element: DialogElement, index: number): Va
         if (element.max_length !== undefined && element.max_length > maxLengthLimit) {
             errors.push({
                 field: `${fieldPrefix}.max_length`,
-                message: defineMessage({
-                    id: 'interactive_dialog.validation.max_length_too_large',
-                    defaultMessage: 'max_length too large: {maxLength} > {limit} for {fieldType}',
-                }),
-                values: {maxLength: element.max_length, limit: maxLengthLimit, fieldType: element.type},
+                message: `"${elementName}" field is not valid: MaxLength too large (${element.max_length} > ${maxLengthLimit}) for ${element.type}`,
                 code: ValidationErrorCode.TOO_LONG,
             });
         }
@@ -208,13 +167,17 @@ export function validateDialogElement(element: DialogElement, index: number): Va
         if (element.options && element.data_source) {
             errors.push({
                 field: `${fieldPrefix}.options`,
-                message: defineMessage({
-                    id: 'interactive_dialog.validation.select_invalid_config',
-                    defaultMessage: 'Select element cannot have both options and data_source',
-                }),
+                message: `"${elementName}" field is not valid: Select element cannot have both options and data_source`,
                 code: ValidationErrorCode.INVALID_FORMAT,
             });
         }
+    }
+
+    // Log warnings if enhanced mode is enabled
+    if (options.enhanced && errors.length > 0) {
+        const errorMessages = errors.map((e) => e.message).join(', ');
+        // eslint-disable-next-line no-console
+        console.warn(`Interactive dialog is invalid: ${errorMessages}`);
     }
 
     return errors;
@@ -310,7 +273,7 @@ export function convertElement(element: DialogElement, options: ConversionOption
 
     // Validate element if requested
     if (options.enhanced) {
-        errors.push(...validateDialogElement(element, 0));
+        errors.push(...validateDialogElement(element, 0, options));
     }
 
     const fieldType = getFieldType(element);
@@ -318,11 +281,7 @@ export function convertElement(element: DialogElement, options: ConversionOption
         // Add error for unknown field type
         errors.push({
             field: element.name || 'unnamed',
-            message: defineMessage({
-                id: 'interactive_dialog.validation.unknown_field_type',
-                defaultMessage: 'Unknown field type: {type}',
-            }),
-            values: {type: element.type},
+            message: `"${element.name || 'unnamed'}" field is not valid: Unknown field type: ${element.type}`,
             code: ValidationErrorCode.INVALID_TYPE,
         });
 
@@ -398,10 +357,7 @@ export function convertDialogToAppForm(
     if (options.enhanced && !title?.trim()) {
         allErrors.push({
             field: 'title',
-            message: defineMessage({
-                id: 'interactive_dialog.validation.title_required',
-                defaultMessage: 'Dialog title is required',
-            }),
+            message: 'Dialog title is required',
             code: ValidationErrorCode.REQUIRED,
         });
     }
@@ -412,10 +368,8 @@ export function convertDialogToAppForm(
             const {field, errors} = convertElement(element, options);
             allErrors.push(...errors);
 
-            // In enhanced mode, skip fields with validation errors
-            if (options.enhanced && errors.length > 0) {
-                return;
-            }
+            // Don't skip fields with validation errors - just log them
+            // Validation is non-blocking like the server
 
             // Only add field if conversion was successful
             if (field) {
@@ -425,11 +379,7 @@ export function convertDialogToAppForm(
             if (options.enhanced) {
                 allErrors.push({
                     field: `elements[${index}]`,
-                    message: defineMessage({
-                        id: 'interactive_dialog.validation.conversion_error',
-                        defaultMessage: 'Conversion failed: {error}',
-                    }),
-                    values: {error: error instanceof Error ? error.message : 'Unknown error'},
+                    message: `Conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
                     code: ValidationErrorCode.CONVERSION_ERROR,
                 });
             }
@@ -483,10 +433,7 @@ export function convertAppFormValuesToDialogSubmission(
             if (!element.optional && options.enhanced) {
                 errors.push({
                     field: element.name,
-                    message: defineMessage({
-                        id: 'interactive_dialog.validation.field_required',
-                        defaultMessage: 'Required field has null/undefined value',
-                    }),
+                    message: `"${element.name}" field is not valid: Required field has null/undefined value`,
                     code: ValidationErrorCode.REQUIRED,
                 });
             }
@@ -506,22 +453,14 @@ export function convertAppFormValuesToDialogSubmission(
                     if (element.min_length !== undefined && stringValue.length < element.min_length) {
                         errors.push({
                             field: element.name,
-                            message: defineMessage({
-                                id: 'interactive_dialog.validation.field_too_short',
-                                defaultMessage: 'Field value too short: {length} < {minLength}',
-                            }),
-                            values: {length: stringValue.length, minLength: element.min_length},
+                            message: `"${element.name}" field is not valid: Field value too short (${stringValue.length} < ${element.min_length})`,
                             code: ValidationErrorCode.TOO_SHORT,
                         });
                     }
                     if (element.max_length !== undefined && stringValue.length > element.max_length) {
                         errors.push({
                             field: element.name,
-                            message: defineMessage({
-                                id: 'interactive_dialog.validation.field_too_long',
-                                defaultMessage: 'Field value too long: {length} > {maxLength}',
-                            }),
-                            values: {length: stringValue.length, maxLength: element.max_length},
+                            message: `"${element.name}" field is not valid: Field value too long (${stringValue.length} > ${element.max_length})`,
                             code: ValidationErrorCode.TOO_LONG,
                         });
                     }
@@ -548,11 +487,7 @@ export function convertAppFormValuesToDialogSubmission(
                     if (!validOption) {
                         errors.push({
                             field: element.name,
-                            message: defineMessage({
-                                id: 'interactive_dialog.validation.invalid_option',
-                                defaultMessage: 'Selected value not found in options: {value}',
-                            }),
-                            values: {value: selectOption.value},
+                            message: `"${element.name}" field is not valid: Selected value not found in options: ${selectOption.value}`,
                             code: ValidationErrorCode.INVALID_FORMAT,
                         });
                     }

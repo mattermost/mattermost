@@ -109,7 +109,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         }
 
         if (this.conversionContext.enhanced) {
-            const formattedErrors = errors.map((e) => this.props.intl.formatMessage(e.message, e.values));
+            const formattedErrors = errors.map((e) => e.message);
             const errorMessage = this.props.intl.formatMessage({
                 id: 'interactive_dialog.validation_failed',
                 defaultMessage: 'Dialog validation failed: {errors}',
@@ -122,7 +122,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             errorCount: errors.length,
             errors: errors.map((e) => ({
                 field: e.field,
-                message: this.props.intl.formatMessage(e.message, e.values),
+                message: e.message,
                 code: e.code,
             })),
             note: 'These are warnings - processing will continue for backwards compatibility',
