@@ -53,7 +53,7 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	channelBookmark.ChannelId = c.Params.ChannelId
 
-	auditRec := c.MakeAuditRecord("createChannelBookmark", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateChannelBookmark, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channelBookmark", channelBookmark)
 
@@ -135,7 +135,7 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	patchedBookmark := originalChannelBookmark.Clone()
-	auditRec := c.MakeAuditRecord("updateChannelBookmark", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelBookmark, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channelBookmark", patch)
 
@@ -235,7 +235,7 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateChannelBookmarkSortOrder", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelBookmarkSortOrder, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.ChannelBookmarkId)
 
@@ -320,7 +320,7 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteChannelBookmark", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteChannelBookmark, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.ChannelBookmarkId)
 
