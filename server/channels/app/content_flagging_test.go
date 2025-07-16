@@ -28,7 +28,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 			cfg.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{"reviewer_user_id_1", "reviewer_user_id_2"}
 		})
 
-		status := th.App.GetTeamPostFlaggingFeatureStatus("team1")
+		status := th.App.ContentFlaggingEnabledForTeam("team1")
 		require.True(t, status, "expected team post reporting feature to be enabled for common reviewers")
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -50,7 +50,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 			}
 		})
 
-		status := th.App.GetTeamPostFlaggingFeatureStatus("team1")
+		status := th.App.ContentFlaggingEnabledForTeam("team1")
 		require.True(t, status, "expected team post reporting feature to be disabled for team without reviewers")
 	})
 
@@ -68,7 +68,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 			}
 		})
 
-		status := th.App.GetTeamPostFlaggingFeatureStatus("team1")
+		status := th.App.ContentFlaggingEnabledForTeam("team1")
 		require.True(t, status)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -76,7 +76,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 			cfg.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
 		})
 
-		status = th.App.GetTeamPostFlaggingFeatureStatus("team1")
+		status = th.App.ContentFlaggingEnabledForTeam("team1")
 		require.True(t, status)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -84,7 +84,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 			cfg.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
 		})
 
-		status = th.App.GetTeamPostFlaggingFeatureStatus("team1")
+		status = th.App.ContentFlaggingEnabledForTeam("team1")
 		require.True(t, status)
 	})
 }

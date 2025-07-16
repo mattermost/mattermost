@@ -65,7 +65,7 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 		return
 	}
 
-	enabled := c.App.GetTeamPostFlaggingFeatureStatus(teamID)
+	enabled := c.App.ContentFlaggingEnabledForTeam(teamID)
 
 	payload := map[string]bool{
 		"enabled": enabled,
