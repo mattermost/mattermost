@@ -265,11 +265,19 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             submission: {},
         };
 
-        const result = await this.props.actions.submitInteractiveDialog(cancelSubmission);
+        try {
+            const result = await this.props.actions.submitInteractiveDialog(cancelSubmission);
 
-        if (result?.error) {
+            if (result?.error) {
+                this.logError('Failed to notify server of dialog cancellation', {
+                    error: result.error,
+                    callbackId: this.props.callbackId,
+                    url: this.props.url,
+                });
+            }
+        } catch (error) {
             this.logError('Failed to notify server of dialog cancellation', {
-                error: result.error,
+                error: error instanceof Error ? error.message : String(error),
                 callbackId: this.props.callbackId,
                 url: this.props.url,
             });

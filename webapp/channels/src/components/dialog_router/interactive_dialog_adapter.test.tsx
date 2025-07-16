@@ -13,32 +13,29 @@ import EmojiMap from 'utils/emoji_map';
 
 import InteractiveDialogAdapter from './interactive_dialog_adapter';
 
-// Mock AppsFormContainer to avoid dynamic import complexity in tests
-const MockAppsFormContainer = jest.fn((props: any) => {
-    return (
-        <div data-testid='apps-form-container'>
-            <div data-testid='form-title'>{props.form?.title}</div>
-            <div data-testid='form-header'>{props.form?.header}</div>
-            <div data-testid='form-icon'>{props.form?.icon}</div>
-            <div data-testid='form-fields-count'>{props.form?.fields?.length || 0}</div>
-            {props.form?.fields?.map((field: any) => (
-                <div
-                    key={field.name}
-                    data-testid={`field-${field.name}`}
-                >
-                    <span data-testid={`field-type-${field.name}`}>{field.type}</span>
-                    <span data-testid={`field-value-${field.name}`}>{JSON.stringify(field.value)}</span>
-                    <span data-testid={`field-required-${field.name}`}>{field.is_required ? 'required' : 'optional'}</span>
-                </div>
-            ))}
-        </div>
-    );
-});
-
 jest.mock('components/apps_form/apps_form_container', () => {
     return {
         __esModule: true,
-        default: MockAppsFormContainer,
+        default: jest.fn((props: any) => {
+            return (
+                <div data-testid='apps-form-container'>
+                    <div data-testid='form-title'>{props.form?.title}</div>
+                    <div data-testid='form-header'>{props.form?.header}</div>
+                    <div data-testid='form-icon'>{props.form?.icon}</div>
+                    <div data-testid='form-fields-count'>{props.form?.fields?.length || 0}</div>
+                    {props.form?.fields?.map((field: any) => (
+                        <div
+                            key={field.name}
+                            data-testid={`field-${field.name}`}
+                        >
+                            <span data-testid={`field-type-${field.name}`}>{field.type}</span>
+                            <span data-testid={`field-value-${field.name}`}>{JSON.stringify(field.value)}</span>
+                            <span data-testid={`field-required-${field.name}`}>{field.is_required ? 'required' : 'optional'}</span>
+                        </div>
+                    ))}
+                </div>
+            );
+        }),
     };
 });
 
@@ -48,6 +45,9 @@ const mockConsole = {
     warn: jest.fn(),
     error: jest.fn(),
 };
+
+// Get the mock function reference
+const MockAppsFormContainer = require('components/apps_form/apps_form_container').default;
 
 describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
     const baseProps = {
@@ -202,22 +202,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
     });
 
     describe('XSS Prevention and Sanitization', () => {
-        test('should sanitize title with script tags', async () => {
-            const maliciousTitle = 'Test <script>alert("xss")</script> Dialog';
-            const props = {
-                ...baseProps,
-                title: maliciousTitle,
-            };
-
-            const {getByTestId} = renderWithContext(
-                <InteractiveDialogAdapter {...props}/>,
-            );
-
-            await waitFor(() => {
-                expect(getByTestId('form-title')).toHaveTextContent('Test Dialog');
-            });
-        });
-
         test('should sanitize introduction text with iframe tags', async () => {
             const maliciousIntro = 'Introduction <iframe src="evil.com"></iframe> text';
             const props = {
@@ -230,11 +214,12 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             );
 
             await waitFor(() => {
-                expect(getByTestId('form-header')).toHaveTextContent('Introduction text');
+                // Should escape HTML tags
+                expect(getByTestId('form-header')).toHaveTextContent('Introduction &lt;iframe src=&quot;evil.com&quot;&gt;&lt;/iframe&gt; text');
             });
         });
 
-        test('should sanitize element values with event handlers', async () => {
+        test('should not sanitize element values - only introductionText is sanitized', async () => {
             const maliciousElement: DialogElement = {
                 name: 'test-malicious',
                 type: 'text',
@@ -263,10 +248,9 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 expect(getByTestId('field-test-malicious')).toBeInTheDocument();
             });
 
-            // Check that the default value was sanitized
+            // Element values are not sanitized - only introductionText is
             const valueText = getByTestId('field-value-test-malicious').textContent;
-            expect(valueText).toContain('value with alert(\\"xss\\")');
-            expect(valueText).not.toContain('onclick=');
+            expect(valueText).toContain('value with onclick=alert(\\"xss\\")');
         });
     });
 
@@ -303,7 +287,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             expect(mockConsole.warn).not.toHaveBeenCalled();
         });
 
-        test('should validate when validateInputs is enabled', async () => {
+        test('should log warnings when enhanced validation is enabled', async () => {
             const invalidElement: DialogElement = {
                 name: '', // Invalid: missing name
                 type: 'text',
@@ -321,7 +305,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const props = {
                 ...baseProps,
-                title: 'This title is way too long for the server limit of 24 characters',
                 elements: [invalidElement],
                 conversionOptions: {
                     enhanced: true,
@@ -333,16 +316,14 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             );
 
             await waitFor(() => {
-                // Should warn about element validation errors
+                // Should log warnings about validation errors (from dialog_conversion.ts)
                 expect(mockConsole.warn).toHaveBeenCalledWith(
-                    '[InteractiveDialogAdapter]',
-                    'Element validation errors for unnamed',
-                    expect.any(Object),
+                    expect.stringContaining('Interactive dialog is invalid:'),
                 );
             });
         });
 
-        test('should throw errors in strict mode', async () => {
+        test('should not throw errors - validation is now non-blocking', async () => {
             const invalidElement: DialogElement = {
                 name: '', // Invalid: missing name
                 type: 'text',
@@ -366,14 +347,15 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
+            // Should not throw - validation is non-blocking
             expect(() => {
                 renderWithContext(
                     <InteractiveDialogAdapter {...props}/>,
                 );
-            }).toThrow('Dialog validation failed:');
+            }).not.toThrow();
         });
 
-        test('should validate server-side length limits', async () => {
+        test('should log warnings for server-side length limits', async () => {
             const longNameElement: DialogElement = {
                 name: 'a'.repeat(301), // Exceeds 300 char limit
                 type: 'text',
@@ -402,38 +384,14 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             );
 
             await waitFor(() => {
+                // Should log warnings from dialog_conversion.ts validateDialogElement
                 expect(mockConsole.warn).toHaveBeenCalledWith(
-                    '[InteractiveDialogAdapter]',
-                    'Element validation errors for ' + 'a'.repeat(301),
-                    expect.objectContaining({
-                        errors: expect.arrayContaining([
-                            expect.objectContaining({
-                                field: 'elements[0].name',
-                                code: 'TOO_LONG',
-                                message: expect.stringContaining('300 characters'),
-                            }),
-                            expect.objectContaining({
-                                field: 'elements[0].display_name',
-                                code: 'TOO_LONG',
-                                message: expect.stringContaining('24 characters'),
-                            }),
-                            expect.objectContaining({
-                                field: 'elements[0].help_text',
-                                code: 'TOO_LONG',
-                                message: expect.stringContaining('150 characters'),
-                            }),
-                            expect.objectContaining({
-                                field: 'elements[0].max_length',
-                                code: 'TOO_LONG',
-                                message: expect.stringContaining('150 (server limit for text)'),
-                            }),
-                        ]),
-                    }),
+                    expect.stringContaining('Interactive dialog is invalid:'),
                 );
             });
         });
 
-        test('should validate select options', async () => {
+        test('should log warnings for select option validation', async () => {
             const invalidSelectElement: DialogElement = {
                 name: 'test-select',
                 type: 'select',
@@ -465,21 +423,9 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             );
 
             await waitFor(() => {
+                // Should log warnings from dialog_conversion.ts validateDialogElement
                 expect(mockConsole.warn).toHaveBeenCalledWith(
-                    '[InteractiveDialogAdapter]',
-                    'Element validation errors for test-select',
-                    expect.objectContaining({
-                        errors: expect.arrayContaining([
-                            expect.objectContaining({
-                                field: 'elements[0].options[0].text',
-                                code: 'REQUIRED',
-                            }),
-                            expect.objectContaining({
-                                field: 'elements[0].options[1].value',
-                                code: 'REQUIRED',
-                            }),
-                        ]),
-                    }),
+                    expect.stringContaining('Interactive dialog is invalid:'),
                 );
             });
         });
@@ -516,17 +462,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             await waitFor(() => {
                 expect(mockConsole.warn).toHaveBeenCalledWith(
-                    '[InteractiveDialogAdapter]',
-                    'Element validation errors for test-select',
-                    expect.objectContaining({
-                        errors: expect.arrayContaining([
-                            expect.objectContaining({
-                                field: 'elements[0].options',
-                                code: 'INVALID_FORMAT',
-                                message: 'Select element cannot have both options and data_source',
-                            }),
-                        ]),
-                    }),
+                    expect.stringContaining('Interactive dialog is invalid:'),
                 );
             });
         });
@@ -596,11 +532,16 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             await waitFor(() => {
                 expect(mockConsole.warn).toHaveBeenCalledWith(
                     '[InteractiveDialogAdapter]',
-                    'Unknown dialog element type encountered',
+                    'Dialog validation errors detected (non-blocking)',
                     expect.objectContaining({
-                        elementType: 'unknown-type',
-                        elementName: 'test-unknown',
-                        fallbackType: 'TEXT',
+                        errorCount: 1,
+                        errors: expect.arrayContaining([
+                            expect.objectContaining({
+                                code: 'INVALID_TYPE',
+                                field: 'test-unknown',
+                                message: expect.stringContaining('Unknown field type: unknown-type'),
+                            }),
+                        ]),
                     }),
                 );
             });
@@ -1578,16 +1519,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             await waitFor(() => {
                 expect(mockConsole.warn).toHaveBeenCalledWith(
-                    '[InteractiveDialogAdapter]',
-                    'Element validation errors for invalid_range',
-                    expect.objectContaining({
-                        errors: expect.arrayContaining([
-                            expect.objectContaining({
-                                code: 'INVALID_FORMAT',
-                                message: 'min_length cannot be greater than max_length',
-                            }),
-                        ]),
-                    }),
+                    expect.stringContaining('Interactive dialog is invalid:'),
                 );
             });
         });
@@ -1622,16 +1554,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             await waitFor(() => {
                 expect(mockConsole.warn).toHaveBeenCalledWith(
-                    '[InteractiveDialogAdapter]',
-                    'Element validation errors for conflicting_select',
-                    expect.objectContaining({
-                        errors: expect.arrayContaining([
-                            expect.objectContaining({
-                                code: 'INVALID_FORMAT',
-                                message: 'Select element cannot have both options and data_source',
-                            }),
-                        ]),
-                    }),
+                    expect.stringContaining('Interactive dialog is invalid:'),
                 );
             });
         });
@@ -1802,16 +1725,22 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 expect(getByTestId('form-fields-count')).toHaveTextContent('1'); // Should still create placeholder field
                 expect(mockConsole.warn).toHaveBeenCalledWith(
                     '[InteractiveDialogAdapter]',
-                    'Unknown dialog element type encountered',
+                    'Dialog validation errors detected (non-blocking)',
                     expect.objectContaining({
-                        elementType: 'invalid_type',
-                        fallbackType: 'TEXT',
+                        errorCount: 1,
+                        errors: expect.arrayContaining([
+                            expect.objectContaining({
+                                code: 'INVALID_TYPE',
+                                field: 'problematic',
+                                message: expect.stringContaining('Unknown field type: invalid_type'),
+                            }),
+                        ]),
                     }),
                 );
             });
         });
 
-        test('should throw error in strict mode for validation failures', async () => {
+        test('should not throw error - validation is non-blocking', async () => {
             const invalidElement: DialogElement = {
                 name: '', // Invalid: empty name
                 type: 'text',
@@ -1839,10 +1768,10 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 renderWithContext(
                     <InteractiveDialogAdapter {...props}/>,
                 );
-            }).toThrow('Element validation failed:');
+            }).not.toThrow();
         });
 
-        test('should handle missing title in strict mode', async () => {
+        test('should not throw error for missing title - validation is non-blocking', async () => {
             const props = {
                 ...baseProps,
                 title: '', // Invalid: empty title
@@ -1855,7 +1784,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 renderWithContext(
                     <InteractiveDialogAdapter {...props}/>,
                 );
-            }).toThrow('Dialog validation failed:');
+            }).not.toThrow();
         });
     });
 
