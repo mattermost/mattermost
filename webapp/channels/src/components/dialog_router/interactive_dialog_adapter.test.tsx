@@ -168,7 +168,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             expect(valueText).toContain('Option 2');
             expect(valueText).toContain('option2');
         });
-
     });
 
     describe('XSS Prevention and Sanitization', () => {
@@ -399,6 +398,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const props = {
                 ...baseProps,
                 elements: [invalidSelectElement],
+
                 // Default mode (enhanced: false)
             };
 
@@ -436,6 +436,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const props = {
                 ...baseProps,
                 elements: [conflictingSelectElement],
+
                 // Default mode (enhanced: false)
             };
 
@@ -454,7 +455,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
     });
 
     describe('Enhanced Logging', () => {
-
         test('should handle unknown element types with fallback behavior', async () => {
             const unknownElement: DialogElement = {
                 name: 'test-unknown',
@@ -474,6 +474,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const props = {
                 ...baseProps,
                 elements: [unknownElement],
+
                 // Default mode (enhanced: false)
             };
 
@@ -612,7 +613,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 expect(getByTestId('field-value-test-empty-default')).toHaveTextContent('""');
             });
         });
-
 
         test('should handle missing default values in select options gracefully', async () => {
             const selectElement: DialogElement = {
@@ -1359,6 +1359,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const props = {
                 ...baseProps,
                 elements: [elementWithInvalidRange],
+
                 // Default mode (enhanced: false)
             };
 
@@ -1394,6 +1395,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const props = {
                 ...baseProps,
                 elements: [conflictingSelectElement],
+
                 // Default mode (enhanced: false)
             };
 
@@ -1635,9 +1637,5 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 expect.any(String),
             );
         });
-
-    });
-
-    describe('Submit Label Support', () => {
     });
 });
