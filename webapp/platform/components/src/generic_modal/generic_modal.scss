@@ -39,7 +39,6 @@
     }
 
     .modal-body {
-        max-height: 100%;
         padding: 0;
 
         &.divider {
@@ -111,6 +110,8 @@
 
     &.GenericModal__compassDesign {
         .modal-content {
+            max-height: 90vh;
+
             .modal-body {
                 .GenericModal__body {
                     padding: 0;
@@ -150,13 +151,13 @@
                 }
             }
         }
+    }
 
-        @media screen and (max-width: 640px) {
-            margin: 0 !important;
+    @media screen and (max-width: 640px) {
+        margin: 0 !important;
 
-            .modal-header {
-                box-shadow: var(--elevation-2);
-            }
+        .modal-header {
+            box-shadow: var(--elevation-2);
         }
     }
 

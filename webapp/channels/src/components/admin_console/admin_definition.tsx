@@ -29,6 +29,9 @@ import {
 } from 'actions/admin_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
+import ContentFlaggingAdditionalSettingsSection from 'components/admin_console/content_flagging/additional_settings/additional_settings';
+import ContentFlaggingContentReviewers from 'components/admin_console/content_flagging/content_reviewers/content_reviewers';
+import ContentFlaggingNotificationSettingsSection from 'components/admin_console/content_flagging/notificatin_settings/notification_settings';
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
 import PluginManagement from 'components/admin_console/plugin_management';
@@ -83,6 +86,7 @@ import {
     SystemRolesFeatureDiscovery,
 } from './feature_discovery/features';
 import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/features/attribute_based_access_control';
+import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
@@ -584,10 +588,7 @@ const AdminDefinition: AdminDefinitionType = {
             />
         ),
         sectionTitle: defineMessage({id: 'admin.sidebar.systemAttributes', defaultMessage: 'System Attributes'}),
-        isHidden: it.not(it.all(
-            it.minLicenseTier(LicenseSkus.Enterprise),
-            it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-        )),
+        isHidden: it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.USER_MANAGEMENT)),
         subsections: {
             system_properties: {
                 url: 'system_attributes/user_attributes',
@@ -601,6 +602,29 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'SystemProperties',
                     component: SystemProperties,
                 },
+            },
+            user_attributes_feature_discovery: {
+                url: 'system_attributes/user_attributes',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.not(it.enterpriseReady),
+                    it.configIsFalse('FeatureFlags', 'CustomProfileAttributes'),
+                ),
+                schema: {
+                    id: 'SystemProperties',
+                    name: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: UserAttributesFeatureDiscovery,
+                            key: 'UserAttributesFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
             access_control_policy_details_edit: {
                 url: `system_attributes/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
@@ -2130,6 +2154,33 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.mobileSecurity.jailbreakTitle', defaultMessage: 'Enable Jailbreak/Root Protection:'}),
                             help_text: defineMessage({id: 'admin.mobileSecurity.jailbreakDescription', defaultMessage: 'Prevents access to the app on devices detected as jailbroken or rooted. If a device fails the security check, users will be denied access or prompted to switch to a compliant server.'}),
                         },
+                        {
+                            type: 'bool',
+                            key: 'NativeAppSettings.MobileEnableSecureFilePreview',
+                            label: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewTitle', defaultMessage: 'Enable Secure File Preview Mode:'}),
+                            help_text: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewDescription', defaultMessage: 'Prevents file downloads, previews, and sharing for most file types, even if {mobileAllowDownloads} is enabled. Allows in-app previews for PDFs, videos, and images only. Files are stored temporarily in the app’s cache and cannot be exported or shared.'}),
+                            help_text_values: {
+                                mobileAllowDownloads: (
+                                    <a href='../site_config/file_sharing_downloads'>
+                                        <b>
+                                            <FormattedMessage
+                                                id='admin.mobileSecurity.mobileAllowDownloads'
+                                                defaultMessage='Site Configuration > File Sharing and Downloads > Allow File Downloads on Mobile'
+                                            />
+                                        </b>
+                                    </a>
+                                ),
+                            },
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'NativeAppSettings.MobileAllowPdfLinkNavigation',
+                            label: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationTitle', defaultMessage: 'Allow Link Navigation in Secure PDFs:'}),
+                            help_text: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationDescription', defaultMessage: 'Enables tapping links inside PDFs when Secure File Preview Mode is active. Links will open in the device browser or supported app. Has no effect when Secure File Preview Mode is disabled.'}),
+                            isDisabled: it.stateIsFalse('NativeAppSettings.MobileEnableSecureFilePreview'),
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                        },
                     ],
                 },
             },
@@ -3214,6 +3265,43 @@ const AdminDefinition: AdminDefinitionType = {
 
                                 return new ValidationResult(true, '');
                             },
+                        },
+                    ],
+                },
+            },
+            content_flagging: {
+                url: 'site_config/content_flagging',
+                title: defineMessage({id: 'admin.sidebar.contentFlagging', defaultMessage: 'Content Flagging'}),
+                isHidden: it.any(
+                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'ContentFlagging'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+                schema: {
+                    id: 'ContentFlaggingSettings',
+                    name: defineMessage({id: 'admin.contentFlagging.title', defaultMessage: 'Content Flagging'}),
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'ContentFlaggingSettings.EnableContentFlagging',
+                            label: defineMessage({id: 'admin.contentFlagging.enableTitle', defaultMessage: 'Enable Content Flagging'}),
+                        },
+                        {
+                            type: 'custom',
+                            key: 'ContentFlaggingSettings.ReviewerSettings',
+                            component: ContentFlaggingContentReviewers,
+                        },
+                        {
+                            type: 'custom',
+                            key: 'ContentFlaggingSettings.NotificationSettings',
+                            component: ContentFlaggingNotificationSettingsSection,
+                        },
+                        {
+                            type: 'custom',
+                            key: 'ContentFlaggingSettings.AdditionalSettings',
+                            component: ContentFlaggingAdditionalSettingsSection,
                         },
                     ],
                 },
@@ -5401,7 +5489,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: `compliance/data_retention_settings/custom_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
-                    it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 schema: {
@@ -5414,7 +5502,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'compliance/data_retention_settings/custom_policy',
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
-                    it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 schema: {
@@ -5582,6 +5670,149 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.COMPLIANCE.COMPLIANCE_MONITORING)),
                                 it.stateIsFalse('ComplianceSettings.Enable'),
                             ),
+                        },
+                    ],
+                },
+            },
+            audit_logging: {
+                url: 'compliance/audit_logging',
+                title: defineMessage({id: 'admin.sidebar.audit_logging_experimental', defaultMessage: 'Audit Logging'}),
+                isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                    it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI'),
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                ),
+                schema: {
+                    id: 'ExperimentalAuditSettings',
+                    name: 'Audit logging (Beta)',
+                    settings: [
+                        {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.rate.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
+                            banner_type: 'info',
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalAuditSettings.FileEnabled',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.title', defaultMessage: 'File Enabled'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.help_text', defaultMessage: 'Choose whether audit logs are written locally to a file or not.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'text',
+                            key: 'ExperimentalAuditSettings.FileName',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_name.title', defaultMessage: 'File Name'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_name.help_text', defaultMessage: 'The name of the file to write to.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalAuditSettings.FileMaxSizeMB',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.title', defaultMessage: 'Max File Size (MB)'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.help_text', defaultMessage: 'Maximum size, in megabytes (MB), the log file can grow before it gets rotated.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalAuditSettings.FileMaxAgeDays',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.title', defaultMessage: 'Max File Age (Days)'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.help_text', defaultMessage: 'Maximum number of days to retain old log files. 0 disables the removal of old log files.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalAuditSettings.FileMaxBackups',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.title', defaultMessage: 'Maximum File Backups'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.help_text', defaultMessage: 'Maximum number of old log files to retain. 0 retains all old log files. Note: Configuring Max File Age can result in old log files being deleted regardless of this configuration value.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalAuditSettings.FileCompress',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_compress.title', defaultMessage: 'File Compression'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_compress.help_text', defaultMessage: 'Choose whether enable or disable file compression.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalAuditSettings.FileMaxQueueSize',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.title', defaultMessage: 'Maximum File Queue'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.help_text', defaultMessage: 'The maximum number of files to be retained in the queue.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'longtext',
+                            key: 'ExperimentalAuditSettings.AdvancedLoggingJSON',
+                            label: defineMessage({id: 'admin.log.AdvancedLoggingJSONTitle', defaultMessage: 'Advanced Logging:'}),
+                            help_text: defineMessage({id: 'admin.log.AdvancedLoggingJSONDescription', defaultMessage: 'The JSON configuration for Advanced Audit Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.'}),
+                            help_text_markdown: false,
+                            help_text_values: {
+                                link: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console.experimental_audit_settings'
+                                        href={DocLinks.ADVANCED_LOGGING}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            placeholder: defineMessage({id: 'admin.log.AdvancedLoggingJSONPlaceholder', defaultMessage: 'Enter your JSON configuration'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            validate: (value) => {
+                                const valid = new ValidationResult(true, '');
+                                if (!value) {
+                                    return valid;
+                                }
+                                try {
+                                    JSON.parse(value);
+                                    return valid;
+                                } catch (error) {
+                                    return new ValidationResult(false, error.message);
+                                }
+                            },
+                            onConfigLoad: (configVal) => JSON.stringify(configVal, null, '  '),
+                            onConfigSave: (displayVal) => {
+                                // Handle case where field is empty
+                                if (!displayVal) {
+                                    return {undefined};
+                                }
+
+                                return JSON.parse(displayVal);
+                            },
+                        },
+                        {
+                            type: 'custom',
+                            component: AuditLoggingCertificateUploadSetting,
+                            label: defineMessage({id: 'admin.audit_logging_experimental.certificate.title', defaultMessage: 'Certificate'}),
+                            key: 'ExperimentalAuditSettings.Certificate',
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.help_text', defaultMessage: 'The certificate file used for audit logging encryption.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isHidden: it.not(it.licensedForFeature('Cloud')),
                         },
                     ],
                 },
@@ -6057,126 +6288,6 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'BleveSettings',
                     component: BleveSettings,
-                },
-            },
-            audit_logging: {
-                url: 'experimental/audit_logging',
-                title: defineMessage({id: 'admin.sidebar.audit_logging_experimental', defaultMessage: 'Audit Logging'}),
-                isHidden: it.any(
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                    it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI'),
-                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                ),
-                schema: {
-                    id: 'ExperimentalAuditSettings',
-                    name: 'Audit Log Settings (Experimental)',
-                    settings: [
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalAuditSettings.FileEnabled',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.title', defaultMessage: 'File Enabled'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.help_text', defaultMessage: 'Choose whether audit logs are written locally to a file or not.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'text',
-                            key: 'ExperimentalAuditSettings.FileName',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_name.title', defaultMessage: 'File Name'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_name.help_text', defaultMessage: 'The name of the file to write to. NOTE: If ExperimentalAuditSettings.FileEnabled is set to TRUE, this field is required.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ExperimentalAuditSettings.FileMaxSizeMB',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.title', defaultMessage: 'Max File Size (MB)'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.help_text', defaultMessage: 'The maximum size of a single exported file, in MB.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ExperimentalAuditSettings.FileMaxAgeDays',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.title', defaultMessage: 'Max File Age (Days)'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.help_text', defaultMessage: 'The maximum age of an exported file, in days.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ExperimentalAuditSettings.FileMaxBackups',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.title', defaultMessage: 'Maximum File Backups'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.help_text', defaultMessage: 'The maximum number of backup files to retain'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalAuditSettings.FileCompress',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_compress.title', defaultMessage: 'File Compression'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_compress.help_text', defaultMessage: 'Choose whether enable or disable file compression.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ExperimentalAuditSettings.FileMaxQueueSize',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.title', defaultMessage: 'Maximum File Queue'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.help_text', defaultMessage: 'The maximum number of files to be retained in the queue.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'longtext',
-                            key: 'ExperimentalAuditSettings.AdvancedLoggingJSON',
-                            label: defineMessage({id: 'admin.log.AdvancedLoggingJSONTitle', defaultMessage: 'Advanced Logging:'}),
-                            help_text: defineMessage({id: 'admin.log.AdvancedLoggingJSONDescription', defaultMessage: 'The JSON configuration for Advanced Audit Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.'}),
-                            help_text_markdown: false,
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console.experimental_audit_settings'
-                                        href={DocLinks.ADVANCED_LOGGING}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            placeholder: defineMessage({id: 'admin.log.AdvancedLoggingJSONPlaceholder', defaultMessage: 'Enter your JSON configuration'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            validate: (value) => {
-                                const valid = new ValidationResult(true, '');
-                                if (!value) {
-                                    return valid;
-                                }
-                                try {
-                                    JSON.parse(value);
-                                    return valid;
-                                } catch (error) {
-                                    return new ValidationResult(false, error.message);
-                                }
-                            },
-                            onConfigLoad: (configVal) => JSON.stringify(configVal, null, '  '),
-                            onConfigSave: (displayVal) => {
-                                // Handle case where field is empty
-                                if (!displayVal) {
-                                    return {undefined};
-                                }
-
-                                return JSON.parse(displayVal);
-                            },
-                        },
-                        {
-                            type: 'custom',
-                            component: AuditLoggingCertificateUploadSetting,
-                            label: defineMessage({id: 'admin.audit_logging_experimental.certificate.title', defaultMessage: 'Certificate'}),
-                            key: 'ExperimentalAuditSettings.Certificate',
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.help_text', defaultMessage: 'The certificate file used for audit logging encryption.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.not(it.licensedForFeature('Cloud')),
-                        },
-                    ],
                 },
             },
         },

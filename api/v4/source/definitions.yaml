@@ -3956,6 +3956,37 @@ components:
         state:
           description: The current state of the installation
           type: string
+    MessageDescriptor:
+      type: object
+      properties:
+        id:
+          description: The i18n message ID
+          type: string
+        defaultMessage:
+          description: The default message text
+          type: string
+        values:
+          description: Optional values for message interpolation
+          type: object
+          additionalProperties: true
+    PreviewModalContentData:
+      type: object
+      properties:
+        skuLabel:
+          $ref: "#/components/schemas/MessageDescriptor"
+        title:
+          $ref: "#/components/schemas/MessageDescriptor"
+        subtitle:
+          $ref: "#/components/schemas/MessageDescriptor"
+        videoUrl:
+          description: URL of the video content
+          type: string
+        videoPoster:
+          description: URL of the video poster/thumbnail image
+          type: string
+        useCase:
+          description: The use case category for this content
+          type: string
     ServerLimits:
       type: object
       properties:
@@ -4233,6 +4264,18 @@ components:
         value_type:
           type: string
           description: The value type.
+    ChannelBanner:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: enabled indicates whether the channel banner is enabled or not
+        text:
+          type: string
+          description: text is the actual text that renders in the channel banner. Markdown is supported.
+        background_color:
+          type: string
+          description: background_color is the HEX color code for the banner's backgroubd
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'
