@@ -30,7 +30,7 @@ func (ps *PropertyService) CountActivePropertyFieldsForGroup(groupID string) (in
 }
 
 func (ps *PropertyService) CountAllPropertyFieldsForGroup(groupID string) (int64, error) {
-	return ps.fieldStore.CountForGroup(groupID, false)
+	return ps.fieldStore.CountForGroup(groupID, true)
 }
 
 func (ps *PropertyService) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
