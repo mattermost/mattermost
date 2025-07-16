@@ -114,7 +114,10 @@ export default class SearchSuggestionList extends SuggestionList {
                 className='search-help-popover autocomplete visible'
                 placement='bottom'
             >
-                <div ref={this.itemsContainerRef}>
+                <div
+                    ref={this.itemsContainerRef}
+                    role='listbox'
+                >
                     {items}
                 </div>
             </Popover>

@@ -642,6 +642,19 @@ export function getUserByEmail(email: string) {
     });
 }
 
+export function canUserDirectMessage(userId: string, otherUserId: string): ActionFuncAsync<{can_dm: boolean}> {
+    return async (dispatch, getState) => {
+        try {
+            const result = await Client4.canUserDirectMessage(userId, otherUserId);
+            return {data: result};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
 export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncAsync<UserStatus[]> {
     return async (dispatch, getState) => {
         if (!userIds || userIds.length === 0) {
