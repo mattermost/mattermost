@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-
 import {Constants} from 'utils/constants';
 
+import {SuggestionListContents, UngroupedSuggestions} from './suggestion_list_structure';
 import type {SuggestionResults} from './suggestion_results';
 import {countResults, hasResults} from './suggestion_results';
 
@@ -16,7 +14,7 @@ export interface Props {
     inputRef?: React.RefObject<HTMLDivElement>;
     open: boolean;
     position?: 'top' | 'bottom';
-    renderDividers?: string[];
+    renderDividers?: string[]; // TODO remove divider logic
     renderNoResults?: boolean;
     onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
     preventClose?: () => void;
@@ -41,9 +39,9 @@ export default class SuggestionList extends React.PureComponent<Props> {
         renderDividers: [],
         renderNoResults: false,
     };
-    contentRef: React.RefObject<HTMLUListElement>;
+    contentRef: React.RefObject<HTMLElement>;
     wrapperRef: React.RefObject<HTMLDivElement>;
-    itemRefs: Map<string, HTMLElement>;
+    itemRefs: Map<string, HTMLElement | null>;
     maxHeight: number;
 
     constructor(props: Props) {
@@ -172,7 +170,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             <ul
                 key='list-no-results'
                 className='suggestion-list__no-results'
-                ref={this.contentRef}
+                ref={this.contentRef as React.RefObject<HTMLUListElement>}
             >
                 <FormattedMessage
                     id='suggestionList.noMatches'
@@ -187,96 +185,69 @@ export default class SuggestionList extends React.PureComponent<Props> {
     }
 
     render() {
-        const {renderDividers} = this.props;
-
         if (!this.props.open || this.props.cleared) {
             return null;
         }
 
-        const clonedItems = cloneDeep(this.props.results.items);
-
-        const items = [];
-        if (clonedItems.length === 0) {
-            if (!this.props.renderNoResults) {
-                return null;
-            }
-            items.push(this.renderNoResults());
-        }
-
-        if (this.props.results) {
-            let prevItemType = null;
-            for (let i = 0; i < this.props.results.items.length; i++) {
-                const item = this.props.results.items[i];
-                const term = this.props.results.terms[i];
-                const isSelection = term === this.props.selection;
-
-                // ReactComponent names need to be upper case when used in JSX
-                const Component = this.props.results.components[i];
-                if ((renderDividers?.includes('all') || renderDividers?.includes(item.type)) && prevItemType !== item.type) {
-                    items.push(this.renderDivider(item.type));
-                    prevItemType = item.type;
-                }
-
-                if (item.loading) {
-                    items.push(<LoadingSpinner key={item.type}/>);
-                    continue;
-                }
-
-                items.push(
-                    <Component
-                        key={term}
-                        ref={(ref: any) => this.itemRefs.set(term, ref)}
-                        id={`suggestionList_item_${term}`}
-                        item={this.props.results.items[i]}
-                        term={term}
-                        matchedPretext={this.props.results.matchedPretext}
-                        isSelection={isSelection}
-                        onClick={this.props.onCompleteWord}
-                        onMouseMove={this.props.onItemHover}
-                    />,
-                );
-            }
-        }
-
         const mainClass = 'suggestion-list suggestion-list--' + this.props.position;
         const contentClass = 'suggestion-list__content suggestion-list__content--' + this.props.position;
+        const contentStyle = {
+            maxHeight: this.maxHeight,
+            ...this.getTransform(),
+        };
+
+        let contents;
+        if (hasResults(this.props.results)) {
+            contents = (
+                <SuggestionListContents
+                    ref={this.contentRef}
+                    id='suggestionList'
+                    data-testid='suggestionList'
+                    className={contentClass}
+                    style={contentStyle}
+
+                    results={this.props.results}
+                    selectedTerm={this.props.selection}
+
+                    getItemId={(term) => `suggestionList_item_${term}`}
+                    setItemRef={(term, ref) => {
+                        this.itemRefs.set(term, ref);
+                    }}
+                    onItemClick={this.props.onCompleteWord}
+                    onItemHover={this.props.onItemHover}
+                    onMouseDown={this.props.preventClose}
+                />
+            );
+        } else if (this.props.renderNoResults) {
+            contents = (
+                <UngroupedSuggestions
+                    id='suggestionList'
+                    data-testid='suggestionList'
+                    className={contentClass}
+                    style={contentStyle}
+
+                    onMouseDown={this.props.preventClose}
+                >
+                    {this.renderNoResults()}
+                </UngroupedSuggestions>
+            );
+        }
+
+        if (!contents) {
+            return null;
+        }
 
         return (
             <div
                 ref={this.wrapperRef}
                 className={mainClass}
             >
-                <SuggestionListList
-                    id='suggestionList'
-                    data-testid='suggestionList'
-                    role='listbox'
-                    ref={this.contentRef}
-                    style={{
-                        maxHeight: this.maxHeight,
-                        ...this.getTransform(),
-                    }}
-                    className={contentClass}
-                    onMouseDown={this.props.preventClose}
-                >
-                    {items}
-                </SuggestionListList>
+                {contents}
                 <SuggestionListStatus results={this.props.results}/>
             </div>
         );
     }
 }
-
-const SuggestionListList = React.forwardRef<HTMLUListElement, React.HTMLAttributes<HTMLUListElement>>((props, ref) => {
-    const {formatMessage} = useIntl();
-
-    return (
-        <ul
-            ref={ref}
-            aria-label={formatMessage({id: 'suggestionList.label', defaultMessage: 'Suggestions'})}
-            {...props}
-        />
-    );
-});
 
 export function SuggestionListStatus({results}: Pick<Props, 'results'>) {
     const {formatMessage} = useIntl();
