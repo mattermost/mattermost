@@ -2,16 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {defineMessage} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
 
-export type PreviewModalContentData = {
-    skuLabel: MessageDescriptor;
-    title: MessageDescriptor;
-    subtitle: MessageDescriptor;
-    videoUrl: string;
-    videoPoster?: string;
-    useCase: string;
-};
+import type {PreviewModalContentData} from '@mattermost/types/cloud';
+
+export type {PreviewModalContentData};
 
 export const modalContent: PreviewModalContentData[] = [
     {
