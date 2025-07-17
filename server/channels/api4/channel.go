@@ -840,7 +840,7 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.IncludePolicyID = true
 	}
 
-	channels, err := c.App.GetAllChannels(c.AppContext, c.Params.Page, c.Params.PerPage, opts)
+	channels, err := c.App.GetAllChannels(c.App.Srv().Store().Channel(), c.AppContext, c.Params.Page, c.Params.PerPage, opts)
 	if err != nil {
 		c.Err = err
 		return

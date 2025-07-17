@@ -17,15 +17,28 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
-const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
-const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
-const CustomGroupAdminRoleCreationMigrationKey = "CustomGroupAdminRoleCreationMigrationComplete"
-const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
-const PlaybookRolesCreationMigrationKey = "PlaybookRolesCreationMigrationComplete"
-const FirstAdminSetupCompleteKey = model.SystemFirstAdminSetupComplete
-const remainingSchemaMigrationsKey = "RemainingSchemaMigrations"
-const postPriorityConfigDefaultTrueMigrationKey = "PostPriorityConfigDefaultTrueMigrationComplete"
+const (
+	EmojisPermissionsMigrationKey                  = "EmojisPermissionsMigrationComplete"
+	GuestRolesCreationMigrationKey                 = "GuestRolesCreationMigrationComplete"
+	SystemConsoleRolesCreationMigrationKey         = "SystemConsoleRolesCreationMigrationComplete"
+	CustomGroupAdminRoleCreationMigrationKey       = "CustomGroupAdminRoleCreationMigrationComplete"
+	ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
+	PlaybookRolesCreationMigrationKey              = "PlaybookRolesCreationMigrationComplete"
+	FirstAdminSetupCompleteKey                     = model.SystemFirstAdminSetupComplete
+	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
+	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
+	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
+
+	contentFlaggingPropertyNameStatus           = "status"
+	contentFlaggingPropertyNameReportingUserID  = "reporting_user_id"
+	contentFlaggingPropertyNameReportingReason  = "reporting_reason"
+	contentFlaggingPropertyNameReportingComment = "reporting_comment"
+	contentFlaggingPropertyNameReportingTime    = "reporting_time"
+	contentFlaggingPropertyNameReviewerUserID   = "reviewer_user_id"
+	contentFlaggingPropertyNameActorUserID      = "actor_user_id"
+	contentFlaggingPropertyNameActorComment     = "actor_comment"
+	contentFlaggingPropertyNameActionTime       = "action_time"
+)
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() error {
@@ -582,6 +595,86 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 	return nil
 }
 
+func (s *Server) doSetupContentFlaggingProperties() error {
+	// RegisterPropertyGroup is idempotent, so it can be called multiple times without issues.
+	// We need to call this on each server startup even if the migration has already been run,
+	// because we need to fetch and store the group ID for later uses when operate on content flagging properties.
+	// If we don't do it here
+	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to register Content Flagging group: %w", err)
+	}
+
+	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
+	if _, err := s.Store().System().GetByName(contentFlaggingSetupDoneKey); err == nil {
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	// register status property
+	properties := []*model.PropertyField{
+		{
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameStatus,
+			Type:    model.PropertyFieldTypeText,
+		},
+		{
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameReportingUserID,
+			Type:    model.PropertyFieldTypeUser,
+		},
+		{
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameReportingReason,
+			Type:    model.PropertyFieldTypeText,
+		},
+		{
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameReportingComment,
+			Type:    model.PropertyFieldTypeText,
+		},
+		{
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameReportingTime,
+			Type:    model.PropertyFieldTypeText,
+		},
+		{
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameReviewerUserID,
+			Type:    model.PropertyFieldTypeUser,
+		},
+		{
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameActorUserID,
+			Type:    model.PropertyFieldTypeUser,
+		},
+		{
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameActorComment,
+			Type:    model.PropertyFieldTypeText,
+		},
+		{
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameActionTime,
+			Type:    model.PropertyFieldTypeText,
+		},
+	}
+
+	for _, property := range properties {
+		if _, err := s.propertyService.CreatePropertyField(property); err != nil {
+			return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
+		}
+	}
+
+	if err := s.Store().System().Save(&model.System{Name: contentFlaggingSetupDoneKey, Value: "true"}); err != nil {
+		return fmt.Errorf("failed to save content flagging setup done flag in system store %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) doCloudS3PathMigrations(c request.CTX) error {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
@@ -695,6 +788,7 @@ func (s *Server) doAppMigrations() {
 		{"First Admin Setup Complete Migration", s.doFirstAdminSetupCompleteMigration},
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
+		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 	}
 
 	for i := range m1 {
