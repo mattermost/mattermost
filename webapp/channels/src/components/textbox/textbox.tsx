@@ -29,8 +29,6 @@ import SuggestionList from 'components/suggestion/suggestion_list';
 import type {MentionKey} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
-import TextboxOverlayHighlight from './textbox_overlay_highlight';
-
 import type {TextboxElement} from './index';
 
 const ALL = ['all'];
@@ -433,16 +431,6 @@ export default class Textbox extends React.PureComponent<Props> {
                         imageProps={{hideUtilities: true}}
                     />
                 </div>
-                {/* オーバーレイハイライト - プレビューモード以外で表示 */}
-                {!this.props.preview && this.props.usersByUsername && this.props.teammateNameDisplay && (
-                    <TextboxOverlayHighlight
-                        text={this.state.displayValue}
-                        usersByUsername={this.props.usersByUsername}
-                        teammateNameDisplay={this.props.teammateNameDisplay}
-                        textareaRef={this.textareaRef}
-                        className='textbox-mention-overlay'
-                    />
-                )}
                 <SuggestionBox
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
