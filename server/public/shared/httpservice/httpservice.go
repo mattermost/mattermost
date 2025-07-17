@@ -103,14 +103,6 @@ func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) *MattermostTransport {
 			return nil
 		}
 
-		if h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
-			if reservedIP {
-				return fmt.Errorf("IP %s is in a reserved range and AllowedUntrustedInternalConnections is not configured", ip.String())
-			} else {
-				return fmt.Errorf("IP %s is a self-assigned IP and AllowedUntrustedInternalConnections is not configured", ip.String())
-			}
-		}
-
 		// In the case it's the self-assigned IP, enforce that it needs to be explicitly added to the AllowedUntrustedInternalConnections
 		for _, allowed := range strings.FieldsFunc(*h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections, splitFields) {
 			if _, ipRange, err := net.ParseCIDR(allowed); err == nil && ipRange.Contains(ip) {
@@ -120,9 +112,8 @@ func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) *MattermostTransport {
 
 		if reservedIP {
 			return fmt.Errorf("IP %s is in a reserved range and not in AllowedUntrustedInternalConnections", ip.String())
-		} else {
-			return fmt.Errorf("IP %s is a self-assigned IP and not in AllowedUntrustedInternalConnections", ip.String())
 		}
+		return fmt.Errorf("IP %s is a self-assigned IP and not in AllowedUntrustedInternalConnections", ip.String())
 	}
 
 	return NewTransport(insecure, allowHost, allowIP)
