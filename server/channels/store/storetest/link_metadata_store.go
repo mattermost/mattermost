@@ -30,6 +30,7 @@ func TestLinkMetadataStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save", func(t *testing.T) { testLinkMetadataStoreSave(t, rctx, ss) })
 	t.Run("Get", func(t *testing.T) { testLinkMetadataStoreGet(t, rctx, ss) })
 	t.Run("Types", func(t *testing.T) { testLinkMetadataStoreTypes(t, rctx, ss) })
+	t.Run("HashCollisionHandling", func(t *testing.T) { testLinkMetadataStoreHashCollisionHandling(t, rctx, ss) })
 }
 
 func testLinkMetadataStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -251,4 +252,47 @@ func testLinkMetadataStoreTypes(t *testing.T, rctx request.CTX, ss store.Store) 
 
 		require.Nil(t, received.Data)
 	})
+}
+
+func testLinkMetadataStoreHashCollisionHandling(t *testing.T, rctx request.CTX, ss store.Store) {
+	testTimestamp := int64(1640995200000) // 2022-01-01 00:00:00 UTC
+	url1 := "http://test.com/w4xg6hpvomau9j5iz371"
+	url2 := "http://collision.comupio5zw28x1m36c"
+
+	hash1 := model.GenerateLinkMetadataHash(url1, testTimestamp)
+	hash2 := model.GenerateLinkMetadataHash(url2, testTimestamp)
+	assert.Equal(t, hash1, hash2, "URLs should have colliding hashes")
+
+	metadata1 := &model.LinkMetadata{
+		URL:       url1,
+		Timestamp: testTimestamp,
+		Type:      model.LinkMetadataTypeOpengraph,
+		Data:      &opengraph.OpenGraph{Title: "First URL Title"},
+	}
+	_, err := ss.LinkMetadata().Save(metadata1)
+	require.NoError(t, err)
+
+	retrieved, err := ss.LinkMetadata().Get(url1, testTimestamp)
+	require.NoError(t, err)
+	assert.Equal(t, url1, retrieved.URL)
+	assert.Equal(t, "First URL Title", retrieved.Data.(*opengraph.OpenGraph).Title)
+
+	metadata2 := &model.LinkMetadata{
+		URL:       url2,
+		Timestamp: testTimestamp,
+		Type:      model.LinkMetadataTypeOpengraph,
+		Data:      &opengraph.OpenGraph{Title: "Second URL Title"},
+	}
+	_, err = ss.LinkMetadata().Save(metadata2)
+	require.NoError(t, err)
+
+	retrieved, err = ss.LinkMetadata().Get(url2, testTimestamp)
+	require.NoError(t, err)
+	assert.Equal(t, url2, retrieved.URL)
+	assert.Equal(t, "Second URL Title", retrieved.Data.(*opengraph.OpenGraph).Title)
+
+	_, err = ss.LinkMetadata().Get(url1, testTimestamp)
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	assert.True(t, errors.As(err, &nfErr))
 }
