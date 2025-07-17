@@ -49,10 +49,6 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
             utmMedium = 'in-product-cloud';
         }
 
-        console.log('isCloudPreview', isCloudPreview);
-        console.log('isCloud', isCloud);
-        console.log('utmMedium', utmMedium);
-
         const existingURLSearchParams = parsedUrl.searchParams;
         const existingQueryParamsObj = Object.fromEntries(existingURLSearchParams.entries());
         const queryParams = {
