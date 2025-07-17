@@ -216,7 +216,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	}
 
 	// Get the bot to check if it's the system bot
-	bot, getErr := c.App.GetBot(c.AppContext, botUserId, false)
+	bot, getErr := c.App.GetBot(c.AppContext, botUserId, true)
 	if getErr != nil {
 		c.Err = getErr
 		return

@@ -689,7 +689,10 @@ func TestDisableUserBots(t *testing.T) {
 		OwnerId:     ownerId1,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, sysBot.UserId)
+	defer func() {
+		appErr := th.App.PermanentDeleteBot(th.Context, sysBot.UserId)
+		assert.Nil(t, appErr)
+	}()
 
 	u2bot1, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username_nodisable",
