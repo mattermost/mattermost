@@ -5687,6 +5687,7 @@
   "suggestion.search.private": "Private Channels",
   "suggestion.search.public": "Public Channels",
   "suggestion.user.isCurrent": "(you)",
+  "suggestion.users": "Users",
   "suggestionList.label": "Suggestions",
   "suggestionList.noMatches": "No items match <b>{value}</b>",
   "suggestionList.suggestionsAvailable": "{count, number} {count, plural, one {suggestion} other {suggestions}} available",
