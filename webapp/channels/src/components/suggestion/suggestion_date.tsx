@@ -5,7 +5,7 @@ import React, {memo} from 'react';
 
 import Popover from 'components/widgets/popover';
 
-import type {SuggestionResults} from './suggestion_results';
+import type {SuggestionResults, SuggestionResultsUngrouped} from './suggestion_results';
 import {hasResults} from './suggestion_results';
 
 type SuggestionItem = {
@@ -32,11 +32,14 @@ const SuggestionDate = ({
         return null;
     }
 
-    const item = results.items[0];
-    const term = results.terms[0];
+    // This is safe to do because SearchDateProvider only returns ungrouped results
+    const ungroupedResults = results as SuggestionResultsUngrouped<unknown>;
+
+    const item = ungroupedResults.items[0];
+    const term = ungroupedResults.terms[0];
 
     // ReactComponent names need to be upper case when used in JSX
-    const Component = results.components[0];
+    const Component = ungroupedResults.components[0];
 
     return (
         <Popover
