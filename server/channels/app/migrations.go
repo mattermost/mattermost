@@ -596,21 +596,17 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 }
 
 func (s *Server) doSetupContentFlaggingProperties() error {
-	// RegisterPropertyGroup is idempotent, so it can be called multiple times without issues.
-	// We need to call this on each server startup even if the migration has already been run,
-	// because we need to fetch and store the group ID for later uses when operate on content flagging properties.
-	// If we don't do it here
-	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
-	if err != nil {
-		return fmt.Errorf("failed to register Content Flagging group: %w", err)
-	}
-
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(contentFlaggingSetupDoneKey); err == nil {
 		return nil
 	} else if !errors.As(err, &nfErr) {
 		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to register Content Flagging group: %w", err)
 	}
 
 	// register status property

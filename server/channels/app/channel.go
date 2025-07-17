@@ -2116,7 +2116,7 @@ func (a *App) GetChannelsForUser(c request.CTX, userID string, includeDeleted bo
 	return list, nil
 }
 
-func (a *App) GetAllChannels(channelStore store.ChannelStore, c request.CTX, page, perPage int, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, *model.AppError) {
+func (a *App) GetAllChannels(c request.CTX, page, perPage int, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, *model.AppError) {
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
