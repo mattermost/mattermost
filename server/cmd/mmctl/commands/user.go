@@ -1225,7 +1225,7 @@ func userEditCmdF(c client.Client, _ *cobra.Command, args []string, fieldName st
 
 	case "authdata":
 		if newValue == "" {
-			return fmt.Errorf("cannot clear authdata as the user is using %s to log in; use mmctl user migrate-auth to change the authentication service", user.AuthService)
+			return fmt.Errorf("cannot clear authdata as the user is using %s to log in", user.AuthService)
 		}
 		if len(newValue) > model.UserAuthDataMaxLength {
 			return fmt.Errorf("authdata too long. Maximum length is %d characters", model.UserAuthDataMaxLength)
