@@ -373,15 +373,15 @@ const useKeyHandler = (
     useEffect(() => {
         function onPaste(event: ClipboardEvent) {
             console.log({message: draft.message, draft, location});
-            pasteHandler(event, location, draft.message, isNonFormattedPaste.current, caretPosition);
+            pasteHandler(event, location, draft.message, isNonFormattedPaste.current, caretPosition, isInEditMode);
         }
 
-        console.log({location});
+        console.log({location, message: draft.message});
         document.addEventListener('paste', onPaste);
         return () => {
             document.removeEventListener('paste', onPaste);
         };
-    }, [location, draft.message, caretPosition, draft]);
+    }, [location, draft.message, caretPosition, draft, isInEditMode]);
 
     const reactToLastMessage = useCallback((e: KeyboardEvent) => {
         e.preventDefault();

@@ -408,6 +408,32 @@ const AdvancedTextEditor = ({
         handleSubmitWithErrorHandling();
     }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS]);
 
+    // let handleKeyDown;
+    // let postMsgKeyPress;
+    //
+    // if (isInEditMode) {
+    //     [handleKeyDown, postMsgKeyPress] = useKeyHandler(
+    //         draft,
+    //         channelId,
+    //         rootId,
+    //         caretPosition,
+    //         isValidPersistentNotifications,
+    //         location,
+    //         textboxRef,
+    //         showFormattingBar,
+    //         focusTextbox,
+    //         applyMarkdown,
+    //         handleDraftChange,
+    //         handleSubmitWrapper,
+    //         emitTypingEvent,
+    //         handleShowPreview,
+    //         toggleAdvanceTextEditor,
+    //         toggleEmojiPicker,
+    //         isInEditMode,
+    //         handleCancel,
+    //     );
+    // }
+
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,

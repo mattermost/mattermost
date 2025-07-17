@@ -161,17 +161,20 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
     return markdownLink;
 }
 
-export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste: boolean, caretPosition?: number) {
+export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste: boolean, caretPosition?: number, isInEditMode?: boolean) {
+    // if (location === Locations.CENTER && isInEditMode && )
+
+
     const {clipboardData, target} = event;
 
     // const textboxId = location === Locations.RHS_COMMENT ? 'reply_textbox' : 'post_textbox';
     let isKnownTarget = false;
     switch (location) {
     case Locations.RHS_COMMENT:
-        isKnownTarget = (target as TextboxElement)?.id === 'reply_textbox';
+        isKnownTarget = isInEditMode ? (target as TextboxElement)?.id === 'edit_textbox' : (target as TextboxElement)?.id === 'reply_textbox';
         break;
     case Locations.CENTER:
-        isKnownTarget = (target as TextboxElement)?.id === 'post_textbox' || (target as TextboxElement)?.id === 'edit_textbox';
+        isKnownTarget = isInEditMode ? (target as TextboxElement)?.id === 'edit_textbox' : (target as TextboxElement)?.id === 'post_textbox';
         break;
     default:
         isKnownTarget = (target as TextboxElement)?.id === 'post_textbox';
