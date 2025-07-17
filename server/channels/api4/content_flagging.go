@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -65,7 +66,7 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 		return
 	}
 
-	enabled := c.App.ContentFlaggingEnabledForTeam(teamID)
+	enabled := app.ContentFlaggingEnabledForTeam(c.App.Config(), teamID)
 
 	payload := map[string]bool{
 		"enabled": enabled,

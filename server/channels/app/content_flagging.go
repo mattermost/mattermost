@@ -14,8 +14,8 @@ func (a *App) GetFlaggingConfiguration() *model.ContentFlaggingReportingConfig {
 	}
 }
 
-func (a *App) ContentFlaggingEnabledForTeam(teamId string) bool {
-	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
+func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
+	reviewerSettings := config.ContentFlaggingSettings.ReviewerSettings
 
 	hasCommonReviewers := reviewerSettings.CommonReviewers != nil && *reviewerSettings.CommonReviewers
 	if hasCommonReviewers {
