@@ -1329,7 +1329,7 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all foi desabilitado devido ao canal ter mais de {{.Users}} usuários."
+    "translation": "As notificações do @all estão desativadas em canais com mais de {{.Users}} usuários. Entre em contato com o administrador do sistema para obter mais informações."
   },
   {
     "id": "api.post.disabled_channel",
@@ -1337,7 +1337,7 @@
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here foi desabilitado devido ao canal ter mais de {{.Users}} usuários."
+    "translation": "As notificações do @here estão desativadas em canais com mais de {{.Users}} usuários. Entre em contato com o administrador do sistema para obter mais informações."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -10118,5 +10118,89 @@
   {
     "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
     "translation": "Sua conta está bloqueada devido ao número excessivo de tentativas de senha com falha. Entre em contato com o administrador do sistema."
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "Esta licença não é compatível com o MySQL."
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "As licenças de avaliação não são compatíveis com os bancos de dados MySQL. Use o PostgreSQL para acessar os recursos de avaliação."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Atualização inválida de membro do canal: um membro do canal sempre tem um esquema de usuário."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Atualização inválida de membro da equipe: um membro da equipe sempre tem um esquema de usuário."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Serviço de controle de acesso indisponível. Não é possível filtrar usuários para o canal habilitado para ABAC."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Falha ao carregar o arquivo. O canal de upload não é compartilhado com o remoto."
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Não foi possível obter o canal."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "O limite de obtenção de canais não é válido."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "O limite de campos Get não é válido."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "O usuário não tem os atributos necessários para entrar no canal."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Você não pode atualizar os canais aplicados pela política."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "Ocorreu um erro no gancho OnSamlLogin. Entre em contato com o administrador do sistema."
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Falha ao buscar dados do modal de visualização"
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Não é possível criar usuário. O Servidores excede o número máximo de usuários licenciados. Entre em contato com o administrador com: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Falha ao salvar o lote de objetos de confirmação de recebimento"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Não é possível deletar a confirmação de recebimento de uma publicação ausente"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Não é possível salvar a confirmação de recebimento de uma publicação ausente"
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Tipo de teste inválido: {{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "A importação remota do cluster não é permitida"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Não é possível convidar usuários convidados para esse canal porque ele tem restrições de acesso com base nos atributos do usuário."
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "O serviço de Canais Compartilhados está ativado, mas não está ativo."
   }
 ]
