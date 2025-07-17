@@ -103,7 +103,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps = model.MapFromJSON(strings.NewReader(stateStr))
 	}
 
-	auditRec := c.MakeAuditRecord("completeSaml", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCompleteSaml, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 

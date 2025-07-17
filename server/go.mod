@@ -250,10 +250,6 @@ exclude (
 	github.com/willf/bitset v1.2.0
 )
 
-// Prevent from being upgraded because this library has a minimum requirement
-// of Go 1.24.
-replace github.com/ledongthuc/pdf => github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
-
 // Also prevent tablewriter from being upgraded because the downstream dependency
 // jaytaylor/html2text does not have a go.mod file which makes it bump to the latest
 // version always. Tablewriter has made breaking changes to its latest release.
