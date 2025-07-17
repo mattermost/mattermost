@@ -3238,16 +3238,10 @@ func TestCollapsedThreadFetch(t *testing.T) {
 }
 
 func TestReplyToPostWithLag(t *testing.T) {
-	if !replicaFlag {
-		t.Skipf("requires test flag -mysql-replica")
-	}
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	if *th.App.Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
-		t.Skipf("requires %q database driver", model.DatabaseDriverMysql)
-	}
+	t.Skip("MySQL driver no longer supported")
 
 	mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
 

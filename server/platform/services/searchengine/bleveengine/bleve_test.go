@@ -52,7 +52,7 @@ func (s *BleveEngineTestSuite) setupStore() {
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
-	s.SQLSettings = storetest.MakeSqlSettings(driverName, false)
+	s.SQLSettings = storetest.MakeSqlSettings(driverName)
 
 	var err error
 	s.SQLStore, err = sqlstore.New(*s.SQLSettings, s.Context.Logger(), nil, sqlstore.DisableMorphLogging())
