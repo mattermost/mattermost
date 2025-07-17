@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/netip"
 	"net/url"
+	"strings"
 	"time"
 
 	"golang.org/x/net/http/httpproxy"
@@ -117,7 +118,10 @@ type DialContextFunction func(ctx context.Context, network, addr string) (net.Co
 
 var ErrAddressForbidden = errors.New("address forbidden, you may need to set AllowedUntrustedInternalConnections to allow an integration access to your internal network")
 
-func dialContextFilter(dial DialContextFunction, allowHost func(host string) bool, allowIP func(ip net.IP) bool) DialContextFunction {
+// dialContextFilter wraps a dial function to filter connections based on host and IP validation.
+// It first checks if the host is allowed, then resolves the hostname to IPs and validates each one.
+// Returns detailed error messages when connections are rejected for security reasons.
+func dialContextFilter(dial DialContextFunction, allowHost func(host string) bool, allowIP func(ip net.IP) error) DialContextFunction {
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
 		host, port, err := net.SplitHostPort(addr)
 		if err != nil {
@@ -133,7 +137,8 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 			return nil, err
 		}
 
-		var firstErr error
+		var firstDialErr error
+		var forbiddenReasons []string
 		for _, ip := range ips {
 			select {
 			case <-ctx.Done():
@@ -141,7 +146,13 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 			default:
 			}
 
-			if allowIP == nil || !allowIP(ip) {
+			if allowIP == nil {
+				forbiddenReasons = append(forbiddenReasons, "IP "+ip.String()+" is not allowed")
+				continue
+			}
+
+			if err := allowIP(ip); err != nil {
+				forbiddenReasons = append(forbiddenReasons, err.Error())
 				continue
 			}
 
@@ -149,14 +160,18 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 			if err == nil {
 				return conn, nil
 			}
-			if firstErr == nil {
-				firstErr = err
+			if firstDialErr == nil {
+				firstDialErr = err
 			}
 		}
-		if firstErr == nil {
+		if firstDialErr == nil {
+			// If we didn't found an allowed IP address, return a error explaining why
+			if len(forbiddenReasons) > 0 {
+				return nil, fmt.Errorf("%s: %s", ErrAddressForbidden.Error(), strings.Join(forbiddenReasons, "; "))
+			}
 			return nil, ErrAddressForbidden
 		}
-		return nil, firstErr
+		return nil, firstDialErr
 	}
 }
 
@@ -174,7 +189,8 @@ func getProxyFn() func(r *http.Request) (*url.URL, error) {
 	}
 }
 
-func NewTransport(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) *MattermostTransport {
+// NewTransport creates a new MattermostTransport with detailed error messages for IP check failures
+func NewTransport(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) error) *MattermostTransport {
 	dialContext := (&net.Dialer{
 		Timeout:   ConnectTimeout,
 		KeepAlive: 30 * time.Second,

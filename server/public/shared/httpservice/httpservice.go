@@ -4,6 +4,7 @@
 package httpservice
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
@@ -88,31 +89,40 @@ func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) *MattermostTransport {
 		return false
 	}
 
-	allowIP := func(ip net.IP) bool {
+	allowIP := func(ip net.IP) error {
 		reservedIP := IsReservedIP(ip)
-		ownIP, err := IsOwnIP(ip)
 
-		// If there is an error getting the self-assigned IPs, default to the secure option
+		ownIP, err := IsOwnIP(ip)
 		if err != nil {
-			return false
+			// If there is an error getting the self-assigned IPs, default to the secure option
+			return fmt.Errorf("unable to determine if IP is own IP: %w", err)
 		}
 
 		// If it's not a reserved IP and it's not self-assigned IP, accept the IP
 		if !reservedIP && !ownIP {
-			return true
+			return nil
 		}
 
 		if h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
-			return false
+			if reservedIP {
+				return fmt.Errorf("IP %s is in a reserved range and AllowedUntrustedInternalConnections is not configured", ip.String())
+			} else {
+				return fmt.Errorf("IP %s is a self-assigned IP and AllowedUntrustedInternalConnections is not configured", ip.String())
+			}
 		}
 
 		// In the case it's the self-assigned IP, enforce that it needs to be explicitly added to the AllowedUntrustedInternalConnections
 		for _, allowed := range strings.FieldsFunc(*h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections, splitFields) {
 			if _, ipRange, err := net.ParseCIDR(allowed); err == nil && ipRange.Contains(ip) {
-				return true
+				return nil
 			}
 		}
-		return false
+
+		if reservedIP {
+			return fmt.Errorf("IP %s is in a reserved range and not in AllowedUntrustedInternalConnections", ip.String())
+		} else {
+			return fmt.Errorf("IP %s is a self-assigned IP and not in AllowedUntrustedInternalConnections", ip.String())
+		}
 	}
 
 	return NewTransport(insecure, allowHost, allowIP)
