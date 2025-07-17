@@ -166,7 +166,7 @@ export type ProviderResultsGroup<Item> = {
     label: MessageDescriptor;
 
     terms: string[];
-    items: Item[];
+    items: Array<Item | Loading>;
 } & ComponentOrComponents;
 
 export type ProviderResultsUngrouped<Item> = {
