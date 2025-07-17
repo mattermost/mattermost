@@ -4,9 +4,10 @@
 package app
 
 import (
+	"testing"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestDoSetupContentFlaggingProperties(t *testing.T) {
