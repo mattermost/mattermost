@@ -7,13 +7,13 @@ import styled from 'styled-components';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {countResults, flattenTerms, hasResults} from 'components/suggestion/suggestion_results';
+import {hasResults} from 'components/suggestion/suggestion_results';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {escapeRegex} from 'utils/text_formatting';
 
-import useSearchSuggestions from './hooks';
+import {useSearchSuggestions, useSearchSuggestionSelection} from './hooks';
 import SearchBoxHints from './search_box_hints';
 import SearchInput from './search_box_input';
 import SearchSuggestions from './search_box_suggestions';
@@ -86,7 +86,6 @@ const SearchBox = forwardRef(
         const [searchTerms, setSearchTerms] = useState<string>(initialSearchTerms);
         const [searchTeam, setSearchTeam] = useState<string>(initialSearchTeam);
         const [searchType, setSearchType] = useState<string>(initialSearchType || 'messages');
-        const [selectedOption, setSelectedOption] = useState<number>(-1);
 
         const hasMoreThanOneTeam = myTeams.length > 1;
 
@@ -145,14 +144,21 @@ const SearchBox = forwardRef(
             };
         }, [inputRef.current]);
 
-        const [results, suggestionsHeader] = useSearchSuggestions(
+        const results = useSearchSuggestions(
             searchType,
             searchTerms,
             searchTeam,
             caretPosition,
             getCaretPosition,
-            setSelectedOption,
         );
+
+        const {
+            selectedTerm,
+
+            clearSelection,
+            setSelectedTerm,
+            setSelectionByDelta,
+        } = useSearchSuggestionSelection(results);
 
         const focus = useCallback((newposition: number) => {
             if (inputRef.current) {
@@ -192,44 +198,44 @@ const SearchBox = forwardRef(
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (!hasResults(results) || selectedOption === -1) {
+
+                    if (!hasResults(results) || selectedTerm === '') {
                         onClose();
                     } else {
-                        setSelectedOption(-1);
+                        clearSelection();
                     }
                 }
 
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.DOWN)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    const totalItems = countResults(results);
-                    if (selectedOption + 1 < totalItems) {
-                        setSelectedOption(selectedOption + 1);
-                    }
+
+                    setSelectionByDelta(+1);
                 }
 
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.UP)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (selectedOption > 0) {
-                        setSelectedOption(selectedOption - 1);
-                    }
+
+                    setSelectionByDelta(-1);
                 }
 
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.ENTER)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (!hasResults(results) || selectedOption === -1) {
+
+                    if (!hasResults(results) || selectedTerm === '') {
                         onSearch(searchType, searchTeam, searchTerms);
                     } else {
                         const matchedPretext = results.matchedPretext;
-                        const value = flattenTerms(results)[selectedOption];
+                        const value = selectedTerm;
+
                         updateSearchValue(value, matchedPretext);
-                        setSelectedOption(-1);
+                        clearSelection();
                     }
                 }
             },
-            [results, onClose, selectedOption, onSearch, searchType, searchTeam, searchTerms, updateSearchValue],
+            [results, onClose, selectedTerm, clearSelection, setSelectionByDelta, onSearch, searchType, searchTeam, searchTerms, updateSearchValue],
         );
 
         const changeSearchTeam = (selectedTeam: string) => {
@@ -303,15 +309,18 @@ const SearchBox = forwardRef(
                     setSearchTerms={setSearchTerms}
                     onKeyDown={handleKeyDown}
                     focus={focus}
+                    aria-activedescendant={selectedTerm ? `searchBoxSuggestions_item_${selectedTerm}` : undefined}
+                    aria-controls='searchBoxSuggestions'
+                    aria-expanded={hasResults(results)}
                 />
                 <SearchSuggestions
+                    id='searchBoxSuggestions'
                     searchType={searchType}
                     searchTeam={searchTeam}
                     searchTerms={searchTerms}
-                    suggestionsHeader={suggestionsHeader}
                     results={results}
-                    selectedOption={selectedOption}
-                    setSelectedOption={setSelectedOption}
+                    selectedTerm={selectedTerm}
+                    setSelectedTerm={setSelectedTerm}
                     onSearch={onSearch}
                     onSuggestionSelected={updateSearchValue}
                 />
@@ -321,7 +330,7 @@ const SearchBox = forwardRef(
                     setSearchTerms={addSearchHint}
                     searchType={searchType}
                     results={results}
-                    selectedOption={selectedOption}
+                    selectedTerm={selectedTerm}
                     showFilterHaveBeenReset={showFilterHaveBeenReset}
                     focus={focus}
                 />

@@ -18,13 +18,13 @@ type Props = {
     searchTeam: string;
     setSearchTerms: (searchTerms: string) => void;
     searchType: string;
-    selectedOption: number;
+    selectedTerm: string;
     results: SuggestionResults<unknown>;
     focus: (pos: number) => void;
     showFilterHaveBeenReset: boolean;
 }
 
-const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, results, selectedOption, focus, showFilterHaveBeenReset}: Props) => {
+const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, results, selectedTerm, focus, showFilterHaveBeenReset}: Props) => {
     const filterSelectedCallback = useCallback((filter: string) => {
         if (searchTerms.endsWith(' ') || searchTerms.length === 0) {
             setSearchTerms(searchTerms + filter);
@@ -50,7 +50,7 @@ const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, re
                 searchType={searchType}
                 searchTerms={searchTerms}
                 searchTeam={searchTeam}
-                hasSelectedOption={hasResults(results) && selectedOption !== -1}
+                hasSelectedOption={hasResults(results) && selectedTerm !== ''}
                 showFilterHaveBeenReset={showFilterHaveBeenReset}
                 isDate={hasSuggestionWithComponent(results, SearchDateSuggestion)}
             />
