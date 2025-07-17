@@ -159,3 +159,7 @@ docker-compose.override.yaml
 .notice-work/
 .aider*
 .env
+
+**/CLAUDE.local.md
+CLAUDE.md
+.cursorrules
