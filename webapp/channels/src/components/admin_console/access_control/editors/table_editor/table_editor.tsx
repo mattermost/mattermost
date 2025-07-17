@@ -44,8 +44,8 @@ export const findFirstAvailableAttributeFromList = (
     return userAttributes.find((attr) => {
         const hasSpaces = attr.name.includes(' ');
         const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-        const isSafe = isSynced || enableUserManagedAttributes;
-        return !hasSpaces && isSafe;
+        const allowed = isSynced || enableUserManagedAttributes;
+        return !hasSpaces && allowed;
     });
 };
 

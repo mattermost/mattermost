@@ -136,7 +136,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 const {name} = option;
                 const hasSpaces = name.includes(' ');
                 const isSynced = option.attrs?.ldap || option.attrs?.saml;
-                const isSafe = isSynced || enableUserManagedAttributes;
+                const allowed = isSynced || enableUserManagedAttributes;
 
                 const menuItem = (
                     <Menu.Item
@@ -147,7 +147,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                         aria-checked={name === currentAttribute}
                         onClick={hasSpaces ? undefined : () => handleAttributeChange(name)}
                         labels={<span>{name}</span>}
-                        disabled={hasSpaces || !isSafe}
+                        disabled={hasSpaces || !allowed}
                         leadingElement={
                             <AttributeIcon
                                 attribute={option}
@@ -161,7 +161,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                                         size={18}
                                     />
                                 )}
-                                {!isSafe && !isSynced && (
+                                {!allowed && !isSynced && (
                                     <ShieldAlertOutlineIcon
                                         size={18}
                                         color='rgba(var(--center-channel-color-rgb), 0.5)'
@@ -188,7 +188,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                         id: 'admin.access_control.table_editor.attribute_spaces_not_supported',
                         defaultMessage: 'CEL is not compatible with variable names containing spaces',
                     });
-                } else if (!isSafe) {
+                } else if (!allowed) {
                     tooltipContent = formatMessage({
                         id: 'admin.access_control.table_editor.not_safe_to_use',
                         defaultMessage: 'Values for this attribute are managed by users and should not be used for access control. Please link attribute to AD/LDAP for use in access policies.',
