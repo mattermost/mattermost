@@ -13,6 +13,7 @@ import {SyncIcon} from '@mattermost/compass-icons/components';
 import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
 
 import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
 
 import {DangerText} from './controls';
 import './user_properties_values.scss';
@@ -81,34 +82,46 @@ const UserPropertyValues = ({
         const syncedProperties = [
 
             field.attrs.ldap && (
-                <span
+                <a
                     className='user-property-field-values__chip-link'
                     key={`${field.name}-ldap`}
                     data-testid={`user-property-field-values__ldap-${field.name}`}
                     onClick={() => promptEditLdapLink()}
-                    style={{cursor: 'pointer'}}
+                    onKeyDown={(e) => {
+                        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
+                            promptEditLdapLink();
+                        }
+                    }}
+                    role='button'
+                    tabIndex={0}
                 >
                     <FormattedMessage
                         id='admin.system_properties.user_properties.table.values.synced_with.ldap'
                         defaultMessage='AD/LDAP: {propertyName}'
                         values={{propertyName: field.attrs.ldap}}
                     />
-                </span>
+                </a>
             ),
             field.attrs.saml && (
-                <span
+                <a
                     className='user-property-field-values__chip-link'
                     key={`${field.name}-saml`}
                     data-testid={`user-property-field-values__saml-${field.name}`}
                     onClick={() => promptEditSamlLink()}
-                    style={{cursor: 'pointer'}}
+                    onKeyDown={(e) => {
+                        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
+                            promptEditSamlLink();
+                        }
+                    }}
+                    role='button'
+                    tabIndex={0}
                 >
                     <FormattedMessage
                         id='admin.system_properties.user_properties.table.values.synced_with.saml'
                         defaultMessage='SAML: {propertyName}'
                         values={{propertyName: field.attrs.saml}}
                     />
-                </span>
+                </a>
             ),
 
         ].filter(Boolean);

@@ -163,7 +163,6 @@ describe('UserPropertyValues', () => {
         // Check that the clickable element is present (no longer checking href)
         const linkElement = screen.getByTestId(`user-property-field-values__ldap-${ldapField.name}`);
         expect(linkElement).toBeInTheDocument();
-        expect(linkElement).toHaveStyle('cursor: pointer');
     });
 
     it('shows SAML sync information when field has SAML attribute', () => {
@@ -185,7 +184,6 @@ describe('UserPropertyValues', () => {
         // Check that the clickable element is present (no longer checking href)
         const linkElement = screen.getByTestId(`user-property-field-values__saml-${samlField.name}`);
         expect(linkElement).toBeInTheDocument();
-        expect(linkElement).toHaveStyle('cursor: pointer');
     });
 
     it('shows both LDAP and SAML sync information when field has both attributes', () => {
@@ -212,10 +210,8 @@ describe('UserPropertyValues', () => {
         // Check that both clickable elements are present (no longer checking href)
         const ldapLinkElement = screen.getByTestId(`user-property-field-values__ldap-${baseField.name}`);
         expect(ldapLinkElement).toBeInTheDocument();
-        expect(ldapLinkElement).toHaveStyle('cursor: pointer');
 
         const samlLinkElement = screen.getByTestId(`user-property-field-values__saml-${baseField.name}`);
         expect(samlLinkElement).toBeInTheDocument();
-        expect(samlLinkElement).toHaveStyle('cursor: pointer');
     });
 });
