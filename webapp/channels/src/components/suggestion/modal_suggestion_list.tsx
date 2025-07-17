@@ -16,7 +16,6 @@ type SuggestionListProps = {
     pretext: string;
     results: SuggestionResults<unknown>;
     selection: string;
-    wrapperHeight?: number;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
     // as the user is typing.
