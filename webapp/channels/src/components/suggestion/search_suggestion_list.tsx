@@ -3,11 +3,8 @@
 
 import React from 'react';
 import type {Popover as BSPopover} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
 
 import Popover from 'components/widgets/popover';
-
-import Constants from 'utils/constants';
 
 import type {Props} from './suggestion_list';
 import SuggestionList from './suggestion_list';
@@ -28,41 +25,6 @@ export default class SearchSuggestionList extends SuggestionList {
     getContent = () => {
         return this.itemsContainerRef?.current?.parentNode as HTMLUListElement | null;
     };
-
-    renderChannelDivider(type: string) { // TODO remove divider logic
-        let text;
-        if (type === Constants.OPEN_CHANNEL) {
-            text = (
-                <FormattedMessage
-                    id='suggestion.search.public'
-                    defaultMessage='Public Channels'
-                />
-            );
-        } else if (type === Constants.PRIVATE_CHANNEL) {
-            text = (
-                <FormattedMessage
-                    id='suggestion.search.private'
-                    defaultMessage='Private Channels'
-                />
-            );
-        } else {
-            text = (
-                <FormattedMessage
-                    id='suggestion.search.direct'
-                    defaultMessage='Direct Messages'
-                />
-            );
-        }
-
-        return (
-            <div
-                key={type + '-divider'}
-                className='search-autocomplete__divider'
-            >
-                <span>{text}</span>
-            </div>
-        );
-    }
 
     render() {
         if (!hasResults(this.props.results)) {

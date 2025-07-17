@@ -148,46 +148,6 @@
     }
 }
 
-.hidden-label + .search-autocomplete__divider {
-    &::before {
-        display: none;
-    }
-}
-
-.search-autocomplete__divider {
-    position: relative;
-    display: flex;
-    height: 2.8rem;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 0 0 0 2.4rem;
-    margin: 1.2rem 0 0;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-
-    span {
-        background: functions.v(center-channel-bg);
-    }
-
-    &:first-child {
-        &::before {
-            display: none;
-        }
-    }
-
-    &::before {
-        position: absolute;
-        top: -7px;
-        left: 0;
-        width: 100%;
-        height: 1px;
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        content: '';
-    }
-}
-
 .search-autocomplete__name {
     overflow: hidden;
     text-overflow: ellipsis;

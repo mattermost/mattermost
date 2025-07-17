@@ -31,25 +31,6 @@ export const useSearchSuggestions = (searchType: string, searchTerms: string, se
         new SearchFileExtensionProvider(),
     ]);
 
-    // const headers = useMemo<React.ReactNode[]>(() => [ // TODO remove divider logic
-    //     <span key={1}/>,
-    //     <FormattedMessage
-    //         id='search_bar.channels'
-    //         defaultMessage='Channels'
-    //         key={2}
-    //     />,
-    //     <FormattedMessage
-    //         id='search_bar.users'
-    //         defaultMessage='Users'
-    //         key={3}
-    //     />,
-    //     <FormattedMessage
-    //         id='search_bar.file_types'
-    //         defaultMessage='File types'
-    //         key={4}
-    //     />,
-    // ], []);
-
     useEffect(() => {
         setResults(emptyResults());
         if (searchType !== '' && searchType !== 'messages' && searchType !== 'files') {

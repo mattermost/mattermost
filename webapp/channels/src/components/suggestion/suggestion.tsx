@@ -52,7 +52,7 @@ const SuggestionContainer = React.forwardRef<HTMLLIElement, SuggestionProps<unkn
             role='option'
             onClick={handleClick}
             onMouseMove={handleMouseMove}
-            tabIndex={tabIndex}
+            tabIndex={tabIndex} // TODO wtf is tabIndex doing here, also add aria-selection
             {...otherProps}
         >
             {children}

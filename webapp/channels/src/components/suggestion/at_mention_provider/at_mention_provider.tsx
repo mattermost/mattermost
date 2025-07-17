@@ -484,7 +484,6 @@ export function otherMembersGroup() {
         key: 'otherMembers',
         label: defineMessage({id: 'suggestion.mention.moremembers', defaultMessage: 'Other Members'}),
         items: [{
-            type: Constants.MENTION_MORE_MEMBERS,
             loading: true as const,
         }],
         terms: [''],

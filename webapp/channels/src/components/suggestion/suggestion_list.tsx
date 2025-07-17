@@ -14,7 +14,6 @@ export interface Props {
     inputRef?: React.RefObject<HTMLDivElement>;
     open: boolean;
     position?: 'top' | 'bottom';
-    renderDividers?: string[]; // TODO remove divider logic
     renderNoResults?: boolean;
     onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
     preventClose?: () => void;
@@ -36,7 +35,6 @@ export interface Props {
 
 export default class SuggestionList extends React.PureComponent<Props> {
     static defaultProps = {
-        renderDividers: [],
         renderNoResults: false,
     };
     contentRef: React.RefObject<HTMLElement>;

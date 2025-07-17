@@ -63,12 +63,6 @@ export default class SuggestionBox extends React.PureComponent {
         containerClass: PropTypes.string,
 
         /**
-         * Set to ['all'] to draw all available dividers, or use an array of the types of dividers to only render those
-         * (e.g. [Constants.MENTION_RECENT_CHANNELS, Constants.MENTION_PUBLIC_CHANNELS]) between types of list items
-         */
-        renderDividers: PropTypes.arrayOf(PropTypes.string),
-
-        /**
          * Set to true to render a message when there were no results found, defaults to false
          */
         renderNoResults: PropTypes.bool,
@@ -186,7 +180,6 @@ export default class SuggestionBox extends React.PureComponent {
     static defaultProps = {
         listPosition: 'top',
         containerClass: '',
-        renderDividers: [],
         renderNoResults: false,
         shouldSearchCompleteText: false,
         completeOnTab: true,
@@ -760,13 +753,6 @@ export default class SuggestionBox extends React.PureComponent {
             ...props
         } = this.props;
 
-        // set the renderDivider const to either the value stored in the renderDividers prop or an empty string
-        // (the renderDividers prop can also probably be a empty string, but is not guaranteed to be)
-        let renderDividers;
-        if (this.state.allowDividers) {
-            renderDividers = this.props.renderDividers;
-        }
-
         // Don't pass props used by SuggestionBox
         Reflect.deleteProperty(props, 'providers');
         Reflect.deleteProperty(props, 'onChange'); // We use onInput instead of onChange on the actual input
@@ -780,7 +766,6 @@ export default class SuggestionBox extends React.PureComponent {
         Reflect.deleteProperty(props, 'onBlur');
         Reflect.deleteProperty(props, 'containerClass');
         Reflect.deleteProperty(props, 'replaceAllInputOnSelect');
-        Reflect.deleteProperty(props, 'renderDividers');
         Reflect.deleteProperty(props, 'contextId');
         Reflect.deleteProperty(props, 'forceSuggestionsWhenBlur');
         Reflect.deleteProperty(props, 'onSuggestionsReceived');
@@ -817,7 +802,6 @@ export default class SuggestionBox extends React.PureComponent {
                         open={this.state.focused || this.props.forceSuggestionsWhenBlur}
                         pretext={this.pretext}
                         position={this.getListPosition(listPosition)}
-                        renderDividers={renderDividers}
                         renderNoResults={renderNoResults}
                         onCompleteWord={this.handleCompleteWord}
                         preventClose={this.preventSuggestionListClose}

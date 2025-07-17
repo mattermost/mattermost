@@ -9,7 +9,6 @@ import type {SuggestionResults} from './suggestion_results';
 
 type SuggestionListProps = {
     ariaLiveRef?: React.RefObject<HTMLDivElement>;
-    renderDividers?: string[];
     renderNoResults?: boolean;
     preventClose?: () => void;
     onItemHover: (term: string) => void;

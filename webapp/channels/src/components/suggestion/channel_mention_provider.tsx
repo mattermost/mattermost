@@ -261,7 +261,6 @@ export function moreChannelsGroup(items: Channel[], loading: boolean) {
             key: 'moreChannels',
             label,
             items: [{
-                type: Constants.MENTION_MORE_MEMBERS,
                 loading: true as const,
             }],
             terms: [''],

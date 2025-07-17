@@ -71,7 +71,6 @@ export type SuggestionResultsUngrouped<Item> = {
 };
 
 export type Loading = {
-    type: string;
     loading: boolean;
 };
 

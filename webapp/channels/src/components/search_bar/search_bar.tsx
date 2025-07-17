@@ -171,7 +171,6 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
                     providers={suggestionProviders}
                     type='search'
                     delayInputUpdate={true}
-                    renderDividers={['all']}
                     clearable={true}
                     onClear={props.handleClear}
                 />

@@ -234,7 +234,6 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         openWhenEmpty={true}
                         onSuggestionsReceived={this.handleSuggestionsReceived}
                         forceSuggestionsWhenBlur={true}
-                        renderDividers={[Constants.MENTION_UNREAD, Constants.MENTION_RECENT_CHANNELS]}
                         shouldSearchCompleteText={true}
                     />
                     {
