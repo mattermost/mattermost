@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {FocusEventHandler, KeyboardEventHandler} from 'react';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {FormattedList, FormattedMessage, useIntl} from 'react-intl';
 import type {GroupBase} from 'react-select';
 import {components} from 'react-select';
@@ -14,10 +14,9 @@ import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/pro
 
 import Constants from 'utils/constants';
 
-import AttributeModal from './attribute_modal';
 import {DangerText} from './controls';
-
 import './user_properties_values.scss';
+import {useAttributeLinkModal} from './user_properties_dot_menu';
 
 type Props = {
     field: UserPropertyField;
@@ -34,10 +33,7 @@ const UserPropertyValues = ({
     const {formatMessage} = useIntl();
 
     const [query, setQuery] = React.useState('');
-    const [showLdapModal, setShowLdapModal] = useState(false);
-    const [showSamlModal, setShowSamlModal] = useState(false);
-    const [error, setError] = useState('');
-    const [errorSaml, setErrorSaml] = useState('');
+    const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
     const isQueryValid = useMemo(() => !checkForDuplicates(field.attrs.options, query.trim()), [field?.attrs?.options, query]);
 
@@ -81,40 +77,6 @@ const UserPropertyValues = ({
         event.preventDefault();
     };
 
-    const handleLdapSave = async (value: string) => {
-        setError('');
-        try {
-            updateField({
-                ...field,
-                type: 'text',
-                attrs: {
-                    ...field.attrs,
-                    ldap: value,
-                },
-            });
-            setShowLdapModal(false);
-        } catch (err: any) {
-            setError('Failed to update LDAP attribute.');
-        }
-    };
-
-    const handleSamlSave = async (value: string) => {
-        setErrorSaml('');
-        try {
-            updateField({
-                ...field,
-                type: 'text',
-                attrs: {
-                    ...field.attrs,
-                    saml: value,
-                },
-            });
-            setShowSamlModal(false);
-        } catch (err: any) {
-            setErrorSaml('Failed to update SAML attribute.');
-        }
-    };
-
     if (field.attrs.ldap || field.attrs.saml) {
         const syncedProperties = [
 
@@ -123,7 +85,7 @@ const UserPropertyValues = ({
                     className='user-property-field-values__chip-link'
                     key={`${field.name}-ldap`}
                     data-testid={`user-property-field-values__ldap-${field.name}`}
-                    onClick={() => setShowLdapModal(true)}
+                    onClick={() => promptEditLdapLink()}
                     style={{cursor: 'pointer'}}
                 >
                     <FormattedMessage
@@ -138,7 +100,7 @@ const UserPropertyValues = ({
                     className='user-property-field-values__chip-link'
                     key={`${field.name}-saml`}
                     data-testid={`user-property-field-values__saml-${field.name}`}
-                    onClick={() => setShowSamlModal(true)}
+                    onClick={() => promptEditSamlLink()}
                     style={{cursor: 'pointer'}}
                 >
                     <FormattedMessage
@@ -161,54 +123,6 @@ const UserPropertyValues = ({
                         values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
                     />
                 </span>
-                {showLdapModal && (
-                    <AttributeModal
-                        initialValue={field.attrs.ldap || ''}
-                        fieldType={field.type}
-                        onExited={() => {
-                            setShowLdapModal(false);
-                            setError('');
-                        }}
-                        onSave={handleLdapSave}
-                        error={error}
-                        helpText={
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.ad_ldap.modal.helpText'
-                                defaultMessage="The attribute in the AD/LDAP server used to sync as a custom attribute in user's profile in Mattermost."
-                            />
-                        }
-                        modalHeaderText={
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label'
-                                defaultMessage='Link attribute to AD/LDAP'
-                            />
-                        }
-                    />
-                )}
-                {showSamlModal && (
-                    <AttributeModal
-                        initialValue={field.attrs.saml || ''}
-                        fieldType={field.type}
-                        onExited={() => {
-                            setShowSamlModal(false);
-                            setErrorSaml('');
-                        }}
-                        onSave={handleSamlSave}
-                        error={errorSaml}
-                        helpText={
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.saml.modal.helpText'
-                                defaultMessage="The attribute in the SAML server used to sync as a custom attribute in user's profile in Mattermost."
-                            />
-                        }
-                        modalHeaderText={
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.saml.modal.title'
-                                defaultMessage='Link attribute to SAML'
-                            />
-                        }
-                    />
-                )}
             </>
         );
     }

@@ -28,10 +28,10 @@ type Props = {
     deleteField: (id: string) => void;
 }
 
-const useAttributeLinkModal = () => {
+export const useAttributeLinkModal = (field: UserPropertyField, updateField: Props['updateField']) => {
     const dispatch = useDispatch();
 
-    const promptEditLdapLink = (field: UserPropertyField, updateField: (field: UserPropertyField) => void) => {
+    const promptEditLdapLink = () => {
         dispatch(openModal({
             modalId: ModalIdentifiers.ATTRIBUTE_MODAL_LDAP,
             dialogType: AttributeModal,
@@ -66,7 +66,7 @@ const useAttributeLinkModal = () => {
         }));
     };
 
-    const promptEditSamlLink = (field: UserPropertyField, updateField: (field: UserPropertyField) => void) => {
+    const promptEditSamlLink = () => {
         dispatch(openModal({
             modalId: ModalIdentifiers.ATTRIBUTE_MODAL_SAML,
             dialogType: AttributeModal,
@@ -115,7 +115,7 @@ const DotMenu = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const {promptDelete} = useUserPropertyFieldDelete();
-    const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal();
+    const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
     const handleDuplicate = () => {
         const name = formatMessage({
@@ -264,7 +264,7 @@ const DotMenu = ({
                     key={`${menuId}_link_ad-ldap`}
                     id={`${menuId}_link_ad-ldap`}
                     leadingElement={<SyncIcon size={18}/>}
-                    onClick={() => promptEditLdapLink(field, updateField)}
+                    onClick={() => promptEditLdapLink()}
                     labels={field.attrs.ldap ? (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.ad_ldap.edit_link.label'
@@ -281,7 +281,7 @@ const DotMenu = ({
                     key={`${menuId}_link_saml`}
                     id={`${menuId}_link_saml`}
                     leadingElement={<SyncIcon size={18}/>}
-                    onClick={() => promptEditSamlLink(field, updateField)}
+                    onClick={() => promptEditSamlLink()}
                     labels={field.attrs.saml ? (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.saml.edit_link.label'
