@@ -171,7 +171,7 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("inviteRemoteClusterToChannel", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventInviteRemoteClusterToChannel, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
@@ -222,7 +222,7 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("uninviteRemoteClusterToChannel", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUninviteRemoteClusterToChannel, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
