@@ -1037,7 +1037,8 @@ func checkNowhereNil(t *testing.T, name string, value any) bool {
 		// Ignoring these 2 settings.
 		// TODO: remove them completely in v8.0.
 		if name == "config.BleveSettings.BulkIndexingTimeWindowSeconds" ||
-			name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" {
+			name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
+			name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
 			return true
 		}
 

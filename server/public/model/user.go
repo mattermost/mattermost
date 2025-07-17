@@ -931,6 +931,22 @@ func (u *User) GetRemoteID() string {
 	return SafeDereference(u.RemoteId)
 }
 
+func (u *User) GetOriginalRemoteID() string {
+	if u.Props == nil {
+		if u.IsRemote() {
+			return UserOriginalRemoteIdUnknown
+		}
+		return "" // Local user
+	}
+	if originalId, exists := u.Props[UserPropsKeyOriginalRemoteId]; exists && originalId != "" {
+		return originalId
+	}
+	if u.IsRemote() {
+		return UserOriginalRemoteIdUnknown
+	}
+	return "" // Local user
+}
+
 func (u *User) GetAuthData() string {
 	return SafeDereference(u.AuthData)
 }

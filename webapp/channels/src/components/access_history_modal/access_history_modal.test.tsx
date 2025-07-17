@@ -1,15 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, render, waitForElementToBeRemoved, waitFor} from '@testing-library/react';
-import {shallow} from 'enzyme';
+import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import AccessHistoryModal from 'components/access_history_modal/access_history_modal';
-import AuditTable from 'components/audit_table';
-import LoadingScreen from 'components/loading_screen';
 
-import {withIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
+
+jest.mock('components/audit_table', () => {
+    return jest.fn().mockImplementation(() => {
+        return <div data-testid='audit-table'/>;
+    });
+});
+
+jest.mock('components/loading_screen', () => {
+    return jest.fn().mockImplementation(() => {
+        return <div data-testid='loading-screen'/>;
+    });
+});
 
 describe('components/AccessHistoryModal', () => {
     const baseProps = {
@@ -21,43 +30,63 @@ describe('components/AccessHistoryModal', () => {
         currentUserId: '',
     };
 
-    test('should match snapshot when no audits exist', () => {
-        const wrapper = shallow(
-            <AccessHistoryModal {...baseProps}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(LoadingScreen).exists()).toBe(true);
-        expect(wrapper.find(AuditTable).exists()).toBe(false);
+    test('should show loading screen when no audits exist', () => {
+        renderWithContext(<AccessHistoryModal {...baseProps}/>);
+
+        expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
+        expect(screen.queryByTestId('audit-table')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot when audits exist', () => {
-        const wrapper = shallow(
-            <AccessHistoryModal {...baseProps}/>,
+    test('should show audit table when audits exist', () => {
+        renderWithContext(
+            <AccessHistoryModal
+                {...baseProps}
+                userAudits={['audit1', 'audit2'] as any}
+            />,
         );
 
-        wrapper.setProps({userAudits: ['audit1', 'audit2']});
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(LoadingScreen).exists()).toBe(false);
-        expect(wrapper.find(AuditTable).exists()).toBe(true);
+        expect(screen.queryByTestId('loading-screen')).not.toBeInTheDocument();
+        expect(screen.getByTestId('audit-table')).toBeInTheDocument();
     });
 
-    test('should have called actions.getUserAudits only when first rendered', () => {
+    test('should call getUserAudits on mount', () => {
         const actions = {
             getUserAudits: jest.fn(),
         };
         const props = {...baseProps, actions};
-        const view = render(withIntl(<AccessHistoryModal {...props}/>));
 
+        renderWithContext(<AccessHistoryModal {...props}/>);
         expect(actions.getUserAudits).toHaveBeenCalledTimes(1);
-        const newProps = {...props, currentUserId: 'foo'};
-        view.rerender(withIntl(<AccessHistoryModal {...newProps}/>));
-        expect(actions.getUserAudits).toHaveBeenCalledTimes(1);
+        expect(actions.getUserAudits).toHaveBeenCalledWith('', 0, 200);
     });
 
-    test('should hide', async () => {
-        render(withIntl(<AccessHistoryModal {...baseProps}/>));
+    test('should call getUserAudits again when currentUserId changes', () => {
+        const actions = {
+            getUserAudits: jest.fn(),
+        };
+        const props = {...baseProps, actions};
+
+        const {rerender} = renderWithContext(<AccessHistoryModal {...props}/>);
+        expect(actions.getUserAudits).toHaveBeenCalledTimes(1);
+
+        const newProps = {...props, currentUserId: 'foo'};
+        rerender(<AccessHistoryModal {...newProps}/>);
+        expect(actions.getUserAudits).toHaveBeenCalledTimes(2);
+        expect(actions.getUserAudits).toHaveBeenCalledWith('foo', 0, 200);
+    });
+
+    test('should call onHide when modal is closed', async () => {
+        const onHide = jest.fn();
+        renderWithContext(
+            <AccessHistoryModal
+                {...baseProps}
+                onHide={onHide}
+            />,
+        );
+
         await waitFor(() => screen.getByText('Access History'));
         fireEvent.click(screen.getByLabelText('Close'));
-        await waitForElementToBeRemoved(() => screen.getByText('Access History'));
+
+        expect(onHide).toHaveBeenCalledTimes(1);
     });
 });
