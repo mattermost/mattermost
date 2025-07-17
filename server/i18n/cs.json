@@ -10666,5 +10666,9 @@
   {
     "id": "api.channel.update_channel.not_allowed.app_error",
     "translation": "Kanály s vynucenými zásadami nelze aktualizovat."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Neplatná aktualizace člena kanálu: Člen kanálu vždy musí mít uživatelský plán."
   }
 ]
