@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
+func TestContentFlaggingEnabledForTeam(t *testing.T) {
 	getBaseConfig := func() *model.Config {
 		contentFlaggingSettings := model.ContentFlaggingSettings{}
 		contentFlaggingSettings.SetDefaults()

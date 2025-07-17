@@ -5,15 +5,6 @@ package app
 
 import "github.com/mattermost/mattermost/server/public/model"
 
-func (a *App) GetFlaggingConfiguration() *model.ContentFlaggingReportingConfig {
-	contentFlaggingSettings := a.Config().ContentFlaggingSettings
-
-	return &model.ContentFlaggingReportingConfig{
-		Reasons:                 contentFlaggingSettings.AdditionalSettings.Reasons,
-		ReporterCommentRequired: contentFlaggingSettings.AdditionalSettings.ReporterCommentRequired,
-	}
-}
-
 func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
 	reviewerSettings := config.ContentFlaggingSettings.ReviewerSettings
 

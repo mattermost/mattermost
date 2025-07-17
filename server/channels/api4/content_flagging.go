@@ -40,10 +40,10 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	flaggingConfig := c.App.GetFlaggingConfiguration()
+	config := getFlaggingConfig(c.App.Config().ContentFlaggingSettings)
 
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(flaggingConfig); err != nil {
+	if err := json.NewEncoder(w).Encode(config); err != nil {
 		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
 		return
 	}
@@ -75,5 +75,12 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 	if err := json.NewEncoder(w).Encode(payload); err != nil {
 		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
 		return
+	}
+}
+
+func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings) *model.ContentFlaggingReportingConfig {
+	return &model.ContentFlaggingReportingConfig{
+		Reasons:                 contentFlaggingSettings.AdditionalSettings.Reasons,
+		ReporterCommentRequired: contentFlaggingSettings.AdditionalSettings.ReporterCommentRequired,
 	}
 }
