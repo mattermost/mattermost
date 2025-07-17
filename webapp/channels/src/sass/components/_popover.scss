@@ -250,15 +250,10 @@
         font-size: 1.4rem;
     }
 
-    ul {
-        span {
-            opacity: 0.8;
-        }
-
-        strong,
-        b {
-            opacity: 1;
-        }
+    ul[role="group"] {
+        // Undo padding and margins added by Bootstrap and our design system
+        padding: 0;
+        margin: 0;
     }
 
     .tooltip-inner {

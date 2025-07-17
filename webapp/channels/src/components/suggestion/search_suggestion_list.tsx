@@ -11,6 +11,7 @@ import Constants from 'utils/constants';
 
 import type {Props} from './suggestion_list';
 import SuggestionList from './suggestion_list';
+import {SuggestionListContents} from './suggestion_list_structure';
 import {hasResults} from './suggestion_results';
 
 export default class SearchSuggestionList extends SuggestionList {
@@ -28,7 +29,7 @@ export default class SearchSuggestionList extends SuggestionList {
         return this.itemsContainerRef?.current?.parentNode as HTMLUListElement | null;
     };
 
-    renderChannelDivider(type: string) {
+    renderChannelDivider(type: string) { // TODO remove divider logic
         let text;
         if (type === Constants.OPEN_CHANNEL) {
             text = (
@@ -68,46 +69,6 @@ export default class SearchSuggestionList extends SuggestionList {
             return null;
         }
 
-        const items: JSX.Element[] = [];
-        let haveDMDivider = false;
-        for (let i = 0; i < this.props.results.items.length; i++) {
-            const item: any = this.props.results.items[i];
-            const term = this.props.results.terms[i];
-            const isSelection = term === this.props.selection;
-
-            // ReactComponent names need to be upper case when used in JSX
-            const Component = this.props.results.components[i];
-
-            // temporary hack to add dividers between public and private channels in the search suggestion list
-            if (this.props.renderDividers) {
-                if (i === 0 || item.type !== this.props.results.items[i - 1].type) {
-                    if (item.type === Constants.DM_CHANNEL || item.type === Constants.GM_CHANNEL) {
-                        if (!haveDMDivider) {
-                            items.push(this.renderChannelDivider(Constants.DM_CHANNEL));
-                        }
-                        haveDMDivider = true;
-                    } else if (item.type === Constants.PRIVATE_CHANNEL) {
-                        items.push(this.renderChannelDivider(Constants.PRIVATE_CHANNEL));
-                    } else if (item.type === Constants.OPEN_CHANNEL) {
-                        items.push(this.renderChannelDivider(Constants.OPEN_CHANNEL));
-                    }
-                }
-            }
-
-            items.push(
-                <Component
-                    key={term}
-                    id={`sbrSearchBox_item_${term}`}
-                    item={item}
-                    term={term}
-                    matchedPretext={this.props.results.matchedPretext}
-                    isSelection={isSelection}
-                    onClick={this.props.onCompleteWord}
-                    onMouseMove={this.props.onItemHover}
-                />,
-            );
-        }
-
         return (
             <Popover
                 ref={this.popoverRef}
@@ -115,12 +76,16 @@ export default class SearchSuggestionList extends SuggestionList {
                 className='search-help-popover autocomplete visible'
                 placement='bottom'
             >
-                <div
+                <SuggestionListContents
                     ref={this.itemsContainerRef}
-                    role='listbox'
-                >
-                    {items}
-                </div>
+                    id='searchSuggestionList'
+                    results={this.props.results}
+                    selectedTerm={this.props.selection}
+
+                    getItemId={(term) => `sbrSearchBox_item_${term}`}
+                    onItemClick={this.props.onCompleteWord}
+                    onItemHover={this.props.onItemHover}
+                />
             </Popover>
         );
     }
