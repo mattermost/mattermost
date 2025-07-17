@@ -348,6 +348,8 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.SanitizeTeam(*c.AppContext.Session(), team)
+
 	auditRec.AddEventResultState(team)
 	auditRec.AddEventObjectType("team")
 	auditRec.Success()
@@ -407,6 +409,8 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	c.App.SanitizeTeam(*c.AppContext.Session(), team)
 
 	auditRec.AddEventResultState(team)
 	auditRec.AddEventObjectType("team")
