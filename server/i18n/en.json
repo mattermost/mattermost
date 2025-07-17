@@ -2875,6 +2875,10 @@
     "translation": "Remote Cluster not found"
   },
   {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Remote cluster import is not allowed"
+  },
+  {
     "id": "api.remote_cluster.invalid_id.app_error",
     "translation": "Invalid id."
   },
@@ -3889,6 +3893,10 @@
   {
     "id": "api.upload.get_upload.forbidden.app_error",
     "translation": "Failed to get upload."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Failed to upload file. Upload channel is not shared with remote."
   },
   {
     "id": "api.upload.upload_data.invalid_content_length",
@@ -5711,6 +5719,10 @@
     "translation": "Missing required direct post property: message"
   },
   {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Failed to validate direct post thread follower data."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
     "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
   },
@@ -5765,6 +5777,10 @@
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
     "translation": "Missing required Post property: Team."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Failed to validate post thread follower data."
   },
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
@@ -5897,6 +5913,14 @@
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
     "translation": "Missing required team property: type."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Import follower data empty."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Missing required follower property: user."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
