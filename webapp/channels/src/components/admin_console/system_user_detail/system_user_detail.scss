@@ -19,6 +19,18 @@
             input {
                 display: inline-block;
                 max-width: 320px;
+
+                &.error {
+                    border-color: var(--error-text);
+                    box-shadow: 0 0 0 1px var(--error-text);
+                }
+            }
+
+            .field-error {
+                display: block;
+                margin-top: 4px;
+                color: var(--error-text);
+                font-size: 12px;
             }
         }
 

@@ -7,7 +7,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken} from '@mattermost/types/users';
+import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken, UserAuthUpdate, UserAuthResponse} from '@mattermost/types/users';
 
 import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -1030,6 +1030,20 @@ export function patchUser(user: UserProfile): ActionFuncAsync<UserProfile> {
     };
 }
 
+export function updateUserAuth(userId: string, userAuth: UserAuthUpdate): ActionFuncAsync<UserAuthResponse> {
+    return async (dispatch) => {
+        let data: UserAuthResponse;
+        try {
+            data = await Client4.updateUserAuth(userId, userAuth);
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
+
+        return {data};
+    };
+}
+
 export function updateUserRoles(userId: string, roles: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
@@ -1446,6 +1460,7 @@ export default {
     getUserAudits,
     searchProfiles,
     updateMe,
+    updateUserAuth,
     updateUserRoles,
     updateUserMfa,
     updateUserPassword,
