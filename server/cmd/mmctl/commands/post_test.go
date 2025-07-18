@@ -56,8 +56,6 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		channelArg := "example-channel"
 		mockChannel := model.Channel{Name: channelArg}
 		mockPost := &model.Post{Message: msgArg}
-		data, err := mockPost.ToJSON()
-		s.Require().NoError(err)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
@@ -70,11 +68,11 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			DoAPIPost(context.TODO(), "/posts?set_online=false", data).
+			DoAPIPostJSON(context.TODO(), "/posts?set_online=false", mockPost).
 			Return(nil, errors.New("some-error")).
 			Times(1)
 
-		err = postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
+		err := postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
 		s.Require().Contains(err.Error(), "could not create post")
 	})
 
@@ -83,8 +81,6 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		channelArg := "example-channel"
 		mockChannel := model.Channel{Name: channelArg}
 		mockPost := model.Post{Message: msgArg}
-		data, err := mockPost.ToJSON()
-		s.Require().NoError(err)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
@@ -97,11 +93,11 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			DoAPIPost(context.TODO(), "/posts?set_online=false", data).
+			DoAPIPostJSON(context.TODO(), "/posts?set_online=false", mockPost).
 			Return(nil, nil).
 			Times(1)
 
-		err = postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
+		err := postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -114,8 +110,6 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		mockChannel := model.Channel{Name: channelArg}
 		mockReplyTo := model.Post{RootId: rootID}
 		mockPost := model.Post{Message: msgArg, RootId: rootID}
-		data, err := mockPost.ToJSON()
-		s.Require().NoError(err)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("reply-to", replyToArg, "")
@@ -135,11 +129,11 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			DoAPIPost(context.TODO(), "/posts?set_online=false", data).
+			DoAPIPostJSON(context.TODO(), "/posts?set_online=false", mockPost).
 			Return(nil, nil).
 			Times(1)
 
-		err = postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
+		err := postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
