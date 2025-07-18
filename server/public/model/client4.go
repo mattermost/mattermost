@@ -157,6 +157,19 @@ func DecodeJSONFromResponse[T any](r *http.Response) (T, *Response, error) {
 	return result, BuildResponse(r), nil
 }
 
+// ReadBytesFromResponse reads all bytes from an HTTP response body and returns them.
+// Handles 304 Not Modified responses and calls [BuildResponse] automatically.
+func ReadBytesFromResponse(r *http.Response) ([]byte, *Response, error) {
+	if r.StatusCode == http.StatusNotModified {
+		return nil, BuildResponse(r), nil
+	}
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	return data, BuildResponse(r), nil
+}
+
 func (c *Client4) SetToken(token string) {
 	c.AuthToken = token
 	c.AuthType = HeaderBearer
@@ -1137,12 +1150,7 @@ func (c *Client4) GetDefaultProfileImage(ctx context.Context, userId string) ([]
 	}
 	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetDefaultProfileImage", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // GetProfileImage gets user's profile image. Must be logged in.
@@ -1153,11 +1161,7 @@ func (c *Client4) GetProfileImage(ctx context.Context, userId, etag string) ([]b
 	}
 	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetProfileImage", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // GetUsers returns a page of users on the system. Page counting starts at 0.
@@ -2676,11 +2680,7 @@ func (c *Client4) GetTeamIcon(ctx context.Context, teamId, etag string) ([]byte,
 	}
 	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetTeamIcon", "model.client.get_team_icon.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // RemoveTeamIcon updates LastTeamIconUpdate to 0 which indicates team icon is removed.
@@ -3945,11 +3945,7 @@ func (c *Client4) GetFile(ctx context.Context, fileId string) ([]byte, *Response
 	}
 	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetFile", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // DownloadFile gets the bytes for a file by id, optionally adding headers to force the browser to download it.
@@ -3960,11 +3956,7 @@ func (c *Client4) DownloadFile(ctx context.Context, fileId string, download bool
 	}
 	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("DownloadFile", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // GetFileThumbnail gets the bytes for a file by id.
@@ -3975,11 +3967,7 @@ func (c *Client4) GetFileThumbnail(ctx context.Context, fileId string) ([]byte, 
 	}
 	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetFileThumbnail", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // DownloadFileThumbnail gets the bytes for a file by id, optionally adding headers to force the browser to download it.
@@ -3990,11 +3978,7 @@ func (c *Client4) DownloadFileThumbnail(ctx context.Context, fileId string, down
 	}
 	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("DownloadFileThumbnail", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // GetFileLink gets the public link of a file by id.
@@ -4019,11 +4003,7 @@ func (c *Client4) GetFilePreview(ctx context.Context, fileId string) ([]byte, *R
 	}
 	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetFilePreview", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // DownloadFilePreview gets the bytes for a file by id.
@@ -4034,11 +4014,7 @@ func (c *Client4) DownloadFilePreview(ctx context.Context, fileId string, downlo
 	}
 	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("DownloadFilePreview", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // GetFileInfo gets all the file info objects.
@@ -4850,12 +4826,7 @@ func (c *Client4) DownloadComplianceReport(ctx context.Context, reportId string)
 		return nil, BuildResponse(rp), AppErrorFromJSON(rp.Body)
 	}
 
-	data, err := io.ReadAll(rp.Body)
-	if err != nil {
-		return nil, BuildResponse(rp), NewAppError("DownloadComplianceReport", "model.client.read_file.app_error", nil, "", rp.StatusCode).Wrap(err)
-	}
-
-	return data, BuildResponse(rp), nil
+	return ReadBytesFromResponse(rp)
 }
 
 // Cluster Section
@@ -5168,12 +5139,7 @@ func (c *Client4) GetBrandImage(ctx context.Context) ([]byte, *Response, error) 
 		return nil, BuildResponse(r), AppErrorFromJSON(r.Body)
 	}
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetBrandImage", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // DeleteBrandImage deletes the brand image for the system.
@@ -5246,12 +5212,7 @@ func (c *Client4) DownloadLogs(ctx context.Context) ([]byte, *Response, error) {
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("DownloadLogs", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // PostLog is a convenience Web Service call so clients can log messages into
@@ -6113,12 +6074,7 @@ func (c *Client4) GetEmojiImage(ctx context.Context, emojiId string) ([]byte, *R
 	}
 	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetEmojiImage", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // SearchEmoji returns a list of emoji matching some search criteria.
@@ -6268,11 +6224,7 @@ func (c *Client4) DownloadJob(ctx context.Context, jobId string) ([]byte, *Respo
 	}
 	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, "", r.StatusCode).Wrap(err)
-	}
-	return data, BuildResponse(r), nil
+	return ReadBytesFromResponse(r)
 }
 
 // UpdateJobStatus updates the status of a job
