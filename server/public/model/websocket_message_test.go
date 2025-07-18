@@ -129,24 +129,24 @@ var stringSink []byte
 
 func BenchmarkWebSocketEvent_ToJSON(b *testing.B) {
 	event := NewWebSocketEvent(WebsocketEventPosted, "foo", "bar", "baz", nil, "")
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		event.GetData()[NewId()] = NewId()
 	}
 
 	b.Run("SerializedNTimes", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			stringSink, _ = event.ToJSON()
 		}
 	})
 
 	b.Run("PrecomputedNTimes", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			event.PrecomputeJSON()
 		}
 	})
 
 	b.Run("PrecomputedAndSerializedNTimes", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			event.PrecomputeJSON()
 			stringSink, _ = event.ToJSON()
 		}
@@ -154,7 +154,7 @@ func BenchmarkWebSocketEvent_ToJSON(b *testing.B) {
 
 	event.PrecomputeJSON()
 	b.Run("PrecomputedOnceAndSerializedNTimes", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			stringSink, _ = event.ToJSON()
 		}
 	})
@@ -249,7 +249,7 @@ func BenchmarkEncodeJSON(b *testing.B) {
 
 	var seq int64
 	enc := json.NewEncoder(io.Discard)
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		ev = ev.SetSequence(seq)
 		err = ev.Encode(enc, io.Discard)
 		seq++
