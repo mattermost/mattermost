@@ -496,7 +496,6 @@ export type ExperimentalAuditSettings = {
     Certificate: string;
 };
 
-
 export type PasswordSettings = {
     MinimumLength: number;
     Lowercase: boolean;
