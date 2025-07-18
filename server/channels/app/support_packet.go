@@ -260,10 +260,6 @@ func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.FileData, error)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
 	}
-	jobs.BlevePostIndexingJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeBlevePostIndexing, 0, numberOfJobsRuns)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting bleve post indexing jobs"))
-	}
 	jobs.MigrationJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeMigrations, 0, numberOfJobsRuns)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))

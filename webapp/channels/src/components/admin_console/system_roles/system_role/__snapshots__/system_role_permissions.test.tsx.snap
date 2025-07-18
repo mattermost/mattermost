@@ -390,9 +390,6 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             Object {
               "name": "experimental_feature_flags",
             },
-            Object {
-              "name": "experimental_bleve",
-            },
           ],
         }
       }
@@ -704,9 +701,6 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             },
             Object {
               "name": "experimental_feature_flags",
-            },
-            Object {
-              "name": "experimental_bleve",
             },
           ],
         }

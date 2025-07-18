@@ -156,9 +156,6 @@ linters:
           platform/services/remotecluster/send_test.go|\
           platform/services/remotecluster/sendfile.go|\
           platform/services/remotecluster/sendprofileImage_test.go|\
-          platform/services/searchengine/bleveengine/bleve_test.go|\
-          platform/services/searchengine/bleveengine/common.go|\
-          platform/services/searchengine/bleveengine/indexer/indexing_job.go|\
           platform/services/sharedchannel/attachment.go|\
           platform/services/sharedchannel/channelinvite.go|\
           platform/services/sharedchannel/permalink_test.go|\
