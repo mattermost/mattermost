@@ -171,30 +171,32 @@ export default class Textbox extends React.PureComponent<Props> {
      * フルネーム/ニックネーム (@Full Name) をusername (@user) に変換
      */
     convertToRawValue = (text: string): string => {
-        const {usersByUsername = {}} = this.props;
+        const {usersByUsername = {}, teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME} = this.props;
 
         // usersByUsernameを逆引き用のマップに変換
         const displayNameToUsername: Record<string, string> = {};
         Object.entries(usersByUsername).forEach(([username, user]) => {
-            const fullName = `${user.first_name} ${user.last_name}`.trim();
-            const nickname = user.nickname;
+            const displayName = displayUsername(user, teammateNameDisplay, false);
 
-            if (fullName) {
-                displayNameToUsername[fullName] = username;
-            }
-            if (nickname) {
-                displayNameToUsername[nickname] = username;
+            if (displayName && displayName !== username) {
+                displayNameToUsername[displayName] = username;
             }
         });
 
-        // @表示名 を @username に変換
-        return text.replace(/@([^@\s]+(?:\s+[^@\s]+)*)/g, (match, displayName) => {
-            const username = displayNameToUsername[displayName.trim()];
-            if (username) {
+        const sortedDisplayNames = Object.keys(displayNameToUsername).sort((a, b) => b.length - a.length);
+
+        let result = text;
+        for (const displayName of sortedDisplayNames) {
+            const escapedDisplayName = displayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`@${escapedDisplayName}(?=\\s|$|[^\\w])`, 'g');
+
+            result = result.replace(regex, () => {
+                const username = displayNameToUsername[displayName];
                 return `@${username}`;
-            }
-            return match;
-        });
+            });
+        }
+
+        return result;
     };
 
     /**

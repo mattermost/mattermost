@@ -413,17 +413,19 @@ const AdvancedTextEditor = ({
     );
 
     const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
-        handleSubmit(submittingDraft, schedulingInfo, options);
-        if (!errorClass) {
-            const messageStatusElement = messageStatusRef.current;
-            const messageStatusInnerText = messageStatusElement?.textContent;
-            if (messageStatusInnerText === 'Message Sent') {
-                messageStatusElement!.textContent = 'Message Sent &nbsp;';
-            } else {
-                messageStatusElement!.textContent = 'Message Sent';
-            }
+        // 送信時にTextboxから生の値（username形式）を取得
+        let finalDraft = submittingDraft || draft;
+
+        if (textboxRef.current && typeof textboxRef.current.getRawValue === 'function') {
+            const rawValue = textboxRef.current.getRawValue();
+            finalDraft = {
+                ...finalDraft,
+                message: rawValue,
+            };
         }
-    }, [errorClass, handleSubmit]);
+
+        handleSubmit(finalDraft, schedulingInfo, options);
+    }, [errorClass, handleSubmit, draft, textboxRef]);
 
     const handleCancel = useCallback(() => {
         handleDraftChange({
@@ -848,14 +850,14 @@ const AdvancedTextEditor = ({
                             disabled={isDisabled}
                             characterLimit={maxPostSize}
                             preview={showPreview}
+                            usersByUsername={usersByUsername}
+                            teammateNameDisplay={teammateNameDisplay}
+                            mentionKeys={mentionKeys}
                             badConnection={badConnection}
                             useChannelMentions={useChannelMentions}
                             rootId={rootId}
                             onWidthChange={handleWidthChange}
                             isInEditMode={isInEditMode}
-                            usersByUsername={usersByUsername}
-                            teammateNameDisplay={teammateNameDisplay}
-                            mentionKeys={mentionKeys}
                         />
                         {attachmentPreview}
                         {!isDisabled && (showFormattingBar || showPreview) && (
