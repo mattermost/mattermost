@@ -36,6 +36,8 @@ func (api *API) InitUserLocal() {
 	api.BaseRoutes.User.Handle("/promote", api.APILocal(promoteGuestToUser)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/demote", api.APILocal(demoteUserToGuest)).Methods(http.MethodPost)
 
+	api.BaseRoutes.User.Handle("/auth", api.APILocal(updateUserAuth)).Methods(http.MethodPut)
+
 	api.BaseRoutes.UserByUsername.Handle("", api.APILocal(localGetUserByUsername)).Methods(http.MethodGet)
 	api.BaseRoutes.UserByEmail.Handle("", api.APILocal(localGetUserByEmail)).Methods(http.MethodGet)
 
