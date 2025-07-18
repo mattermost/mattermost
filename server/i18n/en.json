@@ -8085,6 +8085,10 @@
     "translation": "Setting up {{.Backend}} Client Failed"
   },
   {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Failed to create Elasticsearch bulk processor"
+  },
+  {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Failed to create {{.Backend}} template for channels"
   },

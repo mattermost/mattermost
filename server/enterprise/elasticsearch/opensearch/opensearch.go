@@ -44,8 +44,9 @@ type OpensearchInterfaceImpl struct {
 	fullVersion string
 	plugins     []string
 
-	bulkProcessor *Bulk
-	Platform      *platform.PlatformService
+	bulkProcessor     *Bulk
+	syncBulkProcessor *Bulk
+	Platform          *platform.PlatformService
 }
 
 func getJSONOrErrorStr(obj any) string {
@@ -129,11 +130,27 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 
 	ctx := context.Background()
 
-	if *os.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize > 1 {
-		os.bulkProcessor = NewBulk(os.Platform.Config().ElasticsearchSettings,
-			os.Platform.Log(),
-			os.client)
+	esSettings := os.Platform.Config().ElasticsearchSettings
+	if *esSettings.LiveIndexingBatchSize > 1 {
+		os.bulkProcessor = NewBulk(
+			common.BulkSettings{
+				FlushBytes:    0,
+				FlushInterval: common.BulkFlushInterval,
+				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
+			},
+			os.client,
+			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+			os.Platform.Log())
 	}
+	os.syncBulkProcessor = NewBulk(
+		common.BulkSettings{
+			FlushBytes:    common.BulkFlushBytes,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		os.client,
+		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+		os.Platform.Log())
 
 	// Set up posts index template.
 	templateBuf, err := json.Marshal(common.GetPostTemplate(os.Platform.Config()))
@@ -866,7 +883,7 @@ func (os *OpensearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, chann
 		}
 	}
 
-	if err := os.syncBulkProcessor.flush(); err != nil {
+	if err := os.syncBulkProcessor.Flush(); err != nil {
 		return model.NewAppError("Opensearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

@@ -42,8 +42,9 @@ type ElasticsearchInterfaceImpl struct {
 	fullVersion string
 	plugins     []string
 
-	bulkProcessor *Bulk
-	Platform      *platform.PlatformService
+	bulkProcessor     BulkClient
+	syncBulkProcessor BulkClient
+	Platform          *platform.PlatformService
 }
 
 func getJSONOrErrorStr(obj any) string {
@@ -127,10 +128,39 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 
 	ctx := context.Background()
 
-	if *es.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize > 1 {
-		es.bulkProcessor = NewBulk(es.Platform.Config().ElasticsearchSettings,
-			es.Platform.Log(),
-			es.client)
+	esSettings := es.Platform.Config().ElasticsearchSettings
+	if *esSettings.LiveIndexingBatchSize > 1 {
+		es.bulkProcessor, err = NewBulk(
+			common.BulkSettings{
+				FlushBytes:    0,
+				FlushInterval: common.BulkFlushInterval,
+				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
+			},
+			es.client,
+			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+			es.Platform.Log())
+		if err != nil {
+			return model.NewAppError("elasticsearch.start",
+				"ent.elasticsearch.create_processor.bulk_processor_create_failed",
+				nil, "",
+				http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	es.syncBulkProcessor, err = NewBulk(
+		common.BulkSettings{
+			FlushBytes:    common.BulkFlushBytes,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		es.client,
+		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+		es.Platform.Log())
+	if err != nil {
+		return model.NewAppError("elasticsearch.start",
+			"ent.elasticsearch.create_processor.bulk_processor_create_failed",
+			nil, "",
+			http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up posts index template.
@@ -784,7 +814,7 @@ func (es *ElasticsearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, ch
 		}
 	}
 
-	if err := es.syncBulkProcessor.flush(); err != nil {
+	if err := es.syncBulkProcessor.Flush(); err != nil {
 		return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
