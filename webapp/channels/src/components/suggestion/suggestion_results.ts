@@ -4,8 +4,7 @@
 import type {MessageDescriptor} from 'react-intl';
 
 /**
- * SuggestionResult stores a list of suggestions
- * all of the results are rendered with the same component.
+ * SuggestionResult stores a list of suggestions rendered by the SuggestionBox/SuggestionList.
  */
 export type SuggestionResults<Item> = SuggestionResultsGrouped<Item> | SuggestionResultsUngrouped<Item>;
 
