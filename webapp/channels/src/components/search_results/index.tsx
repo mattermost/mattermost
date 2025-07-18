@@ -11,6 +11,7 @@ import {getSearchFilesResults} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getSearchMatches, getSearchResults} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {makeAddDateSeparatorsForSearchResults} from 'mattermost-redux/utils/post_list';
 
 import {
     getSearchResultsTerms,
@@ -33,7 +34,7 @@ function makeMapStateToProps() {
     let files: FileSearchResultItem[] = [];
     let posts: Post[];
 
-    return function mapStateToProps(state: GlobalState) {
+    return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const config = getConfig(state);
 
         const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
@@ -80,8 +81,15 @@ function makeMapStateToProps() {
         const currentSearch = (getCurrentSearchForSearchTeam(state) as unknown as Record<string, any>) || {};
         const currentTeamName = getCurrentTeam(state)?.name ?? '';
 
+        if (ownProps.isPinnedPosts) {
+            results = results.sort((postA: Post|FileSearchResultItem, postB: Post|FileSearchResultItem) => postB.create_at - postA.create_at);
+        }
+
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
+        const resultsWithDateSeparators = addDateSeparatorsForSearchResults(state, results);
+
         return {
-            results: posts,
+            results: resultsWithDateSeparators,
             fileResults: files,
             matches: getSearchMatches(state),
             searchTerms: getSearchResultsTerms(state),

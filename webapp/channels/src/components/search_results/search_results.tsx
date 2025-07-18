@@ -12,12 +12,14 @@ import type {Post} from '@mattermost/types/posts';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {isDateLine, getDateForDateLine} from 'mattermost-redux/utils/post_list';
 
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
 
 import FileSearchResultItem from 'components/file_search_results';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
+import DateSeparator from 'components/post_view/date_separator';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
@@ -215,7 +217,6 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             })}</strong>};
 
         sortedResults = [...results];
-        sortedResults.sort((postA: Post|FileSearchResultItemType, postB: Post|FileSearchResultItemType) => postB.create_at - postA.create_at);
 
         titleDescriptor = defineMessage({
             id: 'search_header.pinnedMessages',
@@ -322,13 +323,24 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             sortedResults = fileResults;
         }
 
-        contentItems = sortedResults.map((item: Post|FileSearchResultItemType, index: number) => {
+        contentItems = sortedResults.map((item: string|Post|FileSearchResultItemType, index: number) => {
             if (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && !props.isChannelFiles) {
+                if (typeof item === 'string' && isDateLine(item)) {
+                    const date = getDateForDateLine(item as string);
+                    return (
+                        <DateSeparator
+                            key={date}
+                            date={date}
+                        />
+                    );
+                }
+
+                const post = item as Post;
                 return (
                     <PostSearchResultsItem
-                        key={item.id}
-                        post={item as Post}
-                        matches={props.matches[item.id]}
+                        key={post.id}
+                        post={post}
+                        matches={props.matches[post.id]}
                         searchTerm={searchTerms}
                         isFlaggedPosts={props.isFlaggedPosts}
                         isMentionSearch={props.isMentionSearch}
@@ -339,8 +351,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             }
             return (
                 <FileSearchResultItem
-                    key={item.id}
-                    channelId={item.channel_id}
+                    key={(item as FileSearchResultItemType).id}
+                    channelId={(item as FileSearchResultItemType).channel_id}
                     fileInfo={item as FileSearchResultItemType}
                     teamName={props.currentTeamName}
                     pluginMenuItems={filesDropdownPluginMenuItems}
