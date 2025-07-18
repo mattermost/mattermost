@@ -82,7 +82,7 @@ func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addSamlPublicCertificate", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddSamlPublicCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
@@ -106,7 +106,7 @@ func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addSamlPrivateCertificate", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddSamlPrivateCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
@@ -135,7 +135,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addSamlIdpCertificate", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddSamlIdpCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("type", d)
 
@@ -177,7 +177,7 @@ func removeSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeSamlPublicCertificate", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveSamlPublicCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveSamlPublicCertificate(); err != nil {
@@ -195,7 +195,7 @@ func removeSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeSamlPrivateCertificate", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveSamlPrivateCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveSamlPrivateCertificate(); err != nil {
@@ -213,7 +213,7 @@ func removeSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeSamlIdpCertificate", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveSamlIdpCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveSamlIdpCertificate(); err != nil {

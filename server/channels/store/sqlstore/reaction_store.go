@@ -240,7 +240,6 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	}
 
 	for _, reaction := range reactions {
-		reaction := reaction
 		_, err := s.GetMaster().Exec(UpdatePostHasReactionsOnDeleteQuery, now, reaction.PostId, reaction.PostId)
 		if err != nil {
 			mlog.Warn("Unable to update Post.HasReactions while removing reactions",

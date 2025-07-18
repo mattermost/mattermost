@@ -1,8 +1,15 @@
 .access-history-modal {
-    .table {
-        thead > tr > th,
-        tbody > tr > td {
-            border-color: rgba(var(--center-channel-color-rgb), 0.12);
+    min-width: 40vw;
+    .GenericModal__body {
+        padding: 24px 0 0;
+    }
+
+    .access-history-modal__body {
+        .table {
+            thead > tr > th,
+            tbody > tr > td {
+                border-color: rgba(var(--center-channel-color-rgb), 0.12);
+            }
         }
     }
 }
