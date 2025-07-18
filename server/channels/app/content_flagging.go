@@ -8,7 +8,7 @@ import "github.com/mattermost/mattermost/server/public/model"
 func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
 	reviewerSettings := config.ContentFlaggingSettings.ReviewerSettings
 
-	hasCommonReviewers := reviewerSettings.CommonReviewers != nil && *reviewerSettings.CommonReviewers
+	hasCommonReviewers := *reviewerSettings.CommonReviewers
 	if hasCommonReviewers {
 		return true
 	}
